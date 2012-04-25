@@ -85,13 +85,14 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 		return ;
 	if( getBehaviour()->type != VOID_BEHAVIOUR )
 	{
-		if( boundaryConditionCache )
+		if( boundaryConditionCache && !boundaryConditionCache->empty())
 		{
 			for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 				delete( *boundaryConditionCache )[i] ;
+			boundaryConditionCache->clear();
 		}
-		delete boundaryConditionCache ;
-		boundaryConditionCache = new std::vector<BoundaryCondition *>;
+		else if (!boundaryConditionCache)
+			boundaryConditionCache = new std::vector<BoundaryCondition *>;
 		std::valarray<Matrix> Jinv( getGaussPoints().gaussPoints.size() ) ;
 
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )

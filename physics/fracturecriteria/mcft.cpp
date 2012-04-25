@@ -34,6 +34,7 @@ NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, R
 	firstMet = false ;
 	secondMet = false ;
 	initialised = false ;
+	radiusInitialised = false ;
 	scaleFactor = 1 ;
 }
 
@@ -203,17 +204,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty())
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*1.5;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*1.5 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*1.5 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*1.5 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -233,10 +234,16 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
  //		return rebcrit ;
 	
 	
-	
+	effectiveInfluenceDistance = std::max(getMaterialCharacteristicRadius(),effectiveInfluenceDistance) ; 
 	double f = (distanceToRebar)/(effectiveInfluenceDistance) ;
 	double df = 3.*f*f-2.*f*f*f ;
 	
+	if (!radiusInitialised)
+	{
+		setMaterialCharacteristicRadius(getMaterialCharacteristicRadius()*df+effectiveInfluenceDistance*(1.-df));
+		radiusInitialised = true ;
+	}
+// 	return barecrit ;
 	return df*barecrit + (1.-df)*rebcrit ;
 }
 
@@ -484,6 +491,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		secondCompression = true ;
 		firstTension = false ;
 		firstCompression = false ;
+		secondMet = ccrit > 0 ;
 		return ccrit ;
 	}
 	
@@ -491,8 +499,8 @@ double NonLocalMCFT::grade( ElementState &s )
 	secondCompression = false ;
 	firstTension = true ;
 	firstCompression = true ;
+	firstMet = tcrit > 0 ;
 	return tcrit ;
-	return -1 ;
 }
 
 double NonLocalMCFT::getTensileLimit(const ElementState & s) const 

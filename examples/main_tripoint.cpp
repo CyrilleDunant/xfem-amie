@@ -177,7 +177,8 @@ MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", NULL ) ;
 
 Function loadFunction("0") ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth*1.5, -10, 10, loadFunction ) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth*1.25, -10, 10, loadFunction ) ;
+
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
@@ -268,10 +269,7 @@ void step()
 	
 	size_t nsteps = 3000 ; //16*10;
 	size_t nit = 2 ;
-	size_t ntries = 5;
-	size_t dsteps = 60 ;
 	size_t tries = 0 ;
-	size_t dit = 0 ;
 	int totit = 0 ;
 
 	for ( size_t v = 0 ; v < nsteps ; v++ )
@@ -286,15 +284,24 @@ void step()
 
 		go_on = featureTree->step() ;
 
-		if ( go_on )
+		if ( go_on  && v > 0)
 		{
-			tries++ ;
 			Function x("x") ;
-			Function f = (x-platewidth*.5)/platewidth ;
+			Function f = (x-platewidth*.75)/(platewidth*.5) ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			loadFunction = f_negativity(x-platewidth*.5)*(-20e4*tries) - f_positivity(x-platewidth*.5)*20e4*tries*(1.-df) ;
+			double l_real = 1e5*tries ;
+			loadFunction = f_negativity(x-platewidth*.75)*(-5e4*62-l_real) - f_positivity(x-platewidth*.75)*(l_real+5e4*62)*(1.-df) ;
 			load->setData( loadFunction ) ;
-			
+			tries++ ;
+		}
+		else if (v == 0)
+		{
+			Function ffx("x") ;
+			Function fff = (ffx-platewidth*.75)/(platewidth*.5) ;
+			Function ffdf = 3.*fff*fff-2.*fff*fff*fff ;
+			Function ffloadFunction = f_negativity(ffx-platewidth*.75)*(-5e4*62) - f_positivity(ffx-platewidth*.75)*5e4*62*(1.-ffdf) ;
+			load->setData( ffloadFunction ) ;
+			tries++ ;
 		}
 
 		triangles = featureTree->getActiveElements2D() ;
@@ -547,7 +554,7 @@ void step()
 		{
 
 			std::cout << std::endl ;
-			std::cout << "load :" << appliedForce << std::endl ;
+			std::cout << "load :" << avg_s_yy/1000. << std::endl ;
 			std::cout << "load check :" << .4*forceCheck / 1000 << std::endl ;
 			std::cout << "delta :" << delta*1000./deltacount << std::endl ;
 			std::cout << "displacement :" << 1000.*e_xx_0  << std::endl ;
@@ -578,6 +585,10 @@ void step()
 			std::cout << "average epsilon12 : " << avg_e_xy / area << std::endl ;
 
 		}
+		else
+		{
+			std::cout << " ( " << avg_s_yy/1000. << "  ,  " <<  1000.*e_xx_0  << " ) "<< std::endl ;
+		}
 
 
 		if ( go_on )
@@ -588,8 +599,9 @@ void step()
 		for ( int j = 0 ; j < loads.size() ; j++ )
 		{
 			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
+			
 		}
-
+		ldfile <<  1000.*e_xx_0 << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
 		ldfile.close();
 		if ( true )
 		{
@@ -1699,6 +1711,7 @@ void Display( void )
 
 int main( int argc, char *argv[] )
 {
+	
 	sampleLength = atof( argv[3] ) ;
 
 	if ( sampleLength > 4 )
@@ -1744,8 +1757,8 @@ int main( int argc, char *argv[] )
 
 	double halfSampleOffset = sampleLength*.25 ;
 	
-	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,0), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRESS) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,0), true,SPACE_TWO_DIMENSIONAL,PLANE_STRESS) ;
 
 	Sample box( NULL, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;

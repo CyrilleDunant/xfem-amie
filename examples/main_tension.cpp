@@ -1530,7 +1530,7 @@ int main(int argc, char *argv[])
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
 // 	inc.isVirtualFeature = true ;
 // // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius) /*DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius)*/, new PlasticStrain())) ;
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new NonLocalMCFT(-20e6, E_paste, mradius)/*new NonLocalVonMises(20e6, E_paste, mradius)DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius)*/, new PlasticStrain())) ;
 // 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));

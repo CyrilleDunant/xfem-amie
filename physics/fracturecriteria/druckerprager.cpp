@@ -18,6 +18,7 @@ namespace Mu {
 DruckerPrager::DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), upthreshold(upthres), downthreshold(downthres), friction(friction)
 {
 	setMaterialCharacteristicRadius(radius);
+	met = false ;
 }
 
 
@@ -28,11 +29,11 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s, EFFECTIVE_STRESS) ) ;
+	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s, REAL_STRESS) ) ;
 	Vector str = stressstrain.first ;
 	Vector stra = stressstrain.second ;
 	double maxStress = 0 ;
-	
+	met = false ;
 	//hardening function from Jirasek et al.
 	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
@@ -67,14 +68,17 @@ double DruckerPrager::grade(ElementState &s)
 	}
 	if(maxStress > upthreshold*factor && maxStress > 0)
 	{
+		met = true ;
 		return 1. - std::abs(factor*upthreshold/maxStress) ;
 	}
 	else if(maxStress >= 0)
 	{
 		return -1.+ std::abs(maxStress/(factor*upthreshold));
 	}
+	
 	else if(maxStress < factor*downthreshold && maxStress < 0)
 	{
+		met = true ;
 		return 1. - std::abs(factor*downthreshold/maxStress) ;
 	}
 	else

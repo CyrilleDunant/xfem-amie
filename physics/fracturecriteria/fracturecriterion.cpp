@@ -31,7 +31,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
 stable(true), checkpoint(true), inset(false),
-scoreTolerance(.3e-2),
+scoreTolerance(.33e-2),
 initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
@@ -2041,9 +2041,8 @@ void FractureCriterion::step(ElementState &s)
 		return ;
 	}
 	scoreAtState = grade(s) ;
-	if(!directionMet(0) && !directionMet(1) && !directionMet(2))
-		scoreAtState = -1 ;
-	
+// 	if(!directionMet(0) && !directionMet(1) && !directionMet(2))
+// 		scoreAtState = -1 ;
 }
 
 void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingType st)

@@ -58,7 +58,7 @@ void DamageModel::step( ElementState &s )
 	
 	change = false ;
 	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s ) ;
-	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood() ;
+	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood() ;//s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
 	if( !isInDamagingSet )
 	{

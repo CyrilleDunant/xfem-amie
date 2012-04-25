@@ -180,7 +180,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		}
 	}
 
-	return std::make_pair( state,  range) ;
+	return std::make_pair( getState(),  range) ;
 }
 
 Matrix RotatingCrack::apply( const Matrix &m ) const

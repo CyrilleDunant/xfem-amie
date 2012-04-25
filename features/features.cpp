@@ -3944,7 +3944,7 @@ void FeatureTree::solve()
 				coarseAssemblies[j]->clear() ;
 			}
 		}
-	}	
+	}
 	K->initialiseElementaryMatrices();
 	timeval time0, time1 ;
 	gettimeofday( &time0, NULL );
@@ -4331,40 +4331,6 @@ bool FeatureTree::stepElements()
 				}
 			}
 			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
-				{
-					foundCheckPoint = false ;
-					break ;
-				}
-			}
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
-				{
-					behaviourChange = true ;
-					break ;
-				}
-			}
-
-			if( foundCheckPoint )
-			{
-				std::cout << "[" << averageDamage << " ; " << std::flush ;
-
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
-					{
-						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
-						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
-					}
-				}
-				std::cout << maxScore << "]" << std::flush ;
-			}
-			
 			double volume = 0;
 			if(!elastic)
 				crackedVolume = 0 ;
@@ -4409,11 +4375,12 @@ bool FeatureTree::stepElements()
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 					{
-						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;						
+						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
 					}
 				}
-					std::cerr << " ...done. " << std::endl ;
+				
+				std::cerr << " ...done. " << std::endl ;
 				
 #pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
 
@@ -4463,25 +4430,68 @@ bool FeatureTree::stepElements()
 						}
 					}
 				}
-			}
-			
-			std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
-
-				if( elements[i]->getBehaviour()->getDamageModel() )
+				
+				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+				
+				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-					if(elements[i]->getBehaviour()->changed())
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->getDamageModel() )
 					{
-						needAssembly = true ;
-						behaviourChange = true ;
+						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+						if(elements[i]->getBehaviour()->changed())
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+						}
+					}
+				}
+				
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
+					{
+						foundCheckPoint = false ;
+						break ;
+					}
+				}
+				
+				if(!behaviourChange)
+				{
+					for( size_t i = 0 ; i < elements.size() ; i++ )
+					{
+						if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
+						{
+							behaviourChange = true ;
+							break ;
+						}
 					}
 				}
 			}
+			
+
+			if( !elastic && foundCheckPoint )
+			{
+				double avd = averageDamage ;
+				double vol = volume ;
+				std::cout << "[" << averageDamage << " ; " << std::flush ;
+				elasticStep();
+				averageDamage = avd ;
+				volume = vol ;
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
+					}
+				}
+				std::cout << maxScore << "]" << std::flush ;
+			}
+			
 			std::cerr << " ...done. " << std::endl ;
 				averageDamage /= volume ;
 			
