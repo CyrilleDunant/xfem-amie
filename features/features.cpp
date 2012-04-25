@@ -4474,12 +4474,20 @@ bool FeatureTree::stepElements()
 
 			if( !elastic && foundCheckPoint )
 			{
+				bool bc = behaviourChange ;
+				bool na = needAssembly ;
+				bool fcp = foundCheckPoint;
+				bool sc = stateConverged ;
 				double avd = averageDamage ;
 				double vol = volume ;
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
 				elasticStep();
 				averageDamage = avd ;
 				volume = vol ;
+				behaviourChange = bc ;
+				needAssembly = na ;
+				foundCheckPoint = fcp ;
+				stateConverged = sc ;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
