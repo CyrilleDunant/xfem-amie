@@ -172,14 +172,12 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
 		if(hom && disc.size() > 1)
 		{
-			FractureCriterion * frac = hom->getFractureCriterion() ;
-			if(frac)
-				frac = frac->getCopy() ;
 			disc[i]->setBehaviour(hom->original->getCopy()) ;
-			disc[i]->getBehaviour()->setFractureCriterion(frac) ;
 		}
 		else if(hom)
 		{
+			disc[0]->setBehaviour(hom->original->getCopy()) ;
+
 			std::vector<Feature *> brother ;
 			if(getFather())
 				brother = this->getFather()->getChildren() ;
@@ -190,6 +188,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					feat.push_back(brother[i]) ;
 			}
 			hom->updateEquivalentBehaviour(feat, disc[0]) ;
+			disc[0]->setBehaviour(hom) ;
 		} 
 		else if(disc.size() == 1)
 		{
