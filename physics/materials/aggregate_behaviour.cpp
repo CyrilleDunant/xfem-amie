@@ -25,11 +25,11 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,down*factor, E)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,down*factor, 1e-3, -0.02, E)) ;
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setThresholdDamageDensity(.999);
+	ret->dfunc->setThresholdDamageDensity(1.);
 	return ret ;
 }
 

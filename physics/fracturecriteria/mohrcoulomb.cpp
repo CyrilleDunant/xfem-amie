@@ -27,8 +27,6 @@ MohrCoulomb::MohrCoulomb( double up, double down, MirrorState mirroring, double 
 
 MohrCoulomb::~MohrCoulomb()
 {
-	for( size_t i = 0 ; i < testPoints.size() ; i++ )
-		delete testPoints[i] ;
 }
 
 double MohrCoulomb::grade( ElementState &s )
@@ -37,26 +35,8 @@ double MohrCoulomb::grade( ElementState &s )
 	if( s.getParent()->getBehaviour()->fractured() )
 		return 0 ;
 
-	if( testPoints.size() == 0 )
-	{
-		if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-		{
-			testPoints.resize( 4 );
-			testPoints[0] = new Point( 0, 0, 0 ) ;
-			testPoints[1] = new Point( 1, 0, 0 ) ;
-			testPoints[2] = new Point( 0, 1, 0 ) ;
-			testPoints[3] = new Point( 0, 0, 1 ) ;
-		}
-		else
-		{
-			testPoints.resize( 3 );
-			testPoints[0] = new Point( 0, 0, 0 ) ;
-			testPoints[1] = new Point( 1, 0, 0 ) ;
-			testPoints[2] = new Point( 0, 1, 0 ) ;
-		}
-	}
 
-	Vector pstress = s.getPrincipalStresses( testPoints, true ) ;
+	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter() ) ;
 
 	double maxStress = pstress.max() ;
 	double minStress = pstress.min() ;
@@ -125,8 +105,7 @@ NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E, Mirr
 
 NonLocalMohrCoulomb::~NonLocalMohrCoulomb()
 {
-	for( size_t i = 0 ; i < testPoints.size() ; i++ )
-		delete testPoints[i] ;
+
 }
 
 double NonLocalMohrCoulomb::grade( ElementState &s )
@@ -188,5 +167,91 @@ Material NonLocalMohrCoulomb::toMaterial()
 	Material mat ;
 	return mat ;
 }
+
+
+
+NonLocalLinearlyDecreasingMohrCoulomb::NonLocalLinearlyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
+	, upVal( up ), downVal( down ),limittstrain(limittstrain),limitcstrain(limitcstrain), stiffness(E)
+{
+	metInTension = false ;
+	metInCompression = false ;
+}
+
+
+NonLocalLinearlyDecreasingMohrCoulomb::~NonLocalLinearlyDecreasingMohrCoulomb()
+{
+
+}
+
+double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
+{
+
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+	std::pair<Vector, Vector> pstressStrain( smoothedPrincipalStressAndStrain(s)) ;
+	Vector pstress = pstressStrain.first ;
+	Vector pstrain = pstressStrain.second ;
+	double maxStress = pstress.max() ;
+	double minStress = pstress.min() ;
+	double maxStrain = pstrain.max() ;
+	double minStrain = pstrain.min() ;
+
+// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+	metInTension = false ;
+	metInCompression = false ;
+	metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
+	metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
+
+	double effectiveStiffness = stiffness ;
+	if(s.getParent()->getBehaviour()->getDamageModel())
+		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	
+	double tfactor = (maxStrain-(upVal/stiffness))/(limittstrain-upVal/stiffness) ;
+	if(maxStrain > limittstrain)
+		tfactor = 0 ;
+	
+	double cfactor = (-minStrain+(downVal/stiffness))/(-limitcstrain+downVal/stiffness) ;
+	if(minStrain < limitcstrain)
+		cfactor = 0 ;
+	
+	double  upStrain = tfactor*upVal/effectiveStiffness ;
+	double  downStrain = cfactor*downVal/effectiveStiffness ;
+	std::vector<double> scores ;
+	scores.push_back(-1);
+	if( maxStrain >= upStrain && maxStrain > 0 )
+	{
+		metInTension = true;
+		scores.push_back(1. - std::abs( upStrain / maxStrain ));
+	}
+	else if(maxStrain > 0)
+			scores.push_back(-1. + std::abs( maxStrain / upStrain ));
+
+	if( minStrain <= downStrain && minStrain < 0 )
+	{
+		metInCompression = true ;
+		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
+	}
+	else if(minStrain < 0 )
+	{
+		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
+	}
+	std::sort(scores.begin(), scores.end()) ;
+	return scores.back() ;
+}
+
+FractureCriterion *NonLocalLinearlyDecreasingMohrCoulomb::getCopy() const
+{
+	return new NonLocalLinearlyDecreasingMohrCoulomb( *this ) ;
+}
+
+Material NonLocalLinearlyDecreasingMohrCoulomb::toMaterial()
+{
+	Material mat ;
+	return mat ;
+}
+
+
+
 
 }

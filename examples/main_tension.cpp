@@ -19,6 +19,7 @@
 #include "../physics/fracturecriteria/boundedvonmises.h"
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/stiffness.h"
+#include "../physics/materials/aggregate_behaviour.cpp"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/fraction_stiffness_and_fracture.h"
 #include "../physics/void_form.h"
@@ -209,29 +210,29 @@ void step(size_t nsteps)
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on && v < 200)
 		{
-			loadr->setData(loadr->getData()+1e-6) ;
+			loadr->setData(loadr->getData()+1e-7) ;
 // 			loadt->setData(loadt->getData()+1e-7) ;
 // 			loadt->setData(0) ;
 		}
 		else if(go_on && v < 400)
 		{
-			loadt->setData(loadt->getData()-1e-5) ;
+			loadt->setData(loadt->getData()-1e-6) ;
 		}
 		else if(go_on && v < 600)
 		{
-			loadr->setData(loadr->getData()+1e-6) ;
+			loadr->setData(loadr->getData()+1e-7) ;
 		}
 		else if(go_on && v < 800)
 		{
-			loadt->setData(loadt->getData()-1e-5) ;
+			loadt->setData(loadt->getData()-1e-6) ;
 		}
 		else if(go_on && v < 1000)
 		{
-			loadr->setData(loadr->getData()+1e-6) ;
+			loadr->setData(loadr->getData()+1e-7) ;
 		}
 		else if(go_on && v < 1200)
 		{
-			loadt->setData(loadt->getData()-1e-5) ;
+			loadt->setData(loadt->getData()-1e-6) ;
 		}
 		
 		triangles = featureTree->getActiveElements2D() ;
@@ -1522,8 +1523,10 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
 	
-	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
-	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
+// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	
+		samplef.setBehaviour(new AggregateBehaviour()) ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;

@@ -23,8 +23,6 @@ namespace Mu {
 */
 class MohrCoulomb : public FractureCriterion
 {
-protected:
-	PointArray testPoints ;
 public:
 	double upVal ;
 	double downVal ;
@@ -88,6 +86,54 @@ public:
 	NonLocalMohrCoulomb(double up, double down, double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 
 	virtual ~NonLocalMohrCoulomb();
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const;
+
+/** \brief return the normalised distance to the fracture surface
+ *
+ * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
+ * @param s ElementState to consider
+*/
+	virtual double grade(ElementState &s)  ;
+
+	virtual Material toMaterial() ;
+
+	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
+	
+	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
+};
+
+class NonLocalLinearlyDecreasingMohrCoulomb : public FractureCriterion
+{
+public:
+	double upVal ;
+	double downVal ;
+	double stiffness ;
+	double limittstrain ;
+	double limitcstrain ;
+	bool metInCompression  ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return metInCompression ;}
+	virtual bool directionInCompression(size_t direction) {return metInTension ;}
+	virtual bool directionMet(size_t direction) 
+	{
+		if(direction == 0)
+			return metInTension ;
+		if(direction == 1)
+			return metInCompression ;
+		
+		return false ;
+	}
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	NonLocalLinearlyDecreasingMohrCoulomb(double up, double down, double limittstrain, double limitcstrain,  double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+
+	virtual ~NonLocalLinearlyDecreasingMohrCoulomb();
 
 /** \brief Return a copy of this fracture criterion*/
 	virtual FractureCriterion * getCopy() const;
