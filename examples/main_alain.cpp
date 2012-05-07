@@ -148,6 +148,8 @@ double shape ;
 double orientation ;
 double spread ;
 
+MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
+
 struct Zone
 {
 	GeometryType type ;
@@ -215,31 +217,23 @@ void step(GeometryType ref, int samplingNumber)
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
 		bool go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
-		go_on = featureTree->step() ;
 		
 		if(featureTree->solverConverged())
 		{
 			cracked_volume.push_back(featureTree->crackedVolume) ;
 			damaged_volume.push_back(featureTree->damagedVolume) ;
 		}	
-	
 		triangles = featureTree->getElements2D() ;
-		x.resize(featureTree->getDisplacements().size()) ;
-		x = featureTree->getDisplacements() ;
+		x.resize(featureTree->getDisplacements(-1, false).size()) ;
+		x = featureTree->getDisplacements(-1, false) ;
 		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
 		
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(-1, false) ;
 		sigma.resize(sigma_epsilon.first.size()) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize(sigma_epsilon.second.size()) ;
 		epsilon = sigma_epsilon.second ;
-		
 		sigma11.resize(sigma.size()/3) ;
 		sigma22.resize(sigma.size()/3) ;
 		sigma12.resize(sigma.size()/3) ;
@@ -496,12 +490,22 @@ void step(GeometryType ref, int samplingNumber)
 		filename.append(itoa(i, 10)) ;
 		std::cout << filename << std::endl ;
 
-		TriangleWriter writer(filename, featureTree) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-		writer.getField(TWFT_VON_MISES) ;
-		writer.getField(TWFT_STIFFNESS) ;
-		writer.getField(TWFT_DAMAGE) ;
-		writer.write() ;
+// 		TriangleWriter writer(filename, featureTree) ;
+// 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+// 		writer.getField(TWFT_VON_MISES) ;
+// 		writer.getField(TWFT_STIFFNESS) ;
+// 		writer.getField(TWFT_DAMAGE) ;
+// 		writer.write() ;
+// 		if(go_on)
+// 		{
+			writer.reset( featureTree ) ;
+			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writer.getField( TWFT_CRITERION ) ;
+			writer.getField( TWFT_STIFFNESS ) ;
+			writer.getField( TWFT_DAMAGE ) ;
+			writer.append() ;
+// 		}
 
 		
 		std::cout << std::endl ;

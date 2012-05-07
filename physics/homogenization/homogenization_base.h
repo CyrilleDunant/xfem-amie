@@ -45,7 +45,8 @@ typedef enum
 typedef enum
 {
 	PLANE_STRESS,
-	PLANE_STRAIN 
+	PLANE_STRAIN,
+	PLANE_STRESS_FREE_G,
 } planeType ; 
 
 typedef enum

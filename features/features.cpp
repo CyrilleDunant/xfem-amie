@@ -60,7 +60,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
 		return f->getBoundingElements2D( this ) ;
 }
 
-std::vector<DelaunayTriangle *> FeatureTree::getElements2D( int g )
+std::vector<DelaunayTriangle *> FeatureTree::getElements2D( int g)
 {
 	state.setStateTo( MESHED, false ) ;
 
@@ -3251,9 +3251,10 @@ Vector FeatureTree::stressFromDisplacements()
 	}
 }
 
-const Vector &FeatureTree::getDisplacements( int g )
+const Vector &FeatureTree::getDisplacements( int g, bool stepTree )
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( g == -1 || !useMultigrid )
 		return K->getDisplacements() ;
@@ -3265,9 +3266,10 @@ const Vector &FeatureTree::getDisplacements( int g )
 		return  K->getDisplacements() ;
 }
 
-std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
+std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTree )
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != NULL )
 	{
@@ -3355,9 +3357,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g )
 }
 
 
-std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
+std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool stepTree )
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != NULL )
 	{
@@ -3439,9 +3442,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g )
 }
 
 
-std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( )
+std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool stepTree)
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != NULL )
 	{
@@ -3462,7 +3466,6 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( )
 // 				pts[2] =  elements[i]->third ;
 
 				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
-
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
 					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
@@ -3519,9 +3522,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( )
 }
 
 
-std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g )
+std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTree)
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != NULL )
 	{
@@ -3612,9 +3616,10 @@ std::vector<int>FeatureTree:: listLayers() const
 	return ret ;
 }
 
-std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g )
+std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool stepTree )
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != NULL )
 	{
@@ -3681,8 +3686,10 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g )
 
 
 
-std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<DelaunayTetrahedron *> & tets )
+std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<DelaunayTetrahedron *> & tets , bool stepTree)
 {
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 	std::pair<Vector , Vector > stress_strain( Vector( 4 * 3 * tets.size() ), Vector( 4 * 3 * tets.size() ) ) ;
 
 	for( size_t i  = 0 ; i < tets.size() ; i++ )
@@ -3716,9 +3723,10 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<D
 }
 
 
-std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<DelaunayTetrahedron *> & tets )
+std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<DelaunayTetrahedron *> & tets, bool stepTree )
 {
-	state.setStateTo( XFEM_STEPPED, false ) ;
+	if(stepTree)
+		state.setStateTo( XFEM_STEPPED, false ) ;
 	std::pair<Vector , Vector > stress_strain( Vector( 4 * 6 * tets.size() ), Vector( 4 * 6 * tets.size() ) ) ;
 
 	for( size_t i  = 0 ; i < tets.size() ; i++ )
@@ -4311,7 +4319,6 @@ bool FeatureTree::stepElements()
 {
 	behaviourChange = false ;
 	needAssembly = false ;
-	foundCheckPoint = true ;
 	stateConverged = false ;
 	double maxScore = -1 ;
 	double maxTolerance = 0 ;
@@ -4332,18 +4339,19 @@ bool FeatureTree::stepElements()
 			}
 			
 			double volume = 0;
-			if(!elastic)
-				crackedVolume = 0 ;
-			if(!elastic)
-				damagedVolume = 0 ;
 			double previousAverageDamage = averageDamage ;
+			double adamage = 0 ;
 			if(!elastic)
+			{
+				crackedVolume = 0 ;
+				damagedVolume = 0 ;
 				averageDamage = 0. ;
+			}
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-#pragma openmp parallel for
+#pragma omp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4382,7 +4390,7 @@ bool FeatureTree::stepElements()
 				
 				std::cerr << " ...done. " << std::endl ;
 				
-#pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
+#pragma omp parallel for reduction(+:volume,adamage) 
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4396,17 +4404,15 @@ bool FeatureTree::stepElements()
 					{
 						volume += are ;
 						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
+						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
 						if( dmodel )
 						{
-							if( !elements[i]->getBehaviour()->fractured() )
-								averageDamage += are * dmodel->getState().max() ;
-							else
-								averageDamage += are ;
+						//	if( !elements[i]->getBehaviour()->fractured() )
+								adamage += are * dmodel->getState().max() ;
+						//	else
+						//		averageDamage += are ;
 						}
-						
-						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
-						
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
@@ -4430,7 +4436,8 @@ bool FeatureTree::stepElements()
 						}
 					}
 				}
-				
+				averageDamage = adamage ;
+
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
@@ -4448,7 +4455,7 @@ bool FeatureTree::stepElements()
 						}
 					}
 				}
-				
+				foundCheckPoint = true ;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
@@ -4471,23 +4478,11 @@ bool FeatureTree::stepElements()
 				}
 			}
 			
-
+			averageDamage /= volume ;
 			if( !elastic && foundCheckPoint )
 			{
-				bool bc = behaviourChange ;
-				bool na = needAssembly ;
-				bool fcp = foundCheckPoint;
-				bool sc = stateConverged ;
-				double avd = averageDamage ;
-				double vol = volume ;
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
-				elasticStep();
-				averageDamage = avd ;
-				volume = vol ;
-				behaviourChange = bc ;
-				needAssembly = na ;
-				foundCheckPoint = fcp ;
-				stateConverged = sc ;
+#pragma omp parallel for shared(maxScore,maxTolerance)
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4499,9 +4494,15 @@ bool FeatureTree::stepElements()
 				}
 				std::cout << maxScore << "]" << std::flush ;
 			}
-			
+			else if(!elastic)
+			{
+#pragma omp parallel for 
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
+			}
 			std::cerr << " ...done. " << std::endl ;
-				averageDamage /= volume ;
+				
 			
 
 		}
@@ -4565,7 +4566,7 @@ bool FeatureTree::stepElements()
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-#pragma openmp parallel for
+#pragma omp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4603,7 +4604,7 @@ bool FeatureTree::stepElements()
 				}
 					std::cerr << " ...done. " << std::endl ;
 				
-#pragma openmp parallel for shared (needAssembly, behaviourChange, averageDamage, crackedVolume, volume)
+#pragma omp parallel for
 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -4796,7 +4797,7 @@ bool FeatureTree::stepElements()
 	}
 	
 	stateConverged = foundCheckPoint && maxScore < maxTolerance ;
-	return foundCheckPoint  && maxScore < maxTolerance;
+	return foundCheckPoint && maxScore < maxTolerance;
 }
 
 
@@ -5006,7 +5007,6 @@ bool FeatureTree::step()
 	
 	do
 	{
-		
 		state.setStateTo( XFEM_STEPPED, true ) ;
 		deltaTime = 0 ;
 		if( solverConverged() )

@@ -314,7 +314,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 	if( field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS )
 	{
 
-		std::pair<Vector, Vector> stress_strain = source->getStressAndStrainInLayer( layer ) ;
+		std::pair<Vector, Vector> stress_strain = source->getStressAndStrainInLayer( layer, false ) ;
 		std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 		int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 		int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
@@ -489,7 +489,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 	{
 		if( field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX )
 		{
-			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer( layer ) ;
+			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer( layer, false ) ;
 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
 			switch( field )
@@ -619,7 +619,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		{
 			if( field == TWFT_DISPLACEMENTS )
 			{
-				Vector x = source->getDisplacements() ;
+				Vector x = source->getDisplacements(-1, false) ;
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 				int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
@@ -656,7 +656,11 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
 					{
 						double d = triangles[i]->getBehaviour()->getDamageModel()->getState().max();
-
+						if(!triangles[i]->getBehaviour()->getDamageModel()->converged)
+						{
+							std::cout << "WTF ??" << std::endl ;
+							exit(0) ;
+						}
 						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
 							d = 1 ;
 

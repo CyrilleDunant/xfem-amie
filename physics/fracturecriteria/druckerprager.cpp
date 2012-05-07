@@ -43,13 +43,14 @@ double DruckerPrager::grade(ElementState &s)
 		Vector istrain = ps->imposedStrain*ps->getState()[0] ;
 		double kappa_p = ps->plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 		
-		if(str.min() < .05*downthreshold || str.max() > .05*upthreshold || ps->plasticVariable > POINT_TOLERANCE_2D)
+		if(str.min() < .25*downthreshold || str.max() > .25*upthreshold || ps->plasticVariable > POINT_TOLERANCE_2D)
 		{
 			if(kappa_p < kappa_0 )
-				factor = std::max((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0),0.001) ;
+				factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;
 			else
 				factor = 1. ;
 		}
+		factor *= 1.-static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel())->getDamage() ;
 // 		std::cout << kappa_0 << " vs " << kappa_p << " :  " <<  (kappa_p < kappa_0) << " : "<< factor << std::endl ;
 		
 	}
@@ -59,7 +60,7 @@ double DruckerPrager::grade(ElementState &s)
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
-		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[2])*(str[2])))*1.5 ;
+		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[2])*(str[2])))*2. ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{

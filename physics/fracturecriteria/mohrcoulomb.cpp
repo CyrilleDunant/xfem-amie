@@ -152,24 +152,27 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	double effectiveStiffness = stiffness ;
 	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	
+	double  upStrain = upVal/effectiveStiffness ;
+	double  downStrain = downVal/effectiveStiffness ;
 	std::vector<double> scores ;
 	scores.push_back(-1);
-	if( maxStress >= upVal && maxStress > 0 )
+	if( maxStrain >= upStrain && maxStrain > 0 )
 	{
 		metInTension = true;
-		scores.push_back(1. - std::abs( upVal / maxStress ));
+		scores.push_back(1. - std::abs( upStrain / maxStrain ));
 	}
-	else if(maxStress > 0)
-			scores.push_back(-1. + std::abs( maxStress / upVal ));
+	else if(maxStrain > 0)
+			scores.push_back(-1. + std::abs( maxStrain / upStrain ));
 
-	if( minStress <= downVal && minStress < 0 )
+	if( minStrain <= downStrain && minStrain < 0 )
 	{
 		metInCompression = true ;
-		scores.push_back(1. - std::abs( downVal / minStress )) ;
+		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
 	}
-	else if(minStress < 0 )
+	else if(minStrain < 0 )
 	{
-		scores.push_back(-1. + std::abs( minStress / downVal )) ;
+		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
 	}
 	std::sort(scores.begin(), scores.end()) ;
 	return scores.back() ;

@@ -289,30 +289,30 @@ void step()
 			Function x("x") ;
 			Function f = (x-platewidth*.75)/(platewidth*.5) ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			double l_real = 1e5*tries ;
-			loadFunction = f_negativity(x-platewidth*.75)*(-5e4*62-l_real) - f_positivity(x-platewidth*.75)*(l_real+5e4*62)*(1.-df) ;
+			double l_real = 2e5*tries ;
+			loadFunction = f_negativity(x-platewidth*.75)*(-5e4*52-l_real)- f_positivity(x-platewidth*.75)*(l_real+5e4*52)*(1.-df) ;
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
 		else if (v == 0)
 		{
-			Function ffx("x") ;
-			Function fff = (ffx-platewidth*.75)/(platewidth*.5) ;
-			Function ffdf = 3.*fff*fff-2.*fff*fff*fff ;
-			Function ffloadFunction = f_negativity(ffx-platewidth*.75)*(-5e4*62) - f_positivity(ffx-platewidth*.75)*5e4*62*(1.-ffdf) ;
-			load->setData( ffloadFunction ) ;
+			Function x("x") ;
+			Function f = (x-platewidth*.75)/(platewidth*.5) ;
+			Function df = 3.*f*f-2.*f*f*f ;
+			Function loadFunction = f_negativity(x-platewidth)*.75*(-5e4*52) - f_positivity(x-platewidth*.75)*5e4*52*(1.-df) ;
+			load->setData( loadFunction ) ;
 			tries++ ;
 		}
 
 		triangles = featureTree->getActiveElements2D() ;
-		x.resize( featureTree->getDisplacements().size() ) ;
-		x = featureTree->getDisplacements() ;
+		x.resize( featureTree->getDisplacements(-1, false).size() ) ;
+		x = featureTree->getDisplacements(-1, false) ;
 
 
 
 		sigma.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
 		epsilon.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrainInAllLayers() ;
+		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrainInAllLayers(false) ;
 		sigma.resize( sigma_epsilon.first.size() ) ;
 		sigma = sigma_epsilon.first ;
 		epsilon.resize( sigma_epsilon.second.size() ) ;
@@ -496,22 +496,22 @@ void step()
 
 			double ar = triangles[k]->area() ;
 
-			if(!haveStirrups)
-			{
-				if(k < triangles.size()/2)
-						ar *= 1.-phi ;
-				else
-					ar *= phi ;
-			}
-			else
-			{
-				if(k < triangles.size()/3)
-						ar *= 1.-phi-psi ;
-				else if( k < 2*triangles.size()/3)
-					ar *= phi ;
-				else
-					ar *= psi ;
-			}
+// 			if(!haveStirrups)
+// 			{
+// 				if(k < triangles.size()/2)
+// 						ar *= 1.-phi ;
+// 				else
+// 					ar *= phi ;
+// 			}
+// 			else
+// 			{
+// 				if(k < triangles.size()/3)
+// 						ar *= 1.-phi-psi ;
+// 				else if( k < 2*triangles.size()/3)
+// 					ar *= phi ;
+// 				else
+// 					ar *= psi ;
+// 			}
 				
 				
 				
@@ -1720,15 +1720,12 @@ int main( int argc, char *argv[] )
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
 	double compressionCrit = -37.0e6 ;
-	phi =  3.*(rebarDiametre*rebarDiametre*.25*M_PI) / (.4*rebarDiametre) ;
+	phi =  3.*rebarDiametre/.4  ;
 	
-	psi = 2.*0.0084261498 / .4 ;
+	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.038; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
-	
-	Matrix m0_steelx( 3, 3 ) ;
-	Matrix m0_steely( 3, 3 ) ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
 	double E_steel = 200e9 ; // next .6
@@ -1736,29 +1733,14 @@ int main( int argc, char *argv[] )
 	double nu = 0.3 ;
 	double E_paste = 37e9 ;
 
-	m0_steelx[0][0] = E_steel / ( 1. - 2.*nu * nu ) ;
-	m0_steelx[0][1] = nu * sqrt( E_steel * E_steel * 0.6 ) / ( 1. - 2.*nu * nu ) ;
-	m0_steelx[0][2] = 0 ;
-	m0_steelx[1][0] = nu * sqrt( E_steel * E_steel * 0.6 ) / ( 1. - 2.*nu * nu ) ;
-	m0_steelx[1][1] = E_steel * 0.6 / ( 1. - 2.*nu * nu ) ;
-	m0_steelx[1][2] = 0 ;
-	m0_steelx[2][0] = 0 ;
-	m0_steelx[2][1] = 0 ;
-	m0_steelx[2][2] = 0.25 * ( E_steel * 0.6 + E_steel - 2.*nu * sqrt( E_steel * E_steel * 0.6 ) ) / ( 1. - 2.*nu * nu ) ;
-	m0_steely[0][0] = E_steel * 0.6 / ( 1. - 2.*nu * nu ) ;
-	m0_steely[0][1] = nu * sqrt( E_steel * E_steel * 0.6 ) / ( 1. - 2.*nu * nu ) ;
-	m0_steely[0][2] = 0 ;
-	m0_steely[1][0] = nu * sqrt( E_steel * E_steel * 0.6 ) / ( 1. - 2.*nu * nu ) ;
-	m0_steely[1][1] =  E_steel / ( 1. - 2.*nu * nu ) ;
-	m0_steely[1][2] = 0 ;
-	m0_steely[2][0] = 0 ;
-	m0_steely[2][1] = 0 ;
-	m0_steely[2][2] = 0.25 * ( E_steel * 0.6 + E_steel - 2.*nu * sqrt( E_steel * E_steel * 0.6 ) ) / ( 1. - 2.*nu * nu ) ;
-
 	double halfSampleOffset = sampleLength*.25 ;
 	
-	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRESS) ;
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,0), true,SPACE_TWO_DIMENSIONAL,PLANE_STRESS) ;
+	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	
+// 	//redimensionned so that we get in shear the right moment of inertia
+// 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
+// 		
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel*2.,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
 
 	Sample box( NULL, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1778,11 +1760,11 @@ int main( int argc, char *argv[] )
 	toprightvoid.setBehaviour( new VoidForm() ) ;
 	
 	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baseright.setBehaviour( new Stiffness( m0_paste ) ) ;
+	baseright.setBehaviour( new Stiffness( m0_steel )) ;
 	Sample baserightbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+	baserightbulk.setBehaviour( new Stiffness( m0_steel )) ;
 	Sample baserightstirrupbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightstirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
+	baserightstirrupbulk.setBehaviour(new Stiffness( m0_steel )) ;
 
 	Sample bottomcentervoid( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
 	bottomcentervoid.setBehaviour( new VoidForm() ) ;
@@ -1790,19 +1772,19 @@ int main( int argc, char *argv[] )
 	rightbottomvoid.setBehaviour( new VoidForm() ) ;
 
 	
-	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
+	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
-	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
-	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
+	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
-	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	

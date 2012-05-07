@@ -27,10 +27,10 @@ class NonLocalMCFT : public FractureCriterion
 {
 
 	double getBareConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
-	double getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress, double value = 1500) ; //Bentz model 342
+	double getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress, double value = 200) ; //Bentz model 342
 	double getConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
 	double getConcreteCompressiveCriterion(const ElementState & s, double pseudoYoung, double cstrain, double tstress, double cstress) ;
-	void initialise() ;
+	void initialise(ElementState &s) ;
 	RedistributionType rtype ;
 public:
 	bool initialised ;

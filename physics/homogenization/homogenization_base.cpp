@@ -680,13 +680,13 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			{
 				nu_21 = 0 ;
 				nu_12 = 0 ;
-				gamma = 1 ;
+				gamma = 1. ;
 			}
-			if(gamma > 1.4)
+			if(gamma > 2.)
 			{
 				nu_21 = 0 ;
 				nu_12 = 0 ;
-				gamma = 1 ;
+				gamma = 2. ;
 			}
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
@@ -721,7 +721,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 		else
 			cg.array() = 0 ;
 	}
-	else
+	else if (pt == PLANE_STRAIN)
 	{
 		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
 		{
@@ -760,6 +760,62 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			cg[0][0] = 0 ; cg[0][1] = 0 ;
 			cg[1][0] = 0 ; cg[1][1] = E_2*gamma ;
 			G = E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)) ;
+			cg[2][2] = G ;
+		}
+		else
+			cg.array() = 0 ;
+	}
+	else
+	{
+		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
+		{
+			Matrix A(2,2) ;
+			A[0][0] = E_1/std::max(E_1, E_2) ; A[0][1] = -E_2/std::max(E_1, E_2) ;
+			A[1][0] = 0 ; A[1][1] = 1. ;
+			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
+			b = inverse2x2Matrix(A)*b ;
+			double nu_12 = b[1];
+			double nu_21 = b[0] ;
+
+// 			double nu_21 = sqrt(nu*E_1*E_2)/E_1 ;
+// 			double nu_12 = nu_21*E_1/E_2 ;
+			double gamma = 1./(1.-nu_12*nu_21) ;
+			if(gamma < 0)
+			{
+				nu_21 = 0 ;
+				nu_12 = 0 ;
+				gamma = 1 ;
+			}
+			if(gamma > 1.4)
+			{
+				nu_21 = 0 ;
+				nu_12 = 0 ;
+				gamma = 1 ;
+			}
+			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
+			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
+			
+			cg[2][2] = G ;
+		}
+		else if(E_1 > POINT_TOLERANCE_2D)
+		{
+			double nu_12 = 0;
+			double nu_21 = 0 ;
+
+			double gamma = 1./(1.-nu_12*nu_21) ;
+			cg[0][0] = E_1*gamma ; cg[0][1] = 0 ;
+			cg[1][0] = 0 ;         cg[1][1] = 0 ;
+			cg[2][2] = G ;
+		}
+		else if(E_2 > POINT_TOLERANCE_2D)
+		{
+			double nu_12 = 0;
+			double nu_21 = 0 ;
+
+			double gamma = 1./(1.-nu_12*nu_21) ;
+				
+			cg[0][0] = 0 ; cg[0][1] = 0 ;
+			cg[1][0] = 0 ; cg[1][1] = E_2*gamma ;
 			cg[2][2] = G ;
 		}
 		else

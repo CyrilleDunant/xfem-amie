@@ -432,7 +432,7 @@ public:
 	void refine(size_t nit, SamplingCriterion *cri) ;
 	
 	
-	const Vector & getDisplacements(int g = -1)  ;
+	const Vector & getDisplacements(int g = -1, bool stepTree = true)  ;
 	
 	
 	/** \brief  Refine the mesh around the features.
@@ -497,19 +497,19 @@ public:
 	Vector stressFromDisplacements()  ;
 	
 /** \brief Return the stress and strain of a vector of Tetrahedrons*/
-	std::pair<Vector , Vector > getStressAndStrain(const std::vector<DelaunayTetrahedron *> &) ;
+	std::pair<Vector , Vector > getStressAndStrain(const std::vector<DelaunayTetrahedron *> &, bool stepTree = true) ;
 
 /** \brief Return the stress and strain of a vector of Tetrahedrons*/
-	std::pair<Vector , Vector > getGradientAndFlux(const std::vector<DelaunayTetrahedron *> &) ;
+	std::pair<Vector , Vector > getGradientAndFlux(const std::vector<DelaunayTetrahedron *> &, bool stepTree = true) ;
 
 /** \brief Return the temperature/concentration gradient and the flux of a vector of Tetrahedrons*/
-	std::pair<Vector , Vector > getGradientAndFlux(int grid = -1) ;
-	std::pair<Vector , Vector > getGradientAndFluxInLayer(int layer) ;
+	std::pair<Vector , Vector > getGradientAndFlux(int grid = -1, bool stepTree = true) ;
+	std::pair<Vector , Vector > getGradientAndFluxInLayer(int layer, bool stepTree = true) ;
 
 /** \brief Return the stress and strain of the elements of the current mesh*/
-	std::pair<Vector , Vector > getStressAndStrain(int grid = -1) ;
-	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer) ;
-	std::pair<Vector , Vector > getStressAndStrainInAllLayers( ) ;
+	std::pair<Vector , Vector > getStressAndStrain(int grid = -1, bool stepTree = true) ;
+	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer, bool stepTree = true) ;
+	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 	
 	size_t numPoints() const ;
 	

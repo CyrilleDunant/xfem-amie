@@ -190,10 +190,9 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
-void step()
+void step(size_t nsteps)
 {
 	
-	size_t nsteps = 1 ; //16*10;
 	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
@@ -205,21 +204,35 @@ void step()
  		tries = 0 ;
 
 		tries++ ;
-		bool go_on = true ;
 
-		go_on = featureTree->step() ;
+		bool go_on = featureTree->step() ;
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
-		if(go_on)
+		if(go_on && v < 200)
 		{
-			loadr->setData(loadr->getData()+1e-7) ;
+			loadr->setData(loadr->getData()+1e-6) ;
 // 			loadt->setData(loadt->getData()+1e-7) ;
 // 			loadt->setData(0) ;
 		}
-// 		else if(go_on && v >= 3800)
-// 		{
-// 			loadr->setData(loadr->getData()+2e-7) ;
-// 			loadt->setData(0) ;
-// 		}
+		else if(go_on && v < 400)
+		{
+			loadt->setData(loadt->getData()-1e-5) ;
+		}
+		else if(go_on && v < 600)
+		{
+			loadr->setData(loadr->getData()+1e-6) ;
+		}
+		else if(go_on && v < 800)
+		{
+			loadt->setData(loadt->getData()-1e-5) ;
+		}
+		else if(go_on && v < 1000)
+		{
+			loadr->setData(loadr->getData()+1e-6) ;
+		}
+		else if(go_on && v < 1200)
+		{
+			loadt->setData(loadt->getData()-1e-5) ;
+		}
 		
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
@@ -314,16 +327,16 @@ void step()
 			}
 			
 			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(0)) ;
-			sigma11[k*npoints] = se[0] ;//sigma[k*npoints*3];
-			sigma22[k*npoints] = se[1] ;//sigma[k*npoints*3+1];
+			sigma11[k*npoints] = sigma[k*npoints*3];//se[0] ;
+			sigma22[k*npoints] = sigma[k*npoints*3+1];//se[1] ;
 			sigma12[k*npoints] = sigma[k*npoints*3+2];
 			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(1)) ;
-			sigma11[k*npoints+1] = se[0] ;//sigma[k*npoints*3+3];
-			sigma22[k*npoints+1] = se[1] ;//sigma[k*npoints*3+4];
+			sigma11[k*npoints+1] = sigma[k*npoints*3+3];//se[0] ;
+			sigma22[k*npoints+1] = sigma[k*npoints*3+4];//se[1] ;
 			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
 			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(2)) ;
-			sigma11[k*npoints+2] = se[0] ;//sigma[k*npoints*3+6];
-			sigma22[k*npoints+2] = se[1] ;//[k*npoints*3+7];
+			sigma11[k*npoints+2] = sigma[k*npoints*3+6];//se[0] ;
+			sigma22[k*npoints+2] = sigma[k*npoints*3+7];//se[1] ;
 			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
 			
 			if(npoints >3)
@@ -339,16 +352,16 @@ void step()
 				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
 			}
 			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(0)) ;
-			epsilon11[k*npoints] = pe[0] ;//epsilon[k*npoints*3];
-			epsilon22[k*npoints] = pe[1] ;// epsilon[k*npoints*3+1];
+			epsilon11[k*npoints] = epsilon[k*npoints*3];//pe[0] ;
+			epsilon22[k*npoints] = epsilon[k*npoints*3+1];//pe[1] ; 
 			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
 			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(1)) ;
-			epsilon11[k*npoints+1] = pe[0] ;//epsilon[k*npoints*3+3];
-			epsilon22[k*npoints+1] = pe[1] ;//epsilon[k*npoints*3+4];
+			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];//pe[0] ;
+			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];//pe[1] ;
 			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
 			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(2)) ;
-			epsilon11[k*npoints+2] = pe[0] ;//epsilon[k*npoints*3+6];
-			epsilon22[k*npoints+2] = pe[1] ;//epsilon[k*npoints*3+7];
+			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];//pe[0] ;
+			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];//pe[1] ;
 			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
 			
 			if(npoints > 3)
@@ -569,14 +582,13 @@ void Menu(int selection)
 	{
 	case ID_NEXT:
 		{
-			step() ;
+			step(1) ;
 			dlist = false ;
 			break ;
 		}
 	case ID_NEXT_TIME:
 		{
-			for(int i = 0 ; i < 1000 ; i++)
-				step() ;
+			step(2000) ;
 			timepos +=0.01 ;
 			dlist = false ;
 			break ;
@@ -1510,8 +1522,8 @@ int main(int argc, char *argv[])
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->neighbourhoodRadius = nradius ;
 // // 	dynamic_cast<ConcreteBehaviour *>(sample.getBehaviour() )->variability = 0.03 ;
 	
-// 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRAIN , LOWER_BOUND)) ;
-// 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
+	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
+	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
@@ -1530,7 +1542,7 @@ int main(int argc, char *argv[])
 // 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
 // 	inc.isVirtualFeature = true ;
 // // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new NonLocalMCFT(-20e6, E_paste, mradius)/*new NonLocalVonMises(20e6, E_paste, mradius)DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius)*/, new PlasticStrain())) ;
+// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , /*new NonLocalMCFT(-20e6, E_paste, mradius)*//*new NonLocalVonMises(20e6, E_paste, mradius)*/new DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
 // 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
@@ -1575,7 +1587,7 @@ int main(int argc, char *argv[])
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
-	step() ;
+	step(1) ;
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

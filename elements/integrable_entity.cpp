@@ -1248,8 +1248,9 @@ Vector ElementState::getPreviousStress( const Point &p, bool local, StressCalcul
 		Matrix cg( parent->getBehaviour()->getPreviousTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS)
-			return lstrain * cg ;
-		return lstrain * parent->getBehaviour()->param ;
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+		
+		return lstrain * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1342,8 +1343,8 @@ Vector ElementState::getPreviousStress( const Point &p, bool local, StressCalcul
 
 // 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 		if(m == REAL_STRESS)
-			return lstrain * cg ;
-		return lstrain * parent->getBehaviour()->param ;
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+		return lstrain * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 
 	int dofs = 2 ;
@@ -1408,8 +1409,8 @@ Vector ElementState::getStress( const Point &p, bool local, StressCalculationMet
 // 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 
 		if(m == REAL_STRESS)
-			return lstrain * parent->getBehaviour()->getTensor( p_ ) ;
-		return lstrain * parent->getBehaviour()->param ;
+			return lstrain * parent->getBehaviour()->getTensor( p_ ) - parent->getBehaviour()->getImposedStress(p_);
+		return lstrain * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 	else if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1502,8 +1503,8 @@ Vector ElementState::getStress( const Point &p, bool local, StressCalculationMet
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS)
-			return lstrain * cg ;
-		return lstrain *parent->getBehaviour()->param ;
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
+		return lstrain *parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 
 	int dofs = 2 ;
@@ -1565,9 +1566,9 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 		strain[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 
 		if(m == REAL_STRESS)
-			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) *  parent->getBehaviour()->getTensor( p_ ) ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) *  parent->getBehaviour()->getTensor( p_ ) - parent->getBehaviour()->getImposedStress(p_);
 		else
-			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 	else if( parent->getBehaviour() && parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1656,9 +1657,9 @@ void ElementState::getStressAndStrain(const Point & p, Vector & stress, Vector &
 		                     ( x_zeta ) * Jinv[1][2] );
 
 		if(m == REAL_STRESS)
-			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->getTensor( p_ ) ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->getTensor( p_ ) - parent->getBehaviour()->getImposedStress(p_);
 		else
-			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param ;
+			stress = (strain/*-parent->getBehaviour()->getImposedStrain(p_)*/) * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 }
 
@@ -1701,9 +1702,9 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local, StressCal
 // 		lstrain -= parent->getBehaviour()->getImposedStrain(p_) ;
 
 		if(m == REAL_STRESS )
-			return lstrain * parent->getBehaviour()->getTensor( p_ ) ;
+			return lstrain * parent->getBehaviour()->getTensor( p_ ) - parent->getBehaviour()->getImposedStress(p_);
 			
-		return lstrain * parent->getBehaviour()->param ;
+		return lstrain * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 	else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 	{
@@ -1775,9 +1776,9 @@ Vector ElementState::getNonEnrichedStress( const Point &p, bool local, StressCal
 		Matrix cg( parent->getBehaviour()->getTensor( p_ ) ) ;
 
 		if(m == REAL_STRESS )
-			return lstrain * cg ;
+			return lstrain * cg - parent->getBehaviour()->getImposedStress(p_);
 			
-		return lstrain * parent->getBehaviour()->param ;
+		return lstrain * parent->getBehaviour()->param - parent->getBehaviour()->getImposedStress(p_);
 	}
 
 	int dofs = 2 ;
@@ -2061,7 +2062,7 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts, StressCalc
 				llstrain = llstrain * cg;
 			else
 				llstrain = llstrain *parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 3 + 0] = llstrain[0] ;
 			lstrain[i * 3 + 1] = llstrain[1] ;
 			lstrain[i * 3 + 2] = llstrain[2] ;
@@ -2175,7 +2176,7 @@ Vector ElementState::getNonEnrichedStress( const Mu::PointArray &pts, StressCalc
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 6 + 0] = llstrain[0] ;
 			lstrain[i * 6 + 1] = llstrain[1] ;
 			lstrain[i * 6 + 2] = llstrain[2] ;
@@ -2450,7 +2451,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(pts[i].first) ;
 			lstrain[i * 3 + 0] = llstrain[0] ;
 			lstrain[i * 3 + 1] = llstrain[1] ;
 			lstrain[i * 3 + 2] = llstrain[2] ;
@@ -2564,7 +2565,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 6 + 0] = llstrain[0] ;
 			lstrain[i * 6 + 1] = llstrain[1] ;
 			lstrain[i * 6 + 2] = llstrain[2] ;
@@ -2822,7 +2823,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(pts[i].first) ;
 			lstrain[i * 3 + 0] = llstrain[0] ;
 			lstrain[i * 3 + 1] = llstrain[1] ;
 			lstrain[i * 3 + 2] = llstrain[2] ;
@@ -2924,7 +2925,7 @@ Vector ElementState::getNonEnrichedStress( const std::valarray<std::pair<Point, 
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 6 + 0] = llstrain[0] ;
 			lstrain[i * 6 + 1] = llstrain[1] ;
 			lstrain[i * 6 + 2] = llstrain[2] ;
@@ -3204,7 +3205,7 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts, StressCalcula
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param ;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 3 + 0] = llstrain[0] ;
 			lstrain[i * 3 + 1] = llstrain[1] ;
 			lstrain[i * 3 + 2] = llstrain[2] ;
@@ -3347,7 +3348,7 @@ Vector ElementState::getPreviousStress( const Mu::PointArray &pts, StressCalcula
 				llstrain = llstrain * cg ;
 			else
 				llstrain = llstrain * parent->getBehaviour()->param;
-
+			llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 			lstrain[i * 6 + 0] = llstrain[0] ;
 			lstrain[i * 6 + 1] = llstrain[1] ;
 			lstrain[i * 6 + 2] = llstrain[2] ;
@@ -4443,7 +4444,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 					llstrain = llstrain * cg ;
 				else
 					llstrain = llstrain *  parent->getBehaviour()->param ;
-
+				llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 				lstress[i * 3 + 0] = llstrain[0] ;
 				lstress[i * 3 + 1] = llstrain[1] ;
 				lstress[i * 3 + 2] = llstrain[2] ;
@@ -4575,7 +4576,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const Mu::PointArra
 					llstrain = llstrain * cg ;
 				else
 					llstrain = llstrain * parent->getBehaviour()->param ;
-
+				llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 				lstress[i * 6 + 0] = llstrain[0] ;
 				lstress[i * 6 + 1] = llstrain[1] ;
 				lstress[i * 6 + 2] = llstrain[2] ;
@@ -4733,7 +4734,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 					llstrain = llstrain * cg ;
 				else
 					llstrain = llstrain * parent->getBehaviour()->param ;
-
+				llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 				lstress[i * 3 + 0] = llstrain[0] ;
 				lstress[i * 3 + 1] = llstrain[1] ;
 				lstress[i * 3 + 2] = llstrain[2] ;
@@ -4865,7 +4866,7 @@ std::pair<Vector, Vector > ElementState::getStressAndStrain( const std::valarray
 					llstrain = llstrain * cg ;
 				else
 					llstrain = llstrain * parent->getBehaviour()->param ;
-
+				llstrain -= parent->getBehaviour()->getImposedStress(p_[i]) ;
 				lstress[i * 6 + 0] = llstrain[0] ;
 				lstress[i * 6 + 1] = llstrain[1] ;
 				lstress[i * 6 + 2] = llstrain[2] ;

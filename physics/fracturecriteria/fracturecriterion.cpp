@@ -569,16 +569,15 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 // 		}
 		
 // 		std::cout << totalAreatarget << "  " << fact-factors[0] << "  "<<std::flush ;
-		double ratio = 1 ; //( fact-factors[0])/totalAreatarget ;
-// 		std::cout << ratio << std::endl ;
-		double w = factors[0] ;
-		for(size_t i = 1 ; i < factors.size() ; i++)
-		{
-			factors[i] /= ratio ;
-			w += factors[i] ;
-		}
-		factors.push_back(w);
-		
+// 		double ratio = 1 ; //( fact-factors[0])/totalAreatarget ;
+// // 		std::cout << ratio << std::endl ;
+// 		double w = factors[0] ;
+// 		for(size_t i = 1 ; i < factors.size() ; i++)
+// 		{
+// 			factors[i] /= ratio ;
+// 			w += factors[i] ;
+// 		}
+// 		factors.push_back(w);
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1338,7 +1337,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*5.), physicalCharacteristicRadius*5.),testedTri->getCenter()) ;
+		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*2.1), physicalCharacteristicRadius*2.1),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
