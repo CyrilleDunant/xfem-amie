@@ -16,7 +16,7 @@ using namespace Mu ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, -8*tensile,tensile)
 {
-	materialRadius = 0.0005 ;
+	materialRadius = 0.00025 ;
 	neighbourhoodRadius = materialRadius*2 ;
 }
 
@@ -25,11 +25,11 @@ Form * PasteBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,down*factor, E)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,down*factor, 4.*up/E, 5.*down/E , E)) ;
 	ret->setNeighbourhoodRadius(neighbourhoodRadius) ;
 	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setThresholdDamageDensity(.999);
+// 	ret->dfunc->setThresholdDamageDensity(.999);
 	return ret ;
 }
 
