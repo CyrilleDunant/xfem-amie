@@ -72,10 +72,8 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			{
 				bi = new BimaterialInterface( getPrimitive(),
 				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
+				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()
 				                            ) ;
-				if(dynamic_cast<NonLocalMohrCoulomb *>( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getFractureCriterion() ))
-					std::cout << dynamic_cast<NonLocalMohrCoulomb *>( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getFractureCriterion() )->upVal << std::endl ;
 			}
 			else
 			{

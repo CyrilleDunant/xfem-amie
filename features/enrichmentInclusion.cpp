@@ -170,28 +170,29 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	{
 		Form * original ;
 		HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
-		if(hom && disc.size() > 1)
+		if(hom)
 		{
-			disc[i]->setBehaviour(hom->original->getCopy()) ;
-		}
-		else if(hom)
-		{
-			disc[0]->setBehaviour(hom->original->getCopy()) ;
-
-			std::vector<Feature *> brother ;
-			if(getFather())
-				brother = this->getFather()->getChildren() ;
-			std::vector<Feature *> feat ;
-			for(size_t i = 0 ; i < brother.size() ; i++)
+			disc[i]->setBehaviour(hom->getOriginalBehaviour()->getCopy()) ;
+			
+			if(disc.size() == 1)
 			{
-				if(disc[0]->in(brother[i]->getCenter()))
-					feat.push_back(brother[i]) ;
+				std::vector<Feature *> brother ;
+				if(getFather())
+					brother = this->getFather()->getChildren() ;
+				std::vector<Feature *> feat ;
+				for(size_t j = 0 ; j < brother.size() ; j++)
+				{
+					if(disc[i]->in(brother[j]->getCenter()))
+						feat.push_back(brother[j]) ;
+				}
+				hom->updateEquivalentBehaviour(feat, disc[i]) ;
+				disc[i]->setBehaviour(hom) ;
+				return ;
 			}
-			hom->updateEquivalentBehaviour(feat, disc[0]) ;
-			disc[0]->setBehaviour(hom) ;
 		} 
 		else if(disc.size() == 1)
 		{
+			std::cout << "first" << std::endl ;
 			std::vector<Feature *> brother ;
 			if(getFather())
 				brother = this->getFather()->getChildren() ;
@@ -203,7 +204,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			}
 			HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[0]) ;
 			disc[0]->setBehaviour(hom2) ;
-			//		updated = true ;
 			return ;
 		}
 	}
