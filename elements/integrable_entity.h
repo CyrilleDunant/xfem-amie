@@ -472,9 +472,9 @@ public:
 		return this->space_d ;
 	} ;
 	
-	virtual const Geometry * getSource() const { return source  ;}
-	virtual void setSource(Geometry * src) {source = src ;}
-	
+	virtual Geometry * getSource() const { return source  ;}
+	virtual void setSource( Geometry * const src ) {source = src ;}
+	 
 	virtual bool hasInducedForces() const ;
 	
 	virtual void scale(double d) ;

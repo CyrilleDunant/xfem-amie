@@ -446,7 +446,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
 			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
-				|| !ci->getBehaviour()->getFractureCriterion() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() )
 			{

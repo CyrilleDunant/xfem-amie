@@ -536,8 +536,8 @@ void step(GeometryType ref, int samplingNumber)
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-		std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
-		std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
+		std::cout << "apparent extension X " << (e_xx_max-e_xx_min)/sample.width() << std::endl ;
+		std::cout << "apparent extension Y " << (e_yy_max-e_yy_min)/sample.height() << std::endl ;
 
 		std::cout << tries << std::endl ;
 
@@ -591,7 +591,7 @@ void step(GeometryType ref, int samplingNumber)
 				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
 				expansion_stress_xx.push_back(std::make_pair((avg_e_xx)/(area), (avg_s_xx)/(area))) ;
 				expansion_stress_yy.push_back(std::make_pair((avg_e_yy)/(area), (avg_s_yy)/(area))) ;
-				apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
+				apparent_extension.push_back(std::make_pair((e_xx_max-e_xx_min)/sample.width(), (e_yy_max-e_yy_min)/sample.height())) ;
 			}
 			tries = 0 ;
 			
@@ -637,7 +637,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
+	double radius = 0.000005 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -647,14 +647,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*6 ;
+		double h = sample.width()*0.5-radius*6 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
 			{
 				alone = false ;
 				break ;
@@ -670,7 +670,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
+			Circle circle(incs[j]->getRadius() - radius*6, incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
                             if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
@@ -719,7 +719,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
+	double radius = 0.000005 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -729,14 +729,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*6 ;
+		double h = sample.width()*0.5-radius*6 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
 			{
 				alone = false ;
 				break ;
@@ -801,7 +801,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000005 ;
+	double radius = 0.000005 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -811,14 +811,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*6 ;
+		double h = sample.width()*0.5-radius*6 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
 			{
 				alone = false ;
 				break ;
@@ -837,7 +837,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			Triangle triangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
 			triangle.project(&c) ;
-			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*60.)
+			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*6.)
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
 					std::cout << i << ";" << j << "||" ;
@@ -894,14 +894,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*6 ;
+		double h = sample.width()*0.5-radius*6 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
 			{
 				alone = false ;
 				break ;
@@ -920,7 +920,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			OrientedRectangle rectangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2), incs[j]->getBoundingPoint(3)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
 			rectangle.project(&c) ;
-			if(rectangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*60.)
+			if(rectangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*6.)
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
 					std::cout << i << ";" << j << "||" ;

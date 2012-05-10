@@ -177,7 +177,7 @@ MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
 MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", NULL ) ;
 
 Function loadFunction("0") ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth*1.25, -10, 10, loadFunction ) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
 
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
@@ -287,19 +287,19 @@ void step()
 		if ( go_on  && v > 0)
 		{
 			Function x("x") ;
-			Function f = (x-platewidth*.75)/(platewidth*.5) ;
+			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
 			double l_real = 2e5*tries ;
-			loadFunction = f_negativity(x-platewidth*.75)*(-5e4*52-l_real)- f_positivity(x-platewidth*.75)*(l_real+5e4*52)*(1.-df) ;
+			loadFunction = f_negativity(x-platewidth)*(-5e4*52-l_real)*(1.-f) ;
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
 		else if (v == 0)
 		{
 			Function x("x") ;
-			Function f = (x-platewidth*.75)/(platewidth*.5) ;
+			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			Function loadFunction = f_negativity(x-platewidth)*.75*(-5e4*52) - f_positivity(x-platewidth*.75)*5e4*52*(1.-df) ;
+			Function loadFunction = f_negativity(x-platewidth)*(-5e4*52)*(1.-f) ;
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
@@ -1724,7 +1724,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.035; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.

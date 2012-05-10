@@ -231,7 +231,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
 		scores.push_back(-1. + std::abs( maxStrain / upStrain ));
 	else if(maxStrain > 0)
-		return 1 ;
+		return POINT_TOLERANCE_2D ;
 
 	if( minStrain <= downStrain && minStrain < 0 )
 	{
@@ -241,7 +241,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
 		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
 	else if(minStrain < 0)
-		return 1 ;
+		return POINT_TOLERANCE_2D ;
 	
 	std::sort(scores.begin(), scores.end()) ;
 
