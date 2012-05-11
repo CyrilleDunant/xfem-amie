@@ -1777,7 +1777,6 @@ int main(int argc, char *argv[])
 	PseudoPlastic * psp = new PseudoPlastic(m0_paste, E_paste, 20, mradius) ;
 	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), /*new NonLocal*//*IsotropicLinearDamage()*/new PlasticStrain()) ; 
 	saf->criterion->setMaterialCharacteristicRadius(mradius);
-	saf->criterion->setNeighbourhoodRadius(cradius);
 	Stiffness * sf = new Stiffness(m0_steelx) ;
 
 // 	sample.setBehaviour(sf) ;	

@@ -54,7 +54,6 @@ typedef enum{
 		std::vector<unsigned int> proximitySet ;
 
 		double initialScore ;
-		double neighbourhoodradius ;
 		double neighbourhoodvolume ;
 		double physicalCharacteristicRadius ;
 		double scoreAtState ;
@@ -159,8 +158,6 @@ typedef enum{
 		 * 
 		 * @param r new radius
 		 */
-		virtual void setNeighbourhoodRadius(double r) ;
-		double getNeighbourhoodRadius() const { return neighbourhoodradius ;} ;
 		double getNeighbourhoodVolume() const { return neighbourhoodvolume ;} ;
 
 		virtual void setMaterialCharacteristicRadius(double r) ;

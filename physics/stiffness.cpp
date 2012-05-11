@@ -55,7 +55,6 @@ PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double E, double limitStrain
 	stiffness = E ;
 	vm = new NonLocalVonMises(limitStrain, E, radius) ;
 	vm->setMaterialCharacteristicRadius(radius);
-	vm->setNeighbourhoodRadius(radius*4);
 	initialised = false ;
 	lastDamage = alpha ;
 	v.push_back(XI);

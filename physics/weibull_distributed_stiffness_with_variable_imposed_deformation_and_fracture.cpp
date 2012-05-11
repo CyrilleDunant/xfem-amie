@@ -126,7 +126,6 @@ Form * WeibullStiffnessWithVariableImposedDeformationAndFracture::getCopy() cons
 	StiffnessWithVariableImposedDeformationAndFracture * copy = new StiffnessWithVariableImposedDeformationAndFracture(newTensor, imposed, criterion->getCopy()) ;
 	copy->damage = damage ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-	copy->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	return copy ;
 }
 

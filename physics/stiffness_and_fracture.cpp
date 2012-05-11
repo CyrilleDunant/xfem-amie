@@ -38,11 +38,6 @@ StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion
 // 	v.push_back(TIME_VARIABLE);
 } ;
 
-void StiffnessAndFracture::setNeighbourhoodRadius(double d)
-{
-	criterion->setNeighbourhoodRadius(d);
-}
-
 StiffnessAndFracture::~StiffnessAndFracture() 
 { 
 	delete criterion ;
@@ -95,7 +90,6 @@ Form * StiffnessAndFracture::getCopy() const
 	copy->dfunc->getPreviousState().resize(dfunc->getPreviousState().size());
 	copy->dfunc->getPreviousState() = dfunc->getPreviousState() ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
-	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	return copy ;

@@ -20,7 +20,6 @@ using namespace Mu ;
 StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.002)
 {
 	dfunc = new IsotropicLinearDamage() ;
-	criterion->setNeighbourhoodRadius(eps*6) ;
 	criterion->setMaterialCharacteristicRadius(eps) ;
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -180,7 +179,6 @@ Form * StiffnessWithDiffusionDeformationAndFracture::getCopy() const
 	double factor = 1 - .1 + .1*weib ;
 	
 	StiffnessWithDiffusionDeformationAndFracture * copy = new StiffnessWithDiffusionDeformationAndFracture(param*factor, imposed, criterion->getCopy()) ;
-	copy->criterion->setNeighbourhoodRadius(eps*6) ;
 	copy->criterion->setMaterialCharacteristicRadius(eps) ;
 	return copy ;
 }

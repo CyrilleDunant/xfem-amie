@@ -28,7 +28,6 @@ using namespace Mu ;
 WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt ,MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), variability(.1), up(up), down(down), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
 {
 	materialRadius = .001;
-	neighbourhoodRadius = .004 ;
 		
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -67,7 +66,6 @@ Form * WeibullDistributedStiffness::getCopy() const
 		ret->dfunc = damageModel->getCopy() ;
 	}
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->criterion->setNeighbourhoodRadius(neighbourhoodRadius);
 	ret->dfunc->setThresholdDamageDensity(.99);
 	ret->dfunc->setSecondaryThresholdDamageDensity(.99);
 	return ret ;

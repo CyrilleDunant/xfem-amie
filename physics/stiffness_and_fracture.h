@@ -42,7 +42,6 @@ namespace Mu
 		* @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
 		*/
 		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, DamageModel * d = NULL)  ;
-		void setNeighbourhoodRadius(double d ) ;
 
 		virtual ~StiffnessAndFracture();
 		

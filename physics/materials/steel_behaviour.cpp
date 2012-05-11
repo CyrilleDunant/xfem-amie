@@ -16,7 +16,6 @@ using namespace Mu ;
 SteelBehaviour::SteelBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu,dim, -8*tensile,tensile)
 {
 	materialRadius = 0.0002 ;
-	neighbourhoodRadius = 0.0003 ;
 }
 
 Form * SteelBehaviour::getCopy() const 

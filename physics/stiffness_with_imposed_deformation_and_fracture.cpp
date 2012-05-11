@@ -19,7 +19,7 @@ using namespace Mu ;
 StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.2)
 {
 	dfunc = new IsotropicLinearDamage() ;
-	crit->setNeighbourhoodRadius(eps) ;
+	crit->setMaterialCharacteristicRadius(eps) ;
 	change  = false ;
 	v.push_back(XI);
 	v.push_back(ETA);

@@ -16,7 +16,7 @@
 #include "../../solvers/assembly.h"
 using namespace Mu ;
 
-FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) : neighbourhoodradius(.0005), 
+FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
 neighbourhoodvolume(-1), 
 physicalCharacteristicRadius(.008), 
 scoreAtState(-1), 
@@ -1336,7 +1336,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		Circle epsilon(std::max(std::max(neighbourhoodradius, testedTri->getRadius()*2.1), physicalCharacteristicRadius*2.1),testedTri->getCenter()) ;
+		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
+		Circle epsilon( physicalCharacteristicRadius*2.1,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1383,8 +1384,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 	{
 		if(!cache.empty())
 			cache.clear();
-		
-		Sphere epsilon(neighbourhoodradius,testedTet->getCenter()) ;
+		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
+		Sphere epsilon(physicalCharacteristicRadius*2.1,testedTet->getCenter()) ;
 		if(!testedTet->tree)
 			return ;
 		mesh3d = &testedTet->tree->getTree() ;
@@ -2411,17 +2412,10 @@ FractureCriterion::~FractureCriterion()
 {
 }
 
-void FractureCriterion::setNeighbourhoodRadius(double r)
-{
-	neighbourhoodradius = r ;
-	cache.clear() ;
-	factors.clear();
-}
 
 void FractureCriterion::setMaterialCharacteristicRadius(double r)
 {
 	physicalCharacteristicRadius = r ;
-	neighbourhoodradius = std::max(r*2.5, neighbourhoodradius) ;
 	cache.clear() ;
 	factors.clear();
 }

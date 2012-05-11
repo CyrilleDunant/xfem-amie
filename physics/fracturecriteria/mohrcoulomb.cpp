@@ -207,18 +207,18 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	
-	double tfactor = 1.-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness) ;
-	if(maxStrain > limittstrain)
-		tfactor = 0 ;
-	else if(maxStrain <= upVal/stiffness)
-		tfactor = 1 ;
+	double tfactor = exp(-maxStrain/limittstrain);//1.-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness) ;
+// 	if(maxStrain > limittstrain)
+// 		tfactor = 0 ;
+// 	else if(maxStrain <= upVal/stiffness)
+// 		tfactor = 1 ;
 	
-	double cfactor = 1.-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness) ;
-	if(minStrain < limitcstrain)
-		cfactor = 0 ;
-	else if(minStrain > downVal/stiffness)
-		cfactor = 1 ;
-	
+	double cfactor = exp(-minStrain/limitcstrain); //1.-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness) ;
+// 	if(minStrain < limitcstrain)
+// 		cfactor = 0 ;
+// 	else if(minStrain > downVal/stiffness)
+// 		cfactor = 1 ;
+// 	
 	double  upStrain = tfactor*upVal/effectiveStiffness ;
 	double  downStrain = cfactor*downVal/effectiveStiffness ;
 	std::vector<double> scores ;

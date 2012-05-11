@@ -27,7 +27,6 @@ namespace Mu
 	struct WeibullDistributedStiffness : public LinearForm
 	{
 		double materialRadius ;
-		double neighbourhoodRadius ;
 		std::vector<Variable> v ;
 		double variability ;
 		double down ;
@@ -48,8 +47,7 @@ namespace Mu
 		*/
 		WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt = PLANE_STRESS, MirrorState mirroring = NO_MIRROR, double dx = 0, double dy = 0, double dz = 0)  ;
 		
-		void setMaterialCharacteristicRadius(double r) {materialRadius = r ;} ;
-		void setNeighbourhoodRadius(double r) {neighbourhoodRadius = r ;}
+		void setNeighbourhoodRadius(double r) {materialRadius = r ;}
 		
 		virtual ~WeibullDistributedStiffness();
 		

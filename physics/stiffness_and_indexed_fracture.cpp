@@ -23,7 +23,7 @@ StiffnessAndIndexedFracture::StiffnessAndIndexedFracture(const Matrix & rig, Fra
 {
 	dfunc = new IndexedLinearDamage(rig.numRows()-1,1., crit) ; 
 	criterion = crit ;
-	crit->setNeighbourhoodRadius(eps) ;
+	crit->setMaterialCharacteristicRadius(eps) ;
 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -36,7 +36,7 @@ StiffnessAndIndexedFracture::StiffnessAndIndexedFracture(const Matrix & rig, Fra
 
 void StiffnessAndIndexedFracture::setNeighbourhoodRadius(double d)
 {
-	criterion->setNeighbourhoodRadius(d);
+	criterion->setMaterialCharacteristicRadius(d);
 	eps = d ;
 }
 
@@ -87,7 +87,6 @@ Form * StiffnessAndIndexedFracture::getCopy() const
 {
 	StiffnessAndIndexedFracture * copy = new StiffnessAndIndexedFracture(param, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
-	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	return copy ;
 }

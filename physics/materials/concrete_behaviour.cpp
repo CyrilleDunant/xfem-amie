@@ -18,7 +18,6 @@ using namespace Mu ;
 ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, planeType pt, RedistributionType rtype, SpaceDimensionality dim, MirrorState mirroring , double dx ,double  dy, double dz) : WeibullDistributedStiffness(E,nu, dim, compressive,0, pt, mirroring, dx , dy , dz ), rtype(rtype)
 {
 	materialRadius = 0.015 ;
-	neighbourhoodRadius = materialRadius*1.5 ;
 	variability = 0. ;
 }
 

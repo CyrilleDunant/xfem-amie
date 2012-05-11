@@ -23,7 +23,7 @@ FractionStiffnessAndFracture::FractionStiffnessAndFracture(const Matrix & rig, c
 {
 	dfunc = new FractionLinearDamage(rig0, phi) ;
 	criterion = crit ;
-	crit->setNeighbourhoodRadius(eps) ;
+	crit->setMaterialCharacteristicRadius(eps) ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() == 36 )
@@ -35,7 +35,7 @@ FractionStiffnessAndFracture::FractionStiffnessAndFracture(const Matrix & rig, c
 
 void FractionStiffnessAndFracture::setNeighbourhoodRadius(double d)
 {
-	criterion->setNeighbourhoodRadius(d);
+	criterion->setMaterialCharacteristicRadius(d);
 	eps = d ;
 }
 
@@ -89,7 +89,6 @@ Form * FractionStiffnessAndFracture::getCopy() const
 {
 	FractionStiffnessAndFracture * copy = new FractionStiffnessAndFracture(param, dfunc->remnant, dfunc->phi, criterion->getCopy(), criterion->getMaterialCharacteristicRadius()) ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
-	copy->criterion->setNeighbourhoodRadius(criterion->getNeighbourhoodRadius()) ;
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
 	copy->dfunc->setSecondaryThresholdDamageDensity(dfunc->getSecondaryThresholdDamageDensity());
 	return copy ;

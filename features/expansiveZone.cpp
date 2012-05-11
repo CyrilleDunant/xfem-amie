@@ -85,7 +85,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
 			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
-			bi->setSource( ring[i]->getBehaviour()->getSource() );
+			bi->setSource( this->getPrimitive() );
 		}
 
 		newInterface.insert( ring[i] ) ;
