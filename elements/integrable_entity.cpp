@@ -937,6 +937,7 @@ void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector &
 	#pragma omp critical
 	{
 		bool resize = false ;
+		bool resizee = false ;
 		if( pstrainAtCenter.size() == 0 )
 		{
 			resize = true ;
@@ -945,7 +946,7 @@ void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector &
 			else
 				pstrainAtCenter.resize( 3 ) ;
 		}
-		if( stressAtCenter.size() == 0 )
+		if( stressAtCenter.size() == 0 &&  m == REAL_STRESS)
 		{
 			resize = true ;
 			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -953,9 +954,9 @@ void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector &
 			else
 				pstressAtCenter.resize( 3 ) ;	
 		}
-		if( effectivePStressAtCenter.size() == 0 )
+		if( effectivePStressAtCenter.size() == 0 && m != REAL_STRESS)
 		{
-			resize = true ;
+			resizee = true ;
 			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 				effectivePStressAtCenter.resize( 2 ) ;
 			else
@@ -967,6 +968,12 @@ void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector &
 			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 				center.set(.25, .25, .25);
 			getPrincipalStressAndStrain(center, pstressAtCenter, pstrainAtCenter, true, REAL_STRESS);
+		}
+		if(resizee)
+		{
+			Point center(.33333333333, .33333333333) ;
+			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+				center.set(.25, .25, .25);
 			getPrincipalStressAndStrain(center, effectivePStressAtCenter, pstrainAtCenter, true, EFFECTIVE_STRESS);
 		}
 	}
