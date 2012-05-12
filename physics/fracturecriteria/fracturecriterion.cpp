@@ -968,7 +968,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
-				if(!ci->getBehaviour()->fractured())
+				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
 				{
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
@@ -987,7 +987,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				
 			}
 
-			if(ci->getBehaviour()->getDamageModel())
+			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
 			{
 				
 				if(!ci->getBehaviour()->fractured())
@@ -1337,7 +1337,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
-		Circle epsilon( physicalCharacteristicRadius*2.1,testedTri->getCenter()) ;
+		Circle epsilon( physicalCharacteristicRadius*2.5,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1385,7 +1385,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		if(!cache.empty())
 			cache.clear();
 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
-		Sphere epsilon(physicalCharacteristicRadius*2.1,testedTet->getCenter()) ;
+		Sphere epsilon(physicalCharacteristicRadius*2.5,testedTet->getCenter()) ;
 		if(!testedTet->tree)
 			return ;
 		mesh3d = &testedTet->tree->getTree() ;

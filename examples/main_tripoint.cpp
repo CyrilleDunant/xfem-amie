@@ -1724,7 +1724,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.035; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.

@@ -637,7 +637,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.000005 ;
+	double radius = 0.0000001 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -719,7 +719,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.000005 ;
+	double radius = 0.0000001 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;
@@ -801,7 +801,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.000005 ;
+	double radius = 0.0000001 ;
 	Vector a(double(0), 3) ;
 	a[0] = 0.5 ;
 	a[1] = 0.5 ;

@@ -77,15 +77,27 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			}
 			else
 			{
-				bi = new BimaterialInterface( getPrimitive(),
-			        new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-			        new Stiffness(ring[i]->getBehaviour()->getTensor(ring[i]->getCenter())) ) ;
+// 				if(ring[i]->getBehaviour()->getDamageModel() )
+// 				{
+// 					Vector state = ring[i]->getBehaviour()->getDamageModel()->getState() ;
+// 					ring[i]->getBehaviour()->getDamageModel()->getState(true) = 0 ;
+// 					bi = new BimaterialInterface( getPrimitive(),
+// 								new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+// 								new Stiffness(ring[i]->getBehaviour()->getTensor((ring[i]->getCenter())) )) ;
+// 					ring[i]->getBehaviour()->getDamageModel()->getState(true) = state ;
+// 				}
+// 				else
+// 				{
+					bi = new BimaterialInterface( getPrimitive(),
+								new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
+								new Stiffness(ring[i]->getBehaviour()->getTensor((ring[i]->getCenter())) )) ;
+// 				}
 			}
 
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
 			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
-			bi->setSource( this->getPrimitive() );
+			bi->setSource( ring[i]->getBehaviour()->getSource() );
 		}
 
 		newInterface.insert( ring[i] ) ;
