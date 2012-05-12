@@ -219,8 +219,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		stra /= sumStrainFactors ;
 // 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
 // 		{
-			Vector e = s.getStrain(Point(.3333333, .3333333), true) ;
-			currentAngle =  0.5*atan2( e[2], e[0] - e[1] ) ;
+			currentAngle = s.getCachedAngle() ;
 			if(currentAngle < 0)
 				currentAngle += M_PI ;
 // 		}

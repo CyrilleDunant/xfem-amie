@@ -134,6 +134,7 @@ public:
 /** \brief Return stress at given point*/
 	Vector getStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
 	void getStressAndStrain(const Point & , Vector & stress, Vector & strain, bool local = false, StressCalculationMethod m = REAL_STRESS) ;
+	void getPrincipalStressAndStrain(const Point & p, Vector & stress, Vector & strain, bool local= false, StressCalculationMethod m= REAL_STRESS) ;
 
 /** \brief Return stress at given point, ignoring enrichment functions*/
 	Vector getNonEnrichedStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;

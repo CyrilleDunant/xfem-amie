@@ -849,6 +849,89 @@ void ElementState::getStressAndStrainAtCenter(Vector & stress, Vector & strain, 
 	strain = strainAtCenter ;
 }
 
+void ElementState::getPrincipalStressAndStrain(const Point & p, Vector & stress, Vector & strain, bool local, StressCalculationMethod m)
+{
+	if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+	{
+		Vector strains(3, 0.);
+		Vector stresses(3, 0.) ;
+		getStressAndStrain(p, stresses, strains, local, m);
+
+// 		if(parent->getBehaviour()->hasInducedForces())
+// 			strains -= parent->getBehaviour()->getImposedStrains(p) ;
+		cachedPrincipalStressAngle = 0.5*atan2( strains[2], strains[0] - strains[1] ) ;
+		strain[0] = ( strains[0] + strains[1] ) * .5 +
+		                 sqrt(
+		                    0.25 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                    ( strains[2] * strains[2] )
+		                ) ;
+		strain[1] = ( strains[0] + strains[1] ) * .5 -
+		                 sqrt(
+		                    0.25 *( strains[0] - strains[1] ) * ( strains[0] - strains[1] ) +
+		                    ( strains[2] * strains[2] )
+		                ) ;
+										
+		stress[0] = ( stresses[0] + stresses[1] ) * .5 +
+		                 sqrt(
+		                    0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+		                    ( stresses[2] * stresses[2] )
+		                ) ;
+		stress[1] = ( stresses[0] + stresses[1] ) * .5 -
+		                 sqrt(
+		                    0.25 *( stresses[0] - stresses[1] ) * ( stresses[0] - stresses[1] ) +
+		                    ( stresses[2] * stresses[2] )
+		                ) ;
+
+		return ;
+	}
+	else
+	{
+		Vector lprincipal( 3 ) ;
+		Matrix strains = getStrainMatrix( p, local ) ;
+		Matrix stresses = getStressMatrix( p, local ) ;
+		Matrix I( 3, 3 ) ;
+		I[0][0] = 1 ;
+		I[1][1] = 1 ;
+		I[2][2] = 1 ;
+		double m = ( strains[0][0] + strains[1][1] + strains[2][2] ) / 3. ;
+		Matrix Am = strains - I * m ;
+		double q = det( Am ) / 2. ;
+		double r = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
+		double phi = atan2( sqrt( r * r * r - q * q ), q ) / 3. ;
+
+		if( r * r * r - q * q < 1e-12 )
+			phi = atan( 0 ) / 3. ;
+
+		if( phi < 0 )
+			phi += M_PI ;
+
+		
+		strain[0] = m + 2.*sqrt( r ) * cos( phi ) ;
+		strain[1] = m - sqrt( r ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
+		strain[2] = m - sqrt( r ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
+		
+		
+		m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
+		Am = stresses - I * m ;
+		q = det( Am ) / 2. ;
+		r = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
+		phi = atan2( sqrt( r * r * r - q * q ), q ) / 3. ;
+
+		if( r * r * r - q * q < 1e-12 )
+			phi = atan( 0 ) / 3. ;
+
+		if( phi < 0 )
+			phi += M_PI ;
+
+		
+		stress[0] = m + 2.*sqrt( r ) * cos( phi ) ;
+		stress[1] = m - sqrt( r ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
+		stress[2] = m - sqrt( r ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
+		
+		return  ;
+	}	
+}
+
 void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector & strain, StressCalculationMethod m)
 {
 	#pragma omp critical
@@ -883,9 +966,8 @@ void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector &
 			Point center(.33333333333, .33333333333) ;
 			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 				center.set(.25, .25, .25);
-			pstressAtCenter = getPrincipalStresses(center,true, REAL_STRESS) ;
-			pstrainAtCenter = getPrincipalStrains(center,true) ;
-			effectivePStressAtCenter = getPrincipalStresses(center,true, EFFECTIVE_STRESS) ;
+			getPrincipalStressAndStrain(center, pstressAtCenter, pstrainAtCenter, true, REAL_STRESS);
+			getPrincipalStressAndStrain(center, effectivePStressAtCenter, pstrainAtCenter, true, EFFECTIVE_STRESS);
 		}
 	}
 	if(m == REAL_STRESS)
@@ -5445,6 +5527,7 @@ Vector ElementState::getPrincipalStrains( const Point &p, bool local ) const
 		return lprincipal ;
 	}
 }
+
 
 double ElementState::elasticEnergy() const
 {
