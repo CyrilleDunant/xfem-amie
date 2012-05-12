@@ -94,10 +94,11 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 // 				}
 			}
 
+			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
 			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
-			bi->setSource( ring[i]->getBehaviour()->getSource() );
+			bi->setSource( src );
 		}
 
 		newInterface.insert( ring[i] ) ;
@@ -112,7 +113,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
 			delete inDisc[i]->getBehaviour() ;
 			inDisc[i]->setBehaviour( bi ) ;
-//			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
+			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 
 		newExpansive.insert( inDisc[i] ) ;
@@ -146,7 +147,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			}
 
 			disc[0]->getBehaviour()->transform( disc[0]->getXTransform(), disc[0]->getYTransform() ) ;
-			disc[0]->getBehaviour()->setSource(  disc[0]->getBehaviour()-> getSource());
+			disc[0]->getBehaviour()->setSource( getPrimitive());
 		}
 
 		newInterface.insert( disc[0] ) ;

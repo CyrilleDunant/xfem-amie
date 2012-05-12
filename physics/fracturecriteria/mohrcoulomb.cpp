@@ -293,7 +293,6 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
 	metInTension = false ;
-	metInCompression = false ;
 	metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
 	metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
@@ -317,6 +316,7 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 	double  downStrain = cfactor*downVal/effectiveStiffness ;
 	std::vector<double> scores ;
 	scores.push_back(-1);
+	
 	if( maxStrain >= upStrain && maxStrain > 0 )
 	{
 		metInTension = true;

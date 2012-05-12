@@ -168,6 +168,9 @@ ElementState &ElementState::operator =( const ElementState &s )
 	stressAtCenter.resize(0);
 	strainAtCenter.resize(0);
 	effectiveStressAtCenter.resize(0);
+	pstressAtCenter.resize(0);
+	pstrainAtCenter.resize(0);
+	effectivePStressAtCenter.resize(0);
 	strainAtNodes.resize(0);
 	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
@@ -202,6 +205,9 @@ ElementState::ElementState( const ElementState &s )
 	strainAtCenter.resize( 0 ) ;
 	stressAtCenter.resize( 0 ) ;
 	effectiveStressAtCenter.resize(0);
+	pstrainAtCenter.resize( 0 ) ;
+	pstressAtCenter.resize( 0 ) ;
+	effectivePStressAtCenter.resize(0);
 	cachedPrincipalStressAngle = 0 ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
@@ -841,6 +847,52 @@ void ElementState::getStressAndStrainAtCenter(Vector & stress, Vector & strain, 
 	else
 		stress = effectiveStressAtCenter ;
 	strain = strainAtCenter ;
+}
+
+void ElementState::getPrincipalStressAndStrainAtCenter(Vector & stress, Vector & strain, StressCalculationMethod m)
+{
+	#pragma omp critical
+	{
+		bool resize = false ;
+		if( pstrainAtCenter.size() == 0 )
+		{
+			resize = true ;
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				pstrainAtCenter.resize( 2 ) ;
+			else
+				pstrainAtCenter.resize( 3 ) ;
+		}
+		if( stressAtCenter.size() == 0 )
+		{
+			resize = true ;
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				pstressAtCenter.resize( 2 ) ;
+			else
+				pstressAtCenter.resize( 3 ) ;	
+		}
+		if( effectivePStressAtCenter.size() == 0 )
+		{
+			resize = true ;
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				effectivePStressAtCenter.resize( 2 ) ;
+			else
+				effectivePStressAtCenter.resize( 3 ) ;	
+		}
+		if(resize)
+		{
+			Point center(.33333333333, .33333333333) ;
+			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+				center.set(.25, .25, .25);
+			pstressAtCenter = getPrincipalStresses(center,true, REAL_STRESS) ;
+			pstrainAtCenter = getPrincipalStrains(center,true) ;
+			effectivePStressAtCenter = getPrincipalStresses(center,true, EFFECTIVE_STRESS) ;
+		}
+	}
+	if(m == REAL_STRESS)
+		stress = pstressAtCenter ;
+	else
+		stress = effectivePStressAtCenter ;
+	strain = pstrainAtCenter ;
 }
 
 Vector ElementState::getStrain( const Point &p, bool local ) const
@@ -4942,6 +4994,11 @@ void ElementState::step( double dt, const Vector *d )
 	stressAtCenter.resize( 0 );
 	
 	effectiveStressAtCenter.resize(0);
+	
+	pstrainAtCenter.resize( 0 );
+	pstressAtCenter.resize( 0 );
+	
+	effectivePStressAtCenter.resize(0);
 
 	if( !history.empty() )
 		history.pop_back() ;

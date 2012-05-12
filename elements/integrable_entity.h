@@ -83,6 +83,10 @@ protected:
 	Vector strainAtCenter ;
 	Vector stressAtCenter ;
 	Vector effectiveStressAtCenter ;
+	
+	Vector pstrainAtCenter ;
+	Vector pstressAtCenter ;
+	Vector effectivePStressAtCenter ;
 
 	Vector displacements ;
 	Vector enrichedDisplacements ;
@@ -161,6 +165,7 @@ public:
 	Vector &getStrainAtCenter() ;
 	Vector &getStressAtCenter(StressCalculationMethod m = REAL_STRESS) ;
 	void getStressAndStrainAtCenter( Vector & stress, Vector & strain, StressCalculationMethod m = REAL_STRESS) ;
+	void getPrincipalStressAndStrainAtCenter( Vector & stress, Vector & strain, StressCalculationMethod m = REAL_STRESS) ;
 
 /** \brief Return stress at given points*/
 	Vector getPreviousStress(const Mu::PointArray & v, StressCalculationMethod m = REAL_STRESS) const;

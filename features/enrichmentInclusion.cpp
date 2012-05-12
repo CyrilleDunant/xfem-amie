@@ -185,8 +185,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					if(disc[i]->in(brother[j]->getCenter()))
 						feat.push_back(brother[j]) ;
 				}
+				Geometry * src = disc[i]->getBehaviour()->getSource() ;
 				hom->updateEquivalentBehaviour(feat, disc[i]) ;
 				disc[i]->setBehaviour(hom) ;
+				disc[i]->getBehaviour()->setSource(getPrimitive()) ;
 				return ;
 			}
 		} 
@@ -203,7 +205,9 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					feat.push_back(brother[i]) ;
 			}
 			HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[0]) ;
+			Geometry * src = disc[0]->getBehaviour()->getSource() ;
 			disc[0]->setBehaviour(hom2) ;
+			disc[0]->getBehaviour()->setSource(getPrimitive()) ;
 			return ;
 		}
 	}
