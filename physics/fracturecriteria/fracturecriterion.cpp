@@ -146,7 +146,6 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	{
 		double iteratorValue = factors[0] ;
 		s.getPrincipalStressAndStrainAtCenter(tmpstr, tmpstra, REAL_STRESS) ;
-		return std::make_pair(tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
 		str = tmpstr*iteratorValue ;
 		if(m == EFFECTIVE_STRESS)
