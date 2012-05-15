@@ -21,52 +21,173 @@
 namespace Mu
 {
 
+/**
+ * \brief Type of particle size distribution. If you add a new PSDType, please complete ParticleSizeDistribution::getPSD() static method and create the appropriate class.
+ */
 typedef enum
 {
 	BOLOME_A,
 	BOLOME_B,
 	BOLOME_C,
 	BOLOME_D
-} TypeGranulo;
+} PSDType ;
 
 typedef enum
 {
-	CIRCLE_INCLUSION,
+	CIRCLE_INCLUSION = 0,
 	SPHERE_INCLUSION,
-	ELLIPSE_INCLUSION
-} TypeInclusion;
+	ELLIPSE_INCLUSION,
+} TypeInclusion ;
 
-class Granulo
-{	
-private:
-	double c;
-	double n;
-	double masseInitiale;
-	double densite;
-public:
 
-	Granulo(double, double, double, double);
-	Granulo() ;
-	virtual ~Granulo() { } ;
-
-	virtual std::vector <Inclusion *> operator()(double , double, double inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
-
-	virtual std::vector <EllipsoidalInclusion *> operator()(bool, Point *, double , double, double rfactor = 0.8, int inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
-} ;
-
-class GranuloBolome : public Granulo
+/**
+ * \brief Criterion for ending generation of particles.
+ */
+struct PSDEndCriteria
 {
-private:
-	TypeGranulo type ;
-	double masseInitiale;
-	double densite;
-public:
-	GranuloBolome(double , double , TypeGranulo t) ;
-	virtual std::vector <Inclusion *> operator()(double , double, double inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
-	virtual std::vector <Inclusion3D *> operator()(bool, double rayonGranulatMax, double pourcentMasseMin, double inclusionNumber = 8000, double itzSize = 15e-6, bool verbose = true);
-
-	virtual ~GranuloBolome() { } ;
+      double rmin ; // end the PSD when a certain radius is met (all radius are taken if negative)
+      double placedFraction ; // end the PSD when enough aggregates have been placed in term of volume/surface fraction (between 0 and 1, all aggregates are taken if greater than one)
+      size_t nmax ; // end the PSD when enough aggregates have been placed
+      
+      PSDEndCriteria(double r, double f, size_t n) 
+      {
+	    rmin = r ;
+	    placedFraction = f ;
+	    nmax = n ;
+      }
+      
+      /**
+       * \brief Checks if the minimum radius, the minimum fraction or the desired number of aggregates have been reached. 
+       * @param radius the current radius in the PSD
+       * @param fraction the remaining fraction of aggregates
+       * @param n the number of aggregates generated
+       * @return true if at least one of these conditions have been reached, false otherwise
+       */ 
+      bool meets(double radius, double fraction, size_t n) const 
+      {
+	    return radius < rmin || fraction < placedFraction || n > nmax ;
+      }
+      
+      /**
+       * \brief Prints which criteria is met (if any)
+       * @param radius the current radius in the PSD
+       * @param fraction the remaining fraction of aggregates
+       * @param n the number of aggregates generated
+       */
+      void print(double radius, double fraction, size_t n) const
+      {
+	    if(radius < rmin)
+		std::cout << "minimum radius reached!" << std::endl ;
+	    if(fraction < placedFraction)
+		std::cout << "fraction of aggregates reached!" << std::endl ;
+	    if(n > nmax)
+		std::cout << "max number of aggregates reached!" << std::endl ;
+      }
 } ;
+
+/**
+ * \brief Basic class for generation of particle size distribution
+ */
+class ParticleSizeDistribution
+{
+public:
+	ParticleSizeDistribution() ;
+	
+	/**
+	 * \brief Generic method to get 2D inclusions
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param surface target surface covered by the aggregates
+	 * @param type type of PSD to use
+	 * @param crit criteria to stop the generation
+	 * @return vector of Inclusion*
+	 */
+	static std::vector<Inclusion *> get2DInclusions(double rmax, double surface, PSDType type, PSDEndCriteria crit) ;
+
+	/**
+	 * \brief Generic method to get 3D inclusions
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param area target area filled by the aggregates
+	 * @param type type of PSD to use
+	 * @param crit criteria to stop the generation
+	 * @return vector of Inclusion3D*
+	 */
+	static std::vector<Inclusion3D *> get3DInclusions(double rmax, double area, PSDType type, PSDEndCriteria crit) ;
+	
+	/**
+	 * \brief Creates PSD for mortar square samples
+	 * @param width width of the sample
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param n maximum number of aggregates
+	 * @param type type of PSD to use
+	 * @return vector of Inclusion*
+	 */
+	static std::vector<Inclusion *> get2DMortar(double rmax = 0.0025, double width = 0.04, size_t n = 4000, PSDType type = BOLOME_D) ;
+	
+	/**
+	 * \brief Creates PSD for concrete square samples
+	 * @param width width of the sample
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param n maximum number of aggregates
+	 * @param type type of PSD to use
+	 * @return vector of Inclusion*
+	 */
+	static std::vector<Inclusion *> get2DConcrete(double rmax = 0.008, double width = 0.07, size_t n = 6000, PSDType type = BOLOME_A) ;
+
+	/**
+	 * \brief Returns appropriate ParticleSizeDistribution* object corresponding to the given type
+	 * @param type PSD type to use
+	 * @return pointer to the corresponding ParticleSizeDistribution object
+	 */
+	static ParticleSizeDistribution * getPSD(PSDType type) ;
+	
+	/**
+	 * \brief Gives the next diameter for 2D inclusions. This method is to be overloaded by inherited classes
+	 * @param diameter previous diameter found in the distribution
+	 * @param fraction remaining fraction of aggregates to place
+	 * @param dmax maximum diameter of the distribution
+	 * @return next diameter
+	 */
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+
+	/**
+	 * \brief Gives the next diameter for 3D inclusions. This method is to be overloaded by inherited classes
+	 * @param diameter previous diameter found in the distribution
+	 * @param fraction remaining fraction of aggregates to place
+	 * @param dmax maximum diameter of the distribution
+	 * @return next diameter
+	 */
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+class PSDBolomeA : public ParticleSizeDistribution
+{
+public:
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+class PSDBolomeB : public ParticleSizeDistribution
+{
+public:
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+class PSDBolomeC : public ParticleSizeDistribution
+{
+public:
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+class PSDBolomeD : public ParticleSizeDistribution
+{
+public:
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+
 
 class GranuloFromFile
 {
@@ -85,8 +206,6 @@ public:
 	std::vector<Feature *> getFeatures(TypeInclusion type, int ninc) ;
 	std::vector<Inclusion3D *> getInclusion3D(int ninc, double scale = 1) ;
 } ;
-
-
 
 }
 

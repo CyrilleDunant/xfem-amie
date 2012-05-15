@@ -205,11 +205,11 @@ struct Zone
 
 std::vector<Zone> zones ;
 
-void step(GeometryType ref, int samplingNumber)
+void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 {
 
-	int nsteps = 150;
-	int nstepstot = 150;
+	int nsteps = 25; // step 16 = 0.023
+	int nstepstot = 25;
 	int maxtries = 5 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(1600) ;
@@ -469,42 +469,45 @@ void step(GeometryType ref, int samplingNumber)
 				}
 			}
 		}
-		std::string filename("triangles_") ;
+		std::string filename("icaar2/triangles_") ;
 		switch(ref)
 		{
 			case CIRCLE:
-				filename.append("circle_max_") ;
+				filename.append("circle_") ;
 				break ;
 			case ELLIPSE:
-				filename.append("ellipse_max_") ;
+				filename.append("ellipse_") ;
 				break ;
 			case TRIANGLE:
-				filename.append("triangle_max_") ;
+				filename.append("triangle_") ;
 				break ;
 			case RECTANGLE:
-				filename.append("square_max_") ;
+				filename.append("square_") ;
 				break ;
 		}
 		filename.append(itoa(samplingNumber, 10)) ;
 		filename.append("_") ;
+		filename.append(itoa(stressXI, 10)) ;
+		filename.append("_") ;
+		filename.append(itoa(stressETA, 10)) ;
+		filename.append("_") ;
 		filename.append(itoa(i, 10)) ;
 		std::cout << filename << std::endl ;
 
-// 		TriangleWriter writer(filename, featureTree) ;
-// 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-// 		writer.getField(TWFT_VON_MISES) ;
-// 		writer.getField(TWFT_STIFFNESS) ;
-// 		writer.getField(TWFT_DAMAGE) ;
-// 		writer.write() ;
+		TriangleWriter wrt(filename, featureTree) ;
+		wrt.getField(TWFT_STRAIN_AND_STRESS) ;
+		wrt.getField(TWFT_STIFFNESS) ;
+		wrt.getField(TWFT_DAMAGE) ;
+		wrt.write() ;
 // 		if(go_on)
 // 		{
-			writer.reset( featureTree ) ;
-			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_STIFFNESS ) ;
-			writer.getField( TWFT_DAMAGE ) ;
-			writer.append() ;
+// 			writer.reset( featureTree ) ;
+// 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+// 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+// 			writer.getField( TWFT_CRITERION ) ;
+// 			writer.getField( TWFT_STIFFNESS ) ;
+// 			writer.getField( TWFT_DAMAGE ) ;
+// 			writer.append() ;
 // 		}
 
 		
@@ -536,8 +539,8 @@ void step(GeometryType ref, int samplingNumber)
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-		std::cout << "apparent extension X " << (e_xx_max-e_xx_min)/sample.width() << std::endl ;
-		std::cout << "apparent extension Y " << (e_yy_max-e_yy_min)/sample.height() << std::endl ;
+		std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
+		std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
 
 		std::cout << tries << std::endl ;
 
@@ -591,7 +594,7 @@ void step(GeometryType ref, int samplingNumber)
 				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
 				expansion_stress_xx.push_back(std::make_pair((avg_e_xx)/(area), (avg_s_xx)/(area))) ;
 				expansion_stress_yy.push_back(std::make_pair((avg_e_yy)/(area), (avg_s_yy)/(area))) ;
-				apparent_extension.push_back(std::make_pair((e_xx_max-e_xx_min)/sample.width(), (e_yy_max-e_yy_min)/sample.height())) ;
+				apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
 			}
 			tries = 0 ;
 			
@@ -637,24 +640,24 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000001 ;
+	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.05 ;
+	a[1] = 0.05 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*6 ;
-		double h = sample.width()*0.5-radius*6 ;
+		double w = sample.width()*0.5-radius*60 ;
+		double h = sample.width()*0.5-radius*60 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
 			{
 				alone = false ;
 				break ;
@@ -670,7 +673,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			Circle circle(incs[j]->getRadius() - radius*6, incs[j]->getCenter()) ;
+			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
                             if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
@@ -702,6 +705,168 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	return ret ;	
 }
 
+std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
+{
+	RandomNumber gen ;
+  
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<Zone> ret ;
+	aggregateArea = 0 ;
+	double radius = 0.0000005 ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.05 ;
+	a[1] = 0.05 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		Point pos = incs[i]->getCenter() ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+		F.addFeature(incs[i],zonesToPlace[i]) ;
+		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
+		aggregateArea+= incs[i]->area() ;
+	}
+
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
+
+std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<TriangularInclusion * > & incs , FeatureTree & F)
+{
+	RandomNumber gen ;
+  
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<Zone> ret ;
+	aggregateArea = 0 ;
+	double radius = 0.0000005 ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.05 ;
+	a[1] = 0.05 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		Point pos = incs[i]->getCenter() ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, m0, a)) ;
+		F.addFeature(incs[i],zonesToPlace[i*2]) ;
+		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
+		ret.push_back(Zone(zonesToPlace[i*2],incs[i])) ;
+		ret.push_back(Zone(zonesToPlace[i*2+1],incs[i])) ;
+		aggregateArea+= incs[i]->area() ;
+	}
+
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
+
+std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<RectangularInclusion * > & incs , FeatureTree & F)
+{
+	RandomNumber gen ;
+  
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<Zone> ret ;
+	aggregateArea = 0 ;
+	double radius = 0.0000005 ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.05 ;
+	a[1] = 0.05 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		Point pos = incs[i]->getCenter() ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+		F.addFeature(incs[i],zonesToPlace[i]) ;
+		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
+		aggregateArea+= incs[i]->area() ;
+	}
+
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
+
+std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<Inclusion * > & incs , FeatureTree & F)
+{
+	RandomNumber gen ;
+  
+	double E_csh = 31e9 ;
+	double nu_csh = .28 ;
+	
+	double E = percent*E_csh ;
+	double nu = nu_csh ;
+	
+	Matrix m0(3,3) ;
+	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
+	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
+	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
+	
+	std::vector<Zone> ret ;
+	aggregateArea = 0 ;
+	double radius = 0.0000005 ;
+	Vector a(double(0), 3) ;
+	a[0] = 0.05 ;
+	a[1] = 0.05 ;
+	a[2] = 0.00 ;
+	
+	std::vector<ExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		Point pos = incs[i]->getCenter() ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, m0, a)) ;
+		F.addFeature(incs[i],zonesToPlace[i*2]) ;
+		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
+		ret.push_back(Zone(zonesToPlace[i*2],incs[i])) ;
+		ret.push_back(Zone(zonesToPlace[i*2+1],incs[i])) ;
+		aggregateArea+= incs[i]->area() ;
+	}
+
+	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
+	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+}
+
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
@@ -719,24 +884,24 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000001 ;
+	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*6 ;
-		double h = sample.width()*0.5-radius*6 ;
+		double w = sample.width()*0.5-radius*60 ;
+		double h = sample.width()*0.5-radius*60 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
 			{
 				alone = false ;
 				break ;
@@ -801,24 +966,24 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
-	double radius = 0.0000001 ;
+	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*6 ;
-		double h = sample.width()*0.5-radius*6 ;
+		double w = sample.width()*0.5-radius*60 ;
+		double h = sample.width()*0.5-radius*60 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
 			{
 				alone = false ;
 				break ;
@@ -837,7 +1002,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			Triangle triangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
 			triangle.project(&c) ;
-			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*6.)
+			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*60.)
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
 					std::cout << i << ";" << j << "||" ;
@@ -886,22 +1051,22 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
+	a[0] = 0.1 ;
+	a[1] = 0.1 ;
 	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*6 ;
-		double h = sample.width()*0.5-radius*6 ;
+		double w = sample.width()*0.5-radius*60 ;
+		double h = sample.width()*0.5-radius*60 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*6.+radius*6.)*(radius*6.+radius*6.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
 			{
 				alone = false ;
 				break ;
@@ -920,7 +1085,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			OrientedRectangle rectangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2), incs[j]->getBoundingPoint(3)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
 			rectangle.project(&c) ;
-			if(rectangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*6.)
+			if(rectangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*60.)
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
 					std::cout << i << ";" << j << "||" ;
@@ -1188,16 +1353,12 @@ int main(int argc, char *argv[])
 {
 	GeometryType reference = CIRCLE ;
 	
-	if(argc > 2)
-	{
-		if(std::string(argv[2]) == std::string("--ellipse"))
-			reference = ELLIPSE ;
-		if(std::string(argv[2]) == std::string("--triangle"))
-			reference = TRIANGLE ;
-		if(std::string(argv[2]) == std::string("--rectangle"))
-			reference = RECTANGLE ;
-	}
-	
+	if(std::string(argv[2]) == std::string("--ellipse"))
+		reference = ELLIPSE ;
+	if(std::string(argv[2]) == std::string("--triangle"))
+		reference = TRIANGLE ;
+	if(std::string(argv[2]) == std::string("--rectangle"))
+		reference = RECTANGLE ;
 	
 	
 	FeatureTree F(&sample) ;
@@ -1227,6 +1388,7 @@ int main(int argc, char *argv[])
 			break ;
 		case TRIANGLE:
 			triinc.push_back(dynamic_cast<TriangularInclusion *>(feats[0])) ;
+			std::cout << inclusions[0]->area() << "\t" << triinc[0]->area() << std::endl ;
 			break ;
 		case RECTANGLE:
 			recinc.push_back(dynamic_cast<RectangularInclusion *>(feats[0])) ;
@@ -1267,20 +1429,26 @@ int main(int argc, char *argv[])
 	switch(reference)
 	{
 		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(100, 3, inclusions, F) ;
+			//zones = generateExpansiveZonesHomogeneously(100, 3, inclusions, F) ;
+			zones = generateExpansiveZonesAtCenter(inclusions, F) ;
 			break ;
 		case ELLIPSE:
-			zones = generateExpansiveZonesHomogeneously(100, 3, ellinc, F) ;
+//			zones = generateExpansiveZonesHomogeneously(100, 3, ellinc, F) ;
+			zones = generateExpansiveZonesAtCenter(ellinc, F) ;
 			break ;
 		case TRIANGLE:
-			zones = generateExpansiveZonesHomogeneously(100, 3, triinc, F) ;
+//			zones = generateExpansiveZonesHomogeneously(100, 3, triinc, F) ;
+			zones = generateExpansiveZonesAtCenter(triinc, F) ;
 			break ;
 		case RECTANGLE:
-			zones = generateExpansiveZonesHomogeneously(100, 3, recinc, F) ;
+//			zones = generateExpansiveZonesHomogeneously(100, 3, recinc, F) ;
+			zones = generateExpansiveZonesAtCenter(recinc, F) ;
 			break ;
 	}
 
 
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -atoi(argv[3])*1e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -atoi(argv[4])*1e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
@@ -1289,7 +1457,8 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
 
-	step(reference, nSampling) ;
+	step(reference, nSampling, atoi(argv[3]), atoi(argv[4])) ;
 	
 	return 0 ;
 }
+

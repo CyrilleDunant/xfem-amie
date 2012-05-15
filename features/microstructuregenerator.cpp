@@ -23,9 +23,9 @@ namespace Mu
 		std::vector<Inclusion *> inclusions ;
 		
 		if(dmax == 0.004)
-			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_D)(dmax*.5, .0001, inclusionNumber, itzSize, false);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_D, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 		else
-			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_A)(dmax*.5, .0001, inclusionNumber, itzSize, false);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 
 		std::vector<Feature *> feats ;
 		for(size_t i = 0; i < inclusions.size() ; i++)
@@ -67,9 +67,9 @@ namespace Mu
 		std::vector<Inclusion *> inclusions ;
 		
 		if(dmax == 0.004)
-			inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_D)(dmax*.5, .00001, inclusionNumber, itzSize, false);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_D, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 		else
-			inclusions = GranuloBolome(massOfAggregates, 1, BOLOME_A)(dmax*.5, .00001, inclusionNumber, itzSize, false);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 
 		std::vector<Feature *> feats ;
 		for(size_t i = 0; i < inclusions.size() ; i++)
@@ -112,9 +112,9 @@ namespace Mu
 		std::vector<Inclusion *> inclusions ;
 		
 		if(dmax == 0.004)
-			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_D)(dmax*.5, .000001, inclusionNumber, itzSize);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_D, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 		else
-			inclusions = GranuloBolome(exp(massOfAggregates), 1, BOLOME_A)(dmax*.5, .000001, inclusionNumber, itzSize);
+			inclusions = ParticleSizeDistribution::get2DInclusions(dmax*0.5, massOfAggregates, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 
 		std::vector<Feature *> feats ;
 		for(size_t i = 0; i < inclusions.size() ; i++)

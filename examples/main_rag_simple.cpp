@@ -1489,7 +1489,8 @@ int main(int argc, char *argv[])
 	double masseInitiale = .00000743;
 	double densite = 1.;
 // 	inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);
-	inclusions = GranuloBolome(4.79263e-07/.47, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
+//	inclusions = GranuloBolome(4.79263e-07/.47, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
+	inclusions = ParticleSizeDistribution::get2DInclusions(0.0025, 4.79263e-07/.47, BOLOME_D, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
 
 	std::vector<Feature *> feats ;
 	for(size_t i = 0; i < inclusions.size() ; i++)

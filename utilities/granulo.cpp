@@ -22,444 +22,263 @@
 
 using namespace Mu ;
 
-
-
-Granulo::Granulo(double a, double b,double masseInitiale, double densite)//,double masseInitiale, double densite
+ParticleSizeDistribution::ParticleSizeDistribution() 
 {
-    c = a ; //constructeur
-    n = b ;
-    this->masseInitiale=masseInitiale;
-    this->densite=densite;
-
-
+  
 }
 
-Granulo::Granulo()//,double masseInitiale, double densite
+ParticleSizeDistribution * ParticleSizeDistribution::getPSD(PSDType type)
 {
-    c = 0.1 ; //constructeur
-    n = 1. ;
-    this->masseInitiale=1000;
-    this->densite=2.1;
-
-
-}
-
-std::vector <Inclusion *> Granulo::operator()(double rayon_granulat, double pourcentMasseMin, double inclusionNumber , double itzSize, bool verbose)
-{
-    std::vector<Inclusion *> rayon;
-
-
-    double pourcentMasse=1;
-    int i=0;
-
-    double remainderMass = masseInitiale;
-    double pourcentInitial=1.-exp(-c*pow(rayon_granulat,n));
-
-    rayon.push_back( new Inclusion(rayon_granulat, 0, 0)) ;
-    double volumeGranulatsPasPlaces =0;
-    while((pourcentMasse>pourcentMasseMin) && (i < inclusionNumber))
-    {
-
-        double aggregateMass =pow(( densite*rayon_granulat*rayon_granulat*M_PI), .666666666666666); 
-        if (aggregateMass > masseInitiale)
-        {
-            std::cerr<<"La masse du granultat pese plus que la masse totale!"<<std::endl;
-            return rayon ;
-        }
-        double volume = rayon_granulat*rayon_granulat*M_PI; // volume du plus gros granulat
-        //std::cout<<"V granulat  " <<volume<<std::endl;
-
-        if (rayon_granulat<=0.51)
-        {
-            volumeGranulatsPasPlaces +=volume;
-
-        }
-        remainderMass = remainderMass-aggregateMass; 
-        pourcentMasse = remainderMass/masseInitiale; 
-
-
-
-        rayon_granulat = (pow(-(log(1.-(pourcentMasse*pourcentInitial))/c),1./n))/2.; 
-
-	if(i%100 == 0)
-		std::cout << rayon_granulat << std::endl ;
-
-
-        rayon.push_back(new Inclusion(rayon_granulat, 0, 0)) ;
-
-        i++;
-
-    }
-    if(verbose)
-		std::cout<<"Unused Aggregate Volume "<<volumeGranulatsPasPlaces<<std::endl;
-
-    return  rayon;
-
-}
-
-std::vector<EllipsoidalInclusion *> Granulo::operator()(bool ell, Point * biais, double rayon_granulat, double pourcentMasseMin, double rfactor, int inclusionNumber , double itzSize, bool verbose)
-{
-    std::vector<EllipsoidalInclusion *> rayon;
-
-
-    double pourcentMasse=1;
-    int i=0;
-
-    double sfactor = rfactor ;
-    double remainderMass = masseInitiale;
-    double pourcentInitial=1.-exp(-c*pow(rayon_granulat,n));//calcul la constante pour que le diamètre initiale corresponde à un pourcentage de 1.
-
-// 	rayon.push_back(rayon_granulat);
-    rayon.push_back( new EllipsoidalInclusion(Point(0.,0.),Point(biais->x,biais->y)*rayon_granulat,sfactor)) ;
-	std::cout << rayon_granulat << std::endl ;
-//    std::cout<< "n°"<<"masse granulat" << "  " <<"rayon granulat"<<"  " <<"volume granulat" << "  "<<"pourcent masse" <<"   "<<"masse restante"<<std::endl;
-    double volumeGranulatsPasPlaces =0;
-    double alea = 0.1 ;
-    Point b_(biais->x, biais->y) ;
-    while (pourcentMasse>pourcentMasseMin && i < inclusionNumber)
-    {
-	if(ell)
+	ParticleSizeDistribution * psd = new ParticleSizeDistribution() ;
+	switch(type)
 	{
-		alea = (double)rand()/(double)RAND_MAX ;
-		sfactor = (rfactor + (1 - rfactor) * alea) ; // * alea ;
-		alea = (double)rand()/(double)RAND_MAX ;
-		b_.setX(biais->x + 0.3 * alea - 0.15) ;
-		alea = (double)rand()/(double)RAND_MAX ;
-		b_.setY(biais->y + 0.3 * alea - 0.15) ;		
-		//std::cout << b_.x << " " << b_.y << std::endl ;
-		//std::cout << sfactor << std::endl ;
+	  case BOLOME_A:
+	    psd = new PSDBolomeA() ;
+	    break ;
+	  case BOLOME_B:
+	    psd = new PSDBolomeB() ;
+	    break ;
+	  case BOLOME_C:
+	    psd = new PSDBolomeC() ;
+	    break ;
+	  case BOLOME_D:
+	    psd = new PSDBolomeD() ;
+	    break ;
 	}
-
-        double aggregateMass =pow(( densite*rayon[i]->area()), .666666666666666); // masse plus plus gros granulat
-//        std::cout<<"m granulat  " << aggregateMass<<std::endl;
-        if (aggregateMass > masseInitiale)
-        {
-            std::cerr<<"La masse du granultat pese plus que la masse totale!"<<std::endl;
-            return rayon ;
-        }
-        double volume = rayon[i]->area() ; // volume du plus gros granulat
-        //std::cout<<"V granulat  " <<volume<<std::endl;
-
-        if (rayon_granulat<=0.51)
-        {
-            volumeGranulatsPasPlaces +=volume;
-
-        }
-        remainderMass = remainderMass-aggregateMass; // soustraction de la masse du granulat à la masse de granultats restante
-// 		std::cout<< i<<"   "<<aggregateMass<<"  " <<rayon_granulat<<"  " <<volume << "  " <<pourcentMasse<< "   " << remainderMass << std::endl;
-        pourcentMasse = remainderMass/masseInitiale; // calcul du poucentage massique qu'il reste
-        //std::cout<<"pourcentmasse  "<<pourcentMasse <<volume<<std::endl;
-
-
-
-        rayon_granulat = (pow(-(log(1.-(pourcentMasse*pourcentInitial))/c),1./n))/2.; // diametre du granulat suivant
-
-	if(i%100 == 0)
-		std::cout << rayon_granulat << std::endl ;
-
-//        if (rayon_granulat<0.07)
-  //          return rayon;
-// 		rayon.push_back(rayon_granulat);
-        rayon.push_back(new EllipsoidalInclusion(Point(0.,0.),Point(b_.x,b_.y),sfactor)) ;
-// 		std::cout << "rayon granulat reste  "<<rayon[i]->getRadius() << std::endl<<std::endl;
-
-        i++;
-
-    }
-    if(verbose)
-		std::cout<<"Unused Aggregate Volume "<<volumeGranulatsPasPlaces<<std::endl;
-    return  rayon;
-
+	return psd ;
 }
-
-
-GranuloBolome::GranuloBolome( double masseInitiale_, double densite_, TypeGranulo t)
-{ //constructeur
-    this->masseInitiale=masseInitiale_;
-    this->densite=densite_;
-    this->type = t ;
-}
-
-
-std::vector <Inclusion *> GranuloBolome::operator()(double rmax, double pourcentMasseMin, double inclusionNumber, double itzSize, bool verbose)
-{
-
-    std::vector<double> radius;
-	double minDiameter = 0.00000120 ;
-    if (!inclusionNumber)
-        return std::vector <Inclusion *>() ;
 	
-    double diameter=rmax*2.;
-	double dmax = rmax*2. ;
-
-    double pourcentMasse=100;
-    double remainderMass = masseInitiale;
-	
-    radius.push_back( diameter*.5+itzSize) ;
-
-	while (pourcentMasse > pourcentMasseMin)
-    {
-		if(radius.size() >= inclusionNumber)
-			goto out ;
-// 		std::cout << pourcentMasse << "  " <<std::flush ;
-// 		std::cout << diameter << std::endl ;
-        double aggregateMass = /*densite*M_PI*diameter*diameter*.25/(ratio*ratio) ;*/densite*(1./6.)*M_PI*diameter*diameter*diameter; 
-
-        if (aggregateMass > masseInitiale && diameter > minDiameter)
-        {
-            std::cerr << "Aggregate mass " << aggregateMass << " is larger than total mass " <<  masseInitiale << "!"  << std::endl;
-            return std::vector <Inclusion *>() ;
-        }
-
-        remainderMass = remainderMass-aggregateMass;
-		if(remainderMass < 0)
-			goto out ;
-        pourcentMasse = remainderMass/masseInitiale*100.;
-        switch (type)
-        {
-        case BOLOME_A:
-		{
-
-			double b = 1.+pourcentMasse/25. ;
-
-			diameter = dmax*(b - sqrt(b*b-pourcentMasse*pourcentMasse/(25.*25.)))*.5;
-			
-			if(diameter <= 100.*POINT_TOLERANCE_2D)
-				 goto out ;
-            break ;
-		}
-        case BOLOME_B:
-		{
-            // diametre du granulat suivant
-            diameter = pourcentMasse*pourcentMasse/20000.*dmax;
-            break ;
-		}
-        case BOLOME_C:
-		{
-            if (diameter<0.2)
-                diameter = pourcentMasse*pourcentMasse/20000.*dmax;
-
-            else
-                diameter = 1.05*pourcentMasse*pourcentMasse/20000.*dmax;
-            break ;
-		}
-        case BOLOME_D:
-		{
-            double m;//pente
-            double b;//ordonnée en x=0
-
-            if (pourcentMasse> 0. && pourcentMasse<10)
-            {
-                Point A(.000150,0.);
-                Point B(.000315,10.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                diameter = std::max(7.5e-05, (pourcentMasse-b)/m);
-            }
-            if (pourcentMasse<20 && pourcentMasse>= 10)
-            {
-                Point A(.000315,10.);
-                Point B(.00063,20.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                diameter = (pourcentMasse-b)/m*.5;
-            }
-            if (pourcentMasse<45 && pourcentMasse> 20)
-            {
-                Point A(.00063,20.);
-                Point B(.00125,45.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                diameter = (pourcentMasse-b)/m;
-            }
-            if (pourcentMasse<70 && pourcentMasse> 45)
-            {
-                Point A(.00125,45.);
-                Point B(.0025,70.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                diameter = (pourcentMasse-b)/m;
-            }
-            if (pourcentMasse<100. && pourcentMasse> 70)
-            {
-                Point A(.0025,70.);
-                Point B(.005,100.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                diameter = (pourcentMasse-b)/m;
-            }
-
-            break;
-		}
-        default:
-            break ;
-        }
-        
-        radius.push_back(diameter*.5) ;
-		if(radius.size() >= inclusionNumber)
-			break ;
-    }
-    
- out:   
-    std::vector<Inclusion *> particles ;
-	if(radius.empty())
-		return  particles;
-		
-	std::sort(radius.begin(), radius.end()) ;
-	std::reverse(radius.begin(), radius.end());
-	
-	double v = 0 ;
-	for(size_t j = 0 ; j < radius.size() ; j++)
-	{
-		particles.push_back(new Inclusion(radius[j], 0, 0));
-		v += particles.back()->area() ;
-	}
-
-	if(verbose)
-	{
-		std::cout<<"Total Aggregate Volume "<< v << std::endl;
-		std::cout << "n = " << particles.size() << ", largest r = " << particles.front()->getRadius() 
-				<< ", smallest r =" << particles.back()->getRadius() ;
-	}
-
-    return  particles;
-
-}
-
-std::vector <Inclusion3D *> GranuloBolome::operator()(bool,double rayonGranulatMax, double pourcentMasseMin, double inclusionNumber, double itzSize, bool verbose)
+std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, double mass, PSDType type, PSDEndCriteria crit) 
 {
-    std::vector<Inclusion3D *> rayon;
-    double rayon_granulat=rayonGranulatMax;
-
-    double pourcentMasse=1.;
-    int i=0;
-    if (!inclusionNumber)
-        return rayon ;
-
-		
-    double remainderMass = masseInitiale;
-// 	double pourcentInitial=1-exp(-c*pow(rayon_granulat,n));//calcul la constante pour que le diamètre initiale corresponde à un pourcentage de 1.
-    double v = 0 ;
-
-    rayon.push_back( new Inclusion3D(rayon_granulat+itzSize, 0, 0, 0)) ;
-
-    double volumeGranulatsPasPlaces =0;
-    while (pourcentMasse*100.>pourcentMasseMin)
-    {
-
-        double aggregateMass = densite*4./3.*M_PI*rayon_granulat*rayon_granulat*rayon_granulat; // masse plus plus gros granulat
-        if (aggregateMass > masseInitiale)
-        {
-            std::cerr<<"La masse du granulat pese plus que la masse totale!"<<std::endl;
-            return rayon ;
-        }
-        double volume = 4./3.*M_PI*rayon_granulat*rayon_granulat*rayon_granulat ;//4.*rayon_granulat*rayon_granulat*rayon_granulat*M_PI/(3.); // volume du plus gros granulat
-        v +=  volume;
-        if (rayon_granulat<=0.000000051)
-        {
-            volumeGranulatsPasPlaces +=volume;
-        }
-
-        remainderMass -= aggregateMass;
-        pourcentMasse = remainderMass/masseInitiale;
-
-        switch (type)
-        {
-        case BOLOME_A:
-        {
-            double A_B = 8. ;
-            double val = (pourcentMasse*100. - A_B) / (100. - A_B) ;
-            rayon_granulat = rayonGranulatMax*val*val;
-            break ;
-        }
-        case BOLOME_B:
-            // diametre du granulat suivant
-            rayon_granulat = pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
-            break ;
-        case BOLOME_C:
-            if (rayon_granulat<0.2)
-                rayon_granulat = pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
-
-            else
-                rayon_granulat = 1.05*pourcentMasse*pourcentMasse/20000.*rayonGranulatMax;
-            break ;
-        case BOLOME_D:
-            double m;//pente
-            double b;//ordonnée en x=0
-
-
-            if (pourcentMasse> 0. && pourcentMasse<=.10)
-            {
-                Point A(.000150,0.);
-                Point B(.000315,.10);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                rayon_granulat = std::max(7.5e-05, (pourcentMasse-b)/m*.5);
-            }
-            if (pourcentMasse<=.20 && pourcentMasse> .10)
-            {
-                Point A(.000315,.10);
-                Point B(.00063,.20);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                rayon_granulat = (pourcentMasse-b)/m*.5;
-            }
-            if (pourcentMasse<=.45 && pourcentMasse> .20)
-            {
-                Point A(.00063,.20);
-                Point B(.00125,.45);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                rayon_granulat = (pourcentMasse-b)/m*.5;
-            }
-            if (pourcentMasse<=.70 && pourcentMasse> .45)
-            {
-                Point A(.00125,.45);
-                Point B(.0025,.70);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                rayon_granulat = (pourcentMasse-b)/m*.5;
-            }
-            if (pourcentMasse<=1. && pourcentMasse> .70)
-            {
-                Point A(.0025,.70);
-                Point B(.005,1.);
-                m= (B.y-A.y)/(B.x-A.x);
-                b=A.y-(m*A.x);
-                rayon_granulat = (pourcentMasse-b)/m*.5;
-            }
-
-            break;
-        default:
-            break ;
-        }
-
-        if ((int)rayon.size() >= inclusionNumber || pourcentMasse < pourcentMasseMin/100.)
-        {
-			if(verbose)
-			{
-				std::cout<<"Unused Aggregate volume "<<volumeGranulatsPasPlaces<<std::endl;
-				std::cout<<"Total Aggregate Volume "<<v<<std::endl;
-				std::cout << rayon.size() <<" particles" << std::endl ;
-			}
-            return rayon;
-
-        }
-
-        rayon.push_back(new Inclusion3D(rayon_granulat+itzSize, 0, 0, 0)) ;
-        i++;
-
-
-    }
-    if(verbose)
+	ParticleSizeDistribution * psd = ParticleSizeDistribution::getPSD(type) ;  
+	std::vector<double> radii ;
+	double diameter = rmax*2. ;
+	double remainingMass = mass ;
+	double remainingFraction = 1. ;
+	
+	while(!crit.meets(diameter*0.5, remainingFraction, radii.size()))
 	{
-		std::cout<<"Unused Aggregate volume "<<volumeGranulatsPasPlaces<<std::endl;
-		std::cout<<"Total Aggregate Volume "<<v<<std::endl;
-		std::cout << rayon.size() << " particles" << std::endl ;
+	      radii.push_back(diameter*0.5) ;
+	      remainingMass -= diameter*diameter*M_PI*1./4. ;
+	      if(remainingMass < 0)
+	      {
+		    radii.pop_back() ;
+		    break ;
+	      }
+	      remainingFraction = remainingMass / mass ;
+	      diameter = psd->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
 	}
-    return  rayon;
+	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
+	
+	std::sort(radii.begin(), radii.end()) ;
+	std::reverse(radii.begin(), radii.end());
+	
+	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
+	std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
+	
+	std::vector<Inclusion *> incs ;
+	for(size_t i = 0 ; i < radii.size() ; i++)
+	      incs.push_back(new Inclusion(radii[i],0.,0.)) ;
+	delete psd ;
+	return incs ;
+}
+
+std::vector<Inclusion3D *> ParticleSizeDistribution::get3DInclusions(double rmax, double mass, PSDType type, PSDEndCriteria crit) 
+{
+	ParticleSizeDistribution * psd = ParticleSizeDistribution::getPSD(type) ;  
+	std::vector<double> radii ;
+ 	double diameter = rmax*2. ;
+	double remainingMass = mass ;
+	double remainingFraction = 1. ;
+	
+	while(!crit.meets(diameter*0.5, remainingFraction, radii.size()))
+	{
+	      radii.push_back(diameter*0.5) ;
+	      remainingMass -= diameter*diameter*diameter*M_PI*1./6. ;
+	      if(remainingMass < 0)
+	      {
+		    radii.pop_back() ;
+		    break ;
+	      }
+	      remainingFraction = remainingMass / mass ;
+	      diameter = psd->getNext3DDiameter(diameter, remainingFraction, rmax*2.) ;
+	} 
+	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
+
+	std::sort(radii.begin(), radii.end()) ;
+	std::reverse(radii.begin(), radii.end());
+	
+	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
+	std::cout << radii.size() << " particles generated, filling a volume of " << mass-remainingMass << std::endl ;
+	
+	std::vector<Inclusion3D *> incs ;
+	for(size_t i = 0 ; i < radii.size() ; i++)
+	      incs.push_back(new Inclusion3D(radii[i],0.,0.,0.)) ;
+	delete psd ;
+	return incs ;  
+}
+
+std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(double rmax, double width, size_t n, PSDType type) 
+{
+	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(-1, 0.01, n)) ;
+}
+
+std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, double width, size_t n, PSDType type) 
+{
+	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.8, type, PSDEndCriteria(-1, 0.01, n)) ;
+}
+
+double ParticleSizeDistribution::getNext2DDiameter(double diameter, double, double) 
+{
+	return diameter ;
+}
+
+double ParticleSizeDistribution::getNext3DDiameter(double diameter, double, double) 
+{
+	return diameter ;
+}
+
+double PSDBolomeA::getNext2DDiameter(double diameter, double fraction, double dmax) 
+{
+ 	double b = -(4.*fraction+1.) ;
+ 	double delta = 8.*fraction + 1. ;
+ 	return std::max(15.e-5,(- b - std::sqrt(delta))/2.*dmax/**2./M_PI*/) ;
+//  	double b = 1.+fraction/.25 ;
+// 	if((b - std::sqrt(b*b-fraction*fraction/(0.25*0.25)))*0.5 > 1)
+// 	    std::cout << "aggregate larger than dmax!" << std::endl ;
+//  	return std::max( 15e-5,dmax*(b - std::sqrt(b*b-fraction*fraction/(0.25*0.25)))*0.5) ;
+}
+
+double PSDBolomeA::getNext3DDiameter(double diameter, double fraction, double dmax) 
+{
+	double b = 1.+fraction/.25 ;
+	return dmax*(b - std::sqrt(b*b-fraction*fraction/(0.25*0.25))) ;
+}
+
+double PSDBolomeB::getNext2DDiameter(double diameter, double fraction, double dmax) 
+{
+	return fraction*fraction*dmax ; 
+}
+
+double PSDBolomeB::getNext3DDiameter(double diameter, double fraction, double dmax) 
+{
+	return fraction*fraction*dmax ;
+}
+
+double PSDBolomeC::getNext2DDiameter(double diameter, double fraction, double dmax) 
+{
+	double next = fraction*fraction*dmax ;
+	if(next > 0.004)
+	      next *= 1.05 ;
+	return next ; 
+}
+
+double PSDBolomeC::getNext3DDiameter(double diameter, double fraction, double dmax) 
+{
+	double next = fraction*fraction*dmax ;
+	if(next > 0.004)
+	      next *= 1.05 ;
+	return next ; 
+}
+
+double PSDBolomeD::getNext2DDiameter(double diameter, double fraction, double dmax) 
+{
+	double m;//pente
+	double b;//ordonnée en x=0
+	if (fraction> 0. && fraction<0.1)
+	{
+	    Point A(.000150,0.);
+	    Point B(.000315,0.1);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return std::max(15.e-05, (fraction-b)/m/**2./M_PI*/) ;
+	}
+	if (fraction<0.2 && fraction>= 0.1)
+	{
+	    Point A(.000315,0.1);
+	    Point B(.00063,0.2);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m/**2./M_PI*/ ;
+	}
+	if (fraction<0.45 && fraction>= 0.2)
+	{
+	    Point A(.00063,0.2);
+	    Point B(.00125,0.45);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m/**2./M_PI*/ ;
+	}
+	if (fraction<0.7 && fraction>= 0.45)
+	{
+	    Point A(.00125,0.45);
+	    Point B(.0025,0.70);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m/**2./M_PI*/;
+	}
+	if (fraction<1. && fraction>= 0.7)
+	{
+	    Point A(.0025,.7);
+	    Point B(.005,1.);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m/**2./M_PI*/ ;
+	}
+	return 15e-5 ;
+}
+
+double PSDBolomeD::getNext3DDiameter(double diameter, double fraction, double dmax) 
+{
+double m;//pente
+	double b;//ordonnée en x=0
+	if (fraction> 0. && fraction<0.1)
+	{
+	    Point A(.000150,0.);
+	    Point B(.000315,0.1);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return std::max(7.5e-05, (fraction-b)/m);
+	}
+	if (fraction<0.2 && fraction>= 0.1)
+	{
+	    Point A(.000315,0.1);
+	    Point B(.00063,0.2);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m*.5;
+	}
+	if (fraction<0.45 && fraction> 0.2)
+	{
+	    Point A(.00063,0.2);
+	    Point B(.00125,0.45);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m;
+	}
+	if (fraction<0.7 && fraction> 0.45)
+	{
+	    Point A(.00125,0.45);
+	    Point B(.0025,0.70);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m;
+	}
+	if (fraction<1. && fraction> 0.7)
+	{
+	    Point A(.0025,.7);
+	    Point B(.005,1.);
+	    m= (B.y-A.y)/(B.x-A.x);
+	    b=A.y-(m*A.x);
+	    return (fraction-b)/m;
+	}
+	return 7.5e-5 ;
 
 }
+
+
+
+
 
 GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> columns)
 {

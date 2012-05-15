@@ -1831,8 +1831,8 @@ int main( int argc, char *argv[] )
 
 
 	double itzSize = 0.00002;
-	int inclusionNumber = 1 ;
-// 	int inclusionNumber = 4096 ;
+//	int inclusionNumber = 1 ;
+ 	int inclusionNumber = 4096 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 //
 // // 	if(inclusionNumber)
@@ -1843,8 +1843,9 @@ int main( int argc, char *argv[] )
 	double masseInitiale = 1.06366e-05 * .9;
 	double densite = 1.;
 
-	std::vector<Inclusion *> inclusions = GranuloBolome( masseInitiale, densite, BOLOME_A )( dmax, .0001, inclusionNumber, itzSize );
+//	std::vector<Inclusion *> inclusions = GranuloBolome( masseInitiale, densite, BOLOME_A )( dmax, .0001, inclusionNumber, itzSize );
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(0.0000416, 1, BOLOME_D)(.0025, .1, inclusionNumber, itzSize);
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(dmax*0.5) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
 
 	std::vector<Feature *> feats ;
 

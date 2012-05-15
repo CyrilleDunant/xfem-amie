@@ -102,7 +102,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.0175, 0.0175, 0.0, 0.0) ;
+Sample sample(NULL, 0.07, 0.07, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -206,8 +206,8 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber)
 {
 
-	int nsteps = 50;
-	int nstepstot = 50;
+	int nsteps = 2;
+	int nstepstot = 2;
 	int maxtries = 400 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(400) ;
@@ -1190,8 +1190,9 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.000000005;
  	int inclusionNumber = 200 ;
- 	std::vector<Inclusion *> inclusions = GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-
+// 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete() ;
+ 	
 	double c_area = 0 ;
 	double t_area = 0 ;
 	
@@ -1290,8 +1291,8 @@ int main(int argc, char *argv[])
 // 	return 0 ;
 	
 	
-	sample.setBehaviour(new PasteBehaviour()) ;
-	AggregateBehaviour * agg = new AggregateBehaviour() ;
+	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		switch(reference)
@@ -1322,7 +1323,7 @@ int main(int argc, char *argv[])
 	switch(reference)
 	{
 		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(100, 30, inclusions, F) ;
+//			zones = generateExpansiveZonesHomogeneously(100, 30, inclusions, F) ;
 			break ;
 		case ELLIPSE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;
@@ -1345,6 +1346,12 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 
 	step(reference, nSampling) ;
+	
+	double area = 0 ;
+	for(int i = 0 ; i < inclusions.size() ; i++)
+	    area += inclusions[i]->area() ;
+	
+	std::cout << area << std::endl ;
 	
 	return 0 ;
 }

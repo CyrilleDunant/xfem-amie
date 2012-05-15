@@ -1344,8 +1344,9 @@ int main(int argc, char *argv[])
 	double itzSize = 0.000001;
 	int inclusionNumber = 0 ; //48000*2 ;
 
-	std::vector<Inclusion3D *> inclusions = GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-
+//	std::vector<Inclusion3D *> inclusions = GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
+	std::vector<Inclusion3D *> inclusions = ParticleSizeDistribution::get3DInclusions(0.0025, 5.44e-5, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
+//	GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
 // 	if(inclusionNumber)
 // 		itzSize = inclusions[inclusions.size()-1]->getRadius() ;
 // 	for(size_t i = 0; i < inclusions.size() ; i++)
