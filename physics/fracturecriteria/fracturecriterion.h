@@ -84,6 +84,7 @@ typedef enum{
 		bool checkpoint ;
 		bool inset ;
 		
+		
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		
 		// as described in C. Giry et al. / International Journal of Solids and Structures 48 (2011) 3431–3443
@@ -92,7 +93,8 @@ typedef enum{
 		double cachedInfluenceRatio ;
 		
 	public:
-
+		bool inIteration ;
+		
 		virtual bool directionInTension(size_t direction) {return true ;}
 		virtual bool directionInCompression(size_t direction) {return true ;}
 		virtual bool directionMet(size_t direction) {return metAtStep ;}

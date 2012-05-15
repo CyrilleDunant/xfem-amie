@@ -30,7 +30,7 @@ criterionDamageDifferential(0),
 energyIndexed(false), 
 noEnergyUpdate(true), 
 mesh2d(NULL), mesh3d(NULL), 
-stable(true), checkpoint(true), inset(false),
+stable(true), checkpoint(true), inset(false),inIteration(false),
 scoreTolerance(.33e-2),
 initialScore(1),
 cachedInfluenceRatio(1),
@@ -1437,7 +1437,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1.5 ) ;
+		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
 		Circle epsilon( physicalCharacteristicRadius*2.5,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
@@ -1839,6 +1839,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 		if(checkpoint) //new iteration
 		{
 			inset = false ;
+			inIteration = false ;
 			damagingSet.clear();
 			proximitySet.clear() ;
 			
@@ -1903,13 +1904,14 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 				proximitySet.clear() ;
 				return std::make_pair(0.,0.) ;
 			}
-			
+			inIteration = true ;
 			if(!newSet.empty())
 				std::stable_sort(newSet.begin(), newSet.end());
 			
 			damagingSet = newSet ;
 			proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
-			
+			for(size_t i = 0 ; i < proximitySet.size() ; i++)
+				static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->inIteration = true ;
 			
 			return std::make_pair(minscore - maxscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - minscore /*+ scoreTolerance*initialScore*/) ;
 		}
@@ -2140,7 +2142,8 @@ void FractureCriterion::step(ElementState &s)
 		scoreAtState = -1 ;
 		return ;
 	}
-	scoreAtState = grade(s) ;
+	if(checkpoint || inIteration)
+		scoreAtState = grade(s) ;
 // 	if(!directionMet(0) && !directionMet(1) && !directionMet(2))
 // 		scoreAtState = -1 ;
 }
