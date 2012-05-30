@@ -1879,6 +1879,8 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s)
 							inset = true ;
 						if(i->second->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
 							minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getDelta()) ;
+						if(!i->second->getBehaviour()->getDamageModel())
+							continue ;
 						maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getMode()) ;
 						maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getAngleShift()) ;
 						newSet.push_back(i->second->index);
