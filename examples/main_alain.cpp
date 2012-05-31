@@ -39,6 +39,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+#include <sys/time.h>
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -1349,8 +1350,261 @@ bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int
 		return true ;
 }
 
+struct RowMatrix
+{
+  Vector * values ;
+  const size_t col ;
+  
+  RowMatrix(size_t n) : col(n) { values = new Vector(0., n*n) ; }
+  
+  double & operator() (size_t i, size_t j) 
+  {
+    return (*values)[i*col + j] ;
+  }
+
+  
+  const double & operator() (size_t i, size_t j)  const
+  {
+    return (*values)[i*col + j] ;
+  }
+  
+  Vector operator*(const Vector & v)
+  {
+    Vector ret(0.,col) ;
+//    #pragma omp parallel for
+    for(size_t r = 0 ; r < col ; r++)
+    {
+      size_t iterator = r*col ;
+      for(size_t c = 0 ; c < col ; c++)
+      {
+	ret[r] += (*values)[iterator++]*v[c] ;
+      }
+    }
+    return ret ;
+  }
+
+  void clear()
+  {
+   values->resize(0) ;
+  }
+  
+  void print()
+  {
+    for(size_t r = 0 ; r < col ; r++)
+    {
+      for(size_t c = 0 ; c < col ; c++)
+      {
+	std::cout << (*this)(r,c) << "\t" ;
+      }
+    std::cout << std::endl ;
+    }
+  }
+  
+} ;
+
+struct ColumnMatrix
+{
+  Vector * values ;
+  const size_t dim ;
+  
+  ColumnMatrix(size_t n) : dim(n) { values = new Vector(0., dim*dim) ;}
+  
+  double & operator() (size_t i, size_t j) 
+  {
+    return (*values)[i + j*dim] ;
+  }
+
+  
+  const double & operator() (size_t i, size_t j)  const
+  {
+    return (*values)[i + j*dim] ;
+  }
+  
+  Vector operator*(const Vector & v)
+  {
+    Vector ret(0.,dim) ;
+    for(size_t c = 0 ; c < dim ; ++c)
+    {
+      double vc = v[c] ;
+      double * retc_iter = &ret[0] ;
+      size_t iterator = c*dim ;
+      for(size_t r = 0 ; r < dim ; ++r)
+      {
+	*(retc_iter++) += (*values)[iterator++]*vc ;
+      }
+    }
+    return ret ;
+  }
+  
+  void clear()
+  {
+   values->resize(0) ;
+  }
+
+  void multiply(const Vector & v, Vector & ret)
+  {
+    for(size_t c = 0 ; c < dim ; ++c)
+    {
+      double vc = v[c] ;
+      double * retc_iter = &ret[0] ;
+      size_t iterator = c*dim ;
+      for(size_t r = 0 ; r < dim ; ++r)
+      {
+	*(retc_iter++) += (*values)[iterator++]*vc ;
+      }
+    }
+  }
+  
+  void print()
+  {
+    for(size_t r = 0 ; r < dim ; r++)
+    {
+      for(size_t c = 0 ; c < dim ; c++)
+      {
+	std::cout << (*this)(r,c) << "\t" ;
+      }
+    std::cout << std::endl ;
+    }
+  }
+  
+  
+} ;
+
+struct BlockColumnMatrix
+{
+  ColumnMatrix AA ;
+  ColumnMatrix AB ;
+  ColumnMatrix BA ;
+  ColumnMatrix BB ;
+  size_t dim ;
+  
+  BlockColumnMatrix(size_t dim) : dim(dim), AA(dim/2), BB(dim/2), AB(dim/2), BA(dim/2) { }
+  
+  double & operator() (size_t i, size_t j) 
+  {
+    if(i < dim/2 && j < dim/2)
+      return AA(i,j) ;
+    if(i < dim/2 && j >= dim/2)
+      return AB(i,j-dim/2) ;
+    if(i >= dim/2 && j < dim/2)
+      return BA(i-dim/2,j) ;
+    if(i >= dim/2 && j >= dim/2)
+      return BB(i-dim/2,j-dim/2) ;
+  }
+
+  
+  const double & operator() (size_t i, size_t j)  const
+  {
+    if(i < dim/2 && j < dim/2)
+      return AA(i,j) ;
+    if(i < dim/2 && j >= dim/2)
+      return AB(i,j-dim/2) ;
+    if(i >= dim/2 && j < dim/2)
+      return BA(i-dim/2,j) ;
+    if(i >= dim/2 && j >= dim/2)
+      return BB(i-dim/2,j-dim/2) ;
+  }
+  
+  Vector operator*(const Vector & v)
+  {
+    Vector rAA(0., dim/2) ;
+    Vector rAB(0., dim/2) ;
+    Vector rBA(0., dim/2) ;
+    Vector rBB(0., dim/2) ;
+
+    Vector vAA(&v[0], dim/2) ;
+    Vector vAB(&v[dim/2], dim/2) ;
+    Vector vBA(&v[0], dim/2) ;
+    Vector vBB(&v[dim/2], dim/2) ;
+    
+#pragma omp sections 
+    {
+#pragma omp section 
+{
+    AA.multiply(vAA, rAA) ;
+}
+#pragma omp section  
+{
+    AB.multiply(vAB, rAB) ;
+}
+#pragma omp section  
+{
+    BA.multiply(vBA, rBA) ;
+}
+#pragma omp section  
+{
+    BB.multiply(vBB, rBB) ;
+}
+    }
+    
+    Vector r(0., dim) ;
+//     for(size_t i = 0 ; i < dim/2 ; i++)
+//     {
+//       r[i] = rAA[i] + rAB[i] ;
+//       r[i+dim/2] = rBA[i] + rBB[i] ;
+//     }
+    return r ;
+  }
+  
+  void clear()
+  {
+    AA.clear() ;
+    AB.clear() ;
+    BA.clear() ;
+    BB.clear() ;
+  }
+} ;
+
+
+const size_t dim = 40000 ;
+
+
 int main(int argc, char *argv[])
 {
+	ColumnMatrix m(dim) ;
+	Vector v(dim) ;
+	#pragma omp parallel for
+	for(size_t r = 0 ; r < v.size() ; r++)
+	{
+		v[r] = 1./(r+1) ;
+		for(size_t c = 0 ; c < v.size() ; c++)
+		{
+			m(r,c) = (c+1)*(1+r) ;
+		}
+	}
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
+	Vector k = m*v ;
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cout << k[0] << std::endl ;
+	std::cerr << "Column (s) " << delta/1e6 << std::endl ;
+	m.clear() ;
+	
+	RowMatrix rm(dim) ;
+	#pragma omp parallel for
+	for(size_t r = 0 ; r < rm.col ; r++)
+	{
+		for(size_t c = 0 ; c < rm.col ; c++)
+		{
+			rm(r,c) = (c+1)*(r+1) ;
+		}
+	}
+	gettimeofday(&time0, NULL);
+	Vector rk = rm*v ;
+	gettimeofday(&time1, NULL);
+	delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cout << rk[0] << std::endl ;
+	std::cerr << "Row (s) " << delta/1e6 << std::endl ;
+	rm.clear() ;
+// 	for(size_t i = 0 ; i < k.size() ; i++)
+// 	  std::cout << k[i] << std::endl ;
+	
+	exit(0) ;
+  
+  
+  
+  
 	GeometryType reference = CIRCLE ;
 	
 	if(std::string(argv[2]) == std::string("--ellipse"))
