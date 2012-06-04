@@ -659,7 +659,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						if(!triangles[i]->getBehaviour()->getDamageModel()->converged)
 						{
 							std::cout << "WTF ??" << std::endl ;
-							exit(0) ;
+//							exit(0) ;
 						}
 						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
 							d = 1 ;
