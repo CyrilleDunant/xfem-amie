@@ -360,4 +360,71 @@ Material NonLocalExponentiallyDecreasingMohrCoulomb::toMaterial()
 
 
 
+NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ), c(c)
+	,limitstrain(limitstrain),limitystrain(limitystrain), stiffness(E)
+{
+	metInTension = false ;
+	upVal = E*limitstrain ;
+}
+
+
+NonLocalInverseRootMohrCoulomb::~NonLocalInverseRootMohrCoulomb()
+{
+
+}
+
+double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
+{
+
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+	std::pair<Vector, Vector> pstressStrain( smoothedPrincipalStressAndStrain(s)) ;
+	Vector pstress = pstressStrain.first ;
+	Vector pstrain = pstressStrain.second ;
+	double maxStress = pstress.max() ;
+	double minStress = pstress.min() ;
+	double maxStrain = pstrain.max() ;
+	double minStrain = pstrain.min() ;
+
+// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+	metInTension = false ;
+	metInTension = std::abs( maxStrain / limitstrain ) > 1. ;
+
+	double effectiveStiffness = stiffness ;
+	if(s.getParent()->getBehaviour()->getDamageModel())
+		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	
+	double tfactor = 1./sqrt(c*maxStrain) ;
+	if(maxStrain < limitystrain)
+		tfactor = 1. ;
+	
+	double  upStrain = tfactor*upVal/effectiveStiffness ;
+	std::vector<double> scores ;
+	scores.push_back(-1);
+	if( maxStrain >= upStrain )
+	{
+		metInTension = true;
+		scores.push_back(1. - std::abs( upStrain / maxStrain ));
+	}
+	else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
+		scores.push_back(-1. + std::abs( maxStrain / upStrain ));
+	else if(maxStrain > 0)
+		return POINT_TOLERANCE_2D ;
+	
+	std::sort(scores.begin(), scores.end()) ;
+	return scores.back() ;
+}
+
+FractureCriterion *NonLocalInverseRootMohrCoulomb::getCopy() const
+{
+	return new NonLocalInverseRootMohrCoulomb( *this ) ;
+}
+
+Material NonLocalInverseRootMohrCoulomb::toMaterial()
+{
+	Material mat ;
+	return mat ;
+}
+
 }

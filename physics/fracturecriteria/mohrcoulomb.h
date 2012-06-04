@@ -200,6 +200,52 @@ public:
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
+class NonLocalInverseRootMohrCoulomb : public FractureCriterion
+{
+public:
+	double upVal ;
+	double stiffness ;
+	double limitstrain ;
+	double limitystrain ;
+	double c ;
+	bool metInTension  ;
+	
+	virtual bool directionInTension(size_t direction) {return true ;}
+	virtual bool directionInCompression(size_t direction) {return false ;}
+	virtual bool directionMet(size_t direction) 
+	{
+		if(direction == 0)
+			return true ;
+		
+		return false ;
+	}
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain,  double E, double c, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+
+	virtual ~NonLocalInverseRootMohrCoulomb();
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const;
+
+/** \brief return the normalised distance to the fracture surface
+ *
+ * The distance is computed as: \f$ 1.-|\frac{max\; principal\; strain\; in\; element}{Limit\; strain}|  \f$
+ * @param s ElementState to consider
+*/
+	virtual double grade(ElementState &s)  ;
+
+	virtual Material toMaterial() ;
+
+	virtual void scale(double f) { upVal *=f ; } ;
+	
+	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
+};
+
+
 }
 
 #endif

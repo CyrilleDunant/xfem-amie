@@ -16,7 +16,10 @@ namespace Mu
 	struct PasteBehaviour : public WeibullDistributedStiffness
 	{
 	    // ultimate tensile strength: 5.68 MPa
-		PasteBehaviour(double E=12e9, double nu=0.3, double tensile=2.9e6, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		double up ;
+		double yield ;
+		double c ;
+		PasteBehaviour(double E=12e9, double nu=0.3,  double up = 0.00025, double yield = 0.00035, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
