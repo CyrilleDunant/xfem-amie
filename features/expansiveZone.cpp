@@ -22,6 +22,12 @@ ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y
 	homogeneized = false ;
 }
 
+ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, StiffnessWithImposedDeformation * gel ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( gel->imposed ), cgTensor( gel->param )
+{
+	setBehaviour( gel ) ;
+	homogeneized = false ;
+}
+
 ExpansiveZone::~ExpansiveZone() {}
 
 

@@ -13,6 +13,7 @@
 #include "../physics/stiffness_with_variable_imposed_deformation.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -134,6 +135,7 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
+GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
@@ -483,17 +485,6 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = .499997 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
 	for(size_t i = 0 ; i < incs.size() ; i++)
@@ -520,12 +511,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 			if (alone)
 			{
-				Vector a(double(0), 3) ;
-				a[0] = 0.03 ;
-				a[1] = 0.03 ;
-				a[2] = 0.00 ;
-				
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, gel) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
 			}
 		}

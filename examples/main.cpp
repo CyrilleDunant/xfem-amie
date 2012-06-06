@@ -12,6 +12,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/stiffness.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
@@ -80,6 +81,8 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
+
+GelBehaviour * gel = new GelBehaviour() ;
 
 double E_min = 10;
 double E_max = 0;
@@ -522,17 +525,6 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int n, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
-	double E_csh = 31000000000 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = 0.499924 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh*percent+nu_incompressible*(1.-percent) ;
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
 	for(size_t i = 0 ; i < incs.size() ; i++)
@@ -557,12 +549,8 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 			if (alone)
 			{
-				Vector a(double(0), 3) ;
-				a[0] = .2 ;
-				a[1] = .2 ;
-				a[2] = 0.00 ;
-				
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
+			
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, gel) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
 				F.addFeature(incs[i],z) ; 
 			}

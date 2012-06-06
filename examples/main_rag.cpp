@@ -25,6 +25,7 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../physics/void_form.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
@@ -148,6 +149,8 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+
+GelBehaviour * gel = new GelBehaviour() ;
 
 // TriangleWriter writer( "rag_non_local", NULL ) ;
 
@@ -666,33 +669,10 @@ void step()
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously( int n, std::vector<Inclusion * > & incs , FeatureTree &F )
 {
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = .499997 ;
 	double radiusFraction = 10 ;
 	double radius = 0.00001 ;
-
-	double E = percent * E_csh ;
-	double nu = nu_csh ; //nu_incompressible ;
-
-	Matrix m0( 3, 3 ) ;
-	m0[0][0] = E / ( 1. - nu * nu ) ;
-	m0[0][1] = E / ( 1. - nu * nu ) * nu ;
-	m0[0][2] = 0 ;
-	m0[1][0] = E / ( 1. - nu * nu ) * nu ;
-	m0[1][1] = E / ( 1. - nu * nu ) ;
-	m0[1][2] = 0 ;
-	m0[2][0] = 0 ;
-	m0[2][1] = 0 ;
-	m0[2][2] = E / ( 1. - nu * nu ) * ( 1. - nu ) / 2. ;
-
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
-
-	Vector a( double( 0 ), 3 ) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
 
 	std::vector<ExpansiveZone *> zonesToPlace ;
 
@@ -712,7 +692,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		}
 
 		if( alone )
-			zonesToPlace.push_back( new ExpansiveZone( NULL, radius, pos.x, pos.y, m0, a ) ) ;
+			zonesToPlace.push_back( new ExpansiveZone( NULL, radius, pos.x, pos.y, gel ) ) ;
 		else
 			i-- ;
 	}
@@ -755,24 +735,6 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones( int n, std::vector<Inclusion * > & incs , FeatureTree &F )
 {
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	double nu_incompressible = .499997 ;
-
-	double E = percent * E_csh ;
-	double nu = nu_incompressible ;
-
-	Matrix m0( 3, 3 ) ;
-	m0[0][0] = E / ( 1. - nu * nu ) ;
-	m0[0][1] = E / ( 1. - nu * nu ) * nu ;
-	m0[0][2] = 0 ;
-	m0[1][0] = E / ( 1. - nu * nu ) * nu ;
-	m0[1][1] = E / ( 1. - nu * nu ) ;
-	m0[1][2] = 0 ;
-	m0[2][0] = 0 ;
-	m0[2][1] = 0 ;
-	m0[2][2] = E / ( 1. - nu * nu ) * ( 1. - nu ) / 2. ;
-
 	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
 	aggregateArea = 0 ;
 	double radius = 0.000005 ;
@@ -804,12 +766,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones( in
 
 				if( alone )
 				{
-					Vector a( double( 0 ), 3 ) ;
-					a[0] = 0.5 ;
-					a[1] = 0.5 ;
-					a[2] = 0.00 ;
-
-					ExpansiveZone *z = new ExpansiveZone( incs[i], radius, center.x, center.y, m0, a ) ;
+					ExpansiveZone *z = new ExpansiveZone( incs[i], radius, center.x, center.y, gel ) ;
 					ret.push_back( std::make_pair( z, incs[i] ) ) ;
 				}
 			}

@@ -12,6 +12,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
@@ -148,6 +149,7 @@ double shape ;
 double orientation ;
 double spread ;
 
+GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
@@ -536,27 +538,9 @@ void step()
 std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansiveZonesHomogeneously(int n, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
-  
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-//	double nu_incompressible = .499997 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh ; //nu_incompressible ;
-	
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
-	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
@@ -575,7 +559,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
 //		else
 //			i-- ;
 	}
@@ -659,6 +643,9 @@ std::vector<EllipsoidalInclusion *> circlesToEllipses(std::vector<Inclusion *> i
 
 int main(int argc, char *argv[])
 {
+	std::vector<Inclusion *> incs = ParticleSizeDistribution::get2DInclusions(0.002, 0.000252, BOLOME_B, PSDEndCriteria(0.00005, 0.1, 1000000000)) ;
+	std::cout << incs.size() << std::endl ;
+  
 	srand(0) ;
 
 	percent = atof(argv[1]) ;

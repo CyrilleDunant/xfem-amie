@@ -12,6 +12,8 @@
 namespace Mu
 {
 
+struct StiffnessWithImposedDeformation ;
+  
 /** \brief Expansive zone. 
  *
  * This enrichement feature will introduce a 
@@ -39,6 +41,7 @@ public:
 * @param deformation Vector of the imposed strain
 */
 	ExpansiveZone(Feature *father, double radius, double x, double y, const Matrix & cgTensor, Vector deformation) ;
+	ExpansiveZone(Feature *father, double radius, double x, double y, StiffnessWithImposedDeformation * gel) ;
 	virtual ~ExpansiveZone() ;
 	
 /** \brief enrich elements and change their Behaviour if required*/

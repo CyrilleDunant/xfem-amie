@@ -16,6 +16,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
@@ -144,6 +145,8 @@ bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
 
+GelBehaviour * gel = new GelBehaviour() ;
+
 double shape ;
 double orientation ;
 double spread ;
@@ -206,11 +209,11 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber)
 {
 
-	int nsteps = 2;
-	int nstepstot = 2;
+	int nsteps = 20;
+	int nstepstot = 20;
 	int maxtries = 400 ;
 	int tries = 0 ;
-	featureTree->setMaxIterationsPerStep(400) ;
+	featureTree->setMaxIterationsPerStep(4200) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
@@ -531,7 +534,7 @@ void step(GeometryType ref, int samplingNumber)
 
 		std::cout << tries << std::endl ;
 
-        if (tries < maxtries && featureTree->solverConverged())
+        if (tries < maxtries && featureTree->solverConverged() && go_on)
 		{
 			double delta_r = sqrt(aggregateArea*.05/((double)zones.size()*M_PI))/(double)nstepstot ;
             std::cout << "delta_r => " << delta_r << std::endl ;
@@ -608,25 +611,9 @@ void step(GeometryType ref, int samplingNumber)
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<Inclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
-  
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh ;
-	
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
-	std::vector<Zone> ret ;
+  	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
@@ -646,7 +633,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -690,25 +677,9 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
-	
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh ;
-	
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
@@ -728,7 +699,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
@@ -772,26 +743,9 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<TriangularInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
-	
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh ;
-	
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
-	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
@@ -810,7 +764,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<TriangularInclusion *, int> zonesPerIncs ; 
@@ -855,25 +809,9 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<RectangularInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
-	
-	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
-	
-	double E = percent*E_csh ;
-	double nu = nu_csh ;
-	
-	Matrix m0(3,3) ;
-	m0[0][0] = E/(1.-nu*nu) ; m0[0][1] =E/(1.-nu*nu)*nu ; m0[0][2] = 0 ;
-	m0[1][0] = E/(1.-nu*nu)*nu ; m0[1][1] = E/(1.-nu*nu) ; m0[1][2] = 0 ; 
-	m0[2][0] = 0 ; m0[2][1] = 0 ; m0[2][2] = E/(1.-nu*nu)*(1.-nu)/2. ; 
-	
 	std::vector<Zone> ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
-	Vector a(double(0), 3) ;
-	a[0] = 0.5 ;
-	a[1] = 0.5 ;
-	a[2] = 0.00 ;
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
@@ -893,7 +831,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, m0, a)) ;
+			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<RectangularInclusion *, int> zonesPerIncs ; 
@@ -1191,7 +1129,7 @@ int main(int argc, char *argv[])
 	double itzSize = 0.000000005;
  	int inclusionNumber = 200 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete() ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,20) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1291,8 +1229,8 @@ int main(int argc, char *argv[])
 // 	return 0 ;
 	
 	
-	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+	sample.setBehaviour(new PasteBehaviour()) ;
+	AggregateBehaviour * agg = new AggregateBehaviour() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		switch(reference)
@@ -1323,7 +1261,7 @@ int main(int argc, char *argv[])
 	switch(reference)
 	{
 		case CIRCLE:
-//			zones = generateExpansiveZonesHomogeneously(100, 30, inclusions, F) ;
+			zones = generateExpansiveZonesHomogeneously(100, 30, inclusions, F) ;
 			break ;
 		case ELLIPSE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;
