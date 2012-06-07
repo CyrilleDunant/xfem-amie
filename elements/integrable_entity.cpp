@@ -963,12 +963,12 @@ void ElementState::getFieldAtCenter( FieldType f, Vector & ret)
 			ret = strainAtCenter ;
 			return ;
 		case PRINCIPAL_STRAIN_FIELD :
-			if( strainAtCenter.size() == 0 )
+			if( principalStrainAtCenter.size() == 0 )
 			{
-				strainAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, strainAtCenter, true) ;
+				principalStrainAtCenter.resize(parent->spaceDimensions()) ;
+				this->getField(f, p_, principalStrainAtCenter, true) ;
 			}
-			ret = strainAtCenter ;
+			ret = principalStrainAtCenter ;
 			return ;
 		case REAL_STRESS_FIELD:
 			if( stressAtCenter.size() == 0 )
@@ -983,12 +983,12 @@ void ElementState::getFieldAtCenter( FieldType f, Vector & ret)
 			ret = stressAtCenter ;
 			return ;
 		case PRINCIPAL_REAL_STRESS_FIELD :
-			if( stressAtCenter.size() == 0 )
+			if( principalStressAtCenter.size() == 0 )
 			{
-				stressAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, stressAtCenter, true) ;
+				principalStressAtCenter.resize(parent->spaceDimensions()) ;
+				this->getField(f, p_, principalStressAtCenter, true) ;
 			}
-			ret = stressAtCenter ;
+			ret = principalStressAtCenter ;
 			return ;
 		case EFFECTIVE_STRESS_FIELD:
 			if( stressAtCenter.size() == 0 )
@@ -1296,53 +1296,53 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 	
 	if(f1 == PRINCIPAL_STRAIN_FIELD && (f2 == PRINCIPAL_REAL_STRESS_FIELD || f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) )
 	{
-		if( strainAtCenter.size() == 0 )
+		if( principalStrainAtCenter.size() == 0 )
 		{
-			Vector strain(0., 3+3*(parent->spaceDimensions())) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions())) ;
-			strainAtCenter.resize(parent->spaceDimensions()) ;
-			stressAtCenter.resize(parent->spaceDimensions()) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
+			principalStressAtCenter.resize(parent->spaceDimensions()) ;
 			this->getField(STRAIN_FIELD, p_, strain, true) ;
 			if(isRealStressField(f2))
 				stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
 			else
 				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
-			strainAtCenter = toPrincipal(strain) ;
-			stressAtCenter = toPrincipal(stress) ;
+			principalStrainAtCenter = toPrincipal(strain) ;
+			principalStressAtCenter = toPrincipal(stress) ;
 		}
-		else if( stressAtCenter.size() == 0 )
+		else if( principalStressAtCenter.size() == 0 )
 		{
-			stressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getFieldAtCenter(f2, stressAtCenter) ;
+			principalStressAtCenter.resize(parent->spaceDimensions()) ;
+			this->getFieldAtCenter(f2, principalStressAtCenter) ;
 		}
-		ret1 = strainAtCenter ;
-		ret2 = stressAtCenter ;
+		ret1 = principalStrainAtCenter ;
+		ret2 = principalStressAtCenter ;
 		return ;
 	}
 
 	if((f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) && f2 == PRINCIPAL_STRAIN_FIELD )
 	{
-		if( strainAtCenter.size() == 0 )
+		if( principalStrainAtCenter.size() == 0 )
 		{
-			Vector strain(0., 3+3*(parent->spaceDimensions())) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions())) ;
-			strainAtCenter.resize(parent->spaceDimensions()) ;
-			stressAtCenter.resize(parent->spaceDimensions()) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
+			principalStressAtCenter.resize(parent->spaceDimensions()) ;
 			this->getField(STRAIN_FIELD, p_, strain, true) ;
 			if(isRealStressField(f1))
 				stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
 			else
 				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
-			strainAtCenter = toPrincipal(strain) ;
-			stressAtCenter = toPrincipal(stress) ;
+			principalStrainAtCenter = toPrincipal(strain) ;
+			principalStressAtCenter = toPrincipal(stress) ;
 		}
-		else if( stressAtCenter.size() == 0 )
+		else if( principalStressAtCenter.size() == 0 )
 		{
-			stressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getFieldAtCenter(f1, stressAtCenter) ;
+			principalStressAtCenter.resize(parent->spaceDimensions()) ;
+			this->getFieldAtCenter(f1, principalStressAtCenter) ;
 		}
-		ret1 = stressAtCenter ;
-		ret2 = strainAtCenter ;
+		ret1 = principalStressAtCenter ;
+		ret2 = principalStrainAtCenter ;
 		return ;
 	}
 	
@@ -1446,8 +1446,8 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 	{
 		if( strainAtNodes.size() == 0 )
 		{
-			Vector strain(0., 3+3*(parent->spaceDimensions())) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions())) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
 			Vector pstrain(0., parent->spaceDimensions()) ;
 			Vector pstress(0., parent->spaceDimensions()) ;
 			strainAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
@@ -1483,8 +1483,8 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 	{
 		if( strainAtNodes.size() == 0 )
 		{
-			Vector strain(0., 3+3*(parent->spaceDimensions())) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions())) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
 			Vector pstrain(0., parent->spaceDimensions()) ;
 			Vector pstress(0., parent->spaceDimensions()) ;
 			strainAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
@@ -1876,6 +1876,9 @@ void ElementState::step( double dt, const Vector *d )
 
 	strainAtCenter.resize( 0 );
 	stressAtCenter.resize( 0 );
+
+	principalStrainAtCenter.resize( 0 );
+	principalStressAtCenter.resize( 0 );
 	
 	effectiveStressAtCenter.resize(0);
 	
