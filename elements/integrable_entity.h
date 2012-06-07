@@ -102,6 +102,8 @@ protected:
 	Vector stressAtNodes ;
 	Vector strainAtCenter ;
 	Vector stressAtCenter ;
+	Vector principalStrainAtCenter ;
+	Vector principalStressAtCenter ;
 	Vector effectiveStressAtCenter ;
 	
 	Vector pstrainAtCenter ;
