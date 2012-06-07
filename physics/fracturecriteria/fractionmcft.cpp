@@ -31,12 +31,14 @@ FractionMCFT::~FractionMCFT()
 
 double FractionMCFT::grade(ElementState &s)
 {
+	Vector str(0., s.getParent()->getBoundingPoints().size()*( (size_t) s.getParent()->spaceDimensions())) ;
+	Vector stra(0., str.size()) ;
+	s.getFieldAtNodes( PRINCIPAL_STRAIN_FIELD, PRINCIPAL_REAL_STRESS_FIELD, stra, str) ;
 	
-	Vector str( s.getPrincipalStressAtNodes() ) ;
-	Vector stra( s.getPrincipalStrainAtNodes() ) ;
+	Vector totalStrain(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+	Vector totalStress(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+	s.getFieldAtCenter( STRAIN_FIELD, REAL_STRESS_FIELD, totalStrain, totalStress ) ;
 	
-	Vector totalStrain = s.getStrain(s.getParent()->getCenter()) ;
-	Vector totalStress = s.getStress(s.getParent()->getCenter()) ;
 	Vector concreteStress = (s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) - steelCGTensor*phi)*totalStrain ;
 	
 	double factor = sqrt(std::inner_product(&concreteStress[0], &concreteStress[concreteStress.size()], &concreteStress[0], double(0)))/sqrt(std::inner_product(&totalStress[0], &totalStress[totalStress.size()], &totalStress[0], double(0))) ;
@@ -65,9 +67,10 @@ double FractionMCFT::grade(ElementState &s)
 
 			double d = exp( -dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius ) );
 
-			Vector pstress( ci->getState().getPrincipalStressAtNodes() ) ;
+			Vector pstress(0., str.size()) ;
+			Vector pstrain(0., str.size()) ;
+			ci->getState().getFieldAtNodes( PRINCIPAL_STRAIN_FIELD, PRINCIPAL_REAL_STRESS_FIELD, pstrain, pstress) ;
 			pstress *= factor ;
-			Vector pstrain( ci->getState().getPrincipalStrainAtNodes() ) ;
 			
 			area = ci->area() ;
 
@@ -131,9 +134,10 @@ double FractionMCFT::grade(ElementState &s)
 
 			volume = ci->volume() ;
 			double d =  exp(-dc / ( physicalCharacteristicRadius * physicalCharacteristicRadius )) ;
-			Vector pstress = ci->getState().getPrincipalStressAtNodes() ;
+			Vector pstress(0., str.size()) ;
+			Vector pstrain(0., str.size()) ;
+			ci->getState().getFieldAtNodes( PRINCIPAL_STRAIN_FIELD, PRINCIPAL_REAL_STRESS_FIELD, pstrain, pstress) ;
 			pstress *= factor ;
-			Vector pstrain = ci->getState().getPrincipalStrainAtNodes() ;
 
 			if( !ci->getBehaviour()->fractured() )
 			{

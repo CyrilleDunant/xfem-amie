@@ -40,6 +40,7 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
+#include <sys/time.h> 
 #define DEBUG 
 
 #define ID_QUIT 1
@@ -272,7 +273,12 @@ void step(GeometryType ref, int samplingNumber)
 		double avg_s_yy_nogel = 0;
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
-		
+
+				double e_xx_max_count = 0 ;
+		double e_xx_min_count = 0 ;
+		double e_yy_max_count = 0 ;
+		double e_yy_min_count = 0 ;
+
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			bool in = false ;
@@ -288,7 +294,7 @@ void step(GeometryType ref, int samplingNumber)
 			
 			
 			
-			if(!in && !triangles[k]->getBehaviour()->fractured())
+			if(!in /*&& !triangles[k]->getBehaviour()->fractured()*/)
 			{
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
@@ -301,28 +307,36 @@ void step(GeometryType ref, int samplingNumber)
 						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
 					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
 						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > sample.width()*.4999)
+					if( triangles[k]->getBoundingPoint( p ).x > sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
 					{
-						if(e_xx_max < x[triangles[k]->getBoundingPoint(p).id*2])
-							e_xx_max=x[triangles[k]->getBoundingPoint(p).id*2] ;
+//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).id * 2] )
+						e_xx_max += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+ 						e_xx_max_count++ ;
+					}
+
+					if( triangles[k]->getBoundingPoint( p ).x < -sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
+					{
+//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).id * 2] )
+						e_xx_min += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+ 						e_xx_min_count++ ;
+
 // 						ex_count++ ;
 					}
-					if(triangles[k]->getBoundingPoint(p).x < -sample.width()*.4999)
+
+					if( triangles[k]->getBoundingPoint( p ).y > sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
 					{
-						if(e_xx_min > x[triangles[k]->getBoundingPoint(p).id*2])
-							e_xx_min=x[triangles[k]->getBoundingPoint(p).id*2] ;
+//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
+						e_yy_max += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+ 						e_yy_max_count++ ;
 // 						ex_count++ ;
 					}
-					if(triangles[k]->getBoundingPoint(p).y > sample.height()*.4999)
+
+					if( triangles[k]->getBoundingPoint( p ).y < -sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
 					{
-						if(e_yy_max < x[triangles[k]->getBoundingPoint(p).id*2+1])
-							e_yy_max=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
-// 						ex_count++ ;
-					}
-					if(triangles[k]->getBoundingPoint(p).y < -sample.height()*.4999)
-					{
-						if(e_yy_min > x[triangles[k]->getBoundingPoint(p).id*2+1])
-							e_yy_min=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
+						e_yy_min += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+ 						e_yy_min_count++ ;
+
 // 						ex_count++ ;
 					}
 				}
@@ -383,12 +397,13 @@ void step(GeometryType ref, int samplingNumber)
 				
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 				{
-					Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
+					Vector vm0(0., 3) ;
+					triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
 					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
-					double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l))[0] ;
-					agl = (vm0[0] <= 0 && vm0[1] <= 0)*180. ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+					Vector agl(0., 1) ;
+					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
+					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
 				}
 				
 				double ar = triangles[k]->area() ;
@@ -501,6 +516,10 @@ void step(GeometryType ref, int samplingNumber)
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
 
+		e_xx_max /= e_xx_max_count ;
+		e_xx_min /= e_xx_min_count ;
+		e_yy_max /= e_yy_max_count ;
+		e_yy_min /= e_yy_min_count ;
 		
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
@@ -529,8 +548,8 @@ void step(GeometryType ref, int samplingNumber)
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
-        std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
-		std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
+		std::cout << "apparent extension (x) " << (e_xx_max - e_xx_min)/sample.width() << std::endl ;
+		std::cout << "apparent extension (y) " << (e_yy_max - e_yy_min)/sample.width() << std::endl ;
 
 		std::cout << tries << std::endl ;
 
@@ -584,7 +603,7 @@ void step(GeometryType ref, int samplingNumber)
 				expansion_reaction.push_back(std::make_pair(reactedArea/placed_area, avg_e_xx/area)) ;
 				expansion_stress_xx.push_back(std::make_pair((avg_e_xx)/(area), (avg_s_xx)/(area))) ;
 				expansion_stress_yy.push_back(std::make_pair((avg_e_yy)/(area), (avg_s_yy)/(area))) ;
-                apparent_extension.push_back(std::make_pair(e_xx_max-e_xx_min, e_yy_max-e_yy_min)) ;
+				apparent_extension.push_back( std::make_pair((e_xx_max - e_xx_min)/sample.width(), (e_yy_max - e_yy_min)/sample.width() ) ) ;
 			}
 			
 //			if (tries >= maxtries)
@@ -1109,7 +1128,13 @@ bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int
 
 int main(int argc, char *argv[])
 {
-	GeometryType reference = CIRCLE ;
+	timeval time0, time1 ;
+	gettimeofday(&time0, NULL);
+
+  
+  
+  
+  GeometryType reference = CIRCLE ;
 	
 	if(argc > 2)
 	{
@@ -1129,7 +1154,7 @@ int main(int argc, char *argv[])
 	double itzSize = 0.000000005;
  	int inclusionNumber = 200 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,20) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,2) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1289,7 +1314,9 @@ int main(int argc, char *argv[])
 	for(int i = 0 ; i < inclusions.size() ; i++)
 	    area += inclusions[i]->area() ;
 	
-	std::cout << area << std::endl ;
+	gettimeofday(&time1, NULL);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cout << delta*1e-6 << std::endl ;
 	
 	return 0 ;
 }

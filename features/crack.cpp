@@ -5,6 +5,7 @@
 
 #include "crack.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../elements/integrable_entity.h"
 
 #include <fstream>
 
@@ -281,6 +282,8 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 		{
 			
 			DelaunayTriangle * current = tris[i] ;
+			Vector a(0.,1) ;
+			Vector principalStresses(0., 2) ;
 			
 			for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 			{
@@ -290,8 +293,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 				
 				if ( ( currentDir*lastDir ) > 0 )
 				{
-					Vector principalStresses = current->getState().getPrincipalStresses (
-						current->getBoundingPoint ( j ) ) ;
+					current->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, current->getBoundingPoint(j), principalStresses, false) ;
 					double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
 					
 					if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -299,8 +301,8 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 					
 					if ( currentDir.norm() > 1e-8 )
 					{
-						aangle += current->getState().getPrincipalAngle (
-							current->getBoundingPoint ( j ) )[0] ;
+						current->getState().getField( PRINCIPAL_ANGLE_FIELD, current->getBoundingPoint(j), a, false) ;
+						aangle += a[0] ;
 						acount++ ;
 					}
 				}
@@ -404,12 +406,15 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 			
 			Point localVector = gamma[j].second->inLocalCoordinates ( tipSegment.vector() ) ;
 			Point localNormal ( -localVector.y, localVector.x ) ;
+			Vector stress(0., 3) ;
+			Vector strain(0., 3) ;
 			
 			for ( size_t k = 0 ; k < gaussPoints.size() ; k++ )
 			{
 				Point localGaussPoint = gamma[j].second->inLocalCoordinates ( gaussPoints[k].first ) ;
-				Matrix sigma (gamma[j].second->getState().getStressMatrix ( localGaussPoint,true )) ;
-				Matrix epsilon (gamma[j].second->getState().getStrainMatrix ( localGaussPoint,true )) ;
+				gamma[j].second->getState().getField(STRAIN_FIELD, REAL_STRESS_FIELD, localGaussPoint, strain, stress, true) ;
+				Matrix sigma = makeStressOrStrainMatrix(stress) ;
+				Matrix epsilon = makeStressOrStrainMatrix(strain) ;
 				double sigma_epsilon = sigma[0][0]*epsilon[0][0] + sigma[0][1]*epsilon[0][1] + sigma[1][0]*epsilon[1][0] + sigma[1][1]*epsilon[1][1];//0.5*std::inner_product(&sigma.array()[0], &sigma.array()[sigma.size()], &epsilon.array()[0], 0. );
 				
 				Vector T = sigma * stepLengthal ;

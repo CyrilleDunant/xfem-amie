@@ -325,16 +325,16 @@ void step()
 				epsilon13[k*npoints+3] = epsilon[k*npoints*6+22];
 				epsilon23[k*npoints+3] = epsilon[k*npoints*6+23];
 				
-				double vm0 = 0 ;
-				double agl = 0 ;
+				Vector vm0(0.,1) ;
+				Vector agl(0.,1) ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					vm0 = tets[k]->getState().getMaximumVonMisesStress() ;
+					tets[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD,  tets[k]->getCenter(), vm0, false) ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					agl = tets[k]->getState().getPrincipalAngle(tets[k]->getCenter())[0] ;
+					tets[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, tets[k]->getCenter(), agl, false) ;
 				for(size_t l = 0 ; l < 4 ; l++)
 				{
-					vonMises[k*npoints+l]  = vm0 ;
-					angle[k*npoints+l]  = agl ;
+					vonMises[k*npoints+l]  = vm0[0] ;
+					angle[k*npoints+l]  = agl[0] ;
 				}
 				
 				double ar = tets[k]->volume() ;

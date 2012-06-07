@@ -27,7 +27,8 @@ MaximumStrain::~MaximumStrain()
 
 double MaximumStrain::grade(ElementState &s)
 {
-	Vector pstrain = s.getStrain(s.getParent()->getBoundingPoints()) ;
+	Vector pstrain(0., s.getParent()->getBoundingPoints().size()*(3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL))) ;
+	s.getField( STRAIN_FIELD, s.getParent()->getBoundingPoints(), pstrain, false) ;
 	double maxStrain = pstrain.max();
 	metInCompression = false ;
 	metInTension = false ;

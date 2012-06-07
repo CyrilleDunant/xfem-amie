@@ -279,6 +279,11 @@ void step()
 		double avg_s_yy_nogel = 0;
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
+		
+		double e_xx_max_count = 0 ;
+		double e_xx_min_count = 0 ;
+		double e_yy_max_count = 0 ;
+		double e_yy_min_count = 0 ;
 
 		for( size_t k = 0 ; k < triangles.size() ; k++ )
 		{
@@ -298,7 +303,7 @@ void step()
 
 
 
-			if( !in && !triangles[k]->getBehaviour()->fractured() && baseGeometry.in( triangles[k]->getCenter() ) )
+			if( !in /*&& !triangles[k]->getBehaviour()->fractured()*/ && baseGeometry.in( triangles[k]->getCenter() ) )
 			{
 
 				for( size_t p = 0 ; p < triangles[k]->getBoundingPoints().size() ; p++ )
@@ -315,34 +320,35 @@ void step()
 					if( x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] < y_min )
 						y_min = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1];
 
-					if( triangles[k]->getBoundingPoint( p ).x > baseGeometry.width()*.4999 )
+					if( triangles[k]->getBoundingPoint( p ).x > baseGeometry.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
 					{
-						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).id * 2] )
-							e_xx_max = x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).id * 2] )
+						e_xx_max += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+ 						e_xx_max_count++ ;
+					}
+
+					if( triangles[k]->getBoundingPoint( p ).x < -baseGeometry.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
+					{
+//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).id * 2] )
+						e_xx_min += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+ 						e_xx_min_count++ ;
 
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).x < -baseGeometry.width()*.4999 )
+					if( triangles[k]->getBoundingPoint( p ).y > baseGeometry.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
 					{
-						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).id * 2] )
-							e_xx_min = x[triangles[k]->getBoundingPoint( p ).id * 2] ;
-
+//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
+						e_yy_max += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+ 						e_yy_max_count++ ;
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).y > baseGeometry.height()*.4999 )
+					if( triangles[k]->getBoundingPoint( p ).y < -baseGeometry.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
 					{
-						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-							e_yy_max = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
-
-// 						ex_count++ ;
-					}
-
-					if( triangles[k]->getBoundingPoint( p ).y < -baseGeometry.height()*.4999 )
-					{
-						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-							e_yy_min = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
+						e_yy_min += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+ 						e_yy_min_count++ ;
 
 // 						ex_count++ ;
 					}
@@ -407,12 +413,13 @@ void step()
 
 				for( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
 				{
-					Vector vm0 = triangles[k]->getState().getPrincipalStresses( triangles[k]->getBoundingPoint( l ) ) ;
-					vonMises[k * triangles[k]->getBoundingPoints().size() + l]  = sqrt( ( ( vm0[0] - vm0[1] ) * ( vm0[0] - vm0[1] ) ) / 2. ) ;
-
-					double agl = triangles[k]->getState().getPrincipalAngle( triangles[k]->getBoundingPoint( l ) )[0] ;
-					agl = ( vm0[0] <= 0 && vm0[1] <= 0 ) * 180. ;
-					angle[k * triangles[k]->getBoundingPoints().size() + l]  = agl ;
+					Vector vm0(0., 3) ;
+					triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
+					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
+	
+					Vector agl(0., 1) ;
+					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
+					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
 				}
 
 				double ar = triangles[k]->area() ;
@@ -529,6 +536,10 @@ void step()
 		writer.getField( TWFT_DAMAGE ) ;
 
 		writer.write() ;
+		e_xx_max /= e_xx_max_count ;
+		e_xx_min /= e_xx_min_count ;
+		e_yy_max /= e_yy_max_count ;
+		e_yy_min /= e_yy_min_count ;
 
 		std::cout << std::endl ;
 		std::cout << "max value :" << x_max << std::endl ;
@@ -564,7 +575,8 @@ void step()
 		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel / nogel_area << std::endl ;
 		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel / nogel_area << std::endl ;
 
-		std::cout << "apparent extension " << e_xx_max - e_xx_min << std::endl ;
+		std::cout << "apparent extension (x) " << (e_xx_max - e_xx_min)/sample.width() << std::endl ;
+		std::cout << "apparent extension (y) " << (e_yy_max - e_yy_min)/sample.width() << std::endl ;
 
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		if( go_on )
@@ -623,7 +635,7 @@ void step()
 				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, avg_e_xx / area ) ) ;
 				expansion_stress_xx.push_back( std::make_pair( ( avg_e_xx_nogel ) / ( nogel_area ), ( avg_s_xx_nogel ) / ( nogel_area ) ) ) ;
 				expansion_stress_yy.push_back( std::make_pair( ( avg_e_yy_nogel ) / ( nogel_area ), ( avg_s_yy_nogel ) / ( nogel_area ) ) ) ;
-				apparent_extension.push_back( std::make_pair( e_xx_max - e_xx_min, e_yy_max - e_yy_min ) ) ;
+				apparent_extension.push_back( std::make_pair((e_xx_max - e_xx_min)/sample.width(), (e_yy_max - e_yy_min)/sample.width() ) ) ;
 			}
 
 		}

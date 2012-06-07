@@ -61,6 +61,26 @@ typedef enum{
 	EFFECTIVE_STRESS
 } StressCalculationMethod ; 
 
+typedef enum {
+	DISPLACEMENT_FIELD,
+	ENRICHED_DISPLACEMENT_FIELD,
+	FLUX_FIELD,
+	GRADIENT_FIELD,
+	STRAIN_FIELD,
+	EFFECTIVE_STRESS_FIELD,
+	REAL_STRESS_FIELD,
+	PRINCIPAL_STRAIN_FIELD,
+	PRINCIPAL_EFFECTIVE_STRESS_FIELD,
+	PRINCIPAL_REAL_STRESS_FIELD,
+	NON_ENRICHED_STRAIN_FIELD,
+	NON_ENRICHED_EFFECTIVE_STRESS_FIELD,
+	NON_ENRICHED_REAL_STRESS_FIELD,
+	VON_MISES_STRAIN_FIELD,
+	VON_MISES_REAL_STRESS_FIELD,
+	VON_MISES_EFFECTIVE_STRESS_FIELD,
+	PRINCIPAL_ANGLE_FIELD,
+} FieldType ;
+
 struct Form ;
 struct NonLinearForm ;
 struct Function ;
@@ -118,123 +138,76 @@ public:
 	ElementState & operator =(const ElementState &) ;
 	
 	double getCachedAngle() const {return cachedPrincipalStressAngle ;}
+
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local) const ;
+		
+	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local) const  ;
+
+	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local) const  ;
 	
-/** \brief Return flux at given point*/
-	Vector getFlux(const Point & p, bool local = false) const ;
-
-/** \brief Return concentration gradient at givent point*/
-	Vector getGradient(const Point & p, bool local = false) const ;
-
-/** \brief Return strain at given point*/
-	Vector getStrain(const Point & , bool local = false) const;
-
-/** \brief Return stress at given point*/
-	Vector getPreviousStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS ) const;
+	virtual void getFieldAtCenter( FieldType f, Vector & ret) ;
 	
-/** \brief Return stress at given point*/
-	Vector getStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
-	void getStressAndStrain(const Point & , Vector & stress, Vector & strain, bool local = false, StressCalculationMethod m = REAL_STRESS) ;
-	void getPrincipalStressAndStrain(const Point & p, Vector & stress, Vector & strain, bool local= false, StressCalculationMethod m= REAL_STRESS) ;
-
-/** \brief Return stress at given point, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return strain at given point, ignoring enrichment functions*/
-	Vector getNonEnrichedStrain(const Point & , bool local = false) const;
-
-/** \brief Return strain at given point, in matrix form*/
-	Matrix getStrainMatrix(const Point & , bool local = false) const;
-
-/** \brief Return stress at given point, in matrix form*/
-	Matrix getPreviousStressMatrix(const Point & p, bool local = false, StressCalculationMethod m = REAL_STRESS) const;
+	virtual void getFieldAtNodes( FieldType f, Vector & ret) ;
 	
-/** \brief Return stress at given point, in matrix form*/
-	Matrix getStressMatrix(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const;
+	// TODO : add getFieldAtGaussPoints
 
-/** \brief Return strain at given point*/
-	Vector getStrain(const std::pair<Point, double> &  ) const;
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local) const  ;
+		
+	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local) const  ;
 
-/** \brief Return stress at given point*/
-	Vector getStress(const std::pair<Point, double> & , StressCalculationMethod m = REAL_STRESS ) const;
+	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local) const  ;
 
-/** \brief Return strain at given points*/
-	Vector getStrain(const Mu::PointArray &) const;
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local) const  ;
 
-	Vector & getPrincipalStrainAtNodes() ;
-	Vector & getPrincipalStressAtNodes( StressCalculationMethod m = REAL_STRESS) ;
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local) const  ;
 	
-	Vector &getStrainAtCenter() ;
-	Vector &getStressAtCenter(StressCalculationMethod m = REAL_STRESS) ;
-	void getStressAndStrainAtCenter( Vector & stress, Vector & strain, StressCalculationMethod m = REAL_STRESS) ;
-	void getPrincipalStressAndStrainAtCenter( Vector & stress, Vector & strain, StressCalculationMethod m = REAL_STRESS) ;
-
-/** \brief Return stress at given points*/
-	Vector getPreviousStress(const Mu::PointArray & v, StressCalculationMethod m = REAL_STRESS) const;
+	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) ;
 	
-/** \brief Return stress at given points*/
-	Vector getStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return stress at given points, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return strain at given points, ignoring enrichment functions*/
-	Vector getNonEnrichedStrain(const Mu::PointArray &) const;
-
-/** \brief Return strain at given (Gauss) points*/
-	Vector getStrain(const std::valarray<std::pair<Point, double> > &p) const;
-
-/** \brief Return stress at given (Gauss) points*/
-	Vector getStress(const std::valarray<std::pair<Point, double> > &p, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return stress at given (Gauss) points, ignoring enrichment functions*/
-	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return stress at given (Gauss) points, ignoring enrichment functions, given inverse jacobian matrices*/
-	Vector getNonEnrichedStress(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief Return strain at given (Gauss) points, ignoring enrichment functions*/
-	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p) const;
-
-/** \brief Return strain at given (Gauss) points, ignoring enrichment functions, given inverse jacobian matrices*/
-	Vector getNonEnrichedStrain(const std::valarray<std::pair<Point, double> > & p, const std::valarray<Matrix> &Jinv) const;
-
-/** \brief return stress and strain at given points*/
-	std::pair<Vector, Vector > getStressAndStrain(const Mu::PointArray &, StressCalculationMethod m = REAL_STRESS) const;
-
-/** \brief return stress and strain at given points*/
-	std::pair<Vector, Vector > getGradientAndFlux(const Mu::PointArray &) const;
-
-/** \brief return stress and strain at given (gauss) points*/
-	std::pair<Vector, Vector > getStressAndStrain( const std::valarray<std::pair<Point, double> > & p, StressCalculationMethod m = REAL_STRESS) const;
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) ;
 	
-/** \brief get Principal Stresses at given point*/
-	Vector getPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
-	
+
+/** \brief return displacements at the nodes of the element*/
+	const Vector & getDisplacements() const;
+
+/** \brief return displacements at the nodes of the element*/
+	Vector & getDisplacements() ;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	const Vector & getEnrichedDisplacements() const;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	Vector & getEnrichedDisplacements() ;
+
+/** \brief return displacements at the nodes of the element*/
+	const Vector & getPreviousDisplacements() const;
+
+/** \brief return displacements at the nodes of the element*/
+	Vector & getPreviousDisplacements() ;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	const Vector & getPreviousEnrichedDisplacements() const;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	Vector & getPreviousEnrichedDisplacements() ;
+
+/** \brief return displacements at the nodes of the element*/
+	const Vector & getPreviousPreviousDisplacements() const;
+
+/** \brief return displacements at the nodes of the element*/
+	Vector & getPreviousPreviousDisplacements() ;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	const Vector & getPreviousPreviousEnrichedDisplacements() const;
+
+/** \brief return enriched displacements at the nodes of the element*/
+	Vector & getPreviousPreviousEnrichedDisplacements() ;
+		
 /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
 	std::vector<Point> getPrincipalFrame( const Point &p, bool local = false, StressCalculationMethod m = REAL_STRESS)  ;
-	
-/** \brief get Principal Stresses at given point*/
-	Vector getPreviousPrincipalStresses(const Point & , bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
-
-/** \brief get Principal Stresses at given points*/
-	Vector getPrincipalStresses(const Mu::PointArray &,  bool local = false, StressCalculationMethod m = REAL_STRESS) const ;
-	
-	Vector getPrincipalImposedStresses() const ;
-	
-/** \brief get Principal Stresses at given points*/
-	Vector getPreviousPrincipalStresses(const Mu::PointArray &) const ;
-
-/** \brief get Principal Strains at given point*/
-	Vector getPrincipalStrains(const Point & p, bool local = false) const ;
-	
-/** \brief get Principal Strains at given points*/
-	Vector getPrincipalStrains(const Mu::PointArray &) const ;
-	
-/** \brief get Principal angle at given point*/
-	Vector getPrincipalAngle(const Point & p, bool local= false) const ;
-
-/** \brief get Principal angle at given points*/
-	Vector getPrincipalAngle(const Mu::PointArray & v) const;
 	
 /** \brief get symbolic expression of Stress, given he inverse Jacobian*/
 	FunctionMatrix getStressFunction(const Matrix &Jinv, StressCalculationMethod m = REAL_STRESS) const;
@@ -248,17 +221,6 @@ public:
 /** \brief get average desplacements over the element*/
 	Vector getAverageDisplacement() const ;
 	
-	double getVonMisesStrain(const Mu::Point& p, bool local = false) const ;
-	
-/** \brief return maximum Von Mises Stress*/
-	double getMaximumVonMisesStress( StressCalculationMethod m = REAL_STRESS) const ;
-	
-/** \brief return maximum Von Mises Stress*/
-	double getPreviousMaximumVonMisesStress( StressCalculationMethod m = REAL_STRESS) const ;
-	
-/** \brief return displacement at point*/
-	Vector getDisplacements(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
-
 /** \brief return the linear interpolating factors for the displacement field at the given point*/
 	std::vector<double> getInterpolatingFactors(const Point & p, bool local = false) const ;
 
@@ -268,76 +230,10 @@ public:
 /** \brief return the linear non-enrichment interpolating factors for the displacement field at the given point*/
 	std::vector<double> getNonEnrichedInterpolatingFactors(const Point & p, bool local = false) const ;
 	
-/** \brief return displacement at points*/
-	Vector getDisplacements(const std::valarray<Point> & p) const ;
-
-/** \brief return displacement at points*/
-	Vector getDisplacements(const std::vector<std::pair<Point, double> > & p ) const ;
-
-/** \brief return displacements at the nodes of the element*/
-	const Vector & getDisplacements() const;
-
-/** \brief return concentrations at the nodes of the element*/
-	Vector getConcentrations(const Point &, bool local = false, bool fast = false, const Vector * source = NULL) const;
-
 /** \brief Return the elastic energy of this element*/
-	double elasticEnergy() const ;
+	double elasticEnergy() ;
 
-/** \brief return displacements at the nodes of the element*/
-	Vector & getDisplacements() ;
-	
-/** \brief return previous displacements at point*/
-	Vector getPreviousDisplacements(const Point &) const;
-
-/** \brief return previous displacements at points*/
-	Vector getPreviousDisplacements(const std::valarray<Point> & p) const ;
-
-/** \brief return previous displacements at the nodes of the element*/
-	const Vector & getPreviousDisplacements() const;
-
-/** \brief return previous displacements at the nodes of the element*/
-	Vector & getPreviousDisplacements() ;
-	
-/** \brief return displacements two timesteps back at point*/
-	Vector  getPreviousPreviousDisplacements(const Point &) const;
-
-/** \brief return displacements two timesteps back at point*/
-	Vector getPreviousPreviousDisplacements(const std::valarray<Point> & p) const ;
-
-/** \brief return displacements two timesteps back at the nodes of the element*/
-	const Vector & getPreviousPreviousDisplacements() const;
-
-/** \brief return displacements two timesteps back at the nodes of the element*/
-	Vector & getPreviousPreviousDisplacements() ;
-	
-/** \brief get enriched displacements at the nodes of the element*/
-	const Vector & getEnrichedDisplacements() const;
-
-/** \brief get enriched displacements at the nodes of the element*/
-	Vector & getEnrichedDisplacements() ;
-
-/** \brief get previous enriched displacements at the nodes of the element*/
-	Vector & getPreviousEnrichedDisplacements() ;
-
-/** \brief get previous enriched displacements at the nodes of the element*/
-	const Vector & getPreviousEnrichedDisplacements() const;
-
-/** \brief get enriched displacements at the nodes of the element from two timesteps back*/
-	const Vector & getPreviousPreviousEnrichedDisplacements() const;
-
-/** \brief get enriched displacements at the nodes of the element from two timesteps back*/
-	Vector & getPreviousPreviousEnrichedDisplacements() ;
-	
 	void stepBack() ;
-	
-	Vector getSpeed(const Point &) const ;
-	Vector getSpeed(const std::valarray<Point> & p) const ;
-	Vector getSpeed() const ;
-	
-	Vector getAcceleration(const Point &) const ;
-	Vector getAcceleration(const std::valarray<Point> & p) const ;
-	Vector getAcceleration() const ;
-	
 	void step(double dt, const Vector* d ) ;
 	void elasticStep(double dt, const Vector* d ) ;
 	
@@ -533,6 +429,8 @@ public:
 	virtual DamageModel * getDamageModel() const { return NULL ; }
 	
 } ;
+
+Matrix makeStressOrStrainMatrix(Vector & stressOrStrain) ;
 
 } ;
 

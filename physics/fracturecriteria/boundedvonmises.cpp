@@ -29,8 +29,10 @@ double BoundedVonMises::grade(ElementState &s)
 	dmodel = s.getParent()->getBehaviour()->getDamageModel() ;
 	if(dmodel && dmodel->getState().max() > damageThreshold)
 		return -1. ;
-		
-	double maxStress = s.getMaximumVonMisesStress() ;
+	
+	Vector v(0.,1) ;
+	s.getFieldAtCenter( VON_MISES_REAL_STRESS_FIELD, v) ;
+	double maxStress = v[0] ;
 	
 	if(maxStress > threshold )
 	{

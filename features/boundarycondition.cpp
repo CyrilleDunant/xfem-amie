@@ -1747,7 +1747,8 @@ void ElementDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		std::vector<Point> p ;
 		p.push_back( local );
 
-		Vector disps = surface->getState().getDisplacements( local, true ) ;
+		Vector disps(0.,2) ;
+		surface->getState().getField( DISPLACEMENT_FIELD, local, disps, true) ;
 		a->setPointAlong( XI, disps[0], ( *i )->id ) ;
 		a->setPointAlong( ETA, disps[1], ( *i )->id ) ;
 
@@ -1785,7 +1786,8 @@ void ElementDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 		std::vector<Point> p ;
 		p.push_back( local );
 
-		Vector disps = volume->getState().getDisplacements( local, true ) ;
+		Vector disps(0.,3) ;
+		volume->getState().getField( DISPLACEMENT_FIELD, local, disps, true) ;
 		a->setPointAlong( XI, disps[0], ( *i )->id ) ;
 		a->setPointAlong( ETA, disps[1], ( *i )->id ) ;
 		a->setPointAlong( ZETA, disps[2], ( *i )->id ) ;
@@ -6031,14 +6033,6 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	if ( previousDisp.size() == 0 )
 		return ;
 
-	Vector previousStress ;
-
-	previousStress.resize( tri[0]->getState().getPreviousStress( Point( 0, 0, 0, 0 ) ).size() ) ;
-
-	if ( previousStress.size() == 0 )
-		return ;
-
-
 	for ( size_t i = 0 ; i < tri.size() ; i++ )
 	{
 //		previousDisp = tri[i]->getState().getDisplacements() ;
@@ -6048,7 +6042,6 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		{
 			id.clear() ;
 			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-			previousStress = tri[i]->getState().getStress( id[k], false ) ;
 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 //			std::cout << previousDisp[corresponding*2] << std::endl ;
 			apply2DBC( tri[i], id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;

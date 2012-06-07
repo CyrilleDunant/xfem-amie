@@ -30,9 +30,12 @@ double ConfinedMohrCoulombWithStrainLimit::grade(ElementState &s)
 
 	if(s.getParent()->getBehaviour()->fractured())
 		return 0 ;
+	
+	Point p_ = s.getParent()->getCenter() ;
+	Vector pstress(0., s.getParent()->spaceDimensions()) ;
+	Vector pstrain(0., s.getParent()->spaceDimensions()) ;
+	s.getField(PRINCIPAL_STRAIN_FIELD, PRINCIPAL_REAL_STRESS_FIELD, p_, pstrain, pstress, false) ;
 
-	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter()) ;
-	Vector pstrain = s.getPrincipalStrains(s.getParent()->getCenter()) ;
 	double maxStress = pstress.max();
 	double minStress = pstress.min();
 	

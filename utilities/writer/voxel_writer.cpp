@@ -200,7 +200,9 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 	{
 		case VWFT_PRINCIPAL_ANGLE:
 		{
-			ret[0]=tet->getState().getPrincipalAngle(tet->inLocalCoordinates(p))[0] ;
+			Vector v(0.,1) ;
+			tet->getState().getField( PRINCIPAL_ANGLE_FIELD, tet->inLocalCoordinates(p), v, true) ;
+			ret[0]=v[0] ;
 			found = true ;	
 			break ;
 		}
@@ -219,7 +221,8 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_STRAIN:
 		{
-			Vector tmp = tet->getState().getStrain(p,false) ;
+			Vector tmp(0.,6) ;
+			tet->getState().getField( STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
 			for(int i = 0 ; i < 6 ; i++)
 				ret[i] = tmp[5-i] ;
 			found = true ;
@@ -228,27 +231,31 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_STRAIN_AND_STRESS:
 		{
-			Vector tmp = tet->getState().getStrain(p,false) ;
+			Vector tmp1(0.,6) ;
+			Vector tmp2(0.,6) ;
+			tet->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp1, tmp2, true) ;
 			for(int i = 0 ; i < 6 ; i++)
-				ret[i] = tmp[5-i] ;
-			tmp = tet->getState().getStress(p,false) ;
-			for(int i = 0 ; i < 6 ; i++)
-				ret[6+i] = tmp[5-i] ;
+			{
+				ret[i] = tmp1[5-i] ;
+				ret[6+i] = tmp2[5-i] ;
+			}
 			found = true ;
 			break ;
 		}
 			
 		case VWFT_CONCENTRATION:
 		{
-			Vector tmp = tet->getState().getConcentrations(p,false) ;
-			ret[0] = tmp[0] ;
+			Vector v(0.,1) ;
+			tet->getState().getField( DISPLACEMENT_FIELD, tet->inLocalCoordinates(p), v, true) ;
+			ret[0]=v[0] ;
 			found = true ;
 			break ;
 		}
 			
 		case VWFT_STRESS:
 		{
-			Vector tmp = tet->getState().getStress(p,false) ;
+			Vector tmp(0.,6) ;
+			tet->getState().getField( REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
 			for(int i = 0 ; i < 6 ; i++)
 				ret[i] = tmp[5-i] ;
 			found = true ;
@@ -257,7 +264,8 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_GRADIENT:
 		{
-			Vector tmp = tet->getState().getGradient(p,false) ;
+			Vector tmp(0.,3) ;
+			tet->getState().getField( GRADIENT_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
 			for(int i = 0 ; i < 3 ; i++)
 				ret[i] = tmp[2-i] ;
 			found = true ;
@@ -266,19 +274,22 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_GRADIENT_AND_FLUX:
 		{
-			Vector tmp = tet->getState().getGradient(p,false) ;
+			Vector tmp1(0.,3) ;
+			Vector tmp2(0.,3) ;
+			tet->getState().getField( GRADIENT_FIELD, FLUX_FIELD, tet->inLocalCoordinates(p), tmp1, tmp2, true) ;
 			for(int i = 0 ; i < 3 ; i++)
-				ret[i] = tmp[2-i] ;
-			tmp = tet->getState().getFlux(p,false) ;
-			for(int i = 0 ; i < 3 ; i++)
-				ret[3+i] = tmp[2-i] ;
+			{
+				ret[i] = tmp1[2-i] ;
+				ret[3+i] = tmp2[2-i] ;
+			}
 			found = true ;
 			break ;
 		}
 			
 		case VWFT_FLUX:
 		{
-			Vector tmp = tet->getState().getFlux(p,false) ;
+			Vector tmp(0.,3) ;
+			tet->getState().getField( FLUX_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
 			for(int i = 0 ; i < 3 ; i++)
 				ret[i] = tmp[2-i] ;
 			found = true ;
@@ -287,7 +298,9 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 			
 		case VWFT_VON_MISES:
 		{
-			ret[0]=tet->getState().getMaximumVonMisesStress() ;			
+			Vector v(0.,1) ;
+			tet->getState().getField( VON_MISES_REAL_STRESS_FIELD, tet->inLocalCoordinates(p), v, true) ;
+			ret[0]=v[0] ;
 			found = true ;	
 			break ;
 		}

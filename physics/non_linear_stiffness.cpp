@@ -115,7 +115,8 @@ void NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const
 
 	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
-		Vector displacements = parent->getState().getDisplacements( pts) ;
+		Vector displacements(0., 2*pts.size()) ;
+		parent->getState().getField( DISPLACEMENT_FIELD, pts, displacements, true) ;
 
 		Matrix m0(3,3) ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -131,7 +132,8 @@ void NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const
 		
 		vm->ieval(Gradient(p_i) * m0 * Gradient(p_j, true), gp, Jinv,v, ret) ;
 	} else {
-		Vector displacements3d = parent->getState().getDisplacements( pts) ;
+		Vector displacements3d(0., 3*pts.size()) ;
+		parent->getState().getField( DISPLACEMENT_FIELD, pts, displacements3d, true) ;
 
 
 		Matrix m1(6,6) ;
@@ -162,7 +164,8 @@ void NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const
 
 void NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
 {
-	Vector stress = s.getStress(gp.gaussPoints) ; 
+	Vector stress(0., gp.gaussPoints.size()*(3+3*(num_dof == 3))) ;
+	s.getField( REAL_STRESS_FIELD, gp.gaussPoints, stress, true) ;
 
 	std::vector<Variable> v ;
 	v.push_back(XI);
@@ -181,7 +184,8 @@ bool NonLinearStiffness::isActive() const
 	for(size_t i = 0; i < gp.gaussPoints.size() ; i++)
 		pts[i] = gp.gaussPoints[i].first ;
 	
-	Vector displacements = parent->getState().getDisplacements( pts) ;
+	Vector displacements(0., gp.gaussPoints.size()*num_dof) ;
+	parent->getState().getField( DISPLACEMENT_FIELD, pts, displacements, true) ;
 	double E_ = 0;
 	VirtualMachine vm ;
 	

@@ -25,8 +25,10 @@ ConfinedVonMises::~ConfinedVonMises()
 
 double ConfinedVonMises::grade(ElementState &s)
 {
-	double maxStress = s.getMaximumVonMisesStress() ;
-	Vector pstress0 = s.getPrincipalStresses(s.getParent()->getCenter()) ;
+	Vector v(0.,1) ;
+	Vector pstress0(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+	s.getField( VON_MISES_REAL_STRESS_FIELD, PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(), v, pstress0, false) ;
+	double maxStress = v[0] ;
 	
 	if(pstress0.max() < 0) //we are confined
 	{

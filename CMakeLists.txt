@@ -138,8 +138,6 @@ utilities/grid.cpp
 utilities/optimizer.cpp
 utilities/granulo.cpp
 utilities/matrixops.cpp
-utilities/writer/triangle_writer.cpp
-utilities/writer/voxel_writer.cpp
 utilities/parser.cpp
 utilities/pid.cpp
 utilities/itoa.cpp
@@ -148,6 +146,8 @@ utilities/random.cpp
 utilities/samplingcriterion.cpp
 utilities/xml.cpp
 features/microstructuregenerator.cpp
+utilities/writer/triangle_writer.cpp
+utilities/writer/voxel_writer.cpp
 )
 
 message (STATUS "checking for C++ TR1 extensions")

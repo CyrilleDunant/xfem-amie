@@ -24,15 +24,16 @@ VonMises::~VonMises()
 
 double VonMises::grade(ElementState &s)
 {
-	double maxStress = s.getMaximumVonMisesStress() ;
+	Vector maxStress(0.,1) ;
+	s.getFieldAtCenter(VON_MISES_REAL_STRESS_FIELD, maxStress) ;
 
-	if(maxStress > threshold )
+	if(maxStress[0] > threshold )
 	{
-		return 1. - std::abs(threshold/maxStress) ;
+		return 1. - std::abs(threshold/maxStress[0]) ;
 	}
 	else 
 	{
-		return -1.+ std::abs(maxStress/threshold);
+		return -1.+ std::abs(maxStress[0]/threshold);
 	}
 }
 
@@ -59,15 +60,16 @@ VonMisesStrain::~VonMisesStrain()
 
 double VonMisesStrain::grade(ElementState &s)
 {
-	double maxStress = s.getVonMisesStrain(s.getParent()->getCenter()) ;
+	Vector maxStrain(0.,1) ;
+	s.getFieldAtCenter(VON_MISES_STRAIN_FIELD, maxStrain) ;
 
-	if(maxStress > threshold )
+	if(maxStrain[0] > threshold )
 	{
-		return 1. - std::abs(threshold/maxStress) ;
+		return 1. - std::abs(threshold/maxStrain[0]) ;
 	}
 	else 
 	{
-		return -1.+ std::abs(maxStress/threshold);
+		return -1.+ std::abs(maxStrain[0]/threshold);
 	}
 }
 

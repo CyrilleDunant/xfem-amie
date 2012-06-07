@@ -61,7 +61,8 @@ void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i,
 		return ;
 	
 
-	Vector apparentStress = source->getState().getNonEnrichedStress(gp.gaussPoints,Jinv) ; 
+	Vector apparentStress(0., gp.gaussPoints.size()*(3+3*(source->spaceDimensions() == 3))) ;
+	source->getState().getField( NON_ENRICHED_REAL_STRESS_FIELD, gp.gaussPoints, apparentStress, true) ;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		if(enrichedDof)
@@ -108,7 +109,8 @@ std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions(cons
 		return std::vector<BoundaryCondition * >();
 	
 
-	Vector apparentStress = source->getState().getNonEnrichedStress(gp.gaussPoints,Jinv) ; 
+	Vector apparentStress(0., gp.gaussPoints.size()*(3+3*(source->spaceDimensions() == 3))) ;
+	source->getState().getField( NON_ENRICHED_REAL_STRESS_FIELD, gp.gaussPoints, apparentStress, true) ;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		if(enrichedDof)
@@ -188,9 +190,10 @@ void TwoDCohesiveForces::step(double timestep, ElementState & s)
 	
 bool TwoDCohesiveForces::isActive() const 
 {
-	Point a = source->getBoundingPoint(0) + source->getState().getDisplacements(source->getBoundingPoint(0), false);
-	Point b = source->getBoundingPoint(source->getBoundingPoints().size()/3) + source->getState().getDisplacements(source->getBoundingPoint(source->getBoundingPoints().size()/3), false);
-	Point c = source->getBoundingPoint(2*source->getBoundingPoints().size()/3) + source->getState().getDisplacements(source->getBoundingPoint(2*source->getBoundingPoints().size()/3), false);
+	Vector u = source->getState().getDisplacements() ;
+	Point a = source->getBoundingPoint(0) + Point(u[0], u[1]) ;
+	Point b = source->getBoundingPoint(source->getBoundingPoints().size()/3) + Point(u[2], u[3]) ;
+	Point c = source->getBoundingPoint(2*source->getBoundingPoints().size()/3) + Point(u[4], u[5]) ;
 	
 	double newArea = Triangle(a,b,c).area() ;
 	

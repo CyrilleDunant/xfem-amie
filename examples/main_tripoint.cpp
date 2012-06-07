@@ -485,11 +485,13 @@ void step()
 
 			for ( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
 			{
-				Vector vm0 = triangles[k]->getState().getPrincipalStresses( triangles[k]->getBoundingPoint( l ) ) ;
-				vonMises[k*triangles[k]->getBoundingPoints().size() + l]  = sqrt((( vm0[0] - vm0[1] ) * ( vm0[0] - vm0[1] ) ) / 2. ) ;
+				Vector vm0(0., 3) ;
+				triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
+				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 
-				double agl = triangles[k]->getState().getPrincipalAngle( triangles[k]->getBoundingPoint( l ) )[0] ;
-				angle[k*triangles[k]->getBoundingPoints().size() + l]  = agl ;
+				Vector agl(0., 1) ;
+				triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
+				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
 
 				if ( triangles[k]->getBehaviour()->getFractureCriterion() )
 				{

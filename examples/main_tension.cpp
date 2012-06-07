@@ -208,31 +208,11 @@ void step(size_t nsteps)
 
 		bool go_on = featureTree->step() ;
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
-		if(go_on && v < 200)
+		if(go_on)
 		{
 			loadr->setData(loadr->getData()+1e-6) ;
 // 			loadt->setData(loadt->getData()+1e-7) ;
 // 			loadt->setData(0) ;
-		}
-		else if(go_on && v < 400)
-		{
-			loadt->setData(loadt->getData()-1e-6) ;
-		}
-		else if(go_on && v < 600)
-		{
-			loadr->setData(loadr->getData()+1e-7) ;
-		}
-		else if(go_on && v < 800)
-		{
-			loadt->setData(loadt->getData()-1e-6) ;
-		}
-		else if(go_on && v < 1000)
-		{
-			loadr->setData(loadr->getData()+1e-7) ;
-		}
-		else if(go_on && v < 1200)
-		{
-			loadt->setData(loadt->getData()-1e-6) ;
 		}
 		
 		triangles = featureTree->getActiveElements2D() ;
@@ -294,8 +274,12 @@ void step(size_t nsteps)
 			if(std::abs(triangles[k]->getCenter().y) < 0.0125)
 			{
 				Point where(triangles[k]->getCenter().x, 0) ;
+				Vector stra(0., 3) ;
 				if(triangles[k]->in(where))
-					pos_strain.push_back(std::make_pair( triangles[k]->getCenter().x , triangles[k]->getState().getStrain(where)[0] )) ;
+				{
+					triangles[k]->getState().getField(STRAIN_FIELD, where, stra, false) ;
+					pos_strain.push_back(std::make_pair( triangles[k]->getCenter().x , stra[0] )) ;
+				}
 			}
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
@@ -327,15 +311,15 @@ void step(size_t nsteps)
 					E_min = triangles[k]->getBehaviour()->getTensor(triangles[k]->getCenter())[0][0] ;
 			}
 			
-			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(0)) ;
+//			Vector se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(0)) ;
 			sigma11[k*npoints] = sigma[k*npoints*3];//se[0] ;
 			sigma22[k*npoints] = sigma[k*npoints*3+1];//se[1] ;
 			sigma12[k*npoints] = sigma[k*npoints*3+2];
-			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(1)) ;
+//			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(1)) ;
 			sigma11[k*npoints+1] = sigma[k*npoints*3+3];//se[0] ;
 			sigma22[k*npoints+1] = sigma[k*npoints*3+4];//se[1] ;
 			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(2)) ;
+//			se = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(2)) ;
 			sigma11[k*npoints+2] = sigma[k*npoints*3+6];//se[0] ;
 			sigma22[k*npoints+2] = sigma[k*npoints*3+7];//se[1] ;
 			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
@@ -352,15 +336,15 @@ void step(size_t nsteps)
 				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
 				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
 			}
-			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(0)) ;
+//			Vector pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(0)) ;
 			epsilon11[k*npoints] = epsilon[k*npoints*3];//pe[0] ;
 			epsilon22[k*npoints] = epsilon[k*npoints*3+1];//pe[1] ; 
 			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(1)) ;
+//			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(1)) ;
 			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];//pe[0] ;
 			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];//pe[1] ;
 			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(2)) ;
+//			pe =triangles[k]->getState().getPrincipalStrains(triangles[k]->getBoundingPoint(2)) ;
 			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];//pe[0] ;
 			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];//pe[1] ;
 			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
@@ -380,11 +364,13 @@ void step(size_t nsteps)
 			
 			for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
 			{
-				Vector vm0 = triangles[k]->getState().getPrincipalStresses(triangles[k]->getBoundingPoint(l)) ;
+				Vector vm0(0., 3) ;
+				triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
 				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 
-				double agl = triangles[k]->getState().getPrincipalAngle(triangles[k]->getBoundingPoint(l))[0] ;
-				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl ;
+				Vector agl(0., 1) ;
+				triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
+				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
 				
 				if(triangles[k]->getBehaviour()->getFractureCriterion())
 				{
@@ -1526,7 +1512,7 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-		samplef.setBehaviour(new AggregateBehaviour()) ;
+		samplef.setBehaviour(new PasteBehaviour()) ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;

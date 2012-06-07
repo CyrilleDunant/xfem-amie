@@ -160,8 +160,9 @@ std::vector<BoundaryCondition * > IncrementalKelvinVoight::getBoundaryConditions
 void IncrementalKelvinVoight::step(double timestep, ElementState &s)
 {
     PointArray bc = s.getParent()->getBoundingPoints() ;
-    Vector sigma = s.getStress(bc) ;
-    Vector epsilon = s.getStrain(bc) ;
+    Vector sigma(0., bc.size() * (3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL))) ;
+    Vector epsilon(0., sigma.size()) ;
+    s.getField( REAL_STRESS_FIELD, STRAIN_FIELD, bc, sigma, epsilon, false) ;
 
     Matrix compliance = stiff ;
     if(compliance.size()==36)

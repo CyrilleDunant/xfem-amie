@@ -57,9 +57,8 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 	}
 	else 
 	{
-		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
-		
-		Vector stress = s.getStress(s.getParent()->getCenter()) ;
+		Vector stress(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+		s.getFieldAtCenter( REAL_STRESS_FIELD, stress) ;
 		
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{
@@ -108,9 +107,9 @@ void AnisotropicLinearDamage::computeDelta(const ElementState & s)
 	}
 	else 
 	{
-		Vector angle = s.getPrincipalAngle(s.getParent()->getCenter()) ;
-		
-		Vector stress = s.getStress(s.getParent()->getCenter()) ;
+		Vector stress(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+		Point center = s.getParent()->getCenter() ;
+		s.getField( REAL_STRESS_FIELD, center, stress, false) ;
 		
 		if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 		{

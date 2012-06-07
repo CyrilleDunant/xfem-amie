@@ -35,8 +35,8 @@ double MohrCoulomb::grade( ElementState &s )
 	if( s.getParent()->getBehaviour()->fractured() )
 		return 0 ;
 
-
-	Vector pstress = s.getPrincipalStresses(s.getParent()->getCenter() ) ;
+	Vector pstress(0., s.getParent()->spaceDimensions()) ;
+	s.getField( PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(), pstress, false) ;
 
 	double maxStress = pstress.max() ;
 	double minStress = pstress.min() ;
@@ -387,7 +387,7 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
 	double maxStrain = pstrain.max() ;
 	double minStrain = pstrain.min() ;
 
-// 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
+// 	std::cout << maxStress << ", " << maxStrain << std::endl ;
 	metInTension = false ;
 	metInTension = std::abs( maxStrain / limitstrain ) > 1. ;
 

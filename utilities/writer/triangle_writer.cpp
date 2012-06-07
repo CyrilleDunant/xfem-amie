@@ -752,9 +752,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 			case TWFT_PRINCIPAL_ANGLE:
 			{
-				ret[2] = 180.*tri->getState().getPrincipalAngle( *tri->first )[0]/M_PI ;
-				ret[1] = 180.*tri->getState().getPrincipalAngle( *tri->second )[0]/M_PI ;
-				ret[0] = 180.*tri->getState().getPrincipalAngle( *tri->third )[0]/M_PI ;
+				Vector v(0., 1) ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false ) ;
+				ret[2] = 180.*v[0]/M_PI ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false ) ;
+				ret[1] = 180.*v[0]/M_PI ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
+				ret[0] = 180.*v[0]/M_PI ;
 
 				found = true ;
 				break ;
@@ -805,23 +809,31 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 			case TWFT_PRINCIPAL_STRESS:
 			{
-				ret[5] = tri->getState().getPrincipalStresses( *tri->first, false )[1] ;
-				ret[4] = tri->getState().getPrincipalStresses( *tri->second, false )[1] ;
-				ret[3] = tri->getState().getPrincipalStresses( *tri->third, false )[1] ;
-				ret[2] = tri->getState().getPrincipalStresses( *tri->first, false )[0] ;
-				ret[1] = tri->getState().getPrincipalStresses( *tri->second, false )[0] ;
-				ret[0] = tri->getState().getPrincipalStresses( *tri->third, false )[0] ;
+				Vector v(0., 2) ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->first, v, false) ;
+				ret[5] = v[1] ;
+				ret[2] = v[0] ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->second, v, false) ;
+				ret[4] = v[1] ;
+				ret[1] = v[0] ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->third, v, false) ;
+				ret[3] = v[1] ;
+				ret[0] = v[0] ;
 				found = true ;
 				break ;
 			}
 			case TWFT_PRINCIPAL_STRAIN:
 			{
-				ret[5] = tri->getState().getPrincipalStrains( *tri->first, false )[1] ;
-				ret[4] = tri->getState().getPrincipalStrains( *tri->second, false )[1] ;
-				ret[3] = tri->getState().getPrincipalStrains( *tri->third, false )[1] ;
-				ret[2] = tri->getState().getPrincipalStrains( *tri->first, false )[0] ;
-				ret[1] = tri->getState().getPrincipalStrains( *tri->second, false )[0] ;
-				ret[0] = tri->getState().getPrincipalStrains( *tri->third, false )[0] ;
+				Vector v(0., 2) ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->first, v, false) ;
+				ret[5] = v[1] ;
+				ret[2] = v[0] ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->second, v, false) ;
+				ret[4] = v[1] ;
+				ret[1] = v[0] ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->third, v, false) ;
+				ret[3] = v[1] ;
+				ret[0] = v[0] ;
 				found = true ;
 				break ;
 			}
@@ -899,9 +911,9 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 			case TWFT_VON_MISES:
 			{
-				ret[2] = tri->getState().getMaximumVonMisesStress() ;
-				ret[1] = tri->getState().getMaximumVonMisesStress() ;
-				ret[0] = tri->getState().getMaximumVonMisesStress() ;
+				Vector v(0., 1) ;
+				tri->getState().getField( VON_MISES_REAL_STRESS_FIELD, *tri->first, v, false ) ;
+				ret[2] = ret[1] = ret[0] = v[0] ;
 				found = true ;
 				break ;
 			}

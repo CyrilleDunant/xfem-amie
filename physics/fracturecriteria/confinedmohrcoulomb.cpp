@@ -30,10 +30,17 @@ double ConfinedMohrCoulomb::grade(ElementState &s)
 
 	if(s.getParent()->getBehaviour()->fractured())
 		return 0 ;
+	
+	Vector pstress0(0., s.getParent()->spaceDimensions()) ;
+	Vector pstress1(0., s.getParent()->spaceDimensions()) ;
+	Vector pstress2(0., s.getParent()->spaceDimensions()) ;
+	Point p0(0,0,0) ;
+	Point p1(0,1,0) ;
+	Point p2(1,0,0) ;
+	s.getField( PRINCIPAL_REAL_STRESS_FIELD, p0, pstress0, true) ;
+	s.getField( PRINCIPAL_REAL_STRESS_FIELD, p1, pstress1, true) ;
+	s.getField( PRINCIPAL_REAL_STRESS_FIELD, p2, pstress2, true) ;
 
-	Vector pstress0 = s.getPrincipalStresses(Point(0, 0, 0), true) ;
-	Vector pstress1 = s.getPrincipalStresses(Point(0, 1, 0), true) ;
-	Vector pstress2 = s.getPrincipalStresses(Point(1, 0, 0), true) ;
 	double maxStress = std::max(pstress0.max(), std::max(pstress1.max(),pstress2.max()));
 	double minStress = std::min(pstress0.min(), std::min(pstress1.min(),pstress2.min()));
 	
@@ -41,9 +48,11 @@ double ConfinedMohrCoulomb::grade(ElementState &s)
 	metInTension = false ;
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 	{
-		Vector pstress3 = s.getPrincipalStresses(Point(0, 0, 1), true) ;
+		Vector pstress3(0., s.getParent()->spaceDimensions()) ;
+		Point p3(0,0,1) ;
+		s.getField( PRINCIPAL_REAL_STRESS_FIELD, p3, pstress3, true) ;
 		maxStress = std::max(pstress3.max(),maxStress);
-        minStress = std::min(pstress3.min(), minStress);
+		minStress = std::min(pstress3.min(), minStress);
 	}
 	
 	if(maxStress < 0 && minStress < 0) //we are in a confined situation

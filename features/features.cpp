@@ -3210,8 +3210,9 @@ Vector FeatureTree::stressFromDisplacements()
 				pts[0] =  elements[i]->first ;
 				pts[1] =  elements[i]->second ;
 				pts[2] =  elements[i]->third ;
-
-				Vector str = elements[i]->getState().getStress( pts ) ;
+				
+				Vector str(0., 3*3) ;
+				elements[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false) ;
 
 				for( size_t j = 0 ; j < 9 ; j++ )
 					stress[i * 3 * 3 + j] = str[j] ;
@@ -3237,9 +3238,10 @@ Vector FeatureTree::stressFromDisplacements()
 			pts[2] =  elements3D[i]->third ;
 			pts[2] =  elements3D[i]->fourth ;
 
-			Vector str = elements3D[i]->getState().getStress( pts ) ;
+			Vector str(0., 24) ;
+			elements3D[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false) ;
 
-			for( size_t j = 0 ; j < 9 ; j++ )
+			for( size_t j = 0 ; j < 24 ; j++ )
 				stress[i * 4 * 6 + j] = str[j] ;
 
 			std::cerr << "\r computing stress... element " << i + 1 << "/" << elements3D.size() << std::flush ;
@@ -3296,12 +3298,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 
-				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
+				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
+				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
-					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
-					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.second[j] ;
+					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = stress[j] ;
+					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = strain[j] ;
 				}
 
 				if( donecomputed % 10000 == 0 )
@@ -3336,12 +3340,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 				pts[2] =  tets[i]->third ;
 				pts[3] =  tets[i]->fourth ;
 
-				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain( pts ) ;
+				Vector strain(0., 24) ;
+				Vector stress(0., 24) ;
+				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false) ;
 
 				for( size_t j = 0 ; j < 24 ; j++ )
 				{
-					stress_strain.first[i * 4 * 6 + j] = str.first[j] ;
-					stress_strain.second[i * 4 * 6 + j] = str.second[j] ;
+					stress_strain.first[i * 4 * 6 + j] = strain[j] ;
+					stress_strain.second[i * 4 * 6 + j] = stress[j] ;
 				}
 			}
 
@@ -3381,12 +3387,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 
-				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
+				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
+				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
-					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
-					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.second[j] ;
+					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = stress[j] ;
+					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = strain[j] ;
 				}
 
 				if( donecomputed % 10000 == 0 )
@@ -3421,12 +3429,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 				pts[2] =  tets[i]->third ;
 				pts[3] =  tets[i]->fourth ;
 
-				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain( pts ) ;
+				Vector strain(0., 24) ;
+				Vector stress(0., 24) ;
+				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false) ;
 
 				for( size_t j = 0 ; j < 24 ; j++ )
 				{
-					stress_strain.first[i * 4 * 6 + j] = str.first[j] ;
-					stress_strain.second[i * 4 * 6 + j] = str.second[j] ;
+					stress_strain.first[i * 4 * 6 + j] = stress[j] ;
+					stress_strain.second[i * 4 * 6 + j] = strain[j] ;
 				}
 			}
 
@@ -3465,11 +3475,13 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 
-				std::pair<Vector , Vector > str = elements[i]->getState().getStressAndStrain( elements[i]->getBoundingPoints() ) ;
+				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
+				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
-					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.first[j] ;
-					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = str.second[j] ;
+					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = stress[j] ;
+					stress_strain.second[i * elements[0]->getBoundingPoints().size() * 3 + j] = strain[j] ;
 				}
 
 				if( donecomputed % 10000 == 0 )
@@ -3501,12 +3513,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 				pts[2] =  tets[i]->third ;
 				pts[3] =  tets[i]->fourth ;
 
-				std::pair<Vector , Vector > str = tets[i]->getState().getStressAndStrain( pts ) ;
+				Vector strain(0., 24) ;
+				Vector stress(0., 24) ;
+				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, tets[i]->getBoundingPoints(), strain, stress, false) ;
 
 				for( size_t j = 0 ; j < 24 ; j++ )
 				{
-					stress_strain.first[i * 4 * 6 + j] = str.first[j] ;
-					stress_strain.second[i * 4 * 6 + j] = str.second[j] ;
+					stress_strain.first[i * 4 * 6 + j] = stress[j] ;
+					stress_strain.second[i * 4 * 6 + j] = strain[j] ;
 				}
 			}
 
@@ -3550,12 +3564,14 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTr
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 
-				std::pair<Vector, Vector> grflx = elements[i]->getState().getGradientAndFlux( elements[i]->getBoundingPoints() ) ;
+				Vector gradient(0., 2*elements[i]->getBoundingPoints().size()) ;
+				Vector flux(0., 2*elements[i]->getBoundingPoints().size()) ;
+				elements[i]->getState().getField( GRADIENT_FIELD, FLUX_FIELD, elements[i]->getBoundingPoints(), gradient, flux, false) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 2 ; j++ )
 				{
-					grad_flux.first[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.first[j] ;
-					grad_flux.second[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.second[j] ;
+					grad_flux.first[i * elements[0]->getBoundingPoints().size() * 2 + j] = gradient[j] ;
+					grad_flux.second[i * elements[0]->getBoundingPoints().size() * 2 + j] = flux[j] ;
 				}
 
 				if( i % 1000 == 0 )
@@ -3579,12 +3595,14 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTr
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
 
-			std::pair<Vector, Vector> grflx = tets[i]->getState().getGradientAndFlux( tets[i]->getBoundingPoints() ) ;
+			Vector gradient(0., 3*tets[i]->getBoundingPoints().size()) ;
+			Vector flux(0., 3*tets[i]->getBoundingPoints().size()) ;
+			tets[i]->getState().getField( GRADIENT_FIELD, FLUX_FIELD, tets[i]->getBoundingPoints(), gradient, flux, false) ;
 
 			for( size_t j = 0 ; j < npoints * 3 ; j++ )
 			{
-				grad_flux.first[i * npoints * 3 + j] = grflx.first[j] ;
-				grad_flux.second[i * npoints * 3 + j] = grflx.second[j] ;
+				grad_flux.first[i * npoints * 3 + j] = gradient[j] ;
+				grad_flux.second[i * npoints * 3 + j] = flux[j] ;
 			}
 
 			if( i % 1000 == 0 )
@@ -3636,12 +3654,14 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool 
 // 				pts[1] =  elements[i]->second ;
 // 				pts[2] =  elements[i]->third ;
 
-				std::pair<Vector, Vector> grflx = elements[i]->getState().getGradientAndFlux( elements[i]->getBoundingPoints() ) ;
+				Vector gradient(0., 2*elements[i]->getBoundingPoints().size()) ;
+				Vector flux(0., 2*elements[i]->getBoundingPoints().size()) ;
+				elements[i]->getState().getField( GRADIENT_FIELD, FLUX_FIELD, elements[i]->getBoundingPoints(), gradient, flux, false) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 2 ; j++ )
 				{
-					grad_flux.first[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.first[j] ;
-					grad_flux.second[i * elements[0]->getBoundingPoints().size() * 2 + j] = grflx.second[j] ;
+					grad_flux.first[i * elements[0]->getBoundingPoints().size() * 2 + j] = gradient[j] ;
+					grad_flux.second[i * elements[0]->getBoundingPoints().size() * 2 + j] = flux[j] ;
 				}
 
 				if( i % 1000 == 0 )
@@ -3665,12 +3685,14 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
 
-			std::pair<Vector, Vector> grflx = tets[i]->getState().getGradientAndFlux( tets[i]->getBoundingPoints() ) ;
+			Vector gradient(0., 3*tets[i]->getBoundingPoints().size()) ;
+			Vector flux(0., 3*tets[i]->getBoundingPoints().size()) ;
+			tets[i]->getState().getField( GRADIENT_FIELD, FLUX_FIELD, tets[i]->getBoundingPoints(), gradient, flux, false) ;
 
 			for( size_t j = 0 ; j < npoints * 3 ; j++ )
 			{
-				grad_flux.first[i * npoints * 3 + j] = grflx.first[j] ;
-				grad_flux.second[i * npoints * 3 + j] = grflx.second[j] ;
+				grad_flux.first[i * npoints * 3 + j] = gradient[j] ;
+				grad_flux.second[i * npoints * 3 + j] = flux[j] ;
 			}
 
 			if( i % 1000 == 0 )
@@ -3700,17 +3722,16 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<D
 		pts[2] =  tets[i]->third ;
 		pts[3] =  tets[i]->fourth ;
 
-		std::pair<Vector , Vector > str ;
-		str.first.resize( 12 ) ;
-		str.second.resize( 12 ) ;
-		str = tets[i]->getState().getGradientAndFlux( pts ) ;
-
+		Vector gradient(0., 12) ;
+		Vector flux(0., 12) ;
+		tets[i]->getState().getField( GRADIENT_FIELD, FLUX_FIELD, tets[i]->getBoundingPoints(), gradient, flux, false) ;
+		
 		for( size_t j = 0 ; j < 4 ; j++ )
 		{
 			for( size_t k = 0 ; k < 3 ; k++ )
 			{
-				stress_strain.first[i * 4 * 3 + j * 3 + k] = str.first[j * 3 + k] ;
-				stress_strain.second[i * 4 * 3 + j * 3 + k] = str.second[j * 3 + k] ;
+				stress_strain.first[i * 4 * 3 + j * 3 + k] = gradient[j * 3 + k] ;
+				stress_strain.second[i * 4 * 3 + j * 3 + k] = flux[j * 3 + k] ;
 			}
 		}
 
@@ -3737,17 +3758,16 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<D
 		pts[2] =  tets[i]->third ;
 		pts[3] =  tets[i]->fourth ;
 
-		std::pair<Vector , Vector > str ;
-		str.first.resize( 24 ) ;
-		str.second.resize( 24 ) ;
-		str = tets[i]->getState().getStressAndStrain( pts ) ;
+		Vector strain(0., 24) ;
+		Vector stress(0., 24) ;
+		tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, tets[i]->getBoundingPoints(), strain, stress, false) ;
 
 		for( size_t j = 0 ; j < 4 ; j++ )
 		{
 			for( size_t k = 0 ; k < 6 ; k++ )
 			{
-				stress_strain.first[i * 4 * 6 + j * 6 + k] = str.first[j * 6 + k] ;
-				stress_strain.second[i * 4 * 6 + j * 6 + k] = str.second[j * 6 + k] ;
+				stress_strain.first[i * 4 * 6 + j * 6 + k] = stress[j * 6 + k] ;
+				stress_strain.second[i * 4 * 6 + j * 6 + k] = strain[j * 6 + k] ;
 			}
 		}
 
@@ -3777,7 +3797,8 @@ Vector FeatureTree::strainFromDisplacements()
 				pts[1] =  elements[i]->second ;
 				pts[2] =  elements[i]->third ;
 
-				Vector str = elements[i]->getState().getStrain( pts ) ;
+				Vector str(0., 9) ;
+				elements[i]->getState().getField( STRAIN_FIELD, pts, str, false) ;
 
 				for( size_t j = 0 ; j < 9 ; j++ )
 					strain[i * 3 * 3 + j] = str[j] ;
@@ -3802,8 +3823,8 @@ Vector FeatureTree::strainFromDisplacements()
 			pts[2] =  elements3D[i]->third ;
 			pts[3] =  elements3D[i]->fourth ;
 
-
-			Vector str = elements3D[i]->getState().getStrain( pts ) ;
+			Vector str(0., 24) ;
+			elements3D[i]->getState().getField( STRAIN_FIELD, pts, str, false) ;
 
 			for( size_t j = 0 ; j < 24 ; j++ )
 				strain[i * 4 * 6 + j] = str[j] ;

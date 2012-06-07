@@ -2782,11 +2782,6 @@ std::valarray<std::valarray<Matrix> > DelaunayTetrahedron::getNonLinearElementar
 	for( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
 		gp_points[i] = gp.gaussPoints[i].first ;
 
-	Vector displacement_state = this->getState().getDisplacements( gp_points ) ;
-
-
-
-
 	for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
 	{
 		nonlinbehaviour->apply( getShapeFunction( i ), getShapeFunction( i ), gp, Jinv, mother[i][i], &vm ) ;

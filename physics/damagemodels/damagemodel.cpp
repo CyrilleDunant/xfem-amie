@@ -363,7 +363,9 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 				fiterator++ ;
 				continue ;
 			}
-			stra += ci->getState().getStrainAtCenter()*(*fiterator) ;
+			Vector stri(0., 6) ;
+			ci->getState().getFieldAtCenter( STRAIN_FIELD, stri) ;
+			stra += stri*(*fiterator) ;
 			fiterator++ ;
 		}
 		stra /= s.getParent()->getBehaviour()->getFractureCriterion()->factors.back()-fracturedFraction ;
