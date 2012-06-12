@@ -1373,7 +1373,7 @@ Circle::Circle(double r, const Point *center)
 	this->sqradius = r*r ;
 }
 
-Circle::Circle(double r, const Point center)
+Circle::Circle(double r, const Point & center)
 {
 	gType = CIRCLE ;
 	this->center = center ;

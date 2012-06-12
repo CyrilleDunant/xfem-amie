@@ -163,8 +163,17 @@ public:
 	bool metInCompression  ;
 	bool metInTension  ;
 	
-	virtual bool directionInTension(size_t direction) {return !metInCompression ;}
-	virtual bool directionInCompression(size_t direction) {return !metInTension ;}
+	virtual bool directionInTension(size_t direction) 
+	{
+		if(direction == 1)
+			return false ;
+		return true ;
+		
+	}
+	virtual bool directionInCompression(size_t direction) 
+	{
+		return false ;
+	}
 	virtual bool directionMet(size_t direction) 
 	{
 		if(direction == 0)

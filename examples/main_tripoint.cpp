@@ -1906,7 +1906,7 @@ int main( int argc, char *argv[] )
 	triangles = F.getElements2D() ;
 	step() ;
 
-	glutInit( &argc, argv ) ;
+	glutInit( &argc,argv ) ;
 	glutInitDisplayMode( GLUT_RGBA ) ;
 	glutInitWindowSize( 600, 600 ) ;
 	glutReshapeFunc( reshape ) ;

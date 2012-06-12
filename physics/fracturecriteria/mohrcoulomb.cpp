@@ -303,6 +303,8 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 	double tfactor = exp(-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness)) ;
 // 	if(maxStrain > limittstrain)
 // 		return POINT_TOLERANCE_2D ;
+// 	if(tfactor < 1e-1)
+// 		tfactor = 1e-1 ;
 	if(maxStrain <= upVal/stiffness)
 		tfactor = 1 ;
 	
@@ -325,17 +327,17 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 	else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
 		scores.push_back(-1. + std::abs( maxStrain / upStrain ));
 	else if(maxStrain > 0)
-		return POINT_TOLERANCE_2D ;
+		return -POINT_TOLERANCE_2D ;
 
-	if( minStrain <= downStrain && minStrain < 0 )
-	{
-		metInCompression = true ;
-		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
-	}
-	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
-		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
-	else if(minStrain < 0)
-		return POINT_TOLERANCE_2D ;
+// 	if( minStrain <= downStrain && minStrain < 0 )
+// 	{
+// 		metInCompression = true ;
+// 		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
+// 	}
+// 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
+// 		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
+// 	else if(minStrain < 0)
+// 		return POINT_TOLERANCE_2D ;
 	
 	std::sort(scores.begin(), scores.end()) ;
 // 	if (scores.back() > .99)

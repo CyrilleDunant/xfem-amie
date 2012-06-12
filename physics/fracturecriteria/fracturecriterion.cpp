@@ -217,12 +217,12 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		str /= sumStressFactors ;
 		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
-// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-// 		{
-			currentAngle = s.getCachedAngle() ;
-			if(currentAngle < 0)
-				currentAngle += M_PI ;
-// 		}
+
+		s.getParent()->getState().getFieldAtCenter(STRAIN_FIELD, tmpstra) ;
+		currentAngle = 0.5*atan2( tmpstra[2], tmpstra[0] - tmpstra[1] ) ;
+		if(currentAngle < 0)
+			currentAngle += M_PI ;
+
 
 		if(m == REAL_STRESS)
 		{
@@ -230,41 +230,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		}
 		return std::make_pair(estr, stra) ;
 	}
-// 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-// 	{
 
-// 		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s, m) ;
-// 		
-// 		Vector lprincipal( 2 ) ;
-// 
-// 		lprincipal[0] = 0.5 * ( stressAndStrain.first[0] + stressAndStrain.first[1] ) +
-// 										 sqrt(
-// 												0.25 *( stressAndStrain.first[0] - stressAndStrain.first[1] ) * ( stressAndStrain.first[0] - stressAndStrain.first[1] ) +
-// 												( stressAndStrain.first[2] * stressAndStrain.first[2] )
-// 										) ;
-// 		
-// 		lprincipal[1] = 0.5 * ( stressAndStrain.first[0] + stressAndStrain.first[1] ) -
-// 										 sqrt(
-// 												0.25 *( stressAndStrain.first[0] - stressAndStrain.first[1] ) * ( stressAndStrain.first[0] - stressAndStrain.first[1] ) +
-// 												( stressAndStrain.first[2] * stressAndStrain.first[2] )
-// 										) ;
-// 
-// 		Vector lprincipals( 2 ) ;
-// 
-// 		lprincipals[0] = 0.5 * ( stressAndStrain.second[0] + stressAndStrain.second[1] ) +
-// 										 sqrt(
-// 												0.25 *( stressAndStrain.second[0] - stressAndStrain.second[1] ) * ( stressAndStrain.second[0] - stressAndStrain.second[1] ) +
-// 												( stressAndStrain.second[2] * stressAndStrain.second[2] )
-// 										) ;
-// 		
-// 		lprincipals[1] = 0.5 * ( stressAndStrain.second[0] + stressAndStrain.second[1] ) -
-// 										 sqrt(
-// 												0.25 *( stressAndStrain.second[0] - stressAndStrain.second[1] ) * ( stressAndStrain.second[0] - stressAndStrain.second[1] ) +
-// 												( stressAndStrain.second[2] * stressAndStrain.second[2] )
-// 										) ;
-// 		
-// 		return std::make_pair(lprincipal, lprincipals) ;
-// 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m) ;
@@ -1444,8 +1410,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( physicalCharacteristicRadius*2.5,testedTri->getCenter()) ;
+// 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius()*1.5)*3.,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

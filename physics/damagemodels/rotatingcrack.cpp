@@ -81,8 +81,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	Vector range( 1., 4 ) ;
 // 	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << std::endl ;
 	
-	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+//	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+//		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 	
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
 		s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
@@ -91,7 +91,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 			
 // 		if(!fractured())
-
+		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{
 			firstTension = true ;
@@ -206,6 +206,18 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	
 	E_0 *= ( 1. - fs ) ;
 	E_1 *= ( 1. - ss ) ;
+	
+	
+// 	for(double i = 0 ; i < M_PI ; i += .2)
+// 	{
+// 		OrthothropicStiffness( E_0, 
+// 													 E_1, 
+// 													 factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+// 													 nu * ( 1. -  getState().max()), 
+// 													 i ).getTensor( Point() ).print() ;
+// 	}
+// 																
+// 	exit(0) ;
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 

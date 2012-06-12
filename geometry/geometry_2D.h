@@ -270,7 +270,7 @@ public:
 	 * @param r radius of the circle to construct.
 	 * @param center Center of the circle.
 	 */
-	Circle(double r, const Point center) ; 
+	Circle(double r, const Point & center) ; 
 	virtual ~Circle() { } ;
 
 	virtual XMLTree * toXML() ;

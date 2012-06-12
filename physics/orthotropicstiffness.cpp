@@ -32,6 +32,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 	v.push_back(XI);
 	v.push_back(ETA);
 	change = false ;
+// 	std::cout << "created with angle " << this->angle << std::endl ;
 } ;
 
 OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) : LinearForm(Material::orthothropicCauchyGreen(E_1, E_2, E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)),  (nu_12+nu_21)*.5), true, false, 2) , E_1(E_1),
@@ -88,9 +89,11 @@ void OrthothropicStiffness::getTensor(Matrix & m) const
 	if(v.size() == 2)
 	{
 		Matrix transform(3,3) ;
-		transform[0][0] =  cos(angle)*cos(angle) ;  transform[0][1] = sin(angle)*sin(angle) ; transform[0][2] =  2.*sin(angle)*cos(angle) ;
-		transform[1][0] =  sin(angle)*sin(angle) ;  transform[1][1] = cos(angle)*cos(angle) ; transform[1][2] = -2.*sin(angle)*cos(angle) ;
-		transform[2][0] = -sin(angle)*cos(angle) ;  transform[2][1] = sin(angle)*cos(angle) ; transform[2][2] =     cos(angle)*cos(angle) - sin(angle)*sin(angle) ; 
+		double c = cos(angle) ;
+		double s = sin(angle) ;
+		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
 		m = transform*(param*transform.transpose()) ;
 	}
 	else
@@ -120,11 +123,23 @@ Matrix OrthothropicStiffness::getTensor(const Point & p)
 {
 	if(v.size() == 2)
 	{
+// 		std::cout << angle << std::endl ;
+// 		angle = .4 ;
+		double c = cos(angle) ;
+		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  cos(angle)*cos(angle) ;  transform[0][1] = sin(angle)*sin(angle) ; transform[0][2] =  2.*sin(angle)*cos(angle) ;
-		transform[1][0] =  sin(angle)*sin(angle) ;  transform[1][1] = cos(angle)*cos(angle) ; transform[1][2] = -2.*sin(angle)*cos(angle) ;
-		transform[2][0] = -sin(angle)*cos(angle) ;  transform[2][1] = sin(angle)*cos(angle) ; transform[2][2] =     cos(angle)*cos(angle) - sin(angle)*sin(angle) ; 
-		return transform*(param*transform.transpose()) ;
+		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// 		param.print() ;
+// 		std::cout << std::endl ;
+// 		Matrix test = transform.transpose()*param ;
+// 		test = test*transform ;
+// 		test.print() ;
+// 		std::cout << std::endl ;
+// 		((Matrix)((transform.transpose()*param)*transform)).print() ;
+// 		exit(0) ;
+		return (transform.transpose()*param)*transform ;
 	}
 	else
 	{
