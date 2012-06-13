@@ -68,6 +68,38 @@ void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) con
 
 bool Voxel::coOccur(const Geometry * inc) const
 {
+	if(inc->getGeometryType() == TETRAHEDRON)
+	{
+		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(inc) ;
+		size_t n = t->getBoundingPoints().size() ;
+/*		t->getBoundingPoint(0).print() ;
+		t->getBoundingPoint(1).print() ;
+		t->getBoundingPoint(2).print() ;
+		t->getBoundingPoint(3).print() ;
+		tlf.print() ;
+		trf.print() ;
+		blf.print() ;
+		brf.print() ;
+		tlb.print() ;
+		trb.print() ;
+		blb.print() ;
+		brb.print() ;
+		std::cout << std::endl ;*/
+		return /*inc->in(tlf) 
+		|| inc->in(trf) 
+		|| inc->in(brf) 
+		|| inc->in(blf) 
+		|| inc->in(tlb) 
+		|| inc->in(trb) 
+		|| inc->in(brb) 
+		|| inc->in(blb) 
+		||*/ in(inc->getCenter())
+		|| in(t->getBoundingPoint(0)) 
+		|| in(t->getBoundingPoint(n/4)) 
+		|| in(t->getBoundingPoint(n*2/4)) 
+		|| in(t->getBoundingPoint(n*3/4)) ;
+	}
+
 #warning this requires Hexahedron-tetraheron implementation
 	return inc->in(tlf) 
 		|| inc->in(trf) 
@@ -77,7 +109,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| inc->in(trb) 
 		|| inc->in(brb) 
 		|| inc->in(blb) 
-		|| Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc) || in(inc->getCenter());
+		|| /*Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc) ||*/ in(inc->getCenter()) ;
 }
 
 void Voxel::remove(Geometry * inc)
@@ -211,7 +243,7 @@ void Voxel::forceAdd(Geometry * inc)
 	
 	if(!pixels.empty())
 	{
-		#pragma omp parallel for
+//		#pragma omp parallel for
 		for(int i = 0 ; i < 8 ; i++)
 		{
 			if(pixels[i]->coOccur(inc))
@@ -767,7 +799,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 	double endZ =  startZ+2.*geo->getRadius();
 	int endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
 
-	if(geo->getGeometryType() == TETRAHEDRON)
+/*	if(geo->getGeometryType() == TETRAHEDRON)
 	{
 		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(geo) ;
 		startX = .5*x + t->getCircumCenter().x-t->getRadius()*1.1 ;
@@ -787,7 +819,7 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 		
 		endZ =  startZ+2.2*t->getRadius();
 		endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
-	}
+	}*/
 	
 	bool foundPixel = false ;
 	for(int i = startI ; i < endI ; i++)
