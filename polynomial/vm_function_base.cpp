@@ -1401,14 +1401,29 @@ GtM Gradient::operator*( const Matrix & f) const
 	return GtM(*this, f) ;
 }
 
+GtML Gradient::operator*( const std::vector<Matrix> & f) const
+{
+	return GtML(*this, f) ;
+}
+
 GtV Gradient::operator*( const Vector & f) const
 {
 	return GtV(*this, f) ;
 }
 
+GtVL Gradient::operator*( const std::vector<Vector> & f) const
+{
+	return GtVL(*this, f) ;
+}
+
 GtMtG GtM::operator*(const Gradient & f) const
 {
 	return GtMtG(this->first, this->second, f) ;
+}
+
+GtMLtG GtML::operator*(const Gradient & f) const
+{
+	return GtMLtG(this->first, this->second, f) ;
 }
 
 GtMtGD GtM::operator*(const GradientDot & f) const

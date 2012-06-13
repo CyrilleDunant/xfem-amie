@@ -7,15 +7,22 @@
 
 #include "integrable_entity.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/generalized_fd_maxwell.h"
 #include "../physics/kelvinvoight.h"
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
 using namespace Mu ;
 
-IntegrableEntity::IntegrableEntity() : state( this ), boundaryConditionCache( NULL ), cachedGps( NULL )
-{
 
+ElementState * Form::createElementState( IntegrableEntity * e) const 
+{
+	return new ElementState(e) ;
+}
+
+IntegrableEntity::IntegrableEntity() : boundaryConditionCache( NULL ), cachedGps( NULL )
+{
+	state = new ElementState( this ) ;
 }
 
 
@@ -30,15 +37,15 @@ void Form::scale(double d)
 		getDamageModel()->scale(d) ;
 }
 
-Vector Form::getImposedStress(const Point & p) const
+Vector Form::getImposedStress(const Point & p, IntegrableEntity * e) const
 {
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStress(p) ;
 	
-	return Vector(double(0), getTensor(p).numCols()) ;
+	return Vector(double(0), getTensor(p, e).numCols()) ;
 }
 
-Vector Form::getImposedStrain(const Point & p) const
+Vector Form::getImposedStrain(const Point & p, IntegrableEntity * e) const
 {
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStrain(p) ;
@@ -129,14 +136,20 @@ IntegrableEntity::~IntegrableEntity()
 	delete cachedGps ;
 }
 
+void IntegrableEntity::setState( ElementState * s)
+{
+	delete state ;
+	state = s ;
+}
+
 const ElementState &IntegrableEntity::getState() const
 {
-	return state ;
+	return *state ;
 }
 
 ElementState &IntegrableEntity::getState()
 {
-	return state ;
+	return *state ;
 }
 
 void ElementState::stepBack()
@@ -400,7 +413,7 @@ Vector toPrincipal(Vector & stressOrStrain)
 	return ret ;
 }
 
-void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool local)  const 
+void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
 {
 	VirtualMachine vm ;
 	int n = 0 ;
@@ -657,7 +670,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 		}
 		case REAL_STRESS_FIELD:
 			this->getField(STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->getTensor(p_) * ret) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case PRINCIPAL_REAL_STRESS_FIELD:
 		{
@@ -668,7 +681,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 		}
 		case NON_ENRICHED_REAL_STRESS_FIELD:
 			this->getField(NON_ENRICHED_STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->getTensor(p_) * ret) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case VON_MISES_REAL_STRESS_FIELD:
 			if( parent->getOrder() == LINEAR )
@@ -740,7 +753,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case EFFECTIVE_STRESS_FIELD:
 			this->getField(STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
 		{
@@ -751,7 +764,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 		}
 		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
 			this->getField(NON_ENRICHED_STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case VON_MISES_EFFECTIVE_STRESS_FIELD:
 			if( parent->getOrder() == LINEAR )
@@ -902,17 +915,17 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case FLUX_FIELD:
 			this->getField(GRADIENT_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->getTensor(p_) * ret) ;
+			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) ;
 			return ;
 	}
 }
 
-void ElementState::getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local)  const 
+void ElementState::getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int )  const 
 {
 	this->getField(f, p.first, ret, local) ;
 }
 
-void ElementState::getField( FieldType f, const PointArray & p, Vector & ret, bool local)  const 
+void ElementState::getField( FieldType f, const PointArray & p, Vector & ret, bool local, int )  const 
 {
 	Vector buffer(0., ret.size()/p.size()) ;
 	for(size_t i = 0 ; i < p.size() ; i++)
@@ -923,7 +936,7 @@ void ElementState::getField( FieldType f, const PointArray & p, Vector & ret, bo
 	}
 }
 
-void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local)  const 
+void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int )  const 
 {
 	Vector buffer(0., ret.size()/p.size()) ;
 	for(size_t i = 0 ; i < p.size() ; i++)
@@ -934,7 +947,7 @@ void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, d
 	} 
 }
 
-void ElementState::getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local)  const 
+void ElementState::getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int )  const 
 {
 	Vector buffer(0., ret.size()/p.size()) ;
 	for(size_t i = 0 ; i < p.size() ; i++)
@@ -945,7 +958,7 @@ void ElementState::getField( FieldType f, const std::valarray<Point> & p, Vector
 	} 
 }
 
-void ElementState::getFieldAtCenter( FieldType f, Vector & ret) 
+void ElementState::getFieldAtCenter( FieldType f, Vector & ret, int ) 
 {
 	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
 	switch(f)
@@ -1014,7 +1027,7 @@ void ElementState::getFieldAtCenter( FieldType f, Vector & ret)
 	this->getField(f, p_, ret, true) ;
 }
 
-void ElementState::getFieldAtNodes( FieldType f, Vector & ret) 
+void ElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
 {
 	switch(f)
 	{
@@ -1125,8 +1138,15 @@ void ElementState::getFieldAtNodes( FieldType f, Vector & ret)
 }
 
 
+void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, int i) 
+{
+	Point p_ = parent->getGaussPoints().gaussPoints[p].first ;
+	this->getField(f, p_, ret, i) ;
+}
 
-void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local)  const 
+
+
+void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	Point p_ = p ;
 	if(!local)
@@ -1135,9 +1155,9 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
 	{
 		this->getField(f1, p, ret1, local) ;
 		if(isRealStressField(f2))
-			ret2 = (Vector) (parent->getBehaviour()->getTensor(p_) * ret1) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret2 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret1) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		else
-			ret2 = (Vector) (parent->getBehaviour()->param * ret1) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret2 = (Vector) (parent->getBehaviour()->param * ret1) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		return ;
 	}
 	if(f1 == PRINCIPAL_STRAIN_FIELD && (f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f2 == PRINCIPAL_REAL_STRESS_FIELD))
@@ -1156,9 +1176,9 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
 	{
 		this->getField(f2, p, ret2, local) ;
 		if(isRealStressField(f1))
-			ret1 = (Vector) (parent->getBehaviour()->getTensor(p_) * ret2) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret1 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret2) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		else
-			ret1 = (Vector) (parent->getBehaviour()->param * ret2) - getParent()->getBehaviour()->getImposedStress(p_) ;
+			ret1 = (Vector) (parent->getBehaviour()->param * ret2) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		return ;
 	}
 	if(f2 == PRINCIPAL_STRAIN_FIELD && (f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD))
@@ -1176,22 +1196,22 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
 	if(f1 == GRADIENT_FIELD && f2 == FLUX_FIELD)
 	{
 		this->getField(f1, p, ret1, local) ;
-		ret2 = (Vector) (parent->getBehaviour()->getTensor(p_) * ret1) ;
+		ret2 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret1) ;
 	}
 	if(f1 == FLUX_FIELD && f2 == GRADIENT_FIELD)
 	{
 		this->getField(f2, p, ret2, local) ;
-		ret1 = (Vector) (parent->getBehaviour()->getTensor(p_) * ret2) ;
+		ret1 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret2) ;
 	}
   
 }
 
-void ElementState::getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local)  const 
+void ElementState::getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	this->getField(f1, f2, p.first, ret1, ret2, local) ;
 }
 
-void ElementState::getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local)  const 
+void ElementState::getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	Vector b1(0., ret1.size()/p.size()) ;
 	Vector b2(0., ret2.size()/p.size()) ;
@@ -1205,7 +1225,7 @@ void ElementState::getField( FieldType f1, FieldType f2, const PointArray & p, V
 	}
 }
 
-void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local)  const 
+void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	Vector b1(0., ret1.size()/p.size()) ;
 	Vector b2(0., ret2.size()/p.size()) ;
@@ -1219,7 +1239,7 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std
 	}  
 }
 
-void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local)  const 
+void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	Vector b1(0., ret1.size()/p.size()) ;
 	Vector b2(0., ret2.size()/p.size()) ;
@@ -1233,7 +1253,7 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<Poi
 	}  
 }
 
-void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) 
+void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
 {
 	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
 	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
@@ -1255,9 +1275,9 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 				stressAtCenter.resize( 6 ) ;
 			
 			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 
 		}
 		ret1 = strainAtCenter ;
@@ -1284,9 +1304,9 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 				stressAtCenter.resize( 6 ) ;
 			
 			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 
 		}
 		ret1 = stressAtCenter ;
@@ -1304,9 +1324,9 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 			principalStressAtCenter.resize(parent->spaceDimensions()) ;
 			this->getField(STRAIN_FIELD, p_, strain, true) ;
 			if(isRealStressField(f2))
-				stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			principalStrainAtCenter = toPrincipal(strain) ;
 			principalStressAtCenter = toPrincipal(stress) ;
 		}
@@ -1330,9 +1350,9 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 			principalStressAtCenter.resize(parent->spaceDimensions()) ;
 			this->getField(STRAIN_FIELD, p_, strain, true) ;
 			if(isRealStressField(f1))
-				stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			principalStrainAtCenter = toPrincipal(strain) ;
 			principalStressAtCenter = toPrincipal(stress) ;
 		}
@@ -1350,7 +1370,7 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
   
 }
 
-void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) 
+void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
 {
 	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
 	{
@@ -1373,7 +1393,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1385,7 +1405,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1418,7 +1438,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1430,7 +1450,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1457,9 +1477,9 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 				this->getField(STRAIN_FIELD, p_, strain, true) ;
 				if(isRealStressField(f2))
-					stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				pstrain = toPrincipal(strain) ;
 				pstress = toPrincipal(stress) ;
 				for(size_t j = 0 ; j < pstrain.size() ; j++)
@@ -1494,9 +1514,9 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 				this->getField(STRAIN_FIELD, p_, strain, true) ;
 				if(isRealStressField(f2))
-					stress = (Vector) (parent->getBehaviour()->getTensor(p_) * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_) ;
+					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				pstrain = toPrincipal(strain) ;
 				pstress = toPrincipal(stress) ;
 				for(size_t j = 0 ; j < pstrain.size() ; j++)
@@ -1519,6 +1539,11 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 	this->getField(f1, f2, parent->getBoundingPoints(), ret1, ret2, false) ;  
 }
 
+void ElementState::getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t p, Vector & ret1, Vector & ret2, int i, int j) 
+{
+	Point p_ = parent->getGaussPoints().gaussPoints[p].first ;
+	this->getField(f1, f2, p_, ret1, ret2, i, j) ;
+}
 
 
 
@@ -1546,7 +1571,7 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv , StressCalcu
 		temp[2][0] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5 ;
 		temp[1][0] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] ;
 
-		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter() ) ) ;
+		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter(), parent ) ) ;
 
 		if (m == EFFECTIVE_STRESS)
 			temp *=  parent->getBehaviour()->param;
@@ -1610,7 +1635,7 @@ FunctionMatrix ElementState::getStressFunction( const Matrix &Jinv , StressCalcu
 		               ( x_eta )  * Jinv[1][1] +
 		               ( x_zeta ) * Jinv[1][2] ) * .5;
 
-		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter() ) ) ;
+		Matrix cg( parent->getBehaviour()->getTensor( getParent()->getCenter(), parent ) ) ;
 
 		if (m == EFFECTIVE_STRESS)
 			temp *=parent->getBehaviour()->param ;
@@ -2071,3 +2096,406 @@ double ElementState::elasticEnergy()
 
 }
 
+ElementStateWithInternalVariables::ElementStateWithInternalVariables(IntegrableEntity * e, int n_, int p_) : ElementState(e), p(p_), n(n_)
+{
+	
+}
+
+ElementStateWithInternalVariables::ElementStateWithInternalVariables(const ElementStateWithInternalVariables &s)  : ElementState(dynamic_cast<const ElementState &>(s))
+{
+	n = s.numberOfInternalVariables() ;
+	p = s.sizeOfInternalVariable() ;
+  
+	internalVariablesAtGaussPoints.resize( parent->getGaussPoints().gaussPoints.size() ) ;
+	
+	for(size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++)
+	{
+		internalVariablesAtGaussPoints[g].resize( n ) ;
+		for(size_t k = 0 ; k < n ; k++)
+			internalVariablesAtGaussPoints[g][k].resize(p) ;
+	}
+  
+}
+						
+ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator =(const ElementStateWithInternalVariables & s) 
+{
+	stressAtCenter.resize(0);
+	strainAtCenter.resize(0);
+	effectiveStressAtCenter.resize(0);
+	pstressAtCenter.resize(0);
+	pstrainAtCenter.resize(0);
+	effectivePStressAtCenter.resize(0);
+	strainAtNodes.resize(0);
+	stressAtNodes.resize(0);
+	displacements.resize( s.getDisplacements().size() ) ;
+	displacements = s.getDisplacements() ;
+	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
+	enrichedDisplacements  = s.getEnrichedDisplacements();
+
+	previousDisplacements.resize( s.getPreviousDisplacements().size() ) ;
+	previousDisplacements = s.getPreviousDisplacements() ;
+	previousEnrichedDisplacements.resize( s.getPreviousEnrichedDisplacements().size() ) ;
+	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
+
+	previousPreviousDisplacements.resize( s.getPreviousPreviousDisplacements().size() ) ;
+	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
+	previousPreviousEnrichedDisplacements.resize( s.getPreviousPreviousEnrichedDisplacements().size() ) ;
+	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+	buffer.resize( s.getBuffer().size() ) ;
+	buffer = s.getBuffer() ;
+
+	timePos = s.getTime();
+	previousTimePos = s.getTime() - s.getDeltaTime();
+	previousPreviousTimePos = s.getTime() - 2 * s.getDeltaTime();
+
+	parent = s.getParent();
+
+	n = s.numberOfInternalVariables() ;
+	p = s.sizeOfInternalVariable() ;
+	internalVariablesAtGaussPoints.resize( parent->getGaussPoints().gaussPoints.size() ) ;
+	
+	for(size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++)
+	{
+		internalVariablesAtGaussPoints[g].resize( n ) ;
+		for(size_t k = 0 ; k < n ; k++)
+			internalVariablesAtGaussPoints[g][k].resize(p) ;
+	}
+	
+	return *this ;  
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f, const Point & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p.first, ret, local, i) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f, const PointArray & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void ElementStateWithInternalVariables::getFieldAtCenter( FieldType f, Vector & ret, int i) 
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtCenter(f, ret, i) ; 
+}
+
+void ElementStateWithInternalVariables::getFieldAtNodes( FieldType f, Vector & ret, int i) 
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtNodes(f, ret, i) ; 
+}
+
+void ElementStateWithInternalVariables::getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i) 
+{
+	if(f == INTERNAL_VARIABLE_FIELD)
+	{
+		ret = internalVariablesAtGaussPoints[g][i] ;
+		return ;
+	}
+	else
+	{
+		Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
+		this->getField(f, p_, ret, false, i) ;
+	}
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::pair<Point, double> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p.first, ret1, ret2, local, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const PointArray & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::valarray<Point> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getFieldAtCenter(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtCenter(f1, f2, ret1, ret2, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getFieldAtNodes(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtNodes(f1, f2, ret1, ret2, i, j) ;
+}
+
+void ElementStateWithInternalVariables::getFieldAtGaussPoint(FieldType f1, FieldType f2, size_t g,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	bool done1 = false ;
+	bool done2 = false ;
+	if(f1 == INTERNAL_VARIABLE_FIELD)
+	{
+		ret1 = internalVariablesAtGaussPoints[g][i] ;
+		done1 = true ;
+	}
+	if(f2 == INTERNAL_VARIABLE_FIELD)
+	{
+		ret2 = internalVariablesAtGaussPoints[g][j] ;
+		done2 = true ;
+	}
+	if(done1 && done2)
+		return ;
+	Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
+	if(done1)
+	{
+		ElementState::getField(f2, p_, ret2, true, j) ;
+		return ;
+	}
+	if(done2)
+	{
+		ElementState::getField(f1, p_, ret1, true, i) ;
+		return ;
+	}
+	ElementState::getField(f1, f2, p_, ret1, ret2, true, i, j) ;
+}
+
+void ElementStateWithInternalVariables::initialize( bool initializeFractureCache )
+{
+	ElementState::initialize(initializeFractureCache) ;
+	
+	size_t ngp = parent->getGaussPoints().gaussPoints.size() ;
+	internalVariablesAtGaussPoints.resize(ngp) ;
+
+	for(size_t g = 0 ; g < ngp ; g++)
+	{
+		internalVariablesAtGaussPoints[g].resize( n ) ;
+		for(size_t k = 0 ; k < n ; k++)
+			internalVariablesAtGaussPoints[g][k].resize(p) ;
+	}
+	
+}
+
+void ElementStateWithInternalVariables::setInternalVariableAtGaussPoint(Vector & v, size_t g, int i) 
+{
+	internalVariablesAtGaussPoints[g][i] = v ;
+}
+
+
+GeneralizedMaxwellElementState::GeneralizedMaxwellElementState(IntegrableEntity * e, int b) : ElementStateWithInternalVariables(e, 2*b+1, 3+3*(e->spaceDimensions() == SPACE_THREE_DIMENSIONAL))
+{
+	
+}
+
+GeneralizedMaxwellElementState::GeneralizedMaxwellElementState(const GeneralizedMaxwellElementState &s)  : ElementStateWithInternalVariables(dynamic_cast<const ElementStateWithInternalVariables &>(s))
+{
+
+  
+}
+						
+GeneralizedMaxwellElementState & GeneralizedMaxwellElementState::operator =(const GeneralizedMaxwellElementState & s) 
+{
+	stressAtCenter.resize(0);
+	strainAtCenter.resize(0);
+	effectiveStressAtCenter.resize(0);
+	pstressAtCenter.resize(0);
+	pstrainAtCenter.resize(0);
+	effectivePStressAtCenter.resize(0);
+	strainAtNodes.resize(0);
+	stressAtNodes.resize(0);
+	displacements.resize( s.getDisplacements().size() ) ;
+	displacements = s.getDisplacements() ;
+	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
+	enrichedDisplacements  = s.getEnrichedDisplacements();
+
+	previousDisplacements.resize( s.getPreviousDisplacements().size() ) ;
+	previousDisplacements = s.getPreviousDisplacements() ;
+	previousEnrichedDisplacements.resize( s.getPreviousEnrichedDisplacements().size() ) ;
+	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
+
+	previousPreviousDisplacements.resize( s.getPreviousPreviousDisplacements().size() ) ;
+	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
+	previousPreviousEnrichedDisplacements.resize( s.getPreviousPreviousEnrichedDisplacements().size() ) ;
+	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+	buffer.resize( s.getBuffer().size() ) ;
+	buffer = s.getBuffer() ;
+
+	timePos = s.getTime();
+	previousTimePos = s.getTime() - s.getDeltaTime();
+	previousPreviousTimePos = s.getTime() - 2 * s.getDeltaTime();
+
+	parent = s.getParent();
+
+	n = s.numberOfInternalVariables() ;
+	p = s.sizeOfInternalVariable() ;
+	internalVariablesAtGaussPoints.resize( parent->getGaussPoints().gaussPoints.size() ) ;
+	
+	for(size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++)
+	{
+		internalVariablesAtGaussPoints[g].resize( n ) ;
+		for(size_t k = 0 ; k < n ; k++)
+			internalVariablesAtGaussPoints[g][k].resize(p) ;
+	}
+	
+	return *this ;  
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f, const Point & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p.first, ret, local, i) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f, const PointArray & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i) const
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f, p, ret, local, i) ;
+}
+
+void GeneralizedMaxwellElementState::getFieldAtCenter( FieldType f, Vector & ret, int i) 
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtCenter(f, ret, i) ; 
+}
+
+void GeneralizedMaxwellElementState::getFieldAtNodes( FieldType f, Vector & ret, int i) 
+{
+	if(f != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtNodes(f, ret, i) ; 
+}
+
+void GeneralizedMaxwellElementState::getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i) 
+{
+	if(f == INTERNAL_VARIABLE_FIELD)
+	{
+		ret = internalVariablesAtGaussPoints[g][i] ;
+		return ;
+	}
+	else
+	{
+		Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
+		this->getField(f, p_, ret, false, i) ;
+	}
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f1, FieldType f2, const std::pair<Point, double> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p.first, ret1, ret2, local, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f1, FieldType f2, const PointArray & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getField(FieldType f1, FieldType f2, const std::valarray<Point> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getFieldAtCenter(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtCenter(f1, f2, ret1, ret2, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getFieldAtNodes(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+		ElementState::getFieldAtNodes(f1, f2, ret1, ret2, i, j) ;
+}
+
+void GeneralizedMaxwellElementState::getFieldAtGaussPoint(FieldType f1, FieldType f2, size_t g,  Vector & ret1, Vector & ret2, int i, int j) 
+{
+	bool done1 = false ;
+	bool done2 = false ;
+	if(f1 == INTERNAL_VARIABLE_FIELD)
+	{
+		ret1 = internalVariablesAtGaussPoints[g][i] ;
+		done1 = true ;
+	}
+	if(f2 == INTERNAL_VARIABLE_FIELD)
+	{
+		ret2 = internalVariablesAtGaussPoints[g][j] ;
+		done2 = true ;
+	}
+	if(done1 && done2)
+		return ;
+	Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
+	if(done1)
+	{
+		ElementState::getField(f2, p_, ret2, true, j) ;
+		return ;
+	}
+	if(done2)
+	{
+		ElementState::getField(f1, p_, ret1, true, i) ;
+		return ;
+	}
+	ElementState::getField(f1, f2, p_, ret1, ret2, true, i, j) ;
+}

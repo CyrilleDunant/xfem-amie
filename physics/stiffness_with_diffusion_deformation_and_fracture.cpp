@@ -184,13 +184,13 @@ Form * StiffnessWithDiffusionDeformationAndFracture::getCopy() const
 }
 
 
-Matrix StiffnessWithDiffusionDeformationAndFracture::getTensor(const Point & p) const
+Matrix StiffnessWithDiffusionDeformationAndFracture::getTensor(const Point & p, IntegrableEntity * e) const
 {
 	return dfunc->apply(param) ;
 }
 
 
-Vector StiffnessWithDiffusionDeformationAndFracture::getImposedStress(const Point & p) const
+Vector StiffnessWithDiffusionDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e) const
 {
 	return ((param  * (1-ageing*(1- accumulatedPhi)*.5)* accumulatedPhi) * imposed) ;
 }

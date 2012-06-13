@@ -671,8 +671,11 @@ public:
 
 struct DtF ;
 struct GtM ;
+struct GtML ;
 struct GtV ;
+struct GtVL ;
 struct GtMtG ;
+struct GtMLtG ;
 struct VGtM ;
 struct VGtV ;
 struct DtD ;
@@ -746,12 +749,27 @@ struct Gradient
 	 */
 	GtM operator *(const Matrix & f) const ;
 
+	/** \brief Create a structure for the lazy evaluation of a Gradient * Matrix
+	 * 
+	 * @param f Matrix
+	 * @return GtM
+	 */
+	GtML operator *(const std::vector<Matrix> & f) const ;
+	
 	/** \brief Create a structure for the lazy evaluation of a Gradient * Vector
 	 * 
 	 * @param f Vector
 	 * @return GtV
 	 */
 	GtV operator *(const Vector & f) const ;
+
+	/** \brief Create a structure for the lazy evaluation of a Gradient * Vector
+	 * 
+	 * @param f Vector
+	 * @return GtVL
+	 */
+	GtVL operator *(const std::vector<Vector> & f) const ;
+  
 } ;
 
 /** \brief Create a structure for the lazy evaluation of a GradientDot 
@@ -839,6 +857,28 @@ struct GtM
 	 * @return GtMtGD
 	 */
 	GtMtGD operator*(const Mu::GradientDot & f) const ;
+} ;
+
+/** \brief Structure for the lazy evaluation of a Gradient * Matrix at list of Gauss Points structure*/
+struct GtML
+{
+	const Gradient & first ;
+	const std::vector<Matrix> & second ;
+	
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g Gradient
+	 * @param f std::vector<Matrix>
+	 */
+	GtML(const Gradient & g, const std::vector<Matrix> & f) : first(g), second(f) { };
+
+	/** \brief Create a structure for the lazy evaluation of a Gradient * Matrix * Gradient
+	 * 
+	 * @param f Gradient
+	 * @return GtMtG
+	 */
+	GtMLtG operator*(const Mu::Gradient & f) const ;
+
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix */
@@ -977,6 +1017,20 @@ struct GtV
 	GtV(const Gradient & g, const Vector & f) : first(g), second(f) { };
 } ;
 
+/** \brief Structure for the lazy evaluation of a Gradient * Vector at series of points*/
+struct GtVL
+{
+	const Gradient & first ;
+	const std::vector<Vector> & second ;
+	
+	/**  \brief Constructor, initalise the references
+	 * 
+	 * @param g Gradient
+	 * @param f Vector
+	 */
+	GtVL(const Gradient & g, const std::vector<Vector> & f) : first(g), second(f) { };
+} ;
+
 struct GDtV
 {
 	const GradientDot & first ;
@@ -1018,6 +1072,23 @@ struct GtMtG
 	 * @param g_ Gradient
 	 */
 	GtMtG(const Gradient & g, const Matrix & f,const Gradient & g_) : first(g), second(f), third(g_) { };
+	
+} ;
+
+/** \brief Structure for the lazy evaluation of a Gradient * Matrix * Gradient at a list of Gauss Points*/
+struct GtMLtG
+{
+	const Gradient & first ;
+	const std::vector<Matrix> & second ;
+	const Gradient & third ;
+	
+	/**  \brief Constructor, initalise the references
+	 * 
+	 * @param g Gradient
+	 * @param f std::vector<Matrix>
+	 * @param g_ Gradient
+	 */
+	GtMLtG(const Gradient & g, const std::vector<Matrix> & f,const Gradient & g_) : first(g), second(f), third(g_) { };
 	
 } ;
 

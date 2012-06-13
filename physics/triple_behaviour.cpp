@@ -18,17 +18,17 @@ void TrimaterialInterface::transform(const Function & x, const Function & y)
 	ytransform.compile() ;
 }
 
-Matrix TrimaterialInterface::getTensor(const Point & p) const
+Matrix TrimaterialInterface::getTensor(const Point & p, IntegrableEntity * e) const
 {
 	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p), vm.eval(ytransform, p)) ;
 	
 	if(inGeometry->in(test))
-		return inBehaviour->getTensor(p) ;
+		return inBehaviour->getTensor(p, e) ;
 	else if(outGeometry->in(test))
-		return midBehaviour->getTensor(p) ;
+		return midBehaviour->getTensor(p, e) ;
 	
-	return outBehaviour->getTensor(p) ;
+	return outBehaviour->getTensor(p, e) ;
 	
 // 	FunctionMatrix C(3,3) ;
 // 	
@@ -44,18 +44,18 @@ Matrix TrimaterialInterface::getTensor(const Point & p) const
 // 	return vm.eval(C, p.x, p.y) ;
 }
 
-Vector TrimaterialInterface::getImposedStress(const Point & p) const
+Vector TrimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e) const
 {
 	if(inGeometry->in(p))
-		return inBehaviour->getImposedStress(p) ;
-	return outBehaviour->getImposedStress(p) ;
+		return inBehaviour->getImposedStress(p, e) ;
+	return outBehaviour->getImposedStress(p, e) ;
 }
 
-Vector TrimaterialInterface::getImposedStrain(const Point & p) const
+Vector TrimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e) const
 {
 	if(inGeometry->in(p))
-		return inBehaviour->getImposedStrain(p) ;
-	return outBehaviour->getImposedStrain(p) ;
+		return inBehaviour->getImposedStrain(p,e) ;
+	return outBehaviour->getImposedStrain(p,e) ;
 }
 
 bool TrimaterialInterface::changed() const { return false ;}

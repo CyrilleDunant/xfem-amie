@@ -3110,6 +3110,7 @@ void FeatureTree::assemble()
 				if(tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					tris[j]->refresh( father2D ) ;
+					tris[j]->getBehaviour()->preProcess( deltaTime, tris[j]->getState() ) ;
 					K->add( tris[j] ) ;
 				}
 			}
@@ -3130,6 +3131,7 @@ void FeatureTree::assemble()
 							std::cerr << "\r assembling stiffness matrix... grid " << i << " triangle " << j + 1 << "/" << triangles.size() << std::flush ;
 
 						triangles[j]->refresh( father2D ) ;
+						triangles[j]->getBehaviour()->preProcess( deltaTime, triangles[j]->getState() ) ;
 						coarseAssemblies[i]->add( triangles[j] ) ;
 					}
 				}
@@ -3153,6 +3155,7 @@ void FeatureTree::assemble()
 					std::cerr << "\r assembling stiffness matrix... tetrahedron " << j + 1 << "/" << tetrahedrons.size() << std::flush ;
 
 				tetrahedrons[j]->refresh( father3D ) ;
+				tetrahedrons[j]->getBehaviour()->preProcess( deltaTime, tetrahedrons[j]->getState() ) ;
 				K->add( tetrahedrons[j] ) ;
 			}
 		}
@@ -3168,6 +3171,7 @@ void FeatureTree::assemble()
 						std::cerr << "\r assembling stiffness matrix... triangle " << j + 1 << "/" << tets.size() << std::flush ;
 
 					tets[j]->refresh( father3D ) ;
+					tets[j]->getBehaviour()->preProcess( deltaTime, tets[j]->getState() ) ;
 					K->add( tets[j] ) ;
 				}
 			}
@@ -4377,7 +4381,7 @@ bool FeatureTree::stepElements()
 			{
 				if( i % 1000 == 0 )
 					std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
-
+				
 				elements[i]->step( deltaTime, &K->getDisplacements() ) ;
 			}
 

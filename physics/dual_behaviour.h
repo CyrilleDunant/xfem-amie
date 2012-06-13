@@ -55,15 +55,15 @@ public:
 	 * @param p Point at which to compute the linear parameter
 	 * @return 
 	 */
-	virtual Matrix getTensor(const Point & p) const ;
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
 
 	/** \brief Return the imposed stress at the point considered
 	 * 
 	 * @param p Point
 	 * @return stress Vector 
 	 */
-	virtual Vector getImposedStress(const Point & p) const ;
-	virtual Vector getImposedStrain(const Point & p) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL) const ;
 	
 /** \brief Apply the behaviour
 	* This overloaded apply() is more efficient and is designed to minimise allocating and dealocating memory.

@@ -2129,6 +2129,44 @@ void VirtualMachine::ieval(const GtMtG &f, const GaussPointArray &gp, const std:
 	
 }
 
+Matrix VirtualMachine::ieval(const GtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
+{
+
+	geval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first, f.third.transpose,B_) ;
+	geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first, f.first.transpose,B) ;
+	
+	Matrix ret(B*f.second[0]*B_) ;
+	ret *= gp.gaussPoints[0].second ;
+	
+	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
+	{
+		geval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first, f.third.transpose, B_) ;
+		geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first, f.first.transpose, B) ;
+		matrix_matrix_matrix_multiply_and_add(B, f.second[i], B_, gp.gaussPoints[i].second, ret) ;
+	}
+
+	return ret ;
+}
+
+void VirtualMachine::ieval(const GtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var, Matrix & ret)
+{
+	geval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first, f.third.transpose,B_) ;
+	geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first, f.first.transpose,B) ;
+	
+	ret = B*f.second[0]*B_ ;
+	ret *= gp.gaussPoints[0].second ;
+	
+	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
+	{
+		geval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first, f.third.transpose, B_) ;
+		geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first, f.first.transpose, B) ;
+		matrix_matrix_matrix_multiply_and_add(B, f.second[i], B_, gp.gaussPoints[i].second, ret) ;
+	}
+
+
+	
+}
+
 
 Matrix VirtualMachine::ieval( const DtGtMtG & d, IntegrableEntity *e, const std::vector<Variable> & var)
 {
@@ -2406,6 +2444,36 @@ Vector VirtualMachine::ieval(const GtV &f, const GaussPointArray &gp, const std:
 		for(size_t j = 0 ; j < temp.size() ; j++)
 		{
 			temp[j] = f.second[j] ;
+		}
+		r_  = M*temp ;
+		ret += r_ * gp.gaussPoints[i].second ;
+	}
+	
+	return ret ;
+}
+
+Vector VirtualMachine::ieval(const GtVL &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
+{
+	if(!Jinv.size())
+	{
+		int size = var.size() - (var[var.size()-1] == TIME_VARIABLE) ;
+		return Vector(double(0), size) ;
+	}
+	Matrix M ;
+	geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose, M);
+	Vector temp(double(0),f.second[0].size()) ;
+	for(size_t i = 0 ; i < temp.size() ; i++)
+		temp[i] = f.second[0][i] ;
+	
+	Vector r_  = M*temp ;
+	Vector ret = r_ * gp.gaussPoints[0].second;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		  geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose, M) ;
+		
+		for(size_t j = 0 ; j < temp.size() ; j++)
+		{
+			temp[j] = f.second[i][j] ;
 		}
 		r_  = M*temp ;
 		ret += r_ * gp.gaussPoints[i].second ;

@@ -86,7 +86,7 @@ namespace Mu
 		virtual void stepBack() ;
 
 		/** \brief Return the (damaged) Stifness tensor*/
-		virtual Matrix getTensor(const Point & p) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
 
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;

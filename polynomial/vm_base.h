@@ -18,7 +18,9 @@ struct GtFMtG ;
 struct VGtMtVG ;
 struct GtM ;
 struct GtMtG ;
+struct GtMLtG ;
 struct GtV ;
+struct GtVL ;
 struct VGtM ;
 struct VGtV ;
 struct FMtMtFM ;
@@ -334,6 +336,25 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */
 	void ieval(const GtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+/** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
+Gradient is the usual \f$ \nabla\otimes \f$ operator.
+@param f GtMtG to integrate.
+@param gp GaussPointArray defining the quadrature
+@param Jinv Inverse Jacobian Matrices to compute the gradients
+@param vars std::vector of space Variable s
+*/
+	Matrix ieval(const GtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
+/** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars. 
+The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
+Gradient is the usual \f$ \nabla\otimes \f$ operator.
+@param f GtMtG to integrate.
+@param gp GaussPointArray defining the quadrature
+@param Jinv Inverse Jacobian Matrices to compute the gradients
+@param vars std::vector of space Variable s
+*/
+	void ieval(const GtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+	
 /** \brief Overloaded function to compute the integral of a Gradient times a Vector using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
 Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param f GtV to integrate.
@@ -343,6 +364,8 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */
 	Vector ieval(const GtV &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
+	Vector ieval(const GtVL &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	
 	Vector ieval(const GDtV &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
 /** \brief Overloaded function to compute the integral of a Gradient times a FunctionMatrix times a Gradient over the IntegrableEntity e, with variables defined by vars.

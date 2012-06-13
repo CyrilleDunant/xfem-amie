@@ -79,6 +79,7 @@ typedef enum {
 	VON_MISES_REAL_STRESS_FIELD,
 	VON_MISES_EFFECTIVE_STRESS_FIELD,
 	PRINCIPAL_ANGLE_FIELD,
+	INTERNAL_VARIABLE_FIELD,
 } FieldType ;
 
 struct Form ;
@@ -141,35 +142,37 @@ public:
 	
 	double getCachedAngle() const {return cachedPrincipalStressAngle ;}
 
-	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local) const ;
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
-	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local) const  ;
+	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
 
-	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local) const  ;
+	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
 
-	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local) const  ;
+	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
 
-	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local) const  ;
+	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i = 0) const  ;
 	
-	virtual void getFieldAtCenter( FieldType f, Vector & ret) ;
+	virtual void getFieldAtCenter( FieldType f, Vector & ret, int i = 0) ;
 	
-	virtual void getFieldAtNodes( FieldType f, Vector & ret) ;
-	
-	// TODO : add getFieldAtGaussPoints
+	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
 
-	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local) const  ;
+	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
+	
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 		
-	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 	
-	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) ;
+	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 	
-	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2) ;
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+
+	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 	
 
 /** \brief return displacements at the nodes of the element*/
@@ -235,9 +238,9 @@ public:
 /** \brief Return the elastic energy of this element*/
 	double elasticEnergy() ;
 
-	void stepBack() ;
-	void step(double dt, const Vector* d ) ;
-	void elasticStep(double dt, const Vector* d ) ;
+	virtual void stepBack() ;
+	virtual void step(double dt, const Vector* d ) ;
+	virtual void elasticStep(double dt, const Vector* d ) { } ;
 	
 	double getTime() const ;
 	double getDeltaTime() const ;
@@ -247,10 +250,109 @@ public:
 		return parent ;
 	}
 	
-	void initialize(bool initializeFractureCache =true) ;
+	virtual void initialize(bool initializeFractureCache =true) ;
 	
 	const Vector & getBuffer() const ;
 	Vector & getBuffer()  ;
+	
+} ;
+
+class ElementStateWithInternalVariables : public ElementState
+{
+protected:
+	std::vector<std::vector<Vector> > internalVariablesAtGaussPoints ;
+	int n ;
+	int p ;
+	
+public:
+	ElementStateWithInternalVariables(IntegrableEntity *, int n, int p) ;
+
+	ElementStateWithInternalVariables(const ElementStateWithInternalVariables &s) ;
+						
+	ElementStateWithInternalVariables & operator =(const ElementStateWithInternalVariables &) ;
+	
+	int numberOfInternalVariables() const { return n ; }
+	
+	int sizeOfInternalVariable() const { return p ; }
+
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
+		
+	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i = 0) const  ;
+	
+	virtual void getFieldAtCenter( FieldType f, Vector & ret, int i = 0) ;
+	
+	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
+
+	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
+
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+		
+	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	
+	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+
+	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+
+	virtual void initialize(bool initializeFractureCache =true) ;
+	
+	virtual void setInternalVariableAtGaussPoint(Vector & v, size_t g, int i) ;
+	
+} ;
+
+class GeneralizedMaxwellElementState : public ElementStateWithInternalVariables
+{
+public:
+	GeneralizedMaxwellElementState(IntegrableEntity *, int branches) ;
+
+	GeneralizedMaxwellElementState(const GeneralizedMaxwellElementState &s) ;
+						
+	GeneralizedMaxwellElementState & operator =(const GeneralizedMaxwellElementState &) ;
+
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
+		
+	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
+
+	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i = 0) const  ;
+	
+	virtual void getFieldAtCenter( FieldType f, Vector & ret, int i = 0) ;
+	
+	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
+
+	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
+
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+		
+	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	
+	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+
+	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 	
 } ;
 
@@ -277,7 +379,7 @@ class IntegrableEntity : public Geometry
 protected:
 	
 	Order order ;
-	ElementState state ;
+	ElementState * state ;
 	std::vector<BoundaryCondition *> * boundaryConditionCache ;
 	GaussPointArray * cachedGps ;
 	const GaussPointArray * getCachedGaussPoints() const {return cachedGps ;};
@@ -328,6 +430,7 @@ public:
 	
 	virtual const ElementState & getState() const ;
 	virtual ElementState & getState() ;
+	virtual void setState( ElementState * state) ;
 	
 	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;
 	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const = 0 ;
@@ -404,7 +507,7 @@ public:
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { std::cout << "step back not implemented" << std::endl ; exit(0) ;}  ;
 	
-	virtual Matrix getTensor(const Point & p) const
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const
 	{
 		return param ;
 	}
@@ -419,8 +522,8 @@ public:
 		return param ;
 	}
 
-	virtual Vector getImposedStress(const Point & p) const ;
-	virtual Vector getImposedStrain(const Point & p) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL) const ;
 	
 	virtual ~Form() { } ;
 
@@ -429,6 +532,10 @@ public:
 	virtual void setFractureCriterion(FractureCriterion * frac) { }
 	
 	virtual DamageModel * getDamageModel() const { return NULL ; }
+	
+	virtual ElementState * createElementState( IntegrableEntity * e) const ;
+	
+	virtual void preProcess( double timeStep, ElementState & currentState ) { } ;
 	
 } ;
 

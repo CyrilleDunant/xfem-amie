@@ -45,7 +45,7 @@ bool LinearStiffnessGradient::fractured() const
 	return false ;
 }
 
-Matrix LinearStiffnessGradient::getTensor(const Point & p) const
+Matrix LinearStiffnessGradient::getTensor(const Point & p, IntegrableEntity * e) const
 {
 	VirtualMachine vm ;
 	

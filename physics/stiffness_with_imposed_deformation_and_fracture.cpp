@@ -79,18 +79,18 @@ Form * StiffnessWithImposedDeformationAndFracture::getCopy() const
 }
 
 
-Matrix StiffnessWithImposedDeformationAndFracture::getTensor(const Point & p) const
+Matrix StiffnessWithImposedDeformationAndFracture::getTensor(const Point & p, IntegrableEntity * e) const
 {
 	return dfunc->apply(param) ;
 }
 
 
-Vector StiffnessWithImposedDeformationAndFracture::getImposedStress(const Point & p) const
+Vector StiffnessWithImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithImposedDeformationAndFracture::getImposedStrain(const Point & p) const
+Vector StiffnessWithImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e) const
 {
 	return imposed ;
 }

@@ -52,7 +52,7 @@ public:
 		* The stiffness matrix is recomputed for each Gauss point using linear interpolation
 		* @param p Point to check in local coordinates
 	 */
-	virtual Matrix getTensor(const Point & p) const ;
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
 	
 	/** \brief Apply the behaviour.
 	* The stiffness matrix is recomputed for each Gauss point using linear interpolation 

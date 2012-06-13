@@ -8,6 +8,7 @@
 #include "paste_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
+#include "../generalized_fd_maxwell.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
@@ -42,5 +43,17 @@ Form * ElasticOnlyPasteBehaviour::getCopy() const
 	return new Stiffness(param*factor) ;
 }
 
+ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double Evisc, double nuvisc, double tau, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0., dim), Evisc(Evisc), nuvisc(nuvisc), tau(tau) 
+{
 
+}
+
+Form * ViscoElasticOnlyPasteBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. ;//- variability + variability*weib ;
+	Matrix Kvisc = Material::cauchyGreen(std::make_pair(Evisc, nuvisc), true, param.numRows() == 3 ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) ;
+	Vector decay(1./(tau*24*60*60), param.numRows()) ;
+	return new GeneralizedFDMaxwell(param*factor, std::make_pair(Kvisc, decay)) ;
+}
 

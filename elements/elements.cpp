@@ -7,6 +7,7 @@
 //
 
 #include "elements.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
 
 using namespace Mu ;
 
@@ -149,8 +150,19 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 
 void ElementarySurface::setBehaviour(Form * f)
 {
+	bool init = this->getState().getDisplacements().size() > 0 ;
+	state = f->createElementState( this ) ;
 //	Form * old = behaviour ;
 	behaviour = f ;
+	if(init)
+	{
+		bool needCacheInit = false ;
+		if(f->getFractureCriterion())
+		{
+			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
+		}
+		state->initialize( needCacheInit ) ;
+	}
 //	delete old ;
 }
 
@@ -199,10 +211,10 @@ void ElementaryVolume::stepBack()
 void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 {
 	
-	this->state.step(dt, displacements) ;
+	this->getState().step(dt, displacements) ;
 	
 	if(getNonLinearBehaviour())
-		getNonLinearBehaviour()->step(dt, this->state) ;
+		getNonLinearBehaviour()->step(dt, this->getState()) ;
 	
 }
 

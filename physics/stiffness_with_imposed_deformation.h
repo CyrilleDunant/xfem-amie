@@ -62,8 +62,8 @@ namespace Mu
 		virtual bool hasInducedForces() const { return true ; }
 		
 		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
-		virtual Vector getImposedStress(const Point & p) const ;
-		virtual Vector getImposedStrain(const Point & p) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		

@@ -14,6 +14,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/generalized_fd_maxwell.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -212,14 +213,18 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 {
 
-	int nsteps = 25; // step 16 = 0.023
-	int nstepstot = 25;
+	int nsteps = 4; // step 16 = 0.023
+	int nstepstot = 4;
 	int maxtries = 5 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(1600) ;
+	featureTree->setDeltaTime(24*60*3) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
+		if(i == 2)
+			featureTree->addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -5*1e6)) ;
+  
 		bool go_on = featureTree->step() ;
 		
 		if(featureTree->solverConverged())
@@ -344,6 +349,8 @@ void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
 				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
 				sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+				
+//				std::cout << sigma22[k*npoints] << "\t" << sigma22[k*npoints+1] << "\t" << sigma22[k*npoints+2] << std::endl ;
 				
 				if(npoints >3)
 				{
@@ -474,7 +481,7 @@ void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 				}
 			}
 		}
-		std::string filename("icaar2/triangles_") ;
+		std::string filename("triangles_") ;
 		switch(ref)
 		{
 			case CIRCLE:
@@ -537,12 +544,12 @@ void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
 		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cout << "average sigma11 : " << avg_s_xx/area << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/area << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/area << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/area << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
+		std::cout << "average sigma11 : " << avg_s_xx_nogel/nogel_area << std::endl ;
+		std::cout << "average sigma22 : " << avg_s_yy_nogel/nogel_area << std::endl ;
+		std::cout << "average sigma12 : " << avg_s_xy_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon11 : " << avg_e_xx_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon22 : " << avg_e_yy_nogel/nogel_area << std::endl ;
+		std::cout << "average epsilon12 : " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
 		std::cout << "apparent extension X " << e_xx_max-e_xx_min << std::endl ;
 		std::cout << "apparent extension Y " << e_yy_max-e_yy_min << std::endl ;
@@ -778,11 +785,11 @@ std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<Inclusion * > & inc
 	{
 		Point pos = incs[i]->getCenter() ;
 		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
-		F.addFeature(incs[i],zonesToPlace[i*2]) ;
-		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
-		ret.push_back(Zone(zonesToPlace[i*2],incs[i])) ;
-		ret.push_back(Zone(zonesToPlace[i*2+1],incs[i])) ;
+//		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
+		F.addFeature(incs[i],zonesToPlace[i]) ;
+//		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
+		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
+//		ret.push_back(Zone(zonesToPlace[i*2+1],incs[i])) ;
 		aggregateArea+= incs[i]->area() ;
 	}
 
@@ -1431,57 +1438,8 @@ struct BlockColumnMatrix
 
 const size_t dim = 40000 ;
 
-
 int main(int argc, char *argv[])
 {
-	Vector vec ;
-	std::cout << sizeof(vec) << std::endl ;
-	vec.resize(8) ;
-	std::cout << sizeof(vec) << std::endl ;
-	exit(0) ;
-  
-  
-/*	ColumnMatrix m(dim) ;
-	Vector v(dim) ;
-	#pragma omp parallel for
-	for(size_t r = 0 ; r < v.size() ; r++)
-	{
-		v[r] = 1./(r+1) ;
-		for(size_t c = 0 ; c < v.size() ; c++)
-		{
-			m(r,c) = (c+1)*(1+r) ;
-		}
-	}
-	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
-	Vector k = m*v ;
-	gettimeofday(&time1, NULL);
-	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cout << k[0] << std::endl ;
-	std::cerr << "Column (s) " << delta/1e6 << std::endl ;
-	m.clear() ;
-	
-	RowMatrix rm(dim) ;
-	#pragma omp parallel for
-	for(size_t r = 0 ; r < rm.col ; r++)
-	{
-		for(size_t c = 0 ; c < rm.col ; c++)
-		{
-			rm(r,c) = (c+1)*(r+1) ;
-		}
-	}
-	gettimeofday(&time0, NULL);
-	Vector rk = rm*v ;
-	gettimeofday(&time1, NULL);
-	delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cout << rk[0] << std::endl ;
-	std::cerr << "Row (s) " << delta/1e6 << std::endl ;
-	rm.clear() ;
-// 	for(size_t i = 0 ; i < k.size() ; i++)
-// 	  std::cout << k[i] << std::endl ;
-	
-	exit(0) ;
-  
   
   
   
@@ -1500,7 +1458,7 @@ int main(int argc, char *argv[])
 
 	std::vector<Feature *> feats ;
 	std::vector<Inclusion *> inclusions ;
-	inclusions.push_back(new Inclusion(0.002,0.,0.)) ;
+//	inclusions.push_back(new Inclusion(0.002,0.,0.)) ;
 	std::vector<EllipsoidalInclusion *> ellinc ;
 	std::vector<TriangularInclusion *> triinc ;
 	std::vector<RectangularInclusion *> recinc ;
@@ -1530,59 +1488,58 @@ int main(int argc, char *argv[])
 	}
 	
 		
-	sample.setBehaviour(new PasteBehaviour()) ;
-	AggregateBehaviour * agg = new AggregateBehaviour() ;
-	placed_area = 0. ;
-	for(size_t i = 0 ; i < inclusions.size() ; i++)
-	{
-		switch(reference)
-		{
-			case CIRCLE:
-				inclusions[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, inclusions[i]) ;
-				placed_area += inclusions[i]->area() ;
-				break ;
-			case ELLIPSE:
-				ellinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, ellinc[i]) ;
-				placed_area += ellinc[i]->area() ;
-				break ;
-			case TRIANGLE:
-				triinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, triinc[i]) ;
-				placed_area += triinc[i]->area() ;
-				break ;
-			case RECTANGLE:
-				recinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, recinc[i]) ;
-				placed_area += recinc[i]->area() ;
-				break ;
-		}
-	}
+	sample.setBehaviour(new ViscoElasticOnlyPasteBehaviour()) ;
+// 	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+// 	placed_area = 0. ;
+// 	for(size_t i = 0 ; i < inclusions.size() ; i++)
+// 	{
+// 		switch(reference)
+// 		{
+// 			case CIRCLE:
+// 				inclusions[i]->setBehaviour(agg) ;
+// 				F.addFeature(&sample, inclusions[i]) ;
+// 				placed_area += inclusions[i]->area() ;
+// 				break ;
+// 			case ELLIPSE:
+// 				ellinc[i]->setBehaviour(agg) ;
+// 				F.addFeature(&sample, ellinc[i]) ;
+// 				placed_area += ellinc[i]->area() ;
+// 				break ;
+// 			case TRIANGLE:
+// 				triinc[i]->setBehaviour(agg) ;
+// 				F.addFeature(&sample, triinc[i]) ;
+// 				placed_area += triinc[i]->area() ;
+// 				break ;
+// 			case RECTANGLE:
+// 				recinc[i]->setBehaviour(agg) ;
+// 				F.addFeature(&sample, recinc[i]) ;
+// 				placed_area += recinc[i]->area() ;
+// 				break ;
+// 		}
+// 	}
     
 	switch(reference)
 	{
 		case CIRCLE:
-			//zones = generateExpansiveZonesHomogeneously(100, 3, inclusions, F) ;
-			zones = generateExpansiveZonesAtCenter(inclusions, F) ;
+//			zones = generateExpansiveZonesHomogeneously(100, 3, inclusions, F) ;
+//			zones = generateExpansiveZonesAtCenter(inclusions, F) ;
 			break ;
 		case ELLIPSE:
-//			zones = generateExpansiveZonesHomogeneously(100, 3, ellinc, F) ;
-			zones = generateExpansiveZonesAtCenter(ellinc, F) ;
+// 			zones = generateExpansiveZonesHomogeneously(100, 3, ellinc, F) ;
+//			zones = generateExpansiveZonesAtCenter(ellinc, F) ;
 			break ;
 		case TRIANGLE:
 //			zones = generateExpansiveZonesHomogeneously(100, 3, triinc, F) ;
-			zones = generateExpansiveZonesAtCenter(triinc, F) ;
+// 			zones = generateExpansiveZonesAtCenter(triinc, F) ;
 			break ;
 		case RECTANGLE:
 //			zones = generateExpansiveZonesHomogeneously(100, 3, recinc, F) ;
-			zones = generateExpansiveZonesAtCenter(recinc, F) ;
+// 			zones = generateExpansiveZonesAtCenter(recinc, F) ;
 			break ;
 	}
 
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -atoi(argv[3])*1e6)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -atoi(argv[4])*1e6)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -atoi(argv[4])*1e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 
@@ -1591,7 +1548,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
 
-	step(reference, nSampling, atoi(argv[3]), atoi(argv[4])) ;*/
+	step(reference, nSampling, atoi(argv[3]), atoi(argv[4])) ;
 	
 	return 0 ;
 }
