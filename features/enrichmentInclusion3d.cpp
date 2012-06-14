@@ -536,8 +536,8 @@ std::vector<Geometry *> EnrichmentInclusion3D::getRefinementZones( size_t level)
 {
 	return std::vector<Geometry *>(0) ;
 }
-	
-void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, const DelaunayTree * dtree) {}
+
+void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, const Mesh<Mu::DelaunayTriangle, Mu::DelaunayTreeItem> * dtree) {}
 	
 bool EnrichmentInclusion3D::moved() const { return updated ;}
 

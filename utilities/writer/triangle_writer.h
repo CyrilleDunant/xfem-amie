@@ -94,7 +94,7 @@ public:
 	virtual void append() ;
 
 protected:
-	virtual void writeHeader(bool append = true) ;
+	virtual void writeHeader(int layer,bool append = true) ;
 
 } ;
 

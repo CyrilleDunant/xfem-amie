@@ -81,17 +81,20 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	Vector range( 1., 4 ) ;
 // 	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << std::endl ;
 	
-//	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-//		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-	
+// 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+// 		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
 		s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
 		es = &s ;
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 			
-// 		if(!fractured())
-		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+		if(!fractured())
+		{
+			double prevAngle = currentAngle ;
+			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+			change = std::abs(currentAngle-prevAngle) > M_PI*.03  && state.max() > POINT_TOLERANCE_2D;
+		}
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{
 			firstTension = true ;
@@ -192,8 +195,8 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	if ( getState().max() < POINT_TOLERANCE_2D)
 		return m ;
 	
-// 	if(fractured())
-// 		return m *0 ;
+	if(fractured())
+		return m *0 ;
 	
 	double E_0 = factor*E ;
 	double E_1 = factor*E ;
@@ -206,7 +209,6 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	
 	E_0 *= ( 1. - fs ) ;
 	E_1 *= ( 1. - ss ) ;
-	
 	
 // 	for(double i = 0 ; i < M_PI ; i += .2)
 // 	{
@@ -571,7 +573,6 @@ bool FixedCrack::fractured() const
 
 void FixedCrack::postProcess()
 {
-	
 	if(converged && getState()[0] >= thresholdDamageDensity)
 	{
 		firstTensionFailure = true ;

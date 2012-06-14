@@ -90,12 +90,12 @@ namespace Mu
 		virtual void step(double timestep, ElementState & currentState) ;
 		virtual void stepBack() ;
 
-		virtual Matrix getTensor(const Point & p) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = 0) const ;
 
 		virtual bool hasInducedForces() const { return true ; }
 		
-		virtual Vector getImposedStress(const Point & p) const ;
-		virtual Vector getImposedStrain(const Point & p) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = 0) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = 0) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 

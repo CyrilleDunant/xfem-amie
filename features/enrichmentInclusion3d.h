@@ -101,7 +101,7 @@ public:
 	}
 	
 /** \brief do nothing*/
-	virtual void step(double dt, std::valarray<double> *, const DelaunayTree * dtree);
+	virtual void step(double dt, std::valarray<double> *, const const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree);
 	
 /** \brief return true if the radius has changed*/
 	virtual bool moved() const ;

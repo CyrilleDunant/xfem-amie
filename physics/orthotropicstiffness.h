@@ -27,8 +27,6 @@ namespace Mu
 	*/
 	struct OrthothropicStiffness : public LinearForm
 	{
-		virtual Matrix getTensor(const Mu::Point & p) ;
-		void getTensor(Matrix & m) const ;
 		double E_1; 
 		double E_2; 
 		double E_3; 
@@ -36,8 +34,6 @@ namespace Mu
 		double G_2; 
 		double G_3;  
 		double nu;
-		double angle ;
-		bool change ;
 		std::vector<Variable> v ;
 		
 		/** \brief Constructor
@@ -92,15 +88,9 @@ namespace Mu
 		/** \brief Return false.*/
 		virtual bool fractured() const ;
 				
-		virtual void step(double timestep, ElementState & currentState) ;
 		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
-		
-		bool changed() const
-		{
-			return change ;
-		} 
 		
 	} ;
 } ;

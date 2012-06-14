@@ -229,13 +229,13 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	
 
 
-	if (!radiusInitialised)
-	{
-		double f = (distanceToRebar)/(effectiveInfluenceDistance) ;
-		double df = 3.*f*f-2.*f*f*f ;
-		setMaterialCharacteristicRadius(getMaterialCharacteristicRadius()*df+.5*getMaterialCharacteristicRadius()*(1.-df));
-		radiusInitialised = true ;
-	}
+// 	if (!radiusInitialised)
+// 	{
+// 		double f = (distanceToRebar)/(effectiveInfluenceDistance) ;
+// 		double df = 3.*f*f-2.*f*f*f ;
+// 		setMaterialCharacteristicRadius(getMaterialCharacteristicRadius()*df+.5*getMaterialCharacteristicRadius()*(1.-df));
+// 		radiusInitialised = true ;
+// 	}
 // 	 if(distanceToRebar < effectiveInfluenceDistance*.666666)
 //  		return rebcrit ;
 	

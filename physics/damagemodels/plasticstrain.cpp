@@ -111,7 +111,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
 		{
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
-			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2])*2. ;
+			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 		}
 		
 	}
@@ -202,7 +202,7 @@ double PlasticStrain::getDamage() const
 	Vector istrain = imposedStrain*getState()[0] ;
 	double currentPlaticVariable = plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 	if(currentPlaticVariable >= kappa_0)
-		return 1.-exp(-(currentPlaticVariable-kappa_0)/eps_f) ;
+		return 1.-exp(-(currentPlaticVariable-kappa_0)/(eps_f)) ;
 	return 0 ;
 }
 

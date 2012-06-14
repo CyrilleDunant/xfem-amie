@@ -941,7 +941,7 @@ void TriangleWriter::writeHeader( int layer, bool append )
 	outstream.close() ;
 }
 
-void BinaryTriangleWriter::writeHeader( bool append )
+void BinaryTriangleWriter::writeHeader(int layer, bool append )
 {
 	std::fstream outstream ;
 

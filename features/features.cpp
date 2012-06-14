@@ -3966,7 +3966,7 @@ void FeatureTree::solve()
 {
 	Vector lastx( K->getDisplacements() ) ;
 
-	if( enrichmentChange || needMeshing )
+	if( enrichmentChange || needMeshing)
 	{
 		K->clear() ;
 

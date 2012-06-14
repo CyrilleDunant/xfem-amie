@@ -719,7 +719,7 @@ void step()
 			
 			if(!triangles.empty())
 			{
-				ang.push_back(dynamic_cast<OrthothropicStiffness *>(triangles[0]->getBehaviour())->angle) ;
+				ang.push_back(0.) ;
 				sig.push_back((avg_s_yy/area)/1000000.);
 				eps.push_back((avg_e_yy/area)/1000000.);
 				
