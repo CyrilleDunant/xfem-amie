@@ -29,7 +29,7 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s, REAL_STRESS) ) ;
+	std::pair<Vector, Vector> stressstrain( smoothedPrincipalStressAndStrain(s, EFFECTIVE_STRESS) ) ;
 	Vector str = stressstrain.first ;
 	Vector stra = stressstrain.second ;
 	double maxStress = 0 ;
@@ -45,7 +45,7 @@ double DruckerPrager::grade(ElementState &s)
 		
 		if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->plasticVariable > POINT_TOLERANCE_2D)
 		{
-			if(kappa_p < kappa_0 )
+			if(kappa_p < kappa_0 && static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel())->getDamage() < POINT_TOLERANCE_2D)
 				factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;
 			else
 				factor = 1. ;
@@ -60,15 +60,17 @@ double DruckerPrager::grade(ElementState &s)
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
-		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[2])*(str[2])))*2. ;
+		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[0]-str[1])*(str[0]-str[1]))) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1]+str[3] ;
 		maxStress =  tr*friction - sqrt((str[0]-tr*.333333333333)*(str[0]-tr*.333333333333)+(str[1]-tr*.333333333333)*(str[1]-tr*.333333333333)+(str[2]-tr*.333333333333)*(str[2]-tr*.333333333333)+2.*(str[3])*(str[3])+2.*(str[4])*(str[4])+2.*(str[5])*(str[5])) ;
 	}
+	
 	if(maxStress > upthreshold*factor && maxStress > 0)
 	{
+// 		std::cout << factor << ", "<< maxStress<< std::endl ;
 		met = true ;
 		return 1. - std::abs(factor*upthreshold/maxStress) ;
 	}
@@ -76,7 +78,6 @@ double DruckerPrager::grade(ElementState &s)
 	{
 		return -1.+ std::abs(maxStress/(factor*upthreshold));
 	}
-	
 	else if(maxStress < factor*downthreshold && maxStress < 0)
 	{
 		met = true ;

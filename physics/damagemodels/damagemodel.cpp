@@ -265,7 +265,7 @@ void DamageModel::step( ElementState &s )
 		}
 		else if(std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction)
 		{
-			getState( true ) = downState + ( upState - downState ) ;
+			getState( true ) = downState + ( upState - downState )*.5 ;
 			
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;

@@ -107,7 +107,7 @@ struct KelvinVoight : public LinearForm
 		stiff *= d ;
 	}
 
-	virtual Vector getImposedStress( const Point &p , IntegrableEntity * e) const ;
+	virtual Vector getImposedStress( const Point &p , IntegrableEntity * e= 0) const ;
 
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const ;
 

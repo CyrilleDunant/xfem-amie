@@ -35,6 +35,7 @@ public:
 	
 	Vector flowDirection ;
 	Vector potentialFlowDirection ;
+	ElementState * es ;
 	
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
@@ -51,6 +52,7 @@ public:
 	 */
 	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 	virtual void computeDelta(const ElementState & s) ;
+	virtual double getAngleShift() const ;
 
 	/** \brief compute the new stifness matrix after damage
 	 * 

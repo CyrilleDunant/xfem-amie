@@ -91,9 +91,9 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			
 		if(!fractured())
 		{
-			double prevAngle = currentAngle ;
+// 			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-			change = std::abs(currentAngle-prevAngle) > M_PI*.03  && state.max() > POINT_TOLERANCE_2D;
+// 			change = std::abs(currentAngle-prevAngle) > M_PI*.03  && state.max() > POINT_TOLERANCE_2D;
 		}
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{

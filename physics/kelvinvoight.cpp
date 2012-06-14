@@ -126,6 +126,7 @@ Form * IncrementalKelvinVoight::getCopy() const
 }
 
 Vector IncrementalKelvinVoight::getImposedStress(const Point &p , IntegrableEntity * e) const
+
 {
     Matrix S = param * N ;
     return S * phi ;

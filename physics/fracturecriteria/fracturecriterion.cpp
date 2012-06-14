@@ -218,7 +218,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		estr /= sumStressFactors ;
 		stra /= sumStrainFactors ;
 
-		s.getParent()->getState().getFieldAtCenter(STRAIN_FIELD, tmpstra) ;
+		s.getParent()->getState().getFieldAtCenter(REAL_STRESS_FIELD, tmpstra) ;
 		currentAngle = 0.5*atan2( tmpstra[2], tmpstra[0] - tmpstra[1] ) ;
 		if(currentAngle < 0)
 			currentAngle += M_PI ;
