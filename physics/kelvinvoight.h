@@ -72,7 +72,7 @@ struct KelvinVoight : public LinearForm
 	}
 } ;
 
-struct IncrementalKelvinVoight : public LinearForm
+/*struct IncrementalKelvinVoight : public LinearForm
 {
 	Matrix stiff ;
 	Matrix eta ;
@@ -107,14 +107,82 @@ struct IncrementalKelvinVoight : public LinearForm
 		stiff *= d ;
 	}
 
-	virtual Vector getImposedStress( const Point &p ) const ;
+	virtual Vector getImposedStress( const Point &p , IntegrableEntity * e) const ;
 
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const ;
 
 	virtual void step( double timestep, ElementState &s ) ;
 
 	void resize( size_t num_points ) ;
-};
+};*/
+
+struct NewmarkNumeroffKelvinVoigt : public LinearForm
+{
+	Matrix stiffness ;
+	Matrix viscosity ;
+	std::vector<Variable> v ;
+	Vector decay ;
+	std::vector<Vector> imposedAtGaussPoints ;
+	double alpha ;
+	
+	NewmarkNumeroffKelvinVoigt(const Matrix & rig, const Vector & d, const double a = 0.5) ;
+	
+	virtual ~NewmarkNumeroffKelvinVoigt() ;
+
+	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+
+	virtual Form * getCopy() const ;
+	
+	virtual Vector getImposedStress( const Point &p , IntegrableEntity * e = NULL) const ;
+
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const ;
+
+	virtual void step( double timestep, ElementState &s ) ;
+	
+	virtual ElementState * createElementState( IntegrableEntity * e) ;
+
+	virtual void updateElementState(double timestep, ElementState & currentState) const ;
+
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
+		
+	virtual void preProcess( double timeStep, ElementState & currentState ) ;
+	
+} ;
+
+struct ExponentiallyPredictedKelvinVoigt : public LinearForm
+{
+	Matrix stiffness ;
+	Matrix viscosity ;
+	Matrix reduction ;
+	std::vector<Variable> v ;
+	Vector decay ;
+	std::vector<Vector> imposedAtGaussPoints ;
+	
+	ExponentiallyPredictedKelvinVoigt(const Matrix & rig, const Vector & d) ;
+
+	virtual ~ExponentiallyPredictedKelvinVoigt() ;
+
+	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+
+	virtual Form * getCopy() const ;
+	
+	virtual Vector getImposedStress( const Point &p , IntegrableEntity * e = NULL) const ;
+
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const ;
+
+	virtual void step( double timestep, ElementState &s ) ;
+	
+	virtual ElementState * createElementState( IntegrableEntity * e) ;
+
+	virtual void updateElementState(double timestep, ElementState & currentState) const ;
+
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
+		
+	virtual void preProcess( double timeStep, ElementState & currentState ) ;
+	
+} ;
+
+
 
 } ;
 

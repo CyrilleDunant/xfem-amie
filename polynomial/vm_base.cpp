@@ -2048,6 +2048,35 @@ Matrix VirtualMachine::ieval(const GtM &f, IntegrableEntity *e, const std::vecto
 	return B*f.second ;
 }
 
+Matrix VirtualMachine::ieval(const GtML &f, IntegrableEntity *e, const std::vector<Variable> & var)
+{
+
+	GaussPointArray gp = e->getGaussPoints() ;
+	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Matrix ret = B*f.second[0] ;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		ret += B*f.second[i] ;
+	}
+	
+	return ret ;
+}
+
+Vector VirtualMachine::ieval(const GtVL &f, IntegrableEntity *e, const std::vector<Variable> & var)
+{
+
+	GaussPointArray gp = e->getGaussPoints() ;
+	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Vector ret = B*f.second[0] ;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		ret += B*f.second[i] ;
+	}
+	return ret ;
+}
+
 Matrix VirtualMachine::ieval(const VGtM &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 

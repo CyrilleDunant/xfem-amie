@@ -17,6 +17,7 @@ namespace Mu
 struct GtFMtG ;
 struct VGtMtVG ;
 struct GtM ;
+struct GtML ;
 struct GtMtG ;
 struct GtMLtG ;
 struct GtV ;
@@ -308,6 +309,10 @@ The function is assumed to be expressed in the local coordinates of e.
 */
 	Matrix ieval(const GtM &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
 
+	Matrix ieval(const GtML &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	
+	Vector ieval(const GtVL &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars. 
 The function is assumed to be expressed in the local coordinates of e.
 Gradient is the usual \f$ \nabla\otimes \f$ operator.

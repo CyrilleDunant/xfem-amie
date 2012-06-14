@@ -128,6 +128,25 @@ Vector MaxwellBranch::updateInternalStrainRate( size_t g, const Vector & eps) co
 	return li[g] * eps + pi[g] ;
 }  
 
+void MaxwellBranch::setNumberOfGaussPoints(size_t n) 
+{
+	reducedStiffnessAtGaussPoints.resize(n) ;
+	imposedStressAtGaussPoints.resize(n) ;
+	fi.resize(n) ;
+	gi.resize(n) ;
+	pi.resize(n) ;
+	li.resize(n) ;
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		reducedStiffnessAtGaussPoints[i].resize(decay.size(), decay.size()) ;
+		imposedStressAtGaussPoints[i].resize(decay.size()) ;
+		fi[i].resize(decay.size()) ;
+		gi[i].resize(decay.size()) ;
+		pi[i].resize(decay.size()) ;
+		li[i].resize(decay.size()) ;
+	}
+}
+
 
 
 GeneralizedFDMaxwell::GeneralizedFDMaxwell(const Matrix & rig, const std::vector<std::pair<Matrix, Vector> > & br , int p, double g) : Stiffness(rig)
@@ -202,8 +221,23 @@ Form * GeneralizedFDMaxwell::getCopy() const
 
 Vector GeneralizedFDMaxwell::getImposedStress(const Point & p, IntegrableEntity * e) const
 {
-	std::vector<Vector> imposedAtGaussPoints = this->makeImposedStressAtGaussPoints(branches[0].reducedStiffnessAtGaussPoints.size()) ;
-	return imposedAtGaussPoints[0] ;
+	std::vector<Vector> imposed = this->makeImposedStressAtGaussPoints(branches[0].imposedStressAtGaussPoints.size()) ;
+	if(e)
+	{
+		if(e->getOrder() > LINEAR)
+		{
+			VirtualMachine vm ;
+			Vector ret(0., imposed[0].size()) ;
+			for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+			{
+				Function fi = e->getShapeFunction(i) ;
+				Vector mi = vm.ieval( Gradient(fi) * imposed, e, v) ;
+				ret += vm.geval( Gradient(fi), e, v, p.x, p.y, p.z, p.t ) * mi ;
+			}
+			return ret ;
+		}
+	}
+	return imposed[0] ;
 }
 
 std::vector<BoundaryCondition * > GeneralizedFDMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -242,9 +276,13 @@ Vector GeneralizedFDMaxwell::updateInternalStrainRate( size_t g, size_t i, Vecto
 	return branches[i].updateInternalStrainRate(g, eps) ;
 }  
 
-ElementState * GeneralizedFDMaxwell::createElementState( IntegrableEntity * e) const 
+ElementState * GeneralizedFDMaxwell::createElementState( IntegrableEntity * e) 
 {
-	return new GeneralizedMaxwellElementState(e, branches.size()) ;
+	for(size_t i = 0 ; i < branches.size() ; i++)
+	{
+		branches[i].setNumberOfGaussPoints(e->getGaussPoints().gaussPoints.size()) ;
+	}
+	return new ElementStateWithInternalVariables(e, 1+2*branches.size(), param.numRows()) ;
 }
 
 void GeneralizedFDMaxwell::updateElementState(double timestep, ElementState & currentState) const 
@@ -255,13 +293,13 @@ void GeneralizedFDMaxwell::updateElementState(double timestep, ElementState & cu
 	{
 		Vector strain( 0., 3+3*(num_dof == 3)) ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain) ;
-		dynamic_cast<GeneralizedMaxwellElementState &>(currentState).setInternalVariableAtGaussPoint(strain, g, 0) ;
+		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strain, g, 0) ;
 		for(size_t i = 0 ; i < branches.size() ; i++)
 		{
 			Vector alpha = branches[i].updateInternalStrain(g, strain) ;
 			Vector alphadot = branches[i].updateInternalStrainRate(g, strain) ;
-			dynamic_cast<GeneralizedMaxwellElementState &>(currentState).setInternalVariableAtGaussPoint(alpha, g, i*2+1) ;
-			dynamic_cast<GeneralizedMaxwellElementState &>(currentState).setInternalVariableAtGaussPoint(alphadot, g, i*2+2) ;
+			dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alpha, g, i*2+1) ;
+			dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alphadot, g, i*2+2) ;
 		}
 	}
 }
@@ -279,9 +317,10 @@ Matrix GeneralizedFDMaxwell::getTensor(const Point & p, IntegrableEntity * e) co
 			for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
 			{
 				Function fi = e->getShapeFunction(i) ;
-				Matrix mi ;//= vm.ieval( Gradient(fi) * stiffnessAtGaussPoints, e, v) ;
+				Matrix mi = vm.ieval( Gradient(fi) * stiffnessAtGaussPoints, e, v) ;
 				ret += vm.geval( Gradient(fi), e, v, p.x, p.y, p.z, p.t ) * mi ;
 			}
+			return ret ;
 		}
 	}
 	return stiffnessAtGaussPoints[0] ;

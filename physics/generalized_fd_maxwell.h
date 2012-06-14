@@ -41,6 +41,8 @@ namespace Mu
 		
 		Vector updateInternalStrain( size_t g, const Vector & eps) const ;
 		Vector updateInternalStrainRate( size_t g, const Vector & eps) const ;
+		
+		void setNumberOfGaussPoints(size_t n) ;
 	} ;
       
   
@@ -74,7 +76,7 @@ namespace Mu
 		virtual Vector updateInternalStrain( size_t g, size_t i, Vector & eps) ;
 		virtual Vector updateInternalStrainRate( size_t g, size_t i, Vector & eps) ;
 
-		virtual ElementState * createElementState( IntegrableEntity * e) const ;
+		virtual ElementState * createElementState( IntegrableEntity * e) ;
 
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 
