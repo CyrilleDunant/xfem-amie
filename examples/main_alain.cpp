@@ -213,8 +213,8 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 {
 
-	int nsteps = 4; // step 16 = 0.023
-	int nstepstot = 4;
+	int nsteps = 10; // step 16 = 0.023
+	int nstepstot = 10;
 	int maxtries = 5 ;
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(1600) ;
@@ -619,16 +619,16 @@ void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 		}
 		for(size_t i = 0 ; i < expansion_reaction.size() ; i++)
 		{
-			std::cout << expansion_reaction[i].first << "   " 
+			std::cout << /*expansion_reaction[i].first << "   " 
 			<< expansion_reaction[i].second << "   " 
 			<< expansion_stress_xx[i].first << "   " 
 			<< expansion_stress_xx[i].second << "   " 
-			<< expansion_stress_yy[i].first << "   " 
+			<<*/ expansion_stress_yy[i].first << "\t" 
 			<< expansion_stress_yy[i].second << "   " 
-			<< apparent_extension[i].first  << "   "
+			/*<< apparent_extension[i].first  << "   "
 			<< apparent_extension[i].second  << "   "
 			<< cracked_volume[i]  << "   "
-			<< damaged_volume[i]  << "   " 
+			<< damaged_volume[i]  << "   " */
 			<< std::endl ;
 		}
 	}
@@ -1548,7 +1548,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
 
-	step(reference, nSampling, atoi(argv[3]), atoi(argv[4])) ;
+	step(reference, nSampling, 0,0) ;
 	
 	return 0 ;
 }

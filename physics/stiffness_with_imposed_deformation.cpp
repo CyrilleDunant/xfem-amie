@@ -69,12 +69,12 @@ void StiffnessWithImposedDeformation::step(double timestep, ElementState & curre
 {
 }
 
-Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e) const
+Vector StiffnessWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e) const
+Vector StiffnessWithImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

@@ -46,12 +46,12 @@ bool StiffnessWithTimeDependentImposedDeformation::hasInducedForces() const
 	return true ; 
 } 
 
-Vector StiffnessWithTimeDependentImposedDeformation::getImposedStress(const Point & p) const
+Vector StiffnessWithTimeDependentImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithTimeDependentImposedDeformation::getImposedStrain(const Point & p) const
+Vector StiffnessWithTimeDependentImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

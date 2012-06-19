@@ -245,8 +245,10 @@ Form * NewmarkNumeroffKelvinVoigt::getCopy() const
 	return new NewmarkNumeroffKelvinVoigt(stiffness, decay, alpha) ;
 }
 
-Vector NewmarkNumeroffKelvinVoigt::getImposedStress( const Point &p , IntegrableEntity * e) const 
+Vector NewmarkNumeroffKelvinVoigt::getImposedStress( const Point &p , IntegrableEntity * e, int g) const 
 {
+	if(g > -1)
+		return imposedAtGaussPoints[g] ;
 	if(e)
 	{
 		if(e->getOrder() > LINEAR)
@@ -266,6 +268,14 @@ Vector NewmarkNumeroffKelvinVoigt::getImposedStress( const Point &p , Integrable
 		}
 	}
 	return imposedAtGaussPoints[0] ;
+}
+
+Vector NewmarkNumeroffKelvinVoigt::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const 
+{
+	Vector imposed = this->getImposedStress(p,e,g) ;
+	Matrix m = this->getTensor(p,e,g) ;
+	Composite::invertTensor(m) ;
+	return (Vector) (m*imposed) ;
 }
 
 std::vector<BoundaryCondition * > NewmarkNumeroffKelvinVoigt::getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const 
@@ -320,7 +330,7 @@ void NewmarkNumeroffKelvinVoigt::updateElementState(double timestep, ElementStat
 	}  
 }
 
-Matrix NewmarkNumeroffKelvinVoigt::getTensor(const Point & p, IntegrableEntity * e) const 
+Matrix NewmarkNumeroffKelvinVoigt::getTensor(const Point & p, IntegrableEntity * e, int g) const 
 {
 	return param ;
 }
@@ -381,8 +391,10 @@ Form * ExponentiallyPredictedKelvinVoigt::getCopy() const
 	return new ExponentiallyPredictedKelvinVoigt( stiffness, decay) ;
 }
 
-Vector ExponentiallyPredictedKelvinVoigt::getImposedStress( const Point &p , IntegrableEntity * e ) const 
+Vector ExponentiallyPredictedKelvinVoigt::getImposedStress( const Point &p , IntegrableEntity * e , int g) const 
 {
+	if(g > -1)
+		return imposedAtGaussPoints[g] ;
 	if(e)
 	{
 		if(e->getOrder() > LINEAR)
@@ -402,6 +414,15 @@ Vector ExponentiallyPredictedKelvinVoigt::getImposedStress( const Point &p , Int
 		}
 	}
 	return imposedAtGaussPoints[0] ;  
+}
+
+
+Vector ExponentiallyPredictedKelvinVoigt::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const 
+{
+	Vector imposed = this->getImposedStress(p,e,g) ;
+	Matrix m = this->getTensor(p,e,g) ;
+	Composite::invertTensor(m) ;
+	return (Vector) (m*imposed) ;
 }
 
 std::vector<BoundaryCondition * > ExponentiallyPredictedKelvinVoigt::getBoundaryConditions( const ElementState &s, size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const 
@@ -462,7 +483,7 @@ void ExponentiallyPredictedKelvinVoigt::updateElementState(double timestep, Elem
 	}    
 }
 
-Matrix ExponentiallyPredictedKelvinVoigt::getTensor(const Point & p, IntegrableEntity * e ) const 
+Matrix ExponentiallyPredictedKelvinVoigt::getTensor(const Point & p, IntegrableEntity * e , int g) const 
 {
 	return param ;
 }

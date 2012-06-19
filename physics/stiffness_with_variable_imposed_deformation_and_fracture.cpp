@@ -80,12 +80,12 @@ bool StiffnessWithVariableImposedDeformationAndFracture::fractured() const
 	return frac;
 }
 
-Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e) const
+Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e) const
+Vector StiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

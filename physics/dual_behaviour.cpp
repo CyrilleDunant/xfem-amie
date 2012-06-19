@@ -32,35 +32,35 @@ void BimaterialInterface::transform(const Function & x, const Function & y, cons
 	ztransform.compile() ;
 }
 
-Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e) const
+Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
 
 	if(inGeometry->in(test))
-		return inBehaviour->getTensor(p, e) ;
+		return inBehaviour->getTensor(p, e, g) ;
 	
-	return outBehaviour->getTensor(p, e) ;
+	return outBehaviour->getTensor(p, e, g) ;
 }
 
-Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e) const
+Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	if(inGeometry->in(p))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
-		return inBehaviour->getImposedStress(p,e) ;
+		return inBehaviour->getImposedStress(p,e,g) ;
 	}
-	return outBehaviour->getImposedStress(p,e) ;
+	return outBehaviour->getImposedStress(p,e,g) ;
 }
 
-Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e) const
+Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	if(inGeometry->in(p))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
-		return inBehaviour->getImposedStrain(p,e) ;
+		return inBehaviour->getImposedStrain(p,e,g) ;
 	}
-	return outBehaviour->getImposedStrain(p,e) ;
+	return outBehaviour->getImposedStrain(p,e,g) ;
 }
 
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const

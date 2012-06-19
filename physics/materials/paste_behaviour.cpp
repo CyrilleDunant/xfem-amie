@@ -9,6 +9,8 @@
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
 #include "../generalized_fd_maxwell.h"
+#include "../maxwell.h"
+#include "../parallel_behaviour.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
@@ -54,6 +56,10 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 	double factor = 1. ;//- variability + variability*weib ;
 	Matrix Kvisc = Material::cauchyGreen(std::make_pair(Evisc, nuvisc), true, param.numRows() == 3 ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) ;
 	Vector decay(1./(tau*24*60*60), param.numRows()) ;
-	return new GeneralizedFDMaxwell(param*factor, std::make_pair(Kvisc, decay)) ;
+	
+	Stiffness * stiff = new Stiffness(param*factor) ;
+	NewmarkNumeroffMaxwell * max = new NewmarkNumeroffMaxwell(Kvisc, decay) ;
+	
+	return new ParallelBehaviour(stiff, max) ;
 }
 

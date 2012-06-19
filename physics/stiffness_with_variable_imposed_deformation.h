@@ -57,8 +57,8 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 		/** \brief Return the current imposed strain vector*/
-		virtual Vector getImposedStress(const Point & p) const ;
-		virtual Vector getImposedStrain(const Point & p) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
 
 		/** \brief Increment the loading. The loading is increased by the timestep*a random value between 0 and 1 .*/
 		virtual void step(double timestep, ElementState & currentState) ;

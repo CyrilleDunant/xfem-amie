@@ -91,7 +91,7 @@ Form * StiffnessAndIndexedFracture::getCopy() const
 	return copy ;
 }
 
-Matrix StiffnessAndIndexedFracture::getTensor(const Point & p, IntegrableEntity * e) const
+Matrix StiffnessAndIndexedFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
 	return dfunc->apply(param) ;
 }

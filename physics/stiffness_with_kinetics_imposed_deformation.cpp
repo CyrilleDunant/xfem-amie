@@ -41,12 +41,12 @@ Form * StiffnessWithKineticsImposedDeformation::getCopy() const
 	return new StiffnessWithKineticsImposedDeformation(*this) ;
 }
 
-Vector StiffnessWithKineticsImposedDeformation::getImposedStress(const Point & p) const
+Vector StiffnessWithKineticsImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithKineticsImposedDeformation::getImposedStrain(const Point & p) const
+Vector StiffnessWithKineticsImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

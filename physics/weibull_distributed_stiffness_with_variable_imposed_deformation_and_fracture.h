@@ -75,8 +75,8 @@ namespace Mu
 		/** \brief return a StiffnessWithVariableImposedDeformationAndFracture, which parameters are randomised using a Weibull distribution*/
 		virtual Form * getCopy() const ;
 
-		virtual Vector getImposedStress(const Point & p) const ;
-		virtual Vector getImposedStrain(const Point & p) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
 		
 		virtual bool hasInducedForces() const ;
 		

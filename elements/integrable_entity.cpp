@@ -37,7 +37,7 @@ void Form::scale(double d)
 		getDamageModel()->scale(d) ;
 }
 
-Vector Form::getImposedStress(const Point & p, IntegrableEntity * e) const
+Vector Form::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStress(p) ;
@@ -45,7 +45,7 @@ Vector Form::getImposedStress(const Point & p, IntegrableEntity * e) const
 	return Vector(double(0), getTensor(p, e).numCols()) ;
 }
 
-Vector Form::getImposedStrain(const Point & p, IntegrableEntity * e) const
+Vector Form::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	if(getDamageModel() && getDamageModel()->hasInducedForces())
 		return getDamageModel()->getImposedStrain(p) ;
@@ -2313,4 +2313,104 @@ void ElementStateWithInternalVariables::setInternalVariableAtGaussPoint(Vector &
 	internalVariablesAtGaussPoints[g][i] = v ;
 }
 
+int Mu::isGaussPoint(const Point & p, IntegrableEntity * e) 
+{
+	if(e)
+	{
+		GaussPointArray gauss = e->getGaussPoints() ; 
+		for(size_t i = 0 ; i < gauss.gaussPoints.size() ; i++)
+		{
+			if(p == gauss.gaussPoints[i].first)
+				return i ;
+		}
+	}
+	return -1 ;
+}
 
+ParallelElementState::ParallelElementState(IntegrableEntity * e, std::vector<ElementState *> s) : ElementState(e)
+{
+	for(size_t i = 0 ; i < s.size() ; i++)
+		states.push_back(s[i]) ;
+}
+
+ParallelElementState::ParallelElementState(const ParallelElementState &s) : ElementState(s)
+{
+	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
+		states.push_back( new ElementState( s.getState(i) ) ) ;
+}
+
+
+ParallelElementState & ParallelElementState::operator =(const ParallelElementState & s) 
+{
+	ElementState::operator =(s) ;
+	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
+		this->getState(i) = s.getState(i) ;
+}
+
+ElementState & ParallelElementState::getState(size_t i) 
+{
+	return *states[i] ;
+}
+
+const ElementState & ParallelElementState::getState(size_t i) const
+{
+	return *states[i] ;
+}
+
+void ParallelElementState::initialize(bool initializeFractureCache ) 
+{
+	ElementState::initialize( initializeFractureCache ) ;
+	for(size_t i = 0 ; i < states.size() ; i++)
+		states[i]->initialize( initializeFractureCache ) ;
+}
+
+void ParallelElementState::step(double dt, const Vector* d ) 
+{
+	ElementState::step(dt, d) ;
+	for(size_t i = 0 ; i < states.size() ; i++)
+		states[i]->step(dt,d) ;
+}
+
+SerialElementState::SerialElementState(IntegrableEntity * e, std::vector<ElementState *> s) : ElementState(e)
+{
+	for(size_t i = 0 ; i < s.size() ; i++)
+		states.push_back(s[i]) ;
+}
+
+SerialElementState::SerialElementState(const SerialElementState &s) : ElementState(s)
+{
+	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
+		states.push_back( new ElementState( s.getState(i) ) ) ;
+}
+
+
+SerialElementState & SerialElementState::operator =(const SerialElementState & s) 
+{
+	ElementState::operator =(s) ;
+	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
+		this->getState(i) = s.getState(i) ;
+}
+
+ElementState & SerialElementState::getState(size_t i) 
+{
+	return *states[i] ;
+}
+
+const ElementState & SerialElementState::getState(size_t i) const
+{
+	return *states[i] ;
+}
+
+void SerialElementState::initialize(bool initializeFractureCache ) 
+{
+	ElementState::initialize( initializeFractureCache ) ;
+	for(size_t i = 0 ; i < states.size() ; i++)
+		states[i]->initialize( initializeFractureCache ) ;
+}
+
+void SerialElementState::step(double dt, const Vector* d ) 
+{
+	ElementState::step(dt, d) ;
+	for(size_t i = 0 ; i < states.size() ; i++)
+		states[i]->step(dt,d) ;
+}

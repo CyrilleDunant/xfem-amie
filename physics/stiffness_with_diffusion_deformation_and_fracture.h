@@ -69,7 +69,7 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
-		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
@@ -95,7 +95,7 @@ namespace Mu
 		virtual bool changed() const ;
 		
 		/** \brief Return the (damaged) Stifness tensor*/
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
 
 
 

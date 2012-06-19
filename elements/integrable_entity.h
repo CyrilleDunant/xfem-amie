@@ -313,6 +313,44 @@ public:
 	
 } ;
 
+class ParallelElementState : public ElementState
+{
+protected:
+	std::vector<ElementState *> states ;
+
+public:	
+	ParallelElementState(IntegrableEntity *, std::vector<ElementState *> s) ;
+	ParallelElementState(const ParallelElementState &s) ;						
+	ParallelElementState & operator =(const ParallelElementState & s) ;
+	
+	ElementState & getState(size_t i) ;
+	const ElementState & getState(size_t i) const ;
+	size_t getNumberOfStates() const { return states.size() ; }
+
+	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void step(double dt, const Vector* d ) ;
+	
+} ;
+
+class SerialElementState : public ElementState
+{
+protected:
+	std::vector<ElementState *> states ;
+
+public:	
+	SerialElementState(IntegrableEntity *, std::vector<ElementState *> s) ;
+	SerialElementState(const SerialElementState &s) ;						
+	SerialElementState & operator =(const SerialElementState & s) ;
+	
+	ElementState & getState(size_t i) ;
+	const ElementState & getState(size_t i) const ;
+	size_t getNumberOfStates() const { return states.size() ; }
+
+	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void step(double dt, const Vector* d ) ;
+	
+} ;
+
 /** \brief container for a set of Gauss points*/
 struct GaussPointArray
 {
@@ -464,7 +502,7 @@ public:
 	virtual Form * getCopy() const = 0 ;
 	virtual void stepBack() { std::cout << "step back not implemented" << std::endl ; exit(0) ;}  ;
 	
-	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL) const
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const
 	{
 		return param ;
 	}
@@ -479,8 +517,8 @@ public:
 		return param ;
 	}
 
-	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL) const ;
-	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
 	
 	virtual ~Form() { } ;
 
@@ -497,6 +535,8 @@ public:
 } ;
 
 Matrix makeStressOrStrainMatrix(Vector & stressOrStrain) ;
+
+int isGaussPoint(const Point & p, IntegrableEntity * e) ;
 
 } ;
 

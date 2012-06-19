@@ -50,12 +50,12 @@ bool WeibullStiffnessWithVariableImposedDeformationAndFracture::hasInducedForces
 	return true ; 
 } 
 
-Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStress(const Point & p) const
+Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p) const
+Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

@@ -49,12 +49,12 @@ void StiffnessWithVariableImposedDeformation::step(double timestep, ElementState
 	imposed[1] += timestep*uniformRand ;
 }
 
-Vector StiffnessWithVariableImposedDeformation::getImposedStress(const Point & p) const
+Vector StiffnessWithVariableImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	return (param * imposed) ;
 }
 
-Vector StiffnessWithVariableImposedDeformation::getImposedStrain(const Point & p) const
+Vector StiffnessWithVariableImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	return imposed ;
 }

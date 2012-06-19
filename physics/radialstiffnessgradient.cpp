@@ -95,7 +95,7 @@ bool RadialStiffnessGradient::fractured() const
 	return frac;
 }
 
-Matrix RadialStiffnessGradient::getTensor(const Point & p, IntegrableEntity * e) const
+Matrix RadialStiffnessGradient::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
 	

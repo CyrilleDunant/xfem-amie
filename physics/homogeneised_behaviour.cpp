@@ -232,18 +232,18 @@ std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions( 
 	return equivalent->getBoundaryConditions( s, id, p_i, gp, Jinv ) ;
 }
 
-Vector HomogeneisedBehaviour::getImposedStress( const Point &p , IntegrableEntity *) const
+Vector HomogeneisedBehaviour::getImposedStress( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getImposedStress( p ) ;
+	return equivalent->getImposedStress( p , e, g) ;
 }
 
-Vector HomogeneisedBehaviour::getImposedStrain( const Point &p , IntegrableEntity *) const
+Vector HomogeneisedBehaviour::getImposedStrain( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getImposedStrain( p ) ;
+	return equivalent->getImposedStrain( p , e, g) ;
 }
 
-Matrix HomogeneisedBehaviour::getTensor( const Point &p , IntegrableEntity *) const
+Matrix HomogeneisedBehaviour::getTensor( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getTensor( p ) ;
+	return equivalent->getTensor( p, e,g  ) ;
 }
 
