@@ -92,7 +92,7 @@ std::vector<bool> cracked ;
 
 double E_min = 10;
 double E_max = 0;
-double scale = 10000 ;
+double scale = 100 ;
 
 double x_max = 0 ;
 double y_max = 0 ;
@@ -145,9 +145,9 @@ double aggregateArea = 0;
 
 void step()
 {
-	int nsteps = 30 ;
-	int nstepstot = 30 ;
-	featureTree->setMaxIterationsPerStep( 400 ) ;
+	int nsteps = 10 ;
+	int nstepstot = 10 ;
+	featureTree->setMaxIterationsPerStep( 10000 ) ;
 	
 	for( size_t s = 0 ; s < nsteps ; s++ )
 	{

@@ -89,8 +89,6 @@ Vector NewmarkNumeroffMaxwell::getImposedStrain(const Point & p, IntegrableEntit
 
 std::vector<BoundaryCondition * > NewmarkNumeroffMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	std::cout << "before " << imposedStressAtGaussPoints[0][0] << std::endl ;
-	
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints, gp, Jinv,v) ;
 	
 	std::vector<BoundaryCondition * > ret ;
@@ -127,7 +125,6 @@ void NewmarkNumeroffMaxwell::updateElementState(double timestep, ElementState & 
 	{
 		Vector strain( 0., 3+3*(num_dof == 3)) ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain) ;
-		std::cout << "after " << strain[0] << std::endl ;
 		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strain, g, 0) ;
 		Vector alpha = this->updateInternalStrain(g, strain) ;
 		Vector alphadot = this->updateInternalStrainRate(g, strain) ;

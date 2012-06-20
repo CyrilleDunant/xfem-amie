@@ -253,6 +253,11 @@ Vector VirtualMachine::ddeval(const Function&f, const Variable v_0, const Variab
 	return ret ;
 }
 
+double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Variable v_1,  const Point & p, const double eps) 
+{
+	return ddeval(f, v_0, v_1, p.x,p.y,p.z,p.t, 0., 0., 0., eps) ;
+}
+
 double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Variable v_1,  const double x, const double y , const double z, const double t, const double u, const double v, const double w, const double eps) 
 {
 	switch(v_0)

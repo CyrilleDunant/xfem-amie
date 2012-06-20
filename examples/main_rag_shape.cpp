@@ -1286,7 +1286,7 @@ int main(int argc, char *argv[])
 	switch(reference)
 	{
 		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(100, 30, inclusions, F) ;
+			zones = generateExpansiveZonesHomogeneously(100, 20, inclusions, F) ;
 			break ;
 		case ELLIPSE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;

@@ -250,6 +250,8 @@ This is the directional derivative.
  */
 	double ddeval(const Function &f, const Variable v_0, const Variable v_1,  const double x=0, const double y=0 , const double z=0, const double t=0, const double u=0, const double v=0, const double w=0, const double eps = default_derivation_delta) ;
 
+	double ddeval(const Function &f, const Variable v_0, const Variable v_1,  const Point & p, const double eps = default_derivation_delta) ;
+
 /** \brief Evaluate d²f/d(v_0v_1) at (x, y, z, t, u, v, w) for each point for the GaussPointArray.
 @param f Function to evaluate.
 @param v_0 first Variable with respect to which the differential should be calculated

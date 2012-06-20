@@ -56,6 +56,8 @@ struct KelvinVoight : public LinearForm
 	 */
 	virtual bool fractured() const ;
 
+	virtual ElementState * createElementState( IntegrableEntity * e) ;
+
 	/** \brief return a copy of the behaviour
 	 *
 	 * @return a new KelvinVoight

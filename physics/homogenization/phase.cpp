@@ -185,6 +185,10 @@ void Phase::stiffnessFromBehaviour()
 	{
 		tmp =  dynamic_cast<HomogeneisedBehaviour *>(behaviour)->original->getTensor( Point(0.,0.) ) ;
 	}
+	if(dynamic_cast<HomogeneisedBehaviour *>(behaviour))
+	{
+		tmp =  dynamic_cast<HomogeneisedBehaviour *>(behaviour)->original->getTensor( Point(0.,0.) ) ;
+	}
 	C.resize( tmp.numRows(), tmp.numCols() ) ;
 	C = tmp ;
 		

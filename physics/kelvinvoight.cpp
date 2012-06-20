@@ -19,7 +19,7 @@ using namespace Mu ;
 
 KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e, double characteristicTime ) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e), characteristicTime(characteristicTime)
 {
-	rig.print() ;
+//	rig.print() ;
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() > 9)
@@ -29,24 +29,28 @@ KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e, double characte
 
 KelvinVoight::~KelvinVoight() { } ;
 
+ElementState * KelvinVoight::createElementState( IntegrableEntity * e) 
+{
+	return new KelvinVoightSpaceTimeElementState(e) ;  
+}
+
 void KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 	bool isSpaceIdentical = (std::abs(p_i.getPoint()->x-p_j.getPoint()->x) + std::abs(p_i.getPoint()->y-p_j.getPoint()->y) + std::abs(p_i.getPoint()->z-p_j.getPoint()->z)) < POINT_TOLERANCE_2D;
 	bool isTimeIdentical = std::abs(p_i.getPoint()->t-p_j.getPoint()->t) < POINT_TOLERANCE_2D ;
-	
 	Matrix temp(ret) ;
 	Matrix temp0(ret) ;
 	Matrix temp1(ret) ;
 	
 	vm->ieval(GradientDot(p_i) * eta   * GradientDot(p_j, true), gp, Jinv,v,temp);
-	vm->ieval(GradientDot(p_i) * param * GradientDot(p_j, true),    gp, Jinv,v,temp0) ;
+	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true),    gp, Jinv,v,temp0) ;
 	vm->ieval(Gradient(p_i)    * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
-// 	if(isSpaceIdentical)
-// 	{
-// 		(temp0+temp1).print();
+// 	if(isTimeIdentical)
+//	{
+//		(temp0+temp1).print();
 // 		exit(0) ;
-// 	}
-	ret = (temp0+temp1) + temp*(1.-1./(Jinv[0][2][2]*characteristicTime)) ; //(1.-1./(Jinv[0][2][2]*characteristicTime)) ;
+//	}
+	ret =(temp0+temp1) + temp*(1.-1./(Jinv[0][2][2]*characteristicTime)) ; //(1.-1./(Jinv[0][2][2]*characteristicTime)) ;
 }
 
 bool KelvinVoight::fractured() const
@@ -228,8 +232,10 @@ NewmarkNumeroffKelvinVoigt::NewmarkNumeroffKelvinVoigt(const Matrix & rig, const
 		for(size_t j = 0 ; j < d.size() ; j++)
 			viscosity[i][j] *= decay[i] ;
 	}
+	
 	imposedAtGaussPoints.resize(1) ;
 	imposedAtGaussPoints[0].resize(d.size()) ;
+	imposedAtGaussPoints[0] = 0. ;
 	
 }
 	
@@ -300,33 +306,43 @@ std::vector<BoundaryCondition * > NewmarkNumeroffKelvinVoigt::getBoundaryConditi
 
 void NewmarkNumeroffKelvinVoigt::step( double timestep, ElementState &s ) 
 {
+	if(timestep < POINT_TOLERANCE_2D)
+		return ;
 	s.getParent()->behaviourUpdated = true ;  
 }
 
 ElementState * NewmarkNumeroffKelvinVoigt::createElementState( IntegrableEntity * e) 
 {
-	imposedAtGaussPoints.resize(e->getGaussPoints().gaussPoints.size()) ;
-	for(size_t i = 0 ; i < imposedAtGaussPoints.size() ; i++)
-		imposedAtGaussPoints[i].resize(decay.size()) ;
+	if(e->getGaussPoints().gaussPoints.size() > 1)
+	{
+		imposedAtGaussPoints.resize(e->getGaussPoints().gaussPoints.size()) ;
+		for(size_t i = 0 ; i < imposedAtGaussPoints.size() ; i++)
+		{
+			imposedAtGaussPoints[i].resize(decay.size()) ;
+			imposedAtGaussPoints[i] = 0. ;
+		}
+	}
 	return new ElementStateWithInternalVariables(e, 2, decay.size()) ;
 }
 
 void NewmarkNumeroffKelvinVoigt::updateElementState(double timestep, ElementState & currentState) const 
 {
+	LinearForm::updateElementState(timestep, currentState) ;
+	if(timestep < POINT_TOLERANCE_2D)
+		return ;
 	for(size_t g = 0 ; g < imposedAtGaussPoints.size() ; g++)
 	{
 		Vector strainp(0., decay.size()) ;
 		Vector speed(0., decay.size()) ;
 		Vector strain(0., decay.size()) ;
-		dynamic_cast<ElementStateWithInternalVariables &>(currentState).getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD , INTERNAL_VARIABLE_FIELD , g , speed , strainp , 0 , 1 ) ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD , g , strain ) ;
+		dynamic_cast<ElementStateWithInternalVariables &>(currentState).getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD , INTERNAL_VARIABLE_FIELD , g , speed , strainp , 0 , 1 ) ;
 		
-		speed += (strain - strainp) / (alpha*timestep) ;
-		strainp = strain + (speed * alpha*timestep) ;
+		speed = (strain - strainp) / (alpha*timestep) - speed * (1.-alpha)/alpha ;
+		strainp = strain ;//+ (speed * alpha*timestep) ;
 		
 		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(speed, g, 0) ;
-		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strainp, g, 1) ;
-		
+		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strainp, g, 1) ;		
 	}  
 }
 
@@ -348,10 +364,12 @@ void NewmarkNumeroffKelvinVoigt::preProcess( double timeStep, ElementState & cur
 		Vector speed(0., decay.size()) ;
 		dynamic_cast<ElementStateWithInternalVariables &>(currentState).getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD , INTERNAL_VARIABLE_FIELD , g , speed , strainp , 0 , 1 ) ;
 		
+		speed *= (1.-alpha)/alpha ;
 		strainp /= (alpha * timeStep) ;
 		
-		imposedAtGaussPoints[g] = viscosity * (speed - strainp) ;
+		imposedAtGaussPoints[g] = (Vector) (viscosity * (speed + strainp)) ;
 	}
+//	std::cout << "before step " << imposedAtGaussPoints[0][0] << std::endl ;
   
 }
 
@@ -370,12 +388,13 @@ ExponentiallyPredictedKelvinVoigt::ExponentiallyPredictedKelvinVoigt(const Matri
 	}
 	reduction.array() = 0. ;
 	
-	Vector expl = std::exp(decay) ;
+	Vector expl = std::exp(-decay) ;
 	for(size_t i = 0 ; i < decay.size() ; i++)
 		reduction[i][i] = decay[i] * (1. - expl[i]) / ( 1. - expl[i] - decay[i] ) ;
-	
+		
 	imposedAtGaussPoints.resize(1) ;
-	imposedAtGaussPoints[0].resize(d.size()) ;  
+	imposedAtGaussPoints[0].resize(d.size()) ;
+	imposedAtGaussPoints[0] = 0. ;
 }
 
 ExponentiallyPredictedKelvinVoigt::~ExponentiallyPredictedKelvinVoigt() { } ;
@@ -446,19 +465,30 @@ std::vector<BoundaryCondition * > ExponentiallyPredictedKelvinVoigt::getBoundary
 
 void ExponentiallyPredictedKelvinVoigt::step( double timestep, ElementState &s ) 
 {
+	if(timestep < POINT_TOLERANCE_2D)
+		return ;
 	s.getParent()->behaviourUpdated = true ;    
 }
 
 ElementState * ExponentiallyPredictedKelvinVoigt::createElementState( IntegrableEntity * e) 
 {
-	imposedAtGaussPoints.resize(e->getGaussPoints().gaussPoints.size()) ;
-	for(size_t i = 0 ; i < imposedAtGaussPoints.size() ; i++)
-		imposedAtGaussPoints[i].resize(decay.size()) ;
+	if(e->getGaussPoints().gaussPoints.size() > 1)
+	{
+		imposedAtGaussPoints.resize(e->getGaussPoints().gaussPoints.size()) ;
+		for(size_t i = 0 ; i < imposedAtGaussPoints.size() ; i++)
+		{
+			imposedAtGaussPoints[i].resize(decay.size()) ;
+			imposedAtGaussPoints[i] = 0. ;
+		}
+	}
 	return new ElementStateWithInternalVariables(e, 2, decay.size()) ;  
 }
 
 void ExponentiallyPredictedKelvinVoigt::updateElementState(double timestep, ElementState & currentState) const 
 {
+	LinearForm::updateElementState(timestep, currentState) ;
+	if(timestep < POINT_TOLERANCE_2D)
+		return ;
 	for(size_t g = 0 ; g < imposedAtGaussPoints.size() ; g++)
 	{
 		Vector strain(0., decay.size()) ;
@@ -490,6 +520,13 @@ Matrix ExponentiallyPredictedKelvinVoigt::getTensor(const Point & p, IntegrableE
 
 void ExponentiallyPredictedKelvinVoigt::preProcess( double timeStep, ElementState & currentState ) 
 {
+	if(timeStep < POINT_TOLERANCE_2D)
+		return ;
+
+	Vector expl = std::exp(-decay) ;
+	for(size_t i = 0 ; i < decay.size() ; i++)
+		reduction[i][i] = decay[i] * (1. - expl[i]) / ( 1. - expl[i] - decay[i] ) ;
+
 	Matrix m = viscosity * reduction ;
 	m /= timeStep ;
 	param = stiffness - m ;

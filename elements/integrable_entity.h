@@ -64,15 +64,18 @@ typedef enum{
 typedef enum {
 	DISPLACEMENT_FIELD,
 	ENRICHED_DISPLACEMENT_FIELD,
+	SPEED_FIELD,
 	FLUX_FIELD,
 	GRADIENT_FIELD,
 	STRAIN_FIELD,
+	STRAIN_RATE_FIELD,
 	EFFECTIVE_STRESS_FIELD,
 	REAL_STRESS_FIELD,
 	PRINCIPAL_STRAIN_FIELD,
 	PRINCIPAL_EFFECTIVE_STRESS_FIELD,
 	PRINCIPAL_REAL_STRESS_FIELD,
 	NON_ENRICHED_STRAIN_FIELD,
+	NON_ENRICHED_STRAIN_RATE_FIELD,
 	NON_ENRICHED_EFFECTIVE_STRESS_FIELD,
 	NON_ENRICHED_REAL_STRESS_FIELD,
 	VON_MISES_STRAIN_FIELD,
@@ -350,6 +353,24 @@ public:
 	virtual void step(double dt, const Vector* d ) ;
 	
 } ;
+
+class KelvinVoightSpaceTimeElementState : public ElementState
+{
+public:
+	KelvinVoightSpaceTimeElementState(IntegrableEntity * e) ;
+	KelvinVoightSpaceTimeElementState(const KelvinVoightSpaceTimeElementState &s) ;						
+	KelvinVoightSpaceTimeElementState & operator =(const KelvinVoightSpaceTimeElementState & s) ;
+	
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
+		
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+		
+	virtual void getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+
+} ;
+
 
 /** \brief container for a set of Gauss points*/
 struct GaussPointArray

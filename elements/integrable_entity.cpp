@@ -2302,7 +2302,10 @@ void ElementStateWithInternalVariables::initialize( bool initializeFractureCache
 	{
 		internalVariablesAtGaussPoints[g].resize( n ) ;
 		for(size_t k = 0 ; k < n ; k++)
+		{
 			internalVariablesAtGaussPoints[g][k].resize(p) ;
+			internalVariablesAtGaussPoints[g][k] = 0. ;
+		}
 	}
 	
 }
@@ -2413,3 +2416,407 @@ void SerialElementState::step(double dt, const Vector* d )
 	for(size_t i = 0 ; i < states.size() ; i++)
 		states[i]->step(dt,d) ;
 }
+
+KelvinVoightSpaceTimeElementState::KelvinVoightSpaceTimeElementState(IntegrableEntity * e) : ElementState(e)
+{
+
+}
+
+KelvinVoightSpaceTimeElementState::KelvinVoightSpaceTimeElementState(const KelvinVoightSpaceTimeElementState &s) : ElementState(s)
+{
+
+}
+
+
+KelvinVoightSpaceTimeElementState & KelvinVoightSpaceTimeElementState::operator =(const KelvinVoightSpaceTimeElementState & s) 
+{
+	ElementState::operator =(s) ;
+}
+
+void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
+{
+	VirtualMachine vm ;
+	int n = 0 ;
+	Point p_ = p ;
+	if( !local )
+		p_ = parent->inLocalCoordinates( p ) ;
+
+	switch(f)
+	{
+		case SPEED_FIELD:
+			n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+			{
+				double f =  vm.deval( parent->getShapeFunction( j ) , TIME_VARIABLE, p_) ;
+				for(size_t k = 0 ; k < n ; k++)
+					ret[k] += f * displacements[j*n+k] ;
+			}
+			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
+			{
+				double f =  vm.deval( parent->getShapeFunction( j ) , TIME_VARIABLE, p_) ;
+				for(size_t k = 0 ; k < n ; k++)
+					ret[k] += f * enrichedDisplacements[j*n+k] ;
+			}
+			return ;
+		case STRAIN_RATE_FIELD:
+			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+			{
+				double x_xi = 0;
+				double x_eta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+				{
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					x_xi += f_xi * displacements[j * 2] ;
+					x_eta += f_eta * displacements[j * 2] ;
+					y_xi += f_xi * displacements[j * 2 + 1] ;
+					y_eta += f_eta * displacements[j * 2 + 1] ;
+				}
+
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+				{
+					double f_xi = vm.ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+
+					x_xi += f_xi * enrichedDisplacements[j * 2] ;
+					x_eta += f_eta * enrichedDisplacements[j * 2] ;
+					y_xi += f_xi * enrichedDisplacements[j * 2 + 1] ;
+					y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
+				}
+
+				Matrix Jinv( 3, 3 ) ;
+				parent->getInverseJacobianMatrix( p_, Jinv ) ;
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
+				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+			}
+			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+			{
+				double x_xi = 0;
+				double x_eta = 0;
+				double x_zeta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+				double y_zeta = 0;
+				double z_xi = 0;
+				double z_eta = 0;
+				double z_zeta = 0;
+
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+				{
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					double f_zeta = vm.ddeval( parent->getShapeFunction( j ), ZETA, TIME_VARIABLE, p_ ) ;
+					double x = displacements[j * 3] ;
+					double y = displacements[j * 3 + 1] ;
+					double z = displacements[j * 3 + 2] ;
+
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
+
+				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+				{
+					double f_xi = vm.ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					double f_zeta = vm.ddeval( parent->getEnrichmentFunction( j ), ZETA, TIME_VARIABLE, p_ ) ;
+					double x = enrichedDisplacements[j * 3] ;
+					double y = enrichedDisplacements[j * 3 + 1] ;
+					double z = enrichedDisplacements[j * 3 + 2] ;
+
+					x_xi += f_xi * x;
+					x_eta += f_eta * x ;
+					x_zeta += f_zeta * x ;
+					y_xi += f_xi * y ;
+					y_eta += f_eta * y ;
+					y_zeta += f_zeta * y ;
+					z_xi += f_xi * z ;
+					z_eta += f_eta * z ;
+					z_zeta += f_zeta * z ;
+				}
+
+				Matrix Jinv( 4, 4 ) ;
+				parent->getInverseJacobianMatrix( p_, Jinv ) ;
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+						    ( y_eta ) * Jinv[2][1] +
+						    ( y_zeta ) * Jinv[2][2] +
+						    ( z_xi ) * Jinv[1][0] +
+						    ( z_eta ) * Jinv[1][1] +
+						    ( z_zeta ) * Jinv[1][2] );
+
+				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+						    ( x_eta ) * Jinv[2][1] +
+						    ( x_zeta ) * Jinv[2][2] +
+						    ( z_xi ) * Jinv[0][0] +
+						    ( z_eta ) * Jinv[0][1] +
+						    ( z_zeta ) * Jinv[0][2] );
+
+				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+						    ( y_eta )  * Jinv[0][1] +
+						    ( y_zeta ) * Jinv[0][2] +
+						    ( x_xi )   * Jinv[1][0] +
+						    ( x_eta )  * Jinv[1][1] +
+						    ( x_zeta ) * Jinv[1][2] );
+			}
+			return ;
+		case NON_ENRICHED_STRAIN_RATE_FIELD:
+			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+			{
+				double x_xi = 0;
+				double x_eta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+				{
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					x_xi += f_xi * displacements[j * 2] ;
+					x_eta += f_eta * displacements[j * 2] ;
+					y_xi += f_xi * displacements[j * 2 + 1] ;
+					y_eta += f_eta * displacements[j * 2 + 1] ;
+				}
+
+				Matrix Jinv( 3, 3 ) ;
+				parent->getInverseJacobianMatrix( p_, Jinv ) ;
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
+				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+			}
+			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+			{
+				double x_xi = 0;
+				double x_eta = 0;
+				double x_zeta = 0;
+				double y_xi = 0;
+				double y_eta = 0;
+				double y_zeta = 0;
+				double z_xi = 0;
+				double z_eta = 0;
+				double z_zeta = 0;
+
+				for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+				{
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					double f_zeta = vm.ddeval( parent->getShapeFunction( j ), ZETA, TIME_VARIABLE, p_ ) ;
+					double x = displacements[j * 3] ;
+					double y = displacements[j * 3 + 1] ;
+					double z = displacements[j * 3 + 2] ;
+
+					x_xi   += f_xi   * x ;
+					x_eta  += f_eta  * x ;
+					x_zeta += f_zeta * x ;
+					y_xi   += f_xi   * y ;
+					y_eta  += f_eta  * y ;
+					y_zeta += f_zeta * y ;
+					z_xi   += f_xi   * z ;
+					z_eta  += f_eta  * z ;
+					z_zeta += f_zeta * z ;
+				}
+
+				Matrix Jinv( 4, 4 ) ;
+				parent->getInverseJacobianMatrix( p_, Jinv ) ;
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+						    ( y_eta ) * Jinv[2][1] +
+						    ( y_zeta ) * Jinv[2][2] +
+						    ( z_xi ) * Jinv[1][0] +
+						    ( z_eta ) * Jinv[1][1] +
+						    ( z_zeta ) * Jinv[1][2] );
+
+				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+						    ( x_eta ) * Jinv[2][1] +
+						    ( x_zeta ) * Jinv[2][2] +
+						    ( z_xi ) * Jinv[0][0] +
+						    ( z_eta ) * Jinv[0][1] +
+						    ( z_zeta ) * Jinv[0][2] );
+
+				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+						    ( y_eta )  * Jinv[0][1] +
+						    ( y_zeta ) * Jinv[0][2] +
+						    ( x_xi )   * Jinv[1][0] +
+						    ( x_eta )  * Jinv[1][1] +
+						    ( x_zeta ) * Jinv[1][2] );
+			}
+			return ;
+		case REAL_STRESS_FIELD:
+		{
+			Vector strain(0., ret.size()) ;
+			Vector rate(0., ret.size()) ;
+			this->getField(STRAIN_FIELD, STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) ;
+			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
+			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			return ;
+		}
+		case NON_ENRICHED_REAL_STRESS_FIELD:
+		{
+			Vector strain(0., ret.size()) ;
+			Vector rate(0., ret.size()) ;
+			this->getField(NON_ENRICHED_STRAIN_FIELD, NON_ENRICHED_STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) ;
+			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
+			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			return ;
+		}
+		case EFFECTIVE_STRESS_FIELD:
+		{
+			Vector strain(0., ret.size()) ;
+			Vector rate(0., ret.size()) ;
+			this->getField(STRAIN_FIELD, STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			ret = (Vector) (parent->getBehaviour()->param * strain) ;
+			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
+			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			return ;
+		}
+		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
+		{
+			Vector strain(0., ret.size()) ;
+			Vector rate(0., ret.size()) ;
+			this->getField(NON_ENRICHED_STRAIN_FIELD, NON_ENRICHED_STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			ret = (Vector) (parent->getBehaviour()->param * strain) ;
+			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
+			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			return ;
+		}
+	}
+	
+	ElementState::getField( f, p, ret, local) ;
+}
+
+void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i, int j)  const 
+{
+	Point p_ = p ;
+	if(!local)
+		p_ = parent->inLocalCoordinates(p) ;
+	if(isStrainField(f1) && isStressField(f2))
+	{
+		this->getField(f1, p, ret1, local) ;
+		if(isRealStressField(f2))
+			ret2 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret1) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+		else
+			ret2 = (Vector) (parent->getBehaviour()->param * ret1) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+		Vector rate(0., ret1.size()) ;
+		if(f1 == STRAIN_FIELD)
+			this->getField( STRAIN_RATE_FIELD, p, rate, local) ;
+		else
+			this->getField( NON_ENRICHED_STRAIN_RATE_FIELD, p, rate, local) ;
+		ret2 += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate) ;
+		return ;
+	}
+	if(isStrainField(f2) && isStressField(f1))
+	{
+		this->getField(f2, p, ret2, local) ;
+		if(isRealStressField(f1))
+			ret1 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret2) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+		else
+			ret1 = (Vector) (parent->getBehaviour()->param * ret2) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+		Vector rate(0., ret2.size()) ;
+		if(f2 == STRAIN_FIELD)
+			this->getField( STRAIN_RATE_FIELD, p, rate, local) ;
+		else
+			this->getField( NON_ENRICHED_STRAIN_RATE_FIELD, p, rate, local) ;
+		ret1 += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate) ;
+		return ;
+	}
+	
+	ElementState::getField(f1, p, ret1, local, i) ;
+	ElementState::getField(f2, p, ret2, local, j) ;
+  
+}
+
+void KelvinVoightSpaceTimeElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
+{
+	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
+	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
+	{
+		if( strainAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				strainAtCenter.resize( 3 ) ;
+			else
+				strainAtCenter.resize( 6 ) ;
+
+			this->getField(f1, p_, strainAtCenter, true) ;
+		}
+		if( stressAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				stressAtCenter.resize( 3 ) ;
+			else
+				stressAtCenter.resize( 6 ) ;
+			
+			if(isRealStressField(f2))
+				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			else
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			Vector rate(0., strainAtCenter.size()) ;
+			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
+			stressAtCenter += dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ;
+		}
+		ret1 = strainAtCenter ;
+		ret2 = stressAtCenter ;
+		return ;
+	}
+
+	if((f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD)  && f2 == STRAIN_FIELD)
+	{
+		if( strainAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				strainAtCenter.resize( 3 ) ;
+			else
+				strainAtCenter.resize( 6 ) ;
+
+			this->getField(f2, p_, strainAtCenter, true) ;
+		}
+		if( stressAtCenter.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+				stressAtCenter.resize( 3 ) ;
+			else
+				stressAtCenter.resize( 6 ) ;
+			
+			if(isRealStressField(f2))
+				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			else
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+
+			Vector rate(0., strainAtCenter.size()) ;
+			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
+			stressAtCenter += dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ;
+		}
+		ret1 = stressAtCenter ;
+		ret2 = strainAtCenter ;
+		return ;
+	}
+		
+	this->getField(f1, f2, p_, ret1, ret2, true) ;
+  
+}
+
+void KelvinVoightSpaceTimeElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i, int j) 
+{	
+	ElementState::getFieldAtNodes(f1, ret1, i) ;  
+	ElementState::getFieldAtNodes(f2, ret2, j) ;  
+}
+
+
