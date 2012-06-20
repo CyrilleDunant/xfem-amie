@@ -578,6 +578,8 @@ Vector getAnalyticalResults()
 
 int main(int argc, char *argv[])
 {
+
+  
 /*		Function t("t t *") ;
 		TriElement * element = new TriElement(LINEAR_TIME_LINEAR) ;
 		std::valarray<Point *> points(6) ;

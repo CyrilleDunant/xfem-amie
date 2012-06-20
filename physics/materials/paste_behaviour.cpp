@@ -8,7 +8,6 @@
 #include "paste_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
-#include "../generalized_fd_maxwell.h"
 #include "../maxwell.h"
 #include "../parallel_behaviour.h"
 #include "../homogenization/homogenization_base.h"

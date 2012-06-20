@@ -7,7 +7,6 @@
 
 #include "integrable_entity.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
-#include "../physics/generalized_fd_maxwell.h"
 #include "../physics/kelvinvoight.h"
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"

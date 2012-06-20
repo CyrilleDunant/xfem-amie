@@ -14,7 +14,6 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
-#include "../physics/generalized_fd_maxwell.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
