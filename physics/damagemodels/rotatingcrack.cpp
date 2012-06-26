@@ -34,6 +34,8 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 	secondTensionFailure = false ;
 	firstCompressionFailure = false ;
 	secondCompressionFailure = false ;
+	firstMet = false ;
+	secondMet = false ;
 }
 
 
@@ -61,7 +63,9 @@ int RotatingCrack::getMode() const
 		(!firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) 
 		|| firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0)
 		|| !secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension(1) 
-		|| secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(1))
+		|| secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(1)
+		|| firstMet != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) 
+		|| secondMet != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(1))
 		) 
 	{
 		return 1 ;
@@ -115,6 +119,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0))
 		{
+			firstMet = true ;
+			
 			if ( firstTension && !firstTensionFailure)
 			{
 				range[1] = getState()[1] ;
@@ -133,10 +139,12 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		{
 			range[1] = getState()[1] ;
 			range[0] = getState()[0] ;
+			firstMet = false ;
 		}
 		
 		if(s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1))
 		{
+			secondMet = true ;
 			if ( secondTension && !secondTensionFailure)
 			{
 				range[3] = getState()[3] ;
@@ -155,6 +163,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		{
 			range[3] = getState()[3] ;
 			range[2] = getState()[2] ;
+			secondMet = false ;
 		}
 		
 // 		if(tensionFailure)
@@ -198,8 +207,8 @@ Matrix RotatingCrack::apply( const Matrix &m ) const
 	if(fractured())
 		return m *0 ;
 	
-	double E_0 = factor*E ;
-	double E_1 = factor*E ;
+	double E_0 = factor*E*(1.-nu) ;
+	double E_1 = factor*E*(1.-nu) ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
 	if(!firstTension)

@@ -1623,7 +1623,7 @@ void FeatureTree::sample()
 			double total_area = tree[0]->area() ;
 
 			tree[0]->sample( samplingNumber ) ;
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto)
 
 			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
 			{
@@ -1654,7 +1654,7 @@ void FeatureTree::sample()
 
 			double total_area = tree[0]->area() * tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) * ( tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) ) ;
 			int count = 0 ;
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto)
 
 			for( int i  = 1 ; i < ( int )tree.size() ; i++ )
 			{
@@ -1701,7 +1701,7 @@ void FeatureTree::sample()
 			if( tree[0]->isUpdated )
 				tree[0]->sample( samplingNumber ) ;
 
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto) 
 
 			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
 			{
@@ -1735,7 +1735,7 @@ void FeatureTree::sample()
 
 			double total_area = tree[0]->area() * tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) * ( tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) ) ;
 			int count = 0 ;
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto)
 
 			for( int i  = 1 ; i < ( int )tree.size() ; i++ )
 			{
@@ -2967,7 +2967,7 @@ void FeatureTree::updateElementBehaviours()
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 			tetrahedrons[i]->refresh( father3D ) ;
 
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(auto)
 
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 		{
@@ -3292,7 +3292,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
 		int donecomputed = 0 ;
 		
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto)
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
 			if( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
@@ -3332,7 +3332,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 		std::pair<Vector , Vector > stress_strain( Vector( 0.f, 4 * 6 * tets.size() ), Vector( 0.f, 4 * 6 * tets.size() ) ) ;
 		int donecomputed = 0 ;
 
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto)
 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
@@ -3380,7 +3380,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 
 		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
 		int donecomputed = 0 ;
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto)
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
@@ -3421,7 +3421,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 		std::pair<Vector , Vector > stress_strain( Vector( 0.f, 4 * 6 * tets.size() ), Vector( 0.f, 4 * 6 * tets.size() ) ) ;
 		int donecomputed = 0 ;
 
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto)
 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
@@ -3468,7 +3468,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 
 		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
 		int donecomputed = 0 ;
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto) 
 
 		for( size_t i  = 0 ; i < elements.size() ; i++ )
 		{
@@ -3505,7 +3505,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 		std::pair<Vector , Vector > stress_strain( Vector( 0.f, 4 * 6 * tets.size() ), Vector( 0.f, 4 * 6 * tets.size() ) ) ;
 		int donecomputed = 0 ;
 
-		#pragma omp parallel for shared(donecomputed)
+		#pragma omp parallel for shared(donecomputed) schedule(auto)
 
 		for( size_t i  = 0 ; i < tets.size() ; i++ )
 		{
@@ -4275,7 +4275,7 @@ void FeatureTree::stepXfem()
 			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 
 			std::cerr << " ...done. " << std::endl ;
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto)
 
 			for( size_t i = 0 ; i < tree.size() ; i++ )
 			{
@@ -4313,7 +4313,7 @@ void FeatureTree::stepXfem()
 		else if( is3D() )
 		{
 
-			#pragma omp parallel for
+			#pragma omp parallel for schedule(auto)
 
 			for( size_t i = 0 ; i < tree.size() ; i++ )
 			{
@@ -4376,7 +4376,7 @@ bool FeatureTree::stepElements()
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-#pragma omp parallel for
+#pragma omp parallel for schedule(auto)
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4507,7 +4507,7 @@ bool FeatureTree::stepElements()
 			if( !elastic && foundCheckPoint )
 			{
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
-#pragma omp parallel for shared(maxScore,maxTolerance)
+#pragma omp parallel for shared(maxScore,maxTolerance) schedule(auto)
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4521,7 +4521,7 @@ bool FeatureTree::stepElements()
 			}
 			else if(!elastic)
 			{
-#pragma omp parallel for 
+#pragma omp parallel for schedule(auto)
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
@@ -4591,7 +4591,7 @@ bool FeatureTree::stepElements()
 			//the behaviour updates might depend on the global state of the
 			//simulation.
 			std::cerr << " stepping through elements... " << std::flush ;
-#pragma omp parallel for
+#pragma omp parallel for schedule(auto)
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -5384,7 +5384,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		{
 			std::vector<DelaunayTriangle *> tris = j->second->getElements() ;
 
-			#pragma omp parallel for 
+			#pragma omp parallel for  schedule(auto)
 			for( size_t i = 0 ; i < tris.size() ; i++ )
 			{
 				if(!tris[i]->getBehaviour())
@@ -5408,7 +5408,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			{
 				std::vector<DelaunayTriangle *> triangles = coarseTrees[i]->getElements() ;
 
-				#pragma omp parallel for
+				#pragma omp parallel for schedule(auto)
 
 				for( size_t j = 0 ; j < triangles.size() ; j++ )
 				{
@@ -5426,7 +5426,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
 		std::cout << " initialising..." ;
 
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(auto)
 
 		for( size_t i = 0 ; i < tets.size() ; i++ )
 		{
@@ -5444,7 +5444,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		{
 			std::vector<DelaunayTetrahedron *> tetras = j->second->getElements() ;
 
-			#pragma omp parallel for 
+			#pragma omp parallel for  schedule(auto)
 
 			for( size_t i = 0 ; i < tetras.size() ; i++ )
 			{
@@ -5462,7 +5462,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			{
 				tets = coarseTrees3D[i]->getElements() ;
 
-				#pragma omp parallel for
+				#pragma omp parallel for schedule(auto)
 
 				for( size_t j = 0 ; j < tets.size() ; j++ )
 				{

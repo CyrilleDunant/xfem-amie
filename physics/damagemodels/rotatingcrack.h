@@ -34,6 +34,8 @@ protected:
 // 	std::vector<double> tensionweights ;
 	bool firstTension ;
 	bool secondTension ;
+	bool firstMet ;
+	bool secondMet ;
 	bool firstTensionFailure ;
 	bool secondTensionFailure ;
 	bool firstCompressionFailure ;
