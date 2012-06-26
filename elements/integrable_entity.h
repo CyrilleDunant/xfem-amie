@@ -555,7 +555,7 @@ public:
 Matrix makeStressOrStrainMatrix(Vector & stressOrStrain) ;
 
 int isGaussPoint(const Point & p, IntegrableEntity * e) ;
-
+Vector toPrincipal(Vector & stressOrStrain) ;
 } ;
 
 

@@ -2390,6 +2390,8 @@ SerialElementState & SerialElementState::operator =(const SerialElementState & s
 	ElementState::operator =(s) ;
 	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
 		this->getState(i) = s.getState(i) ;
+	
+	return *this ;
 }
 
 ElementState & SerialElementState::getState(size_t i) 
@@ -2430,6 +2432,8 @@ KelvinVoightSpaceTimeElementState::KelvinVoightSpaceTimeElementState(const Kelvi
 KelvinVoightSpaceTimeElementState & KelvinVoightSpaceTimeElementState::operator =(const KelvinVoightSpaceTimeElementState & s) 
 {
 	ElementState::operator =(s) ;
+	
+	return *this ;
 }
 
 void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
