@@ -128,7 +128,6 @@ protected:
 	double timePos ;
 	double previousTimePos ;
 	double previousPreviousTimePos ;
-	double cachedPrincipalStressAngle ;
 	
 	IntegrableEntity * parent ;
 	
@@ -143,8 +142,6 @@ public:
 						
 	ElementState & operator =(const ElementState &) ;
 	
-	double getCachedAngle() const {return cachedPrincipalStressAngle ;}
-
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
 	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;

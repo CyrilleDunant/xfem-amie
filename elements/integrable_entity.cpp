@@ -266,7 +266,6 @@ ElementState::ElementState( const ElementState &s )
 	pstrainAtCenter.resize( 0 ) ;
 	pstressAtCenter.resize( 0 ) ;
 	effectivePStressAtCenter.resize(0);
-	cachedPrincipalStressAngle = 0 ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -1893,7 +1892,6 @@ Vector &ElementState::getBuffer()
 
 void ElementState::step( double dt, const Vector *d )
 {
-	cachedPrincipalStressAngle = 0 ;
 	
 	strainAtNodes.resize( 0 );
 	stressAtNodes.resize( 0 );
@@ -2347,6 +2345,7 @@ ParallelElementState & ParallelElementState::operator =(const ParallelElementSta
 	ElementState::operator =(s) ;
 	for(size_t i = 0 ; i < s.getNumberOfStates() ; i++)
 		this->getState(i) = s.getState(i) ;
+	return *this ;
 }
 
 ElementState & ParallelElementState::getState(size_t i) 
