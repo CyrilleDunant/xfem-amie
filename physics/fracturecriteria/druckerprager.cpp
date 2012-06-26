@@ -38,17 +38,37 @@ double DruckerPrager::grade(ElementState &s)
 	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
 		PlasticStrain* ps = static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()) ;
-		double kappa_0 = ps->kappa_0 ;
-		double sigma_y = upthreshold ;
-		Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-		double kappa_p = ps->plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-		
-		if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->plasticVariable > POINT_TOLERANCE_2D)
+		if(ps->inCompression)
 		{
-			if(kappa_p < kappa_0 && static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel())->getDamage() < POINT_TOLERANCE_2D)
-				factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;
-			else
-				factor = 1. ;
+			double kappa_0 = ps->kappa_0 ;
+			double sigma_y = upthreshold ;
+			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
+			double kappa_p =ps->compressivePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+			
+			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->compressivePlasticVariable > POINT_TOLERANCE_2D)
+			{
+				if(kappa_p < kappa_0 /*&& ps->getDamage() < POINT_TOLERANCE_2D*/)
+					factor = (kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
+				else
+					factor = 1. ;
+			}
+				
+// 				std::cout << kappa_p << "   " << kappa_0 << "   "<< factor << std::endl ;
+		}
+		else
+		{
+			double kappa_0 = ps->kappa_0 ;
+			double sigma_y = upthreshold ;
+			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
+			double kappa_p = ps->tensilePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+			
+			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->tensilePlasticVariable > POINT_TOLERANCE_2D)
+			{
+				if(kappa_p < kappa_0 && ps->getDamage() < POINT_TOLERANCE_2D)
+					factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;
+				else
+					factor = 1. ;
+			}
 		}
 		factor *= 1.-static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel())->getDamage() ;
 // 		std::cout << kappa_0 << " vs " << kappa_p << " :  " <<  (kappa_p < kappa_0) << " : "<< factor << std::endl ;

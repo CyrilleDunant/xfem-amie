@@ -28,13 +28,15 @@ public:
 	Vector previousImposedStrain ;
 	Vector lastStress ;
 	double c_psi ;
-	double plasticVariable ; 
+	double compressivePlasticVariable ; 
+	double tensilePlasticVariable ; 
 	double eps_f ;
 	double kappa_0 ;
 	double plasticFlowPotential(const Matrix & m) const ;
 	
 	Vector flowDirection ;
 	Vector potentialFlowDirection ;
+	bool inCompression ;
 	ElementState * es ;
 	
 public:
@@ -80,6 +82,7 @@ public:
 	
 	virtual void postProcess() ;
 	double getDamage() const ;
+	double getPlasticity() const; 
 	
 	virtual Vector getFlowDirection() const { return flowDirection ;};
 	

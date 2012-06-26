@@ -23,7 +23,9 @@ PlasticStrain::PlasticStrain() : previousImposedStrain(0.,3), imposedStrain(0.,3
 	v.push_back(XI);
 	v.push_back(ETA);
 	param = NULL ;
-	plasticVariable = 0 ;
+	compressivePlasticVariable = 0 ;
+	tensilePlasticVariable = 0 ;
+	inCompression = true ;
 	c_psi = 0.05 ;
 	eps_f = 0.0057; //0.0057 ;
 	kappa_0 = 3.350e-3 ;  //3.350e-3 ; // ; //3.350e-3 ; //5 up ; 4 down
@@ -58,6 +60,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		Vector imposed = getImposedStrain(s.getParent()->getCenter()) ;
 		Matrix stressMatrix(v.size(), v.size()) ;
 		std::pair<Vector, Vector> stressstrain = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, REAL_STRESS) ;
+// 		Vector pstrain(2);
+// 		s.getField(PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(),pstrain, false);
+// 		inCompression = std::abs(pstrain[1]) > std::abs(pstrain[0]) ;
 		Vector stress = stressstrain.first ;
 		Vector strain = stressstrain.second;
 		stressMatrix[0][0] = stress[0] ;
@@ -75,7 +80,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 				Matrix m_m(stressMatrix) ;
 				Matrix m_p2(stressMatrix) ;
 				Matrix m_m2(stressMatrix) ;
-				double delta = 1e-4*iftynorm ;
+				double delta = 1e-6*iftynorm ;
 				m_p[i][j] += delta ;
 				m_m[i][j] -= delta ;
 				m_p2[i][j] += 2.*delta ;
@@ -124,7 +129,7 @@ double PlasticStrain::getAngleShift() const
 				Matrix m_m(stressMatrix) ;
 				Matrix m_p2(stressMatrix) ;
 				Matrix m_m2(stressMatrix) ;
-				double delta = 1e-4*iftynorm ;
+				double delta = 1e-6*iftynorm ;
 				m_p[i][j] += delta ;
 				m_m[i][j] -= delta ;
 				m_p2[i][j] += 2.*delta ;
@@ -141,9 +146,9 @@ double PlasticStrain::getAngleShift() const
 			istrain /= sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 			istrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 		}
-		double angle = asin((imposedStrain[0]*istrain[0]+imposedStrain[1]*istrain[1]+imposedStrain[2]*istrain[3])/
-		sqrt((istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[3])*
-		(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[3]))) ;
+		double angle = acos((imposedStrain[0]*istrain[0]+imposedStrain[1]*istrain[1]+imposedStrain[2]*istrain[2])/
+		sqrt((istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2])*
+		(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]))) ;
 		if (angle < 0 )
 			angle += M_PI ;
 		return angle ;
@@ -228,13 +233,24 @@ Vector PlasticStrain::getImposedStrain(const Point & p) const
 
 double PlasticStrain::getDamage() const
 {
-	Vector istrain = imposedStrain*getState()[0] ;
-	double currentPlaticVariable = plasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+	double currentPlaticVariable = getPlasticity() ;
+
 	if(currentPlaticVariable >= kappa_0)
 	{
 		return 1.-exp(-(currentPlaticVariable-kappa_0)/(eps_f)) ;
 	}
 	return 0 ;
+}
+
+double PlasticStrain::getPlasticity() const
+{
+	Vector istrain = imposedStrain*getState()[0] ;
+	double currentPlaticVariable = sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+	if(inCompression)
+		currentPlaticVariable += compressivePlasticVariable ;
+	else
+		currentPlaticVariable += tensilePlasticVariable ;
+	return currentPlaticVariable ;
 }
 
 bool PlasticStrain::fractured() const 
@@ -249,9 +265,18 @@ void PlasticStrain::postProcess()
 	if(converged && getState()[0] > POINT_TOLERANCE_2D)
 	{
 		previousImposedStrain += imposedStrain * getState()[0] ;
-		plasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] + 
+		if(inCompression)
+		{
+			compressivePlasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] + 
 		                                       imposedStrain[1]*imposedStrain[1] + 
 		                                       imposedStrain[2]*imposedStrain[2] ) * getState()[0] ;
+		}
+		else
+		{
+			tensilePlasticVariable += sqrt(2./3.) * sqrt( imposedStrain[0]*imposedStrain[0] + 
+		                                       imposedStrain[1]*imposedStrain[1] + 
+		                                       imposedStrain[2]*imposedStrain[2] ) * getState()[0] ;
+		}
 		state[0] = 0;
 		imposedStrain = 0 ;
 	}
