@@ -43,9 +43,9 @@ double DruckerPrager::grade(ElementState &s)
 			double kappa_0 = ps->kappa_0 ;
 			double sigma_y = upthreshold ;
 			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-			double kappa_p =ps->compressivePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+			double kappa_p = ps->compressivePlasticVariable-ps->tensilePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 			
-			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->compressivePlasticVariable > POINT_TOLERANCE_2D)
+			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
 			{
 				if(kappa_p < kappa_0 /*&& ps->getDamage() < POINT_TOLERANCE_2D*/)
 					factor = (kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
@@ -60,9 +60,9 @@ double DruckerPrager::grade(ElementState &s)
 			double kappa_0 = ps->kappa_0 ;
 			double sigma_y = upthreshold ;
 			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-			double kappa_p = ps->tensilePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
+			double kappa_p = ps->tensilePlasticVariable-ps->compressivePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 			
-			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || ps->tensilePlasticVariable > POINT_TOLERANCE_2D)
+			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
 			{
 				if(kappa_p < kappa_0 && ps->getDamage() < POINT_TOLERANCE_2D)
 					factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;

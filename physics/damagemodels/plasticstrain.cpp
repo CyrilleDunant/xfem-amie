@@ -60,9 +60,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		Vector imposed = getImposedStrain(s.getParent()->getCenter()) ;
 		Matrix stressMatrix(v.size(), v.size()) ;
 		std::pair<Vector, Vector> stressstrain = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s, REAL_STRESS) ;
-		Vector pstrain(2);
-		s.getField(PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(),pstrain, false);
-		inCompression = std::abs(pstrain[1]) > std::abs(pstrain[0]) ;
+// 		Vector pstrain(2);
+// 		s.getField(PRINCIPAL_REAL_STRESS_FIELD, s.getParent()->getCenter(),pstrain, false);
+// 		inCompression = std::abs(pstrain[1]) > std::abs(pstrain[0]) ;
 		Vector stress = stressstrain.first ;
 		Vector strain = stressstrain.second;
 		stressMatrix[0][0] = stress[0] ;
@@ -97,7 +97,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
 			imposedStrain *= sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2])*(1.-getDamage())*.85 ;
 		}
+		Vector princimposed = toPrincipal(imposedStrain);
 		
+		inCompression = std::abs(princimposed[1]) > std::abs(princimposed[0]) ;
 	}
 		
 	return std::make_pair( Vector(0., 1), Vector(1., 1)) ;

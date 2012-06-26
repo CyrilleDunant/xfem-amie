@@ -373,7 +373,7 @@ bool isEffectiveStressField(FieldType f)
 	return f == EFFECTIVE_STRESS_FIELD || f == NON_ENRICHED_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD  ;
 }
 
-Vector toPrincipal(Vector & stressOrStrain)
+Vector Mu::toPrincipal(Vector & stressOrStrain)
 {
 	Vector ret(0., 2+(stressOrStrain.size() == 6)) ;
 	if(ret.size() == 2)
