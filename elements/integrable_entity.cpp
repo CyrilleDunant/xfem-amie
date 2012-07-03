@@ -328,7 +328,7 @@ ElementState::ElementState( IntegrableEntity *s )
 // 	this->previousPreviousEnrichedDisplacements.resize(s->getEnrichmentFunctions().size()*ndof) ;
 }
 
-Matrix Mu::makeStressOrStrainMatrix(Vector & stressOrStrain) 
+Matrix Mu::makeStressOrStrainMatrix(const Vector & stressOrStrain) 
 {
 	if(stressOrStrain.size() == 3)
 	{
@@ -373,7 +373,7 @@ bool isEffectiveStressField(FieldType f)
 	return f == EFFECTIVE_STRESS_FIELD || f == NON_ENRICHED_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD  ;
 }
 
-Vector Mu::toPrincipal(Vector & stressOrStrain)
+Vector Mu::toPrincipal(const Vector & stressOrStrain)
 {
 	Vector ret(0., 2+(stressOrStrain.size() == 6)) ;
 	if(ret.size() == 2)
@@ -1340,7 +1340,7 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 
 	if((f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) && f2 == PRINCIPAL_STRAIN_FIELD )
 	{
-		if( principalStrainAtCenter.size() == 0 )
+		if( principalStrainAtCenter.size() == 0 && principalStressAtCenter.size() == 0)
 		{
 			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
 			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
@@ -1357,7 +1357,20 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 		else if( principalStressAtCenter.size() == 0 )
 		{
 			principalStressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getFieldAtCenter(f1, principalStressAtCenter) ;
+			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			this->getField(STRAIN_FIELD, p_, strain, true) ;
+			if(isRealStressField(f1))
+				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			else
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			principalStressAtCenter = toPrincipal(stress) ;
+		}
+		else if(principalStrainAtCenter.size() == 0)
+		{
+			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
+			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+			principalStrainAtCenter = toPrincipal(strain) ;
 		}
 		ret1 = principalStressAtCenter ;
 		ret2 = principalStrainAtCenter ;

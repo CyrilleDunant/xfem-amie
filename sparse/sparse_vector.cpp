@@ -31,10 +31,7 @@ double SparseVector::operator [](size_t i) const
 	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
 	unsigned int colLength = stride+stride%2 ;
-	if(std::binary_search(__start__, __end__, i/stride))
-		return val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] ;
-	
-	return 0 ;
+	return (std::binary_search(__start__, __end__, i/stride)) ?  val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] : 0 ;
 
 }
 
@@ -47,10 +44,7 @@ double & SparseVector::operator [](const size_t i)
 	unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
 	unsigned int offset            = i_index_pointer - __start__ ;
 	unsigned int colLength = stride+stride%2 ;
-	if(std::binary_search(__start__, __end__, i/stride))
-		return val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] ;
-	
-	return zero ;
+	return (std::binary_search(__start__, __end__, i/stride)) ?  val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] :  zero ;
 
 }
 
@@ -152,13 +146,11 @@ Vector ConstSparseVector::operator *(const Vector &v) const
 		Vector ret(0., 2) ;
 		const __m128d * array_iterator = (__m128d*)&val[start*4] ;
 		const double * vec_iterator = &v[idx[start]*2] ;
-		for(unsigned int j = start ; j != length+start ; j++)
+		for(unsigned int j = start ; j != length+start && j+1 != length+start; j++)
 		{
 			
 			_mm_store_pd(&ret[0],  _mm_add_pd( _mm_load_pd(&ret[0]), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1)))))) ;
 			array_iterator+=2 ;
-			if(j+1 == length+start)
-				break ;
 			vec_iterator += idx[j+1]*2-idx[j]*2 ;
 			
 		}
