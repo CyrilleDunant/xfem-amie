@@ -97,7 +97,7 @@ void DamageModel::step( ElementState &s )
 // 				upState[i] = std::min(upState[i], 1.-2.*thresholdDamageDensity) ;
 // 			std::cout << "0'   "<< score << std::endl ;
 // 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
-			trialRatio = 1 ;
+			trialRatio = 2.*damageDensityTolerance ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction  ;
 			
  			for(size_t i = 0 ; i < upState.size() ; i++)
@@ -116,38 +116,31 @@ void DamageModel::step( ElementState &s )
 		int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
 		change = true ;
 		
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.03, globalMode ) ) ;
-		if(states.size() == 1)
+		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
+		
+		double n = 3. ;
+		if(states.size() <= n)
 		{
-			trialRatio = 2.*damageDensityTolerance ;
+			if(states.size() == 1)
+			{
+				if(score < 0)
+				{
+					converged = true ;
+					return ;
+				}
+			}
+			trialRatio = (double)states.size()/n-2.*damageDensityTolerance ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio * effectiveDeltaFraction ;
 			return ;
 		}
-		if(states.size() == 2)
-		{
-			if(states[1].score < 0)
-			{
-				change = false ;
-				converged = true ;
-				return ;
-			}
-			
-			trialRatio = .5 ;
-			getState( true ) = downState + ( upState - downState ) * .5*effectiveDeltaFraction ;
-			return ;
-		}
-		if(states.size() == 3)
-		{
-			trialRatio = .75 ;
-			getState( true ) = downState + ( upState - downState ) * .75*effectiveDeltaFraction ;
-			return ;
-		}
-		if(states.size() == 4)
-		{
-			trialRatio = .25 ;
-			getState( true ) = downState + ( upState - downState ) * .25*effectiveDeltaFraction ;
-			return ;
-		}
+// 		else
+// 		{
+// 			for(size_t i = 0 ; i < states.size() ; i++ )
+// 			{
+// 				states[i].print();
+// 			}
+// 		}
+
 		
 		std::stable_sort( states.begin(), states.end() ) ;
 
@@ -220,7 +213,7 @@ void DamageModel::step( ElementState &s )
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
-// 			std::cout << dynamic_cast<DelaunayTriangle *>(s.getParent())->index<< "  "<< getState().max() << "   "<< score << std::endl ;
+// 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
 				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-4*effectiveDeltaFraction ; //effectiveDeltaFraction*2.*damageDensityTolerance;
@@ -253,19 +246,19 @@ void DamageModel::step( ElementState &s )
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
 
-			if(states.size() < 10)
-			{
-				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
-				for(size_t i = 0 ; i < states.size() ; i++ )
-				{
-					states[i].print();
-				}
-				exit(0) ;
-			}
+// 			if(states.size() < 10)
+// 			{
+// 				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
+// 				for(size_t i = 0 ; i < states.size() ; i++ )
+// 				{
+// 					states[i].print();
+// 				}
+// 				exit(0) ;
+// 			}
 		}
 		else if(std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction)
 		{
-			getState( true ) = downState + ( upState - downState )*.5 ;
+			getState( true ) = downState + ( upState - downState )*.1*effectiveDeltaFraction ;
 			
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
@@ -299,9 +292,9 @@ DamageModel::DamageModel(): state(0), previousstate(0), previouspreviousstate(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1e-4 ; //1e-8 ;//1. / pow( 2., 14 );
-	thresholdDamageDensity = 1.-std::max(1e-4, 2.*damageDensityTolerance) ;
-	secondaryThresholdDamageDensity = 1.-std::max(1e-4, 2.*damageDensityTolerance) ;
+	damageDensityTolerance =  1e-5 ; //1e-8 ;//1. / pow( 2., 14 );
+	thresholdDamageDensity = 1.-2e-5 ;
+	secondaryThresholdDamageDensity = 1.-1e-5 ;
 } ;
 
 double DamageModel::getThresholdDamageDensity() const
