@@ -25,7 +25,9 @@ public:
 	std::vector<Variable> v ;
 	Matrix * param ;
 	Vector imposedStrain ;
-	Vector previousImposedStrain ;
+	Vector dimposedStrain ;
+	Vector previousCompressiveImposedStrain ;
+	Vector previousTensileImposedStrain ;
 	Vector lastStress ;
 	double c_psi ;
 	double compressivePlasticVariable ; 
@@ -33,10 +35,9 @@ public:
 	double eps_f ;
 	double kappa_0 ;
 	double plasticFlowPotential(const Matrix & m) const ;
-	
-	Vector flowDirection ;
-	Vector potentialFlowDirection ;
+
 	bool inCompression ;
+	bool inTension ;
 	ElementState * es ;
 	
 public:
@@ -77,16 +78,14 @@ public:
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	virtual Vector getImposedStress(const Point & p) const ;
 	virtual Vector getImposedStrain(const Point & p) const ;
+	virtual int getMode() const ;
 	
 	virtual DamageModel * getCopy() const { return new PlasticStrain() ;}
 	
 	virtual void postProcess() ;
 	double getDamage() const ;
 	double getPlasticity() const; 
-	
-	virtual Vector getFlowDirection() const { return flowDirection ;};
-	
-	virtual Vector getPotentialFlowDirection() const { return potentialFlowDirection ;};
+
 	
 };
 

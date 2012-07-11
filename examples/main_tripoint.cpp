@@ -140,7 +140,7 @@ double supportLever = 1.7 ;//2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = sqrt( 0.000506 ) ;
+double rebarDiametre = sqrt( 4*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 double phi = 0. ;
 double psi = 0. ;
@@ -293,7 +293,7 @@ void step()
 			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
 			double l_real = 2e5*tries ;
-			loadFunction = f_negativity(x-platewidth)*(-5e4*52-l_real)*(1.-f) ;
+			loadFunction = f_negativity(x-platewidth)*(-1e3*2-l_real)*(1.-f) ; //5e4*52
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
@@ -302,7 +302,7 @@ void step()
 			Function x("x") ;
 			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			Function loadFunction = f_negativity(x-platewidth)*(-5e4*52)*(1.-f) ;
+			Function loadFunction = f_negativity(x-platewidth)*(-1e3*2)*(1.-f) ;
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
@@ -634,7 +634,7 @@ void step()
 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
 			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_STIFFNESS ) ;
+			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
 			writer.getField( TWFT_STIFFNESS_X ) ;
 			writer.getField( TWFT_STIFFNESS_Y ) ;
 			writer.getField( TWFT_DAMAGE ) ;
@@ -646,7 +646,7 @@ void step()
 			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
 			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
 			writerc.getField( TWFT_CRITERION ) ;
-			writerc.getField( TWFT_STIFFNESS ) ;
+			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
 			writerc.getField( TWFT_STIFFNESS_X ) ;
 			writerc.getField( TWFT_STIFFNESS_Y ) ;
 			writerc.getField( TWFT_DAMAGE ) ;
@@ -1695,26 +1695,27 @@ void Display( void )
 int main( int argc, char *argv[] )
 {
 	
+	double softeningFactor = .85 ;
+	
 	sampleLength = atof( argv[3] ) ;
-
-	if ( sampleLength > 4 )
-		supportLever = 2.5 ;
+	sampleHeight = atof( argv[4] ) ;
+	supportLever = sampleLength*.5-.250 ;
 
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
-	double compressionCrit = -37.0e6 ;
+	double compressionCrit = -37.0e6*softeningFactor ;
 	phi =  3.*rebarDiametre/.4  ;
 	
 	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.032; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.05; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
-	double E_steel = 200e9 ; // next .6
+	double E_steel = 200e9*M_PI*.25 ; // next .6
 	double nu_steel = 0.2 ;
 	double nu = 0.3 ;
-	double E_paste = 37e9 ;
+	double E_paste = 37e9*softeningFactor ;
 
 	double halfSampleOffset = sampleLength*.25 ;
 	
@@ -1723,7 +1724,7 @@ int main( int argc, char *argv[] )
 // 	//redimensionned so that we get in shear the right moment of inertia
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 // 		
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel*2.,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
 
 	Sample box( NULL, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1755,19 +1756,19 @@ int main( int argc, char *argv[] )
 	rightbottomvoid.setBehaviour( new VoidForm() ) ;
 
 	
-	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
+	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
-	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
-	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
+	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 
-	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre*.5, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 	
@@ -1868,8 +1869,8 @@ int main( int argc, char *argv[] )
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;
@@ -1879,8 +1880,8 @@ int main( int argc, char *argv[] )
 	{
 		F.addFeature( &samplebulk, &rebar0, rebarlayer, phi ) ;
 		F.addFeature( &samplebulk, &rebar1, rebarlayer, phi ) ;
-		F.addFeature( &samplebulk, &rebar2, rebarlayer, phi ) ;
-		F.addFeature( &samplebulk, &rebar3, rebarlayer, phi ) ;
+// 		F.addFeature( &samplebulk, &rebar2, rebarlayer, phi ) ;
+// 		F.addFeature( &samplebulk, &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;

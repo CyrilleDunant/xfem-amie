@@ -137,24 +137,23 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
-
+	Vector pistress = toPrincipal(s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter())) ;
+	pistress = 0 ;
 	if(factors.empty())
 		initialiseFactors(s) ;
-	double sumStressFactors = 0 ;
-	double sumStrainFactors = 0 ;
+	double sumFactors = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
 		s.getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
-		str = tmpstr*iteratorValue ;
+		str = (tmpstr-pistress)*iteratorValue ;
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
-			estr = tmpstr*iteratorValue ;
+			estr = (tmpstr-pistress)*iteratorValue ;
 		}
-		sumStressFactors += iteratorValue ;
-		sumStrainFactors += iteratorValue ;
+		sumFactors += iteratorValue ;
 
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
@@ -183,46 +182,34 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 				ci->getState().getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
-				
-				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
-				{
-					stra += tmpstra*iteratorValue ;
-					str += tmpstr*iteratorValue ;
-					
-					if(m == EFFECTIVE_STRESS)
-					{
-						ci->getState().getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
-						estr += tmpstr*iteratorValue ;
-					}
-					
-				}
-// 				else
-// 				{
-// 				  stra += tmpstra*iteratorValue ;
-// 				}
-				
-			}
 
-			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-			{
+				stra += tmpstra*iteratorValue ;
+				str += tmpstr*iteratorValue ;
 				
-				if(!ci->getBehaviour()->fractured())
+				if(m == EFFECTIVE_STRESS)
 				{
-					sumStrainFactors += iteratorValue ;
-				  sumStressFactors += iteratorValue ;
+					ci->getState().getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+					estr += tmpstr*iteratorValue ;
 				}
+				sumFactors += iteratorValue ;
 			}
 		}
 
-		str /= sumStressFactors ;
-		estr /= sumStressFactors ;
-		stra /= sumStrainFactors ;
-
-		s.getParent()->getState().getFieldAtCenter(REAL_STRESS_FIELD, tmpstra) ;
+		str /= sumFactors ;
+		str += pistress ;
+		estr /= sumFactors ;
+		estr += pistress ;
+		stra /= sumFactors ;
+		tmpstr.resize(3) ;
+		tmpstra.resize(3) ;
+		s.getParent()->getState().getFieldAtCenter(STRAIN_FIELD, REAL_STRESS_FIELD, tmpstra,tmpstr) ;
 		currentAngle = 0.5*atan2( tmpstra[2], tmpstra[0] - tmpstra[1] ) ;
 		if(currentAngle < 0)
 			currentAngle += M_PI ;
-
+//		double currentAngle0 = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] );
+//		if(currentAngle0 < 0)
+//			currentAngle0 += M_PI ;
+//		currentAngle = 0.5*(currentAngle+currentAngle0) ;
 
 		if(m == REAL_STRESS)
 		{
@@ -988,7 +975,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
-
+	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+	istress = 0 ;
 	if(factors.empty())
 		initialiseFactors(s) ;
 	double sumStressFactors = 0 ;
@@ -999,11 +987,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		s.getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
 		return std::make_pair(tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
-		str = tmpstr*iteratorValue ;
+		str = (tmpstr-istress)*iteratorValue ;
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
-			estr = tmpstr*iteratorValue ;
+			estr = (tmpstr-istress)*iteratorValue ;
 		}
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
@@ -1068,6 +1056,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 		str /= sumStressFactors ;
 		estr /= sumStressFactors ;
+		str += istress ;
+		estr += istress ;
 		stra /= sumStrainFactors ;
 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
 		{
@@ -1411,7 +1401,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius()*1.5)*3.,testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*4.,testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

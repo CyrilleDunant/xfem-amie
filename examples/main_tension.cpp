@@ -211,8 +211,13 @@ void step(size_t nsteps)
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
 		if(go_on)
 		{
-			loadr->setData(loadr->getData()+1e-5) ;
-// 			loadt->setData(loadt->getData()+1e-7) ;
+// 			loadr->setData(sin(double(count)/40.)*5e-5) ;
+// 			if(count < 80)
+// 				loadr->setData(loadr->getData()-1e-5) ;
+// 			else
+				loadr->setData(loadr->getData()+1e-7) ;
+			count++ ;
+			loadt->setData(loadt->getData()-1e-5) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -576,7 +581,7 @@ void Menu(int selection)
 		}
 	case ID_NEXT_TIME:
 		{
-			step(180) ;
+			step(1800) ;
 			timepos +=0.01 ;
 			dlist = false ;
 			break ;
@@ -1466,8 +1471,7 @@ int main(int argc, char *argv[])
 	double compressionCrit = -32.6e6 ; 
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = 0.032 ; // .010 ;//
-	double nradius = mradius*5. ;
+	double mradius = .1200*.05 ; // .010 ;//
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
 	double E_steel = 193e9 ;
@@ -1483,7 +1487,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(.1200, .1200, 0.1200*.0, .1500*.0) ;
+	Sample samplef(.1200, .1200, 0., 0.) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1513,7 +1517,7 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-// 		samplef.setBehaviour(new ConcreteBehaviour()) ;
+		samplef.setBehaviour(new ConcreteBehaviour()) ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
@@ -1527,15 +1531,16 @@ int main(int argc, char *argv[])
 		
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;
-// 	Inclusion inc(.0025, 0, 0) ;
+	Inclusion inc(samplef.height()*.05, 0, 0) ;
 // 	F.addFeature(&samplef, &inc);
-// 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new DruckerPrager(-12.315e6*.9, 12.315e6*.9,0.1 , mradius), new PlasticStrain()));
+// 	inc.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6*.9, E_paste, mradius), new IsotropicLinearDamage()/*new PlasticStrain())*/));
+	inc.setBehaviour(new VoidForm()) ;
 // 	inc.isVirtualFeature = true ;
-// // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , /*new NonLocalMCFT(-20e6, E_paste, mradius)*//*new NonLocalVonMises(20e6, E_paste, mradius)*/new DruckerPrager(-12.315e6, 12.315e6,0.1 , mradius), new PlasticStrain())) ;
+// 	inc.setBehaviourSource(&samplef);
+// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
 // 	
-// 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y));
-// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x, samplef.height()*.5+samplef.getCenter().y));
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
+// 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x,samplef.getCenter().y-samplef.height()*.5));
 	
 // 	FeatureTree F(&box) ;
 // 	featureTree = &F ;
@@ -1564,8 +1569,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
 	
 	F.addBoundaryCondition(loadr);
-// 	F.addBoundaryCondition(loadt);
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(loadt);
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
@@ -1573,7 +1579,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(10000);
+	F.setMaxIterationsPerStep(200000);
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	

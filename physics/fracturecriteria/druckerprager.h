@@ -22,19 +22,34 @@ namespace Mu {
 	*/
 	class DruckerPrager : public FractureCriterion
 	{
-		bool met ;
+		bool metInTension ;
+		bool metInCompression ;
+		bool inTension ;
 	public:
 		double upthreshold ;
 		double downthreshold ;
 		double friction ;
-		virtual bool directionInTension(size_t direction) {return met ;}
-		virtual bool directionInCompression(size_t direction) {return met ;}
-		virtual bool directionMet(size_t direction) {return met;}
+		double modulus ;
+		virtual bool directionInTension(size_t direction) 
+		{
+			return inTension ;
+		}
+		virtual bool directionInCompression(size_t direction) 
+		{
+			return !inTension ;
+			
+		}
+		virtual bool directionMet(size_t direction) 
+		{
+			if(direction == 0)
+				return metInTension ;
+			return metInCompression ;
+		}
 	public:
 	/** \brief Constructor 
 	 * @param thres Set the maximum stress. 
 	 */
-		DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
+		DruckerPrager(double downthres,double upthres,double modulus,  double friction, double radius, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	
 		virtual ~DruckerPrager();
 

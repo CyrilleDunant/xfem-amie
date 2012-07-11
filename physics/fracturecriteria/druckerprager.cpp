@@ -15,10 +15,12 @@
 #include "../damagemodels/plasticstrain.h"
 namespace Mu {
 
-DruckerPrager::DruckerPrager(double downthres,double upthres, double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), upthreshold(upthres), downthreshold(downthres), friction(friction)
+DruckerPrager::DruckerPrager(double downthres,double upthres, double modulus,  double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), upthreshold(upthres), downthreshold(downthres), friction(friction), modulus(modulus)
 {
 	setMaterialCharacteristicRadius(radius);
-	met = false ;
+	metInCompression = false ;
+	metInTension = false ;
+	inTension = true ;
 }
 
 
@@ -29,82 +31,115 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	std::pair<Vector, Vector> stressstrain( smoothedPrincipalStressAndStrain(s, EFFECTIVE_STRESS) ) ;
+	std::pair<Vector, Vector> stressstrain( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
 	Vector str = stressstrain.first ;
 	Vector stra = stressstrain.second ;
 	double maxStress = 0 ;
-	met = false ;
+	double maxStrain = 0 ;
+	double pseudomodulus = modulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	//hardening function from Jirasek et al.
 	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
+		pseudomodulus = modulus ;
+	
 		PlasticStrain* ps = static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()) ;
-		if(ps->inCompression)
-		{
-			double kappa_0 = ps->kappa_0 ;
-			double sigma_y = upthreshold ;
-			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-			double kappa_p = ps->compressivePlasticVariable-ps->tensilePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-			
-			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
-			{
-				if(kappa_p < kappa_0 /*&& ps->getDamage() < POINT_TOLERANCE_2D*/)
-					factor = (kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0) ;
-				else
-					factor = 1. ;
-			}
-				
-// 				std::cout << kappa_p << "   " << kappa_0 << "   "<< factor << std::endl ;
-		}
-		else
-		{
-			double kappa_0 = ps->kappa_0 ;
-			double sigma_y = upthreshold ;
-			Vector istrain = ps->imposedStrain*ps->getState()[0] ;
-			double kappa_p = ps->tensilePlasticVariable-ps->compressivePlasticVariable + sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-			
-			if(str.min() < .001*downthreshold || str.max() > .001*upthreshold || kappa_p > POINT_TOLERANCE_2D)
-			{
-				if(kappa_p < kappa_0 && ps->getDamage() < POINT_TOLERANCE_2D)
-					factor = ((kappa_p*kappa_p-3.*kappa_p*kappa_0+3.*kappa_0*kappa_0)*kappa_p/(kappa_0*kappa_0*kappa_0)) ;
-				else
-					factor = 1. ;
-			}
-		}
-		factor *= 1.-static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel())->getDamage() ;
-// 		std::cout << kappa_0 << " vs " << kappa_p << " :  " <<  (kappa_p < kappa_0) << " : "<< factor << std::endl ;
 		
+		double kappa_0 = ps->kappa_0 ;
+		double kappa_p = ps->getPlasticity() ;
+		if(kappa_0 > 0)
+		{
+			(kappa_p < kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
+		}
+		factor *= 1.-ps->getDamage() ;
+		pseudomodulus = modulus*(1.-ps->getDamage()) ;
 	}
-	
-	
 
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
-		maxStress = (tr*friction + sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[0]-str[1])*(str[0]-str[1]))) ;
+		maxStress = tr*friction - sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[0]-str[1])*(str[0]-str[1])) ;
+		maxStrain = maxStress/(modulus*factor) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1]+str[3] ;
 		maxStress =  tr*friction - sqrt((str[0]-tr*.333333333333)*(str[0]-tr*.333333333333)+(str[1]-tr*.333333333333)*(str[1]-tr*.333333333333)+(str[2]-tr*.333333333333)*(str[2]-tr*.333333333333)+2.*(str[3])*(str[3])+2.*(str[4])*(str[4])+2.*(str[5])*(str[5])) ;
+		maxStrain = maxStress/(modulus*factor) ;
 	}
+// 	if(factor < POINT_TOLERANCE_2D)
+// 	{
+// 		metInTension = false ;
+// 		metInCompression = false ;
+// 		inTension = false ;
+// 	
+// 		return -1 ;
+// 	}
+
+// 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE_2D)
+// 	{
+// // 		std::cout << factor << ", "<< maxStress<< std::endl ;
+// 		metInTension = true ;
+// 		metInCompression = false ;
+// 		inTension = true ;
+// 		return 1. - std::abs(upthreshold/maxStress) ;
+// 	}
+// 	else if(maxStress >= 0 && std::abs(upthreshold) > POINT_TOLERANCE_2D)
+// 	{
+// 		metInTension = false ;
+// 		metInCompression = false ;
+// 		inTension = true ;
+// 		return -1.+ std::abs(maxStress/upthreshold) ;
+// 	}
+// 	else if(maxStress < downthreshold && maxStress < -POINT_TOLERANCE_2D)
+// 	{
+// 		metInTension = false ;
+// 		metInCompression = true ;
+// 		inTension = false ;
+// 		return 1. - std::abs(downthreshold/maxStress) ;
+// 	}
+// 	else if(std::abs(downthreshold) > POINT_TOLERANCE_2D)
+// 	{
+// 		metInTension = false ;
+// 		metInCompression = false ;
+// 		inTension = false ;
+// 		return -1.+std::abs( maxStress/downthreshold) ;
+// 	}
+
 	
-	if(maxStress > upthreshold*factor && maxStress > 0)
+	double effectiveUp = upthreshold*factor/pseudomodulus ;
+	double effectiveDown = downthreshold*factor/pseudomodulus ;
+	if(maxStrain > effectiveUp && maxStrain > POINT_TOLERANCE_2D)
 	{
 // 		std::cout << factor << ", "<< maxStress<< std::endl ;
-		met = true ;
-		return 1. - std::abs(factor*upthreshold/maxStress) ;
+		metInTension = true ;
+		metInCompression = false ;
+		inTension = true ;
+		return 1. - std::abs(effectiveUp/maxStrain) ;
 	}
-	else if(maxStress >= 0)
+	else if(maxStrain >= 0 && std::abs(effectiveUp) > POINT_TOLERANCE_2D)
 	{
-		return -1.+ std::abs(maxStress/(factor*upthreshold));
+		metInTension = false ;
+		metInCompression = false ;
+		inTension = true ;
+		return -1.+ std::abs(maxStress/effectiveUp) ;
 	}
-	else if(maxStress < factor*downthreshold && maxStress < 0)
+	else if(maxStrain < effectiveDown && maxStrain < -POINT_TOLERANCE_2D)
 	{
-		met = true ;
-		return 1. - std::abs(factor*downthreshold/maxStress) ;
+		metInTension = false ;
+		metInCompression = true ;
+		inTension = false ;
+		return 1. - std::abs(effectiveDown/maxStrain) ;
 	}
-	else
-		return -1.+std::abs( maxStress/(factor*downthreshold));
+	else if(std::abs(effectiveDown) > POINT_TOLERANCE_2D)
+	{
+		metInTension = false ;
+		metInCompression = false ;
+		inTension = false ;
+		return -1.+std::abs( maxStrain/effectiveDown) ;
+	}
+	metInTension = false ;
+	metInCompression = false ;
+	inTension = false ;
 	
 	return -1 ;
 
@@ -112,7 +147,7 @@ double DruckerPrager::grade(ElementState &s)
 
 FractureCriterion * DruckerPrager::getCopy() const
 {
-	return new DruckerPrager(downthreshold, upthreshold, friction, getMaterialCharacteristicRadius()) ;
+	return new DruckerPrager(downthreshold, upthreshold, modulus, friction, getMaterialCharacteristicRadius()) ;
 }
 
 Material DruckerPrager::toMaterial()

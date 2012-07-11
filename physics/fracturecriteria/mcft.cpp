@@ -210,8 +210,8 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 /*	  std::cout << s.getParent()->getCenter().y << std::endl */;
 	double barecrit = getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
-  	if(!inRebarInfluence)
- 		return barecrit ;
+	if(!inRebarInfluence)
+		return barecrit ;
 
  	double rebcrit = getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 //	return rebcrit ;
@@ -243,7 +243,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 	double maxCompression = downVal*scaleFactor  ;
 	double maxCompressionStrain = downVal/pseudoYoung  ;
 
-	if(cstrain < 0.25*critStrain )
+	if(cstrain < 0.05*critStrain )
 	{
 		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
@@ -413,16 +413,12 @@ double NonLocalMCFT::grade( ElementState &s )
 			firstMet = true ;
 			secondMet = false ;
 		}
-		else if(c1 > c0)
+		else
 		{
 			firstMet = false ;
 			secondMet = true ;
 		}
-		else
-		{
-			firstMet = true ;
-			secondMet = true ;
-		}
+
 		return std::max(c0, c1) ;
 	}
 	else if (s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 2)
