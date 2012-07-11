@@ -117,6 +117,8 @@ GLint xangle = 0;
 GLint yangle = 0;
 GLint zangle = 0;
 
+timeval t0, t1 ;
+
 double timepos = 0.1 ;
 
 bool firstRun = true ;
@@ -229,6 +231,7 @@ double getLength(BenchmarkMicrostructure micro)
 
 int main(int argc, char *argv[])
 {
+	gettimeofday(&t0, NULL) ;
 	std::cout << "usage: benchmark <microstructure> <phenomenon> <order> <scale> <properties> <sampling>" << std::endl ;
 	std::cout << "all fields are required" << std::endl ;
 	std::cout << "<microstructure>\tstring among <XS1, S1, S2024, S3200, O1>" << std::endl ;
@@ -284,7 +287,7 @@ int main(int argc, char *argv[])
 	{
 		
 		double nu = 0.2 ;
-		double E = 1 ;	
+		double E = 1. ;	
 		Matrix m0(6,6) ;
 		m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
 		m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
@@ -295,7 +298,9 @@ int main(int argc, char *argv[])
 		m0 *= E/((1.+nu)*(1.-2.*nu)) ;
 		sample.setBehaviour(new Stiffness(m0)) ;
 		
-		E = prop ;
+		m1 = m0 * prop ;
+//		m1.print() ;
+/*		E = prop ;
 		std::cout << prop << std::endl ;
 		m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 		m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -303,7 +308,7 @@ int main(int argc, char *argv[])
 		m1[3][3] = 0.5 - nu ;
 		m1[4][4] = 0.5 - nu ;
 		m1[5][5] = 0.5 - nu ;
-		m1 *= E/((1.+nu)*(1.-2.*nu)) ;
+		m1 *= E/((1.+nu)*(1.-2.*nu)) ;*/
 		behaviour = new Stiffness(m1) ;
 		break ;
 	}
@@ -315,7 +320,9 @@ int main(int argc, char *argv[])
 		std::vector<Inclusion3D * > inclusions ;
 		if(micro == S1)
 		{
-			inclusions.push_back(new Inclusion3D(0.623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
+			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
+			inclusions[0]->setBehaviour(behaviour) ;
+			F.addFeature(&sample, inclusions[0]) ;
 			std::cout << inclusions[0]->volume() << std::endl ;
 			std::cout << sample.volume() << std::endl ;
 			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
@@ -348,11 +355,11 @@ int main(int argc, char *argv[])
 			}
 			GranuloFromFile spheres(file, columns) ;
 			inclusions = spheres.getInclusion3D(n, scale) ;
-		}
-		for(size_t i = 0 ; i < inclusions.size() ; i++)
-		{
-			inclusions[i]->setBehaviour(behaviour) ;
-			F.addFeature(&sample, inclusions[i]) ;
+			for(size_t i = 0 ; i < inclusions.size() ; i++)
+			{
+				inclusions[i]->setBehaviour(behaviour) ;
+				F.addFeature(&sample, inclusions[i]) ;
+			}
 		}
 	
 	}
@@ -369,7 +376,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(sampling) ;
 	F.setMaxIterationsPerStep(2);
 	F.setDeltaTime(0.001);
-	F.setElementGenerationMethod(0,false) ;
+	F.setElementGenerationMethod(0,true) ;
 	
 	if(order == 2)
 		F.setOrder(QUADRATIC) ;
@@ -377,10 +384,9 @@ int main(int argc, char *argv[])
 		F.setOrder(LINEAR) ;
 	
 	Function pos("x") ;
-	Function grad = pos*1./length ;
+	Function grad = pos*1./(length*scale) ;
 	
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.*scale)) ;
 /*	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
@@ -393,7 +399,39 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;*/
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+	if(pheno == ELASTICITY)
+	{
+		F.step() ;
+		tets= F.getElements3D() ;
+		for(size_t i = 0 ; i < tets.size() ; i++)
+		{
+			if(tets[i]->getBehaviour()->param[0][0] > 1.)
+			{
+				for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
+				{
+					if(abs(tets[i]->getBoundingPoint(j).x - length*scale) < POINT_TOLERANCE_3D)
+					{
+						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i], tets[i]->getBoundingPoint(j).id, 1.e-5)) ;
+					}
+				}
+			}
+		}
+/*		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;		*/
+//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.e-5)) ;
+//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 1.)) ;
+//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+	}
+	else
+	{
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_FLUX_XI, RIGHT, 1.)) ;
+	}
 
 	F.step() ;
 	
@@ -489,11 +527,11 @@ int main(int argc, char *argv[])
 			if(order==2)
 				out << "QUAD" ;
 			out << "dof = " << x.size() << "\t"
-			<< "D11 = " << -average_flux[0]/average_gradient[0] << std::endl ;
+			<< "D11 = " << average_flux[0]/average_gradient[0] << std::endl ;
 		out.close() ;
 
-/*		VoxelWriter vw("fem_s1", 200) ;
-		vw.getField(featureTree, VWFT_GRADIENT) ;
+/*		VoxelWriter vw("fem_s1", 100) ;
+		vw.getField(featureTree, VWFT_FLUX) ;
 		vw.write();*/
 		
 		break ;
@@ -576,11 +614,14 @@ int main(int argc, char *argv[])
 		std::cout << "average strain22 : " << average_strain[1]/total_volume << std::endl ;
 		std::cout << "average strain33 : " << average_strain[2]/total_volume << std::endl ;
 		
+/*		average_strain[1] = (average_strain[1]+average_strain[2])*.5 ;
+		average_stress[1] = (average_stress[1]+average_stress[2])*.5 ;*/
+		
 		Matrix K(2,2) ;
 		K[0][0] = average_strain[0] ;
-		K[0][1] = average_strain[1]*2 ;
+		K[0][1] = average_strain[1]+average_strain[2] ;
 		K[1][0] = average_strain[1] ;
-		K[1][1] = average_strain[0]+average_strain[1] ;
+		K[1][1] = average_strain[0]+average_strain[2] ;
 		invert2x2Matrix(K) ;
 		K.print() ;
 
@@ -589,6 +630,10 @@ int main(int argc, char *argv[])
 		s[1] = average_stress[1] ;
 		
 		Vector c = K*s ;
+
+		gettimeofday(&t1, NULL) ;
+
+		double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
 		
 		std::string filebench("benchmark.txt") ;
 		std::fstream out ;
@@ -600,15 +645,16 @@ int main(int argc, char *argv[])
 			<< "dof = " << x.size() << "\t"
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
+		out << "Time to solve (s) =" << delta/1e6 << std::endl ;
 		out.close() ;
 		
-		VoxelWriter vw("simulation_out_stiffness", 200) ;
-		vw.getField(featureTree, VWFT_STRESS) ;
-		vw.write();
+/*		VoxelWriter vw("simulation_out_stiffness", 200) ;
+		vw.getField(featureTree, VWFT_STIFFNESS) ;
+		vw.write();*/
 		
-		VoxelWriter vw0("simulation_out_stress", 200) ;
+/*		VoxelWriter vw0("simulation_out_stress", 100) ;
 		vw0.getField(featureTree, VWFT_STRAIN) ;
-		vw0.write();
+		vw0.write();*/
 		
 		break ;
 	}

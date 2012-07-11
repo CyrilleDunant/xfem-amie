@@ -280,7 +280,95 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 
 				return ;
 			}
-			
+
+			case SET_FLUX_XI:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 2 ) ;
+				imposed[0] = data ;
+				imposed[1] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
+				}
+
+				return ;
+			}
+
+			case SET_FLUX_ETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 2 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = data ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
+				}
+
+				return ;
+			}
+						
 			default:
 				break;
 		}
@@ -356,6 +444,143 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 
 				break ;
 
+			case SET_FLUX_XI:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = data ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
+				}
+
+				return ;
+			}
+
+			case SET_FLUX_ETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = data ;
+				imposed[2] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
+				}
+
+				return ;
+			}
+			
+			case SET_FLUX_ZETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = data ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
+				}
+
+				return ;
+			}
 			case SET_STRESS_XI:
 			{
 				if ( e->getBehaviour()->fractured() )
@@ -404,7 +629,7 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 					}
 					else
 					{
-						forces = vm.ieval(Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+						forces = vm.ieval( Gradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
 					}
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
@@ -961,6 +1186,96 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 				return ;
 			}
 
+			case SET_FLUX_XI:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 2 ) ;
+				imposed[0] = vm.eval( data, id[i] ) ; ;
+				imposed[1] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i].id ) ;
+				}
+
+				return ;
+			}
+
+			case SET_FLUX_ETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = vm.eval( data, id[i] ) ; ;
+				imposed[2] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i].id ) ;
+				}
+
+				return ;
+			}
+			
+
 			default:
 				break;
 		}
@@ -1408,6 +1723,143 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				return ;
 			}
 
+			case SET_FLUX_XI:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = vm.eval( data, id[i] ) ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i].id ) ;
+				}
+
+				return ;
+			}
+
+			case SET_FLUX_ETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = vm.eval( data, id[i] ) ;
+				imposed[2] = 0 ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i].id ) ;
+				}
+
+				return ;
+			}
+			
+			case SET_FLUX_ZETA:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				Vector imposed( 3 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = 0 ;
+				imposed[2] = vm.eval( data, id[i] ) ;
+				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					double f = 0. ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					a->addForceOn( XI, f, id[i].id ) ;
+				}
+
+				return ;
+			}
 			default:
 				break;
 		}

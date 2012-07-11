@@ -2561,8 +2561,8 @@ double VirtualMachine::ieval(const VGtV &f, const GaussPointArray &gp, const std
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
 		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
-		for(size_t j = 0 ; j < temp.size() ; j++)
-			temp[j] = f.second[i*temp.size()+j] ;
+/*		for(size_t j = 0 ; j < temp.size() ; j++)
+			temp[j] = f.second[i*temp.size()+j] ;*/
 		Vector r_  = B*temp ;
 		ret += r_[0] * gp.gaussPoints[i].second ;
 	}

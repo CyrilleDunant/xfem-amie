@@ -38,7 +38,7 @@ ElasticOnlyAggregateBehaviour::ElasticOnlyAggregateBehaviour(double E, double nu
 Form * ElasticOnlyAggregateBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
+	double factor = 1. - variability + variability*weib ;
 	return new Stiffness(param*factor) ;
 }
 

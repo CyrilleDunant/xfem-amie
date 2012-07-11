@@ -67,9 +67,11 @@ void StiffnessAndFracture::stepBack()
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
 {
+  if(dfunc)
+  {
 	dfunc->step(currentState) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
-
+  }
 }
 
 bool StiffnessAndFracture::changed() const
