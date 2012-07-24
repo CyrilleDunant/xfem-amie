@@ -117,12 +117,12 @@ public:
 template <typename T>
 Configlet<T>::Configlet(ConfigAtom * _parent, T * _data, Type _type)
 {
-	if ((_parent == NULL) && (_type != TRUNK))
+	if ((_parent == nullptr) && (_type != TRUNK))
 	{
 		this->type = TRUNK ;
-		this->data = NULL ;
+		this->data = nullptr ;
 		putData(_data, _type) ;
-		parent = NULL ;
+		parent = nullptr ;
 		label = std::string("trunk") ;
 	}
 	else
@@ -137,11 +137,11 @@ Configlet<T>::Configlet(ConfigAtom * _parent, T * _data, Type _type)
 template <typename T>
 Configlet<T>::Configlet(ConfigAtom * _parent, T * _data, Type _type, std::string _label)
 {
-	if ((_parent == NULL) && (_type != TRUNK))
+	if ((_parent == nullptr) && (_type != TRUNK))
 	{
 		this->type = TRUNK ;
-		this->data = NULL ;
-		parent = NULL ;
+		this->data = nullptr ;
+		parent = nullptr ;
 		putData(_data, _type, _label) ;
 		label = "trunk" ;
 	}
@@ -188,7 +188,7 @@ void Configlet<T>::setData(T * _data)
 	if(type == TRUNK)
 		return ;
 	
-	assert(data !=NULL) ;
+	assert(data !=nullptr) ;
 	data = _data ;
 }
 

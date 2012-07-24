@@ -113,7 +113,7 @@ double eval(const Function &f, std::vector<std::pair<std::string, double> > vars
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
 */
-	double eval(const Function &f, const Point * p, const Point *p_ = NULL)  ;
+	double eval(const Function &f, const Point * p, const Point *p_ = nullptr)  ;
 
 /** \brief Evaluate FunctionMatrix f at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
 @param f FunctionMatrix to evaluate.
@@ -127,7 +127,7 @@ double eval(const Function &f, std::vector<std::pair<std::string, double> > vars
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
 */
-	Matrix eval(const FunctionMatrix &f, const Point * p, const Point *p_ = NULL)  ;
+	Matrix eval(const FunctionMatrix &f, const Point * p, const Point *p_ = nullptr)  ;
 
 /** \brief Evaluate Function f at all points of the given GaussPointArray gp
 @param f Function to evaluate.

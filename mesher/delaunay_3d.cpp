@@ -37,10 +37,10 @@ DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeIt
 	this->isSpace() = false ;
 	this->isTetrahedron() = false ;
 	this->isDeadTetrahedron() = false ;
-	this->first = NULL ;
-	this->second = NULL ;
-	this->third = NULL ;
-	this->fourth = NULL ;
+	this->first = nullptr ;
+	this->second = nullptr ;
+	this->third = nullptr ;
+	this->fourth = nullptr ;
 	index = 0 ;
 
 	if( t )
@@ -118,7 +118,7 @@ bool DelaunayTreeItem3D::isAlive() const
 
 DelaunayTreeItem3D::~DelaunayTreeItem3D()
 {
-// 	tree->tree[index] = NULL ;
+// 	tree->tree[index] = nullptr ;
 }
 
 
@@ -325,7 +325,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 
 		size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
 
-		std::valarray<Point *> newPoints( ( Point * )NULL, nodes_per_plane * time_planes ) ;
+		std::valarray<Point *> newPoints( ( Point * )nullptr, nodes_per_plane * time_planes ) ;
 		std::valarray<bool> done( false, nodes_per_plane * time_planes ) ;
 
 		for( size_t plane = 0 ; plane < time_planes ; plane++ )
@@ -348,7 +348,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 				{
 					double fraction = ( double )( node ) / ( ( double )nodes_per_side + 1 ) ;
 					Point proto = a * ( 1. - fraction ) + b * fraction ;
-					Point *foundPoint = NULL ;
+					Point *foundPoint = nullptr ;
 
 					for( size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++ )
 					{
@@ -433,7 +433,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 	{
 		tri[i]->clearVisited() ;
 
-		if( father != NULL )
+		if( father != nullptr )
 			refresh( father ) ;
 	}
 }
@@ -445,10 +445,10 @@ void DelaunayTree3D::refresh( const TetrahedralElement *father )
 		std::vector<int> pb ;
 		for(size_t i = 0 ; i < this->tree.size() ; i++)
 		{
-			if(this->tree[i] == NULL)
+			if(this->tree[i] == nullptr)
 				pb.push_back(i) ;
 		}
-		std::cout << pb.size() << " NULL elements in tree" << std::endl ;
+		std::cout << pb.size() << " nullptr elements in tree" << std::endl ;
 		for(size_t i = pb.size() ; i > 0 ; i--)
 		{
 			this->tree.erase(this->tree.begin()+pb[i-1]) ;
@@ -457,8 +457,8 @@ void DelaunayTree3D::refresh( const TetrahedralElement *father )
 	*/
 	for( size_t i = 0 ; i < this->tree.size() ; i++ )
 	{
-//		if(this->tree[i] == NULL)
-//			std::cout << "NULL element in tree" << std::endl ;
+//		if(this->tree[i] == nullptr)
+//			std::cout << "nullptr element in tree" << std::endl ;
 		if( this->tree[i]->isAlive() && this->tree[i]->isTetrahedron() )
 		{
 			static_cast<DelaunayTetrahedron *>( this->tree[i] )->refresh( father ) ;
@@ -1066,7 +1066,7 @@ DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTree
 
 }
 
-DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem3D( NULL, NULL, NULL )
+DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem3D( nullptr, nullptr, nullptr )
 {
 	first = &getBoundingPoint( 0 ) ;
 	second = &getBoundingPoint( 1 ) ;
@@ -1159,9 +1159,9 @@ std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D
 	if( t == this )
 	{
 		return ret ;
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL );
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr );
 	}
 
 	if( t->isTetrahedron() )
@@ -1370,9 +1370,9 @@ std::vector<Point *> DelaunayTetrahedron::commonSurface( DelaunayTreeItem3D *t )
 	if( t == this )
 	{
 		return ret ;
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL );
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr );
 	}
 
 	if( t->isTetrahedron() )
@@ -1468,9 +1468,9 @@ inline std::vector<Point *> DelaunayDemiSpace::commonSurface( DelaunayTreeItem3D
 
 	if( t == this )
 	{
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL ) ;
-		ret.push_back( NULL );
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr ) ;
+		ret.push_back( nullptr );
 	}
 
 	if( t->isTetrahedron() )
@@ -1485,9 +1485,9 @@ std::vector<Point *> DelaunayRoot3D::commonSurface( DelaunayTreeItem3D *t )
 {
 	std::vector<Point *> ret ;
 
-	ret.push_back( NULL ) ;
-	ret.push_back( NULL ) ;
-	ret.push_back( NULL );
+	ret.push_back( nullptr ) ;
+	ret.push_back( nullptr ) ;
+	ret.push_back( nullptr );
 
 	return ret;
 }
@@ -1870,17 +1870,17 @@ void updateNeighbours( std::vector<DelaunayTreeItem3D *> * t )
 	}
 }
 
-DelaunayRoot3D::DelaunayRoot3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, Point *p0, Point *p1, Point *p2, Point *p3 ) : DelaunayTreeItem3D( t, NULL, NULL )
+DelaunayRoot3D::DelaunayRoot3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, Point *p0, Point *p1, Point *p2, Point *p3 ) : DelaunayTreeItem3D( t, nullptr, nullptr )
 {
 	isSpace() = false ;
 	isTetrahedron() = false ;
 	isDeadTetrahedron() = false ;
 	this->father = -1 ;
-	DelaunayTetrahedron *tet = new DelaunayTetrahedron( t, this, p0, p1, p2, p3, NULL ) ;
-	DelaunayDemiSpace *pl0 = new DelaunayDemiSpace( t, this, p0, p1, p2, p3, NULL );
-	DelaunayDemiSpace *pl1 = new DelaunayDemiSpace( t, this, p0, p1, p3, p2, NULL );
-	DelaunayDemiSpace *pl2 = new DelaunayDemiSpace( t, this, p1, p2, p3, p0, NULL );
-	DelaunayDemiSpace *pl3 = new DelaunayDemiSpace( t, this, p2, p3, p0, p1, NULL );
+	DelaunayTetrahedron *tet = new DelaunayTetrahedron( t, this, p0, p1, p2, p3, nullptr ) ;
+	DelaunayDemiSpace *pl0 = new DelaunayDemiSpace( t, this, p0, p1, p2, p3, nullptr );
+	DelaunayDemiSpace *pl1 = new DelaunayDemiSpace( t, this, p0, p1, p3, p2, nullptr );
+	DelaunayDemiSpace *pl2 = new DelaunayDemiSpace( t, this, p1, p2, p3, p0, nullptr );
+	DelaunayDemiSpace *pl3 = new DelaunayDemiSpace( t, this, p2, p3, p0, p1, nullptr );
 
 	makeNeighbours( tet, pl0 ) ;
 	makeNeighbours( tet, pl1 ) ;
@@ -2211,7 +2211,7 @@ void DelaunayTree3D::insert( Point *p )
 			if( ret[i]->isTetrahedron() )
 				static_cast<DelaunayTetrahedron *>( ret[i] )->setBoundingPoints( nullarray ) ;
 
-			tree[ret[i]->index] = NULL ;
+			tree[ret[i]->index] = nullptr ;
 			delete ret[i] ;
 		}
 	}
@@ -2374,7 +2374,7 @@ void DelaunayTetrahedron::refresh( const TetrahedralElement *father )
 std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g ) const
 {
 	std::vector<DelaunayTreeItem3D *> cons = conflicts( &g->getCenter() ) ;
-	DelaunayTetrahedron *origin = NULL ;
+	DelaunayTetrahedron *origin = nullptr ;
 
 	for( size_t i = 0 ; i < cons.size() ; i++ )
 	{
@@ -3226,13 +3226,13 @@ std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > Mu::quad( c
 	points.push_back( new Point( *t->second + ( *t->fourth - *t->second )*.5 ) ) ;
 	points.push_back( new Point( *t->third + ( *t->fourth - *t->third )*.5 ) ) ;
 
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[0], points[1], points[2], t->first, NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[0], points[3], points[4], t->second, NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[1], points[3], points[5], t->third, NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[2], points[4], points[5], t->fourth, NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[0], points[1], points[2], points[3], NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[0], points[3], points[4], points[1], NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[1], points[3], points[5], points[0], NULL ) ) ;
-	tris.push_back( new DelaunayTetrahedron( NULL, NULL, points[2], points[4], points[5], points[1], NULL ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[0], points[1], points[2], t->first, nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[0], points[3], points[4], t->second, nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[1], points[3], points[5], t->third, nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[2], points[4], points[5], t->fourth, nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[0], points[1], points[2], points[3], nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[0], points[3], points[4], points[1], nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[1], points[3], points[5], points[0], nullptr ) ) ;
+	tris.push_back( new DelaunayTetrahedron( nullptr, nullptr, points[2], points[4], points[5], points[1], nullptr ) ) ;
 	return std::make_pair( tris, points ) ;
 }

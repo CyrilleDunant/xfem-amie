@@ -105,7 +105,7 @@ double stress = 15e6 ;
 
 double restraintDepth = 0 ; //0.01 ;
 
-Sample sample( NULL, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
+Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
 
 bool firstRun = true ;
@@ -152,7 +152,7 @@ double aggregateArea = 0;
 
 GelBehaviour * gel = new GelBehaviour() ;
 
-// TriangleWriter writer( "rag_non_local", NULL ) ;
+// TriangleWriter writer( "rag_non_local", nullptr ) ;
 
 void fastForward( int steps, int nstepstot )
 {
@@ -162,7 +162,7 @@ void fastForward( int steps, int nstepstot )
 
 		double reactedArea = 0 ;
 
-		Inclusion *current = NULL ;
+		Inclusion *current = nullptr ;
 
 		if( !zones.empty() )
 			current = zones[0].second ;
@@ -585,7 +585,7 @@ void step()
 			double delta_r = sqrt( aggregateArea * 0.03 / ( ( double )zones.size() * M_PI ) ) / ( double )nstepstot ;
 			double reactedArea = 0 ;
 
-			Inclusion *current = NULL ;
+			Inclusion *current = nullptr ;
 
 			if( !zones.empty() )
 				current = zones[0].second ;
@@ -704,7 +704,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 		}
 
 		if( alone )
-			zonesToPlace.push_back( new ExpansiveZone( NULL, radius, pos.x, pos.y, gel ) ) ;
+			zonesToPlace.push_back( new ExpansiveZone( nullptr, radius, pos.x, pos.y, gel ) ) ;
 		else
 			i-- ;
 	}
@@ -798,7 +798,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones( in
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores( size_t n, double fraction, double E_agg, double nu, Feature *father, FeatureTree *F )
 {
-// 	srandom(time(NULL)) ;
+// 	srandom(time(nullptr)) ;
 	size_t nombre_de_pores = static_cast<size_t>( round( n * fraction ) ) ;
 	size_t nombre_d_inclusions = static_cast<size_t>( round( n * ( 1. - fraction ) ) ) ;
 
@@ -1789,10 +1789,10 @@ int main( int argc, char *argv[] )
 	m0_support[2][1] = 0 ;
 	m0_support[2][2] = 1. / ( 1 - 0.2 * 0.2 ) * ( 1. - 0.2 ) / 2. ;
 
-// 	Sample reinforcement0(NULL, 8,.15,0,.5) ;
+// 	Sample reinforcement0(nullptr, 8,.15,0,.5) ;
 // 	reinforcement0.setBehaviour(new Stiffness(m0*5)) ;
 //
-// 	Sample reinforcement1(NULL, 8,.15,0,-.5) ;
+// 	Sample reinforcement1(nullptr, 8,.15,0,-.5) ;
 // 	reinforcement1.setBehaviour(new Stiffness(m0*5)) ;
 
 	FeatureTree F( &sample ) ;
@@ -1846,19 +1846,19 @@ int main( int argc, char *argv[] )
 // 	sample.setBehaviour(new StiffnessWithImposedDeformation(m0_paste, setExpansion)) ;
 	if( restraintDepth > 0 )
 	{
-		Sample *voidtop = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
+		Sample *voidtop = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
 		voidtop->isVirtualFeature = true ;
 		voidtop->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidtop );
-		Sample *voidbottom = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
+		Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
 		voidbottom->isVirtualFeature = true ;
 		voidbottom->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidbottom );
-		Sample *voidleft = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
+		Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
 		voidleft->isVirtualFeature = true ;
 		voidleft->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidleft );
-		Sample *voidright = new Sample( NULL, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
+		Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
 		voidright->isVirtualFeature = true ;
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
@@ -1871,21 +1871,21 @@ int main( int argc, char *argv[] )
 		double fact0 = atof(argv[4]) ;
 
 
-		Sample *blocktop = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
+		Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
 		blocktop->setBehaviour(/* new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
-		F.addFeature( NULL, blocktop );
+		F.addFeature( nullptr, blocktop );
 
-		Sample *blockbottom = new Sample( NULL, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
+		Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
 		blockbottom->setBehaviour( /*new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
-		F.addFeature( NULL, blockbottom );
+		F.addFeature( nullptr, blockbottom );
 
-		Sample *blockleft = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
+		Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
 		blockleft->setBehaviour( new Stiffness( m0_support * fact )) ;
-		F.addFeature( NULL, blockleft );
+		F.addFeature( nullptr, blockleft );
 
-		Sample *blockright = new Sample( NULL, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
+		Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
 		blockright->setBehaviour(new Stiffness( m0_support * fact ) ) ;
-		F.addFeature( NULL, blockright );
+		F.addFeature( nullptr, blockright );
 	}
 
 	std::vector<Inclusion *> placedinclusions ;

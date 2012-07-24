@@ -72,7 +72,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 	{
 		if( bimateralInterfaced.find( ring[i] ) == bimateralInterfaced.end() )
 		{
-			BimaterialInterface *bi = NULL ;
+			BimaterialInterface *bi = nullptr ;
 
 			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
 			{

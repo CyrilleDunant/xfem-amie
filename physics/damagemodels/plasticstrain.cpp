@@ -18,11 +18,10 @@ namespace Mu {
 PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), previousTensileImposedStrain(0.,3), imposedStrain(0.,3), dimposedStrain(0.,3)
 {
 	getState(true).resize(1, 0.);
-	getPreviousState().resize(1, 0.);
 	isNull = false ;
 	v.push_back(XI);
 	v.push_back(ETA);
-	param = NULL ;
+	param = nullptr ;
 	compressivePlasticVariable = 0 ;
 	tensilePlasticVariable = 0 ;
 	inCompression = false ;
@@ -30,8 +29,8 @@ PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), previou
 	c_psi = 0.05 ;
 	eps_f = 0.0057; //0.0057 ;
 	kappa_0 = 3.350e-3 ;  //3.350e-3 ; // ; //3.350e-3 ; //5 up ; 4 down
-	es = NULL ;
-	damageDensityTolerance = 1e-5 ;
+	es = nullptr ;
+	broken = false ;
 }
 
 double PlasticStrain::plasticFlowPotential(const Matrix &m) const
@@ -68,6 +67,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		Vector stress(3) ;
 		Vector strain(3) ;
 		s.getField(STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
+// 		std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s) ;
+// 		stress = ss.first ;
+// 		strain = ss.second ;
 		stressMatrix[0][0] = stress[0] ;
 		stressMatrix[1][1] = stress[1] ;
 		stressMatrix[0][1] = stress[2] ;
@@ -102,7 +104,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
 			double snorm =  sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 			if(snorm > POINT_TOLERANCE_2D && s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-				imposedStrain *= snorm*(1.-getDamage())*.5 ;
+				imposedStrain *= snorm*(1.-getDamage()) ;
 		}
 // 		imposedStrain[2] = 0 ;
 // 		std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  "<< imposedStrain[2] << "  " << std::endl ;
@@ -133,7 +135,7 @@ int PlasticStrain::getMode() const
 
 double PlasticStrain::getAngleShift() const
 {
-	if(!es)
+// 	if(!es)
 		return 0 ;
 		
 		Matrix stressMatrix(v.size(), v.size()) ;
@@ -177,13 +179,19 @@ double PlasticStrain::getAngleShift() const
 			istrain /= sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 			istrain *= nimposed ;
 		}
-		
-		double angle = acos(std::inner_product(&istrain[0],&istrain[3], &imposedStrain[0], double(0.))/(nimposed*nimposed)) ;
+		double dp = std::inner_product(&istrain[0],&istrain[3], &imposedStrain[0], double(0.))/(nimposed*nimposed) ;
+		double angle = acos(dp) ;
+		if(std::abs(dp-1.) < POINT_TOLERANCE_2D)
+			angle = 0 ;
 		if(nimposed < POINT_TOLERANCE_2D)
-			angle = M_PI ;
+			angle = 0 ;
 		if (angle < 0 )
 			angle += M_PI ;
-
+// 		std::cout << std::endl ;
+// 		std::cout << istrain[0] << "  " << istrain[1] << "  "<< istrain[2] << "  " << std::endl ;
+// 		std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  "<< imposedStrain[2] << "  " << std::endl ;
+// 		std::cout << angle << std::endl ;
+// 		std::cout << std::endl ;
 		return angle ;
 }
 
@@ -192,15 +200,7 @@ void PlasticStrain::computeDelta(const ElementState & s)
 	delta = 1 ;
 }
 
-Matrix PlasticStrain::apply(const Matrix & m) const
-{
-	if(fractured())
-		return m*0. ;
-	return m*(1.-getDamage()) ;
-}
-
-
-Matrix PlasticStrain::applyPrevious(const Matrix & m) const
+Matrix PlasticStrain::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
 {
 	if(fractured())
 		return m*0. ;
@@ -293,12 +293,12 @@ bool PlasticStrain::fractured() const
 {
 	if(fraction < 0)
 		return false ;
-	return getDamage() >= thresholdDamageDensity ;
+	return broken || getDamage() >= thresholdDamageDensity ;
 }
 
 void PlasticStrain::postProcess()
 {
-	if(converged && es)
+	if(converged && es && state[0] > POINT_TOLERANCE_2D)
 	{
 		
 		if(inCompression)
@@ -318,12 +318,23 @@ void PlasticStrain::postProcess()
 		                                       imposedStrain[1]*imposedStrain[1] + 
 		                                       imposedStrain[2]*imposedStrain[2] )  ;
 		}
+		Vector str = imposedStrain ;
+		es->getFieldAtCenter(STRAIN_FIELD, str) ;
+		if(std::abs(str).max() > 0.01)
+			broken = true ;
 // 		if(state[0] > POINT_TOLERANCE_2D)
 // 		{
 // 			std::cout <<std::endl ;
 // 			std::cout << previousCompressiveImposedStrain[0] << "   "<< previousCompressiveImposedStrain[1] << "   "<< previousCompressiveImposedStrain[2] << std::endl ;
 // 			std::cout << previousTensileImposedStrain[0] << "   "<< previousTensileImposedStrain[1] << "   "<< previousTensileImposedStrain[2] << std::endl ;
+// 			std::cout << getDamage() << std::endl ;
 // 			std::cout <<std::endl ;
+// 		}
+		
+// 		if(getDamage() > POINT_TOLERANCE_2D && es->getParent()->getBehaviour()->getSource() != nullptr)
+// 		{
+// 			es->getParent()->getBehaviour()->setSource(nullptr);
+// 			es->getParent()->getBehaviour()->getFractureCriterion()->cache.clear();
 // 		}
 		
 		state[0] = 0;

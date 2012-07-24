@@ -131,7 +131,7 @@ protected:
 	 */
 	void referenced() 
 	{
-		if(t!=NULL)
+		if(t!=nullptr)
 			t->referenced() ;
 	}
 	
@@ -140,19 +140,19 @@ protected:
 	 */
 	void dereferenced() 
 	{
-		if ( t!=NULL && t->dereferenced() )
+		if ( t!=nullptr && t->dereferenced() )
 		{
 			delete t;
-			t = NULL ;
+			t = nullptr ;
 		}
 	}
 	
 public:
 	
-	/** \brief Default constructor. Behaves like NULL
+	/** \brief Default constructor. Behaves like nullptr
 	 * 
 	 */
-	RefCountedToken() : t(NULL) { } ; 
+	RefCountedToken() : t(nullptr) { } ; 
 	
 	
 	/** \brief Evaluate the token given a Context
@@ -198,7 +198,7 @@ public:
 	 */
 	RefCountedToken & operator = ( const RefCountedToken & token)
 	{
-		if(t == NULL)
+		if(t == nullptr)
 		{
 			t = token.t ;
 			referenced() ;

@@ -174,8 +174,8 @@ Vector epsilon12( 0 ) ;
 Vector vonMises( 0 ) ;
 Vector angle( 0 ) ;
 
-MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
-MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", NULL ) ;
+MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
+MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
 Function loadFunction("0") ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
@@ -1708,7 +1708,7 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.05; //0.015 ;//0.055 ;//.11 ; // .015
+	double mradius = 0.06; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
 	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
@@ -1726,21 +1726,21 @@ int main( int argc, char *argv[] )
 // 		
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
 
-	Sample box( NULL, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
+	Sample box( nullptr, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
 
-	Sample sample( NULL, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
-	Sample samplebulk( NULL, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
-	Sample samplestirrupbulk( NULL, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
+	Sample sample( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
+	Sample samplebulk( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
+	Sample samplestirrupbulk( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
 	
-	Sample topsupport( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupport( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupport.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
 
-	Sample topsupportbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupportbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-	Sample topsupportstirrupbulk( NULL, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample topsupportstirrupbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 	topsupportstirrupbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-	Sample toprightvoid( NULL, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+	Sample toprightvoid( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 	toprightvoid.setBehaviour( new VoidForm() ) ;
 	
 	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
@@ -1836,24 +1836,24 @@ int main( int argc, char *argv[] )
 	int stirruplayer = 1 ;
 	int rebarlayer = 0 ;
 
-	F.addFeature( NULL, &topsupport, rebarlayer, phi ) ;
-	F.addFeature( NULL, &topsupportbulk ) ;
-	F.addFeature( NULL, &toprightvoid ) ;
-	F.addFeature( NULL, &sample, rebarlayer, phi ) ;
-	F.addFeature( NULL,&baseright, rebarlayer, phi ) ;
-	F.addFeature( NULL,&baserightbulk);
+	F.addFeature( nullptr, &topsupport, rebarlayer, phi ) ;
+	F.addFeature( nullptr, &topsupportbulk ) ;
+	F.addFeature( nullptr, &toprightvoid ) ;
+	F.addFeature( nullptr, &sample, rebarlayer, phi ) ;
+	F.addFeature( nullptr,&baseright, rebarlayer, phi ) ;
+	F.addFeature( nullptr,&baserightbulk);
 
-	F.addFeature( NULL,&bottomcentervoid);
-	F.addFeature( NULL,&rightbottomvoid) ;
+	F.addFeature( nullptr,&bottomcentervoid);
+	F.addFeature( nullptr,&rightbottomvoid) ;
 
 
 	if ( atoi( argv[2] ) )
 	{
 		haveStirrups = true ;
-		F.addFeature( NULL, &samplestirrupbulk, stirruplayer, psi ) ;
-		F.addFeature( NULL, &topsupportstirrupbulk, stirruplayer, psi ) ;
+		F.addFeature( nullptr, &samplestirrupbulk, stirruplayer, psi ) ;
+		F.addFeature( nullptr, &topsupportstirrupbulk, stirruplayer, psi ) ;
 		F.addFeature( &sample, stirrups[0], stirruplayer, psi ) ;
-		F.addFeature( NULL,&baserightstirrupbulk, stirruplayer, psi);
+		F.addFeature( nullptr,&baserightstirrupbulk, stirruplayer, psi);
 		F.setSamplingFactor( stirrups[0], 3 ) ;
 
 		int nstirrups = 7 ;

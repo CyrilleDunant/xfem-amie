@@ -4,7 +4,7 @@
 MainWindow::MainWindow()
 {
 	voxeldisplay = new VoxelGLDrawer() ;
-	triangledisplay = NULL ;
+	triangledisplay = nullptr ;
 	setCentralWidget( voxeldisplay );
 
 	createActions() ;
@@ -172,7 +172,7 @@ void MainWindow::open()
 				ypos = triangledisplay->ytransleft ;
 			}
 
-			voxeldisplay = NULL ;
+			voxeldisplay = nullptr ;
 
 			int i = buffer.fileInBuffer( fileName ) ;
 
@@ -258,7 +258,7 @@ void MainWindow::open()
 			delete triangledisplay ;
 			statusBar()->clearMessage() ;
 			voxeldisplay = new VoxelGLDrawer( fileName, this ) ;
-			triangledisplay = NULL ;
+			triangledisplay = nullptr ;
 			setCentralWidget( voxeldisplay );
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );
@@ -338,7 +338,7 @@ void MainWindow::open( const QString &fileName )
 			int ypos = 0 ;
 			int zoomval = zoom->value();
 			int scale = 1 ;
-			voxeldisplay = NULL ;
+			voxeldisplay = nullptr ;
 
 			if( triangledisplay )
 			{
@@ -385,8 +385,8 @@ void MainWindow::open( const QString &fileName )
 			triangledisplay->ytransleft = ypos ;
 			triangledisplay->scale = scale ;
 			
-			if( triangledisplay == NULL )
-				std::cerr << "NULL" << std::endl ;
+			if( triangledisplay == nullptr )
+				std::cerr << "nullptr" << std::endl ;
 
 			setCentralWidget( triangledisplay );
 			QFileInfo pathInfo( fileName );
@@ -424,7 +424,7 @@ void MainWindow::open( const QString &fileName )
 			delete voxeldisplay ;
 			delete triangledisplay ;
 			voxeldisplay = new VoxelGLDrawer( fileName ) ;
-			triangledisplay = NULL ;
+			triangledisplay = nullptr ;
 			setCentralWidget( voxeldisplay );
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );

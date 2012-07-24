@@ -29,7 +29,7 @@ LinearForm::~LinearForm() { } ;
 
 bool LinearForm::fractured() const { return false  ;} ; 
 
-void LinearForm::step(double timestep, ElementState & s)
+void LinearForm::step(double timestep, ElementState & s, double maxscore)
 {
 
 }
@@ -40,9 +40,7 @@ void LinearForm::updateElementState(double timestep, ElementState & s) const
 	if( type == VOID_BEHAVIOUR)
 		return ;
 
-	s.getPreviousPreviousDisplacements() = s.getPreviousDisplacements() ;
 	s.getPreviousDisplacements() = s.getDisplacements() ;
-	s.getPreviousPreviousEnrichedDisplacements() = s.getPreviousEnrichedDisplacements() ;
 	s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 	
 	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -73,9 +71,7 @@ void LinearForm::updateElementState(double timestep, ElementState & s) const
 void NonLinearForm::updateElementState(double timestep, ElementState & s) const
 {
 	
-	s.getPreviousPreviousDisplacements() = s.getPreviousDisplacements() ;
 	s.getPreviousDisplacements() = s.getDisplacements() ;
-	s.getPreviousPreviousEnrichedDisplacements() = s.getPreviousEnrichedDisplacements() ;
 	s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 	
 	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -119,7 +115,7 @@ void NonLinearForm::setIntegrationHints(std::vector<Point> h)
 	hints = h ;
 }
 
-void NonLinearForm::step(double timestep, ElementState & s)
+void NonLinearForm::step(double timestep, ElementState & s, double maxscore)
 {
 }
 

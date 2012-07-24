@@ -284,7 +284,7 @@ std::vector<std::valarray<int> > * BoundaryParser::getData(size_t face_index)
 	else
 	{
 		assert(false) ;
-		return NULL ; //shut up the compiler ;
+		return nullptr ; //shut up the compiler ;
 	}
 }
 
@@ -375,7 +375,7 @@ std::vector<std::valarray<int> > * HexahedronBoundaryParser::getData(size_t face
 	else
 	{
 		assert(false) ;
-		return NULL ; //shut up the compiler ;
+		return nullptr ; //shut up the compiler ;
 	}
 }
 

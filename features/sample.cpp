@@ -21,7 +21,7 @@ Sample::Sample(Feature * father, double x, double y, double originX, double orig
 	this->behaviour = new VoidForm() ;
 }
 
-Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(NULL)
+Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
@@ -31,7 +31,7 @@ std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt)
 {
 	std::vector<DelaunayTriangle *>  ret ;
 	std::vector<DelaunayTriangle *>  temp ;
-	if(this->m_f == NULL)
+	if(this->m_f == nullptr)
 		temp = dt->getElements2D() ;
 	else
 		temp = dt->getElements2D(this->getPrimitive()) ;

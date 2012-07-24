@@ -19,7 +19,7 @@ void GaussSeidellStep::precondition(const Vector& v, Vector& t)
 {
 
 	gs.b = v ;
-	gs.solve(v, NULL, 0, 1, false) ;
+	gs.solve(v, nullptr, 0, 1, false) ;
 	t = gs.x ;
 }
 

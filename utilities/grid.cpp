@@ -568,28 +568,28 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div, const Point & 
 		lengthX = div ;
 		lengthY = div*(y/x) ;
 		lengthZ = div*(z/x) ;
-		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)NULL,lengthZ),lengthY)) ;
+		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)nullptr,lengthZ),lengthY)) ;
 	}
 	else if(y < x && y < z)
 	{
 		lengthY = div ;
 		lengthX = div*(x/y) ;
 		lengthZ = div*(z/y) ;
-		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)NULL,lengthZ),lengthY)) ;
+		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)nullptr,lengthZ),lengthY)) ;
 	}
 	else if(z < x && z < y)
 	{
 		lengthZ = div ;
 		lengthX = div*(x/z) ;
 		lengthY = div*(y/z) ;
-		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)NULL,lengthZ),lengthY)) ;
+		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)nullptr,lengthZ),lengthY)) ;
 	}
 	else
 	{
 		lengthX = div ;
 		lengthY = div ;
 		lengthZ = div ;
-		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)NULL,lengthZ),lengthY)) ;
+		pixels.resize(lengthX,std::valarray<std::valarray<Voxel *> >(std::valarray<Voxel *>((Voxel *)nullptr,lengthZ),lengthY)) ;
 	}
 	
 	psize = x/lengthX;
@@ -909,13 +909,13 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 		
 		lengthX = div ;
 		lengthY = std::max((int)round(div*y/x), 1) ;
-		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
+		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)nullptr,lengthY)) ;
 	}
 	else
 	{
 		lengthX = std::max((int)round(div*x/y), 1) ;
 		lengthY = div ;
-		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)NULL,lengthY)) ;
+		pixels.resize(lengthX,std::valarray<Pixel *>((Pixel *)nullptr,lengthY)) ;
 	}
 	
 	psize = std::max(std::abs(x/lengthX), std::abs(y/lengthY));

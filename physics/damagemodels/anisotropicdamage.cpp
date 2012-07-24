@@ -31,16 +31,12 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 		upState.resize(2, 0.) ;
 		downState.resize(2, 0.) ;
 		getState(true).resize(2, 0.) ;
-		previousstate.resize(2, 0.) ;
-		previouspreviousstate.resize(2, 0.) ;
 	}
 	else if( getState().size() == 0 && s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 	{
 		upState.resize(3, 0.) ;
 		downState.resize(3, 0.) ;
 		getState(true).resize(3, 0.) ;
-		previousstate.resize(3, 0.) ;
-		previouspreviousstate.resize(3, 0.) ;
 	}
 	
 	Vector ret(0., state.size()) ;
@@ -139,7 +135,8 @@ void AnisotropicLinearDamage::computeDelta(const ElementState & s)
 	delta = (state+ret*factor.min()-state).max() ;
 }
 
-Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
+
+Matrix AnisotropicLinearDamage::apply(const Matrix & m, const Point & p, const IntegrableEntity * e, int g ) const
 {
 	if(state.max() < POINT_TOLERANCE_2D)
 		return m ;
@@ -160,22 +157,6 @@ Matrix AnisotropicLinearDamage::apply(const Matrix & m) const
 
 }
 
-Matrix AnisotropicLinearDamage::applyPrevious(const Matrix & m) const
-{
-	Matrix ret(m) ;
-	Vector rstate = previousstate ;
-	for(size_t i = 0 ; i < state.size() ; i++)
-	{
-		if(rstate[i] >= thresholdDamageDensity)
-			rstate[i] = 1 ;
-	}
-
-	ret[0][0] = m[0][0]*(1.-rstate[0]) ; ret[0][1] = m[0][1]*sqrt((1.-rstate[0])*(1.-rstate[1])) ; ret[0][2] = 0 ;
-	ret[1][0] = m[1][0]*sqrt((1.-rstate[0])*(1.-rstate[1]))  ; ret[1][1] = m[1][1]*(1.-rstate[1])  ; ret[1][2] = 0 ;
-	ret[2][0] = 0 ; ret[2][1] = 0 ; ret[2][2] = m[2][2]*sqrt((1.-rstate[0])*(1.-rstate[1])) ;
-	return ret ;
-	
-}
 
 bool AnisotropicLinearDamage::fractured() const
 {

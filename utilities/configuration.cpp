@@ -53,7 +53,7 @@ std::string ConfigAtom::getFullLabel()
 	
 	ConfigAtom * current = this ;
 	std::vector<std::string> familytree ;
-	while(current->getParent()!=NULL)
+	while(current->getParent()!=nullptr)
 	{
 		familytree.insert(familytree.begin(), current->getLabel()) ;
 		current = current->getParent() ;

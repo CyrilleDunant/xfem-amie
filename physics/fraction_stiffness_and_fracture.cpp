@@ -61,15 +61,10 @@ void FractionStiffnessAndFracture::apply(const Function & p_i, const Function & 
 }
 
 
-void FractionStiffnessAndFracture::stepBack()
-{
-	dfunc->stepBack() ;
-}
-
-void FractionStiffnessAndFracture::step(double timestep, ElementState & currentState) 
+void FractionStiffnessAndFracture::step(double timestep, ElementState & currentState, double maxscore) 
 {
 
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
 	
 }

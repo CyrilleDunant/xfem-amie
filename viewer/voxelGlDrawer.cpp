@@ -1230,7 +1230,7 @@ void VoxelGLDrawer::setRestriction(size_t i) {
 
 VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trsFunc tc , QMainWindow *parent ) : QGLWidget(parent), sz(r*c*s), restriction(true, r*c*s) {
 	
-	valuesAtPoint = NULL ;
+	valuesAtPoint = nullptr ;
 	
 	mousePosOnLeftClick = QPoint(0,0);
 	mousePosOnRightClick = QPoint(0,0);
@@ -1267,7 +1267,7 @@ VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trs
 		parent->statusBar()->addPermanentWidget(pbar) ;
 	}
 	else
-		pbar = NULL ;
+		pbar = nullptr ;
 	
 // 	rpos.resize(sz*3) ;
 // 	for(size_t i = 0 ; i < rpos.size() ; i++)
@@ -1303,7 +1303,7 @@ VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trs
 
 VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwin) {
 	
-	valuesAtPoint = NULL ;
+	valuesAtPoint = nullptr ;
 	
 	if(mainwin)
 	{
@@ -1311,7 +1311,7 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 		mainwin->statusBar()->addPermanentWidget(pbar) ;
 	}
 	else 
-		pbar = NULL ;
+		pbar = nullptr ;
 	
 	mousePosOnLeftClick = QPoint(0,0);
 	mousePosOnRightClick = QPoint(0,0);
@@ -1376,7 +1376,7 @@ VoxelGLDrawer::VoxelGLDrawer(QMainWindow *parent) : QGLWidget(parent) {
 		parent->statusBar()->addPermanentWidget(pbar) ;
 	}
 	else
-		pbar = NULL ;
+		pbar = nullptr ;
 	
 	valuesAtPoint = new std::vector< std::valarray<quint8> >(0) ;
 	

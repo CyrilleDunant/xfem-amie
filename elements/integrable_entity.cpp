@@ -19,7 +19,7 @@ ElementState * Form::createElementState( IntegrableEntity * e)
 	return new ElementState(e) ;
 }
 
-IntegrableEntity::IntegrableEntity() : boundaryConditionCache( NULL ), cachedGps( NULL )
+IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr )
 {
 	state = new ElementState( this ) ;
 }
@@ -151,14 +151,6 @@ ElementState &IntegrableEntity::getState()
 	return *state ;
 }
 
-void ElementState::stepBack()
-{
-	if( !history.empty() )
-	{
-		*this = history.back() ;
-		history.pop_back() ;
-	}
-}
 
 const Vector &ElementState::getDisplacements() const
 {
@@ -200,25 +192,6 @@ Vector &ElementState::getPreviousEnrichedDisplacements()
 	return this->previousEnrichedDisplacements ;
 }
 
-const Vector &ElementState::getPreviousPreviousDisplacements() const
-{
-	return this->previousPreviousDisplacements ;
-}
-
-Vector &ElementState::getPreviousPreviousDisplacements()
-{
-	return this->previousPreviousDisplacements ;
-}
-
-const Vector &ElementState::getPreviousPreviousEnrichedDisplacements() const
-{
-	return this->previousPreviousEnrichedDisplacements ;
-}
-
-Vector &ElementState::getPreviousPreviousEnrichedDisplacements()
-{
-	return this->previousPreviousEnrichedDisplacements ;
-}
 
 
 ElementState &ElementState::operator =( const ElementState &s )
@@ -241,16 +214,12 @@ ElementState &ElementState::operator =( const ElementState &s )
 	previousEnrichedDisplacements.resize( s.getPreviousEnrichedDisplacements().size() ) ;
 	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
 
-	previousPreviousDisplacements.resize( s.getPreviousPreviousDisplacements().size() ) ;
-	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
-	previousPreviousEnrichedDisplacements.resize( s.getPreviousPreviousEnrichedDisplacements().size() ) ;
-	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+
 	buffer.resize( s.getBuffer().size() ) ;
 	buffer = s.getBuffer() ;
 
 	timePos = s.getTime();
 	previousTimePos = s.getTime() - s.getDeltaTime();
-	previousPreviousTimePos = s.getTime() - 2 * s.getDeltaTime();
 
 	parent = s.getParent();
 	return *this ;
@@ -276,16 +245,12 @@ ElementState::ElementState( const ElementState &s )
 	previousEnrichedDisplacements.resize( s.getPreviousEnrichedDisplacements().size() ) ;
 	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
 
-	previousPreviousDisplacements.resize( s.getPreviousPreviousDisplacements().size() ) ;
-	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
-	previousPreviousEnrichedDisplacements.resize( s.getPreviousPreviousEnrichedDisplacements().size() ) ;
-	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
+
 	buffer.resize( s.getBuffer().size() ) ;
 	buffer = s.getBuffer() ;
 
 	timePos = s.getTime();
 	previousTimePos = s.getTime() - s.getDeltaTime();
-	previousPreviousTimePos = s.getTime() - 2 * s.getDeltaTime();
 
 	parent = s.getParent();
 }
@@ -1874,8 +1839,7 @@ void ElementState::initialize( bool initializeFractureCache )
 	displacements = 0 ;
 	previousDisplacements.resize( displacements.size() ) ;
 	previousDisplacements = 0 ;
-	previousPreviousDisplacements.resize( displacements.size() ) ;
-	previousPreviousDisplacements = 0 ;
+
 	buffer.resize( displacements.size() ) ;
 	buffer = 0 ;
 
@@ -1883,7 +1847,6 @@ void ElementState::initialize( bool initializeFractureCache )
 	{
 		timePos = -0.1 ;
 		previousTimePos = -0.2 ;
-		previousPreviousTimePos = -0.3 ;
 	}
 
 	if( initializeFractureCache && parent->getBehaviour()->getFractureCriterion() )
@@ -1929,7 +1892,6 @@ void ElementState::step( double dt, const Vector *d )
 
 	if( parent->getBehaviour()&& parent->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
-		previousPreviousTimePos = previousTimePos ;
 		previousTimePos = timePos ;
 		timePos += dt ;
 		size_t ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -2147,16 +2109,11 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
 	previousEnrichedDisplacements.resize( s.getPreviousEnrichedDisplacements().size() ) ;
 	previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
 
-	previousPreviousDisplacements.resize( s.getPreviousPreviousDisplacements().size() ) ;
-	previousPreviousDisplacements = s.getPreviousPreviousDisplacements() ;
-	previousPreviousEnrichedDisplacements.resize( s.getPreviousPreviousEnrichedDisplacements().size() ) ;
-	previousPreviousEnrichedDisplacements = s.getPreviousPreviousEnrichedDisplacements() ;
 	buffer.resize( s.getBuffer().size() ) ;
 	buffer = s.getBuffer() ;
 
 	timePos = s.getTime();
 	previousTimePos = s.getTime() - s.getDeltaTime();
-	previousPreviousTimePos = s.getTime() - 2 * s.getDeltaTime();
 
 	parent = s.getParent();
 

@@ -16,7 +16,6 @@ namespace Mu {
 StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof, double limitStrain) :  limitStrain(limitStrain)
 {
 	state.resize(1, 0.);
-	previousstate.resize(1, 0.);
 	state[0] = 0 ;
 	isNull = false ;
 }
@@ -51,7 +50,7 @@ void StrainBrokenIsotropicLinearDamage::computeDelta(const ElementState & s)
 }
 
 
-Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
+Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m, const Point & p , const IntegrableEntity * e , int g) const
 {
 	Matrix ret(m) ;
 
@@ -60,15 +59,6 @@ Matrix StrainBrokenIsotropicLinearDamage::apply(const Matrix & m) const
 	return ret*(1.-state[0]) ;
 }
 
-
-Matrix StrainBrokenIsotropicLinearDamage::applyPrevious(const Matrix & m) const
-{
-	Matrix ret(m) ;
-
-	if(fractured())
-		return ret*1e-6 ;
-	return ret*(1.-previousstate[0]) ;
-}
 
 bool StrainBrokenIsotropicLinearDamage::fractured() const 
 {

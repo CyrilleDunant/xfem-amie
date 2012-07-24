@@ -18,7 +18,6 @@ using namespace Mu ;
 IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : dcost(dcost),e(e)
 {
 	state.resize(1, 0.);
-	previousstate.resize(1, 0.);
 	fixedDamage.resize(1, 0.);
 	isNull = false ;
 	thresholdDamageDensity = 1 ;
@@ -204,7 +203,7 @@ void IndexedLinearDamage::computeDelta(const ElementState & s)
 		delta = (ret-state).max() ;
 }
 
-Matrix IndexedLinearDamage::apply(const Matrix & m) const
+Matrix IndexedLinearDamage::apply(const Matrix & m, const Point & p , const IntegrableEntity * e , int g ) const
 {
 	Matrix ret(m) ;
 
@@ -213,15 +212,6 @@ Matrix IndexedLinearDamage::apply(const Matrix & m) const
 	return ret*(1.-state[0]) ;
 }
 
-
-Matrix IndexedLinearDamage::applyPrevious(const Matrix & m) const
-{
-	Matrix ret(m) ;
-
-	if(fractured())
-		return ret*1e-6 ;
-	return ret*(1.-previousstate[0]) ;
-}
 
 bool IndexedLinearDamage::fractured() const 
 {

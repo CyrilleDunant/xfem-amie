@@ -67,13 +67,13 @@ void LagrangeMultiplier::setHint(std::pair<unsigned int, double> h)
 
 Assembly::Assembly() 
 {
-	this->coordinateIndexedMatrix = NULL ;
-	this->nonLinearPartialMatrix = NULL;
+	this->coordinateIndexedMatrix = nullptr ;
+	this->nonLinearPartialMatrix = nullptr;
 	multiplier_offset = 0 ;
 	this->displacements.resize(0) ;
 	this->externalForces.resize(0) ;
 	this->naturalBoundaryConditionForces.resize(0) ;
-	this->boundaryMatrix = NULL ;
+	this->boundaryMatrix = nullptr ;
 	ndof = 1 ;
 	dim = SPACE_THREE_DIMENSIONAL ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
@@ -89,7 +89,7 @@ Assembly::~Assembly()
 
 Vector & Assembly::getForces()
 {
-	if(this->coordinateIndexedMatrix == NULL)
+	if(this->coordinateIndexedMatrix == nullptr)
 		make_final() ;
 	
 	return this->externalForces ;
@@ -97,7 +97,7 @@ Vector & Assembly::getForces()
 
 Vector & Assembly::getNaturalBoundaryConditionForces()
 {
-	if(this->coordinateIndexedMatrix == NULL)
+	if(this->coordinateIndexedMatrix == nullptr)
 		make_final() ;
 	
 	return this->naturalBoundaryConditionForces ;
@@ -105,7 +105,7 @@ Vector & Assembly::getNaturalBoundaryConditionForces()
 
 Vector & Assembly::getNonLinearForces()
 {
-	if(this->coordinateIndexedMatrix == NULL)
+	if(this->coordinateIndexedMatrix == nullptr)
 		make_final() ;
 	
 	return this->nonLinearExternalForces ;
@@ -192,13 +192,13 @@ bool Assembly::nonLinearStep()
 	{
 // 		if(i%100 == 0)
 // 			std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-		if(element2d[i]->getNonLinearBehaviour() != NULL)
+		if(element2d[i]->getNonLinearBehaviour() != nullptr)
 		{
 			element2d[i]->nonLinearStep(0, &this->displacements) ;
 			nl = true ;
 		}
 		
-		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix() )
+		if(element2d[i]->getNonLinearBehaviour() != nullptr && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix() )
 		{
 			
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
@@ -242,7 +242,7 @@ bool Assembly::nonLinearStep()
 	
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
-		if(element2d[i]->getNonLinearBehaviour() != NULL && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix())
+		if(element2d[i]->getNonLinearBehaviour() != nullptr && element2d[i]->getNonLinearBehaviour()->hasInducedMatrix())
 		{
 // 			if(i%100 == 0)
 // 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
@@ -272,7 +272,7 @@ bool Assembly::nonLinearStep()
 			}
 		}
 		
-		if(element2d[i]->getNonLinearBehaviour() != NULL )
+		if(element2d[i]->getNonLinearBehaviour() != nullptr )
 		{
 			if(element2d[i]->getNonLinearBehaviour()->isActive())
 			{
@@ -470,7 +470,7 @@ void Assembly::setBoundaryConditions()
 void Assembly::initialiseElementaryMatrices()
 {
 	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
+	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
 	bool cannotParallelize = false ;
 	for(size_t i = 0 ; i < element2d.size() ; i++)
@@ -527,7 +527,7 @@ void Assembly::initialiseElementaryMatrices()
 		}
 	}
 
-	gettimeofday(&time1, NULL);
+	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
 }
@@ -542,7 +542,7 @@ bool Assembly::make_final()
 	if(dim == SPACE_TWO_DIMENSIONAL)
 	{
 		
-		if( element2d.empty() && coordinateIndexedMatrix != NULL)
+		if( element2d.empty() && coordinateIndexedMatrix != nullptr)
 		{
 			std::cerr << "no elements in mesh (2D) !" << std::endl ;
 			return false ;
@@ -550,7 +550,7 @@ bool Assembly::make_final()
 		
 //		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		size_t max ;
-		if(coordinateIndexedMatrix == NULL)
+		if(coordinateIndexedMatrix == nullptr)
 		{
 			
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
@@ -684,7 +684,7 @@ bool Assembly::make_final()
 	if(dim == SPACE_THREE_DIMENSIONAL)
 	{			
 			
-		if(element3d.empty() && coordinateIndexedMatrix != NULL)
+		if(element3d.empty() && coordinateIndexedMatrix != nullptr)
 		{
 			std::cerr << "no elements in mesh (3D) !" << std::endl ;
 			return false ;
@@ -693,7 +693,7 @@ bool Assembly::make_final()
 		size_t max ;
 //		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-		if( coordinateIndexedMatrix == NULL)
+		if( coordinateIndexedMatrix == nullptr)
 		{
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
 
@@ -858,7 +858,7 @@ CoordinateIndexedIncompleteSparseMatrix & Assembly::getNonLinearMatrix()
 
 void Assembly::print() 
 {
-	if(this->coordinateIndexedMatrix == NULL)
+	if(this->coordinateIndexedMatrix == nullptr)
 		make_final() ;
 	
 	for(size_t i = 0 ; i < externalForces.size() ; i++)
@@ -988,11 +988,11 @@ void Assembly::clear()
 // 	element3d.clear() ;
 	multipliers.clear();
 	delete coordinateIndexedMatrix ;
-	coordinateIndexedMatrix = NULL ;
+	coordinateIndexedMatrix = nullptr ;
 	delete nonLinearPartialMatrix ;
-	nonLinearPartialMatrix = NULL ;
+	nonLinearPartialMatrix = nullptr ;
 	delete boundaryMatrix ;
-	boundaryMatrix = NULL ;
+	boundaryMatrix = nullptr ;
 }
 
 void Assembly::setForceOn(double val, size_t id)
@@ -1182,11 +1182,11 @@ void Assembly::fixPoint(size_t id, Mu::Variable v)
 
 bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 {
-	if(this->coordinateIndexedMatrix == NULL)
+	if(this->coordinateIndexedMatrix == nullptr)
 		make_final() ;
 	
 	GaussSeidel gs(getMatrix(), externalForces) ;
-	bool ret = gs.solve(x0, NULL) ;
+	bool ret = gs.solve(x0, nullptr) ;
 	displacements.resize(gs.x.size()) ;
 	displacements = gs.x ;
 	return ret ;
@@ -1195,14 +1195,14 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 {
 	bool ret = true ;
-// 	if(this->coordinateIndexedMatrix == NULL)
+// 	if(this->coordinateIndexedMatrix == nullptr)
 // 	double lambda_min = smallestEigenValue(getMatrix()) ;
 // 	double lambda_max = largestEigenValue(getMatrix()) ;
 // // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
 // // 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
 // 	std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
 		timeval time0, time1 ;
-		gettimeofday(&time0, NULL);
+		gettimeofday(&time0, nullptr);
 
 	if(make_final() )
 	{
@@ -1215,9 +1215,9 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
  		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(x0, NULL, 5e-18, -1, verbose) ;
+		ret = cg.solve(x0, nullptr, 5e-18, -1, verbose) ;
 // 		ret = false ;
-		gettimeofday(&time1, NULL);
+		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
@@ -1232,12 +1232,12 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 	{
 		std::cerr << "non-symmetrical problem" << std::endl ;
 		timeval time0, time1 ;
-		gettimeofday(&time0, NULL);
+		gettimeofday(&time0, nullptr);
 
 		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(displacements, NULL,1e-22, -1, true) ;
+		ret = cg.solve(displacements, nullptr,1e-22, -1, true) ;
 
-		gettimeofday(&time1, NULL);
+		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
@@ -1252,9 +1252,9 @@ bool Assembly::mgsolve(LinearSolver * mg, Vector x0, Preconditionner *pg, int Ma
 
 	std::cerr << "symmetrical problem" << std::endl ;
 	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
+	gettimeofday(&time0, nullptr);
 	bool ret = mg->solve(x0, pg, 1e-8, -1, true) ;
-	gettimeofday(&time1, NULL);
+	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 	displacements.resize(mg->x.size()) ;

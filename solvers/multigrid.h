@@ -61,13 +61,13 @@ namespace Mu
 
 		};
 		
-		virtual bool solve(const Vector &x0, Preconditionner * precond = NULL, const double eps = 5e-8, const int maxit = -1, bool verbose = true)
+		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 5e-8, const int maxit = -1, bool verbose = true)
 		{
 			
 			if(mesh1.empty())
 			{
 				std::cout << "No Coarse grids, falling back to CG" << std::endl ;
-				bool solve = cg0->solve(x0, NULL, eps, maxit, verbose) ;
+				bool solve = cg0->solve(x0, nullptr, eps, maxit, verbose) ;
 				x = cg0->x ;
 				return solve ;
 				
@@ -107,7 +107,7 @@ namespace Mu
 				nit++ ;
 				if(!coarseSolved)
 				{
-					cg0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
+					cg0->solve(x, nullptr, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
 					x = cg0->x ;
 					assign(r0, A*x-b) ;
 					r0 = -r0 ;
@@ -129,7 +129,7 @@ namespace Mu
 					//V iteration
 					subsolver->b = r1 ;
 					subsolver->x = 0 ;
-					subsolver->solve(subsolver->x, NULL, eps, -1, false) ;
+					subsolver->solve(subsolver->x, nullptr, eps, -1, false) ;
 						
 					//extend
 					mesh0->project(mesh1.back(), r0, subsolver->x, false) ;
@@ -145,13 +145,13 @@ namespace Mu
 						std::cout << A1.size()-1 << " not converged... " << std::flush ;
 					}
 					
-					cg0->solve(x, NULL, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
+					cg0->solve(x, nullptr, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
 					x = cg0->x ;
 				}
 				else
 				{
 					// finish computation on fine grid ;
-					bool solved = cg0->solve(x, NULL, eps, -1, verbose) ;
+					bool solved = cg0->solve(x, nullptr, eps, -1, verbose) ;
 					x = cg0->x ;
 // 					coarseSolved = false ;
 					if(solved)

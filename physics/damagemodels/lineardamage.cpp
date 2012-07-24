@@ -17,7 +17,6 @@ namespace Mu {
 LinearDamage::LinearDamage()
 {
 	getState(true).resize(2, 0.) ;
-	getPreviousState().resize(2, 0.);
 	isNull = false ;
 	state = 0 ;
 
@@ -83,7 +82,7 @@ void LinearDamage::computeDelta(const ElementState & s)
 	
 }
 
-Matrix LinearDamage::apply(const Matrix & m) const
+Matrix LinearDamage::apply(const Matrix & m, const Point & p , const IntegrableEntity * e , int g) const
 {
 // 	std::cout << damageDensityIncrement<< "   "<< tensionDamage << "  " << compressionDamage << std::endl ;
 	
@@ -102,31 +101,7 @@ Matrix LinearDamage::apply(const Matrix & m) const
 	return m*(1.-getState().max()) ;
 }
 
-Matrix LinearDamage::applyPrevious(const Matrix & m) const
-{
-	Matrix ret(m) ;
-	
-	if(fractured())
-		return ret*0.;
-	//this is a silly way of distinguishing between 2D and 3D
-	for(size_t i = 0 ; i < (m.numRows()+1)/2 ;i++)
-	{
-		for(size_t j = 0 ; j < m.numCols() ;j++)
-		{
-			ret[i][j] *= 1.-(getPreviousState()[0]) ;
-		}
-	}
 
-	for(size_t i = (m.numRows()+1)/2 ; i < m.numRows() ;i++)
-	{
-		for(size_t j = 0 ; j < m.numCols() ;j++)
-		{
-			ret[i][j] *= 1.-(getPreviousState()[i]) ;
-		}
-	}
-
-	return ret ;
-}
 
 bool LinearDamage::fractured() const
 {

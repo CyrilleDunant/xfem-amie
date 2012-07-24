@@ -89,7 +89,7 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 // 	ret.print() ;
 }
 
-void PseudoPlastic::step(double timestep, ElementState & currentState)
+void PseudoPlastic::step(double timestep, ElementState & currentState, double maxscore)
 {
 	if(timestep > POINT_TOLERANCE_2D)
 	{

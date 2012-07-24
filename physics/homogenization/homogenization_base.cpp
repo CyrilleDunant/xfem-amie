@@ -5,7 +5,7 @@ using namespace Mu ;
 
 Properties::Properties()
 {
-	tag = P_NULL_PROPERTIES ;
+	tag = P_nullptr_PROPERTIES ;
 	value = 0. ;
 }
 

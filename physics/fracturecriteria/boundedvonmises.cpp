@@ -14,7 +14,7 @@
 namespace Mu {
 
 BoundedVonMises::BoundedVonMises(double thres, double damageThreshold, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, threshold(thres), dmodel(NULL), damageThreshold(damageThreshold)
+	, threshold(thres), dmodel(nullptr), damageThreshold(damageThreshold)
 {
 
 }

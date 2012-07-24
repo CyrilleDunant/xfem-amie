@@ -11,20 +11,20 @@
 namespace Mu
 {
 	
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars, std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) : vars(vars), bounds(bounds), lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double> vars, std::vector<std::pair<double, double> >  bounds, std::vector<double *> lowLevelVars, std::vector<std::pair<double, double> >  lowLevelbounds, const Function & objectiveFunction) : vars(vars), bounds(bounds), lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), objectiveFunction(objectiveFunction), lowLevelFunction(nullptr), generator(nullptr)
 {
 
 }
 
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(lowLevelFunction), generator(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, double (*lowLevelFunction)()) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(lowLevelFunction), generator(nullptr)
 {
 }
 
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, MicrostructureGenerator * generator) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(NULL), generator(generator)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(std::vector<double *> lowLevelVars,  std::vector<std::pair<double, double> >  lowLevelbounds, MicrostructureGenerator * generator) : lowLevelVars(lowLevelVars), lowLevelbounds(lowLevelbounds), lowLevelFunction(nullptr), generator(generator)
 {
 }
 
-GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<std::pair<std::string, double> > & nvars, const std::vector<std::pair<double, double> >  & nbounds, const Function & objectiveFunction) : namedVars(nvars), namedVarsBounds(nbounds), objectiveFunction(objectiveFunction), lowLevelFunction(NULL), generator(NULL)
+GeneticAlgorithmOptimizer::GeneticAlgorithmOptimizer(const std::vector<std::pair<std::string, double> > & nvars, const std::vector<std::pair<double, double> >  & nbounds, const Function & objectiveFunction) : namedVars(nvars), namedVarsBounds(nbounds), objectiveFunction(objectiveFunction), lowLevelFunction(nullptr), generator(nullptr)
 {
 }
 
@@ -502,7 +502,7 @@ LeastSquaresApproximation::~LeastSquaresApproximation()
 
 LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows()), parameters(0., linearModel.numRows())
 {
-	Q = NULL ;
+	Q = nullptr ;
 	X0t   = linearModel.transpose() ;
 	X0tX0 = linearModel*X0t ;
 	
@@ -541,7 +541,7 @@ void LeastSquaresApproximation::clearParameterValues()
 {
 	fixedValues.clear();
 	delete Q ;
-	Q = NULL ;
+	Q = nullptr ;
 }
 
 void LeastSquaresApproximation::setLinearModel(int i, int j, double v)
@@ -552,7 +552,7 @@ void LeastSquaresApproximation::setLinearModel(int i, int j, double v)
 
 double LeastSquaresApproximation::optimize()
 {
-	Matrix * A = NULL;
+	Matrix * A = nullptr;
 	Vector consts(fixedValues.size()) ;
 	for(int i = 0 ; i < consts.size() ; i++)
 		consts[i] = fixedValues[i].second ;

@@ -256,13 +256,13 @@ int main(int argc, char *argv[])
 	double size = scale*length ;
 	double halfSize = size/2 ;
 
-	Sample3D sample(NULL, size, size, size, halfSize, halfSize, halfSize) ;
+	Sample3D sample(nullptr, size, size, size, halfSize, halfSize, halfSize) ;
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	F.setProjectionOnBoundaries(false) ;
 
-	Form* behaviour = NULL ;
+	Form* behaviour = nullptr ;
 	Matrix m1(6,6) ;
 	switch(pheno)
 	{
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		str_micro = "O1" ;
-		OctahedralInclusion* oct = new OctahedralInclusion(NULL, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+		OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
 		oct->setBehaviour(behaviour) ;
 		std::cout << oct->volume() << std::endl ;
 		std::cout << sample.volume() << std::endl ;

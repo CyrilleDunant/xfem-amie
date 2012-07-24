@@ -67,7 +67,7 @@ public:
 		* The stiffness matrix is recomputed for each Gauss point using linear interpolation
 		* @param p Point to check in local coordinates
 	 */
-	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	
 	/** \brief Apply the behaviour.
 	*
@@ -99,16 +99,11 @@ public:
 	* 
 	* if the Criterion is true, se fractured state to true
 	*/
-	virtual void step(double timestep, ElementState & currentState) ;
+	virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 
 	/** \brief return true if the damage state changed during the last step */
 	virtual bool changed() const ;
 
-/** \brief Unwind a step in the behaviour history
- *
- * The damage state will return to its previous state
-*/
-	virtual void stepBack() ;
 
 /** \brief Set a FractureCriterion 
  *

@@ -191,10 +191,10 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 }
 
 
-void BimaterialInterface::step(double timestep, ElementState & currentState)
+void BimaterialInterface::step(double timestep, ElementState & currentState, double maxScore)
 {
-	inBehaviour->step(timestep, currentState) ;
-	outBehaviour->step(timestep, currentState) ;
+	inBehaviour->step(timestep, currentState,maxScore) ;
+	outBehaviour->step(timestep, currentState,maxScore) ;
 }
 
 DamageModel * BimaterialInterface::getDamageModel() const
@@ -215,20 +215,20 @@ DamageModel * BimaterialInterface::getDamageModel() const
 	if(outCriterion)
 	{
 		outScore = outCriterion->getState().max() ;
-		if(outScore > max || inCriterion == NULL)
+		if(outScore > max || inCriterion == nullptr)
 			ret = 2 ;
 	}
 		
 	switch(ret)
 	{
 	case 0:
-		return NULL ;
+		return nullptr ;
 	case 1:
 		return inCriterion ;
 	case 2:
 		return outCriterion ;
 	}
-	return NULL ;
+	return nullptr ;
 }
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
@@ -249,20 +249,20 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 	if(outCriterion)
 	{
 		outScore = outCriterion->getScoreAtState() ;
-		if(outScore > max || inCriterion == NULL)
+		if(outScore > max || inCriterion == nullptr)
 			ret = 2 ;
 	}
 		
 	switch(ret)
 	{
 	case 0:
-		return NULL ;
+		return nullptr ;
 	case 1:
 		return inCriterion ;
 	case 2:
 		return outCriterion ;
 	}
-	return NULL ;
+	return nullptr ;
 }
 
 

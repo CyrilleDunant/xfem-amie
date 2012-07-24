@@ -385,7 +385,7 @@ Geometry::~Geometry()
 	for(size_t i = 0 ; i < this->inPoints.size() ; i++)
 	{
 		delete inPoints[i] ;
-		inPoints[i] = NULL ;
+		inPoints[i] = nullptr ;
 	}
 }
 
@@ -513,7 +513,7 @@ XMLTree * Geometry::toXML()
 	XMLTree * geom = new XMLTree("geometry") ;
 	switch(gType)
 	{
-		case NULL_GEOMETRY: //done
+		case nullptr_GEOMETRY: //done
 		{
 			geom->addChild(new XMLTree("null")) ;
 			break;
@@ -601,7 +601,7 @@ XMLTree * Geometry::toXML()
 
 	}
 	
-	return NULL ;
+	return nullptr ;
 }
 
 std::vector<Point> Geometry::getBoundingBox() const
@@ -2405,7 +2405,7 @@ PointSet::PointSet(size_t npoints)
 {
 	this->boundingPoints.resize(npoints) ; 
 	for(size_t i = 0 ; i < npoints ;i++)
-		boundingPoints[i] = NULL ;
+		boundingPoints[i] = nullptr ;
 	this->chullEndPos = 0;
 } ;
 
@@ -2458,7 +2458,7 @@ void PointSet::set(size_t i, Point * p)
 void PointSet::set(size_t i, double x, double y) 
 { 
 	int id = -1 ;
-	if(boundingPoints[i] != NULL)
+	if(boundingPoints[i] != nullptr)
 		id = boundingPoints[i]->id ;
 	
 	delete boundingPoints[i] ;
@@ -2470,7 +2470,7 @@ void PointSet::set(size_t i, double x, double y)
 void PointSet::set(size_t i, double x, double y, double z) 
 { 
 	int id = -1 ;
-	if(boundingPoints[i] != NULL)
+	if(boundingPoints[i] != nullptr)
 		id = boundingPoints[i]->id ;
 	
 	delete boundingPoints[i] ;
@@ -2729,13 +2729,13 @@ Point Nurb::pointOnNurb(double u)
  	return resultPoint;
 }
 
-Geometry::Geometry(): inPoints(0),gType(NULL_GEOMETRY)
+Geometry::Geometry(): inPoints(0),gType(nullptr_GEOMETRY)
 {
 	sampled = false ;
 	time_planes = 1 ;
 }
 
-Geometry::Geometry(size_t numPoints):inPoints(numPoints), gType(NULL_GEOMETRY)
+Geometry::Geometry(size_t numPoints):inPoints(numPoints), gType(nullptr_GEOMETRY)
 {
 	time_planes = 1 ;
 }

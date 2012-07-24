@@ -33,7 +33,7 @@ WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, Sp
 	v.push_back(ETA);
 	if(dim == SPACE_THREE_DIMENSIONAL)
 		v.push_back(ZETA);
-	damageModel = NULL ;
+	damageModel = nullptr ;
 } ;
 
 WeibullDistributedStiffness::~WeibullDistributedStiffness() { } ;

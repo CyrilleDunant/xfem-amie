@@ -48,15 +48,10 @@ void StiffnessWithImposedDeformationAndFracture::apply(const Function & p_i, con
 	vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 
-void StiffnessWithImposedDeformationAndFracture::stepBack()
-{
-	dfunc->stepBack() ;
-}
-
-void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementState & currentState) 
+void StiffnessWithImposedDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore) 
 {
 
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
 }
 

@@ -22,7 +22,7 @@
 
 using namespace Mu ;
 
-MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTriangle * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(self), self3d(NULL), leastSquares(NULL), equivalentCrack(NULL)
+MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTriangle * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(self), self3d(nullptr), leastSquares(nullptr), equivalentCrack(nullptr)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -31,7 +31,7 @@ MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTr
 	homogenize() ;
 }
 
-MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTetrahedron * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(NULL), self3d(self), leastSquares(NULL), equivalentCrack(NULL)
+MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTetrahedron * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(nullptr), self3d(self), leastSquares(nullptr), equivalentCrack(nullptr)
 {
 	
 	v.push_back(XI);

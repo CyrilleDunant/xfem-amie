@@ -101,7 +101,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.004, 0.004, 0.0, 0.0) ;
+Sample sample(nullptr, 0.004, 0.004, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -472,7 +472,7 @@ void step()
 				delta_r *= .01 ;
 			double reactedArea = 0 ;
 			
-			EllipsoidalInclusion * current = NULL ;
+			EllipsoidalInclusion * current = nullptr ;
 			if(!zones.empty())
 				current = zones[0].second ;
 			double current_area = 0 ;
@@ -560,7 +560,7 @@ std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > generateExpansi
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 //		else
 //			i-- ;
 	}

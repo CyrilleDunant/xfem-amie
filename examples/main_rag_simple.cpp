@@ -530,7 +530,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores(size_t n, double fraction, double E, double nu, Feature * father, FeatureTree * F)
 {
-// 	srandom(time(NULL)) ;
+// 	srandom(time(nullptr)) ;
 	size_t nombre_de_pores = static_cast<size_t>(round(n*fraction)) ;
 	size_t nombre_d_inclusions = static_cast<size_t>(round(n*(1. - fraction))) ;
 	
@@ -1465,7 +1465,7 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.04, 0.04, 0, 0) ;
+	Sample sample(nullptr, 0.04, 0.04, 0, 0) ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;

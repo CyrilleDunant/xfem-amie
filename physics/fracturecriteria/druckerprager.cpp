@@ -66,14 +66,6 @@ double DruckerPrager::grade(ElementState &s)
 		maxStress =  tr*friction - sqrt((str[0]-tr*.333333333333)*(str[0]-tr*.333333333333)+(str[1]-tr*.333333333333)*(str[1]-tr*.333333333333)+(str[2]-tr*.333333333333)*(str[2]-tr*.333333333333)+2.*(str[3])*(str[3])+2.*(str[4])*(str[4])+2.*(str[5])*(str[5])) ;
 		maxStrain = maxStress/(modulus*factor) ;
 	}
-// 	if(factor < POINT_TOLERANCE_2D)
-// 	{
-// 		metInTension = false ;
-// 		metInCompression = false ;
-// 		inTension = false ;
-// 	
-// 		return -1 ;
-// 	}
 
 // 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE_2D)
 // 	{
@@ -121,7 +113,7 @@ double DruckerPrager::grade(ElementState &s)
 		metInTension = false ;
 		metInCompression = false ;
 		inTension = true ;
-		return -1.+ std::abs(maxStress/effectiveUp) ;
+		return -1.+ std::abs(maxStrain/effectiveUp) ;
 	}
 	else if(maxStrain < effectiveDown && maxStrain < -POINT_TOLERANCE_2D)
 	{

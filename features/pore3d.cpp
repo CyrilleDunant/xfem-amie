@@ -30,13 +30,13 @@ Pore3D::Pore3D(Feature *father, double r, Point center) : Feature(father), Spher
 	this->behaviour = new VoidForm() ;
 }
 
-Pore3D::Pore3D(double r, double x, double y, double z): Feature(NULL), Sphere(r, x,y,z)
+Pore3D::Pore3D(double r, double x, double y, double z): Feature(nullptr), Sphere(r, x,y,z)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
 }
 
-Pore3D::Pore3D(double r, Point center) : Feature(NULL), Sphere(r, center)
+Pore3D::Pore3D(double r, Point center) : Feature(nullptr), Sphere(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;

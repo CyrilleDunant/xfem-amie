@@ -41,11 +41,11 @@ void StiffnessWithVariableImposedDeformationAndFracture::apply(const Function & 
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
-void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
+void StiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore)
 {
 	currentState.getParent()->behaviourUpdated = false ;
 
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 	change = dfunc->changed() ;
 	currentState.getParent()->behaviourUpdated = true ;
 	frac = dfunc->fractured() ;

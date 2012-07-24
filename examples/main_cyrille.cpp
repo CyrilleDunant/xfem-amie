@@ -107,7 +107,7 @@ std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
 std::vector<BranchedCrack *> crack ;
 
-MultiTriangleWriter writer("triangles_head","triangles_layers",NULL) ;
+MultiTriangleWriter writer("triangles_head","triangles_layers",nullptr) ;
 
 double E_min = 10;
 double E_max = 0;
@@ -120,7 +120,7 @@ BoundingBoxDefinedBoundaryCondition * imposeddisptop = new BoundingBoxDefinedBou
 
 double width = 20;
 double height = 10;
-Sample sample(NULL, width , height, 0, 0) ;
+Sample sample(nullptr, width , height, 0, 0) ;
 double x_min = 0 ;
 double y_min = 0 ;
 
@@ -169,10 +169,10 @@ int count = 0 ;
 double aggregateArea = 0;
 
 std::vector<double> energy ;
-SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(NULL, NULL, 
+SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(nullptr, nullptr, 
 																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y - sample.height()/2), 
 																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y + sample.height()/2), 
-																	  new Point(sample.getCenter().x + sample.width()/2, sample.getCenter().y + sample.height()/2), NULL)) ;
+																	  new Point(sample.getCenter().x + sample.width()/2, sample.getCenter().y + sample.height()/2), nullptr)) ;
 Point *pa = new Point(sample.getCenter().x - 2, sample.getCenter().y) ;
 Point *pb = new Point(sample.getCenter().x + 2, sample.getCenter().y) ;
 

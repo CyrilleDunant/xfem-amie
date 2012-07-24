@@ -47,7 +47,7 @@ struct MultiGridStep : public Preconditionner
 	{ 
 		count = 0 ;
 		subsolver = new ConjugateGradient(*A1, b) ;
-// 		subsolver->solve(b, NULL, 1e-9) ;
+// 		subsolver->solve(b, nullptr, 1e-9) ;
 // 		b = subsolver->x ;
 		
 // 		for(size_t i = 0 ; i < elements0.size() ; i++)
@@ -95,7 +95,7 @@ struct MultiGridStep : public Preconditionner
 			//V iteration
 			subsolver->b = -v1;
 			subsolver->x = 0 ;
-			subsolver->solve(subsolver->x, NULL, 1e-9, -1, false) ;
+			subsolver->solve(subsolver->x, nullptr, 1e-9, -1, false) ;
 			subsolver->nit = 0 ;
 			
 			//extend

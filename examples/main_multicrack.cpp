@@ -502,7 +502,6 @@ void Menu(int selection)
 		}
 	case ID_BACK:
 	{
-		featureTree->stepBack() ;
 		dlist = false ;
 		break ;
 	}
@@ -1339,7 +1338,7 @@ int main(int argc, char *argv[])
 
 	double width = 0.01;
 	double height = 0.01;
-	Sample sample(NULL, height , height, 0, 0) ;//sample() ;
+	Sample sample(nullptr, height , height, 0, 0) ;//sample() ;
 	Matrix d(3,3) ;
 	d[0][0] = .1*E_paste ;
 	d[1][1] = .1*E_paste ;
@@ -1365,7 +1364,7 @@ int main(int argc, char *argv[])
 	def[1] = 0.1 ;
 // 	F.addFeature(&sample, new ExpansiveZone(&sample, 0.002, -0.004, 0.00001, m0_stiff, def)) ;
 // 	F.addFeature(&sample, new Pore(0.002, -0.007, 0.002)) ;
-	ExpansiveZone * inc0 = new ExpansiveZone(NULL, 0.000005, 0, 0, m0_paste*100, def ) ;
+	ExpansiveZone * inc0 = new ExpansiveZone(nullptr, 0.000005, 0, 0, m0_paste*100, def ) ;
 
 /*	XMLTree * test = inc0->toXML() ;
 	test->print(true) ;

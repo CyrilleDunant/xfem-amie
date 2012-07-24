@@ -55,7 +55,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 		{
 			x = A*x_ ;
 			Mu::ConjugateGradient cg(A, x) ;
-			cg.solve(x, NULL, 1e-14);
+			cg.solve(x, nullptr, 1e-14);
 			x = cg.x ;
 			x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
 			Vector delta = x-x_ ;
@@ -83,7 +83,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 	{
 		x = A*x_ ;
 		Mu::BiConjugateGradientStabilized cg(A, x) ;
-		cg.solve(x, NULL, 1e-14);
+		cg.solve(x, nullptr, 1e-14);
 		x = cg.x ;
 		x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
 		Vector delta = x-x_ ;

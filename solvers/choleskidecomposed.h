@@ -24,7 +24,7 @@ namespace Mu
 		Vector d ;
 		virtual ~LowerTriangular() { } ;
 		LowerTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) ;
-		virtual bool solve(const Vector &x0,  Preconditionner * precond= NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0,  Preconditionner * precond= nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
 /** \brief direct solver for upper-triangular system*/
@@ -33,7 +33,7 @@ namespace Mu
 		Vector d ;
 		virtual ~UpperTriangular() { } ;
 		UpperTriangular(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
-		virtual bool solve(const Vector &x0, Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
 /** \brief Direct Solver for Symmetric Systems. The Matrix is assumed to have been Cholesky-decomposed*/
@@ -43,7 +43,7 @@ namespace Mu
 		Vector y ;
 		virtual ~CholeskiDecomposed() { } ;
 		CholeskiDecomposed(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_, const Vector& d_) ;
-		virtual bool solve(const Vector &x0, Preconditionner * precond = NULL, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	};
 
 } ;

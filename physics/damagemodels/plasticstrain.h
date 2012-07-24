@@ -36,6 +36,7 @@ public:
 	double kappa_0 ;
 	double plasticFlowPotential(const Matrix & m) const ;
 
+	bool broken ;
 	bool inCompression ;
 	bool inTension ;
 	ElementState * es ;
@@ -62,12 +63,11 @@ public:
 	 * @param m Matrix to modify
 	 * @return m
 	 */
-	virtual Matrix apply(const Matrix & m) const;
+	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 	
 	virtual bool hasInducedBoundaryConditions() const {return true ;} ;
 	virtual bool hasInducedForces() const {return true ;}
-	
-	virtual Matrix applyPrevious(const Matrix & m) const;
+
 
 	/** \brief return true is the element concerned is fractured 
 		*/

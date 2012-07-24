@@ -56,22 +56,27 @@ DamageModel * StiffnessAndFracture::getDamageModel() const
 
 void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
-	vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
+	if(gp.gaussPoints.size() == 1)
+		vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
+	else
+	{
+		std::valarray<Matrix> Jinv_i(Jinv[0], 1) ;
+		GaussPointArray gp_i(gp.gaussPoints[0]) ;
+		Matrix acc(ret) ;
+		vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[0].first, nullptr, 0) * Gradient(p_j, true), gp, Jinv,v, acc) ;
+		ret = acc ;
+		for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+		{
+			vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[i].first, nullptr, i) * Gradient(p_j, true), gp, Jinv,v, acc) ;
+		}
+	}
 }
 
-
-void StiffnessAndFracture::stepBack()
+void StiffnessAndFracture::step(double timestep, ElementState & currentState, double maxscore) 
 {
-	dfunc->stepBack();
-}
-
-void StiffnessAndFracture::step(double timestep, ElementState & currentState) 
-{
-  if(dfunc)
-  {
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
-  }
+
 }
 
 bool StiffnessAndFracture::changed() const
@@ -89,8 +94,6 @@ Form * StiffnessAndFracture::getCopy() const
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param, criterion->getCopy(), dfunc->getCopy()) ;
 	copy->dfunc->getState(true).resize(dfunc->getState().size());
 	copy->dfunc->getState(true) = dfunc->getState() ;
-	copy->dfunc->getPreviousState().resize(dfunc->getPreviousState().size());
-	copy->dfunc->getPreviousState() = dfunc->getPreviousState() ;
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
@@ -99,7 +102,7 @@ Form * StiffnessAndFracture::getCopy() const
 
 Matrix StiffnessAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-	return dfunc->apply(param) ;
+	return dfunc->apply(param, p, e, g) ;
 }
 
 void StiffnessAndFracture::setFractureCriterion(FractureCriterion * frac) 

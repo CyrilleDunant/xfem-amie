@@ -1479,7 +1479,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-// 	srandom(time(NULL)) ;
+// 	srandom(time(nullptr)) ;
 
 	Matrix m0_agg(3,3) ;
 	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
@@ -1496,7 +1496,7 @@ int main(int argc, char *argv[])
 	m0_paste[1][0] = E_paste/(1-nu*nu)*nu ; m0_paste[1][1] = E_paste/(1-nu*nu) ; m0_paste[1][2] = 0 ; 
 	m0_paste[2][0] = 0 ; m0_paste[2][1] = 0 ; m0_paste[2][2] = E_paste/(1-nu*nu)*(1.-nu)/2. ; 
 
-	Sample sample(NULL, 0.16, 0.04,0,0) ;
+	Sample sample(nullptr, 0.16, 0.04,0,0) ;
 	Mu::Rectangle box( 0.28, 0.07,0,0) ;
 	
 	Inclusion inclusion(.00001, 0.02, -.02) ;

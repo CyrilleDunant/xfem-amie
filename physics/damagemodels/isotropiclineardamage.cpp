@@ -16,7 +16,6 @@ namespace Mu {
 IsotropicLinearDamage::IsotropicLinearDamage() 
 {
 	getState(true).resize(1, 0.);
-	getPreviousState().resize(1, 0.);
 	isNull = false ;
 }
 
@@ -30,23 +29,13 @@ void IsotropicLinearDamage::computeDelta(const ElementState & s)
 	delta = 1.-getState()[0] ;
 }
 
-Matrix IsotropicLinearDamage::apply(const Matrix & m) const
+Matrix IsotropicLinearDamage::apply(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
 {
 
 	if(fractured())
 		return m*0 ;
 	
 	return m*(1.-getState()[0]) ;
-}
-
-
-Matrix IsotropicLinearDamage::applyPrevious(const Matrix & m) const
-{
-
-	if(fractured())
-		return m*0 ;
-	
-	return m*(1.-getPreviousState()[0]) ;
 }
 
 bool IsotropicLinearDamage::fractured() const 

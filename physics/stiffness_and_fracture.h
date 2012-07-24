@@ -41,7 +41,7 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
 		*/
-		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, DamageModel * d = NULL)  ;
+		StiffnessAndFracture(const Matrix & rig, FractureCriterion * c, DamageModel * d = nullptr)  ;
 
 		virtual ~StiffnessAndFracture();
 		
@@ -63,7 +63,7 @@ namespace Mu
 		* 
 		* if the yield criterion is true, se fractured state to true
 		*/
-		virtual void step(double timestep, ElementState & currentState) ;
+		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 
 		/** \brief Check for fracture state
 		*
@@ -81,12 +81,9 @@ namespace Mu
 
 		/** \brief return true if the damage state has been modfied*/
 		virtual bool changed() const ;
-		
-		/** \brief return to the previous damage state*/
-		virtual void stepBack() ;
 
 		/** \brief Return the (damaged) Stifness tensor*/
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 		/** \brief Acessor, return the stifness criterion in use*/
 		virtual FractureCriterion * getFractureCriterion() const ;

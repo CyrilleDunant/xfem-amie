@@ -34,7 +34,7 @@ public:
 
 	/** \brief Sample3D constructor.
 	 *
-	 * The father feature is set to NULL.
+	 * The father feature is set to nullptr.
 	 * 
 	 * @param x lenght
 	 * @param y width

@@ -36,7 +36,7 @@ void ParallelBehaviour::apply(const Function & p_i, const Function & p_j, const 
 {
 	std::vector<Matrix> tensorAtGaussPoints ;
 	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
-		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, NULL, g )) ;
+		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, nullptr, g )) ;
 		
 	vm->ieval(Gradient(p_i) * tensorAtGaussPoints * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
@@ -88,7 +88,7 @@ std::vector<BoundaryCondition * > ParallelBehaviour::getBoundaryConditions(const
 {
 	std::vector<Vector> imposedAtGaussPoints ;
 	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
-		imposedAtGaussPoints.push_back( this->getImposedStress( gp.gaussPoints[g].first, NULL, g ) ) ;
+		imposedAtGaussPoints.push_back( this->getImposedStress( gp.gaussPoints[g].first, nullptr, g ) ) ;
   
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * imposedAtGaussPoints , gp, Jinv,v) ;
 	
@@ -107,10 +107,10 @@ std::vector<BoundaryCondition * > ParallelBehaviour::getBoundaryConditions(const
 	return ret ;
 }
 
-void ParallelBehaviour::step(double timestep, ElementState & currentState) 
+void ParallelBehaviour::step(double timestep, ElementState & currentState, double maxscore) 
 {
 	for(size_t i = 0 ; i < branches.size() ; i++)
-		branches[i]->step( timestep, dynamic_cast<ParallelElementState &>(currentState).getState(i) ) ;  
+		branches[i]->step( timestep, dynamic_cast<ParallelElementState &>(currentState).getState(i), maxscore) ;  
 }
 
 ElementState * ParallelBehaviour::createElementState( IntegrableEntity * e) 
@@ -142,5 +142,5 @@ void ParallelBehaviour::preProcess( double timeStep, ElementState & currentState
 {
 	for(size_t i = 0 ; i < branches.size() ; i++)
 		branches[i]->preProcess( timeStep, dynamic_cast<ParallelElementState &>(currentState).getState(i) ) ;
-	param = this->getTensor( currentState.getParent()->inLocalCoordinates( currentState.getParent()->getCenter() ), NULL, -1) ;
+	param = this->getTensor( currentState.getParent()->inLocalCoordinates( currentState.getParent()->getCenter() ), nullptr, -1) ;
 }

@@ -36,7 +36,7 @@ void SerialBehaviour::apply(const Function & p_i, const Function & p_j, const Ga
 {
 	std::vector<Matrix> tensorAtGaussPoints ;
 	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
-		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, NULL, g )) ;
+		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, nullptr, g )) ;
 
 	vm->ieval(Gradient(p_i) * tensorAtGaussPoints * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
@@ -94,7 +94,7 @@ std::vector<BoundaryCondition * > SerialBehaviour::getBoundaryConditions(const E
 {
 	std::vector<Vector> imposedAtGaussPoints ;
 	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
-		imposedAtGaussPoints.push_back( this->getImposedStress( gp.gaussPoints[g].first, NULL, g )) ;
+		imposedAtGaussPoints.push_back( this->getImposedStress( gp.gaussPoints[g].first, nullptr, g )) ;
   
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * imposedAtGaussPoints , gp, Jinv,v) ;
 	
@@ -113,10 +113,10 @@ std::vector<BoundaryCondition * > SerialBehaviour::getBoundaryConditions(const E
 	return ret ;
 }
 
-void SerialBehaviour::step(double timestep, ElementState & currentState) 
+void SerialBehaviour::step(double timestep, ElementState & currentState, double maxscore) 
 {
 	for(size_t i = 0 ; i < branches.size() ; i++)
-		branches[i]->step( timestep, dynamic_cast<SerialElementState &>(currentState).getState(i) ) ;  
+		branches[i]->step( timestep, dynamic_cast<SerialElementState &>(currentState).getState(i), maxscore ) ;  
 }
 
 ElementState * SerialBehaviour::createElementState( IntegrableEntity * e) 
@@ -141,7 +141,7 @@ Matrix SerialBehaviour::getTensor(const Point & p, IntegrableEntity * e, int g) 
 	Matrix ret = m ;
 	for(size_t i = 1 ; i < branches.size() ; i++)
 	{
-		m = branches[i]->getTensor( p, NULL , g) ;
+		m = branches[i]->getTensor( p, nullptr , g) ;
 		Composite::invertTensor(m) ;
 		ret += m ;
 	}
@@ -153,5 +153,5 @@ void SerialBehaviour::preProcess( double timeStep, ElementState & currentState )
 {
 	for(size_t i = 0 ; i < branches.size() ; i++)
 		branches[i]->preProcess( timeStep, dynamic_cast<SerialElementState &>(currentState).getState(i) ) ;
-	param = this->getTensor( currentState.getParent()->inLocalCoordinates( currentState.getParent()->getCenter() ), NULL, -1) ;
+	param = this->getTensor( currentState.getParent()->inLocalCoordinates( currentState.getParent()->getCenter() ), nullptr, -1) ;
 }

@@ -67,21 +67,21 @@ RefCountedTokenInternal::RefCountedTokenInternal( const RefCountedTokenInternal 
 
 // void RefCountedToken::referenced()
 // {
-// 	if(t!=NULL)
+// 	if(t!=nullptr)
 // 		t->referenced() ;
 // }
 // 
 // void RefCountedToken::dereferenced()
 // {
-// 	if ( t!=NULL && t->dereferenced() )
+// 	if ( t!=nullptr && t->dereferenced() )
 // 	{
 // 		delete t;
-// 		t = NULL ;
+// 		t = nullptr ;
 // 	}
 // }
 	
 
-// RefCountedToken::RefCountedToken() : t(NULL) { } ; 
+// RefCountedToken::RefCountedToken() : t(nullptr) { } ; 
 // 	
 // RefCountedToken::~RefCountedToken()
 // {
@@ -101,7 +101,7 @@ RefCountedTokenInternal::RefCountedTokenInternal( const RefCountedTokenInternal 
 // 
 // RefCountedToken & RefCountedToken::operator = ( const RefCountedToken & token)
 // {
-// 	if(t == NULL)
+// 	if(t == nullptr)
 // 	{
 // 		t = token.t ;
 // 		referenced() ;

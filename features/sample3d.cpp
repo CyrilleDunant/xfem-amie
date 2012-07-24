@@ -20,7 +20,7 @@ Sample3D::Sample3D(Feature *father, double x, double y, double z, double originX
 	this->isEnrichmentFeature = false ;
 }
 	
-Sample3D::Sample3D(double x, double y, double z,double originX, double originY, double originZ): Hexahedron(x, y, z, originX, originY, originZ), Feature(NULL)
+Sample3D::Sample3D(double x, double y, double z,double originX, double originY, double originZ): Hexahedron(x, y, z, originX, originY, originZ), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -41,7 +41,7 @@ std::vector<DelaunayTetrahedron *> Sample3D::getElements3D( FeatureTree * dt)
 {
 	std::vector<DelaunayTetrahedron *> ret ;
 	std::vector<DelaunayTetrahedron *> temp ;
-	if(this->m_f == NULL)
+	if(this->m_f == nullptr)
 		temp = dt->getElements3D() ;
 	else
 		temp = dt->getElements3D(dynamic_cast<const Hexahedron *>(this->getPrimitive())) ;

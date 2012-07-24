@@ -23,11 +23,10 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 {
 	getState( true ).resize( 4, 0. );
 // 	getState( true )[0] = 0.998 ;
-	getPreviousState().resize( 4, 0. );
 	isNull = false ;
 	currentAngle = 0 ;
 	factor = 1 ;
-	es = NULL ;
+	es = nullptr ;
 	firstTension = false ;
 	secondTension = false ;
 	firstTensionFailure = false ;
@@ -93,7 +92,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		es = &s ;
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 			
-		if(!fractured())
+		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 		{
 // 			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
@@ -198,7 +197,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	return std::make_pair( getState(),  range) ;
 }
 
-Matrix RotatingCrack::apply( const Matrix &m ) const
+Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
 
 	if ( getState().max() < POINT_TOLERANCE_2D)
@@ -271,14 +270,6 @@ void  RotatingCrack::computeDelta(const ElementState &s)
 	delta = (range-state).max() ;
 }
 
-Matrix RotatingCrack::applyPrevious( const Matrix &m ) const
-{
-
-	if ( fractured() )
-		return m * 0 ;
-
-	return m * ( 1. - getPreviousState()[0] ) ;
-}
 
 bool RotatingCrack::fractured() const
 {
@@ -348,11 +339,10 @@ FixedCrack::FixedCrack( double E, double nu ):  E( E ), nu( nu )
 {
 	getState( true ).resize( 4, 0. );
 // 	getState( true )[0] = 0.998 ;
-	getPreviousState().resize( 4, 0. );
 	isNull = false ;
 	currentAngle = 0 ;
 	factor = 1 ;
-	es = NULL ;
+	es = nullptr ;
 	firstTension = false ;
 	secondTension = false ;
 	firstTensionFailure = false ;
@@ -493,7 +483,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 	return std::make_pair( getState(),  range) ;
 }
 
-Matrix FixedCrack::apply( const Matrix &m ) const
+Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEntity * e, int g ) const
 {
 
 	if ( getState().max() < POINT_TOLERANCE_2D)
@@ -560,15 +550,6 @@ void  FixedCrack::computeDelta(const ElementState &s)
 	}
 	
 	delta = (range-state).max() ;
-}
-
-Matrix FixedCrack::applyPrevious( const Matrix &m ) const
-{
-
-	if ( fractured() )
-		return m * 0 ;
-
-	return m * ( 1. - getPreviousState()[0] ) ;
 }
 
 bool FixedCrack::fractured() const

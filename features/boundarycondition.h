@@ -65,7 +65,7 @@ public:
 class NullBoundaryCondition : public BoundaryCondition
 {
 	public:
-		NullBoundaryCondition() : BoundaryCondition(NULL_CONDITION, 0.) { } ;
+		NullBoundaryCondition() : BoundaryCondition(nullptr_CONDITION, 0.) { } ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) {} ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) {} ;
 } ;

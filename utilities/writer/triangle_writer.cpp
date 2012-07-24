@@ -26,7 +26,7 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 	filename = f ;
 	source = F ;
 
-	if( source != NULL )
+	if( source != nullptr )
 	{
 		layers = source->listLayers() ;
 

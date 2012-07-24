@@ -19,7 +19,7 @@ using namespace Mu ;
 
 Properties::Properties()
 {
-	ptag = TAG_NULL ;
+	ptag = TAG_nullptr ;
 	p = 0. ;
 }
 Properties::Properties(double v)
@@ -40,7 +40,7 @@ Properties::Properties(const Properties & prop)
 
 void Properties::set(const std::string & s)
 {
-	set(TAG_NULL) ;
+	set(TAG_nullptr) ;
 	if(s.compare("UNIVERSAL") == 0)
 		set(TAG_UNIVERSAL) ; 
 	if(s.compare("VOLUME") == 0)
@@ -114,8 +114,8 @@ void Properties::print() const
 {
 	switch(ptag)
 	{
-	case TAG_NULL:
-		std::cout << "NULL PROPERTIES" << std::endl ;
+	case TAG_nullptr:
+		std::cout << "nullptr PROPERTIES" << std::endl ;
 		break;
 	case TAG_UNIVERSAL:
 		std::cout << "UNDEFINED PROPERTIES = " ;

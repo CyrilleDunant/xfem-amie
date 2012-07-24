@@ -26,7 +26,7 @@ RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, do
 	paramAlt[2][0] = 0 ; paramAlt[2][1] = 0 ;         paramAlt[2][2] = E_ext/(1-nu_ext*nu_ext)*(1.-nu_ext)/2. ; 
 	this->space_d = true ;
 
-	criterion = NULL ;
+	criterion = nullptr ;
 	frac = false ;
 	change  = false ;
 	previousDamage = 0 ;
@@ -44,28 +44,21 @@ void RadialStiffnessGradient::transform(const Function & x, const Function & y)
 	r.compile() ;
 }
 
-
-
-void RadialStiffnessGradient::stepBack()
-{
-	damage = previousDamage ;
-}
-
 void RadialStiffnessGradient::setFractureCriterion(FractureCriterion * crit)
 {
 	criterion = crit ;
 }
 
-void RadialStiffnessGradient::step(double timestep, ElementState & currentState) 
+void RadialStiffnessGradient::step(double timestep, ElementState & currentState, double maxscore) 
 {
-	if(criterion == NULL)
+	if(criterion == nullptr)
 		return ;
 
 	change = false ;
 
 	if(!frac  )
 	{
-		dfunc.step(currentState) ;
+		dfunc.step(currentState, maxscore) ;
 		previousDamage = damage ;
 		
 		Vector state = dfunc.getState() ;

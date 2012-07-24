@@ -53,8 +53,6 @@ namespace Mu
 		/** \brief Return false.*/
 		virtual bool fractured() const ;
 		
-		virtual void stepBack() { };
-		
 		/** \brief Return a copy of the behaviour*/
 		virtual Form * getCopy() const ;
 		
@@ -118,7 +116,7 @@ namespace Mu
 		* @param currentState state of the element
 		* 
 		*/
-		virtual void step(double timestep, ElementState & currentState) ;
+		virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 		
 		virtual bool changed() const ;
 		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = 0) const ;

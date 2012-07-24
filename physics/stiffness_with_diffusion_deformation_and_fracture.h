@@ -69,7 +69,7 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
-		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
@@ -77,9 +77,6 @@ namespace Mu
 		virtual FractureCriterion * getFractureCriterion() const ;
 
 		virtual DamageModel * getDamageModel() const ;
-		
-		/** \brief return to the previous damage state*/
-		virtual void stepBack() ;
 
 		/** \brief Check for fracture
 		*
@@ -88,14 +85,14 @@ namespace Mu
 		* 
 		* if the yield criterion is true, se fractured state to true
 		*/
-		virtual void step(double timestep, ElementState & currentState) ;
+		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 
 
 		/** \brief return true if the damage state has been modfied*/
 		virtual bool changed() const ;
 		
 		/** \brief Return the (damaged) Stifness tensor*/
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 
 

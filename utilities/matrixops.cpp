@@ -374,7 +374,7 @@ Matrix::Matrix(const Matrix& m) : r(m.numRows()), c( m.numCols())
 	}
 	else
 	{
-		v = NULL ;
+		v = nullptr ;
 	}
 }
 
@@ -382,7 +382,7 @@ Matrix &Matrix::operator =(const Matrix &m)
 {
 // 	v->resize(m.array().size()) ;
 // 	v = new Vector(m.array()) ;
-	if(v == NULL && !m.isNull())
+	if(v == nullptr && !m.isNull())
 	{
 		r = m.numRows() ;
 		c = m.numCols() ;
@@ -394,7 +394,7 @@ Matrix &Matrix::operator =(const Matrix &m)
 	else
 	{
 		delete v ;
-		v = NULL ;
+		v = nullptr ;
 	}
 // 	r = m.numRows() ;
 // 	c = m.numCols() ;

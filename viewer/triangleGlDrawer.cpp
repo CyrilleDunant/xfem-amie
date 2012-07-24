@@ -630,8 +630,8 @@ void TriangleGLDrawer::reset( QString f, const std::vector<std::pair<float, floa
 {
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -657,8 +657,8 @@ void TriangleGLDrawer::reset( QString f, const std::vector<std::pair<float, floa
 TriangleGLDrawer::TriangleGLDrawer( QString f, const std::vector<std::pair<float, float> > & limits, QWidget *parent ) : QGLWidget( parent ), limits( limits )
 {
 
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -689,7 +689,7 @@ void TriangleGLDrawer::reset( std::vector<std::valarray<float> > * v, int np, in
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
 	valuesAtPoint = v ;
-	reader = NULL ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -723,7 +723,7 @@ TriangleGLDrawer::TriangleGLDrawer( std::vector<std::valarray<float> > * v, int 
 {
 	valUnderCursor = 0 ;
 	valuesAtPoint = v ;
-	reader = NULL ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -758,8 +758,8 @@ void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<
 {
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -786,8 +786,8 @@ void TriangleGLDrawer::reset( TriangleDataReader *f, int set, const std::vector<
 
 TriangleGLDrawer::TriangleGLDrawer( TriangleDataReader *f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent ): QGLWidget( parent ), limits( limits )
 {
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 	valUnderCursor = 0 ;
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -817,8 +817,8 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 {
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 	limits = l ;
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -845,8 +845,8 @@ void TriangleGLDrawer::reset( QString f, int set, const std::vector<std::pair<fl
 TriangleGLDrawer::TriangleGLDrawer( QString f, int set, const std::vector<std::pair<float, float> > & limits, QWidget *parent ) : QGLWidget( parent ), limits( limits )
 {
 	valUnderCursor = 0 ;
-	valuesAtPoint = NULL ;
-	reader = NULL ;
+	valuesAtPoint = nullptr ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -876,7 +876,7 @@ void TriangleGLDrawer::reset()
 	glDeleteLists( displayList, numberOfExtraFields + 2 ) ;
 
 	valuesAtPoint = new std::vector< std::valarray<float> >( 0 ) ;
-	reader = NULL ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 
@@ -908,7 +908,7 @@ TriangleGLDrawer::TriangleGLDrawer( QWidget *parent ) : QGLWidget( parent )
 	minmaxinit = false ;
 
 	valuesAtPoint = new std::vector< std::valarray<float> >( 0 ) ;
-	reader = NULL ;
+	reader = nullptr ;
 
 	mousePosOnLeftClick = QPoint( 0, 0 );
 

@@ -55,14 +55,14 @@ Pore::Pore(Feature *father, double r, Point center): Feature(father), Circle(r, 
 	this->behaviour = new VoidForm() ;
 }
 
-Pore::Pore(double r, double x, double y) : Feature(NULL), Circle(r, x, y)
+Pore::Pore(double r, double x, double y) : Feature(nullptr), Circle(r, x, y)
 {
 	this->isEnrichmentFeature = false ;
 	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
-Pore::Pore(double r, Point center) :  Feature(NULL), Circle(r, center)
+Pore::Pore(double r, Point center) :  Feature(nullptr), Circle(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	delete this->behaviour ; 
@@ -136,7 +136,7 @@ TriangularPore::TriangularPore(Feature * father,const Point & a, const Point & b
 	this->isEnrichmentFeature = false ;
 }
 
-TriangularPore::TriangularPore(const Point & a, const Point & b, const Point & c) : Feature(NULL) ,Triangle(a, b, c)
+TriangularPore::TriangularPore(const Point & a, const Point & b, const Point & c) : Feature(nullptr) ,Triangle(a, b, c)
 {
 	this->behaviour = new VoidForm() ;
 	this->isEnrichmentFeature = false ;

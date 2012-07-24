@@ -55,14 +55,7 @@ void StiffnessWithDiffusionDeformationAndFracture::apply(const Function & p_i, c
 	vm->ieval(Gradient(p_i) * dfunc->apply(param* (1-ageing*(1- accumulatedPhi)*.5)) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 
-void StiffnessWithDiffusionDeformationAndFracture::stepBack()
-{
-
-	dfunc->stepBack()  ;
-
-}
-
-void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, ElementState & currentState) 
+void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore) 
 {
 	change = false ;
 	currentState.getParent()->behaviourUpdated = false ;
@@ -157,7 +150,7 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 	}
 	
 
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 
 }
 

@@ -14,17 +14,17 @@
 using namespace Mu ;
 
 
-Feature::Feature(Feature * father) : behaviour(NULL)
+Feature::Feature(Feature * father) : behaviour(nullptr)
 {
 	isEnrichmentFeature = false ;
 	isCompositeFeature = false ;
 	isVirtualFeature = false ;
 	isUpdated = false ;
-	behaviourSource = NULL ;
+	behaviourSource = nullptr ;
 	m_f = father ;
 	
 	layer = -1 ;
-	if(father != NULL)
+	if(father != nullptr)
 		father->addChild(this) ;
 
 }

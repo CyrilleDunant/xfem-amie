@@ -176,7 +176,7 @@ public:
 	virtual bool isConflicting(const Geometry * g) const ;
 	
 	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {return tree ; } ;
-	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const {return NULL ; } ;
+	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const {return nullptr ; } ;
 	
 } ;
 
@@ -243,7 +243,7 @@ public:
 
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point& p) const ;
 	
-	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const { return std::pair< Point*,  Point*>(NULL, NULL) ; } 
+	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const { return std::pair< Point*,  Point*>(nullptr, nullptr) ; } 
 	
 	virtual bool isNeighbour( const DelaunayTreeItem *) const { return false ; } 
 	
@@ -404,7 +404,7 @@ public:
 	 */
 	std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
 	
-	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = NULL) ; 
+	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = nullptr) ; 
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	void refresh(TriElement *father) ;
 	

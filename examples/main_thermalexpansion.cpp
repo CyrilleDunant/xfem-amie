@@ -126,7 +126,7 @@ Vector g_count(0) ;
 
 double width = 1. ;
 double height = 1. ;
-Sample sample(NULL, width, height, 0.5, 0.5) ;	
+Sample sample(nullptr, width, height, 0.5, 0.5) ;	
 
 //double temperature = 50 ;
 

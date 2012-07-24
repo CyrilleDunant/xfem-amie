@@ -65,7 +65,7 @@ public:
 	{
 		r = 0 ;
 		c = 0 ;
-		v = NULL ;
+		v = nullptr ;
 	}
 	
 	double froebeniusNorm() const
@@ -167,7 +167,7 @@ public:
 		r = x ;
 		c = y ;
 		double zero(0);
-		if(v == NULL)
+		if(v == nullptr)
 			v = new Vector(zero, x*y) ;
 		else
 			v->resize(x*y, zero) ;
@@ -176,7 +176,7 @@ public:
 	/** \brief check if the matrix has initialised values*/
 	bool isNull() const
 	{
-		return v == NULL ;
+		return v == nullptr ;
 	}
 	
 	/** \brief c++-style accessor: return row*/

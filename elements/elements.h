@@ -99,7 +99,6 @@ public:
 	void setNonLinearBehaviour(NonLinearForm * f) ;
 	
 	virtual void step(double dt, const Vector * displacements) ;
-	virtual void stepBack() ;
 	virtual void nonLinearStep(double dt, const Vector * displacements) ;
 	
 	Order getOrder() const;
@@ -154,8 +153,8 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	
-    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;}
-    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;}
+    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return nullptr ;}
+    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return nullptr ;}
 	
 } ;
 
@@ -231,7 +230,6 @@ public:
 		
 	
 	virtual void step(double dt, const Vector * displacements) ;
-	virtual void stepBack() ;
 	virtual void nonLinearStep(double dt, const Vector *displacements) ;
 	
 	virtual Order getOrder() const;
@@ -273,8 +271,8 @@ public:
 	virtual Function getTTransform() const ;
 
 	
-	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
-	virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
+	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return nullptr ;};
+	virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return nullptr ;};
 	
 	virtual const GaussPointArray & getGaussPoints()
 	{
@@ -323,8 +321,8 @@ public:
 	virtual Function getYTransform() const ;
 	virtual Function getZTransform() const ;
 	
-	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return NULL ;};
-    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return NULL ;};
+	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return nullptr ;};
+    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return nullptr ;};
 
 } ;
 

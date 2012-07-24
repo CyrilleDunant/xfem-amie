@@ -18,7 +18,7 @@ struct LayerBuffer
 		LayerBuffer()
 		{
 			numberOfPointsPerTriangle = 0 ;
-			values = NULL ;
+			values = nullptr ;
 		}
 
 };

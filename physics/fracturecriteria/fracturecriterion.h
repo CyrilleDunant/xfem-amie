@@ -75,7 +75,6 @@ typedef enum{
 		bool stable ;
 		
 		double currentAngle ;
-		double maxScoreInNeighbourhood ;
 		double minDeltaInNeighbourhood ;
 		int maxModeInNeighbourhood ;
 		double maxAngleShiftInNeighbourhood ;
@@ -107,7 +106,6 @@ typedef enum{
 		double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedCrackAngle( ElementState &s) const ;
 		double getCurrentAngle() const {return currentAngle ; }
-		double getMaxScoreInNeighbourhood() const { return maxScoreInNeighbourhood ; }
 		
 	public:
 		std::vector<unsigned int> cache ;
@@ -148,7 +146,7 @@ typedef enum{
 		 */
 		virtual double grade(ElementState & s) = 0 ;
 		
-		virtual std::pair<double, double> setChange(const ElementState &s)  ;
+		virtual std::pair<double, double> setChange(const ElementState &s, double maxscore)  ;
 		
 		/** \brief Produce a copy of the fracture criterion
 		 * 

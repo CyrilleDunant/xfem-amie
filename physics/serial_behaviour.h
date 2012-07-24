@@ -36,18 +36,18 @@ namespace Mu
 
 		virtual bool hasInducedForces() const ;
 
-		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
-		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
-		virtual void step(double timestep, ElementState & currentState) ;
+		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 		
 		virtual ElementState * createElementState( IntegrableEntity * e) ;
 
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 		
 		virtual void preProcess( double timeStep, ElementState & currentState ) ;
 		

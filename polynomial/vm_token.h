@@ -47,7 +47,7 @@ typedef enum
 {
 	TOKEN,
 	TOKEN_CONSTANT,
-	TOKEN_NULL,
+	TOKEN_nullptr,
 	TOKEN_POSITION,
 	TOKEN_POSITION_OPERATOR,
 	TOKEN_DOMAIN,
@@ -528,7 +528,7 @@ public:
 class NullToken : public Token
 {
 public:
-	NullToken() : Token(true, std::make_pair(std::make_pair(TOKEN_NULL,0),(double)(0))) { };
+	NullToken() : Token(true, std::make_pair(std::make_pair(TOKEN_nullptr,0),(double)(0))) { };
 	virtual void eval(Context & context)  const 
 	{
 		context.memory.push_back(0) ;
@@ -838,7 +838,7 @@ public:
 	{
 		Point where(context.x, context.y, context.z) ;
 		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
-		ETYPE * target = NULL;
+		ETYPE * target = nullptr;
 		for(size_t i = 0 ; i < elements.size() ;  i++)
 		{
 			if(elements[i]->in(where))
@@ -873,7 +873,7 @@ public:
 	{
 		Point where(context.x, context.y, context.z) ;
 		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
-		ETYPE * target = NULL;
+		ETYPE * target = nullptr;
 		for(size_t i = 0 ; i < elements.size() ;  i++)
 		{
 			if(elements[i]->in(where))
@@ -908,7 +908,7 @@ public:
 	{
 		Point where(context.x, context.y, context.z) ;
 		std::vector<ETYPE *> elements  = mesh->getConflictingElements(&where) ;
-		ETYPE * target = NULL;
+		ETYPE * target = nullptr;
 		for(size_t i = 0 ; i < elements.size() ;  i++)
 		{
 			if(elements[i]->in(where))
@@ -1652,10 +1652,10 @@ public:
 	{
 		Point test(*context.memory.top_pos, *context.memory.prev_top_pos) ;
 		context.memory.pop_back() ;
-		Geometry * lastIn = NULL ;
-		Geometry * previousIn = NULL ;
-		Geometry * lastOut = NULL ;
-		Geometry * previousOut = NULL ;
+		Geometry * lastIn = nullptr ;
+		Geometry * previousIn = nullptr ;
+		Geometry * lastOut = nullptr ;
+		Geometry * previousOut = nullptr ;
 		for(std::vector<Geometry *>::const_iterator i = geos.begin() ; i != geos.end() ; ++i)
 		{
 			if((*i)->in(test))
@@ -1672,14 +1672,14 @@ public:
 			}
 		}
 		
-		if(lastOut == NULL) // I am in all geometries.
+		if(lastOut == nullptr) // I am in all geometries.
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ;
 			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
 			
 		}
-		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		else if (lastIn != nullptr) // I am in a geometry, but not in the next
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1688,7 +1688,7 @@ public:
 			*context.memory.top_pos = interpolate(din, dout) ;
 			
 		}
-		else if(previousOut != NULL) // I am between 2 geometries
+		else if(previousOut != nullptr) // I am between 2 geometries
 		{
 			Point p0(test) ;
 			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1727,10 +1727,10 @@ public:
 	{
 		Point test(*context.memory.top_pos, *context.memory.prev_top_pos);
 		context.memory.pop_back() ;
-		Geometry * lastIn = NULL ;
-		Geometry * previousIn = NULL ;
-		Geometry * lastOut = NULL ;
-		Geometry * previousOut = NULL ;
+		Geometry * lastIn = nullptr ;
+		Geometry * previousIn = nullptr ;
+		Geometry * lastOut = nullptr ;
+		Geometry * previousOut = nullptr ;
 		for(std::vector<Geometry *>::const_reverse_iterator i = geos.rbegin() ; i != geos.rend() ; ++i)
 		{
 			if((*i)->in(test))
@@ -1747,7 +1747,7 @@ public:
 			}
 		}
 		
-		if(lastOut == NULL) // I am in all geometries.
+		if(lastOut == nullptr) // I am in all geometries.
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ;
@@ -1755,7 +1755,7 @@ public:
 			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
 			
 		}
-		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		else if (lastIn != nullptr) // I am in a geometry, but not in the next
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1764,7 +1764,7 @@ public:
 			*context.memory.top_pos = interpolate(din, dout) ;
 			
 		}
-		else if(previousOut != NULL) // I am between 2 geometries
+		else if(previousOut != nullptr) // I am between 2 geometries
 		{
 			Point p0(test) ;
 			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1805,10 +1805,10 @@ public:
 		
 		context.memory.pop_back() ;
 		context.memory.pop_back() ;
-		Geometry * lastIn = NULL ;
-		Geometry * previousIn = NULL ;
-		Geometry * lastOut = NULL ;
-		Geometry * previousOut = NULL ;
+		Geometry * lastIn = nullptr ;
+		Geometry * previousIn = nullptr ;
+		Geometry * lastOut = nullptr ;
+		Geometry * previousOut = nullptr ;
 		for(std::vector<Geometry *>::const_iterator i = geos.begin() ; i != geos.end() ; ++i)
 		{
 			if((*i)->in(test))
@@ -1825,14 +1825,14 @@ public:
 			}
 		}
 		
-		if(lastOut == NULL) // I am in all geometries.
+		if(lastOut == nullptr) // I am in all geometries.
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ;
 			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
 			
 		}
-		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		else if (lastIn != nullptr) // I am in a geometry, but not in the next
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1841,7 +1841,7 @@ public:
 			*context.memory.top_pos = interpolate(din, dout) ;
 			
 		}
-		else if(previousOut != NULL) // I am between 2 geometries
+		else if(previousOut != nullptr) // I am between 2 geometries
 		{
 			Point p0(test) ;
 			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1882,10 +1882,10 @@ public:
 		context.memory.pop_back() ;
 		context.memory.pop_back() ;
 		
-		Geometry * lastIn = NULL ;
-		Geometry * previousIn = NULL ;
-		Geometry * lastOut = NULL ;
-		Geometry * previousOut = NULL ;
+		Geometry * lastIn = nullptr ;
+		Geometry * previousIn = nullptr ;
+		Geometry * lastOut = nullptr ;
+		Geometry * previousOut = nullptr ;
 		for(std::vector<Geometry *>::const_reverse_iterator i = geos.rbegin() ; i != geos.rend() ; ++i)
 		{
 			if((*i)->in(test))
@@ -1902,14 +1902,14 @@ public:
 			}
 		}
 		
-		if(lastOut == NULL) // I am in all geometries.
+		if(lastOut == nullptr) // I am in all geometries.
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ;
 			*context.memory.top_pos = sqrt(squareDist2D(test, p0)) ;
 			
 		}
-		else if (lastIn != NULL) // I am in a geometry, but not in the next
+		else if (lastIn != nullptr) // I am in a geometry, but not in the next
 		{
 			Point p0(test) ;
 			lastIn->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;
@@ -1918,7 +1918,7 @@ public:
 			*context.memory.top_pos = interpolate(din, dout) ;
 			
 		}
-		else if(previousOut != NULL) // I am between 2 geometries
+		else if(previousOut != nullptr) // I am between 2 geometries
 		{
 			Point p0(test) ;
 			previousOut->project(&p0) ; double din = sqrt(squareDist2D(test, p0)) ;

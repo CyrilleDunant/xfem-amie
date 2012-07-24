@@ -65,7 +65,7 @@ Form * StiffnessWithImposedDeformation::getCopy() const
 	return new StiffnessWithImposedDeformation(param, imposed) ;
 }
 
-void StiffnessWithImposedDeformation::step(double timestep, ElementState & currentState)
+void StiffnessWithImposedDeformation::step(double timestep, ElementState & currentState, double maxscore)
 {
 }
 

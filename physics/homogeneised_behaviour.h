@@ -87,15 +87,14 @@ namespace Mu
 
 //		void setFeatureTree(FeatureTree ft) {subTree = ft ; } ;
 
-		virtual void step(double timestep, ElementState & currentState) ;
-		virtual void stepBack() ;
+		virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 		virtual bool hasInducedForces() const { return true ; }
 		
-		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
-		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 

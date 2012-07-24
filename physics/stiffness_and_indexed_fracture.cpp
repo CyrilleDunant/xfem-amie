@@ -61,15 +61,9 @@ void StiffnessAndIndexedFracture::apply(const Function & p_i, const Function & p
 	vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
 }
 
-
-void StiffnessAndIndexedFracture::stepBack()
+void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentState, double maxscore) 
 {
-	dfunc->stepBack()  ;
-}
-
-void StiffnessAndIndexedFracture::step(double timestep, ElementState & currentState) 
-{
-	dfunc->step(currentState) ;
+	dfunc->step(currentState, maxscore) ;
 
 }
 

@@ -26,8 +26,8 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	{
 		for(size_t j = 0 ; j < grid.pixels[0].size() ; j++)
 		{
-			new DelaunayTriangle(this,NULL, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*i+j+1], points[(grid.pixels[0].size()+1)*(i+1)+j+1], NULL) ;
-			new DelaunayTriangle(this,NULL, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*(i+1)+j], points[(grid.pixels[0].size()+1)*(i+1)+j+1], NULL) ;
+			new DelaunayTriangle(this,nullptr, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*i+j+1], points[(grid.pixels[0].size()+1)*(i+1)+j+1], nullptr) ;
+			new DelaunayTriangle(this,nullptr, points[(grid.pixels[0].size()+1)*i+j], points[(grid.pixels[0].size()+1)*(i+1)+j], points[(grid.pixels[0].size()+1)*(i+1)+j+1], nullptr) ;
 		}
 	}
 	
@@ -325,7 +325,7 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 				{
 					double fraction = (double)(node)/((double)nodes_per_side+1) ;
 					Point proto = a*(1.-fraction) + b*fraction ;
-					Point * foundPoint = NULL ;
+					Point * foundPoint = nullptr ;
 					
 					for(size_t j = 0 ; j< static_cast<DelaunayTriangle *>(*i)->getBoundingPoints().size() ; j++)
 					{

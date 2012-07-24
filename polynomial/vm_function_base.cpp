@@ -18,7 +18,7 @@ using namespace Mu ;
 Function::Function(const ByteCode & b_0, const ByteCode & b_1, RefCountedToken op, const bool diff) : iPoint(0), byteCode(b_0.size() + b_1.size()+1) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	std::copy(&b_0[0], &b_0[b_0.size()], &byteCode[0]) ;
 	std::copy(&b_1[0], &b_1[b_1.size()], &byteCode[b_0.size()]) ;
@@ -28,7 +28,7 @@ Function::Function(const ByteCode & b_0, const ByteCode & b_1, RefCountedToken o
 Function::Function(const ByteCode & b_0, const ByteCode & b_1) : iPoint(0), byteCode(b_0.size() + b_1.size()) , e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	std::copy(&b_0[0], &b_0[b_0.size()], &byteCode[0]) ;
 	std::copy(&b_1[0], &b_1[b_1.size()], &byteCode[b_0.size()]) ;
@@ -37,7 +37,7 @@ Function::Function(const ByteCode & b_0, const ByteCode & b_1) : iPoint(0), byte
 Function::Function(const ByteCode &b_0, const double a, RefCountedToken op, const bool diff) :  iPoint(0), byteCode(b_0.size() + 2) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	std::copy(&b_0[0], &b_0[b_0.size()], &byteCode[0]) ;
 	byteCode[b_0.size()] = RefCountedToken(new ConstantToken(a)) ;
@@ -47,7 +47,7 @@ Function::Function(const ByteCode &b_0, const double a, RefCountedToken op, cons
 Function::Function(const double a, const ByteCode &b_0,  RefCountedToken op, const bool diff) :  iPoint(0), byteCode(b_0.size() + 2) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	byteCode[0] = RefCountedToken(new ConstantToken(a)) ;
 	std::copy(&b_0[0], &b_0[b_0.size()], &byteCode[1]) ;
@@ -390,7 +390,7 @@ const RefCountedToken& Function::getToken(const size_t i) const
 Function::Function() :  derivative(0), e_diff(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	this->byteCode.resize(1) ;
 	this->byteCode[0] = RefCountedToken(new NullToken()) ;
 	compiled = false ;
@@ -399,7 +399,7 @@ Function::Function() :  derivative(0), e_diff(false)
 Function::Function(const char *f) :  derivative(0),iPoint(0), e_diff(false), compiled(false)
 {	
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	size_t init = 0 ;
 	
@@ -408,7 +408,7 @@ Function::Function(const char *f) :  derivative(0),iPoint(0), e_diff(false), com
 	while(init < strlen(f))
 	{
 		std::pair<size_t, RefCountedToken> temp = getNext(init, f) ;
-		if((const Token *)temp.second != NULL)
+		if((const Token *)temp.second != nullptr)
 			tempb.push_back(temp.second) ;
 		init = temp.first ;
 	}
@@ -421,7 +421,7 @@ Function::Function(const char *f) :  derivative(0),iPoint(0), e_diff(false), com
 Function::Function(const std::string &f) : derivative(0), iPoint(0), e_diff(false), compiled(false)
 {	
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	size_t init = 0 ;
 	
@@ -430,7 +430,7 @@ Function::Function(const std::string &f) : derivative(0), iPoint(0), e_diff(fals
 	while(init < f.size())
 	{
 		std::pair<size_t, RefCountedToken> temp = getNext(init, f) ;
-		if((const Token *)temp.second != NULL)
+		if((const Token *)temp.second != nullptr)
 			tempb.push_back(temp.second) ;
 		init = temp.first ;
 	}
@@ -443,7 +443,7 @@ Function::Function(const std::string &f) : derivative(0), iPoint(0), e_diff(fals
 Function::Function(const std::valarray<Matrix> & coeffs, bool diff) :iPoint(0) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	std::vector<RefCountedToken> tempb ;
 	
@@ -558,7 +558,7 @@ Function::Function(const std::valarray<Matrix> & coeffs, bool diff) :iPoint(0) ,
 Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool diff) : derivative(4*diff), iPoint(0) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	
 	std::vector<RefCountedToken> tempb ;
 	
@@ -729,7 +729,7 @@ Function::Function(const std::valarray<std::valarray<Matrix> > & coeffs, bool di
 Function::Function(const Matrix & coeffs, bool diff) : derivative(2*diff), iPoint(0), e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	compiled = false ;
 	
 	std::vector<RefCountedToken> tempb ;
@@ -824,7 +824,7 @@ bool Function::isNull() const
 Function::Function(const std::valarray<double> & coeffs, bool diff) :iPoint(0) , e_diff(diff), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	compiled = false ;
 	
 	std::vector<RefCountedToken> tempb ;
@@ -883,7 +883,7 @@ Function::Function(const Segment s, const Function & x, const Function & y, Posi
 	case POSITION_TOKEN :
 		{
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			
 			for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 				byteCode[i] = y.getByteCode()[i] ;
@@ -901,7 +901,7 @@ Function::Function(const Segment s, const Function & x, const Function & y, Posi
 		{
 			derivative.resize(0) ;
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			
 			byteCode[0] = RefCountedToken(new ProjectionToken(s)) ;
 			
@@ -914,7 +914,7 @@ Function::Function(const Geometry * g) :  derivative(2)  , byteCode(1), e_diff(t
 {
 
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			
 			byteCode[0] = RefCountedToken(new DomainBinaryOperatorToken(g)) ;
 			
@@ -931,7 +931,7 @@ Function Function::operator()(const Function & f) const
 Function::Function(const Line & l, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -949,7 +949,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(2), byteC
 Function::Function(const Point & l, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID = -1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -960,7 +960,7 @@ Function::Function(const Point & l, Function x, Function y) : derivative(2), byt
 Function::Function(const Point & l, const Function &x, const Function &y, const Function &z) : derivative(3), byteCode(x.getByteCode().size()+y.getByteCode().size()+z.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID = -1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < z.getByteCode().size() ; i++)
 		byteCode[i] = z.getByteCode()[i] ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
@@ -979,7 +979,7 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(2), byt
 Function::Function(double a, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -996,7 +996,7 @@ Function::Function(double a,  ElementarySurface * s) : derivative(2), byteCode(2
 Function::Function(double a,const Point & p,  Function x, Function y): derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -1013,7 +1013,7 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
 Function::Function( const Geometry * g, Function x, Function y) : derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -1024,7 +1024,7 @@ Function::Function( const Geometry * g, Function x, Function y) : derivative(2),
 Function::Function(const Point & p , const Geometry * g, const Function & x, const Function & y): derivative(2), byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -1045,7 +1045,7 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 	case POSITION_TOKEN :
 		{
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 				byteCode[i] = y.getByteCode()[i] ;
 			for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -1062,7 +1062,7 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 		{
 			derivative.resize(0) ;
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			byteCode.resize(s.size()+s.size()-1) ;
 			for(size_t i = 0 ; i < s.size() ; i++)
 			{
@@ -1079,7 +1079,7 @@ Function::Function(const std::vector<Segment> s , const Function & x, const Func
 Function::Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y):  derivative(2) , byteCode(x.getByteCode().size()+y.getByteCode().size()+1), e_diff(false), compiled(false)
 {
 	this->dofID =-1 ;
-	this->ptID = NULL ;
+	this->ptID = nullptr ;
 	for(size_t i = 0 ; i < y.getByteCode().size() ; i++)
 		byteCode[i] = y.getByteCode()[i] ;
 	for(size_t i = 0 ; i < x.getByteCode().size() ; i++)
@@ -1153,7 +1153,7 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 		{
 			derivative.resize(0) ;
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			byteCode.resize(s.size()+s.size()-1) ;
 			for(size_t i = 0 ; i < s.size() ; i++)
 			{
@@ -2313,7 +2313,7 @@ void Function::compile()
 								newByteCode.push_back(new ReadHeapVariableToken(bytecode[subexpressionEnd-2]->type.first.second)) ;
 							break ;
 						}
-					case TOKEN_NULL :
+					case TOKEN_nullptr :
 						{
 							newByteCode.push_back(bytecode[subexpressionEnd-3]) ;
 							break ;
@@ -2343,7 +2343,7 @@ void Function::compile()
 							newByteCode.push_back(new AddReadAndReadToken(bytecode[subexpressionEnd-3]->type.first.second, bytecode[subexpressionEnd-2]->type.first.second)) ;
 							break ;
 						}
-						case TOKEN_NULL :
+						case TOKEN_nullptr :
 						{
 							newByteCode.push_back(bytecode[subexpressionEnd-3]) ;
 							break ;
@@ -2356,7 +2356,7 @@ void Function::compile()
 					}
 					break ;
 				}
-				case TOKEN_NULL :
+				case TOKEN_nullptr :
 				{
 					if(bytecode[subexpressionEnd-2]->type.first.first == TOKEN_CONSTANT 
 					   || bytecode[subexpressionEnd-2]->type.first.first >= TOKEN_X_POWER_AND_MULTIPLY

@@ -119,15 +119,12 @@ protected:
 	
 	Vector previousDisplacements ;
 	Vector previousEnrichedDisplacements ;
-	
-	Vector previousPreviousDisplacements ;
-	Vector previousPreviousEnrichedDisplacements ;
+
 	
 	Vector buffer ;
 	
 	double timePos ;
 	double previousTimePos ;
-	double previousPreviousTimePos ;
 	
 	IntegrableEntity * parent ;
 	
@@ -199,17 +196,6 @@ public:
 /** \brief return enriched displacements at the nodes of the element*/
 	Vector & getPreviousEnrichedDisplacements() ;
 
-/** \brief return displacements at the nodes of the element*/
-	const Vector & getPreviousPreviousDisplacements() const;
-
-/** \brief return displacements at the nodes of the element*/
-	Vector & getPreviousPreviousDisplacements() ;
-
-/** \brief return enriched displacements at the nodes of the element*/
-	const Vector & getPreviousPreviousEnrichedDisplacements() const;
-
-/** \brief return enriched displacements at the nodes of the element*/
-	Vector & getPreviousPreviousEnrichedDisplacements() ;
 		
 /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
 	std::vector<Point> getPrincipalFrame( const Point &p, bool local = false, StressCalculationMethod m = REAL_STRESS)  ;
@@ -238,7 +224,6 @@ public:
 /** \brief Return the elastic energy of this element*/
 	double elasticEnergy() ;
 
-	virtual void stepBack() ;
 	virtual void step(double dt, const Vector* d ) ;
 	virtual void elasticStep(double dt, const Vector* d ) { } ;
 	
@@ -375,6 +360,7 @@ struct GaussPointArray
 	std::valarray< std::pair<Point, double> > gaussPoints ;
 	int id ;
 	GaussPointArray() : gaussPoints(std::make_pair(Point(), 1.),1), id(-2) { } ;
+	GaussPointArray(const std::pair<Point, double> & p) : gaussPoints(p, 1), id(-2) { } ;
 	GaussPointArray(const GaussPointArray & gp) : gaussPoints(gp.gaussPoints), id(-2) { } ;
 	GaussPointArray(const std::valarray< std::pair<Point, double> > & array, int i): gaussPoints(array), id(i) { } ;
 	void operator = (const GaussPointArray & gp) 
@@ -468,8 +454,8 @@ public:
 	/** The type helps to know the available parameters and methods of the subclasses*/
 	ParametersType type;
 	
-	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p), source(NULL) { } ;
-	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)), source(NULL){ } ;
+	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p), source(nullptr) { } ;
+	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)), source(nullptr){ } ;
 	
 	/** apply the form on a pair of functions
 	 * 
@@ -509,7 +495,7 @@ public:
 	 * @param timestep length of the timestep
 	 * @param currentState State of the element with this behaviour
 	 */
-	virtual void step(double timestep, ElementState & currentState) = 0;
+	virtual void step(double timestep, ElementState & currentState, double maxScore) = 0;
 	virtual void updateElementState(double timestep, ElementState & currentState) const = 0;
 	
 	virtual bool fractured() const = 0 ;
@@ -518,9 +504,8 @@ public:
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 	
 	virtual Form * getCopy() const = 0 ;
-	virtual void stepBack() { std::cout << "step back not implemented" << std::endl ; exit(0) ;}  ;
 	
-	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const
 	{
 		return param ;
 	}
@@ -535,16 +520,16 @@ public:
 		return param ;
 	}
 
-	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
-	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	
 	virtual ~Form() { } ;
 
-	virtual FractureCriterion * getFractureCriterion() const { return NULL ; }
+	virtual FractureCriterion * getFractureCriterion() const { return nullptr ; }
 	
 	virtual void setFractureCriterion(FractureCriterion * frac) { }
 	
-	virtual DamageModel * getDamageModel() const { return NULL ; }
+	virtual DamageModel * getDamageModel() const { return nullptr ; }
 	
 	virtual ElementState * createElementState( IntegrableEntity * e) ;
 	

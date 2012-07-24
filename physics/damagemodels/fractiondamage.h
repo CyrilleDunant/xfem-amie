@@ -52,10 +52,8 @@ public:
 	 * @param m original Matrix
 	 * @return modified Matrix
 	 */
-	virtual Matrix apply(const Matrix & m) const;
+	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const ;
 	
-	virtual Matrix applyPrevious(const Matrix & m) const;
-
 	/** \brief return true is the element concerned is fractured 
 		*/
 	virtual bool fractured() const ;

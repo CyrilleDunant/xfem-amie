@@ -10,7 +10,7 @@ namespace Mu
 typedef enum
 {
 	P_BAD_INDEX,
-	P_NULL_PROPERTIES,
+	P_nullptr_PROPERTIES,
 
 	P_BULK_MODULUS,
 	P_POISSON_RATIO,
@@ -81,7 +81,7 @@ class Properties
 public:
 // CONSTRUCTORS
 
-	/** \brief Simple constructor, creates a useless P_NULL_PROPERTIES item */
+	/** \brief Simple constructor, creates a useless P_nullptr_PROPERTIES item */
 	Properties() ;
 	
 	/** \brief Simple constructor, creates a Properties item 

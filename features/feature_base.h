@@ -71,7 +71,7 @@ public:
 	 * 
 	 * @param father sets the father.
 	 */
-	Feature(Feature *father = NULL) ;
+	Feature(Feature *father = nullptr) ;
 
 	/** \brief Feature constructor.
 	 * 
@@ -132,7 +132,7 @@ public:
 	
 	/** \brief Return the father.
 	 * 
-	 * @return thefather Feature. It can be NULL !
+	 * @return thefather Feature. It can be nullptr !
 	 */
 	virtual Feature * getFather() const;
 	

@@ -94,15 +94,10 @@ protected:
 	double effectiveDeltaFraction ;
 	
 	bool change ;
-	bool previouschange ;
 	bool haslimit ;
 	
 	Vector state ;
-	Vector auxiliarystate ;
-	Vector previouspreviousstate ;
-	Vector previousstate ;
-	Vector previousauxiliarystate ;
-	Vector previouspreviousauxiliarystate ;
+
 	std::vector<PointState> states ;
 	
 	ElementState * elementState ;
@@ -156,19 +151,9 @@ public:
 	 * 
 	 * @param s ElementState
 	 */
-	virtual void step(ElementState & s)  ;
-	
-	/** \brief decrement the damage from the current state of the element considered
-	 * 
-	 * @param s ElementState
-	 */
-	virtual void stepBack()  ;
+	virtual void step(ElementState & s, double maxscore)  ;
 
 	virtual std::pair<Vector,Vector> computeDamageIncrement(ElementState &s) = 0 ;
-
-	/** \brief Get previous damage value  */
-	virtual Vector & getPreviousState() { return previousstate ; } ;
-	virtual const Vector & getPreviousState() const { return previousstate ; } ;
 
 	/** \brief return true is the element concerned is fractured 
 		*/
@@ -179,10 +164,8 @@ public:
 	 * @param m Matrix to modify
 	 * @return a new Matrix
 	 */
-	virtual Matrix apply(const Matrix & m) const = 0 ;
+	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const = 0 ;
 	
-	virtual Matrix applyPrevious(const Matrix & m) const = 0 ;
-
 	virtual DamageModel * getCopy() const = 0 ;
 	/** \brief Modify the rigidity matrix according to the damage model function (for space-time behaviour)
 	 * 
@@ -225,7 +208,7 @@ class NullDamage : public DamageModel
 
 public:
 
-	NullDamage() : DamageModel() { state.resize(0); previousstate.resize(0);} ;
+	NullDamage() : DamageModel() { state.resize(0);} ;
 
 	/** \brief Return the vector of variables describing the damage state
 	 * 
@@ -258,8 +241,7 @@ public:
 	 * @param m Matrix
 	 * @return m
 	 */
-	virtual Matrix apply(const Matrix & m) const {return m ;} ;
-	virtual Matrix applyPrevious(const Matrix & m) const {return m ;} ;
+	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const {return m ;} ;
 	
 	virtual bool fractured() const {return false ; } ;
 	

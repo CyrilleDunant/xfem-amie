@@ -228,8 +228,8 @@ protected:
 	Configlet<void * > * trunk;
 	
 public:
-	ConfigParser(const char* f): Parser(f) { trunk = new Configlet<void *>(NULL, NULL, TRUNK) ; }
-	ConfigParser(): Parser("infile1") { trunk = new Configlet<void *>(NULL, NULL, TRUNK) ;  } 
+	ConfigParser(const char* f): Parser(f) { trunk = new Configlet<void *>(nullptr, nullptr, TRUNK) ; }
+	ConfigParser(): Parser("infile1") { trunk = new Configlet<void *>(nullptr, nullptr, TRUNK) ;  } 
 	virtual ~ConfigParser() { } ;
 	virtual void readData() ;
 	Configlet<void * > * getData() { return trunk; }

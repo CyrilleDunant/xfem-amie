@@ -11,7 +11,7 @@ EnrichmentRing::EnrichmentRing(Feature *father, double radius, double inradius, 
 	updated = true ;
 }
 
-EnrichmentRing::EnrichmentRing(double radius, double inradius, double x, double y) :EnrichmentFeature(NULL), Circle(radius, x, y), self(inradius, x, y)
+EnrichmentRing::EnrichmentRing(double radius, double inradius, double x, double y) :EnrichmentFeature(nullptr), Circle(radius, x, y), self(inradius, x, y)
 {
 	updated = true ;
 }

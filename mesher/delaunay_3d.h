@@ -196,7 +196,7 @@ public:
 	void addNeighbourhood(DelaunayTetrahedron * t) ;
 	void removeNeighbourhood(DelaunayTetrahedron *) ;
 	
-	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {return NULL ; } ;
+	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const {return nullptr ; } ;
 	virtual Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh() const {return tree ; } ;
 	
 } ;
@@ -403,8 +403,8 @@ public:
 	 */
 	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) ;
 	
-	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = NULL) ; 
-	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = NULL) ;
+	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = nullptr) ; 
+	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = nullptr) ;
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	
 	void refresh(const TetrahedralElement *father) ;

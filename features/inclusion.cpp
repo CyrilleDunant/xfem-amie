@@ -59,22 +59,22 @@ Inclusion::Inclusion(Feature * father,double r, Point center) : Circle(r, center
 	this->isEnrichmentFeature = false ;
 }
 
-Inclusion::Inclusion(double r, double x, double y) : Circle(r, x, y), Feature(NULL)
+Inclusion::Inclusion(double r, double x, double y) : Circle(r, x, y), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 
-Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(NULL)
+Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 
-Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(NULL)
+Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 
-Inclusion::Inclusion(XMLTree *  xml) : Circle(xml->getChild(0)), Feature(NULL)
+Inclusion::Inclusion(XMLTree *  xml) : Circle(xml->getChild(0)), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -147,7 +147,7 @@ TriangularInclusion::TriangularInclusion(Feature * father,const Point & a, const
 
 }
 
-TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const Point & c) : Triangle(a, b, c), Feature(NULL)
+TriangularInclusion::TriangularInclusion(const Point & a, const Point & b, const Point & c) : Triangle(a, b, c), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -216,7 +216,7 @@ RectangularInclusion::RectangularInclusion(Feature * father,const Point & a, con
 	
 }
 
-RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, const Point & c, const Point & d) : OrientedRectangle(a, b, c, d), Feature(NULL)
+RectangularInclusion::RectangularInclusion(const Point & a, const Point & b, const Point & c, const Point & d) : OrientedRectangle(a, b, c, d), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -267,12 +267,12 @@ EllipsoidalInclusion::EllipsoidalInclusion(Feature *father, Point center, Point 
 	this->isEnrichmentFeature = false ;
 }
 
-EllipsoidalInclusion::EllipsoidalInclusion(Point center, Point a, Point b) : Ellipse(center, a, b), Feature(NULL)
+EllipsoidalInclusion::EllipsoidalInclusion(Point center, Point a, Point b) : Ellipse(center, a, b), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 
-EllipsoidalInclusion::EllipsoidalInclusion(Point center, Point a, double b) : Ellipse(center, a, b), Feature(NULL)
+EllipsoidalInclusion::EllipsoidalInclusion(Point center, Point a, double b) : Ellipse(center, a, b), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }

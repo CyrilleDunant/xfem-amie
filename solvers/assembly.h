@@ -63,7 +63,7 @@ typedef enum
 	SET_STRESS_ETA_ZETA,
 	VERTICAL_PLANE_SECTIONS,
 	HORIZONTAL_PLANE_SECTIONS,
-	NULL_CONDITION
+	nullptr_CONDITION
 } LagrangeMultiplierType ;
 
 /** \brief Abstract representation of a Boundary condition. Can be an actual Lagrange Multiplier, or a hint for set displacements or forces.*/
@@ -261,7 +261,7 @@ public:
 /** \brief Solve linear system using provided solver*/
 
 	bool mgprepare() ;
-	bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), Preconditionner * pg = NULL, int maxit = -1) ;
+	bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), Preconditionner * pg = nullptr, int maxit = -1) ;
 
 /** \brief Solve linear system using Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
 	bool cgnpsolve(Vector b, size_t maxit) ;

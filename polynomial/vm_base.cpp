@@ -2574,7 +2574,7 @@ std::vector<Point> VirtualMachine::allHints(const Function &f0, const Function &
 {
 	std::vector<Point> hints(0) ;
 	
-	if ((e!= NULL && f0.hasIntegrationHint()) || f1.hasIntegrationHint())
+	if ((e!= nullptr && f0.hasIntegrationHint()) || f1.hasIntegrationHint())
 	{
 		hints.push_back(e->getBoundingPoint(0)) ;
 		hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3)); 
@@ -2608,7 +2608,7 @@ std::vector<Point> VirtualMachine::allHints(const Function &f0,IntegrableEntity 
 	std::vector<Point> hints(0) ;
 	
 
-	if (e!= NULL && f0.hasIntegrationHint() )
+	if (e!= nullptr && f0.hasIntegrationHint() )
 	{
 		hints.push_back(e->getBoundingPoint(0)) ;
 		hints.push_back(e->getBoundingPoint(e->getBoundingPoints().size()/3)); 

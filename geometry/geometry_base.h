@@ -306,7 +306,7 @@ static const double POINT_TOLERANCE_3D =  1e-7 ;//std::numeric_limits<double>::e
 /** \brief defines the implemented geometries */
 typedef enum
 {
-	NULL_GEOMETRY,
+	nullptr_GEOMETRY,
 	CIRCLE,
 	LAYERED_CIRCLE,
 	TRIANGLE,

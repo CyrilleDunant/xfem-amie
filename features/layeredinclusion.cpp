@@ -56,7 +56,7 @@ LayeredInclusion::LayeredInclusion(Feature *father,std::vector<double> radii, co
 	}
 }
 
-LayeredInclusion::LayeredInclusion(std::vector<double> r,double x,double y) :  CompositeFeature(NULL), LayeredCircle(r, x, y)
+LayeredInclusion::LayeredInclusion(std::vector<double> r,double x,double y) :  CompositeFeature(nullptr), LayeredCircle(r, x, y)
 {
 	
 	for(int i = getRadii().size()-1 ; i > -1 ; i--)
@@ -70,7 +70,7 @@ void LayeredInclusion::print() const
 	std::cout << "I am a layered inclusion, radius " << getRadius() << ", center (" << getCenter().x << "; " << getCenter().y << ")"<< std::endl ;
 }
 
-LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : CompositeFeature(NULL), LayeredCircle(r, center)
+LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : CompositeFeature(nullptr), LayeredCircle(r, center)
 {
 	for(int i = getRadii().size()-1 ; i > -1 ; i--)
 	{
@@ -78,7 +78,7 @@ LayeredInclusion::LayeredInclusion(std::vector<double> r,Point center) : Composi
 	}
 }
 
-LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(NULL), LayeredCircle(r, center)
+LayeredInclusion::LayeredInclusion(double r, Point center) : CompositeFeature(nullptr), LayeredCircle(r, center)
 {
 	this->isEnrichmentFeature = false ;
 	for(int i = getRadii().size()-1 ; i > -1 ; i--)
@@ -138,7 +138,7 @@ void LayeredInclusion::setBehaviour(Form * b)
 	for(size_t i = 0 ; i < layeredBehaviour.size() ; i++)
 	{
 		if(layeredBehaviour[i] == behaviour)
-			layeredBehaviour[i] = NULL ;
+			layeredBehaviour[i] = nullptr ;
 		else
 			delete layeredBehaviour[i] ;
 	}
@@ -156,7 +156,7 @@ void LayeredInclusion::setBehaviours(std::vector<Form *> b)
 	for(size_t i = 0 ; i < layeredBehaviour.size() ; i++)
 	{
 		if(layeredBehaviour[i] == behaviour)
-			layeredBehaviour[i] = NULL ;
+			layeredBehaviour[i] = nullptr ;
 		else
 			delete layeredBehaviour[i] ;
 	}

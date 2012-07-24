@@ -36,8 +36,8 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 	
 	std::vector<ConnectedNode *> local ;
 			
-	ConnectedNode * start = NULL;
-	ConnectedNode * end = NULL;
+	ConnectedNode * start = nullptr;
+	ConnectedNode * end = nullptr;
 	for(int i =istart ; i < iend+1 ; i++)
 	{
 		for(int j = jstart ; j < jend+1 ; j++)
@@ -560,24 +560,24 @@ void VoxelFilter::read(const char * filename)
 					}
 					
 					
-					DelaunayTetrahedron * tet = new DelaunayTetrahedron(NULL, NULL, corner[1], corner[5], corner[4], corner[7], NULL) ;
+					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, corner[1], corner[5], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					LinearForm * behaviour = behaviourMap[phase[i][j][k]] ;
 					elems.back()->setBehaviour(behaviour) ;
-					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[2], corner[3], corner[6], NULL) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[2], corner[3], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					elems.back()->setBehaviour(behaviour) ;
-					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[4], corner[6], corner[7], NULL) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[4], corner[6], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					elems.back()->setBehaviour(behaviour) ;
-					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[1], corner[4], corner[7], NULL) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					elems.back()->setBehaviour(behaviour) ;
-					tet = new DelaunayTetrahedron( NULL,NULL, corner[0], corner[1], corner[3], corner[7], NULL) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[3], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					elems.back()->setBehaviour(behaviour) ;

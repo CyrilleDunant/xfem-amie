@@ -21,9 +21,9 @@ ElementarySurface::~ElementarySurface()
 
 ElementarySurface::ElementarySurface(bool f ) : isFather(f)
 {
-	shapefunc = NULL ;
-	nonlinbehaviour = NULL ;
-	behaviour = NULL ;
+	shapefunc = nullptr ;
+	nonlinbehaviour = nullptr ;
+	behaviour = nullptr ;
 	enrichmentUpdated = true ;
 	behaviourUpdated = true ;
 	enrichmentFunctionsCompiled = false ;
@@ -178,19 +178,13 @@ void ElementarySurface::step(double dt, const Vector * displacements)
 		getBehaviour()->updateElementState(dt, getState()) ;
 }
 
-void ElementarySurface::stepBack()
-{
-	getState().stepBack() ;
-	if(getBehaviour())
-		getBehaviour()->stepBack() ;
-}
 
 void ElementarySurface::nonLinearStep(double dt, const Vector *displacements)
 {
 	getState().step(dt, displacements) ;
 	
 	if(getNonLinearBehaviour())
-		getNonLinearBehaviour()->step(dt,getState()) ;
+		getNonLinearBehaviour()->step(dt,getState(), -1) ;
 }
 
 void ElementaryVolume::step(double dt, const Vector *displacements)
@@ -201,20 +195,13 @@ void ElementaryVolume::step(double dt, const Vector *displacements)
 }
 
 
-void ElementaryVolume::stepBack()
-{
-	getState().stepBack() ;
-	if(getBehaviour())
-		getBehaviour()->stepBack() ;
-}
-
 void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 {
 	
 	this->getState().step(dt, displacements) ;
 	
 	if(getNonLinearBehaviour())
-		getNonLinearBehaviour()->step(dt, this->getState()) ;
+		getNonLinearBehaviour()->step(dt, getState(), -1) ;
 	
 }
 
@@ -2003,8 +1990,8 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 
 ElementaryVolume::ElementaryVolume(bool f )  : isFather(f)
 {
-	this->behaviour = NULL ;
-	this->nonlinbehaviour = NULL ;
+	this->behaviour = nullptr ;
+	this->nonlinbehaviour = nullptr ;
 	enrichmentUpdated = true ;
 	behaviourUpdated = true ;
 	enrichmentFunctionsCompiled = false ;

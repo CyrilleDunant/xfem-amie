@@ -23,7 +23,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 		x = x0 ;
 	}
 	
-	if(precond == NULL)
+	if(precond == nullptr)
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
@@ -83,7 +83,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	if(maxit< 0)
 		lastit = b.size() ;
 	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
+	gettimeofday(&time0, nullptr);
 	
 	while(nit < lastit && std::abs(rho)*vsize*vsize > std::max(std::abs(err0)*epsilon*epsilon, epsilon*epsilon) )
 	{
@@ -126,7 +126,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 		}
 		
 	}
-	gettimeofday(&time1, NULL);
+	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "mflops: "<< nit*2*((2.)*A.array.size()+6*p.size())/delta << std::endl ;
 

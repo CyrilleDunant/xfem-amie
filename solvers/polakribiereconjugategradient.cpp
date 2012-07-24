@@ -38,7 +38,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	{
 		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
 		ConjugateGradient cg(assembly->getMatrix(), b) ;
-		bool ret =  cg.solve(x0, NULL,eps, -1, verbose) ;
+		bool ret =  cg.solve(x0, nullptr,eps, -1, verbose) ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;
 		return ret ;
@@ -58,11 +58,11 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	
 // 	else
 // 	{
-// 		x =  ConjugateGradient(assembly->getMatrix(), b).solve(x, NULL,eps, b.size(), true) ;
+// 		x =  ConjugateGradient(assembly->getMatrix(), b).solve(x, nullptr,eps, b.size(), true) ;
 // 		for(size_t i = 0 ; i < 2 ; i++)
 // 		{
 // 			assembly->nonLinearStep() ;
-// 			x = ConjugateGradient(assembly->getMatrix()+assembly->getNonLinearMatrix(), b+assembly->getNonLinearForces()).solve(x, NULL,eps, b.size(), true) ;
+// 			x = ConjugateGradient(assembly->getMatrix()+assembly->getNonLinearMatrix(), b+assembly->getNonLinearForces()).solve(x, nullptr,eps, b.size(), true) ;
 // 		}
 // 		return x ;
 // 		
@@ -76,7 +76,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	Vector & nlb = assembly->getNonLinearForces() ;
 	Vector r = ((A+ assembly->getNonLinearMatrix())*y)-b-nlb;
 	Vector s(r);
-	P.precondition(r,s) ;//ConjugateGradient(A,r).solve(x, NULL, 1e-12, 200, true) ;// 
+	P.precondition(r,s) ;//ConjugateGradient(A,r).solve(x, nullptr, 1e-12, 200, true) ;// 
 // 	s*=-1 ;
 	Vector d = s ;
 	

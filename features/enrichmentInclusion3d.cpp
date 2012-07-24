@@ -11,7 +11,7 @@ EnrichmentInclusion3D::EnrichmentInclusion3D(Feature *father, double radius, dou
 	updated = true ;
 }
 
-EnrichmentInclusion3D::EnrichmentInclusion3D(double radius, double x, double y, double z) :EnrichmentFeature(NULL), Sphere(radius, x, y, z)
+EnrichmentInclusion3D::EnrichmentInclusion3D(double radius, double x, double y, double z) :EnrichmentFeature(nullptr), Sphere(radius, x, y, z)
 {
 	updated = true ;
 }

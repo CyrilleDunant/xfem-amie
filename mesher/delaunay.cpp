@@ -22,7 +22,7 @@ using namespace Mu ;
 
 DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0), tree(t)
 {
-	this->stepfather = NULL ;
+	this->stepfather = nullptr ;
 	this->father = father;
 	this->m_c  = c ;
 	this->dead = false ;
@@ -32,9 +32,9 @@ DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t
 	this->isPlane =false ;
 	this->isTriangle =false ;
 	this->isDeadTriangle =false ;
-	this->first = NULL ;
-	this->second = NULL ;
-	this->third = NULL ;
+	this->first = nullptr ;
+	this->second = nullptr ;
+	this->third = nullptr ;
 
 	index = 0 ;
 	if(t)
@@ -384,7 +384,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 				{
 					double fraction = (double)(node)/((double)nodes_per_side+1) ;
 					Point proto = a*(1.-fraction) + b*fraction ;
-					Point * foundPoint = NULL ;
+					Point * foundPoint = nullptr ;
 					
 					for(size_t j = 0 ; j< (*i)->getBoundingPoints().size() ; j++)
 					{
@@ -501,7 +501,7 @@ void DelaunayTree::extrude(double dt)
 //			newPoints[j]->print() ;
 		}
 		
-		DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, NULL, a,b,c, a) ;
+		DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, nullptr, a,b,c, a) ;
 		toInsert->setOrder(tri[i]->getOrder()) ;
 		toInsert->setBoundingPoints(newPoints) ;
 		toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
@@ -598,7 +598,7 @@ void DelaunayTree::extrude(Vector dt)
 				newPoints[j] = found[k-1] ;
 			}
 			
-			DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, NULL, newPoints[0],newPoints[pointsPerTimePlane/3],newPoints[pointsPerTimePlane*2/3],newPoints[0]) ;
+			DelaunayTriangle * toInsert = new DelaunayTriangle(tri[i]->tree, nullptr, newPoints[0],newPoints[pointsPerTimePlane/3],newPoints[pointsPerTimePlane*2/3],newPoints[0]) ;
 			toInsert->setOrder(tri[i]->getOrder()) ;
 			toInsert->setBoundingPoints(newPoints) ;
 			toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
@@ -1108,7 +1108,7 @@ void DelaunayTreeItem::removeStepson(DelaunayTreeItem * t)
 		stepson.resize(stepson.size()-1) ;
 		stepson = newstepson ;
 		if(newstepson.size() == 0)
-			t->stepfather = NULL ;
+			t->stepfather = nullptr ;
 	}
 }
 
@@ -1163,7 +1163,7 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
 	assert(third->id > -1) ;
 }
 
-DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(NULL, NULL, NULL), neighbourhood(0)
+DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(nullptr, nullptr, nullptr), neighbourhood(0)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -1282,7 +1282,7 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 {
 	if(t == this)
 	{
-		return std::pair<Point*, Point*>(NULL, NULL) ;
+		return std::pair<Point*, Point*>(nullptr, nullptr) ;
 	}
 	
 	if(t->isTriangle)
@@ -1294,7 +1294,7 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 			if(this->isVertex(t->third))
 				return std::pair< Point*,  Point*>(t->first , t->third) ;
 			
-			return std::pair<Point*, Point*>(NULL, NULL) ;
+			return std::pair<Point*, Point*>(nullptr, nullptr) ;
 		}
 		
 		if(this->isVertex(t->second))
@@ -1302,7 +1302,7 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 			if(this->isVertex(t->third))
 				return std::pair< Point*,  Point*>(t->third , t->second) ;
 			
-			return std::pair<Point*, Point*>(NULL, NULL) ;
+			return std::pair<Point*, Point*>(nullptr, nullptr) ;
 		}
 		
 	}
@@ -1316,7 +1316,7 @@ inline std::pair<Point*, Point*> DelaunayDeadTriangle::commonEdge(const Delaunay
 			return std::pair< Point*,  Point*>(first, third ) ;
 	}
 	
-	return std::pair< Point*,  Point*>(NULL, NULL) ;
+	return std::pair< Point*,  Point*>(nullptr, nullptr) ;
 }
 
 
@@ -1327,9 +1327,9 @@ DelaunayTriangle::~DelaunayTriangle()
 
 DelaunayDemiPlane::~DelaunayDemiPlane()
 {
-// 	first = NULL ;
-// 	second = NULL ;
-// 	third = NULL ;
+// 	first = nullptr ;
+// 	second = nullptr ;
+// 	third = nullptr ;
 }
 	
 inline bool DelaunayTriangle::isVertex(const Point * p) const
@@ -1357,7 +1357,7 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 {
 	if(t == this)
 	{
-		return std::pair<Point*, Point*>(NULL, NULL) ;
+		return std::pair<Point*, Point*>(nullptr, nullptr) ;
 	}
 	
 	if(t->isTriangle || t->isDeadTriangle)
@@ -1369,7 +1369,7 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 			if(this->isVertex(t->third))
 				return std::pair< Point*,  Point*>(t->first , t->third) ;
 			
-			return std::pair<Point*, Point*>(NULL, NULL) ;
+			return std::pair<Point*, Point*>(nullptr, nullptr) ;
 		}
 		
 		if(this->isVertex(t->second))
@@ -1377,7 +1377,7 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 			if(this->isVertex(t->third))
 				return std::pair< Point*,  Point*>(t->third , t->second) ;
 			
-			return std::pair<Point*, Point*>(NULL, NULL) ;
+			return std::pair<Point*, Point*>(nullptr, nullptr) ;
 		}
 		
 	}
@@ -1403,7 +1403,7 @@ std::pair<Point*, Point*> DelaunayTriangle::commonEdge(const DelaunayTreeItem * 
 		return std::pair< Point*,  Point*>(first, second ) ;
 	}
 	
-	return std::pair< Point*,  Point*>(NULL, NULL) ;
+	return std::pair< Point*,  Point*>(nullptr, nullptr) ;
 }
 
 std::pair< Point*,  Point*> DelaunayDemiPlane::commonEdge(const DelaunayTreeItem * t) const
@@ -1432,7 +1432,7 @@ std::pair< Point*,  Point*> DelaunayDemiPlane::commonEdge(const DelaunayTreeItem
 			return std::pair< Point*,  Point*>(t->first , t->second) ;
 	}
 	
-	return std::pair< Point*,  Point*>(NULL, NULL) ;
+	return std::pair< Point*,  Point*>(nullptr, nullptr) ;
 }
 	
 
@@ -1794,16 +1794,16 @@ void updateNeighbours(std::vector<DelaunayTreeItem *> * t)
 	}
 } 
 
-DelaunayRoot::DelaunayRoot(Mesh<DelaunayTriangle, DelaunayTreeItem> *tt, Point * p0, Point * p1, Point * p2) : DelaunayTreeItem(tt, NULL, NULL)
+DelaunayRoot::DelaunayRoot(Mesh<DelaunayTriangle, DelaunayTreeItem> *tt, Point * p0, Point * p1, Point * p2) : DelaunayTreeItem(tt, nullptr, nullptr)
 {
 	isPlane = false ;
 	isTriangle =false ;
 	isDeadTriangle =false ;
-	this->father = NULL ;
-	DelaunayTriangle *t = new DelaunayTriangle(tt, this, p0, p1, p2, NULL) ;
-	DelaunayDemiPlane * pl0 = new DelaunayDemiPlane(tt,this, p0, p1, p2, NULL);
-	DelaunayDemiPlane * pl1 = new DelaunayDemiPlane(tt,this, p0, p2, p1, NULL);
-	DelaunayDemiPlane * pl2 = new DelaunayDemiPlane(tt,this, p1, p2, p0, NULL);
+	this->father = nullptr ;
+	DelaunayTriangle *t = new DelaunayTriangle(tt, this, p0, p1, p2, nullptr) ;
+	DelaunayDemiPlane * pl0 = new DelaunayDemiPlane(tt,this, p0, p1, p2, nullptr);
+	DelaunayDemiPlane * pl1 = new DelaunayDemiPlane(tt,this, p0, p2, p1, nullptr);
+	DelaunayDemiPlane * pl2 = new DelaunayDemiPlane(tt,this, p1, p2, p0, nullptr);
 	
 	makeNeighbours(t,pl0 ) ;
 	makeNeighbours(t,pl1) ;
@@ -1840,7 +1840,7 @@ bool DelaunayRoot::onCircumCircle(const Point & p) const
 std::pair< Point*,  Point*> DelaunayRoot::nearestEdge(const Point & p) const
 {
 	assert(false) ;
-	return std::pair< Point*,  Point*>(NULL, NULL) ;
+	return std::pair< Point*,  Point*>(nullptr, nullptr) ;
 }
 	
 void DelaunayRoot::insert(std::vector<DelaunayTreeItem *> & ret,Point *p, Star *s)
@@ -2217,7 +2217,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
 {
 	std::vector<DelaunayTreeItem *> cons = this->conflicts(&g->getCenter()) ;
-	DelaunayTriangle * origin = NULL ;
+	DelaunayTriangle * origin = nullptr ;
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
 		if(cons[i]->isTriangle && static_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()))
@@ -2956,10 +2956,10 @@ std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Mu::quad(const
 	points.push_back(new Point(*t->first + (*t->third - *t->first)*.5 )) ;
 	points.push_back(new Point(*t->second + (*t->third - *t->second)*.5 )) ;
 	
-	tris.push_back(new DelaunayTriangle(NULL,NULL, points[0], points[1], t->first, NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,NULL,points[0], points[2], t->second, NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,NULL,points[1], points[2], t->third, NULL)) ;
-	tris.push_back(new DelaunayTriangle(NULL,NULL,points[0], points[1], points[2], NULL)) ;
+	tris.push_back(new DelaunayTriangle(nullptr,nullptr, points[0], points[1], t->first, nullptr)) ;
+	tris.push_back(new DelaunayTriangle(nullptr,nullptr,points[0], points[2], t->second, nullptr)) ;
+	tris.push_back(new DelaunayTriangle(nullptr,nullptr,points[1], points[2], t->third, nullptr)) ;
+	tris.push_back(new DelaunayTriangle(nullptr,nullptr,points[0], points[1], points[2], nullptr)) ;
 	return std::make_pair(tris, points) ;
 }
 

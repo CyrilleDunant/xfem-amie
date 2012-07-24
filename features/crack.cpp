@@ -33,7 +33,7 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 	return a.first == b ;
 }
 
-BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(NULL), SegmentedLine(std::valarray<Point * >(2))
+BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(nullptr), SegmentedLine(std::valarray<Point * >(2))
 {
 	scorePropagation = true ;
 	if(a->x < b->x)
@@ -85,7 +85,7 @@ void BranchedCrack::branch(Point* fromTip, const std::vector<Point *> & newTip)
 	for(std::map<double, Point *>::const_iterator j = sortedNewTips.begin() ; j !=sortedNewTips.end() ; ++j)
 		newTipSorted.push_back(j->second) ;
 	
-	SegmentedLine * branchToExtend = NULL ;
+	SegmentedLine * branchToExtend = nullptr ;
 	bool fromHead = false ;
 	for ( size_t i = 0 ; i < branches.size() ; i++ )
 	{
@@ -177,7 +177,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 	newBranch[0] = fromTip ;
 	newBranch[1] = newTip0 ;
 
-	SegmentedLine * branchToExtend = NULL ;
+	SegmentedLine * branchToExtend = nullptr ;
 	bool fromHead = false ;
 	for ( size_t i = 0 ; i < branches.size() ; i++ )
 	{
@@ -258,7 +258,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	}
 
 
-	DelaunayTriangle * tailElem = NULL;
+	DelaunayTriangle * tailElem = nullptr;
 	for ( size_t i = 0 ; i < disk.size() ; i++ )
 	{
 		
@@ -442,7 +442,7 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 		}
 	}
 
-	SegmentedLine * branchToExtend = NULL ;
+	SegmentedLine * branchToExtend = nullptr ;
 	bool fromHead = false ;
 	for ( size_t i = 0 ; i < branches.size() ; i++ )
 	{
@@ -499,7 +499,7 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	}
 	double maxdist = dist*2. ;
 	std::pair<Point*, Point*> targetSegment ;
-	SegmentedLine * toBranch = NULL;
+	SegmentedLine * toBranch = nullptr;
 	
 	
 	for(size_t i = 0 ; i < newSet.getTips().size() ; i++)
@@ -507,7 +507,7 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 		std::pair<Point *, double> tipForMergePotential = newSet.getTips()[i] ;
 		double distPotential = maxdist ;
 		std::pair<Point*, Point*> targetSegmentPotential ;
-		SegmentedLine * toBranchPotential = NULL;
+		SegmentedLine * toBranchPotential = nullptr;
 		for(size_t j = 0 ; j < branches.size() ; j++)
 		{
 			for(size_t k = 0 ; k < branches[j]->getBoundingPoints().size()-1 ; k++)
@@ -540,7 +540,7 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	
 	//a new merge point is instantiated which is the intersection between 
 	// the nearest segment and the prolonged branch
-	SegmentedLine * fromBranch = NULL ;
+	SegmentedLine * fromBranch = nullptr ;
 	bool isHead = false ;
 	bool isTail = false ;
 	
@@ -1061,7 +1061,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	VirtualMachine vm ;
 	std::map<Point *, size_t> done ;
-	DelaunayTriangle * centralTriangle = NULL;
+	DelaunayTriangle * centralTriangle = nullptr;
 	
 	for ( size_t i = 0 ; i < tris.size() ; i++ )
 	{

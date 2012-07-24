@@ -501,14 +501,14 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ; 
 // 	timeval time0, time1 ;
-// 	gettimeofday(&time0, NULL);
+// 	gettimeofday(&time0, nullptr);
 
 #pragma omp parallel for schedule(auto)//shared(c,ret,ve) 
 	for (int i = 0 ; i <end ; i+=stride)
 	{
 		c.co.sm[i].inner_product(c.co.ve, &ret[i]);
 	}
-// 	gettimeofday(&time1, NULL);
+// 	gettimeofday(&time1, nullptr);
 // 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 // 	std::cout << "mflops: "<< (2.*c.co.sm.array.size())/delta << std::endl ;
 #pragma omp parallel for schedule(auto)//shared(ret,c,vi) 
@@ -529,7 +529,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 	const Vector & ve = c.ve ;
 	
 // 	timeval time0, time1 ;
-// 	gettimeofday(&time0, NULL);
+// 	gettimeofday(&time0, nullptr);
 	
 #pragma omp parallel for //shared(c,ve,ret) 
 		for (int i = 0 ; i < end; ++i)
@@ -537,7 +537,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 			c.sm[i*stride].inner_product(ve, &ret[i*stride]);
 		}
 		
-// 	gettimeofday(&time1, NULL);
+// 	gettimeofday(&time1, nullptr);
 // 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 // 	std::cerr << "mflops: "<< (2.*c.sm.array.size())/delta << std::endl ;
 } ;

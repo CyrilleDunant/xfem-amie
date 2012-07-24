@@ -54,7 +54,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
 {
 	state.setStateTo( MESHED, false ) ;
 
-	if( f == NULL )
+	if( f == nullptr )
 		return tree[0]->getBoundingElements2D( this ) ;
 	else
 		return f->getBoundingElements2D( this ) ;
@@ -235,7 +235,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 	return std::vector<DelaunayTetrahedron *>() ;
 }
 
-FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( NULL ), grid3d( NULL ), state( this )
+FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( nullptr ), grid3d( nullptr ), state( this )
 {
 	deltaTime = 0 ;
 	reuseDisplacements = false ;
@@ -243,13 +243,13 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	foundCheckPoint = true ;
 	averageDamage = 0 ;
 	stateConverged = false ;
-	this->dtree = NULL ;
-	this->dtree3D = NULL ;
+	this->dtree = nullptr ;
+	this->dtree3D = nullptr ;
 	
 
 	if( first )
 	{
-		this->addFeature( NULL, first, layer, fraction ) ;
+		this->addFeature( nullptr, first, layer, fraction ) ;
 	}
 
 	if( is2D() )
@@ -264,8 +264,8 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 		                     ( first->getBoundingBox()[7].y - first->getBoundingBox()[0].y ) * 1.1,
 		                     ( first->getBoundingBox()[7].z - first->getBoundingBox()[0].z ) * 1.1, gridsize / 5, ( first->getBoundingBox()[7] + first->getBoundingBox()[0] )*.5 );
 
-	father3D = NULL;
-	father2D = NULL ;
+	father3D = nullptr;
+	father2D = nullptr ;
 	elemOrder = LINEAR ;
 	renumbered = false ;
 	needAssembly = true ;
@@ -330,7 +330,7 @@ void FeatureTree::twineFeature( CompositeFeature *father, CompositeFeature *f )
 	for( size_t i = 1 ; i < fatherComponents.size() ; i++ )
 	{
 		Feature *attachPoint = ( *std::find( chain.begin(), chain.end(), fatherComponents[i] ) ) ;
-		Feature *attachPointChild = NULL;
+		Feature *attachPointChild = nullptr;
 
 		if( !attachPoint->getChildren().empty() )
 			attachPointChild = ( *attachPoint->getChildren().rbegin() ) ;
@@ -390,7 +390,7 @@ void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fra
 		std::vector<VirtualFeature *> pile = dynamic_cast<CompositeFeature *>( f )->getComponents();
 		f->setFather( father ) ;
 
-		if( father != NULL )
+		if( father != nullptr )
 			father->addChild( f ) ;
 
 		this->tree.push_back( f ) ;
@@ -408,7 +408,7 @@ void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fra
 	f->setFather( father ) ;
 
 	
-	if( father != NULL )
+	if( father != nullptr )
 		father->addChild( f ) ;
 
 	this->tree.push_back( f ) ;
@@ -1496,7 +1496,7 @@ void FeatureTree::duplicate2DMeshPoints()
 			if( dtree->getTree()[i]->first )
 				oldNew[dtree->getTree()[i]->first] = new Point( *( dtree->getTree()[i]->first ) ) ;
 			else
-				oldNew[dtree->getTree()[i]->first] = NULL ;
+				oldNew[dtree->getTree()[i]->first] = nullptr ;
 		}
 
 		if( oldNew.find( dtree->getTree()[i]->second ) == oldNew.end() || oldNew.empty() )
@@ -1504,7 +1504,7 @@ void FeatureTree::duplicate2DMeshPoints()
 			if( dtree->getTree()[i]->second )
 				oldNew[dtree->getTree()[i]->second] = new Point( *( dtree->getTree()[i]->second ) ) ;
 			else
-				oldNew[dtree->getTree()[i]->second] = NULL ;
+				oldNew[dtree->getTree()[i]->second] = nullptr ;
 		}
 
 		if( oldNew.find( dtree->getTree()[i]->third ) == oldNew.end() || oldNew.empty() )
@@ -1512,7 +1512,7 @@ void FeatureTree::duplicate2DMeshPoints()
 			if( dtree->getTree()[i]->third )
 				oldNew[dtree->getTree()[i]->third] = new Point( *( dtree->getTree()[i]->third ) ) ;
 			else
-				oldNew[dtree->getTree()[i]->third] = NULL ;
+				oldNew[dtree->getTree()[i]->third] = nullptr ;
 		}
 	}
 
@@ -1551,7 +1551,7 @@ void FeatureTree::duplicate3DMeshPoints()
 			if( dtree3D->getTree()[i]->first )
 				oldNew[dtree3D->getTree()[i]->first] = new Point( *( dtree3D->getTree()[i]->first ) ) ;
 			else
-				oldNew[dtree3D->getTree()[i]->first] = NULL ;
+				oldNew[dtree3D->getTree()[i]->first] = nullptr ;
 		}
 
 		if( oldNew.find( dtree3D->getTree()[i]->second ) == oldNew.end() )
@@ -1559,7 +1559,7 @@ void FeatureTree::duplicate3DMeshPoints()
 			if( dtree3D->getTree()[i]->second )
 				oldNew[dtree3D->getTree()[i]->second] = new Point( *( dtree3D->getTree()[i]->second ) ) ;
 			else
-				oldNew[dtree3D->getTree()[i]->second] = NULL ;
+				oldNew[dtree3D->getTree()[i]->second] = nullptr ;
 		}
 
 		if( oldNew.find( dtree3D->getTree()[i]->third ) == oldNew.end() )
@@ -1567,7 +1567,7 @@ void FeatureTree::duplicate3DMeshPoints()
 			if( dtree3D->getTree()[i]->third )
 				oldNew[dtree3D->getTree()[i]->third] = new Point( *( dtree3D->getTree()[i]->third ) ) ;
 			else
-				oldNew[dtree3D->getTree()[i]->third] = NULL ;
+				oldNew[dtree3D->getTree()[i]->third] = nullptr ;
 		}
 
 		if( oldNew.find( dtree3D->getTree()[i]->fourth ) == oldNew.end() )
@@ -1575,7 +1575,7 @@ void FeatureTree::duplicate3DMeshPoints()
 			if( dtree3D->getTree()[i]->fourth )
 				oldNew[dtree3D->getTree()[i]->fourth] = new Point( *( dtree3D->getTree()[i]->fourth ) ) ;
 			else
-				oldNew[dtree3D->getTree()[i]->fourth] = NULL ;
+				oldNew[dtree3D->getTree()[i]->fourth] = nullptr ;
 		}
 	}
 
@@ -1822,7 +1822,7 @@ void FeatureTree::refine( size_t level )
 	if( level < 1 )
 		return ;
 
-	if( this->dtree == NULL && this->dtree3D != NULL )
+	if( this->dtree == nullptr && this->dtree3D != nullptr )
 	{
 		std::vector<std::pair<std::vector<Geometry *>, Feature *> >zonesVec ;
 
@@ -2513,7 +2513,7 @@ Point *FeatureTree::checkElement( const DelaunayTetrahedron *t ) const
 		pointDensity = .6 * pow( tree[0]->volume(), 1. / 3. ) / meshPoints.size() ;
 
 	if( !inRoot( t->getCenter() ) )
-		return NULL;
+		return nullptr;
 
 	for( int i = tree.size() - 1 ; i >= 0 ; i-- )
 	{
@@ -2551,7 +2551,7 @@ Point *FeatureTree::checkElement( const DelaunayTetrahedron *t ) const
 
 				if( count_in == 4 && tree[i]->in( t->getCenter() ) )
 				{
-					return NULL;
+					return nullptr;
 				}
 
 				else
@@ -2574,14 +2574,14 @@ Point *FeatureTree::checkElement( const DelaunayTetrahedron *t ) const
 					       )
 						return new Point( p1 );
 					else
-						return NULL ;
+						return nullptr ;
 				}
 
 			}
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Point *FeatureTree::checkElement( const DelaunayTriangle *t ) const
@@ -2594,7 +2594,7 @@ Point *FeatureTree::checkElement( const DelaunayTriangle *t ) const
 		pointDensity = .6 * pow( tree[0]->volume(), 1. / 3. ) / meshPoints.size() ;
 
 	if( !inRoot( t->getCenter() ) )
-		return NULL;
+		return nullptr;
 
 	for( int i = tree.size() - 1 ; i >= 0 ; i-- )
 	{
@@ -2629,7 +2629,7 @@ Point *FeatureTree::checkElement( const DelaunayTriangle *t ) const
 
 				if( count_in == 3 && tree[i]->in( t->getCenter() ) )
 				{
-					return NULL;
+					return nullptr;
 				}
 
 				else
@@ -2652,21 +2652,21 @@ Point *FeatureTree::checkElement( const DelaunayTriangle *t ) const
 					       )
 						return new Point( p1 );
 					else
-						return NULL ;
+						return nullptr ;
 				}
 
 			}
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Feature *FeatureTree::getFeatForTetra( const DelaunayTetrahedron *t ) const
 {
 
 	if( !inRoot( t->getCenter() ) )
-		return NULL;
+		return nullptr;
 
 	for( int i = tree.size() - 1 ; i >= 0 ; i-- )
 	{
@@ -2707,7 +2707,7 @@ Feature *FeatureTree::getFeatForTetra( const DelaunayTetrahedron *t ) const
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void FeatureTree::setElementBehaviours()
@@ -3201,7 +3201,7 @@ Vector FeatureTree::stressFromDisplacements()
 {
 	state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		Vector stress( 0.f, 3 * 3 * elements.size() ) ;
@@ -3277,7 +3277,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 
@@ -3372,7 +3372,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		if(g != -1 && layer2d.find(g) != layer2d.end())
@@ -3461,7 +3461,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = getActiveElements2D() ;
 
@@ -3545,7 +3545,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTr
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 
@@ -3643,7 +3643,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool 
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = layer2d[g]->getElements() ;
 
@@ -3787,7 +3787,7 @@ Vector FeatureTree::strainFromDisplacements()
 {
 	state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != NULL )
+	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		Vector strain( 0.f, 3 * 3 * elements.size() ) ;
@@ -3857,7 +3857,7 @@ void FeatureTree::insert( Point *p )
 	else
 		pointDensity = .6 * pow( tree[0]->volume(), 1. / 3. ) / meshPoints.size() ;
 
-	Feature *mother = NULL;
+	Feature *mother = nullptr;
 
 	for( size_t i  = 0 ; i < this->tree.size() ; i ++ )
 	{
@@ -3891,44 +3891,13 @@ void FeatureTree::insert( Point *p )
 	{
 		this->meshPoints.push_back( std::pair<Point *, Feature *>( p, mother ) ) ;
 
-		if( dtree != NULL )
+		if( dtree != nullptr )
 			this->dtree->insert( p ) ;
 		else
 			this->dtree3D->insert( p ) ;
 	}
 }
 
-void FeatureTree::stepBack()
-{
-	if( is2D() )
-	{
-		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
-
-		for( size_t i = 0 ; i < elements.size() ; i++ )
-		{
-			if( i % 1000 == 0 )
-				std::cerr << "\r stepping back through elements... " << i << "/" << elements.size() << std::flush ;
-
-			elements[i]->stepBack() ;
-		}
-
-		std::cerr << " ...done" << std::endl ;
-	}
-	else
-	{
-		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-
-		for( size_t i = 0 ; i < elements.size() ; i++ )
-		{
-			if( i % 1000 == 0 )
-				std::cerr << "\r stepping back through elements... " << i << "/" << elements.size() << std::flush ;
-
-			elements[i]->stepBack() ;
-		}
-
-		std::cerr << " ...done" << std::endl ;
-	}
-}
 
 bool FeatureTree::solverConverged() const
 {
@@ -3980,7 +3949,7 @@ void FeatureTree::solve()
 	}
 	K->initialiseElementaryMatrices();
 	timeval time0, time1 ;
-	gettimeofday( &time0, NULL );
+	gettimeofday( &time0, nullptr );
 	std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 
 	if( dtree )
@@ -4008,7 +3977,7 @@ void FeatureTree::solve()
 		}
 	}
 
-	gettimeofday( &time1, NULL );
+	gettimeofday( &time1, nullptr );
 	double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
 
@@ -4244,7 +4213,7 @@ void FeatureTree::solve()
 // 																						 coarseMatrices[j], coarseAssemblies[j]->getForces()) ;
 // 				MultiGrid<Mesh<DelaunayTriangle,DelaunayTreeItem>, DelaunayTriangle> mg(K->getMatrix(), coarseMatrices, dtree, coarseTrees, K->getForces()) ;
 //  				solverConvergence = K->mgsolve(&cg, lastx, &mgs) ;
-// 				solverConvergence = K->mgsolve(&mg, lastx, NULL) ;
+// 				solverConvergence = K->mgsolve(&mg, lastx, nullptr) ;
 			solverConvergence = K->cgsolve( lastx ) ;
 // 			}
 
@@ -4392,7 +4361,7 @@ bool FeatureTree::stepElements()
 
 			if( !elastic )
 			{
-				
+				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4410,6 +4379,7 @@ bool FeatureTree::stepElements()
 					{
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+						maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
 					}
 				}
 				
@@ -4430,7 +4400,7 @@ bool FeatureTree::stepElements()
 						volume += are ;
 						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
 						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxScoreInit ) ;
 						if( dmodel )
 						{
 						//	if( !elements[i]->getBehaviour()->fractured() )
@@ -4597,17 +4567,17 @@ bool FeatureTree::stepElements()
 				if( i % 1000 == 0 )
 					std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
 
-				elements[i]->step( deltaTime, &K->getDisplacements() ) ;
+				elements[i]->step( deltaTime, &K->getDisplacements()) ;
 			}
 
 			std::cerr << " ...done" << std::endl ;
 
 			int fracturedCount = 0 ;
 			int ccount = 0 ;
-
+			
 			if( !elastic )
 			{
-				
+				double maxscoreinit = -1 ;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4625,6 +4595,7 @@ bool FeatureTree::stepElements()
 					{
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;						
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+						maxscoreinit = std::max(maxscoreinit, elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState()) ;
 					}
 				}
 					std::cerr << " ...done. " << std::endl ;
@@ -4653,7 +4624,7 @@ bool FeatureTree::stepElements()
 						
 						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
 						
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxscoreinit ) ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
@@ -4790,7 +4761,7 @@ bool FeatureTree::stepElements()
 					if( !elements[i]->getBehaviour())
 						continue ;
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(),maxScore ) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -4813,7 +4784,7 @@ bool FeatureTree::stepElements()
 					if( !elements[i]->getBehaviour())
 						continue ;
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState() ) ;
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(),maxScore ) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -5373,7 +5344,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 	father2D->compileAndPrecalculate() ;
 
 	timeval time0, time1 ;
-	gettimeofday( &time0, NULL );
+	gettimeofday( &time0, nullptr );
 
 	if( is2D() )
 	{
@@ -5397,7 +5368,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			}
 		}
 
-		gettimeofday( &time1, NULL );
+		gettimeofday( &time1, nullptr );
 		int numtris = layer2d.begin()->second->getElements().size() ;
 		double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cerr << "\r initialising... element " << numtris << "/" << numtris << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
@@ -5436,7 +5407,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			tets[i]->getState().initialize( initialiseFractureCache ) ;
 		}
 
-		gettimeofday( &time1, NULL );
+		gettimeofday( &time1, nullptr );
 		double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 		std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
 
@@ -5664,7 +5635,7 @@ void FeatureTree::generateElements()
 						isIn = false ;
 				}
 				
-				//the border is always defined by non-root features of NULL father
+				//the border is always defined by non-root features of nullptr father
 				if(!i && !isIn)
 				{
 					for( size_t k = 0 ; k < nullFatherFeatures.size() ; k++ )
@@ -5809,7 +5780,7 @@ void FeatureTree::generateElements()
 	{
 		for( size_t i = 1 ;  i < tree.size() ; i++ )
 		{
-			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != NULL )
+			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != nullptr )
 			{
 				std::vector<Geometry *> coOccuringFeaturestmp ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
@@ -5869,7 +5840,7 @@ void FeatureTree::generateElements()
 
 		for( size_t i = 1 ;  i < tree.size() ; i++ )
 		{
-			if( !tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[0]->intersects( tree[i] ) && tree[i]->getFather() != NULL )
+			if( !tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[0]->intersects( tree[i] ) && tree[i]->getFather() != nullptr )
 			{
 				std::vector<Point> inter = tree[0]->intersection( tree[i] ) ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
@@ -6047,7 +6018,7 @@ void FeatureTree::generateElements()
 			if( *i->first != bbox[0] &&
 			        *i->first != bbox[2] &&
 			        *i->first != bbox[4] &&
-			        *i->first != bbox[6] && ( inRoot( *i->first ) || i->second->getFather() == NULL )
+			        *i->first != bbox[6] && ( inRoot( *i->first ) || i->second->getFather() == nullptr )
 			  )
 			{
 				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
@@ -6161,10 +6132,10 @@ void FeatureTree::generateElements()
 
 		for( size_t i = 0 ; i < meshPoints.size() ; i++ )
 		{
-			if( meshPoints[i].first == NULL )
+			if( meshPoints[i].first == nullptr )
 				pb.first.push_back( i ) ;
 
-			if( meshPoints[i].second == NULL )
+			if( meshPoints[i].second == nullptr )
 				pb.second.push_back( i ) ;
 		}
 

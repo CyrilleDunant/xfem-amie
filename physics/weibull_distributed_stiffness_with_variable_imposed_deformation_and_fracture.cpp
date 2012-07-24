@@ -60,13 +60,13 @@ Vector WeibullStiffnessWithVariableImposedDeformationAndFracture::getImposedStra
 	return imposed ;
 }
 
-void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState)
+void WeibullStiffnessWithVariableImposedDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore)
 {
 	change = false ;
 
 	if(!frac  )
 	{
-		dfunc.step(currentState) ;
+		dfunc.step(currentState, maxscore) ;
 		previousDamage = damage ;
 		
 		Vector state = dfunc.getState() ;

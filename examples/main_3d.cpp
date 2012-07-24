@@ -106,7 +106,7 @@ double stress = 15e6 ;
 
 double restraintDepth = 0 ; //0.01 ;
 
-Sample3D sample( NULL, 0.15*scale,0.15*scale,0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale ) ;
+Sample3D sample( nullptr, 0.15*scale,0.15*scale,0.15*scale, 0.075*scale, 0.075*scale, 0.075*scale ) ;
 
 bool firstRun = true ;
 
@@ -260,7 +260,7 @@ void step()
 			double delta_r = std::pow( aggregateArea * 0.03 / ( ( double )zones.size() * 1.333333333 * M_PI ), 0.333333 ) / ( double )nstepstot ;
 			double reactedArea = 0 ;
 			
-			Inclusion3D * current = NULL ;
+			Inclusion3D * current = nullptr ;
 			
 			if( !zones.empty() )
 				current = zones[0].second ;
@@ -393,7 +393,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 		}
 		
 		if( alone )
-			zonesToPlace.push_back( new ExpansiveZone3D( NULL, radius, pos.x, pos.y, pos.z, gel ) ) ;
+			zonesToPlace.push_back( new ExpansiveZone3D( nullptr, radius, pos.x, pos.y, pos.z, gel ) ) ;
 /*		else
 			i-- ;*/
 	}

@@ -97,7 +97,7 @@ namespace Mu
 						return elements[i] ;
 				}
 				
-				return NULL ;
+				return nullptr ;
 			}
 			
 			virtual void setElementOrder(Order o, double dt = 0.) = 0;
@@ -166,7 +166,7 @@ namespace Mu
 							(*i)->print() ;
 							exit(0) ;
 						}
-						projectionPointCache[(*i)] = NULL ;
+						projectionPointCache[(*i)] = nullptr ;
 						std::map<double, ETARGETTYPE *> coincidentElements;
 						for(size_t k = 0 ; k < targets.size() ; k++)
 						{
@@ -359,7 +359,7 @@ namespace Mu
 						{
 							double fraction = (double)(node)/((double)nodes_per_side+1) ;
 							Point proto = a*(1.-fraction) + b*fraction ;
-							Point * foundPoint = NULL ;
+							Point * foundPoint = nullptr ;
 							
 							for(size_t j = 0 ; j< static_cast<ETYPE *>(*i)->getBoundingPoints().size() ; j++)
 							{

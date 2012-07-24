@@ -47,15 +47,15 @@ public:
 	 * @param p Point at which to compute the linear parameter
 	 * @return 
 	 */
-	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 	/** \brief Return the imposed stress at the point considered
 	 * 
 	 * @param p Point
 	 * @return stress Vector 
 	 */
-	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
-	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = NULL, int g = -1) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	
 	
 /** \brief Apply the behaviour
@@ -90,7 +90,7 @@ public:
 	* @param timestep delta-time of the step.
 	* @param currentState State of the element in which the behaviour is time-stepped
 	*/
-	virtual void step(double timestep, ElementState & currentState) ;
+	virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 
 	/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
 	 * 

@@ -243,7 +243,7 @@ protected:
 // 			else
 // 				conflicts = source->getConflictingElements(&s) ;
 			
-			ETYPE * main = NULL ;
+			ETYPE * main = nullptr ;
 			if(!conflicts.empty())
 				main = conflicts.front() ;
 			else
@@ -278,7 +278,6 @@ protected:
 				if(elems[i]->getBehaviour()->getDamageModel())
 				{
 					elems[i]->getBehaviour()->getDamageModel()->getState(true) = 0 ;
-					elems[i]->getBehaviour()->getDamageModel()->getPreviousState() = 0 ;
 					double renorm(0) ;
 					for(size_t j = 0 ; j < conflicts.size() ; j++)
 					{
@@ -287,19 +286,17 @@ protected:
 							conflicts[j]->getBehaviour()->getDamageModel()->getState().size() == elems[i]->getBehaviour()->getDamageModel()->getState().size())
 						{
 							elems[i]->getBehaviour()->getDamageModel()->getState(true) += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
-							elems[i]->getBehaviour()->getDamageModel()->getPreviousState() += conflicts[j]->getBehaviour()->getDamageModel()->getPreviousState()*fractions[j] ;
 							renorm += fractions[j] ;
 						}
 					}
 					if(std::abs(renorm) > POINT_TOLERANCE_2D)
 					{
 						elems[i]->getBehaviour()->getDamageModel()->getState(true) /= renorm ;
-						elems[i]->getBehaviour()->getDamageModel()->getPreviousState() /= renorm ;
 					}
 				}
 			}
 			else
-				elems[i]->setBehaviour(NULL) ;
+				elems[i]->setBehaviour(nullptr) ;
 		}
 		
 		std::cout << " ...done."<< std::endl ;
@@ -522,9 +519,6 @@ public:
 */
 	bool stepToCheckPoint() ;
 
-/** \brief annul the last timestep*/
-	void stepBack() ;
-
 /** \brief Perform a time step, but do not update the features*/
 	void elasticStep() ;
 	
@@ -538,7 +532,7 @@ public:
 // 	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
 		
 /** \brief return the triangles lying next to a mesh border*/
-	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = NULL) ;	
+	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = nullptr) ;	
 	
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
 	Form * getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;

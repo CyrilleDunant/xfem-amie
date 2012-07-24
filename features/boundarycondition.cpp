@@ -34,30 +34,30 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefi
 
 }
 
-ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementarySurface * surface ) : BoundaryCondition( GENERAL, 0 ), surface( surface ), volume( NULL )
+ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementarySurface * surface ) : BoundaryCondition( GENERAL, 0 ), surface( surface ), volume( nullptr )
 {
 }
 
-ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementaryVolume * volume ) : BoundaryCondition( GENERAL, 0 ), surface( NULL ), volume( volume )
+ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementaryVolume * volume ) : BoundaryCondition( GENERAL, 0 ), surface( nullptr ), volume( volume )
 {
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( NULL )
-{
-
-}
-
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( NULL )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr )
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( NULL ), volume( volume )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr )
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( NULL ), volume( volume )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume )
+{
+
+}
+
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume )
 {
 
 }

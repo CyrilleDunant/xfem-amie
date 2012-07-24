@@ -268,7 +268,7 @@ namespace Mu
 					
 			}
 			std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
-			return NULL ;
+			return nullptr ;
 	}
 
 	std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 

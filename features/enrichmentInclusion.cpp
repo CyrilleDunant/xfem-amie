@@ -18,7 +18,7 @@ EnrichmentInclusion::EnrichmentInclusion(Feature *father, double radius, double 
 	updated = true ;
 }
 
-EnrichmentInclusion::EnrichmentInclusion(double radius, double x, double y) :EnrichmentFeature(NULL), Circle(radius, x, y)
+EnrichmentInclusion::EnrichmentInclusion(double radius, double x, double y) :EnrichmentFeature(nullptr), Circle(radius, x, y)
 {
 	updated = true ;
 }
@@ -198,7 +198,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 						continue ;
 // 					double d = (dist(neighbourhood[j]->getCenter(), disc[i]->getCenter())-disc[i]->getRadius())/rad ;
 // 					neighbourhood[j]->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(neighbourhood[j]->getBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*d);
-						neighbourhood[j]->getBehaviour()->setFractureCriterion(NULL);
+						neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
 						neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
 				}
 				return ;
@@ -230,7 +230,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 // 					continue ;
 // 				double d =(dist(neighbourhood[j]->getCenter(), disc[0]->getCenter())-disc[0]->getRadius())/rad ;
 // 				neighbourhood[j]->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(neighbourhood[j]->getBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*d);
-					neighbourhood[j]->getBehaviour()->setFractureCriterion(NULL);
+					neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
 					neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
 			}
 			

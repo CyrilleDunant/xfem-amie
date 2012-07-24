@@ -99,11 +99,11 @@ using namespace Mu ;
 // {
 // // 	if(stable)
 // // 	{
-// //		Vector y = UpperTriangular(A, v).solve(Vector(0), NULL) ;
-// //		Vector ret= LowerTriangular(A, y).solve(Vector(0), NULL) ;
+// //		Vector y = UpperTriangular(A, v).solve(Vector(0), nullptr) ;
+// //		Vector ret= LowerTriangular(A, y).solve(Vector(0), nullptr) ;
 // 	
-// 	t = CholeskiDecomposed(A,v,d).solve(Vector(0), NULL) ;
+// 	t = CholeskiDecomposed(A,v,d).solve(Vector(0), nullptr) ;
 // // 	}
 // // 	else
-// // 		return UpperTriangular(A, v).solve(Vector(0), NULL) ;
+// // 		return UpperTriangular(A, v).solve(Vector(0), nullptr) ;
 // }

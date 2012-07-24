@@ -104,7 +104,7 @@ double placed_area = 0 ;
 
 double stress = 15e6 ;
 
-Sample sample(NULL, 0.01, 0.01, 0.0, 0.0) ;
+Sample sample(nullptr, 0.01, 0.01, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -150,7 +150,7 @@ double shape ;
 double orientation ;
 double spread ;
 
-MultiTriangleWriter writer( "triangles_head", "triangles_layers", NULL ) ;
+MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
 
 GelBehaviour * gel = new GelBehaviour() ;
 
@@ -164,11 +164,11 @@ struct Zone
 	TriangularInclusion * tri ;
 	RectangularInclusion * rec ;
 
-	Zone() { type = CIRCLE;  zone = NULL ; inc = NULL ; ell = NULL; tri = NULL; rec = NULL; }
-	Zone(ExpansiveZone * z, Inclusion * i) { type = CIRCLE; zone = z ; inc = i ; ell = NULL; tri = NULL; rec = NULL; }
-	Zone(ExpansiveZone * z, EllipsoidalInclusion * i) { type = ELLIPSE; zone = z ; inc = NULL ; ell = i; tri = NULL; rec = NULL; }
-	Zone(ExpansiveZone * z, TriangularInclusion * i) { type = TRIANGLE; zone = z ; inc = NULL ; ell = NULL; tri = i; rec = NULL; }
-	Zone(ExpansiveZone * z, RectangularInclusion * i) { type = RECTANGLE; zone = z ; inc = NULL ; ell = NULL; tri = NULL; rec = i; }
+	Zone() { type = CIRCLE;  zone = nullptr ; inc = nullptr ; ell = nullptr; tri = nullptr; rec = nullptr; }
+	Zone(ExpansiveZone * z, Inclusion * i) { type = CIRCLE; zone = z ; inc = i ; ell = nullptr; tri = nullptr; rec = nullptr; }
+	Zone(ExpansiveZone * z, EllipsoidalInclusion * i) { type = ELLIPSE; zone = z ; inc = nullptr ; ell = i; tri = nullptr; rec = nullptr; }
+	Zone(ExpansiveZone * z, TriangularInclusion * i) { type = TRIANGLE; zone = z ; inc = nullptr ; ell = nullptr; tri = i; rec = nullptr; }
+	Zone(ExpansiveZone * z, RectangularInclusion * i) { type = RECTANGLE; zone = z ; inc = nullptr ; ell = nullptr; tri = nullptr; rec = i; }
 	Zone(const Zone & z) { type = z.type; zone = z.zone ; inc = z.inc ; ell = z.ell ; tri = z.tri ; rec = z.rec ; }
 	
 	Feature * feature() 
@@ -184,7 +184,7 @@ struct Zone
 			case RECTANGLE:
 				return rec ;
 		}
-		return NULL ;
+		return nullptr ;
 	}
 	
 	bool is(Feature * f) { return f == feature() ; }	
@@ -564,7 +564,7 @@ void step(GeometryType ref, int samplingNumber, int stressXI, int stressETA)
 
 			double reactedArea = 0 ;
 			
-			Feature * current = NULL ;
+			Feature * current = nullptr ;
 			if(!zones.empty())
 				current = zones[0].feature() ;
 			double current_area = 0 ;
@@ -660,7 +660,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -713,7 +713,7 @@ std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<EllipsoidalInclusio
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
 		Point pos = incs[i]->getCenter() ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 		F.addFeature(incs[i],zonesToPlace[i]) ;
 		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
 		aggregateArea+= incs[i]->area() ;
@@ -736,8 +736,8 @@ std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<TriangularInclusion
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
 		Point pos = incs[i]->getCenter() ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
+		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
 		F.addFeature(incs[i],zonesToPlace[i*2]) ;
 		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
 		ret.push_back(Zone(zonesToPlace[i*2],incs[i])) ;
@@ -761,7 +761,7 @@ std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<RectangularInclusio
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
 		Point pos = incs[i]->getCenter() ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 		F.addFeature(incs[i],zonesToPlace[i]) ;
 		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
 		aggregateArea+= incs[i]->area() ;
@@ -783,8 +783,8 @@ std::vector<Zone> generateExpansiveZonesAtCenter(std::vector<Inclusion * > & inc
 	for(size_t i = 0 ; i < incs.size() ; i++)
 	{
 		Point pos = incs[i]->getCenter() ;
-		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
-//		zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
+		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+//		zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x+incs[i]->getRadius()*0.5, pos.y, gel)) ;
 		F.addFeature(incs[i],zonesToPlace[i]) ;
 //		F.addFeature(incs[i],zonesToPlace[i*2+1]) ;
 		ret.push_back(Zone(zonesToPlace[i],incs[i])) ;
@@ -821,7 +821,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
@@ -886,7 +886,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<TriangularInclusion *, int> zonesPerIncs ; 
@@ -953,7 +953,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(NULL, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<RectangularInclusion *, int> zonesPerIncs ; 

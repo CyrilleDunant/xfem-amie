@@ -34,7 +34,7 @@
 
 using namespace Mu ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( NULL ), equivalent( NULL )
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( nullptr ), equivalent( nullptr )
 {
 	original = self->getBehaviour() ;
 
@@ -50,7 +50,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
 	reverted = false ;
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( NULL ), self3d( NULL ), equivalent( NULL )
+HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( nullptr ), self3d( nullptr ), equivalent( nullptr )
 {
 	original = self->getBehaviour()->getCopy() ;
 	
@@ -79,7 +79,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 	
 }
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTetrahedron *self ) : LinearForm( Matrix(), true, false, 3 ), self3d( self ), mesh( NULL ), self2d( NULL ), equivalent( NULL )
+HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTetrahedron *self ) : LinearForm( Matrix(), true, false, 3 ), self3d( self ), mesh( nullptr ), self2d( nullptr ), equivalent( nullptr )
 {
 	original = self->getBehaviour()->getCopy() ;
 	
@@ -113,7 +113,7 @@ void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> fea
 
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-	FractureCriterion * fracCopy = NULL ;
+	FractureCriterion * fracCopy = nullptr ;
 	if(frac)
 	{
 		fracCopy = frac->getCopy() ;
@@ -135,7 +135,7 @@ void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> fea
 {
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-	FractureCriterion * fracCopy = NULL ;
+	FractureCriterion * fracCopy = nullptr ;
 	if(frac)
 	{
 		fracCopy = frac->getCopy() ;
@@ -154,7 +154,7 @@ void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> fea
 }
 
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), mesh( mesh ), self2d( NULL ), self3d( self ), equivalent( NULL )
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), mesh( mesh ), self2d( nullptr ), self3d( self ), equivalent( nullptr )
 {
 
 	original = self->getBehaviour() ;
@@ -185,7 +185,7 @@ void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, con
 	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }
 
-void HomogeneisedBehaviour::step( double timestep, ElementState &currentState )
+void HomogeneisedBehaviour::step( double timestep, ElementState &currentState, double maxscore )
 {
 	if( type == VOID_BEHAVIOUR )
 		return ;
@@ -207,12 +207,6 @@ void HomogeneisedBehaviour::step( double timestep, ElementState &currentState )
 	}
 
 
-}
-
-void HomogeneisedBehaviour::stepBack()
-{
-	if( type == VOID_BEHAVIOUR )
-		return ;
 }
 
 

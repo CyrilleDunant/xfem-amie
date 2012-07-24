@@ -243,11 +243,11 @@ std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(co
 	return ret ;
 }
 
-void TrimaterialInterface::step(double timestep, ElementState & currentState)
+void TrimaterialInterface::step(double timestep, ElementState & currentState, double maxscore)
 {
-	inBehaviour->step(timestep, currentState) ;
-	midBehaviour->step(timestep, currentState) ;
-	outBehaviour->step(timestep, currentState) ;
+	inBehaviour->step(timestep, currentState,maxscore) ;
+	midBehaviour->step(timestep, currentState,maxscore) ;
+	outBehaviour->step(timestep, currentState,maxscore) ;
 }
 
 DamageModel * TrimaterialInterface::getDamageModel() const
@@ -270,7 +270,7 @@ DamageModel * TrimaterialInterface::getDamageModel() const
 	if(midCriterion)
 	{
 		midScore = midCriterion->getState().max() ;
-		if(midScore > max || (inCriterion == NULL && outCriterion == NULL))
+		if(midScore > max || (inCriterion == nullptr && outCriterion == nullptr))
 		{
 			max = midScore ;
 			ret = 2 ;
@@ -282,14 +282,14 @@ DamageModel * TrimaterialInterface::getDamageModel() const
 	if(outCriterion)
 	{
 		outScore = outCriterion->getState().max() ;
-		if(outScore > max || (inCriterion == NULL && midCriterion == NULL))
+		if(outScore > max || (inCriterion == nullptr && midCriterion == nullptr))
 			ret = 3 ;
 	}
 		
 	switch(ret)
 	{
 	case 0:
-		return NULL ;
+		return nullptr ;
 	case 1:
 		return inCriterion ;
 	case 2:
@@ -297,7 +297,7 @@ DamageModel * TrimaterialInterface::getDamageModel() const
 	case 3:
 		return outCriterion ;
 	}
-	return NULL ;
+	return nullptr ;
 }
 
 FractureCriterion * TrimaterialInterface::getFractureCriterion() const
@@ -320,7 +320,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	if(midCriterion)
 	{
 		midScore = midCriterion->getScoreAtState() ;
-		if(midScore > max || (inCriterion == NULL && outCriterion == NULL))
+		if(midScore > max || (inCriterion == nullptr && outCriterion == nullptr))
 		{
 			max = midScore ;
 			ret = 2 ;
@@ -332,14 +332,14 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	if(outCriterion)
 	{
 		outScore = outCriterion->getScoreAtState() ;
-		if(outScore > max || (inCriterion == NULL && midCriterion == NULL))
+		if(outScore > max || (inCriterion == nullptr && midCriterion == nullptr))
 			ret = 3 ;
 	}
 		
 	switch(ret)
 	{
 	case 0:
-		return NULL ;
+		return nullptr ;
 	case 1:
 		return inCriterion ;
 	case 2:
@@ -347,7 +347,7 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	case 3:
 		return outCriterion ;
 	}
-	return NULL ;
+	return nullptr ;
 }
 
 

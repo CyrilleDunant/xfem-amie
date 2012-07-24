@@ -38,7 +38,7 @@ namespace Mu
 		
 		virtual Form * getCopy() const = 0 ;
 		
-		virtual void step(double timestep, ElementState & s) ;
+		virtual void step(double timestep, ElementState & s, double maxScore) ;
 		
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		
@@ -62,7 +62,7 @@ namespace Mu
 		
 		virtual void setIntegrationHints(std::vector<Point> h) ;
 		
-		virtual void step(double timestep, ElementState & s) ;
+		virtual void step(double timestep, ElementState & s, double MaxScore) ;
 		
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		

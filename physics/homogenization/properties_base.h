@@ -21,7 +21,7 @@ namespace Mu
 
 typedef enum
 {
-	TAG_NULL, 
+	TAG_nullptr, 
 	TAG_UNIVERSAL, 
 	TAG_VOLUME,	
 	TAG_VOLUME_FRACTION, 
@@ -75,7 +75,7 @@ protected:
 	double p ;
 
 public:
-	/* \brief default constructor for a NULL properties item*/
+	/* \brief default constructor for a nullptr properties item*/
 	Properties() ;
 	/* \brief constructor for an UNIVERSAL properties item */
 	Properties(double v) ;
@@ -90,10 +90,10 @@ public:
 	const Tag & tag() const {return ptag ; } ;
 	/* \brief checks if the property is from a specific tag */
 	bool is(Tag t) const {return (t == ptag) ; } ;
-	/* \brief changes the tag to NULL */
-	void kill() {ptag = TAG_NULL ; } ;
-	/* \brief checks if the property is NULL */
-	bool isNull() const {return ptag == TAG_NULL ; } ;
+	/* \brief changes the tag to nullptr */
+	void kill() {ptag = TAG_nullptr ; } ;
+	/* \brief checks if the property is nullptr */
+	bool isNull() const {return ptag == TAG_nullptr ; } ;
 
 	/* \brief changes the tag to a specific tag. 
 	You should use the GeneralConverter instead of this method */

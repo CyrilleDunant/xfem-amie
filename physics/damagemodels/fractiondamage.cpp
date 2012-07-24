@@ -17,7 +17,6 @@ namespace Mu {
 FractionLinearDamage::FractionLinearDamage( Matrix remnant, double phi) : remnant(remnant), phi(phi)
 {
 	state.resize(2, 0.) ;
-	previousstate.resize(2, 0.) ;
 	isNull = false ;
 	state = 0 ;
 
@@ -94,7 +93,7 @@ void FractionLinearDamage::computeDelta(const ElementState & s)
 	delta = (ret-state).max() ;
 }
 
-Matrix FractionLinearDamage::apply(const Matrix & m) const
+Matrix FractionLinearDamage::apply(const Matrix & m, const Point & p , const IntegrableEntity * e, int g) const
 {	
 	if(fractured())
 		return remnant*phi;
@@ -111,24 +110,6 @@ Matrix FractionLinearDamage::apply(const Matrix & m) const
 	return m*(1.-std::max(state[0], state[1]))*(1.-phi)+remnant*phi ;
 }
 
-Matrix FractionLinearDamage::applyPrevious(const Matrix & m) const
-{
-	Matrix ret(m) ;
-	
-	if(fractured())
-		return remnant*phi;
-
-	if(inTension)
-	{
-		return m*(1.-previousstate[0])*(1.-phi)+remnant*phi ;
-	}
-	if(inCompression)
-	{
-		return m*(1.-previousstate[1])*(1.-phi)+remnant*phi ;
-	}
-	
-	return m*(1.-std::max(previousstate[0], previousstate[1]))*(1.-phi)+remnant*phi ;
-}
 
 bool FractionLinearDamage::fractured() const
 {

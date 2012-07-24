@@ -35,10 +35,8 @@ namespace Mu
 		* @param timestep length of the timestep
 		* @param currentState current state of the element -- behaviour can be dependant on it
 		*/
-		virtual void step(double timestep, ElementState & currentState);
-		
-		virtual void stepBack() { };
-		
+		virtual void step(double timestep, ElementState & currentState, double maxScore);
+
 		/** \brief do nothing*/
 		virtual void updateElementState(double timestep, ElementState & s) const ;
 		

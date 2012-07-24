@@ -27,12 +27,12 @@ Inclusion3D::Inclusion3D(Feature *father, double r,  Point center) : Sphere(r, c
 	this->isEnrichmentFeature = false ;
 }
 	
-Inclusion3D::Inclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), Feature(NULL)
+Inclusion3D::Inclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 	
-Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(NULL)
+Inclusion3D::Inclusion3D(double r, Point center) : Sphere(r,center ), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -116,12 +116,12 @@ OctahedralInclusion::OctahedralInclusion(Feature *father, double r,  Point cente
 	this->isEnrichmentFeature = false ;
 }
 
-OctahedralInclusion::OctahedralInclusion(double r, double x, double y, double z) : RegularOctahedron(r, x,y,z ), Feature(NULL)
+OctahedralInclusion::OctahedralInclusion(double r, double x, double y, double z) : RegularOctahedron(r, x,y,z ), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
 
-OctahedralInclusion::OctahedralInclusion(double r, Point center) : RegularOctahedron(r,center ), Feature(NULL)
+OctahedralInclusion::OctahedralInclusion(double r, Point center) : RegularOctahedron(r,center ), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 }
@@ -193,13 +193,13 @@ VirtualInclusion3D::VirtualInclusion3D(Feature *father, double r,  Point center)
 	this->behaviour = new VoidForm() ;
 }
 
-VirtualInclusion3D::VirtualInclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), VirtualFeature(NULL)
+VirtualInclusion3D::VirtualInclusion3D(double r, double x, double y, double z) : Sphere(r, x,y,z ), VirtualFeature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;
 }
 
-VirtualInclusion3D::VirtualInclusion3D(double r, Point center) : Sphere(r,center ), VirtualFeature(NULL)
+VirtualInclusion3D::VirtualInclusion3D(double r, Point center) : Sphere(r,center ), VirtualFeature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = new VoidForm() ;

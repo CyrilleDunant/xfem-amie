@@ -59,7 +59,7 @@ protected:
 
 public:
 	/** \brief simple constructor, get immediately the coordinates of the triangles contained in F */
-	TriangleWriter(std::string f, FeatureTree * F = NULL, int t = 0) ;
+	TriangleWriter(std::string f, FeatureTree * F = nullptr, int t = 0) ;
 
 	/** \brief clears the data stored*/
 	virtual void reset(FeatureTree * F, int t = 0) ;

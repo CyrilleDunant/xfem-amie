@@ -96,8 +96,8 @@ typedef enum
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 
-Sample box(NULL, 0.1,0.1,0.,0.) ;
-Sample help(NULL, 0.1,0.1,0.,0.) ;
+Sample box(nullptr, 0.1,0.1,0.,0.) ;
+Sample help(nullptr, 0.1,0.1,0.,0.) ;
 
 double young = 3.*1e9 ;
 double nu = 0.3 ;
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 		std::vector<DelaunayTriangle *> tri ;
 		std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
 		std::set<std::pair<DofDefinedBoundaryCondition *, size_t> > pointBC ;
-		BoundingBoxDefinedBoundaryCondition * stressBC = NULL ;
+		BoundingBoxDefinedBoundaryCondition * stressBC = nullptr ;
 		Function stressRamp("t") ;
 		switch(scheme)
 		{

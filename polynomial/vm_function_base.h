@@ -330,7 +330,7 @@ public:
 	{
 
 			this->dofID =-1 ;
-			this->ptID = NULL ;
+			this->ptID = nullptr ;
 			if(v == XI)
 				byteCode[0] = RefCountedToken(new MeshXDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
 			if(v == ETA)

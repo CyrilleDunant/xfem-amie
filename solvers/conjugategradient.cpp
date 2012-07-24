@@ -23,7 +23,7 @@
 
 using namespace Mu ;
 
-ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(NULL), nit(0) { };
+ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(nullptr), nit(0) { };
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
@@ -51,7 +51,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	}
 
 
-	if(precond == NULL && !cleanup)
+	if(precond == nullptr && !cleanup)
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
@@ -61,7 +61,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
 	}
-	else if (precond != NULL)
+	else if (precond != nullptr)
 	{
 		delete P ;
 		cleanup = false ;
@@ -108,7 +108,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		return true ;
 	}
 	timeval time0, time1 ;
-	gettimeofday(&time0, NULL);
+	gettimeofday(&time0, nullptr);
 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	while(last_rho*last_rho*vsize*vsize > std::max(eps*eps*err0, eps*eps) && n < Maxit )
 	{
@@ -147,7 +147,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		n++ ;
 		
 	}
-	gettimeofday(&time1, NULL);
+	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "mflops: "<< n*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
 

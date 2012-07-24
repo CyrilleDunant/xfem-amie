@@ -73,7 +73,7 @@ public:
 	virtual std::vector<Point *> getSamplingPoints() const { return std::vector<Point *>(0) ; }
 	
 /** \brief do nothing, return null*/
-	virtual Point * pointAfter(size_t i) { return NULL ; }
+	virtual Point * pointAfter(size_t i) { return nullptr ; }
 	
 /** \brief return empty vector*/
 	virtual std::vector<Geometry *> getRefinementZones( size_t level) const ;
