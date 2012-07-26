@@ -142,6 +142,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	if(factors.empty())
 		initialiseFactors(s) ;
 	double sumFactors = 0 ;
+	
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
@@ -155,15 +156,10 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		}
 		sumFactors += iteratorValue ;
 
-		for( size_t i = 0 ; i < cache.size() ; i++ )
+		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 		{
-			iteratorValue = factors[i+1] ;
-			if(iteratorValue > POINT_TOLERANCE_2D)
-				continue ;
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
-			if(!ci->getBehaviour()->getFractureCriterion())
-				factors[i+1] = 0 ;
-			
+			iteratorValue = factors[i] ;
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 			
 			
 			double fractureDistance = 0. ;
@@ -290,9 +286,9 @@ double FractureCriterion::smoothedScore(ElementState& s)
 		score =scoreAtState*(*fiterator) ;
 		total += (*fiterator);
 		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
+		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 			if(ci->getBehaviour()->fractured())
 			{
 				fiterator++ ;
@@ -418,7 +414,10 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 void FractureCriterion::initialiseFactors(const ElementState & s)
 {
 	if(cache.empty())
+	{
+		physicalcache.clear();
 		initialiseCache(s);
+	}
 	if(!factors.empty())
 		factors.clear() ;
 	
@@ -436,7 +435,9 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		double weight = vm.ieval(smooth, s.getParent()) ;
 		s.getParent()->setOrder(order) ;
 		double fact = weight ;
+		
 		factors.push_back(weight);
+		physicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
 		
 		double selfarea = s.getParent()->area() ;
 		double farthest = 0 ;
@@ -504,10 +505,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
 				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() )
 			{
-				factors.push_back(0.);
 				continue ;
 			}
 			double mindist = physicalCharacteristicRadius ;
+			
 // 			if( mirroring == NO_MIRROR || 
 // 				mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) >= physicalCharacteristicRadius ||
 // 				mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) >= physicalCharacteristicRadius ||
@@ -544,7 +545,13 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
+			
+			if(weight*factor < POINT_TOLERANCE_2D)
+				continue ;
+			
+			physicalcache.push_back(ci->index) ;
 			factors.push_back(weight*factor);
+			
 			fact += weight*factor ;
 			
 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
@@ -997,13 +1004,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
 
-		for( size_t i = 0 ; i < cache.size() ; i++ )
+		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[cache[i]] ) ;
+			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 			if(!ci->getBehaviour()->getFractureCriterion())
-				factors[i+1] = 0 ;
+				factors[i] = 0 ;
 			
-			iteratorValue = factors[i+1] ;
+			iteratorValue = factors[i] ;
 			
 			double fractureDistance = 0. ;
 			

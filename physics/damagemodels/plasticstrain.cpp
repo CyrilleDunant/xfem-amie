@@ -320,7 +320,7 @@ void PlasticStrain::postProcess()
 		}
 		Vector str = imposedStrain ;
 		es->getFieldAtCenter(STRAIN_FIELD, str) ;
-		if(std::abs(str).max() > 0.01)
+		if(std::abs(str).max() > 0.03)
 			broken = true ;
 // 		if(state[0] > POINT_TOLERANCE_2D)
 // 		{
