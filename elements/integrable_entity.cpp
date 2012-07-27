@@ -716,7 +716,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case EFFECTIVE_STRESS_FIELD:
 			this->getField(STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			return ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
 		{
@@ -727,7 +727,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 		}
 		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
 			this->getField(NON_ENRICHED_STRAIN_FIELD, p_, ret, true) ;
-			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			ret = (Vector) (parent->getBehaviour()->param * ret) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			return ;
 		case VON_MISES_EFFECTIVE_STRESS_FIELD:
 			if( parent->getOrder() == LINEAR )
@@ -1289,7 +1289,7 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 			if(isRealStressField(f2))
 				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			principalStrainAtCenter = toPrincipal(strain) ;
 			principalStressAtCenter = toPrincipal(stress) ;
 		}
@@ -1315,7 +1315,7 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 			if(isRealStressField(f1))
 				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			principalStrainAtCenter = toPrincipal(strain) ;
 			principalStressAtCenter = toPrincipal(stress) ;
 		}
@@ -1328,7 +1328,7 @@ void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, 
 			if(isRealStressField(f1))
 				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			principalStressAtCenter = toPrincipal(stress) ;
 		}
 		else if(principalStrainAtCenter.size() == 0)
@@ -1381,7 +1381,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1426,7 +1426,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
 					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 					  for(size_t j = 0 ; j < dim ; j++)
 						    stressAtNodes[i*dim + j] = stress[j] ;
 				}
@@ -1455,7 +1455,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				if(isRealStressField(f2))
 					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 				pstrain = toPrincipal(strain) ;
 				pstress = toPrincipal(stress) ;
 				for(size_t j = 0 ; j < pstrain.size() ; j++)
@@ -1492,7 +1492,7 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				if(isRealStressField(f2))
 					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 				pstrain = toPrincipal(strain) ;
 				pstress = toPrincipal(stress) ;
 				for(size_t j = 0 ; j < pstrain.size() ; j++)
@@ -2657,7 +2657,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 			this->getField(STRAIN_FIELD, STRAIN_RATE_FIELD, p_, strain, rate, true) ;
 			ret = (Vector) (parent->getBehaviour()->param * strain) ;
 			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
-			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			ret -= getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			return ;
 		}
 		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
@@ -2667,7 +2667,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 			this->getField(NON_ENRICHED_STRAIN_FIELD, NON_ENRICHED_STRAIN_RATE_FIELD, p_, strain, rate, true) ;
 			ret = (Vector) (parent->getBehaviour()->param * strain) ;
 			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
-			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			ret -= getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			return ;
 		}
 	}
@@ -2740,7 +2740,7 @@ void KelvinVoightSpaceTimeElementState::getFieldAtCenter( FieldType f1, FieldTyp
 			if(isRealStressField(f2))
 				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 			Vector rate(0., strainAtCenter.size()) ;
 			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
 			stressAtCenter += dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ;
@@ -2771,7 +2771,7 @@ void KelvinVoightSpaceTimeElementState::getFieldAtCenter( FieldType f1, FieldTyp
 			if(isRealStressField(f2))
 				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
 
 			Vector rate(0., strainAtCenter.size()) ;
 			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
