@@ -118,18 +118,18 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 
 int PlasticStrain::getMode() const 
 { 
-	if(es
-		&& es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() 
-		&&(
-			inCompression != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(1)
-		|| inTension != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) 
-		|| inCompression && compressivePlasticVariable <= kappa_0 && getPlasticity() > kappa_0
-		|| inTension && tensilePlasticVariable <= kappa_0 && getPlasticity() > kappa_0
-		)
-	) 
-	{
-		return 1 ;
-	}
+// 	if(es
+// 		&& es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() 
+// 		&&(
+// 			inCompression != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(1)
+// 		|| inTension != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) 
+// 		|| inCompression && compressivePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE_2D
+// 		|| inTension && tensilePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE_2D
+// 		)
+// 	) 
+// 	{
+// 		return 1 ;
+// 	}
 	return -1 ;
 }
 
@@ -177,7 +177,7 @@ double PlasticStrain::getAngleShift() const
 		if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
 		{
 			istrain /= sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-			istrain *= nimposed ;
+			istrain *= .1;nimposed*(1.-getDamage()) ;
 		}
 		double dp = std::inner_product(&istrain[0],&istrain[3], &imposedStrain[0], double(0.))/(nimposed*nimposed) ;
 		double angle = acos(dp) ;
@@ -261,7 +261,7 @@ Vector PlasticStrain::getImposedStrain(const Point & p) const
 			return Vector(0., 3) ;
 		return Vector(0., 6) ;
 	}
-	if(inCompression)
+	if(inCompression )
 		return  imposedStrain*getState()[0]+dimposedStrain*(1.-getState()[0])+previousCompressiveImposedStrain ;
 	
 	return  imposedStrain*getState()[0]+dimposedStrain*(1.-getState()[0])+previousTensileImposedStrain ;
@@ -282,7 +282,7 @@ double PlasticStrain::getPlasticity() const
 {
 	Vector istrain = imposedStrain*getState()[0]+dimposedStrain*(1.-getState()[0]) ;
 	double currentPlaticVariable = sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
-	if(inCompression)
+	if(inCompression )
 		currentPlaticVariable += compressivePlasticVariable ;
 	else
 		currentPlaticVariable += tensilePlasticVariable ;
@@ -301,7 +301,7 @@ void PlasticStrain::postProcess()
 	if(converged && es && state[0] > POINT_TOLERANCE_2D)
 	{
 		
-		if(inCompression)
+		if(inCompression )
 		{
 			previousCompressiveImposedStrain += imposedStrain * getState()[0] + dimposedStrain* (1.-getState()[0]);
 			imposedStrain = imposedStrain * getState()[0] + dimposedStrain*(1.-getState()[0]);

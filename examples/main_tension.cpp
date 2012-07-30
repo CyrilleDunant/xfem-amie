@@ -215,9 +215,9 @@ void step(size_t nsteps)
 // 			if(count < 80)
 // 				loadr->setData(loadr->getData()-1e-5) ;
 // 			else
-				loadr->setData(loadr->getData()+1e-7) ;
+				loadr->setData(loadr->getData()+5e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-1e-5) ;
+			loadt->setData(loadt->getData()-5e-7) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -1583,7 +1583,7 @@ int main(int argc, char *argv[])
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
-	step(100) ;
+	step(2000) ;
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

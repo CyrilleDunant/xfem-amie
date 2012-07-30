@@ -37,6 +37,7 @@ double DruckerPrager::grade(ElementState &s)
 	double maxStress = 0 ;
 	double maxStrain = 0 ;
 	double pseudomodulus = modulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+	double dfactor = 1 ;
 	//hardening function from Jirasek et al.
 	if(dynamic_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()))
 	{
@@ -48,23 +49,25 @@ double DruckerPrager::grade(ElementState &s)
 		double kappa_p = ps->getPlasticity() ;
 		if(kappa_0 > 0)
 		{
-			(kappa_p < kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
+			(kappa_p <= kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
 		}
-		factor *= 1.-ps->getDamage() ;
-		pseudomodulus = modulus*(1.-ps->getDamage()) ;
+// 		std::cout << kappa_p << " , " << kappa_0 << " :: " << std::flush ;
+		dfactor = 1.-ps->getDamage() ;
+		pseudomodulus = modulus*dfactor ;
 	}
-
+	if(pseudomodulus < POINT_TOLERANCE_2D)
+	  return -1 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
 		maxStress = tr*friction - sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[0]-str[1])*(str[0]-str[1])) ;
-		maxStrain = maxStress/(modulus*factor) ;
+		maxStrain = maxStress/pseudomodulus ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1]+str[3] ;
 		maxStress =  tr*friction - sqrt((str[0]-tr*.333333333333)*(str[0]-tr*.333333333333)+(str[1]-tr*.333333333333)*(str[1]-tr*.333333333333)+(str[2]-tr*.333333333333)*(str[2]-tr*.333333333333)+2.*(str[3])*(str[3])+2.*(str[4])*(str[4])+2.*(str[5])*(str[5])) ;
-		maxStrain = maxStress/(modulus*factor) ;
+		maxStrain = maxStress/pseudomodulus ;
 	}
 
 // 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE_2D)
@@ -97,9 +100,11 @@ double DruckerPrager::grade(ElementState &s)
 // 		return -1.+std::abs( maxStress/downthreshold) ;
 // 	}
 
+// 	std::cout << factor << ", "<< dfactor << ", "<< maxStress<< std::endl ;
+
 	
-	double effectiveUp = upthreshold*factor/pseudomodulus ;
-	double effectiveDown = downthreshold*factor/pseudomodulus ;
+	double effectiveUp = upthreshold*factor/modulus ;
+	double effectiveDown = downthreshold*factor/modulus ;
 	if(maxStrain > effectiveUp && maxStrain > POINT_TOLERANCE_2D)
 	{
 // 		std::cout << factor << ", "<< maxStress<< std::endl ;

@@ -133,27 +133,25 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 3 ;
 	Vector str(0., vlength) ;
-	Vector estr(0., vlength) ;
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
 	Vector pistress = toPrincipal(s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter())) ;
 	pistress = 0 ;
-	if(factors.empty())
+	if(factors.size()==0)
 		initialiseFactors(s) ;
 	double sumFactors = 0 ;
 	
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
-		s.getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+		if(m == EFFECTIVE_STRESS)
+			s.getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+		else
+			s.getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
 		str = (tmpstr-pistress)*iteratorValue ;
-		if(m == EFFECTIVE_STRESS)
-		{
-			s.getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
-			estr = (tmpstr-pistress)*iteratorValue ;
-		}
+
 		sumFactors += iteratorValue ;
 
 		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
@@ -163,39 +161,22 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			
 			
 			double fractureDistance = 0. ;
-			
-// 			if(ci->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel())
-// 			{
-// 				Vector dstate = std::abs(ci->getBehaviour()->getDamageModel()->getState() - s.getParent()->getBehaviour()->getDamageModel()->getState()) ;
-// 				fractureDistance = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], 0.)) ;
-// 			}
-			
-// 			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
-// 				iteratorValue = 0 ;
 
-// 			iteratorValue *= 1.-fractureDistance ;
-			
-			
-
-			ci->getState().getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+			if(m == EFFECTIVE_STRESS)
+					ci->getState().getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+			else
+				ci->getState().getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
 			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 				iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 
 			stra += tmpstra*iteratorValue ;
 			str += tmpstr*iteratorValue ;
 			
-			if(m == EFFECTIVE_STRESS)
-			{
-				ci->getState().getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
-				estr += tmpstr*iteratorValue ;
-			}
 			sumFactors += iteratorValue ;
 		}
 
 		str /= sumFactors ;
 		str += pistress ;
-		estr /= sumFactors ;
-		estr += pistress ;
 		stra /= sumFactors ;
 		tmpstr.resize(3) ;
 		tmpstra.resize(3) ;
@@ -208,11 +189,8 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 //			currentAngle0 += M_PI ;
 //		currentAngle = 0.5*(currentAngle+currentAngle0) ;
 
-		if(m == REAL_STRESS)
-		{
-			return std::make_pair(str, stra) ;
-		}
-		return std::make_pair(estr, stra) ;
+		return std::make_pair(str, stra) ;
+
 	}
 
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -277,10 +255,10 @@ double FractureCriterion::smoothedScore(ElementState& s)
 {
 
 	double score = 0;
-	if(factors.empty())
+	if(factors.size()==0)
 		initialiseFactors(s) ;
 	double total = 0 ;
-	auto fiterator = factors.begin() ;
+	auto fiterator = &factors[0] ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		score =scoreAtState*(*fiterator) ;
@@ -415,12 +393,14 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 {
 	if(cache.empty())
 	{
-		physicalcache.clear();
+		physicalcache.resize(0);
 		initialiseCache(s);
 	}
-	if(!factors.empty())
-		factors.clear() ;
+	if(!factors.size() == 0)
+		factors.resize(0) ;
 	
+	std::vector<double> tmpfactors ;
+	std::vector<unsigned int> tmpphysicalcache ;
 	VirtualMachine vm ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
@@ -428,16 +408,25 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
 		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 		Function rr = x*x+y*y ;
+/*		for(double i = -2 ; i < 2 ; i+=.1)
+		{
+			for(double j = -2 ; j < 2 ; j+=.1)
+			{
+				std::cout << vm.eval((rr-1.)*(rr-1.)*f_positivity(1.-rr), i, j) << "  " << std::flush;
+			}
+			std::cout << std::endl ;
+		}
+		exit(0) ;*/
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Order order = s.getParent()->getOrder() ;
 		s.getParent()->setOrder(CUBIC) ;
-		Function smooth =  (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+		Function smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 		double weight = vm.ieval(smooth, s.getParent()) ;
 		s.getParent()->setOrder(order) ;
 		double fact = weight ;
 		
-		factors.push_back(weight);
-		physicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
+		tmpfactors.push_back(weight);
+		tmpphysicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
 		
 		double selfarea = s.getParent()->area() ;
 		double farthest = 0 ;
@@ -449,10 +438,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
 		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
@@ -463,10 +452,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
 		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -477,10 +466,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
 		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
@@ -491,10 +480,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
 
@@ -508,27 +497,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				continue ;
 			}
 			double mindist = physicalCharacteristicRadius ;
-			
-// 			if( mirroring == NO_MIRROR || 
-// 				mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) >= physicalCharacteristicRadius ||
-// 				mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) >= physicalCharacteristicRadius ||
-// 				mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) >= physicalCharacteristicRadius ||
-// 				mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) >= physicalCharacteristicRadius
-// 			)
-// 			{
-// 				Line interceptLine(s.getParent()->getCenter(), ci->getCenter()-s.getParent()->getCenter()) ;
-// 				std::vector<Point> intersects = interceptLine.intersection(s.getParent()->getBehaviour()->getSource()) ;
-// 				
-// 				for(size_t j = 0 ; j < intersects.size() ; j++)
-// 				{
-// 					double dtest = dist(intersects[j], s.getParent()->getCenter()) ;
-// 					if( dtest < mindist && (s.getParent()->getCenter()-ci->getCenter())*(ci->getCenter()-intersects[j]) > 0)
-// 					{
-// 						mindist = dtest ;
-// 					}
-// 				}
-// 			}
-			
+
 			//this is to eliminate scaling effects ;
 			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
@@ -539,18 +508,18 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			x = ci->getXTransform()-s.getParent()->getCenter().x ;
 			y = ci->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
-			rrn = rr/(mindist * mindist * -2.) ;
+			rrn = rr/(mindist * mindist ) ;
 			order = s.getParent()->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
 			
 			if(weight*factor < POINT_TOLERANCE_2D)
 				continue ;
 			
-			physicalcache.push_back(ci->index) ;
-			factors.push_back(weight*factor);
+			tmpphysicalcache.push_back(ci->index) ;
+			tmpfactors.push_back(weight*factor);
 			
 			fact += weight*factor ;
 			
@@ -562,9 +531,9 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, ci) ;
-				factors.back() += weight ;
+				tmpfactors.back() += weight ;
 				ci->setOrder(order) ;
 				fact += weight ;
 			}
@@ -577,10 +546,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
-				factors.back() += weight ;
+				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
 
@@ -592,10 +561,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
-				factors.back() += weight ;
+				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
 
@@ -607,360 +576,353 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				order = s.getParent()->getOrder() ;
 				ci->setOrder(CUBIC) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_negativity(rr-physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, ci) ;
 				ci->setOrder(order) ;
-				factors.back() += weight ;
+				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
 
 		}
-// 		rrn = f_exp(Function("x 2 ^ y 2 ^ +")/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
-// 		double totalAreatarget = 0 ;
-// 		double da = farthest*farthest/(10.*10) ;
-// 		for(double x = -farthest ; x < farthest ; x += farthest/10.)
-// 		{
-// 			for(double y = -farthest ; y < farthest ; y += farthest/10.)
-// 			{
-// 				if(x*x+y*y < farthest*farthest && !s.getParent()->in(Point(x, y)))
-// 				{
-// 					totalAreatarget += vm.eval(rrn, x, y)*da ;
-// 				}
-// 			}
-// 		}
-		
-// 		std::cout << totalAreatarget << "  " << fact-factors[0] << "  "<<std::flush ;
-// 		double ratio = 1 ; //( fact-factors[0])/totalAreatarget ;
-// // 		std::cout << ratio << std::endl ;
-// 		double w = factors[0] ;
-// 		for(size_t i = 1 ; i < factors.size() ; i++)
-// 		{
-// 			factors[i] /= ratio ;
-// 			w += factors[i] ;
-// 		}
-// 		factors.push_back(w);
+		factors.resize(tmpfactors.size());
+		physicalcache.resize(tmpphysicalcache.size());
+		std::copy(tmpfactors.begin(), tmpfactors.end(), &factors[0]) ;
+		std::copy(tmpphysicalcache.begin(), tmpphysicalcache.end(), &physicalcache[0]) ;
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		Function x = s.getParent()->getXTransform() ;
-		Function y = s.getParent()->getYTransform() ;
-		Function z = s.getParent()->getZTransform() ;
-		Function r(s.getParent()->getCenter(), x, y, z) ;
+		
+		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
+		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+		Function z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+		Function rr = x*x+y*y+z*z ;
+		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Order order = s.getParent()->getOrder() ;
 		s.getParent()->setOrder(CUBIC) ;
-		Function smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
+		Function smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 		double weight = vm.ieval(smooth, s.getParent()) ;
 		s.getParent()->setOrder(order) ;
-		factors.push_back(weight);
 		double fact = weight ;
 		
+		tmpfactors.push_back(weight);
+		tmpphysicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
+		
+		double selfarea = s.getParent()->area() ;
+		double farthest = 0 ;
 		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = s.getParent()->getXTransform()*-1.+std::abs( s.getParent()->getCenter().x  - delta_x ) ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y ) ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().x ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_Z &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().x ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2. ));
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x ) ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(-2.* physicalCharacteristicRadius * physicalCharacteristicRadius)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
-			factors.back() += weight;
 			s.getParent()->setOrder(order) ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y ) ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
-			factors.back() += weight;
 			s.getParent()->setOrder(order) ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x ) ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y ) ;
-			z = s.getParent()->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform() ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			s.getParent()->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
-			double dc = squareDist3D( ci->getCenter(), s.getParent()->getCenter() ) ;
-			
-			if( dynamic_cast<IntegrableEntity *>( ci ) == s.getParent()  
-				|| ci->getBehaviour()->getFractureCriterion() 
+			if(dynamic_cast<IntegrableEntity *>( ci ) == s.getParent() 
 				|| ci->getBehaviour()->type == VOID_BEHAVIOUR
-				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() 
-				|| dc > 4.* physicalCharacteristicRadius * physicalCharacteristicRadius
-				|| ci->getBehaviour()->fractured()
-			)
+				|| ci->getBehaviour()->getSource() != s.getParent()->getBehaviour()->getSource() )
 			{
-				factors.push_back(0);
 				continue ;
 			}
+			double mindist = physicalCharacteristicRadius ;
 
+			//this is to eliminate scaling effects ;
 			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
-
-			x = ci->getXTransform() ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
-			order = ci->getOrder() ;
+			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
+			if(d > farthest)
+				farthest = d ;
+			x = ci->getXTransform()-s.getParent()->getCenter().x ;
+			y = ci->getYTransform()-s.getParent()->getCenter().y ;
+			z = ci->getZTransform()-s.getParent()->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(mindist * mindist) ;
+			order = s.getParent()->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.push_back(weight);
-			fact += weight ;
+			
+			if(weight*factor < POINT_TOLERANCE_2D)
+				continue ;
+			
+			tmpphysicalcache.push_back(ci->index) ;
+			tmpfactors.push_back(weight*factor);
+			
+			fact += weight*factor ;
 			
 		if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x ) ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
+			y = ci->getYTransform()-ci->getCenter().y ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = s.getParent()->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = ci->getXTransform() ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y ) ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().x ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = ci->getXTransform() ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			y = ci->getYTransform()-ci->getCenter().x ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x ) ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
+			y = ci->getYTransform()-ci->getCenter().y ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
-			factors.back() += weight;
 			ci->setOrder(order) ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform() ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y ) ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()-ci->getCenter().x ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().y ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
-			factors.back() += weight;
 			ci->setOrder(order) ;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x ) ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
+			y = ci->getYTransform()-ci->getCenter().y ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
-		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform() ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()-ci->getCenter().x ;
+			y = ci->getYTransform()-ci->getCenter().y ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-
 		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform() ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y ) ;
-			z = ci->getZTransform() ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
-			order = ci->getOrder() ;
-			s.getParent()->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
-			weight = vm.ieval(smooth, ci) ;
-			ci->setOrder(order) ;
-			factors.back() += weight;
-			fact += weight ;
-		}
-
-		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
-		{
-			x = ci->getXTransform() ;
-			y = ci->getYTransform() ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z ) ;
-			r = Function(s.getParent()->getCenter(), x, y, z) ;
+			x = ci->getXTransform()-ci->getCenter().x ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().y ;
+			z = ci->getZTransform()-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			order = ci->getOrder() ;
 			ci->setOrder(CUBIC) ;
-			smooth = f_exp((r*r)/(physicalCharacteristicRadius * physicalCharacteristicRadius*-2.)) ;
+			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			ci->setOrder(order) ;
-			factors.back() += weight;
+			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		
+		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		{
+			x = ci->getXTransform()-ci->getCenter().x ;
+			y = ci->getYTransform()-ci->getCenter().y ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			rr = x*x+y*y+z*z ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+			order = ci->getOrder() ;
+			ci->setOrder(CUBIC) ;
+			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, ci) ;
+			ci->setOrder(order) ;
+			tmpfactors.back() += weight ;
+			fact += weight ;
 		}
-		factors.push_back(fact);
 
+		}
+		factors.resize(tmpfactors.size());
+		physicalcache.resize(tmpphysicalcache.size());
+		std::copy(tmpfactors.begin(), tmpfactors.end(), &factors[0]) ;
+		std::copy(tmpphysicalcache.begin(), tmpphysicalcache.end(), &physicalcache[0]) ;
 		return ;
 	}
 	
@@ -979,56 +941,40 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 6 ;
 	Vector str(0., vlength) ;
-	Vector estr(0., vlength) ;
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
 	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 	istress = 0 ;
-	if(factors.empty())
+	if(factors.size() == 0)
 		initialiseFactors(s) ;
 	double sumStressFactors = 0 ;
 	double sumStrainFactors = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
-		s.getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		if(m == EFFECTIVE_STRESS)
+			s.getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		else
+			s.getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
 		return std::make_pair(tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
 		str = (tmpstr-istress)*iteratorValue ;
-		if(m == EFFECTIVE_STRESS)
-		{
-			s.getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
-			estr = (tmpstr-istress)*iteratorValue ;
-		}
+
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
 
 		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-			if(!ci->getBehaviour()->getFractureCriterion())
-				factors[i] = 0 ;
-			
 			iteratorValue = factors[i] ;
-			
-			double fractureDistance = 0. ;
-			
-// 			if(ci->getBehaviour()->getDamageModel() && s.getParent()->getBehaviour()->getDamageModel())
-// 			{
-// 				Vector dstate = std::abs(ci->getBehaviour()->getDamageModel()->getState() - s.getParent()->getBehaviour()->getDamageModel()->getState()) ;
-// 				fractureDistance = sqrt(std::inner_product(&dstate[0], &dstate[dstate.size()], &dstate[0], 0.)) ;
-// 			}
-			
-// 			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getDamageModel()->fractured())
-// 				iteratorValue = 0 ;
 
-// 			iteratorValue *= 1.-fractureDistance ;
-			
-			
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
-				ci->getState().getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+				if(m == EFFECTIVE_STRESS)
+					ci->getState().getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+				else
+					ci->getState().getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
@@ -1036,37 +982,19 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
-					
-					if(m == EFFECTIVE_STRESS)
-					{
-						ci->getState().getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
-						estr += tmpstr*iteratorValue ;
-					}
-					
-				}
-// 				else
-// 				{
-// 				  stra += tmpstra*iteratorValue ;
-// 				}
-				
-			}
 
-			if(ci->getBehaviour()->getDamageModel() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-			{
-				
-				if(!ci->getBehaviour()->fractured())
-				{
 					sumStrainFactors += iteratorValue ;
 				  sumStressFactors += iteratorValue ;
+
 				}
 			}
 		}
 
 		str /= sumStressFactors ;
-		estr /= sumStressFactors ;
 		str += istress ;
-		estr += istress ;
+
 		stra /= sumStrainFactors ;
+		
 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
 		{
 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
@@ -1074,11 +1002,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				currentAngle += M_PI ;
 		}
 
-		if(m == REAL_STRESS)
-		{
-			return std::make_pair(str, stra) ;
-		}
-		return std::make_pair(estr, stra) ;
+		return std::make_pair(str, stra) ;
+
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
@@ -1409,7 +1334,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*2.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*6.+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1945,112 +1870,130 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 		if(checkpoint) //new iteration
 		{
 			inset = false ;
+			inIteration = false ;
 			damagingSet.clear();
 			proximitySet.clear() ;
 			
 			std::vector<unsigned int> newSet ;
 			std::set<unsigned int> newProximity ;
 			std::multimap<double, DelaunayTetrahedron *> sortedElements ;
-			double thresholdScore = 0 ;
 			
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
 				DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[cache[i]]) ;
-				if(ci->getBehaviour()->getFractureCriterion())
+				if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 					sortedElements.insert( std::make_pair(-renormScore, ci)) ;
 				}
 			}
-			
-			
-			if(!sortedElements.empty())
-				thresholdScore = -sortedElements.begin()->first ;
-			if(thresholdScore < 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
+
+			if(thresholdScore > 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
 				initialScore = std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
-			
 			double minscore = thresholdScore ;
 			double maxscore = 0 ;
 			bool foundmaxscore = false ;
+			minDeltaInNeighbourhood = 1 ;
+			maxModeInNeighbourhood = -1 ;
+			maxAngleShiftInNeighbourhood = 0 ;
 			if(!sortedElements.empty() && thresholdScore > 0 )
 			{
 				for(auto i = sortedElements.begin() ; i != sortedElements.end() ; i++ )
 				{
-					if(-i->first >= thresholdScore - scoreTolerance*initialScore)
+					if(std::abs(-i->first-thresholdScore) <= scoreTolerance*initialScore && -i->first > 0)
 					{
 						if(i->second == s.getParent() && met())
 							inset = true ;
+						if(i->second->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
+							minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getDelta()) ;
+						if(!i->second->getBehaviour()->getDamageModel())
+							continue ;
+						maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getMode()) ;
+						maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, i->second->getBehaviour()->getDamageModel()->getAngleShift()) ;
 						newSet.push_back(i->second->index);
-						minscore = -i->first ;
+						minscore = std::min(-i->first, thresholdScore) ;
 					}
 					else
 					{
 						newProximity.insert(i->second->index) ;
 						if(!foundmaxscore)
 						{
-							maxscore =  -i->first ;
+							maxscore = -i->first ;
 							foundmaxscore = true ;
 						}
 					}
 				}
 			}
-
 // 			std::cout << newSet.size() << std::endl ;
 			
 			if(!inset)
 			{
 				damagingSet.clear();
 				proximitySet.clear() ;
+				if(std::abs(nonLocalScoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
+					inIteration = true ;
 				return std::make_pair(0.,0.) ;
 			}
-			
+			inIteration = true ;
 			if(!newSet.empty())
 				std::stable_sort(newSet.begin(), newSet.end());
 			
 			damagingSet = newSet ;
 			proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
+			for(size_t i = 0 ; i < proximitySet.size() ; i++)
+				static_cast<DelaunayTetrahedron *>((*mesh3d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->inIteration = true ;
 			
-			
-			return std::make_pair(minscore - maxscore - scoreTolerance*2.*initialScore, thresholdScore - minscore + scoreTolerance*initialScore) ;
+			return std::make_pair(minscore - maxscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - minscore /*+ scoreTolerance*initialScore*/) ;
 		}
 		else if (inset)
 		{
-
+//			std::cout << "a" << std::flush ;
 			checkpoint = false ;
 			DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[0]]) ;
-			double maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
-			double thresholdScore = maxscore ;
+			double maxscore = 0 ;
+			if(ci->getBehaviour()->getFractureCriterion())
+			{
+				maxscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+			}
+			maxModeInNeighbourhood = ci->getBehaviour()->getDamageModel()->getMode() ;
+			maxAngleShiftInNeighbourhood = ci->getBehaviour()->getDamageModel()->getAngleShift() ;
+//			std::cout << "c" << std::flush ;
+			
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
 				ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[damagingSet[i]]) ;
-				double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				if(ci->getBehaviour()->getFractureCriterion())
+				{
+					double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+					maxscore = std::min(maxscore,nls) ;
+				}
+				maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
+				maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
 
-				if(nls < maxscore)
-				{
-					maxscore = nls ;
-				}
-				if(nls > thresholdScore)
-				{
-					thresholdScore = nls ;
-				}
 			}
+//			std::cout << "d" << std::flush ;
+
 			double minscore = 0 ;
 			if(!proximitySet.empty())
 			{
 				ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[proximitySet[0]]) ;
-				minscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+				if(ci->getBehaviour()->getFractureCriterion())
+					minscore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 				
 				for(size_t i = 1 ; i < proximitySet.size() ; i++)
 				{
+//					std::cout << i << " " << std::flush ;
 					ci = static_cast<DelaunayTetrahedron *>((*mesh3d)[proximitySet[i]]) ;
-					double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
-
-					if(nls > minscore)
-						minscore = nls ;
+					if(ci->getBehaviour()->getFractureCriterion())
+					{
+						double nls = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+						
+						minscore = std::max(nls, minscore) ;
+					}
 				}
 			}
-			return std::make_pair(maxscore - minscore - scoreTolerance*2.*initialScore, thresholdScore - maxscore + scoreTolerance*initialScore) ;
+//			std::cout << "b" << std::endl ;
+			return std::make_pair(maxscore - minscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*+ scoreTolerance*initialScore*/) ;
 		}
 	}
 	
@@ -2502,8 +2445,8 @@ FractureCriterion::~FractureCriterion()
 void FractureCriterion::setMaterialCharacteristicRadius(double r)
 {
 	physicalCharacteristicRadius = r ;
-	cache.clear() ;
-	factors.clear();
+	cache.resize(0) ;
+	factors.resize(0);
 }
 
 bool FractureCriterion::met() const

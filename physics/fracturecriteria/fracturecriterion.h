@@ -46,9 +46,9 @@ typedef enum{
 		friend class DamageModel ;
 	protected:
 
-		std::vector<unsigned int> physicalcache ;
+		std::valarray<unsigned int> physicalcache ;
 		void initialiseFactors(const ElementState & s) ;
-		std::vector<double> factors ;
+		std::valarray<double> factors ;
 		
 		std::vector<unsigned int> damagingSet ;
 		std::vector<unsigned int> proximitySet ;
@@ -179,7 +179,7 @@ typedef enum{
 		void setEnergyIndexed(bool t) {energyIndexed = t ;};
 		
 		virtual void scale(double d) = 0;
-		const std::vector<double> & getFactors() const {return factors ;}
+		const std::valarray<double> & getFactors() const {return factors ;}
 		
 		virtual double getTensileLimit(const ElementState & s) const = 0 ;
 	};

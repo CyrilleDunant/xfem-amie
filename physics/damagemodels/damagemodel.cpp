@@ -102,7 +102,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
 		
-		double n = 10. ;
+		double n = 5. ;
 		if(states.size() <= n)
 		{
 			if(states.size() == 1)
@@ -200,7 +200,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			states[i].print();
 // 		}
 		
-		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > 32
+		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > 24
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
@@ -248,7 +248,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 				exit(0) ;
 // 			}
 		}
-		else if(states.size() > 32)
+		else if(states.size() > 24)
 		{
 			double minscoreRatio = states[0].fraction ;
 			double mindeltaRatio = states[0].fraction ;
@@ -333,12 +333,12 @@ Vector &DamageModel::getState( bool )
 
 Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 {
-	if( !s.getParent()->getBehaviour()->getFractureCriterion() )
+// 	if( !s.getParent()->getBehaviour()->getFractureCriterion() )
 		return getState() ;
-
+/*
 
 	double fracturedFraction = 0 ;
-	auto fiterator =  s.getParent()->getBehaviour()->getFractureCriterion()->factors.begin() ;
+	auto fiterator =  &s.getParent()->getBehaviour()->getFractureCriterion()->factors[0] ;
 	std::vector <unsigned int> cache = s.getParent()->getBehaviour()->getFractureCriterion()->cache ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
@@ -383,7 +383,7 @@ Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
 		return stra ;
 	}
 	
-	return getState() ;
+	return getState() ;*/
 }
 
 void DamageModel::setThresholdDamageDensity( double d )
