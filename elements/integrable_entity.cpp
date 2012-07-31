@@ -376,6 +376,33 @@ Vector Mu::toPrincipal(const Vector & stressOrStrain)
 	return ret ;
 }
 
+void ElementState::getExternalField( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local) const 
+{
+	VirtualMachine vm ;
+	Point p_ = p ;
+	if( !local )
+		p_ = parent->inLocalCoordinates( p ) ;
+
+	for(size_t k = 0 ; k < externaldofs ; k++)
+		ret[k] = 0 ;
+	
+	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
+	{
+		double f = vm.eval( parent->getShapeFunction( j ), p_) ;
+		for(size_t k = 0 ; k < externaldofs ; k++)
+			ret[k] += f * nodalValues[ j*externaldofs + k ] ;
+	}
+	
+}
+
+void ElementState::getExternalFieldAtGaussPoints( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret) const 
+{
+	for(size_t p = 0 ; p < parent->getGaussPoints().gaussPoints.size() ; p++)
+	{
+		this->getExternalField( nodalValues, externaldofs, parent->getGaussPoints().gaussPoints[p].first, ret[p], true) ;
+	}
+}
+
 void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
 {
 	VirtualMachine vm ;
@@ -396,7 +423,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			}
 			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 			{
-				double f =  vm.eval( parent->getShapeFunction( j ) , p_) ;
+				double f =  vm.eval( parent->getEnrichmentFunction( j ) , p_) ;
 				for(size_t k = 0 ; k < n ; k++)
 					ret[k] += f * enrichedDisplacements[j*n+k] ;
 			}
@@ -405,7 +432,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
 			{
-				double f =  vm.eval( parent->getShapeFunction( j ) , p_) ;
+				double f =  vm.eval( parent->getEnrichmentFunction( j ) , p_) ;
 				for(size_t k = 0 ; k < n ; k++)
 					ret[k] += f * enrichedDisplacements[j*n+k] ;
 			}
@@ -2391,6 +2418,7 @@ void SerialElementState::step(double dt, const Vector* d )
 KelvinVoightSpaceTimeElementState::KelvinVoightSpaceTimeElementState(IntegrableEntity * e) : ElementState(e)
 {
 
+  
 }
 
 KelvinVoightSpaceTimeElementState::KelvinVoightSpaceTimeElementState(const KelvinVoightSpaceTimeElementState &s) : ElementState(s)
@@ -2792,4 +2820,23 @@ void KelvinVoightSpaceTimeElementState::getFieldAtNodes( FieldType f1, FieldType
 	ElementState::getFieldAtNodes(f2, ret2, j) ;  
 }
 
+Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	return VirtualMachine().ieval(Gradient( shape ) * ( data ), gp, Jinv, v) ;
+}
+
+Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	VirtualMachine vm ;
+	
+	size_t n = e->getBoundingPoints().size() ;
+	Vector field(0., n*externaldofs) ;
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
+	
+	std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+	
+	return vm.ieval( Gradient( shape ) * g, e, v) ;
+}
 

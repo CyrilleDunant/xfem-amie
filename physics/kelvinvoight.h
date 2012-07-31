@@ -34,7 +34,7 @@ struct KelvinVoight : public LinearForm
 	* @param rig Complete expression of the Cauchy-Green Strain Tensor
 	* @param eta Complete expression of the viscosity Tensor
 	*/
-	KelvinVoight( const Matrix & rig, const Matrix & eta , double characteristicTime) ;
+	KelvinVoight( const Matrix & rig, const Matrix & eta , double characteristicTime = 0.) ;
 
 	virtual ~KelvinVoight() ;
 
@@ -72,6 +72,11 @@ struct KelvinVoight : public LinearForm
 		param *= d ;
 		eta *= d ;
 	}
+	
+	virtual Vector getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
+
+	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
+	
 } ;
 
 /*struct IncrementalKelvinVoight : public LinearForm

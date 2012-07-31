@@ -295,5 +295,208 @@ void NewmarkNumeroffMaxwell::setNumberOfGaussPoints(size_t n)
 	}
 }
 
+Maxwell::Maxwell(const Matrix & rig, const Matrix & e ) : LinearForm(e, false, false, e.numRows()/3+1), decay(e)
+{
+	Matrix s(e.numRows(), e.numRows()) ;
+	s = rig ;
+	Composite::invertTensor(s) ;
+	decay = decay*s ;
+  
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() > 9)
+		v.push_back(ZETA);
+	v.push_back(TIME_VARIABLE);
+	
+} ;
 
+Maxwell::~Maxwell() { } ;
+
+ElementState * Maxwell::createElementState( IntegrableEntity * e) 
+{
+	return new KelvinVoightSpaceTimeElementState(e) ;  
+}
+
+void Maxwell::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+	Matrix temp(ret) ;
+	Matrix temp2(ret) ;
+	
+	vm->ieval(GradientDot(p_i) *  param * GradientDot(p_j, true), gp, Jinv,v,temp);
+	vm->ieval(GradientDotDot(p_i) * param  * Gradient(p_j, true), gp, Jinv,v,temp2);
+	
+	ret = temp+temp2 ;
+	
+}
+
+bool Maxwell::fractured() const
+{
+	return false ;
+}
+
+bool Maxwell::changed() const
+{
+	return false ;
+} 
+
+Form * Maxwell::getCopy() const 
+{
+	return new Maxwell(*this) ;
+}
+
+Vector Maxwell::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	Vector imposed = data ;
+	return VirtualMachine().ieval(GradientDot( shape ) * ( imposed ), gp, Jinv, v) ;
+}
+
+Vector Maxwell::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	VirtualMachine vm ;
+	
+	size_t n = e->getBoundingPoints().size() ;
+	Vector field(0., n*externaldofs) ;
+	Vector test(0., externaldofs) ;
+	std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
+
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+//	for(size_t i = 0 ; i < g.size() ; i++)
+//		g[i] = rig*g[i] ;
+	
+	Vector f = vm.ieval( GradientDot( shape ) * g, e, v) ;
+
+	field = 0. ;
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+// 	for(size_t i = 0 ; i < g.size() ; i++)
+// 		g[i] = rig*g[i] ;
+
+	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	
+	field = 0. ;
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.ddeval( data, TIME_VARIABLE, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+ 	for(size_t i = 0 ; i < g.size() ; i++)
+ 		g[i] = decay*g[i] ;
+
+	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	
+	field = 0. ;
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+ 	for(size_t i = 0 ; i < g.size() ; i++)
+ 		g[i] = decay*g[i] ;
+	
+	f += vm.ieval( GradientDot( shape ) * g, e, v) ;
+
+	return f ;
+}
+
+StandardLinearSolid::StandardLinearSolid(const Matrix & riga, const Matrix & rigb, const Matrix & e ) : LinearForm(riga, false, false, riga.numRows()/3+1), rig0(riga), rig1(rigb), eta1(e), decay(e), etaeq(e)
+{
+	Matrix s(e.numRows(), e.numRows()) ;
+	s = rig1 ;
+	Composite::invertTensor(s) ;
+	decay = decay*s ;
+  
+	etaeq += decay * rig0 ;
+  
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(param.size() > 9)
+		v.push_back(ZETA);
+	v.push_back(TIME_VARIABLE);
+	
+} ;
+
+StandardLinearSolid::~StandardLinearSolid() { } ;
+
+ElementState * StandardLinearSolid::createElementState( IntegrableEntity * e) 
+{
+	return new KelvinVoightSpaceTimeElementState(e) ;  
+}
+
+void StandardLinearSolid::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+	Matrix temp(ret) ;
+	Matrix temp0(ret) ;
+	Matrix temp1(ret) ;
+	Matrix temp2(ret) ;
+	
+	vm->ieval(GradientDot(p_i) * etaeq   * GradientDot(p_j, true), gp, Jinv,v,temp);
+	vm->ieval(GradientDotDot(p_i) * etaeq   * Gradient(p_j, true), gp, Jinv,v,temp2);
+	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true),    gp, Jinv,v,temp0) ;
+	vm->ieval(Gradient(p_i)    * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
+	
+	ret = temp+temp2+temp0+temp1 ;
+}
+
+bool StandardLinearSolid::fractured() const
+{
+	return false ;
+}
+
+bool StandardLinearSolid::changed() const
+{
+	return false ;
+} 
+
+Form * StandardLinearSolid::getCopy() const 
+{
+	return new StandardLinearSolid(*this) ;
+}
+
+Vector StandardLinearSolid::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	Vector imposed = data ;
+	return VirtualMachine().ieval(GradientDot( shape ) * ( imposed ), gp, Jinv, v) ;
+}
+
+Vector StandardLinearSolid::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	VirtualMachine vm ;
+	
+	size_t n = e->getBoundingPoints().size() ;
+	Vector field(0., n*externaldofs) ;
+	std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
+
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+//	for(size_t i = 0 ; i < g.size() ; i++)
+//		g[i] = rig1*g[i] ;
+	
+	Vector f = vm.ieval( GradientDot( shape ) * g, e, v) ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+//	for(size_t i = 0 ; i < g.size() ; i++)
+//		g[i] = rig1*g[i] ;
+
+	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+	for(size_t i = 0 ; i < g.size() ; i++)
+		g[i] = decay*g[i] ;
+	
+	f += vm.ieval( GradientDot( shape ) * g, e, v) ;
+
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.ddeval( data, TIME_VARIABLE, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+	for(size_t i = 0 ; i < g.size() ; i++)
+		g[i] = decay*g[i] ;
+
+	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	
+	return f ;
+}
 

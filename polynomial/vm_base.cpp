@@ -302,7 +302,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case XI : 
 		{
-			return ( deval(f, v_1, x-2.*eps, y, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x-eps, y, z, t, u, v, w)- deval(f, v_1, x+2.*eps, y, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x+eps, y, z, t, u, v, w) ) / eps ;
+//			return ( deval(f, v_1, x-2.*eps, y, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x-eps, y, z, t, u, v, w)- deval(f, v_1, x+2.*eps, y, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x+eps, y, z, t, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -341,7 +341,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case ETA:
 		{
-			return ( deval(f, v_1, x, y-2.*eps, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y-eps, z, t, u, v, w)- deval(f, v_1, x, y+2.*eps, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y+eps, z, t, u, v, w) ) / eps ;
+//			return ( deval(f, v_1, x, y-2.*eps, z, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y-eps, z, t, u, v, w)- deval(f, v_1, x, y+2.*eps, z, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y+eps, z, t, u, v, w) ) / eps ;
 
 			switch(v_1)
 			{
@@ -382,7 +382,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case ZETA:
 		{
-			return ( deval(f, v_1, x, y, z-2.*eps, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z-eps, t, u, v, w)- deval(f, v_1, x, y, z+2.*eps, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z+eps, t, u, v, w) ) / eps ;
+//			return ( deval(f, v_1, x, y, z-2.*eps, t, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z-eps, t, u, v, w)- deval(f, v_1, x, y, z+2.*eps, t, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z+eps, t, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -422,7 +422,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 		}
 		case TIME_VARIABLE : 
 		{
-			return ( deval(f, v_1, x, y, z, t-2.*eps, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z, t-eps, u, v, w)- deval(f, v_1, x, y, z, t+2.*eps, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z, t+eps, u, v, w) ) / eps ;
+//			return ( deval(f, v_1, x, y, z, t-2.*eps, u, v, w)/12. -2./3. * deval(f, v_1, x, y, z, t-eps, u, v, w)- deval(f, v_1, x, y, z, t+2.*eps, u, v, w)/12. +2./3.* deval(f, v_1, x, y, z, t+eps, u, v, w) ) / eps ;
 			switch(v_1)
 			{
 			case ONE : 
@@ -443,7 +443,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			case TIME_VARIABLE : 
 				{
-					return ( eval(f, x, y, z, t+eps+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps-eps, u, v, w))/(4.*eps*eps) ;
+					return ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(eps*eps) ;
 
 				}
 			case U_VARIABLE:
@@ -582,6 +582,80 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			}
 		}
+	}
+	return 0 ;
+}
+
+Vector VirtualMachine::dddeval(const Function&f, const Variable v_0, const Variable v_1, const Variable v_2, const GaussPointArray & gp, const double eps)
+{
+	Vector ret(gp.gaussPoints.size());
+	for(size_t i = 0 ; i < ret.size() ; i++)
+	{
+		ret[i] = dddeval(f, v_0, v_1, v_2, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, 0., 0., 0., eps ) ;
+	}	
+	return ret ;
+}
+
+double VirtualMachine::dddeval(const Function &f, const Variable v_0, const Variable v_1,  const Variable v_2, const double x, const double y , const double z, const double t, const double u, const double v, const double w, const double eps) 
+{
+	#warning dddeval not fully implemented
+	
+	double h = 1.e-4 ;
+	if(v_1 == v_2 && v_1 == TIME_VARIABLE)
+	{
+		double ret = 0. ;
+		switch(v_0)
+		{
+			case XI:
+				ret += eval(f, x+h, y, z, t+h+h, u, v, w) ;
+				ret -= eval(f, x-h, y, z, t+h+h, u, v, w) ;
+				ret -= 2.*eval(f, x+h, y, z, t, u, v, w) ;
+				ret += 2.*eval(f, x-h, y, z, t, u, v, w) ;
+				ret += eval(f, x+h, y, z, t-h-h, u, v, w) ;
+				ret -= eval(f, x-h, y, z, t-h-h, u, v, w) ;
+				ret /= 8.*eps*eps*eps ;
+				if(ret < 0)
+					ret = 0. ;
+				break ;
+			case ETA:
+//				std::cout << ddeval(f, v_1,v_2, x, y+eps, z, t, u, v, w) /*- ddeval(f, v_1,v_2, x, y-eps, z, t, u, v, w)*/ << std::endl ;
+//				return ( ddeval(f, v_1,v_2, x, y-2.*eps, z, t, u, v, w)/12. -2./3. * ddeval(f, v_1,v_2, x, y-eps, z, t, u, v, w)- ddeval(f, v_1,v_2, x, y+2.*eps, z, t, u, v, w)/12. +2./3.* ddeval(f, v_1,v_2, x, y+eps, z, t, u, v, w) ) / eps ;
+				ret = 0. ;
+				ret = eval(f, x, y+h, z, t+h+h, u, v, w) 
+				    - eval(f, x, y-h, z, t+h+h, u, v, w) 
+				    - 2.*eval(f, x, y+h, z, t, u, v, w) 
+				    + 2.*eval(f, x, y-h, z, t, u, v, w) 
+				    + eval(f, x, y+h, z, t-h-h, u, v, w) 
+				    - eval(f, x, y-h, z, t-h-h, u, v, w) ;
+				if(ret < 0)
+					ret = 0. ;
+//				std::cout << ret << std::endl ;
+				ret /= 8.*h*h*h ;		
+				break ;
+			case ZETA:
+				ret = 0. ;
+				ret += eval(f, x, y, z+h, t+h+h, u, v, w) ;
+				ret -= eval(f, x, y, z-h, t+h+h, u, v, w) ;
+				ret -= 2.*eval(f, x, y, z+h, t, u, v, w) ;
+				ret += 2.*eval(f, x, y-h, z, t, u, v, w) ;
+				ret += eval(f, x, y, z+h, t-h-h, u, v, w) ;
+				ret -= eval(f, x, y, z-h, t-h-h, u, v, w) ;
+				ret /= 8.*eps*eps*eps ;	
+				if(ret < 0)
+					ret = 0. ;
+				break ;
+			case TIME_VARIABLE:
+				ret = 0. ;
+				ret += eval(f, x, y, z, t+h+h+h, u, v, w) ;
+				ret -= 3.*eval(f, x, y, z, t+h, u, v, w) ;
+				ret += 3.*eval(f, x, y, z, t-h, u, v, w) ;
+				ret -= eval(f, x, y, z, t-h-h-h, u, v, w) ;
+				ret /= 8.*eps*eps*eps ;			
+				if(ret < 0)
+					ret = 0. ;
+				break ;
+		}
+		return ret ;
 	}
 	return 0 ;
 }
@@ -762,9 +836,20 @@ Matrix VirtualMachine::geval(const Function &f, IntegrableEntity *e, const std::
 	return geval(f, Jinv, vars, x, y, z,t, transpose) ;
 }
 
+Matrix VirtualMachine::gdeval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y, const double z, const double t, bool transpose)
+{
+	Matrix Jinv ; e->getInverseJacobianMatrix(Point(x,y,z,t), Jinv) ;
+	return gdeval(f, Jinv, vars, x, y, z,t, transpose) ;
+}
+
 Matrix VirtualMachine::geval(const Gradient &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double  y, const double z, const double t)
 {
 	return geval(f.f, e,vars, x, y, z,t, f.transpose) ;
+}
+
+Matrix VirtualMachine::gdeval(const GradientDot &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double  y, const double z, const double t)
+{
+	return gdeval(f.f, e,vars, x, y, z,t, f.transpose) ;
 }
 
 Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const Point& p, bool transpose )
@@ -1122,6 +1207,193 @@ void VirtualMachine::geval(const Function &f, const std::valarray<Matrix> & m, c
 		}
 	}
 	
+}
+
+std::valarray<Matrix> VirtualMachine::gddeval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose )
+{
+	if(var.size() == 3 )
+	{
+		if(var[2] == TIME_VARIABLE)
+		{
+			if(transpose)
+			{
+				std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
+				
+				Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+
+				for(size_t i = 0 ; i < ret.size() ; i++)
+				{
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
+					ret[i][2][0] = ret[i][1][1] ;
+					ret[i][2][1] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
+					
+// 					ret[i].print() ;
+				}
+				
+				return ret ;
+			}
+			else
+			{
+				std::valarray<Matrix> ret(Matrix(2,3), gp.gaussPoints.size()) ;
+				
+				Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				
+				for(size_t i = 0 ; i < ret.size() ; i++)
+				{
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
+					ret[i][0][2] = ret[i][1][1] ;
+					ret[i][1][2] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
+				}
+				
+				return ret ;
+			}
+		}
+		else
+		{
+			if(transpose)
+			{
+				std::valarray<Matrix> ret(Matrix(6,3), gp.gaussPoints.size()) ;
+				
+				Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				Vector dzeta = dddeval(f, var[2],TIME_VARIABLE,TIME_VARIABLE,gp) ;
+				
+				for(size_t i = 0 ; i < ret.size() ; i++)
+				{
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] + dzeta[i]*m[i][0][2] ;
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] + dzeta[i]*m[i][1][2] ;
+					ret[i][2][2] = dxi[i]*m[i][2][0] + deta[i]*m[i][2][1] + dzeta[i]*m[i][2][2] ;
+					ret[i][3][1] = ret[i][2][2] ;
+					ret[i][3][2] = ret[i][1][1] ;
+					ret[i][4][0] = ret[i][2][2] ;
+					ret[i][4][2] = ret[i][0][0] ;
+					ret[i][5][0] = ret[i][1][1] ;
+					ret[i][5][1] = ret[i][0][0] ;
+				}
+				
+				return ret ;
+			}
+			else
+			{
+				std::valarray<Matrix> ret(Matrix(3,6), gp.gaussPoints.size()) ;
+				
+				Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE,gp) ;
+				Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE,gp) ;
+				Vector dzeta = dddeval(f, var[2],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+				
+				for(size_t i = 0 ; i < ret.size() ; i++)
+				{
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] + dzeta[i]*m[i][0][2];
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] + dzeta[i]*m[i][1][2];
+					ret[i][2][2] = dxi[i]*m[i][2][0] + deta[i]*m[i][2][1] + dzeta[i]*m[i][2][2];
+					ret[i][1][3] = ret[i][2][2] ;
+					ret[i][2][3] = ret[i][1][1] ;
+					ret[i][0][4] = ret[i][2][2] ;
+					ret[i][2][4] = ret[i][0][0] ;
+					ret[i][0][5] = ret[i][1][1] ;
+					ret[i][1][5] = ret[i][0][0] ;
+				}
+				
+				return ret ;
+			}
+		}
+	}
+	else if (var.size() == 2)
+	{
+		if(transpose)
+		{
+			
+			std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
+			
+			Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			
+			for(size_t i = 0 ; i < ret.size() ; i++)
+			{
+				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;
+				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
+				ret[i][2][0] = ret[i][1][1] ;
+				ret[i][2][1] = ret[i][0][0] ;
+			}
+			return ret ;
+		}
+		else
+		{
+			std::valarray<Matrix> ret(Matrix(2,3), gp.gaussPoints.size()) ;
+			
+			Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			
+			for(size_t i = 0 ; i < ret.size() ; i++)
+			{
+				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;
+				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;
+				ret[i][0][2] = ret[i][1][1] ;
+				ret[i][1][2] = ret[i][0][0] ;
+			}
+			
+			return ret ;
+		}
+	}
+	else if(var.size() == 4 )
+	{
+		if(transpose)
+		{
+			std::valarray<Matrix> ret(Matrix(6,3), gp.gaussPoints.size()) ;
+			
+			Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector dzeta = dddeval(f, var[2],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector dteta = dddeval(f, var[3],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			
+			for(size_t i = 0 ; i < ret.size() ; i++)
+			{
+				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] + dzeta[i]*m[i][0][2] + dteta[i]*m[i][0][3];
+				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] + dzeta[i]*m[i][1][2] + dteta[i]*m[i][1][3];
+				ret[i][2][2] = dxi[i]*m[i][2][0] + deta[i]*m[i][2][1] + dzeta[i]*m[i][2][2] + dteta[i]*m[i][2][3];
+				ret[i][3][1] = ret[i][2][2] ;
+				ret[i][3][2] = ret[i][1][1] ;
+				ret[i][4][0] = ret[i][2][2] ;
+				ret[i][4][2] = ret[i][0][0] ;
+				ret[i][5][0] = ret[i][1][1] ;
+				ret[i][5][1] = ret[i][0][0] ;
+			}
+			
+			return ret ;
+		}
+		else
+		{
+			std::valarray<Matrix> ret(Matrix(3,6), gp.gaussPoints.size()) ;
+			
+			Vector dxi = dddeval(f, var[0],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector deta = dddeval(f, var[1],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector dzeta = dddeval(f, var[2],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			Vector dteta = dddeval(f, var[3],TIME_VARIABLE,TIME_VARIABLE, gp) ;
+			
+			for(size_t i = 0 ; i < ret.size() ; i++)
+			{
+				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] + dzeta[i]*m[i][0][2]+ dteta[i]*m[i][0][3];
+				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] + dzeta[i]*m[i][1][2]+ dteta[i]*m[i][0][3];
+				ret[i][2][2] = dxi[i]*m[i][2][0] + deta[i]*m[i][2][1] + dzeta[i]*m[i][2][2]+ dteta[i]*m[i][0][3];
+				ret[i][1][3] = ret[i][2][2] ;
+				ret[i][2][3] = ret[i][1][1] ;
+				ret[i][0][4] = ret[i][2][2] ;
+				ret[i][2][4] = ret[i][0][0] ;
+				ret[i][0][5] = ret[i][1][1] ;
+				ret[i][1][5] = ret[i][0][0] ;
+			}
+			
+			return ret ;
+		}
+	}
+	
+	return std::valarray<Matrix>(Matrix(0,0), gp.gaussPoints.size()) ; ;
 }
 
 std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose )
@@ -2082,6 +2354,48 @@ Vector VirtualMachine::ieval(const GtVL &f, IntegrableEntity *e, const std::vect
 	return ret ;
 }
 
+Vector VirtualMachine::ieval(const GtV &f, IntegrableEntity *e, const std::vector<Variable> & var)
+{
+
+	GaussPointArray gp = e->getGaussPoints() ;
+	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Vector ret = B*f.second ;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		ret += B*f.second ;
+	}
+	return ret ;
+}
+
+Vector VirtualMachine::ieval(const GDtV &f, IntegrableEntity *e, const std::vector<Variable> & var)
+{
+
+	GaussPointArray gp = e->getGaussPoints() ;
+	Matrix B (gdeval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Vector ret = B*f.second ;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		ret += B*f.second ;
+	}
+	return ret ;
+}
+
+Vector VirtualMachine::ieval(const GDtVL &f, IntegrableEntity *e, const std::vector<Variable> & var)
+{
+
+	GaussPointArray gp = e->getGaussPoints() ;
+	Matrix B (gdeval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Vector ret = B*f.second[0] ;
+	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+	{
+		B = gdeval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		ret += B*f.second[i] ;
+	}
+	return ret ;
+}
+
 Matrix VirtualMachine::ieval(const VGtM &f, IntegrableEntity *e, const std::vector<Variable> & var)
 {
 
@@ -2380,6 +2694,22 @@ void VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const st
 	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
+		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
+	}
+}
+
+void VirtualMachine::ieval(const GDDtMtG & f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret)
+{
+	std::valarray<Matrix> B = gddeval(f.first.f, Jinv, vars, gp, f.first.transpose) ;
+//	B[0].print() ;
+	std::valarray<Matrix> B_ = geval(f.third.f, Jinv, vars, gp, f.third.transpose) ;
+
+	ret = (B[0]*f.second*B_[0]);
+	ret *= gp.gaussPoints[0].second ;
+	
+	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
+	{
+//		B[i].print() ;
 		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	}
 }

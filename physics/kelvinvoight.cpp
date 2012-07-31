@@ -36,21 +36,16 @@ ElementState * KelvinVoight::createElementState( IntegrableEntity * e)
 
 void KelvinVoight::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	bool isSpaceIdentical = (std::abs(p_i.getPoint()->x-p_j.getPoint()->x) + std::abs(p_i.getPoint()->y-p_j.getPoint()->y) + std::abs(p_i.getPoint()->z-p_j.getPoint()->z)) < POINT_TOLERANCE_2D;
-	bool isTimeIdentical = std::abs(p_i.getPoint()->t-p_j.getPoint()->t) < POINT_TOLERANCE_2D ;
 	Matrix temp(ret) ;
 	Matrix temp0(ret) ;
 	Matrix temp1(ret) ;
+	Matrix temp2(ret) ;
 	
 	vm->ieval(GradientDot(p_i) * eta   * GradientDot(p_j, true), gp, Jinv,v,temp);
+	vm->ieval(GradientDotDot(p_i) * eta   * Gradient(p_j, true), gp, Jinv,v,temp2);
 	vm->ieval(GradientDot(p_i) * param * Gradient(p_j, true),    gp, Jinv,v,temp0) ;
 	vm->ieval(Gradient(p_i)    * param * GradientDot(p_j, true), gp, Jinv,v,temp1);
-// 	if(isTimeIdentical)
-//	{
-//		(temp0+temp1).print();
-// 		exit(0) ;
-//	}
-	ret =(temp0+temp1) + temp*(1.-1./(Jinv[0][2][2]*characteristicTime)) ; //(1.-1./(Jinv[0][2][2]*characteristicTime)) ;
+	ret =(temp0+temp1) + temp+temp2 ;
 }
 
 bool KelvinVoight::fractured() const
@@ -67,6 +62,36 @@ Form * KelvinVoight::getCopy() const
 {
 	return new KelvinVoight(*this) ;
 }
+
+Vector KelvinVoight::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	return VirtualMachine().ieval(GradientDot( shape ) * ( data ), gp, Jinv, v) ;
+}
+
+Vector KelvinVoight::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+{
+	VirtualMachine vm ;
+	
+	size_t n = e->getBoundingPoints().size() ;
+	Vector field(0., n*externaldofs) ;
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
+	
+	std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+	
+	Vector f = vm.ieval( GradientDot( shape ) * g, e, v) ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
+
+	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
+
+	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	
+	return f ;
+}
+
 
 /*IncrementalKelvinVoight::IncrementalKelvinVoight(const Matrix &rig, const Matrix &e, double dt) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e), stiff(rig), tau(dt)
 {

@@ -139,6 +139,10 @@ public:
 						
 	ElementState & operator =(const ElementState &) ;
 	
+	virtual void getExternalField( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local) const ;
+
+	virtual void getExternalFieldAtGaussPoints( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret) const ;
+	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
 	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
@@ -259,7 +263,7 @@ public:
 	int numberOfInternalVariables() const { return n ; }
 	
 	int sizeOfInternalVariable() const { return p ; }
-
+	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
 	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
@@ -477,6 +481,10 @@ public:
 	{
 		return this->space_d ;
 	} ;
+	
+	virtual Vector getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
+
+	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
 	
 	virtual Geometry * getSource() const { return source  ;}
 	virtual void setSource( Geometry * const src ) {source = src ;}

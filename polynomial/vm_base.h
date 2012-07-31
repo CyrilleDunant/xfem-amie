@@ -27,9 +27,11 @@ struct VGtV ;
 struct FMtMtFM ;
 struct DtGtMtG ;
 struct GDtMtGD ;
+struct GDDtMtG ;
 struct GtMtGD ;
 struct GDtMtG ;
 struct GDtV ;
+struct GDtVL ;
 struct IntegrableEntity ;
 struct GaussPointArray ;
 struct Function ;
@@ -37,7 +39,10 @@ struct FunctionMatrix ;
 struct Differential ;
 struct DtF ;
 struct DtD ;
+struct DtV ;
+struct DtVL ;
 struct Gradient ;
+struct GradientDot ;
 struct VectorGradient ;
 
 /** \brief A virtual machine class for computation of symbolic formulas.
@@ -261,6 +266,10 @@ This is the directional derivative.
  */
 	Vector ddeval(const Function&f, const Variable v_0, const Variable v_1, const GaussPointArray & gp, const double eps= default_derivation_delta) ;
 
+	double dddeval(const Function &f, const Variable v_0, const Variable v_1,  const Variable v_2, const double x=0, const double y=0 , const double z=0, const double t=0, const double u=0, const double v=0, const double w=0, const double eps = default_derivation_delta) ;
+
+	Vector dddeval(const Function&f, const Variable v_0, const Variable v_1, const Variable v_2, const GaussPointArray & gp, const double eps= default_derivation_delta) ;
+
 /** \brief Evaluate df/dv_ at (x, y, z, t, u, v, w) for each point for the GaussPointArray.
 @param f Function to evaluate.
 @param v_ Variable with respect to which the differential should be calculated
@@ -314,6 +323,12 @@ The function is assumed to be expressed in the local coordinates of e.
 	Matrix ieval(const GtML &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
 	
 	Vector ieval(const GtVL &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+
+	Vector ieval(const GtV &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	
+	Vector ieval(const GDtV &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
+	
+	Vector ieval(const GDtVL &f, IntegrableEntity *e, const std::vector<Variable> & vars) ;
 	
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient over the IntegrableEntity e, with variables defined by vars. 
 The function is assumed to be expressed in the local coordinates of e.
@@ -410,7 +425,6 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param vars std::vector of space Variable s
 */
 	Matrix ieval(const GDtMtG & f, IntegrableEntity * e , const std::vector<Variable> & vars) ;
-
 	
 	
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a GradientDot over the IntegrableEntity e, with variables defined by vars.
@@ -451,6 +465,8 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param ret Matrix in which to store the results
 */	
 	void ieval(const GDtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+	void ieval(const GDDtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
 /** \brief Overloaded function to compute the integral of a GradientDot times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * GradientDot is the operator \f$ \dot{\nabla}\otimes \f$ operator.
@@ -744,8 +760,12 @@ GradientDot is the usual \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.
 */
 	Matrix gdeval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const double x, const double y, const double  z, const double  t, bool transpose ) ;
 
+	Matrix gdeval(const Function &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+
 	void gdeval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const double x, const double y, const double  z, const double  t, bool transpose, Matrix & ret ) ;
 
+	Matrix gdeval(const GradientDot &f, IntegrableEntity *e, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
+	
 /** \brief Overloaded function to compute the values of the GradientDot f using the array of Matrix m as the inverse Jacobian, with variables defined by vars, at points defined by the GaussPointArray gp.
 GradientDot is the usual \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.
 @param f the function of which the gradient-dot which should be computed.
@@ -755,6 +775,8 @@ GradientDot is the usual \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.
 @param transpose transpose the result if true.
 */
 	std::valarray<Matrix> gdeval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose );
+
+	std::valarray<Matrix> gddeval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose );
 
 /** \brief Overloaded function to compute the values of the gradients of f using array of Matrix m as the inverse Jacobians, with variables defined by vars, at points defined by the GaussPointArray gp.
 Gradient is the usual \f$ \nabla\otimes(\cdot) \f$ operator.

@@ -9,6 +9,7 @@
 #include "../features/features.h"
 #include "../physics/physics_base.h"
 #include "../physics/kelvinvoight.h"
+#include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
@@ -84,54 +85,43 @@ using namespace Mu ;
 
 typedef enum
 {
-	ANALYTICAL = 0,
-	FDI = 1,
-	FDE = 2,
-	STFEM = 3,
-	FULL = 4,
-	QUAD,
-} TimeSteppingScheme ;
-
+	KELVINVOIGHT,
+	MAXWELL,
+	STANDARDLINEARSOLID,
+} ViscoModel ;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 
-Sample box(nullptr, 0.1,0.1,0.,0.) ;
-Sample help(nullptr, 0.1,0.1,0.,0.) ;
+Sample box(nullptr, 1.,1.,0.,0.) ;
 
-double young = 3.*1e9 ;
+double young = 1.*1e9 ;
 double nu = 0.3 ;
-double eta = 60. ;
-double stress = 10.*1e6 ;
+double eta = 1. ;
+double stress = 1.*1e6 ;
+
+double tau = 0.1 ;
+int sampling = 100 ;
 
 Matrix C(3,3) ;
 Matrix E(3,3) ;
+Matrix K(3,3) ;
 
-double day = 1 ;
+ViscoModel model ;
 
-double tau ;
-double alpha ;
-int sampling ;
-TimeSteppingScheme scheme ;
-
-TimeSteppingScheme getTimeSteppingScheme(std::string arg)
+ViscoModel getViscoModel(std::string arg)
 {
-	if(arg == std::string("fdi"))
-			return FDI ;
-	if(arg == std::string("fde"))
-		return FDE ;
-	if(arg == std::string("full"))
-		return FULL ;
-	if(arg == std::string("stfem"))
-		return STFEM ;
-	if(arg == std::string("quad"))
-		return QUAD ;
-	return ANALYTICAL ;
+	if(arg == std::string("kv"))
+		return KELVINVOIGHT ;
+	if(arg == std::string("mx"))
+		return MAXWELL ;
+	if(arg == std::string("sls"))
+		return STANDARDLINEARSOLID ;
 }
 
 double getTimeStep(std::string arg)
 {
-	return atof(arg.c_str())*day ;
+	return atof(arg.c_str()) ;
 }
 
 int getSampling(std::string arg)
@@ -139,229 +129,140 @@ int getSampling(std::string arg)
 	return atoi(arg.c_str()) ;
 }
 
-double getAlpha(std::string arg)
-{
-	double a = atof(arg.c_str()) ;
-	if(a < 0)
-		a = -a ;
-	while(a > 1)
-		a *= 0.1 ;
-	return a ;
-}
-
 Vector getInstants()
 {
-	double steps = 2.*365./tau*day ;
+	double steps = 20./tau ;
 	Vector instants((int) steps) ;
-	instants[0] = tau/2. ;
+	instants[0] = tau ;
 	for(int i = 1 ; i < instants.size() ; i++)
 		instants[i] = instants[i-1] + tau ;
 	return instants ;
 }
 
-std::string getFileName(TimeSteppingScheme s)
+Form * getBehaviour( ViscoModel v , Matrix & C, Matrix & E, Matrix & K)
+{
+	switch(v)
+	{
+		case KELVINVOIGHT:
+			return new KelvinVoight(C,E) ;
+		case MAXWELL:
+			return new Maxwell(C,E) ;
+		case STANDARDLINEARSOLID:
+			return new StandardLinearSolid(K, C, E) ;
+	}
+	return new KelvinVoight(C,E) ;
+}
+
+std::string getFileName(ViscoModel v)
 {
 	std::string name = "visco_" ;
-	switch(s)
+	switch(v)
 	{
-		case FDI:
-			name.append("fdi_") ;
+		case KELVINVOIGHT:
+			name.append("kv_") ;
 			break ;
-		case FDE:
-			name.append("fde_") ;
+		case MAXWELL:
+			name.append("mx_") ;
 			break ;
-		case FULL:
-			name.append("full_") ;
-			break ;
-		case QUAD:
-			name.append("quad_") ;
-			break ;
-		case STFEM:
-			name.append("stfem_") ;
+		case STANDARDLINEARSOLID:
+			name.append("sls_") ;
 			break ;
 	}
 	
 	name.append(itoa(tau)) ;
 	name.append("_") ;
 	name.append(itoa(sampling)) ;
-	if(s == FDI)
-	{
-		name.append("_") ;
-		name.append(itoa(alpha*100)) ;
-	}
 	name.append(".txt") ;
 	return name ;
 }
 
-TimeSteppingScheme getTimeSteppingScheme(int i)
-{
-	switch(i)
-	{
-		case 0:
-			return ANALYTICAL ;
-		case 1:
-			return FDI ;
-		case 2:
-			return FDE ;
-		case 3:
-			return STFEM ;
-	}
-	return ANALYTICAL ;
-}
-
-
 int main(int argc, char *argv[])
 {
-	std::cout << "usage = ./visco <scheme> <time-step> <sampling-number> <alpha>" << std::endl ;
-	std::cout << "\t<scheme>\tstring representing the time-stepping scheme among <fdi> <fde> <stfem>" << std::endl ;
+	std::cout << "usage = ./visco <model> <time-step> <sampling-number>" << std::endl ;
+	std::cout << "\t<model>\tstring representing the viscoelastic model among <kv> <mx> <sls>" << std::endl ;
 	std::cout << "\t<time-step>\tdouble representing the number of days between two time steps" << std::endl ;
 	std::cout << "\t<sampling-number>\tinteger representing the number points at the boundary of the sample" << std::endl ;
-	std::cout << "\t<alpha>\tdouble between 0 and 1 between (for <fdi> only)" << std::endl ;
 	
-	
-	
-	scheme = getTimeSteppingScheme(argv[1]) ;
+	model = getViscoModel( argv[1]) ;
 	tau = getTimeStep(argv[2]) ;
 	sampling = getSampling(argv[3]) ;
-	alpha = getAlpha(argv[4]) ;
 	
 	C[0][0] = 1. ; C[1][0] = nu ; C[2][0] = 0. ;
 	C[0][1] = nu ; C[1][1] = 1. ; C[2][1] = 0. ;
 	C[0][2] = 0. ; C[1][2] = 0. ; C[2][2] = 1.-nu ;
 	
 	C *= young/(1.-nu*nu) ;
-	E = C*eta*day ;
-	Vector decay(3) ;
-	decay[0] = decay[1] = decay[2] = (eta*day) ;
-
-	Matrix results(getInstants().size(), 5) ;
+	E = C*eta ;
+	K = C*3. ;
 	
-/*	for(int s = 0 ; s < 4 ; s++)
+	FeatureTree F(&box) ;
+	F.setSamplingNumber(sampling) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setDeltaTime(tau) ;
+
+	box.setBehaviour( getBehaviour( model, C, E, K ) ) ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	
+	srand(0) ;
+	std::vector<DelaunayTriangle *> tri ;
+	std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
+	std::set<std::pair<DofDefinedBoundaryCondition *, size_t> > pointBC ;
+	BoundingBoxDefinedBoundaryCondition * stressBCRamp = nullptr ;
+	BoundingBoxDefinedBoundaryCondition * stressBCConstant = nullptr ;
+	Function stressRamp("t") ;
+	stressRamp = stressRamp + tau/2 ;
+	stressRamp = stressRamp/tau ;
+	stressRamp = stressRamp * stress ;
+	Function stressConstant("1") ;
+	stressConstant = stressConstant * stress ;
+	Function stressNull("1") ;
+	stressNull = stressNull * 0. ;
+
+	F.step() ;
+	tri = F.getElements2D() ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{	  
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
+		pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
+	}
+	for(auto i = pointList.begin() ; i != pointList.end() ; i++)
 	{
-		scheme = getTimeSteppingScheme(s) ;*/
-	
-		FeatureTree F(&box) ;
-		F.setSamplingNumber(sampling) ;
-		if(scheme == STFEM)
-			F.setOrder(LINEAR_TIME_LINEAR) ;
-		else
-			F.setOrder(LINEAR) ;
-		F.setDeltaTime(tau) ;
-	
-		switch(scheme)
-		{
-			case FDI:
-				box.setBehaviour( new NewmarkNumeroffKelvinVoigt( C, decay, alpha ) ) ;
-				break ;
-			case FDE:
-				box.setBehaviour( new ExponentiallyPredictedKelvinVoigt( C, decay ) ) ;
-				break ;
-			case STFEM:
-				box.setBehaviour( new KelvinVoight( C, E, eta*day ) ) ;
-				break ;
-			case ANALYTICAL:
-				box.setBehaviour( new Stiffness( C ) ) ;
-				break ;
-		}
-	
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	
-		srand(0) ;
-		std::vector<DelaunayTriangle *> tri ;
-		std::set<std::pair<std::pair<Point *, Point *>, DelaunayTriangle *> > pointList ;
-		std::set<std::pair<DofDefinedBoundaryCondition *, size_t> > pointBC ;
-		BoundingBoxDefinedBoundaryCondition * stressBC = nullptr ;
-		Function stressRamp("t") ;
-		switch(scheme)
-		{
-			case STFEM:
-				F.step() ;
-				tri = F.getElements2D() ;
-				for(size_t i = 0 ; i < tri.size() ; i++)
-				{	  
-					pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(0),&tri[i]->getBoundingPoint(3)), tri[i])) ;
-					pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(1),&tri[i]->getBoundingPoint(4)), tri[i])) ;
-					pointList.insert(std::make_pair(std::make_pair(&tri[i]->getBoundingPoint(2),&tri[i]->getBoundingPoint(5)), tri[i])) ;
-				}
-				for(auto i = pointList.begin() ; i != pointList.end() ; i++)
-				{
-					pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_XI, i->second, i->first.first->id, 0),i->first.second->id*2)) ;
-					pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
-				}
-	
-				for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
-					F.addBoundaryCondition(i->first) ;
-			
-				stressRamp = stressRamp + tau/2 ;
-				stressRamp = stressRamp/tau ;
-				stressRamp = stressRamp * stress*0.5 ;
-				stressBC = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressRamp) ;
-		
-				F.addBoundaryCondition(stressBC) ;
-				break ;
-			case FDI:
-			case FDE:
-			case ANALYTICAL:
-				stressBC = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, stress) ;
-				break ;
-			
-		}
-	
-		srand(0) ;
-		size_t imax = 5 ;
-		imax = getInstants().size() ;
-		if(scheme == FDE || scheme == FDI)
-			imax += 2 ;
-		
-		for(size_t i = 0 ; i < imax ; i++)
-		{
-			if(i == 0 && scheme == ANALYTICAL)
-			{
-				F.addBoundaryCondition(stressBC) ;			
-			}
+		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_XI, i->second, i->first.first->id, 0),i->first.second->id*2)) ;
+		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
+	}
 
-			if(i == 2 && (scheme == FDI || scheme == FDE ))
-			{
-				F.addBoundaryCondition(stressBC) ;
-			}
+	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)
+		F.addBoundaryCondition(i->first) ;
+		
+	stressBCRamp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressRamp) ;
+	stressBCConstant = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 0.) ;
 	
-			F.step() ;
-			Vector x = F.getDisplacements() ;
-			std::pair<Vector, Vector> all = F.getStressAndStrain() ;
-			std::cout << all.first.max() << std::endl ;
-			if(scheme == ANALYTICAL)
-				x *= 1. - std::exp( - getInstants()[i] / eta ) ;
-/*			if(scheme == FDI || scheme == FDE)
-			{
-				if(i >= 2)
-				{
-					results[i-2][s+1] = x.max() ;
-					results[i-2][0] = getInstants()[i] ;
-				}
-			}
-			else
-			{
-					results[i][s+1] = x.max() ;
-					results[i][0] = getInstants()[i] ;
-			}*/
+	F.addBoundaryCondition(stressBCRamp) ;
+	F.addBoundaryCondition(stressBCConstant) ;
 
-			for(auto j = pointBC.begin() ; j != pointBC.end() ; j++)
-				j->first->setData(x[j->second]) ;
-
-			if(i == 1 && scheme == STFEM)
-			{
-				Function stressConstant("1") ;
-				stressConstant = stressConstant * (stress) ;
-				stressBC->setData( stressConstant ) ;
-			}
-		
-		
-		}
-//	}
+	size_t imax = getInstants().size() ;
+//	imax = 1 ;
 	
-//	results.print() ;
-		
+	for(size_t i = 0 ; i < imax ; i++)
+	{
+		double t = getInstants()[i] ;
+		F.step() ;
+		Vector x = F.getDisplacements() ;
+		std::cout << x.max() << "\t" << 0.001*(1+t) << std::endl ;
+
+		for(auto j = pointBC.begin() ; j != pointBC.end() ; j++)
+			j->first->setData(x[j->second]) ;
+
+		if(i == 0)
+		{
+			stressBCRamp->setData( stressNull ) ;
+			stressBCConstant->setData( stress ) ;
+		}		
+	}
+	
 	return 0 ;
 }
 
