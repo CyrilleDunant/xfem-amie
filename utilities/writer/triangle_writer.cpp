@@ -334,20 +334,26 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
+						Vector strain0(3) ;
+						Vector strain1(3) ;
+						Vector strain2(3) ;
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->third, strain0, false);
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->second, strain1, false);
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->third, strain2, false);
 						// epsilon11
-						ret[8][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
-						ret[7][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
-						ret[6][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
+						ret[8][iterator]   = strain2[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
+						ret[7][iterator]   = strain1[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
+						ret[6][iterator]   = strain0[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
 
 						// epsilon12
-						ret[5][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1 + 3 * time_offset] ;
-						ret[4][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1 + 3 * time_offset] ;
-						ret[3][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1 + 3 * time_offset] ;
+						ret[5][iterator]   = strain2[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + pointsPerTri/3 + 3 * time_offset] ;
+						ret[4][iterator]   = strain1[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + pointsPerTri/3 + 3 * time_offset] ;
+						ret[3][iterator]   = strain0[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + pointsPerTri/3 + 3 * time_offset] ;
 
 						// epsilon22
-						ret[2][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2 + 3 * time_offset] ;
-						ret[1][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
-						ret[0][iterator++] = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
+						ret[2][iterator]   = strain2[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[1][iterator]   = strain1[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[0][iterator++] = strain0[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
 					}
 					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
@@ -376,35 +382,59 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
+						Vector strain0(3) ;
+						Vector strain1(3) ;
+						Vector strain2(3) ;
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->third, strain0, false);
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->second, strain1, false);
+						triangles[i]->getState().getField(STRAIN_FIELD, *triangles[i]->third, strain2, false);
+						
 						// epsilon11
-						ret[17][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
-						ret[16][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
-						ret[15][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
+						ret[17][iterator]   = strain2[0];
+						ret[16][iterator]   = strain1[0];
+						ret[15][iterator]   = strain0[0];
 
 						// epsilon12
-						ret[14][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1 + 3 * time_offset] ;
-						ret[13][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1 + 3 * time_offset] ;
-						ret[12][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1 + 3 * time_offset] ;
+						ret[14][iterator]   = strain2[1];
+						ret[13][iterator]   = strain1[1];
+						ret[12][iterator]   = strain0[1];
 
 						// epsilon22
-						ret[11][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2 + 3 * time_offset] ;
-						ret[10][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
-						ret[9][iterator]    = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
+						ret[11][iterator]   = strain2[2];
+						ret[10][iterator]   = strain1[2];
+						ret[9][iterator]    = strain0[2];
+						// epsilon11
+// 						ret[17][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
+// 						ret[16][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
+// 						ret[15][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
+// 
+// 						// epsilon12
+// 						ret[14][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
+// 						ret[13][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
+// 						ret[12][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
+// 
+// 						// epsilon22
+// 						ret[11][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+// 						ret[10][iterator]   = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+// 						ret[9][iterator]    = stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
 
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->third, strain0, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->second, strain1, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->third, strain2, false);
 						// sigma11
-						ret[8][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
-						ret[7][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
-						ret[6][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
+						ret[8][iterator]   = strain2[0];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
+						ret[7][iterator]   = strain1[0];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
+						ret[6][iterator]   = strain0[0];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
 
 						// sigma12
-						ret[5][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1 + 3 * time_offset] ;
-						ret[4][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1 + 3 * time_offset] ;
-						ret[3][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1 + 3 * time_offset] ;
+						ret[5][iterator]   = strain2[1];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
+						ret[4][iterator]   = strain1[1];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
+						ret[3][iterator]   = strain0[1];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1*pointsPerTri/3 + 3 * time_offset] ;
 
 						// sigma22
-						ret[2][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2 + 3 * time_offset] ;
-						ret[1][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
-						ret[0][iterator++] = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
+						ret[2][iterator]   = strain2[2];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[1][iterator]   = strain1[2];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[0][iterator++] = strain0[2];//stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
 					}
 					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
@@ -448,20 +478,26 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( triangles[i]->getBehaviour()&& triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
-						// sigma11
-						ret[8][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
-						ret[7][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
-						ret[6][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
+						Vector strain0(3) ;
+						Vector strain1(3) ;
+						Vector strain2(3) ;
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->third, strain0, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->second, strain1, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, *triangles[i]->third, strain2, false);
+						// epsilon11
+						ret[8][iterator]   = strain2[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 0 + 3 * time_offset] ;
+						ret[7][iterator]   = strain1[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 0 + 3 * time_offset] ;
+						ret[6][iterator]   = strain0[0];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 0 + 3 * time_offset] ;
 
-						// sigma12
-						ret[5][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 1 + 3 * time_offset] ;
-						ret[4][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 1 + 3 * time_offset] ;
-						ret[3][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 1 + 3 * time_offset] ;
+						// epsilon12
+						ret[5][iterator]   = strain2[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + pointsPerTri/3 + 3 * time_offset] ;
+						ret[4][iterator]   = strain1[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + pointsPerTri/3 + 3 * time_offset] ;
+						ret[3][iterator]   = strain0[1];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + pointsPerTri/3 + 3 * time_offset] ;
 
-						// sigma22
-						ret[2][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2 + 3 * time_offset] ;
-						ret[1][iterator]   = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2 + 3 * time_offset] ;
-						ret[0][iterator++] = stress_strain.first[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2 + 3 * time_offset] ;
+						// epsilon22
+						ret[2][iterator]   = strain2[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 0 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[1][iterator]   = strain1[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 1 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
+						ret[0][iterator++] = strain0[2];//stress_strain.second[i * 3 * pointsPerTri + pointsPerPlane * 2 * factor + 2*pointsPerTri/3 + 3 * time_offset] ;
 					}
 					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 					{
@@ -658,7 +694,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						double d = triangles[i]->getBehaviour()->getDamageModel()->getState().max();
 						if(!triangles[i]->getBehaviour()->getDamageModel()->converged)
 						{
-							std::cout << "WTF ??" << std::endl ;
+							std::cout << "unconverged" << std::endl ;
 //							exit(0) ;
 						}
 						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )

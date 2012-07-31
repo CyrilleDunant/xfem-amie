@@ -283,9 +283,9 @@ double PlasticStrain::getPlasticity() const
 	Vector istrain = imposedStrain*getState()[0]+dimposedStrain*(1.-getState()[0]) ;
 	double currentPlaticVariable = sqrt(2./3.)*sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
 	if(inCompression )
-		currentPlaticVariable += compressivePlasticVariable ;
+		currentPlaticVariable += sqrt(2./3.)*sqrt(previousCompressiveImposedStrain[0]*previousCompressiveImposedStrain[0]+previousCompressiveImposedStrain[1]*previousCompressiveImposedStrain[1]+previousCompressiveImposedStrain[2]*previousCompressiveImposedStrain[2]) ;//compressivePlasticVariable ;
 	else
-		currentPlaticVariable += tensilePlasticVariable ;
+		currentPlaticVariable += sqrt(2./3.)*sqrt(previousTensileImposedStrain[0]*previousTensileImposedStrain[0]+previousTensileImposedStrain[1]*previousTensileImposedStrain[1]+previousTensileImposedStrain[2]*previousTensileImposedStrain[2]) ;//tensilePlasticVariable ;
 	return currentPlaticVariable ;
 }
 

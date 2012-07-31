@@ -1364,17 +1364,17 @@ int main(int argc, char *argv[])
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	Stiffness * s = new Stiffness(m0) ;
 	Stiffness * ss = new Stiffness(m1) ;
-	std::cout << feats.size() << std::endl ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
-	{
-		feats[i]->setCenter(feats[i]->getCenter()*10000.);
-		dynamic_cast<Inclusion3D *>(feats[i])->setRadius(feats[i]->getRadius()*10000.)  ;
-		F.addFeature(&samplers, feats[i]) ;
-		feats[i]->setBehaviour(ss) ;
-// 		feats[i]->setBehaviour(new VoidForm()) ;
-// 		feats[i]->setBehaviour(new Laplacian(d1)) ;
-// 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
-	}
+// 	std::cout << feats.size() << std::endl ;
+// 	for(size_t i = 0 ; i < feats.size() ; i++)
+// 	{
+// 		feats[i]->setCenter(feats[i]->getCenter()*10000.);
+// 		dynamic_cast<Inclusion3D *>(feats[i])->setRadius(feats[i]->getRadius()*10000.)  ;
+// 		F.addFeature(&samplers, feats[i]) ;
+// 		feats[i]->setBehaviour(ss) ;
+// // 		feats[i]->setBehaviour(new VoidForm()) ;
+// // 		feats[i]->setBehaviour(new Laplacian(d1)) ;
+// // 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
+// 	}
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(0.,6) ; a[0] = 1 ; a[1] = 1 ; ; a[2] = 1 ; 
@@ -1385,7 +1385,7 @@ int main(int argc, char *argv[])
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	F.addFeature(&samplers, inc) ;
 // 	F.addFeature(&samplers, inc0) ;
-	F.setSamplingNumber(1024) ;
+	F.setSamplingNumber(atoi(argv[1])) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;

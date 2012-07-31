@@ -145,8 +145,6 @@ public:
 	virtual const Vector & getState() const { return state ;} ;
 	virtual Vector & getState(bool) ;
 	
-	Vector smoothedState(const ElementState &s, bool setUpdate) const ;
-
 	/** \brief Increment the damage from the current state of the element considered
 	 * 
 	 * @param s ElementState

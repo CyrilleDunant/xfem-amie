@@ -45,7 +45,9 @@ Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int
 
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-	if(inGeometry->in(p))
+	VirtualMachine vm ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
+	if(inGeometry->in(test))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStress(p,e,g) ;
@@ -55,7 +57,9 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-	if(inGeometry->in(p))
+	VirtualMachine vm ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
+	if(inGeometry->in(test))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStrain(p,e,g) ;

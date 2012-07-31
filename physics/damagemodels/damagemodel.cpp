@@ -102,7 +102,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
 		
-		double n = 5. ;
+		double n = 11. ;
 		if(states.size() <= n)
 		{
 			if(states.size() == 1)
@@ -200,7 +200,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			states[i].print();
 // 		}
 		
-		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > 24
+		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > 32
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
@@ -248,7 +248,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 				exit(0) ;
 // 			}
 		}
-		else if(states.size() > 24)
+		else if(states.size() > 32)
 		{
 			double minscoreRatio = states[0].fraction ;
 			double mindeltaRatio = states[0].fraction ;
@@ -328,62 +328,6 @@ double DamageModel::getSecondaryThresholdDamageDensity() const
 Vector &DamageModel::getState( bool )
 {
 	return state ;
-}
-
-
-Vector DamageModel::smoothedState( const ElementState &s , bool setUpdate) const
-{
-// 	if( !s.getParent()->getBehaviour()->getFractureCriterion() )
-		return getState() ;
-/*
-
-	double fracturedFraction = 0 ;
-	auto fiterator =  &s.getParent()->getBehaviour()->getFractureCriterion()->factors[0] ;
-	std::vector <unsigned int> cache = s.getParent()->getBehaviour()->getFractureCriterion()->cache ;
-	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-	{
-		Vector stra = getState()*(*fiterator) ;
-		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *s.getParent()->getBehaviour()->getFractureCriterion()->mesh2d )[cache[i]] ) ;
-			if(ci->getBehaviour()->fractured())
-			{
-				fracturedFraction += *fiterator ;
-				fiterator++ ;
-				continue ;
-			}
-
-			stra += ci->getBehaviour()->getDamageModel()->getState()*(*fiterator) ;
-			fiterator++ ;
-		}
-		stra /= s.getParent()->getBehaviour()->getFractureCriterion()->factors.back()-fracturedFraction ;
-		return stra ;
-	}
-	else if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-	{
-		Vector stra = getState() *(*fiterator) ;
-		fiterator++ ;
-		for( size_t i = 0 ; i < cache.size() ; i++ )
-		{
-			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *s.getParent()->getBehaviour()->getFractureCriterion()->mesh3d )[cache[i]] ) ;
-			
-			if( ci->getBehaviour()->fractured() || *fiterator < POINT_TOLERANCE_2D)
-			{
-				fracturedFraction += *fiterator ;
-				fiterator++ ;
-				continue ;
-			}
-			Vector stri(0., 6) ;
-			ci->getState().getFieldAtCenter( STRAIN_FIELD, stri) ;
-			stra += stri*(*fiterator) ;
-			fiterator++ ;
-		}
-		stra /= s.getParent()->getBehaviour()->getFractureCriterion()->factors.back()-fracturedFraction ;
-		return stra ;
-	}
-	
-	return getState() ;*/
 }
 
 void DamageModel::setThresholdDamageDensity( double d )

@@ -4385,8 +4385,7 @@ bool FeatureTree::stepElements()
 				
 				std::cerr << " ...done. " << std::endl ;
 				
-//#pragma omp parallel for reduction(+:volume,adamage) 
-
+#pragma omp parallel for reduction(+:volume,adamage) 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
