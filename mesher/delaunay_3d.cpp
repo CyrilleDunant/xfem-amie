@@ -827,14 +827,23 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std
 
 void DelaunayTreeItem3D::removeNeighbour( DelaunayTreeItem3D *t )
 {
-	unsigned int *e = std::find( &neighbour[0], &neighbour[neighbour.size()], t->index ) ;
 
-	if( e !=  &neighbour[neighbour.size()] )
+	unsigned int* e = std::find(&neighbour[0], &neighbour[neighbour.size()], t->index) ;
+
+	if(e !=  &neighbour[neighbour.size()])
 	{
-		std::valarray<unsigned int>  newneighbours( neighbour.size() - 1 ) ;
-		std::copy( &neighbour[0], e, &newneighbours[0] ) ;
-		std::copy( e + 1, &neighbour[neighbour.size()], &newneighbours[e - &neighbour[0]] ) ;
-		neighbour.resize( neighbour.size() - 1 ) ;
+		std::valarray<unsigned int>  newneighbours(neighbour.size()-1) ;
+		int iterator = 0 ;
+		for(int i = 0 ; i < neighbour.size() ; i++)
+		{
+			if(neighbour[i] == t->index)
+				continue ;
+			
+			newneighbours[iterator] = neighbour[i] ;
+			iterator++ ;
+		}
+
+		neighbour.resize(neighbour.size()-1) ;
 		neighbour = newneighbours ;
 	}
 }
@@ -843,7 +852,7 @@ void DelaunayTetrahedron::removeNeighbourhood( DelaunayTetrahedron *t )
 {
 	unsigned int *e = std::find( &neighbourhood[0], &neighbourhood[neighbourhood.size()], t->index ) ;
 
-	if( e !=  &neighbour[neighbour.size()] )
+	if( e !=  &neighbourhood[neighbourhood.size()] )
 	{
 		std::valarray<unsigned int>  newneighbours( neighbourhood.size() - 1 ) ;
 		std::copy( &neighbourhood[0], e, &newneighbours[0] ) ;

@@ -988,7 +988,7 @@ void DelaunayTriangle::removeNeighbourhood(DelaunayTriangle * t)
 {
 	unsigned int* e = std::find(&neighbourhood[0], &neighbourhood[neighbourhood.size()], t->index) ;
 
-	if(e !=  &neighbour[neighbour.size()])
+	if(e !=  &neighbourhood[neighbourhood.size()])
 	{
 		std::valarray<unsigned int>  newneighbours(neighbourhood.size()-1) ;
 		std::copy(&neighbourhood[0], e, &newneighbours[0]) ;
