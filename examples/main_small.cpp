@@ -1377,13 +1377,17 @@ int main(int argc, char *argv[])
 // 	}
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
+	
 	Vector a(0.,6) ; a[0] = 1 ; a[1] = 1 ; ; a[2] = 1 ; 
 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100, 200, 200, 200, m1, a) ;
+	
 // 	Inclusion3D * inc = new Inclusion3D(100/*166.11322368308294*/, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
 // 	inc->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
+	
 	F.addFeature(&samplers, inc) ;
+	
 // 	F.addFeature(&samplers, inc0) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
