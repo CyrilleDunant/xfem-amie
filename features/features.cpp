@@ -3752,7 +3752,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<D
 {
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
-	std::pair<Vector , Vector > stress_strain( Vector( 4 * 6 * tets.size() ), Vector( 4 * 6 * tets.size() ) ) ;
+	std::pair<Vector , Vector > stress_strain( Vector( tets[0]->getBoundingPoints().size() * 6 * tets.size() ), Vector( 4 * 6 * tets.size() ) ) ;
 
 	for( size_t i  = 0 ; i < tets.size() ; i++ )
 	{
@@ -3762,11 +3762,11 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<D
 		pts[2] =  tets[i]->third ;
 		pts[3] =  tets[i]->fourth ;
 
-		Vector strain(0., 24) ;
-		Vector stress(0., 24) ;
+		Vector strain(0., tets[0]->getBoundingPoints().size() * 6) ;
+		Vector stress(0., tets[0]->getBoundingPoints().size() * 6) ;
 		tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, tets[i]->getBoundingPoints(), strain, stress, false) ;
 
-		for( size_t j = 0 ; j < 4 ; j++ )
+		for( size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++ )
 		{
 			for( size_t k = 0 ; k < 6 ; k++ )
 			{
