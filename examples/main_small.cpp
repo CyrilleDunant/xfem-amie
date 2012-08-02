@@ -408,10 +408,10 @@ void step()
 		
 	}
 	
-	VoxelWriter vw("sphere_stress", 200) ;
+	VoxelWriter vw("sphere_stress", 100) ;
 	vw.getField(featureTree, VWFT_STRESS) ;
 	vw.write();
-	VoxelWriter vw0("sphere_strain", 200) ;
+	VoxelWriter vw0("sphere_strain", 100) ;
 	vw0.getField(featureTree, VWFT_STRAIN) ;
 	vw0.write();
 	exit(0) ;
@@ -1345,7 +1345,7 @@ int main(int argc, char *argv[])
 	int inclusionNumber = 0 ; //48000*2 ;
 
 //	std::vector<Inclusion3D *> inclusions = GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-	std::vector<Inclusion3D *> inclusions = ParticleSizeDistribution::get3DInclusions(0.0025, 5.44e-5, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
+// 	std::vector<Inclusion3D *> inclusions = ParticleSizeDistribution::get3DInclusions(0.0025, 5.44e-5, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
 //	GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
 // 	if(inclusionNumber)
 // 		itzSize = inclusions[inclusions.size()-1]->getRadius() ;
@@ -1354,11 +1354,11 @@ int main(int argc, char *argv[])
 // 
 // 	inclusions = GranuloBolome(3.84e-05/1.8, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
 
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-		feats.push_back(inclusions[i]) ;
+// 	std::vector<Feature *> feats ;
+// 	for(size_t i = 0; i < inclusions.size() ; i++)
+// 		feats.push_back(inclusions[i]) ;
 
-	int nAgg = 6000 ;
+// 	int nAgg = 6000 ;
 	
 	MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
@@ -1378,24 +1378,42 @@ int main(int argc, char *argv[])
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	
-	Vector a(0.,6) ; a[0] = 1 ; a[1] = 1 ; ; a[2] = 1 ; 
-	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100, 200, 200, 200, m1, a) ;
+	Vector a(0.,6) ; a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
+// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100, 200, 200, 200, m1, a) ;
 	
-// 	Inclusion3D * inc = new Inclusion3D(100/*166.11322368308294*/, 200, 200, 200) ;
+	Inclusion3D * inc = new Inclusion3D(100, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-// 	inc->setBehaviour(new /*WeibullDistributed*/Stiffness(m1/*,0.4*/)) ;
+	inc->setBehaviour(new StiffnessWithImposedDeformation(m1,a)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	
 	F.addFeature(&samplers, inc) ;
 	
 // 	F.addFeature(&samplers, inc0) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_RIGHT_BACK)) ;
+// 	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;
+// 	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+	
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+
 	F.setOrder(QUADRATIC) ;
 
 	step() ;

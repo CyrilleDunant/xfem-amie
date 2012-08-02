@@ -1853,10 +1853,6 @@ std::vector<double> ElementState::getInterpolatingFactors( const Point &p, bool 
 	return ret;
 }
 
-
-
-
-
 void ElementState::initialize( bool initializeFractureCache )
 {
 	size_t ndofs = 0 ;
