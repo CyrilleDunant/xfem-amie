@@ -466,7 +466,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 					y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
 				}
 
-				Matrix Jinv( 2, 2 ) ;
+				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -579,7 +579,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 					y_eta += f_eta * displacements[j * 2 + 1] ;
 				}
 
-				Matrix Jinv( 2, 2 ) ;
+				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -618,7 +618,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				}
 
 
-				Matrix Jinv( 3, 3 ) ;
+				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
@@ -2465,8 +2465,8 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
-					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
-					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ , 1e-5) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ , 1e-5) ;
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 					y_xi += f_xi * displacements[j * 2 + 1] ;
@@ -2484,11 +2484,12 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 					y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
 				}
 
-				Matrix Jinv( 3, 3 ) ;
+				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret *= Jinv[2][2] ;
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 			{
@@ -2580,8 +2581,8 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
-					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
-					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ) ;
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ,1e-4) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ ,1e-4) ;
 					x_xi += f_xi * displacements[j * 2] ;
 					x_eta += f_eta * displacements[j * 2] ;
 					y_xi += f_xi * displacements[j * 2 + 1] ;
@@ -2735,8 +2736,9 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, co
 		return ;
 	}
 	
-	ElementState::getField(f1, p, ret1, local, i) ;
-	ElementState::getField(f2, p, ret2, local, j) ;
+	
+	this->getField(f1, p, ret1, local, i) ;
+	this->getField(f2, p, ret2, local, j) ;
   
 }
 
