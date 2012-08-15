@@ -55,7 +55,7 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 														ring[i]->getBehaviour()->getCopy(),new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														ring[i]->getBehaviour()->getCopy()
 														)) ;
-			ring[i]->getBehaviour()->transform(ring[i]->getXTransform(), ring[i]->getYTransform()) ;
+			ring[i]->getBehaviour()->transform(ring[i]) ;
 		}
 		
 		newInterfaced.insert(ring[i]) ;
@@ -80,7 +80,7 @@ void ExpansiveRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTree
 														new StiffnessWithImposedDeformation(cgTensor, imposedDef),
 														disc[0]->getBehaviour()->getCopy()
 														)) ;
-			disc[0]->getBehaviour()->transform(disc[0]->getXTransform(), disc[0]->getYTransform()) ;
+			disc[0]->getBehaviour()->transform(disc[0]) ;
 		}
 		
 		newBiInterfaced.insert(disc[0]) ;

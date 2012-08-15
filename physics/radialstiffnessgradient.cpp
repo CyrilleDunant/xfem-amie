@@ -11,6 +11,7 @@
 //
 
 #include "radialstiffnessgradient.h"
+#include "../elements/elements.h"
 
 using namespace Mu ;
 
@@ -38,10 +39,11 @@ RadialStiffnessGradient::~RadialStiffnessGradient()
 	delete criterion ;
 }
 
-void RadialStiffnessGradient::transform(const Function & x, const Function & y)
+void RadialStiffnessGradient::transform(ElementarySurface * e)
 {
+	Function x = e->getXTransform() ;
+	Function y = e->getYTransform() ;
 	r = f_sqrt(((x-centre.x)^2)+((y-centre.y)^2)) -r_int;
-	r.compile() ;
 }
 
 void RadialStiffnessGradient::setFractureCriterion(FractureCriterion * crit)

@@ -101,12 +101,9 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 				hint.push_back(disc[i]->inLocalCoordinates(samplingPoints[j])) ;
 			}
 			
-						//we build the enrichment function, first, we get the transforms from the triangle
-			Function x = disc[i]->getXTransform() ;
-			Function y = disc[i]->getYTransform() ;
-			
-				//this function returns the distance to the centre
-			Function position(getCenter(), x, y) ;
+			//we build the enrichment function, first, we get the transforms from the triangle
+			//this function returns the distance to the centre
+			Function position(getCenter(),disc[i]) ;
 			
 				//finaly, we have the enrichment function
 			Function hat = 1-f_abs(position -radius)/radius;
@@ -215,11 +212,9 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 					//else the ring is too thin. There is no point to try and mesh it
 
 				}
-				//we build the enrichment function, first, we get the transforms from the triangle
-				Function x = ring[i]->getXTransform() ;
-				Function y = ring[i]->getYTransform() ;
+
 				//this function returns the distance to the centre
-				Function position(getCenter(), x, y) ;
+				Function position(getCenter(), ring[i]) ;
 				
 				//finaly, we have the enrichment function
 				Function hatOut = 1-f_abs(position -radius)/radius;
@@ -261,10 +256,8 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 							t->clearEnrichment(circles[h]) ;
 						t->enrichmentUpdated = true ;
 						
-						Function hatOut = 1-f_abs(Function(getCenter(), 
-										t->getXTransform(), t->getYTransform()) -radius)/radius;
-						Function hatIn = 1-f_abs(Function(getCenter(), 
-										t->getXTransform(), t->getYTransform()) - getInRadius())/getInRadius();
+						Function hatOut = 1-f_abs(Function(getCenter(),t) -radius)/radius;
+						Function hatIn = 1-f_abs(Function(getCenter(),t) - getInRadius())/getInRadius();
 						Function hat ;
 
 						if(h == 0)

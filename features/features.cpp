@@ -2230,7 +2230,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-							b->transform( t->getXTransform(), t->getYTransform() ) ;
+							b->transform( t ) ;
 							if(targets[i]->getBehaviourSource())
 								b->setSource(targets[i]->getBehaviourSource());
 							else
@@ -2250,7 +2250,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-						b->transform( t->getXTransform(), t->getYTransform() ) ;
+						b->transform( t) ;
 						if(targets[i]->getBehaviourSource())
 							b->setSource(targets[i]->getBehaviourSource());
 						else
@@ -2289,7 +2289,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 					b->setSource(tree[root_box]->getBehaviourSource());
 				else
 					b->setSource(tree[root_box]);
-				b->transform( t->getXTransform(), t->getYTransform() ) ;
+				b->transform( t ) ;
 				return b ;
 			}
 		}
@@ -2309,7 +2309,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 					b->setSource(tree[root_box]->getBehaviourSource());
 				else
 					b->setSource(tree[root_box]);
-			b->transform( t->getXTransform(), t->getYTransform() ) ;
+			b->transform( t ) ;
 			return b ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
@@ -2407,7 +2407,7 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 						else
 						{
 							Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-							b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+							b->transform( t ) ;
 							if(targets[i]->getBehaviourSource())
 								b->setSource(targets[i]->getBehaviourSource());
 							else
@@ -2428,7 +2428,7 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 					else
 					{
 						Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-						b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+						b->transform( t ) ;
 						if(targets[i]->getBehaviourSource())
 							b->setSource(targets[i]->getBehaviourSource());
 						else
@@ -2467,7 +2467,7 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 					b->setSource(tree[root_box]->getBehaviourSource());
 				else
 					b->setSource(tree[root_box]);
-				b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+				b->transform( t ) ;
 				return b ;
 			}
 		}
@@ -2487,7 +2487,7 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 				b->setSource(tree[root_box]->getBehaviourSource());
 			else
 				b->setSource(tree[root_box]);
-			b->transform( t->getXTransform(), t->getYTransform(), t->getZTransform() ) ;
+			b->transform( t ) ;
 			return b ;
 		}
 		Form *b = tree[root_box]->getBehaviour( t->getCenter() )->getCopy() ;
@@ -4385,7 +4385,7 @@ bool FeatureTree::stepElements()
 				
 				std::cerr << " ...done. " << std::endl ;
 				
-#pragma omp parallel for reduction(+:volume,adamage) 
+// #pragma omp parallel for reduction(+:volume,adamage) 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 

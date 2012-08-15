@@ -173,11 +173,13 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 		size_t id ;
 		ElementarySurface * surface ;
 		ElementaryVolume * volume ;
+		std::valarray<Matrix> Jinv ;
+		GaussPointArray gp ;
 	public:
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface , size_t id, double d = 0 ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface , size_t id, double d = 0 ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface , size_t id, const Function & d ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface , size_t id, const Function & d ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, size_t id, double d = 0 ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d = 0 ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;

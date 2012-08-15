@@ -3,6 +3,7 @@
 #include "triple_behaviour.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
+#include "../elements/elements.h"
 
 using namespace Mu ;
 
@@ -10,12 +11,10 @@ TrimaterialInterface::TrimaterialInterface(Geometry * in,Geometry * out, Form * 
 
 TrimaterialInterface::~TrimaterialInterface() { } ;
 
-void TrimaterialInterface::transform(const Function & x, const Function & y)
+void TrimaterialInterface::transform(ElementarySurface * e)
 {
-	xtransform = x ;
-	xtransform.compile() ;
-	ytransform = y ;
-	ytransform.compile() ;
+	xtransform = e->getXTransform() ;
+	ytransform = e->getYTransform() ;
 }
 
 Matrix TrimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const

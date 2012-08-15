@@ -40,7 +40,7 @@ public:
 	 * @param x x transformation
 	 * @param y y transformation
 	 */
-	virtual void transform(const Function & x, const Function & y) ;
+	virtual void transform(ElementarySurface*) ;
 
 	/** \brief Set the coordinate transformation functions to use to determin whether a point expressed in the local coordinates of an element lies in or out the Geometry
 	 * 
@@ -48,7 +48,7 @@ public:
 	 * @param y y transformation
 	 * @param z z transformation
 	 */
-	virtual void transform(const Function & x, const Function & y, const Function & z) ;
+	virtual void transform(ElementaryVolume *) ;
 	
 	/** \brief return the linear factor of the behaviour corresponding to the position given
 	 * 

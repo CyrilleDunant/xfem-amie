@@ -60,7 +60,7 @@ public:
 	 * @param x x transformation
 	 * @param y y transformation
 	 */
-	virtual void transform(const Function & x, const Function & y);
+	virtual void transform(ElementarySurface *);
 	
 	/** \brief Return the stifness tensor at the point considered
 	*

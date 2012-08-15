@@ -230,8 +230,16 @@ int main(int argc, char *argv[])
 	}
 	for(auto i = pointList.begin() ; i != pointList.end() ; i++)
 	{
-		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_XI, i->second, i->first.first->id, 0),i->first.second->id*2)) ;
-		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second, i->first.first->id, 0),i->first.second->id*2+1)) ;
+		GaussPointArray gp = i->second->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), i->second->getGaussPoints().gaussPoints.size() ) ;
+						
+		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		{
+			i->second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+		
+		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_XI, i->second,gp,Jinv, i->first.first->id, 0),i->first.second->id*2)) ;
+		pointBC.insert(std::make_pair(new DofDefinedBoundaryCondition(SET_ALONG_ETA,i->second,gp,Jinv, i->first.first->id, 0),i->first.second->id*2+1)) ;
 	}
 
 	for(auto i = pointBC.begin() ; i != pointBC.end() ; i++)

@@ -42,27 +42,27 @@ ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementaryVolu
 {
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume )
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -128,6 +128,12 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -143,16 +149,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				imposed[0] = data ;
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 				  					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -178,6 +178,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 							shapeFunctions.push_back( e->getShapeFunction( k ) ) ;
 						}
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -193,16 +198,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				imposed[0] = 0 ;
 				imposed[1] = data ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
 
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -225,6 +224,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -239,16 +243,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
 				imposed[2] = data ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -271,6 +269,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -284,17 +287,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				Vector imposed( 2 ) ;
 				imposed[0] = data ;
 				imposed[1] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i] ) ;
 				}
 
@@ -315,6 +312,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -328,17 +330,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 				Vector imposed( 2 ) ;
 				imposed[0] = 0 ;
 				imposed[1] = data ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i] ) ;
 				}
 
@@ -351,7 +347,7 @@ void apply2DBC( ElementarySurface *e,  const std::vector<size_t> & id, LagrangeM
 	}
 }
 
-void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
 {
 // 	std::cout << "splash" << std::endl ;
 // 	std::cout << (size_t)(e) << std::endl ;
@@ -434,6 +430,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -449,17 +450,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[0] = data ;
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i] ) ;
 				}
 
@@ -480,6 +475,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -495,17 +495,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[0] = 0 ;
 				imposed[1] = data ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i] ) ;
 				}
 
@@ -526,6 +520,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -541,17 +540,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
 				imposed[2] = data ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i] ) ;
 				}
 
@@ -571,6 +564,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -589,16 +587,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -623,6 +615,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -641,16 +638,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -674,6 +665,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -692,16 +688,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -725,6 +715,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -743,16 +738,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = data ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -776,6 +765,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -794,16 +788,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = 0 ;
 				imposed[4] = data ;
 				imposed[5] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -827,6 +815,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 						if ( id[j] == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -845,16 +838,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = data ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], e->getGaussPoints(), Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -870,27 +857,27 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<size_t> & id, LagrangeMu
 	}
 }
 
-void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
 {
 	std::vector<size_t> ids ;
 
 	for ( size_t i = 0 ; i < id.size() ; i++ )
 		ids.push_back( id[i].id );
 
-	apply2DBC( e, ids, condition, data, a ) ;
+	apply2DBC( e,gp,Jinv, ids, condition, data, a ) ;
 }
 
-void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
 {
 	std::vector<size_t> ids ;
 
 	for ( size_t i = 0 ; i < id.size() ; i++ )
 		ids.push_back( id[i].id );
 
-	apply3DBC( e, ids, condition, data, a ) ;
+	apply3DBC( e, gp, Jinv, ids, condition, data, a ) ;
 }
 
-void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -954,6 +941,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -966,16 +958,10 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 					v.push_back(TIME_VARIABLE) ;
 				}
 				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1001,6 +987,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -1013,18 +1004,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 				}
 				Vector imposed( 3 ) ;
 
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-
 				VirtualMachine vm ;
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gp, Jinv, v) ;
 				
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1047,6 +1031,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -1059,16 +1048,9 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 				}
 				Vector imposed( 3 ) ;
 
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 3, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 3, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1091,6 +1073,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -1104,17 +1091,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 				Vector imposed( 2 ) ;
 				imposed[0] = vm.eval( data, id[i] ) ; ;
 				imposed[1] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i].id ) ;
 				}
 
@@ -1135,6 +1116,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -1149,17 +1135,11 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 				imposed[0] = 0 ;
 				imposed[1] = vm.eval( data, id[i] ) ; ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i].id ) ;
 				}
 
@@ -1173,7 +1153,7 @@ void apply2DBC( ElementarySurface *e,  const std::vector<Point> & id, LagrangeMu
 	}
 }
 
-void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -1252,6 +1232,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1265,16 +1250,9 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				}
 				Vector imposed( 6 ) ;
 
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1299,6 +1277,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1311,17 +1294,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1345,6 +1321,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1357,17 +1338,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1391,6 +1365,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1403,17 +1382,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 3, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 3, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1437,6 +1409,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1449,17 +1426,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 4, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 4, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1483,6 +1453,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1495,17 +1470,10 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-				
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 5, 6, shapeFunctions[i], e, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 5, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1529,6 +1497,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1544,17 +1517,12 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				imposed[0] = vm.eval( data, id[i] ) ;
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
 
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i].id ) ;
 				}
 
@@ -1575,6 +1543,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1590,17 +1563,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				imposed[0] = 0 ;
 				imposed[1] = vm.eval( data, id[i] ) ;
 				imposed[2] = 0 ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i].id ) ;
 				}
 
@@ -1621,6 +1588,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 						if ( id[j].id == e->getBoundingPoint( i ).id )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1636,17 +1608,11 @@ void apply3DBC( ElementaryVolume *e,  const std::vector<Point> & id, LagrangeMul
 				imposed[0] = 0 ;
 				imposed[1] = 0 ;
 				imposed[2] = vm.eval( data, id[i] ) ;
-				std::valarray<Matrix> Jinv( Matrix(), e->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t i = 0 ; i < e->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					e->getInverseJacobianMatrix( e->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), e->getGaussPoints(), Jinv, v) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
 					a->addForceOn( XI, f, id[i].id ) ;
 				}
 
@@ -1860,7 +1826,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply2DBC( surface, id_, condition, data*getScale(), a ) ;
+		apply2DBC( surface,gp, Jinv, id_, condition, data*getScale(), a ) ;
 	}
 	else
 	{
@@ -1871,7 +1837,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 			if ( surface->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( surface->getBoundingPoint( i ) );
-				apply2DBC( surface, id_, condition, dataFunction*getScale(), a ) ;
+				apply2DBC( surface,gp,Jinv, id_, condition, dataFunction*getScale(), a ) ;
 				return ;
 			}
 		}
@@ -1887,7 +1853,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply3DBC( volume,  id_, condition, data*getScale(),  a ) ;
+		apply3DBC( volume,gp,Jinv,  id_, condition, data*getScale(),  a ) ;
 	}
 	else
 	{
@@ -1898,7 +1864,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 			if ( volume->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( volume->getBoundingPoint( i ) );
-				apply3DBC( volume, id_, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( volume,gp, Jinv, id_, condition, dataFunction*getScale(), a ) ;
 				return ;
 			}
 		}
@@ -2049,11 +2015,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
 
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 
@@ -2080,11 +2053,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2110,14 +2090,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-// 				nearest.print();
-// 				std::cout << "\n"<<  id.begin()->second.first.x << "   "<<  id.begin()->second.first.y << "   "<< id.begin()->first << std::endl ;
-// 				exit(0) ;
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
 				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2143,11 +2127,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2173,11 +2164,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2203,11 +2201,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2233,11 +2238,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2263,11 +2275,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				target.push_back( id.begin()->second.first ) ;
 				cache2d.push_back( id.begin()->second.second ) ;
 				cache.push_back( target ) ;
-
+				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+				{
+					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+				}
+				
 				if ( !function )
-					apply2DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 				else
-					apply2DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 				break ;
 			}
@@ -2282,10 +2301,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 	{
 		for ( size_t i = 0 ; i < cache2d.size() ; ++i )
 		{
+			GaussPointArray gp = cache2d[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), cache2d[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+			
 			if ( !function )
-				apply2DBC( cache2d[i], cache[i], condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
 			else
-				apply2DBC( cache2d[i], cache[i], condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
 		}
 	}
 }
@@ -2361,11 +2388,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2389,11 +2423,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2417,11 +2458,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2443,14 +2491,20 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			}
 
 			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
+			break ;
 			break ;
 		}
 
@@ -2473,11 +2527,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2501,11 +2562,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2529,11 +2597,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2557,11 +2632,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2585,11 +2667,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2613,11 +2702,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2641,11 +2737,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2669,7 +2772,19 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
-			apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+
+			if ( !function )
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
+			else
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
+
 			break ;
 		}
 
@@ -2692,11 +2807,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2720,11 +2842,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2748,7 +2877,19 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
-			apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+
+			if ( !function )
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
+			else
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
+
 			break ;
 		}
 
@@ -2771,11 +2912,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2801,11 +2949,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2831,11 +2986,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2861,11 +3023,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2891,11 +3060,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2921,11 +3097,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2951,11 +3134,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -2981,11 +3171,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -3011,11 +3208,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			std::vector<Point> target ;
 
 			target.push_back( id.begin()->second.first ) ;
+			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+ 
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
 
 			if ( !function )
-				apply3DBC( id.begin()->second.second, target, condition, data*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
 			else
-				apply3DBC( id.begin()->second.second, target, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
 
 			break ;
 		}
@@ -3053,11 +3257,19 @@ void GeometryDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangl
 				id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 			}
 		}
+		GaussPointArray gp = elements[i]->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
+		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		{
+			elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+
+		
 		if ( !function )
-			apply2DBC( elements[i], id, condition, data*getScale(), a ) ;
+			apply2DBC( elements[i],gp, Jinv, id, condition, data*getScale(), a ) ;
 		else
-			apply2DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+			apply2DBC( elements[i],gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
 	}
 }
 
@@ -3082,11 +3294,19 @@ void GeometryDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahe
 				id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 			}
 		}
+		
+		GaussPointArray gp = elements[i]->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
+		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		{
+			elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+		
 		if ( !function )
-			apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+			apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 		else
-			apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+			apply3DBC( elements[i],gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
 	}
 }
 
@@ -3165,12 +3385,20 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 						}
 					}
 
+
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3204,13 +3432,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3244,13 +3478,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3284,18 +3524,21 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
-
-				break ;
-
 				break ;
 			}
 
@@ -3326,16 +3569,21 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
-
 				break ;
 			}
 
@@ -3366,13 +3614,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3406,13 +3660,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3446,13 +3706,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3469,10 +3735,18 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 	{
 		for ( size_t i = 0 ; i < cache2d.size() ; ++i )
 		{
+			GaussPointArray gp = cache2d[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), cache2d[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+			
 			if ( !function )
-				apply2DBC( cache2d[i], cache[i], condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
 			else
-				apply2DBC( cache2d[i], cache[i], condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
 		}
 	}
 }
@@ -3575,10 +3849,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 				break ;
@@ -3604,13 +3886,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3637,13 +3926,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3670,13 +3966,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3703,13 +4006,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3736,13 +4046,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3769,13 +4086,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3802,13 +4126,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache2d.empty() && cache2d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
+						
 						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -3840,14 +4171,21 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
+					if ( !cache2d.empty() && cache2d.back() == elements[i] )
+					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
 						{
-							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
-							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 						}
+						
+						if ( !function )
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+						else
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+					}
 					}
 				}
 
@@ -3882,10 +4220,17 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 				}
@@ -3917,13 +4262,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 				}
@@ -3955,13 +4306,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -3993,13 +4350,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -4031,13 +4394,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-						
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 					
@@ -4069,13 +4438,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -4107,14 +4482,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
+							if ( !function )
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
 				}
 
 				break ;
@@ -4145,13 +4526,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -4183,13 +4570,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -4221,14 +4614,20 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
+						if ( !cache2d.empty() && cache2d.back() == elements[i] )
+						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						if ( !function )
-							apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
+							if ( !function )
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							else
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+						}
 				}
 
 				break ;
@@ -4259,13 +4658,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 							}
 						}
-
 						if ( !cache2d.empty() && cache2d.back() == elements[i] )
 						{
+							GaussPointArray gp = elements[i]->getGaussPoints() ;
+							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+							{
+								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+							}
 							if ( !function )
-								apply2DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 							else
-								apply2DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 						}
 					}
 
@@ -4283,10 +4688,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 	{
 		for ( size_t i = 0 ; i < cache2d.size() ; ++i )
 		{
+			GaussPointArray gp = cache2d[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), cache2d[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+
 			if ( !function )
-				apply2DBC( cache2d[i], cache[i], condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 			else
-				apply2DBC( cache2d[i], cache[i], condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 		}
 	}
 }
@@ -4367,10 +4780,17 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4406,13 +4826,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4448,13 +4874,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4490,13 +4922,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4532,13 +4970,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4574,13 +5018,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4616,13 +5066,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4658,13 +5114,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4700,13 +5162,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4742,13 +5210,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4784,13 +5258,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4826,13 +5306,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4868,13 +5354,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4910,13 +5402,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4952,13 +5450,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -4994,13 +5498,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5038,13 +5548,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5082,13 +5598,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5126,13 +5648,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5170,13 +5698,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5214,13 +5748,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5258,13 +5798,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5302,13 +5848,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5346,13 +5898,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 						}
 					}
-
 					if ( !cache3d.empty() && cache3d.back() == elements[i] )
 					{
+						GaussPointArray gp = elements[i]->getGaussPoints() ;
+						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+						{
+							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+						}
 						if ( !function )
-							apply3DBC( elements[i], cache.back(), condition, data*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
 						else
-							apply3DBC( elements[i], cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
 					}
 				}
 
@@ -5370,10 +5928,19 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 	{
 		for ( size_t i = 0 ; i < cache3d.size() ; ++i )
 		{
-			if ( !function )
-				apply3DBC( cache3d[i], cache[i], condition, data*getScale(), a ) ;
-			else
-				apply3DBC( cache3d[i], cache[i], condition, dataFunction*getScale(), a ) ;
+			GaussPointArray gp = cache3d[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					cache3d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
+
+				if ( !function )
+					apply3DBC( cache3d[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+				else
+					apply3DBC( cache3d[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+
 		}
 	}
 }
@@ -5436,11 +6003,19 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+
 			}
 
 			break ;
@@ -5462,11 +6037,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5488,11 +6070,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5514,11 +6103,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5540,11 +6136,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5566,11 +6169,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5592,11 +6202,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5618,11 +6235,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5644,11 +6268,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5670,11 +6301,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5696,11 +6334,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5722,11 +6367,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5748,11 +6400,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5774,11 +6433,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5800,11 +6466,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5826,11 +6499,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5854,11 +6534,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5882,11 +6569,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5910,11 +6604,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5938,11 +6639,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5966,11 +6674,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -5994,11 +6709,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -6022,11 +6744,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -6050,11 +6779,18 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 					}
 				}
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 
 				if ( !function )
-					apply3DBC( elements[i], id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 				else
-					apply3DBC( elements[i], id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 			}
 
 			break ;
@@ -6132,12 +6868,20 @@ void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTrian
 					}
 				}
 
+				GaussPointArray gp = tris[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), tris[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					tris[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
+
 				if ( !id.empty() )
 				{
 					if ( !function )
-						apply2DBC( tris[i], id, condition, data*getScale(), a ) ;
+						apply2DBC( tris[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 					else
-						apply2DBC( tris[i], id, condition, dataFunction*getScale(), a ) ;
+						apply2DBC( tris[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 				}
 			}
 		}
@@ -6180,11 +6924,18 @@ void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetra
 					id.push_back( *points[j] ) ;
 			}
 		}
+		GaussPointArray gp = tris[i]->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), tris[i]->getGaussPoints().gaussPoints.size() ) ;
 
+		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		{
+			tris[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+		
 		if ( !function )
-			apply3DBC( tris[i], id, condition, data*getScale(), a ) ;
+			apply3DBC( tris[i],gp,Jinv, id, condition, data*getScale(), a ) ;
 		else
-			apply3DBC( tris[i], id, condition, dataFunction*getScale(), a ) ;
+			apply3DBC( tris[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
 	}
 }
 
@@ -6232,8 +6983,17 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 //			std::cout << previousDisp[corresponding*2] << std::endl ;
-			apply2DBC( tri[i], id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
-			apply2DBC( tri[i], id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;
+			
+			GaussPointArray gp = tri[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+			
+			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
+			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;
 				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
@@ -6272,15 +7032,23 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 	for ( size_t i = 0 ; i < tet.size() ; i++ )
 	{
 		previousDisp = tet[i]->getState().getPreviousDisplacements() ;
+		GaussPointArray gp = tet[i]->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), tet[i]->getGaussPoints().gaussPoints.size() ) ;
 
+		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		{
+				tet[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+		
 		for ( size_t k = 0; k < firstTimePlane ; k++ )
 		{
 			id.clear() ;
 			id.push_back( tet[i]->getBoundingPoint( k ) ) ;
-
+			
+			
 			for ( size_t j = 0 ; j < dof ; j++ )
 			{
-				apply3DBC( tet[i], id, disp[j], previousDisp[( lastTimePlane+k )*dof+j]*getScale(), a ) ;
+				apply3DBC( tet[i],gp,Jinv, id, disp[j], previousDisp[( lastTimePlane+k )*dof+j]*getScale(), a ) ;
 			}
 		}
 	}

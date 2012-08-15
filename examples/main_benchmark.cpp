@@ -408,11 +408,18 @@ int main(int argc, char *argv[])
 		{
 			if(tets[i]->getBehaviour()->param[0][0] > 1.)
 			{
+				GaussPointArray gp = tets[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), tets[i]->getGaussPoints().gaussPoints.size() ) ;
+						
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+						tets[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
 				for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
 				{
 					if(abs(tets[i]->getBoundingPoint(j).x - length*scale) < POINT_TOLERANCE_3D)
 					{
-						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i], tets[i]->getBoundingPoint(j).id, 1.e-5)) ;
+						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).id, 1.e-5)) ;
 					}
 				}
 			}

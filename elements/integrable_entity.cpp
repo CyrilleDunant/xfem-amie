@@ -2818,12 +2818,12 @@ void KelvinVoightSpaceTimeElementState::getFieldAtNodes( FieldType f1, FieldType
 	ElementState::getFieldAtNodes(f2, ret2, j) ;  
 }
 
-Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
 {
 	return VirtualMachine().ieval(Gradient( shape ) * ( data ), gp, Jinv, v) ;
 }
 
-Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
 {
 	VirtualMachine vm ;
 	
@@ -2832,9 +2832,9 @@ Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, si
 	for(size_t i = 0 ; i < n ; i++)
 		field[ i*externaldofs + index ] = vm.eval( data, e->getBoundingPoint(i) ) ;
 	
-	std::vector<Vector> g(e->getGaussPoints().gaussPoints.size(), Vector(0., externaldofs)) ;
+	std::vector<Vector> g(gp.gaussPoints.size(), Vector(0., externaldofs)) ;
 	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 	
-	return vm.ieval( Gradient( shape ) * g, e, v) ;
+	return vm.ieval( Gradient( shape ) * g, gp, Jinv, v) ;
 }
 

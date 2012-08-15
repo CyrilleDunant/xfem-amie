@@ -36,7 +36,6 @@ void Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPoi
 // Jinv[0].print() ;
 // std::cout << "--" << std::endl ;
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
-//	ret.print() ;
 }
 
 bool Stiffness::fractured() const

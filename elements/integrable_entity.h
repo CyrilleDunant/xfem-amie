@@ -482,9 +482,9 @@ public:
 		return this->space_d ;
 	} ;
 	
-	virtual Vector getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
+	virtual Vector getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
 
-	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
+	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
 	
 	virtual Geometry * getSource() const { return source  ;}
 	virtual void setSource( Geometry * const src ) {source = src ;}
@@ -495,8 +495,8 @@ public:
 	
 	virtual size_t getNumberOfDegreesOfFreedom() const { return num_dof ; }
 	
-	virtual void transform(const Function & x, const Function & y) { } ;
-	virtual void transform(const Function & x, const Function & y, const Function & z) { } ;
+	virtual void transform(const ElementarySurface *) { } ;
+	virtual void transform(const ElementaryVolume *) { } ;
 	
 	/** Step through time
 	 * 

@@ -76,7 +76,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
-			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform(), ring[i]->getZTransform() ) ;
+			bi->transform( ring[i] ) ;
 			bi->setSource( getPrimitive() );
 		}
 

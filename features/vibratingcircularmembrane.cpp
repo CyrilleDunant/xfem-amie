@@ -23,6 +23,7 @@ void VibratingMembrane::reset()
 
 void VibratingMembrane::enrich(size_t & lastId, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
+	/*
 	if(cache.empty())
 		cache = dtree->getConflictingElements(getPrimitive()) ;
 
@@ -114,7 +115,7 @@ void VibratingMembrane::enrich(size_t & lastId, Mesh< DelaunayTriangle, Delaunay
 		if(in(cache[i]->getCenter()))
 			cache[i]->setBehaviour(new Wave(cgTensor)) ;
 	}
-	
+	*/
 }
 	
 

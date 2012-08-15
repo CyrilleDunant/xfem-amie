@@ -795,7 +795,6 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		}
 	}
 	
-	
 	for(size_t i = 0 ; i < this->Triangle::getBoundingPoints().size() ; i++)
 		this->Triangle::getBoundingPoint(i).id = -1 ;
 	
@@ -1377,7 +1376,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//11
 		(*shapefunc)[11] = Function("1 x - y - z - z * 4 * 1 t + 0.5 * *") ;
 			//12
-		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t + 0.5 * *") ;
+		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z * x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t + 0.5 * *") ;
 			//13
 		(*shapefunc)[13] = Function("1 x - y - z - x * 4 * 1 t + 0.5 * *") ;
 			//14
@@ -1402,7 +1401,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//1
 		(*shapefunc)[1] = Function("1 x - y - z - z * 4 * t 1 - t * 0.5 * *") ;
 			//2
-		(*shapefunc)[2] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 - t * 0.5 * *") ;
+		(*shapefunc)[2] = Function("1 z y x + + 3 * - z z * x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 - t * 0.5 * *") ;
 			//3
 		(*shapefunc)[3] = Function("1 x - y - z - x * 4 * t 1 - t * 0.5 * *") ;
 			//4
@@ -1422,7 +1421,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//11
 		(*shapefunc)[11] = Function("1 x - y - z - z * 4 * 1 t t * - *") ;
 			//12
-		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t t * - *") ;
+		(*shapefunc)[12] = Function("1 z y x + + 3 * - z z * x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + 1 t t * - *") ;
 			//13
 		(*shapefunc)[13] = Function("1 x - y - z - x * 4 * 1 t t * - *") ;
 			//14
@@ -1442,7 +1441,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 			//21
 		(*shapefunc)[21] = Function("1 x - y - z - z * 4 * t 1 + t * 0.5 * *") ;
 			//22
-		(*shapefunc)[22] = Function("1 z y x + + 3 * - z z* x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 + t * 0.5 * *") ;
+		(*shapefunc)[22] = Function("1 z y x + + 3 * - z z * x x * y y * + + 2 * + z x *  z y * x y * + + 4 * + t 1 + t * 0.5 * *") ;
 			//23
 		(*shapefunc)[23] = Function("1 x - y - z - x * 4 * t 1 + t * 0.5 * *") ;
 			//24
@@ -1607,7 +1606,6 @@ void ElementarySurface::setEnrichment( const Function & p, const Geometry * g)
 	{
 		enrichmentUpdated = true ;
 		enrichfunc.push_back(p) ;
-		enrichfunc.back().compile() ;
 		enrichmentSource.push_back(g) ;
 	}
 }
@@ -1764,7 +1762,6 @@ void ElementarySurface::compileAndPrecalculate()
 {
 	for(size_t k = 0 ; k < getShapeFunctions().size() ; k++)
 	{
-		(*shapefunc)[k].compile() ;
 		std::vector<Variable> vars ;
 		vars.push_back(XI) ;
 		vars.push_back(ETA) ;
@@ -1778,7 +1775,6 @@ void ElementaryVolume::compileAndPrecalculate()
 {
 	for(size_t k = 0 ; k < getShapeFunctions().size() ; k++)
 	{
-		(*shapefunc)[k].compile() ;
 		std::vector<Variable> vars ;
 		vars.push_back(XI) ;
 		vars.push_back(ETA) ;
@@ -2009,15 +2005,15 @@ ElementaryVolume::~ElementaryVolume()
 Function ElementaryVolume::jacobian() const 
 {
 	
-	Function xdxi = this->getXTransform().d(XI) ;
-	Function ydxi = this->getYTransform().d(XI) ;
-	Function zdxi = this->getZTransform().d(XI) ;
-	Function xdeta = this->getXTransform().d(ETA) ;
-	Function ydeta = this->getYTransform().d(ETA) ;
-	Function zdeta = this->getZTransform().d(ETA) ;
-	Function xdzeta = this->getXTransform().d(ZETA) ;
-	Function ydzeta = this->getYTransform().d(ZETA) ;
-	Function zdzeta = this->getZTransform().d(ZETA) ;
+	Function xdxi = getXTransform().d(XI) ;
+	Function ydxi = getYTransform().d(XI) ;
+	Function zdxi = getZTransform().d(XI) ;
+	Function xdeta = getXTransform().d(ETA) ;
+	Function ydeta = getYTransform().d(ETA) ;
+	Function zdeta = getZTransform().d(ETA) ;
+	Function xdzeta = getXTransform().d(ZETA) ;
+	Function ydzeta = getYTransform().d(ZETA) ;
+	Function zdzeta = getZTransform().d(ZETA) ;
 	
 	Function ret = xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
 						xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
@@ -2167,7 +2163,6 @@ void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
 	if(unique)
 	{
 		enrichfunc.push_back(p) ;
-		enrichfunc.back().compile() ;
 		enrichmentSource.push_back(g) ;
 	}
 	

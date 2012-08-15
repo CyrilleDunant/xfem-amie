@@ -14,22 +14,17 @@ BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form
 
 BimaterialInterface::~BimaterialInterface() { } ;
 
-void BimaterialInterface::transform(const Function & x, const Function & y)
+void BimaterialInterface::transform(ElementarySurface * e)
 {
-	xtransform = x ;
-	xtransform.compile() ;
-	ytransform = y ;
-	ytransform.compile() ;
+	xtransform = e->getXTransform() ;
+	ytransform = e->getYTransform() ;
 }
 
-void BimaterialInterface::transform(const Function & x, const Function & y, const Function & z)
+void BimaterialInterface::transform(ElementaryVolume * e)
 {
-	xtransform = x ;
-	xtransform.compile() ;
-	ytransform = y ;
-	ytransform.compile() ;
-	ztransform = z ;
-	ztransform.compile() ;
+	xtransform = e->getXTransform() ;
+	ytransform = e->getYTransform() ;
+	ztransform = e->getZTransform() ;
 }
 
 Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const

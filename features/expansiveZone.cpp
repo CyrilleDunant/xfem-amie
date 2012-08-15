@@ -103,7 +103,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
-			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
+			bi->transform( ring[i]) ;
 			bi->setSource( src );
 		}
 
@@ -152,7 +152,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 				disc[0]->setBehaviour( bi ) ;
 			}
 
-			disc[0]->getBehaviour()->transform( disc[0]->getXTransform(), disc[0]->getYTransform() ) ;
+			disc[0]->getBehaviour()->transform( disc[0]) ;
 			disc[0]->getBehaviour()->setSource( getPrimitive());
 		}
 
@@ -227,7 +227,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       ring[i]->getBehaviour()->getCopy()) ;
 			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
-			bi->transform( ring[i]->getXTransform(), ring[i]->getYTransform() ) ;
+			bi->transform( ring[i]) ;
 			bi->setSource( getPrimitive() );
 		}
 
@@ -259,7 +259,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                                              ) ;
 			delete disc[0]->getBehaviour() ;
 			disc[0]->setBehaviour( bi ) ;
-			disc[0]->getBehaviour()->transform( disc[0]->getXTransform(), disc[0]->getYTransform() ) ;
+			disc[0]->getBehaviour()->transform( disc[0]) ;
 		}
 
 		newInterface.insert( disc[0] ) ;

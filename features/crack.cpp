@@ -768,7 +768,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		Function y_alt = y - tip.first->y ;
 
 		Function theta_alt = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
-		Function r_alt = Function(*tip.first, x, y);//f_sqrt ( (x_alt^2)  + (y_alt^2) );
+		Function r_alt = Function(*tip.first, triangles[i]);//f_sqrt ( (x_alt^2)  + (y_alt^2) );
 
 
 		Function x_ = x_alt ; //f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
@@ -929,7 +929,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		}
 		
 
-		Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
+		Function s ( intersectingSegments, e ) ;
 
 		int usedId = 0 ;
 		if(done.find(e->first) == done.end())
@@ -1009,7 +1009,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 				transformed.push_back ( elem->inLocalCoordinates ( intersection[k] ) ) ;
 			}
 
-			Function s_ ( intersectingSegments, elem->getXTransform(), elem->getYTransform() ) ;
+			Function s_ ( intersectingSegments, elem) ;
 			hint.clear() ;
 
 			if ( done.find(elem->first) != done.end())
@@ -1135,7 +1135,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 				hint.push_back ( transformed[k] ) ;
 			}
 			
-			Function s ( intersectingSegments, e->getXTransform(), e->getYTransform() ) ;
+			Function s ( intersectingSegments,e) ;
 
 			int usedId = 0 ;
 			if(done.find(e->first) == done.end())
@@ -1211,7 +1211,7 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 					transformed.push_back ( elem->inLocalCoordinates ( intersection[k] ) ) ;
 				}
 
-				Function s_ ( intersectingSegments, elem->getXTransform(), elem->getYTransform() ) ;
+				Function s_ ( intersectingSegments, elem) ;
 				hint.clear() ;
 
 				if ( done.find(elem->first) != done.end())
