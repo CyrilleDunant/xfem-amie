@@ -18,6 +18,7 @@
 #include <valarray>
 #include <iostream>
 #include <cmath>
+#include <boost/tuple/tuple.hpp>
 
 #include "vm_refcount_token.h"
 #include "../elements/integrable_entity.h"
@@ -28,6 +29,8 @@ namespace Mu
 {
 
 struct GaussPointArray ;
+struct ElementarySurface ;
+struct ElementaryVolume ;
 
 typedef enum
 {
@@ -35,6 +38,17 @@ typedef enum
 	PROJECTION_TOKEN
 } PositionTokenType ;
 
+typedef enum
+{
+	NO_TEMPORARY,
+	SET_TEMPORARY,
+	SET_GET_TEMPORARY_A,
+	SET_GET_TEMPORARY_B,
+	GET_TEMPORARY_A,
+	GET_TEMPORARY_B,
+} TemporayUsageType ;
+
+const size_t FUNCTION_LENGTH = 512 ;
 /** \brief Function object used for runtime generation of functions, or symbolic manipulation of mathematical expressions.
  * Function can be defined using helper functions an a variety of constructors, or by writing them in RPN as a string:
  * \code 
@@ -55,12 +69,26 @@ g = g(f) ;            // x-> sin(2x)
  */
 class Function
 {
-	
-	std::valarray<Function> derivative ; 
+	std::valarray<Function *> * derivative ; 
 	std::vector< Point > iPoint ;
 	
+	void defaultInitialise()
+	{
+		derivative = nullptr ;
+		e_diff = false ;
+		byteCodeSize = 0 ;
+		constNumber = 0 ;
+		byteCode.resize(FUNCTION_LENGTH, TOKEN_OPERATION_CONSTANT); 
+		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation *)nullptr); 
+		use_temp.resize(FUNCTION_LENGTH, NO_TEMPORARY);
+		values.resize(FUNCTION_LENGTH, 0.) ;
+		adress_a.resize(FUNCTION_LENGTH*4, 0) ;
+		dofID =-1 ;
+		ptID = nullptr ;
+	}
+	
 protected:
-	const RefCountedToken toToken(const std::string str) const ;
+	boost::tuple<TokenOperationType, double, std::string> toToken(const std::string & str) const ;
 
 	bool isOperator(const char c) const ;
 	
@@ -68,36 +96,37 @@ protected:
 	
 	bool isSeparator(const char c) const ;
 	
-	std::pair<size_t, RefCountedToken > getNext(size_t init, const char * form) ; 
-	std::pair<size_t, RefCountedToken > getNext(size_t init, const std::string & form) ;
+	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const char * form) ; 
+	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const std::string & form) ;
 	
-	Point * ptID ;
-	int dofID ;
-	
+	Point * ptID;
+	int dofID;
+
 protected:
-	ByteCode byteCode ;
+
 	
 	bool e_diff ;
-	
-	bool isBinaryOperator(const Token * t) const ;
-
-	bool isUnaryOperator(const Token * t) const ;
-	
-	bool isBinaryVectorisableOperator(const Token * t) const ;
-	
-	bool isTrinaryVectorisableOperator(const Token * t) const ;
-
-	bool isTrinaryOperator(const Token * t) const ;
-
+	bool isBinaryOperator(TokenOperationType t) const ;
+	bool isUnaryOperator(TokenOperationType t) const ;
+	bool isBinaryVectorisableOperator(TokenOperationType t) const ;
+	bool isTrinaryVectorisableOperator(TokenOperationType t) const ;
+	bool isTrinaryOperator(TokenOperationType t) const ;
 	std::map<int, Vector *> precalc ;
 	std::map<int, std::map<Variable, Vector *> > dprecalc ;
-// 	void vectorizeOne(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
-// 	void vectorizeTwo(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
-// 	void factorize(std::vector<RefCountedToken>   &bytecode,  size_t &lastAddress , int & precalculatedEnd ) const ;
 	
-	bool compiled ;
 public:
-	
+	void initialiseAdresses(size_t offset = 0) ;
+	std::valarray<TokenOperationType> byteCode ;
+	std::valarray<GeometryOperation *> geo_op ;
+	std::valarray<double> values ;
+	std::valarray<unsigned short int> adress_a ;
+	std::valarray<TemporayUsageType> use_temp ;
+	size_t byteCodeSize ;
+	size_t constNumber ;
+// 	Function * xtransform ;
+// 	Function * ytransform ;
+// 	Function * ztransform ;
+// 	Function * ttransform ;
 	/** \brief Default constructor. Creates a null function.
 	 * 
 	 */
@@ -115,14 +144,6 @@ public:
 	 */
 	Function(const char *f) ;
 
-	/** \brief Create testing for the side of a line, given a space transform (x, y) -> x(x, y), y(x, y)
-	 * 
-	 * @param l Line defining the boundary
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(const Line & l, Function x, Function y) ;
-
 	/** \brief Create testing for the side of a line, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface
 	 * 
 	 * @param l Line defining the boundary
@@ -130,29 +151,19 @@ public:
 	 */
 	Function(const Line & l, ElementarySurface * s) ;
 
-	/** \brief Function returning the distance to a point, given a space transform (x, y) -> x(x, y), y(x, y).
-	 * 
-	 * @param p Point the distance to which to compute.
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(const Point & p, Function x, Function y) ;
-
-	/** \brief Function returning the distance to a point, given a space transform (x, y, z) -> x(x, y, z), y(x, y, z), z(x, y, z).
-	 * 
-	 * @param p Point the distance to which to compute.
-	 * @param x x transform
-	 * @param y y transform
-	 * @param z z transform
-	 */
-	Function(const Point & p, const Function &x, const Function & y,const  Function &z) ;
-
 	/** \brief Function returning the distance to a point, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface
 	 * 
 	 * @param p Point the distance to which to compute.
 	 * @param s ElementarySurface defining the transform
 	 */
 	Function(const Point & p, ElementarySurface * s) ;
+	
+	/** \brief Function returning the distance to a point, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface
+	 * 
+	 * @param p Point the distance to which to compute.
+	 * @param s ElementarySurface defining the transform
+	 */
+	Function(const Point & p, ElementaryVolume * s) ;
 
 	/** \brief Function computing the rotation of a point(x, y) round 0, 0, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface. 
    * This Function is not useful as itself as when computed, it will return a double. However it can be composed with other operations.
@@ -161,23 +172,6 @@ public:
 	 */
 	Function(double a, ElementarySurface * s) ;
 
-	/** \brief Function computing the rotation of a point(x, y) round 0, 0, given a space transform (x, y) -> x(x, y), y(x, y)
-   * This Function is not useful as itself as when computed, it will return a double. However it can be composed with other operations.
-	 * @param a angle
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(double a, Function x, Function y) ;
-
-
-	/** \brief Function computing the rotation of a point(x, y) round a Point given a space transform (x, y) -> x(x, y), y(x, y)
- * This Function is not useful as itself as when computed, it will return a double. However it can be composed with other operations.
-	 * @param a angle
-	 * @param p pivot of the rotation
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(double a,const Point & p,  Function x, Function y) ;
 
 	/** \brief Function computing the rotation of a point(x, y) round a Point given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface. 
  * This Function is not useful as itself as when computed, it will return a double. However it can be composed with other operations.
@@ -221,14 +215,6 @@ public:
 	 */
 	Function(const std::valarray<double> & coeffs, bool diff = true) ;
 
-	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a segment, given a space transform (x, y) -> x(x, y), y(x, y), or the distance to the projection to the segment
-	 * 
-	 * @param s Segment defining a boundary
-	 * @param x x transform
-	 * @param y y transform
-	 * @param t type of function, Position or Projection distance
-	 */
-	Function(const Segment s, const Function & x, const Function & y, PositionTokenType t = POSITION_TOKEN) ;
 
 	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a segment, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface.  or the distance to the projection to the segment
 	 * 
@@ -238,14 +224,6 @@ public:
 	 */
 	Function(const Segment s_,  ElementarySurface * s, PositionTokenType = POSITION_TOKEN) ;
 
-	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a set of segments, given a space transform (x, y) -> x(x, y), y(x, y), or the distance to the projection to the segments
-	 * 
-	 * @param s Segments defining a boundary
-	 * @param x x transform
-	 * @param y y transform
-	 * @param t type of function, Position or Projection distance
-	 */
-	Function(const std::vector<Segment> s, const Function & x, const Function & y,PositionTokenType = POSITION_TOKEN) ;
 
 	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a set of segments, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface.  or the distance to the projection to the segment
 	 * 
@@ -254,37 +232,6 @@ public:
 	 * @param t type of function, Position or Projection distance
 	 */
 	Function(const std::vector<Segment> s_, ElementarySurface * s,PositionTokenType = POSITION_TOKEN) ;
-
-
-	/** \brief Create a function from the concatenation of two ByteCode s.
-	 * No differential is created by this process
-	 * @param b_0 first ByteCode
-	 * @param b_1 second ByteCode
-	 */
-	Function(const ByteCode & b_0, const ByteCode & b_1) ;
-
-	/** \brief Check whether a point p is hidden by a geometry g, given a space transform (x, y) -> x(x, y), y(x, y)
-	 * 
-	 * @param p Point whose visibility is checked
-	 * @param g Hiding Geometry
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(const Point & p , const Geometry * g, const Function & x, const Function & y) ;
-
-	/** \brief Function returning 1 if x,y is in the Geometry g and -1 otherwise
-	 * 
-	 * @param g domain defining Geometry
-	 */
-	Function(const Geometry * g) ;
-
-	/** \brief Function returning 1 if x,y is in the Geometry g and -1 otherwise, given a space transform (x, y) -> x(x, y), y(x, y)
-	 * 
-	 * @param g domain defining Geometry
-	 * @param x x transform
-	 * @param y y transform
-	 */
-	Function(const Geometry * g, Function x, Function y) ;
 
 	/** \brief Function returning 1 if x,y is in the Geometry g and -1 otherwise, given a space transform (x, y) -> x(x, y), y(x, y)  deduced from an ElementarySurface
 	 * 
@@ -295,88 +242,28 @@ public:
 
 public:
 
-	/** \brief Construct a function from two bytecodes and a token. 
-	 * This is typically useful to create a function from an operation between two functions
-	 * 
-	 * @param b_0 first ByteCode
-	 * @param b_1 second ByteCode
-	 * @param op operator linking the two functions
-	 * @param diff compute the differential 
-	 */
-	Function(const ByteCode &b_0, const ByteCode &b_1, RefCountedToken op, const bool diff = false); 
-
-	/** \brief Construct a function from a bytecodes and a double  and a token. 
-	 * This is typically useful to create a function from an operation between a function and a double
-	 * 
-	 * @param b_0 first ByteCode
-	 * @param a scalar
-	 * @param op operator linking the two functions
-	 * @param diff compute the differential 
-	 */
-	Function(const ByteCode &b_0, const double a, RefCountedToken op, const bool diff = false); 
-
-
-	/** \brief Construct a function from a bytecodes and a double  and a token. 
-	 * This is typically useful to create a function from an operation between a function and a double
-	 * @param a scalar
-	 * @param b_0 first ByteCode
-	 * @param op operator linking the two functions
-	 * @param diff compute the differential 
-	 */
-	Function(const double a, const ByteCode &b_0,  RefCountedToken op, const bool diff= false) ;
-	
-	template<class ETYPE, class EABSTRACTTYPE>
-	Function(Mesh<ETYPE, EABSTRACTTYPE>  * mesh, Variable v):  derivative(2)  , byteCode(1), e_diff(true), compiled(false)
-	{
-
-			this->dofID =-1 ;
-			this->ptID = nullptr ;
-			if(v == XI)
-				byteCode[0] = RefCountedToken(new MeshXDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
-			if(v == ETA)
-				byteCode[0] = RefCountedToken(new MeshYDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
-			if(v == ZETA)
-				byteCode[0] = RefCountedToken(new MeshZDisplacementToken<ETYPE, EABSTRACTTYPE>(mesh)) ;
-			
-			derivative[XI] = Function() ;
-			derivative[ETA] = Function() ;
-	
-	}
 	
 	/** \brief Construct a function doing barycentric interpolation from a set of segments and a boundary
 	 */
 	Function(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y) ;
 	
 	virtual ~Function()  ;
+
+// 	void setTransform(const ElementarySurface * s) ;
+// 	void setTransform(const ElementaryVolume * s) ;
+// 	void setTransform(const Function & x, const Function & y) ;
+// 	void setTransform(const Function & x, const Function & y, const Function & z) ;
 	
 	/** \brief Check wether the function is nil
 	 * @return true if function is identically 0
 	 */
 	bool isNull() const ;
-	
-	/** \brief return a reference to this function's ByteCode
-	 * 
-	 * @return a reference to this function's ByteCode
-	 */
-	const ByteCode & getByteCode() const ;
-
-	/** \brief return a reference to this function's ByteCode
-	 * 
-	 * @return a reference to this function's ByteCode
-	 */
-	ByteCode & getByteCode() ;
-
-	/** \brief return the ith token of this functions ByteCode
-	 * 
-	 * @return a reference to the ith Token of this function's ByteCode
-	 */
-	const RefCountedToken& getToken(const size_t i) const ;
-	
+		
 	/** \brief return the size of the ByteCode
 	 * 
 	 * @return the size of the ByteCode
 	 */
-	size_t size() const { return byteCode.size() ; }
+	size_t size() const { return byteCodeSize ; }
 	
 	/** \brief return the symbolic differential of this function if it has been computed, or a nil function otherwise
 	 * 
@@ -390,21 +277,21 @@ public:
 	 * @param v Variable with which to differentiate
 	 * @return the symbolic differential of this function if it has been computed, or a nil function otherwise
 	 */
-	Function &d(const Variable v) ;
+	Function  & d(const Variable v) ;
 
 	/** \brief return the symbolic differentials of this function if they have been computed, or a nil function otherwise
 	 * 
 	 * @param v Variable with which to differentiate
 	 * @return the symbolic differential of this function if it has been computed, or a nil function otherwise
 	 */
-	std::valarray<Function> getDerivatives() const;
+	std::valarray<Function *>  & getDerivatives() const;
 
 	/** \brief return the symbolic differentials of this function if they have been computed, or a nil function otherwise
 	 * 
 	 * @param v Variable with which to differentiate
 	 * @return the symbolic differential of this function if it has been computed, or a nil function otherwise
 	 */
-	std::valarray<Function> & getDerivatives();
+	std::valarray<Function *> & getDerivatives();
 
 
 	/** \brief return true if the differentiable has been computed
@@ -604,26 +491,13 @@ public:
 	 * 
 	 * @param f Function with which to compose
 	 * @return a new Function
-	 */
+	 *//*
 	Function operator()(const Function & f) const ;
 	
-	/** \brief Modify the Context (stack and arguments) by evaluating the ith Token of the ByteCode
-	 * 
-	 * @param i index of the Token
-	 * @param context context to modify
-	 */
-	void tokenEval(size_t i, Context & context) const
-	{
-		byteCode[i].eval(context ) ;
-	}
+	Function operator()(const Function &f0, const Function &f1) const;*/
+
 	
-	/** \brief Compile the function: operations are vectorised (a+x)*b becomes a single token to evaluate, for example, sub-expressions which are multiply occuring are calculated only once and their result re-read, etc. 
-	 * 
-	 */
-	void compile() ;
-
-
-	/** \brief Precalculate the function derivatives at a set of locations
+		/** \brief Precalculate the function derivatives at a set of locations
 	 * 
 	 * @param gp GaussPointArray defining the locations
 	 * @param var Variables with respect to which differentiation should be calculated
@@ -666,7 +540,6 @@ public:
 	 * @return Vector of values at those points
 	 */
 	const Vector & getPrecalculatedValue(const GaussPointArray & gp, Variable v) const ;
-	
 } ;
 
 struct DtF ;
@@ -1319,14 +1192,6 @@ Mu::Function f_cos(const Mu::Function &f) ;
  */
 Mu::Function f_sign(const Mu::Function &f) ;
 
-/** \brief Helper function to create a Function which is the ith Cylindrical Bessel Function of the argument
- * 
- * @param i index of the function
- * @param f Function
- * @return a new Function
- */
-Mu::Function f_cyl_bessel_j(int i, const Mu::Function &f) ;
-
 /** \brief Helper function to create a Function which is 1 if the argument is positive, 0 otherwise
  * 
  * @param f Function
@@ -1377,5 +1242,7 @@ Mu::Function f_curvilinear_x(const Mu::SegmentedLine * s, bool fromHead,   const
  * @return a new Function
 */
 Mu::Function f_curvilinear_y(const Mu::SegmentedLine * s, bool fromHead,   const Mu::Function &x, const Mu::Function &y) ;
+
+
 #endif
 

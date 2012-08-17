@@ -35,6 +35,7 @@ struct GDtVL ;
 struct IntegrableEntity ;
 struct GaussPointArray ;
 struct Function ;
+struct DeprecatedFunction ;
 struct FunctionMatrix ;
 struct Differential ;
 struct DtF ;
@@ -74,25 +75,6 @@ The constructor created and initialises the stack
 @param w coordinate at which to evaluate.
 */
 double eval(const Function &f, const double x = 0, const double y = 0, const double z = 0 ,const double t = 0, const double u = 0, const double v = 0, const double w = 0) ;
-
-/** \brief Evaluate Function f at (x, y, z, t, u, v, w). 
- Further set the value of the named variables in the vector.
-*/
-double eval(const Function &f, std::vector<std::pair<std::string, double> > vars,const double x = 0, const double y = 0, const double z = 0 ,const double t = 0, const double u = 0, const double v = 0, const double w = 0) ;
-
-
-/** \brief Evaluate std::vector\<RefCountedToken\> f at (x, y, z, t, u, v, w). 
- * This structure is used as the bytecode of a function for the evaluation.
-@param f std::vector \<RefCountedToken\> to use as a ByteCode to evaluate.
-@param x coordinate at which to evaluate.
-@param y coordinate at which to evaluate.
-@param z coordinate at which to evaluate.
-@param t coordinate at which to evaluate.
-@param u coordinate at which to evaluate.
-@param v coordinate at which to evaluate.
-@param w coordinate at which to evaluate.
-*/
-	double eval(const std::vector<RefCountedToken> &f, const double &x, const double &y , const double &z ,const double &t, const double &u , const double &v, const double &w )   ;
 
 /** \brief Evaluate FunctionMatrix f at (x, 0...). 
 @param f FunctionMatrix to evaluate.
@@ -139,6 +121,7 @@ double eval(const Function &f, std::vector<std::pair<std::string, double> > vars
 @param gp GaussPointArray giving the points at which to evaluate the Function f
 */
 	Vector eval(const Function &f, const GaussPointArray &gp) ;
+	Vector eval(const DeprecatedFunction &f, const GaussPointArray &gp) ;
 	
 /** \brief Evaluate Function f at all points of the given GaussPointArray gp, each offset by "offset". 
 This method is used internally to compute the numerical differential of a set of points.
@@ -818,11 +801,10 @@ This is sometimes useful for debug, if functions have been generated on-the-fly.
 @param f function to print
 */
 	void print(const Function &f) const ;
-
+	
 /** \brief Print the ByteCode f. 
 @param f bytecode to print
 */
-	void print(const std::vector<RefCountedToken> &f) const ;
 } ;
 
 

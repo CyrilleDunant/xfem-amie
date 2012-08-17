@@ -417,13 +417,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 // 			hint.push_back(ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(9))) ;
 // 		}
 		
-		//we build the enrichment function, first, we get the transforms from the triangle
-		Function x = ring[i]->getXTransform() ;
-		Function y = ring[i]->getYTransform() ;
-		Function z = ring[i]->getZTransform() ;
 		
 		//this function returns the distance to the centre
-		Function position(getCenter(), x, y, z) ;
+		Function position(getCenter(),ring[i]) ;
 		Function hat =  getRadius()-f_abs(position-getRadius());
 		
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
@@ -455,7 +451,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position(getCenter(), t->getXTransform(), t->getYTransform(), t->getZTransform()) ;
+			Function position(getCenter(), t) ;
 			Function hat = getRadius()-f_abs(position-getRadius()) ;
 
 			

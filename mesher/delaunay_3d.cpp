@@ -2926,7 +2926,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 1;
+	size_t numberOfRefinements = 0;
 
 	VirtualMachine vm ;
 
@@ -2940,7 +2940,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		if( false )
 		{
 			TetrahedralElement father ;
-			double npoints = 512 ;
+			double npoints = 16 ;
 
 			while( gp_alternative.size() < npoints )
 			{
@@ -3000,12 +3000,30 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 			for( size_t j = 0 ; j < tri.size() ; j++ )
 			{
-				newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5 );
-				newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5 );
-				newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5 );
-				newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5 );
-				newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5 );
-				newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5 );
+				if(i == 0)
+				{
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5 );
+				}
+				else if(i == 1)
+				{
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5 );
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5 );
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5 );
+				}
+				else if(i == 2)
+				{
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5 );
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5 );
+					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5 );
+				}
+				else if(i == 3)
+				{
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5 );
+				}
 			}
 
 			std::vector<Point> uniquePoints ;

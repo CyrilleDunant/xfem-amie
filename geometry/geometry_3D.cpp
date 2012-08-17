@@ -1533,7 +1533,7 @@ void Sphere::sampleSurface(size_t num_points)
 	if(num_points < 4)
 		return ;
 
-	sampleBoundingSurface(num_points/**7*/) ;
+	sampleBoundingSurface(num_points) ;
 	
 	std::vector<Point> points ;
 

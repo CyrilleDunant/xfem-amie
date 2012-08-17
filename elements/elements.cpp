@@ -1219,13 +1219,13 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 		f[0][0][1] = -1 ;
 			
 			//0
-		(*shapefunc)[0] = Function(xi) ;
+		(*shapefunc)[0] = Function("z") ;
 			//1
-		(*shapefunc)[1] = Function(eta) ;
+		(*shapefunc)[1] = Function("1 x - y - z -") ;
 			//2
-		(*shapefunc)[2] = Function(zeta) ;
+		(*shapefunc)[2] = Function("x") ;
 			//3
-		(*shapefunc)[3] = Function(f) ;
+		(*shapefunc)[3] = Function("y") ;
 	}
 	else if(order == QUADRATIC)
 	{
@@ -1285,16 +1285,16 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 		std::valarray<Matrix> f9(zero,3) ;
 		f9[1][0][1] = 4 ; // xz
 			
-		(*shapefunc)[0] = Function(f0) ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ;  // z
-		(*shapefunc)[1] = Function(f1) ; //z*4*(one-x-y-z) ;
-		(*shapefunc)[2] = Function(f2) ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ; // 0
-		(*shapefunc)[3] = Function(f3) ; //x*4*(one-x-y-z) ;
-		(*shapefunc)[4] = Function(f4) ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; //x
-		(*shapefunc)[5] = Function(f5) ; //x*y*4 ; 
-		(*shapefunc)[6] = Function(f6) ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ;  //y
-		(*shapefunc)[7] = Function(f7) ; //y*z*4 ;
-		(*shapefunc)[8] = Function(f8) ; //y*4*(one-x-y-z) ;
-		(*shapefunc)[9] = Function(f9) ; //x*z*4 ;
+		(*shapefunc)[0] = Function("z 2 ^ 2 * z -") ;//z- z*2*(one-x-y-z) - x*z*2 - y*z*2 ;  // z
+		(*shapefunc)[1] = Function("z 4 * z 2 ^ 4 * - z x * 4 * - z y * 4 * -") ; //z*4*(one-x-y-z) ;
+		(*shapefunc)[2] = Function("1 z 3 * - 2 z 2 ^ * + z x * 4 * + z y * 4 * + x 3 * - x 2 ^ 2 * + x y * 4 * + y 3 * - y 2 ^ 2 * +") ; //one-x-y-z-(one-x-y-z)*(x+y+z)*2 ; // 0
+		(*shapefunc)[3] = Function("x 4 * x 2 ^ 4 * - z x * 4 * - x y * 4 * -") ; //x*4*(one-x-y-z) ;
+		(*shapefunc)[4] = Function("x 2 ^ 2 * x -") ; //x- x*2*(one-x-y-z) - x*z*2 - y*x*2 ; //x
+		(*shapefunc)[5] = Function("x y * 4 *") ; //x*y*4 ; 
+		(*shapefunc)[6] = Function("y 2 ^ 2 * y -") ; //y- y*2*(one-x-y-z) - y*z*2 - y*x*2 ;  //y
+		(*shapefunc)[7] = Function("y z * 4 *") ; //y*z*4 ;
+		(*shapefunc)[8] = Function("y 4 * y 2 ^ 4 * - z y * 4 * - x y * 4 * -") ; //y*4*(one-x-y-z) ;
+		(*shapefunc)[9] = Function("x z * 4 *") ; //x*z*4 ;
 	}
 	else if(order == LINEAR_TIME_LINEAR)
 	{
@@ -2567,6 +2567,7 @@ Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
+
 double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	double ret = 0;
@@ -2591,6 +2592,7 @@ Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	
 	return ret ;
 }
+
 
 double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {

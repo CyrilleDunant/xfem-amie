@@ -407,6 +407,9 @@ void step()
 		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
 		
 	}
+	VoxelWriter vw1("sphere_stiffness", 100) ;
+	vw1.getField(featureTree, VWFT_STIFFNESS) ;
+	vw1.write();
 	
 	VoxelWriter vw("sphere_stress", 100) ;
 	vw.getField(featureTree, VWFT_STRESS) ;
@@ -1302,11 +1305,207 @@ void processMouseActiveMotion(int x, int y) {
 	Display() ;
 }
 
+void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, TetrahedralElement *father )
+{
+
+	if( nodes_per_side > 1 )
+		nodes_per_side = 1 ;
+
+
+		std::vector<std::pair<Point, Point> > sides ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 0 ), father->getBoundingPoint( 1 ) ) ) ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 1 ), father->getBoundingPoint( 2 ) ) ) ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 2 ), father->getBoundingPoint( 3 ) ) ) ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 3 ), father->getBoundingPoint( 0 ) ) ) ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 3 ), father->getBoundingPoint( 1 ) ) ) ;
+		sides.push_back( std::make_pair( father->getBoundingPoint( 0 ), father->getBoundingPoint( 2 ) ) ) ;
+		std::vector<size_t> positions ;
+
+		if( nodes_per_side )
+		{
+			positions.push_back( 0 ) ;
+			positions.push_back( 1 ) ;
+			positions.push_back( 2 ) ;
+
+			positions.push_back( 2 ) ;
+			positions.push_back( 3 ) ;
+			positions.push_back( 4 ) ;
+
+			positions.push_back( 4 ) ;
+			positions.push_back( 5 ) ;
+			positions.push_back( 6 ) ;
+
+			positions.push_back( 0 ) ;
+			positions.push_back( 7 ) ;
+			positions.push_back( 6 ) ;
+
+			positions.push_back( 6 ) ;
+			positions.push_back( 8 ) ;
+			positions.push_back( 2 ) ;
+
+			positions.push_back( 0 ) ;
+			positions.push_back( 9 ) ;
+			positions.push_back( 4 ) ;
+		}
+		else
+		{
+			positions.push_back( 0 ) ;
+			positions.push_back( 1 ) ;
+
+			positions.push_back( 1 ) ;
+			positions.push_back( 2 ) ;
+
+			positions.push_back( 2 ) ;
+			positions.push_back( 3 ) ;
+
+			positions.push_back( 3 ) ;
+			positions.push_back( 0 ) ;
+
+			positions.push_back( 3 ) ;
+			positions.push_back( 1 ) ;
+
+			positions.push_back( 0 ) ;
+			positions.push_back( 2 ) ;
+		}
+
+		size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
+
+		std::valarray<Point *> newPoints( ( Point * )nullptr, nodes_per_plane * time_planes ) ;
+		std::valarray<bool> done( false, nodes_per_plane * time_planes ) ;
+
+		for( size_t plane = 0 ; plane < time_planes ; plane++ )
+		{
+			size_t current = 0 ;
+
+			for( size_t side = 0 ; side < 6 ; side++ )
+			{
+				Point a( sides[side].first ) ;
+				Point b( sides[side].second ) ;
+
+				if( time_planes > 1 )
+				{
+					a.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+					b.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+// 					std::cout << a.t << std::endl ;
+				}
+
+				for( size_t node = 0 ; node < nodes_per_side + 2 ; node++ )
+				{
+					double fraction = ( double )( node ) / ( ( double )nodes_per_side + 1 ) ;
+					Point proto = a * ( 1. - fraction ) + b * fraction ;
+
+					if( !done[positions[current] + plane * nodes_per_plane] )
+					{
+						newPoints[positions[current] + plane * nodes_per_plane]  = new Point( proto ) ;
+						done[positions[current] + plane * nodes_per_plane] = true ;
+					}
+
+					current++ ;
+				}
+			}
+		}
+
+		for( size_t k = 0 ; k < newPoints.size() ; k++ )
+			if( !newPoints[k] )
+			{
+				std::cout << "ouch !" << std::endl ;
+
+				for( size_t k = 0 ; k < newPoints.size() ; k++ )
+					if( newPoints[k] )
+						newPoints[k]->print() ;
+
+				exit( 0 ) ;
+			}
+
+		father->setBoundingPoints( newPoints ) ;
+
+}
+
+
 int main(int argc, char *argv[])
 {
+
+// 	Function x("x") ;
+// 	Function xm("1 x 2 * 1 - abs -") ;
+// 	x = 1-f_abs(x*2.-1) ;
+// 	VirtualMachine().print(x) ;
+// 	std::cout << VirtualMachine().eval(x, 0.) <<"  " << VirtualMachine().eval(x, 1.) <<"  " <<VirtualMachine().eval(x, 2.) <<"  " <<std::endl ;
+// 	VirtualMachine().print(xm) ;
+// 	std::cout << VirtualMachine().eval(xm, 0.) <<"  " << VirtualMachine().eval(xm, 1.) <<"  " <<VirtualMachine().eval(xm, 2.) <<"  " <<std::endl ;
+// 	exit(0) ;
+	
+	
+// 	TetrahedralElement toto(QUADRATIC) ;
+// 	addSharedNodes(1, 1, 0, &toto) ;
+// 	for(int i = 0 ; i < 10 ; i++)
+// 	{
+// 		for(int j = 0 ; j < 10 ; j++)
+// 		{
+// 			std::cout << VirtualMachine().eval(toto.getShapeFunction(i), toto.getBoundingPoint(j).x, toto.getBoundingPoint(j).y, toto.getBoundingPoint(j).z) <<"  "<<std::flush ;
+// 		}
+// 		std::cout <<std::endl ;
+// 	}
+// 	exit(0) ;
+// 	VirtualMachine().print(toto.getShapeFunction(0));
+// 	VirtualMachine().print(toto.getShapeFunction(1));
+// 	VirtualMachine().print(toto.getShapeFunction(2));
+// 	VirtualMachine().print(toto.getShapeFunction(3));
+// 	toto.getBoundingPoint(0).x -=.3 ;
+// 	toto.getBoundingPoint(1).x -=.3 ;
+// 	toto.getBoundingPoint(2).x -=.3 ;
+// 	toto.getBoundingPoint(3).x -=.3 ;
+// 	Function xtrans = toto.getXTransform() ;
+// 	VirtualMachine().print(xtrans);
+// 	Function ytrans = toto.getYTransform() ;
+// 	VirtualMachine().print(ytrans);
+// 	std::cout << VirtualMachine().eval(ytrans, 1., 1., 1.) <<"  " << VirtualMachine().eval(ytrans, 2., 2., 2.) <<"  " <<VirtualMachine().eval(ytrans, 3., 3., 3.) <<"  " <<std::endl ;
+// 	Function ztrans = toto.getZTransform() ;
+// 	VirtualMachine().print(ztrans);
+// 	
+// 	
+// 		Function position(Point(0,0,0), &toto) ;
+// // 		VirtualMachine().print(position);
+// // 		exit(0) ;
+// // 		VirtualMachine().print(position-1.);
+// // 		VirtualMachine().print(f_abs(position-1.));
+// 		Function hat = 1.-f_abs(position-.5);
+// 		VirtualMachine().print(hat);
+// 		VirtualMachine().print(1.-hat);
+// 		exit(0) ;
+		
+// 		VirtualMachine().print(toto.getShapeFunction(0));
+// 		VirtualMachine().print(toto.getShapeFunction(1)*(hat-1.));
+// 		for(size_t k = 1 ; k < 2 ; k++)
+// 		{
+// 			for(double i = -1.1 ; i < 1.1 ; i += 0.01)
+// 			{
+// 				for(double j = -1.1 ; j < 1.1 ; j += 0.01)
+// 				{
+// // 					if(toto.in(Point(i, j)))
+// 						std::cout << VirtualMachine().eval(hat, i, j) <<"  " << std::flush ;
+// // 					else
+// // 						std::cout << 0 <<"  " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			for(double i = -1.1 ; i < 1.1 ; i += 0.01)
+// 			{
+// 				for(double j = -1.1 ; j < 1.1 ; j += 0.01)
+// 				{
+// // 					if(toto.in(Point(i, j)))
+// 						std::cout << VirtualMachine().eval(ytrans, i, j) <<"  " << std::flush ;
+// // 					else
+// // 						std::cout << 0 <<"  " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 		}
+// 		exit(0) ;
+// 	VirtualMachine().print(position);
+// 	Function f =  toto.getShapeFunction(1)*(hat - VirtualMachine().eval(hat,toto.getBoundingPoint(0).x, toto.getBoundingPoint(0).y)) ;
+// 	exit(0) ;
 	double nu = 0.2 ;
 	double E = 1 ;
-
 	Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
 
 	FeatureTree F(&samplers) ;
@@ -1378,12 +1577,13 @@ int main(int argc, char *argv[])
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	
-	Vector a(0.,6) ; a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
-// 	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100, 200, 200, 200, m1, a) ;
+	Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
+	ExpansiveZone3D * inc = new ExpansiveZone3D(&samplers,100, 200, 200, 200, m1*4., a) ;
 	
-	Inclusion3D * inc = new Inclusion3D(100, 200, 200, 200) ;
+// 	Inclusion3D * inc = new Inclusion3D(100, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-	inc->setBehaviour(new StiffnessWithImposedDeformation(m1,a)) ;
+// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1,a)) ;
+// 	inc->setBehaviour(new Stiffness(m1)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	
 	F.addFeature(&samplers, inc) ;
@@ -1406,15 +1606,15 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
 	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
 
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	step() ;
 

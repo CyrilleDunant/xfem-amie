@@ -292,10 +292,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	std::set<std::pair<DelaunayTriangle *, Point *> > enriched ;
 	std::set<DelaunayTriangle *> enrichedElem;
 	//then we iterate on every element
-	Order order = LINEAR ;
-	if(!ring.empty())
-		order = ring[0]->getOrder() ;
-	TriElement father(order) ;
+
 	std::map<Point*, size_t> extradofs ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
@@ -319,14 +316,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 
 		//we build the enrichment function, first, we get the transforms from the triangle
-		Function x = ring[i]->getXTransform() ;
-		Function y = ring[i]->getYTransform() ;
-		
 		//this function returns the distance to the centre
-		Function position(getCenter(), x, y) ;
-		Function hat = getRadius()-f_abs(position-getRadius());
-// 		Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius());
-		
+		Function position(getCenter(), ring[i]) ;
+		Function hat = 1.-f_abs(position-getRadius());
+			
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
 			std::pair<DelaunayTriangle *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
@@ -334,7 +327,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			{
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-				Function f =  father.getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
+				
+				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
@@ -356,10 +350,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			x = t->getXTransform() ;
-			y = t->getYTransform() ;
-			Function position(getCenter(), x, y) ;
-			Function hat = getRadius()-f_abs(position-getRadius());
+			Function position(getCenter(), t) ;
+			Function hat = f_abs(position-getRadius());
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
@@ -371,7 +363,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -381,11 +373,11 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 						f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
 						t->setEnrichment(f, getPrimitive()) ;
 					}
-					else 
+					else
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = father.getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y)) ;
+						Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y)) ;
 						
 						if(!hinted)
 						{

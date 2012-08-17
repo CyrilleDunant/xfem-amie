@@ -31,13 +31,14 @@ LinearStiffnessGradient::LinearStiffnessGradient(double E_int, double nu_int, do
 
 LinearStiffnessGradient::~LinearStiffnessGradient() { } ;
 
-void LinearStiffnessGradient::transform(const Function & x, const Function & y)
+void LinearStiffnessGradient::transform(ElementarySurface * e)
 {
-	Function l(left, x, y) ;
-	Function r(right, x, y) ;
+	Function l(left, e) ;
+	Function r(right, e) ;
 	double t = dist(left, right) ;
 	t *=t ;
 	s = .5 + f_sqrt(2.-(2./t)*l*l) ;
+// 	s.setTransform(e);
 }
 
 bool LinearStiffnessGradient::fractured() const

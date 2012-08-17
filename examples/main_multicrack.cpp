@@ -1566,7 +1566,8 @@ int main(int argc, char *argv[])
 
 	F.setSamplingNumber(atoi(argv[1])) ;
 
-	F.setOrder(QUADRATIC) ;
+
+	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
 	

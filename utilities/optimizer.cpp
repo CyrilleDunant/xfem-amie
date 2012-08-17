@@ -35,21 +35,21 @@ double GeneticAlgorithmOptimizer::applyFunction(const std::vector<double> & vals
 	switch (vals.size())
 	{
 		case 0 :
-			return VirtualMachine().eval(objectiveFunction, namedVars) ;
+			return VirtualMachine().eval(objectiveFunction) ;
 		case 1 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0]) ;
 		case 2 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1]) ;
 		case 3 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1], vals[2]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1], vals[2]) ;
 		case 4 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1], vals[2], vals[3]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1], vals[2], vals[3]) ;
 		case 5 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1], vals[2], vals[3], vals[4]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1], vals[2], vals[3], vals[4]) ;
 		case 6 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]) ;
 		case 7 :
-			return VirtualMachine().eval(objectiveFunction, namedVars, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]) ;
+			return VirtualMachine().eval(objectiveFunction, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6]) ;
 	}
 	return 0. ;
 }

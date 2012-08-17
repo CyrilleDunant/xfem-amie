@@ -150,12 +150,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				imposed[1] = 0 ;
 				imposed[2] = 0 ;
 
-				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 				  					
-					a->addForceOn( XI, forces[0], id[i] ) ;
-					a->addForceOn( ETA, forces[1], id[i] ) ;
+					a->addForceOn( XI, forces[0], id[j] ) ;
+					a->addForceOn( ETA, forces[1], id[j] ) ;
 				}
 
 				return ;
@@ -178,10 +178,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 							shapeFunctions.push_back( e->getShapeFunction( k ) ) ;
 						}
 					}
-					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
 					{
-						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
-							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+						if ( id[j] == e->getEnrichmentFunction( k ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( k ) ) ;
 					}
 				}
 
@@ -199,12 +199,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				imposed[1] = data ;
 				imposed[2] = 0 ;
 
-				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 					
-					a->addForceOn( XI, forces[0], id[i] ) ;
-					a->addForceOn( ETA, forces[1], id[i] ) ;
+					a->addForceOn( XI, forces[0], id[j] ) ;
+					a->addForceOn( ETA, forces[1], id[j] ) ;
 				}
 				
 				return ;
@@ -244,12 +244,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				imposed[1] = 0 ;
 				imposed[2] = data ;
 
-				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 					
-					a->addForceOn( XI, forces[0], id[i] ) ;
-					a->addForceOn( ETA, forces[1], id[i] ) ;
+					a->addForceOn( XI, forces[0], id[j] ) ;
+					a->addForceOn( ETA, forces[1], id[j] ) ;
 				}
 
 				return ;

@@ -110,7 +110,6 @@ public:
 	
 } ;
 
-
 class TriElement : public Triangle, public ElementarySurface
 {
 protected :

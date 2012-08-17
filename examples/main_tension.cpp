@@ -1537,8 +1537,10 @@ int main(int argc, char *argv[])
 	inc.setBehaviour(new VoidForm()) ;
 // 	inc.isVirtualFeature = true ;
 // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
-// 	
+// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
+	
+	samplef.setBehaviour( new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) )) ;
+	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x,samplef.getCenter().y-samplef.height()*.5));
 	
@@ -1569,21 +1571,21 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
 	
 // 	F.addBoundaryCondition(loadr);
-	F.addBoundaryCondition(loadt);
+// 	F.addBoundaryCondition(loadt);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	triangles = F.getElements2D() ;
 	F.setMaxIterationsPerStep(400000);
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
-	step(2000) ;
+	step(1) ;
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

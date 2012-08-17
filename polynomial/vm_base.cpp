@@ -13,37 +13,384 @@ using namespace Mu ;
 
 VirtualMachine::VirtualMachine(){ } ;
 
+
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
 {
-	stack.memory.reset() ;
-	stack.set(x, y, z, t, u, v, w) ;
-// 	Context context(stack, x, y, z, t, u, v, w) ;
+	size_t size = f.byteCodeSize ;
+	stack.memory.heap[1] = x ;
+	stack.memory.heap[2] = y ;
+	stack.memory.heap[3] = z ;
+	stack.memory.heap[4] = t ;
+	stack.memory.heap[5] = u ;
+	stack.memory.heap[6] = v ;
+	stack.memory.heap[7] = w ;
 	
-	for(size_t i = 0 ; i < f.size()  ; ++i)
-		f.tokenEval(i,stack) ;
+	std::reverse_copy(&f.values[0],&f.values[f.constNumber],&stack.memory.heap[512-f.constNumber] ) ;
+// 	for(size_t i = 0 ; i < f.constNumber  ; ++i)
+// 	{
+// 		stack.memory.heap[511-i] = f.values[i] ;
+// 	}
+	
+	for(size_t i = 0 ; i < size  ; ++i)
+	{
+#define REG_A stack.memory.heap[f.adress_a[i*4]]
+#define REG_B stack.memory.heap[f.adress_a[i*4+1]]
+#define REG_C stack.memory.heap[f.adress_a[i*4+2]]
+#define REG_0 stack.memory.heap[0]
+		if(f.byteCode[i] >= TOKEN_OPERATION_PLUS && f.byteCode[i] <= TOKEN_OPERATION_INPLACE_POWER)
+		{
+			if(f.use_temp[i] == NO_TEMPORARY)
+			{
+				if (f.byteCode[i] ==  TOKEN_OPERATION_TIMES)
+				{
+					REG_C = REG_A*REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_PLUS)
+				{
+					REG_A += REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_POWER)
+				{
+					double val = REG_A ;
+					int pow = REG_B-1 ;
+					REG_C = val ;
+					for(int j = 0 ; j < pow ; ++j)
+					{
+						REG_C *= val;
+					}
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_TIMES)
+				{
+					REG_A *= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_C = REG_A+REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_MINUS)
+				{
+					REG_C = REG_A-REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_DIVIDES)
+				{
+					REG_C = REG_A/REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_MINUS)
+				{
+					REG_A -= REG_B ;
+				}
+				else 
+				{
+					REG_A /= REG_B ;
+				}
+			}
+			else if (f.use_temp[i] == SET_TEMPORARY)
+			{
+				if (f.byteCode[i] ==  TOKEN_OPERATION_TIMES)
+				{
+					REG_0 = REG_A*REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_PLUS)
+				{
+					REG_0 += REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_POWER)
+				{
+					double val = REG_A ;
+					int pow = REG_B-1 ;
+					REG_0 = val ;
+					for(int j = 0 ; j < pow ; ++j)
+					{
+						REG_0 *= val;
+					}
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_0 = REG_A+REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_TIMES)
+				{
+					REG_0 *= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_MINUS)
+				{
+					REG_0 = REG_A-REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_DIVIDES)
+				{
+					REG_0 = REG_A/REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_MINUS)
+				{
+					REG_0 -= REG_B ;
+				}
+				else 
+				{
+					REG_0 /= REG_B ;
+				}
+			}
+			else if(f.use_temp[i] == GET_TEMPORARY_A)
+			{
+				if (f.byteCode[i] ==  TOKEN_OPERATION_TIMES)
+				{
+					REG_C = REG_0*REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_C = REG_0+REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_MINUS)
+				{
+					REG_C = REG_0-REG_B ;
+				}
+				else if (f.byteCode[i] ==  TOKEN_OPERATION_DIVIDES)
+				{
+					REG_C = REG_0/REG_B ;
+				}
+				else
+				{
+					double val = REG_0 ;
+					int pow = REG_B-1 ;
+					REG_C = val ;
+					for(int j = 0 ; j < pow ; ++j)
+					{
+						REG_C *= val;
+					}
+				}
+			}
+			else if(f.use_temp[i] == GET_TEMPORARY_B)
+			{
+				 if (f.byteCode[i] == TOKEN_OPERATION_TIMES)
+				{
+					REG_C = REG_A*REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_C = REG_A+REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_PLUS)
+				{
+					REG_A += REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_POWER)
+				{
+					double val = REG_A ;
+					int pow = REG_0-1 ;
+					REG_C = val ;
+					for( int j = 0 ; j < pow ; ++j)
+					{
+						REG_C *= val;
+					}
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_MINUS)
+				{
+					REG_C = REG_A-REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_DIVIDES)
+				{
+					REG_C = REG_A/REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_MINUS)
+				{
+					REG_A -= REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_TIMES)
+				{
+					REG_A *= REG_0 ;
+				}
+				else
+				{
+					REG_A /= REG_0 ;
+				}
+			}
+			else if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+			{
+				if (f.byteCode[i] == TOKEN_OPERATION_TIMES)
+				{
+					REG_0 *= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_PLUS)
+				{
+					REG_0 += REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_POWER)
+				{
+					double val = REG_0 ;
+					int pow = REG_B-1 ;
+					REG_0 = val ;
+					for( int j = 0 ; j < pow ; ++j)
+					{
+						REG_0 *= val;
+					}
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_TIMES)
+				{
+					REG_0 *= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_0 += REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_MINUS)
+				{
+					REG_0 -= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_DIVIDES)
+				{
+					REG_0 /= REG_B ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_MINUS)
+				{
+					REG_0 -= REG_B ;
+				}
+				else
+				{
+					REG_0 /= REG_B ;
+				}
+			}
+			else 
+			{
+				if (f.byteCode[i] == TOKEN_OPERATION_TIMES)
+				{
+					REG_0 *= REG_A ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_POWER)
+				{
+					double val = REG_A ;
+					int pow = REG_0-1 ;
+					REG_0 = val ;
+					for( int j = 0 ; j < pow ; ++j)
+					{
+						REG_0 *= val;
+					}
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_PLUS)
+				{
+					REG_0 += REG_A ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_TIMES)
+				{
+					REG_A *= REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_MINUS)
+				{
+					REG_0 = REG_A-REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_DIVIDES)
+				{
+					REG_0 = REG_A/REG_0 ;
+				}
+				else if (f.byteCode[i] == TOKEN_OPERATION_INPLACE_MINUS)
+				{
+					REG_A -= REG_0 ;
+				}
+				else
+				{
+					REG_A /= REG_0 ;
+				}
+			}
+			continue ;
+		}
 
-// 	if(std::abs(stack[0]) < 1e-6)
-// 		return 0 ;
+		if(f.byteCode[i] == TOKEN_OPERATION_CONSTANT ||
+			f.byteCode[i] == TOKEN_OPERATION_X ||
+			f.byteCode[i] == TOKEN_OPERATION_Y ||
+			f.byteCode[i] == TOKEN_OPERATION_Z ||
+			f.byteCode[i] == TOKEN_OPERATION_T ||
+			f.byteCode[i] == TOKEN_OPERATION_U ||
+			f.byteCode[i] == TOKEN_OPERATION_V ||
+			f.byteCode[i] == TOKEN_OPERATION_W 
+		)
+		{
+			REG_C=REG_A ;
+			continue ;
+		}
 		
-	return  *stack.memory.top_pos ;
-}
+		switch(f.byteCode[i])
+		{
+			case TOKEN_OPERATION_GEO_OPERATION:
+			{
+				f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
+				break ;
+			}
+			case TOKEN_OPERATION_COS:
+			{
+				REG_C = cos(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_ABS:
+			{
+				REG_C = std::abs(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_TAN:
+			{
+				REG_C = tan(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_SIN:
+			{
+				REG_C = sin(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_EXP:
+			{
+				REG_C = exp(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_SIGN:
+			{
+				REG_C = sign(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_POSITIVITY:
+			{
+				double s0 = sign(REG_A) ;
+				s0 >= 0 ? REG_C = 1 : REG_C = 0 ;
+				break ;
+			}
+			case TOKEN_OPERATION_NEGATIVITY:
+			{
+				double s0 = sign(REG_A) ;
+				s0 < 0 ? REG_C = 1 : REG_C = 0 ;
+				break ;
+			}
+			case TOKEN_OPERATION_LOG:
+			{
+				REG_C = log(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_COSH:
+			{
+				REG_C = cosh(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_SINH:
+			{
+				REG_C = sinh(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_TANH:
+			{
+				REG_C = tanh(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_SQRT:
+			{
+				REG_C = sqrt(REG_A) ;
+				break ;
+			}
+			case TOKEN_OPERATION_ATAN2:
+			{
+				REG_C = atan2(REG_B, REG_A) ;
 
-double VirtualMachine::eval(const Function &f, std::vector<std::pair<std::string, double> > vars, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
-{
-	stack.memory.reset() ;
-	for(size_t i = 0 ; i < vars.size() ; i++)
-		stack.memory.setNamedVariable(vars[i].first, vars[i].second);
-	
-	stack.set(x, y, z, t, u, v, w) ;
-// 	Context context(stack, x, y, z, t, u, v, w) ;
-	
-	for(size_t i = 0 ; i < f.size()  ; ++i)
-		f.tokenEval(i,stack) ;
+				break ;
+			}
+		}
 
-// 	if(std::abs(stack[0]) < 1e-6)
-// 		return 0 ;
-		
-	return  *stack.memory.top_pos ;
+	}
+
+	return  stack.memory.heap[8] ;
 }
 
 Vector VirtualMachine::eval(const Function &f, const GaussPointArray &gp)
@@ -75,21 +422,6 @@ Vector VirtualMachine::oeval(const Function &f, const GaussPointArray &gp, const
 	return ret ;
 }
 
-double VirtualMachine::eval(const std::vector<RefCountedToken> &f, const double & x, const double & y, const double & z, const double &t, const double &u, const double &v, const double &w) 
-{
-	stack.memory.reset() ;
-	stack.set(x, y, z, t, u, v, w) ;
-
-	size_t size = f.size() ;
-	for(size_t i = 0 ; i < size  ; ++i)
-		f[i]->eval(stack) ;
-
-// 	if(std::abs(stack[0]) < 1e-6)
-// 		return 0 ;
-		
-	 return  *stack.memory.top_pos ;
- }
-
 double VirtualMachine::eval(const Function &f, const Point & p, const Point & p_) 
 {
 	return eval(f, p.x, p.y, p.z,p.t,p_.x, p_.y, p_.z) ;
@@ -106,24 +438,335 @@ double VirtualMachine::eval(const Function &f, const Point *p, const Point * p_)
 
 void VirtualMachine::print(const Function &f) const
 {
+	std::cout << f.size() << " instructions:\n" << std::endl ;
 	for(size_t i = 0 ; i < f.size()  ; i++)
 	{
-		std::cout << f.getToken(i)->print() << " " << std::flush ;
+		bool done = false ;
+		switch(f.byteCode[i])
+		{
+			case TOKEN_OPERATION_CONSTANT:
+			{
+				std::cout << "sto " << f.values[i*4] << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_X:
+			{
+				std::cout << "sto " << "x" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_Y:
+			{
+				std::cout << "sto " << "y" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_Z:
+			{
+				std::cout << "sto " << "z" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_T:
+			{
+				std::cout << "sto " << "t" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+		}
+	
+		if(done)
+			continue ;
+		
+		switch(f.byteCode[i])
+		{
+			case TOKEN_OPERATION_PLUS:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "add " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "add " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_MINUS:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "sub " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "sub " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<" @tmp" << "    : @tmp" << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_TIMES:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "mul " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"     @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "mul " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_DIVIDES:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "div " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "div " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_POWER:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "pow " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"     @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "pow " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_INPLACE_PLUS:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "add " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "add " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_INPLACE_MINUS:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "sub " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "sub " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_INPLACE_TIMES:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "mul " << " " << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "mul " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "mul " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_INPLACE_DIVIDES:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "div " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "div " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_INPLACE_POWER:
+			{
+				if(f.use_temp[i] == NO_TEMPORARY)
+					std::cout << "pow " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_TEMPORARY)
+					std::cout << "pow " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_A)
+					std::cout << "pow " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == GET_TEMPORARY_B)
+					std::cout << "pow " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
+					std::cout << "pow " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
+				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
+					std::cout << "pow " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+		}
+	
+		if(done)
+			continue ;
+		
+		switch(f.byteCode[i])
+		{
+
+			case TOKEN_OPERATION_U:
+			{
+				std::cout << "sto " << "u" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+// 				std::cout << "u" << "  " << std::flush ;
+				break ;
+			}
+			case TOKEN_OPERATION_V:
+			{
+				std::cout << "sto " << "v" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+			case TOKEN_OPERATION_W:
+			{
+				std::cout << "sto " << "w" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+				done = true ;
+				break ;
+			}
+		}
+	
+		if(done)
+			continue ;
+		
+		switch(f.byteCode[i])
+		{
+			case TOKEN_OPERATION_GEO_OPERATION:
+			{
+				std::cout << "geo " << "@" << f.adress_a[i*4]+100 << "    @" << f.adress_a[i*4+1]+100 <<"    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_COS:
+			{
+				std::cout << "cos " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_ABS:
+			{
+				std::cout << "abs " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_TAN:
+			{
+				std::cout << "tan " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_SIN:
+			{
+				std::cout << "sin " << "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_EXP:
+			{
+				std::cout << "exp "  << "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_SIGN:
+			{
+				std::cout << "sgn " << "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_POSITIVITY:
+			{
+				std::cout << "pos " << "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_NEGATIVITY:
+			{
+				std::cout << "neg " <<"@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_LOG:
+			{
+				std::cout << "log " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_COSH:
+			{
+				std::cout << "cosh " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_SINH:
+			{
+				std::cout << "sinh " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_TANH:
+			{
+				std::cout << "tanh " <<  "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_SQRT:
+			{
+				std::cout << "sqrt " << "@" << f.adress_a[i*4]+100 << "            : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+				break ;
+			}
+			case TOKEN_OPERATION_ATAN2:
+			{
+				std::cout << "sto " << " atan2 " << "@" << f.adress_a[i*4+1]+100 << "    @" << f.adress_a[i*4]+100 << "    : @"<< f.adress_a[i*4+2]+100 << std::endl ;
+
+				break ;
+			}
+		}
 	}
 	
-	std::cout << std::endl ;
+	std::cout << "    return @108\n" << std::endl ;
 }
 
-void VirtualMachine::print(const std::vector<RefCountedToken> &f) const
-{
-	std::cout << f.size() << " tokens" << std::endl ;
-	for(size_t i = 0 ; i < f.size()  ; i++)
-	{
-		std::cout << f[i]->print() << " " << std::flush ;
-	}
-	
-	std::cout << std::endl ;
-}
 
 Matrix VirtualMachine::eval(const FunctionMatrix &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
 {
