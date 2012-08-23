@@ -1211,7 +1211,7 @@ void Function::initialiseAdresses(size_t offset)
 		geo_op= newgeo_op; 
 		values= newvalues;
 		adress_a= newadress_a;
-
+		return ;
 		for(size_t i = offset ; i < byteCodeSize ; i++)
 		{
 			if(byteCode[i] < TOKEN_OPERATION_PLUS || byteCode[i] > TOKEN_OPERATION_INPLACE_POWER || byteCode[i+1] < TOKEN_OPERATION_PLUS || byteCode[i+1] > TOKEN_OPERATION_INPLACE_POWER || i >= byteCodeSize-1)
