@@ -14,6 +14,7 @@
 #include "homogenization/composite.h"
 #include "../utilities/matrixops.h"
 #include "../features/boundarycondition.h"
+#include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
 using namespace Mu ;
 
@@ -566,4 +567,5 @@ void ExponentiallyPredictedKelvinVoigt::preProcess( double timeStep, ElementStat
 		imposedAtGaussPoints[g] = - (Vector) (viscosity * imposed) ;		
 	}
 }
+
 

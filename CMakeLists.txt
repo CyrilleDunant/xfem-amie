@@ -16,6 +16,7 @@ endif( OpenMP_FOUND EQUAL 1 )
 set(ALL_SRC 
 elements/elements.cpp 
 elements/integrable_entity.cpp 
+elements/generalized_spacetime_viscoelastic_element_state.cpp 
 features/feature_base.cpp
 features/crack.cpp 
 features/crackinitiation.cpp 
@@ -69,6 +70,7 @@ physics/damagemodels/rotatingcrack.cpp
 physics/diffusion.cpp 
 physics/laplacian.cpp 
 physics/dual_behaviour.cpp 
+physics/generalized_spacetime_viscoelasticity.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
 physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp

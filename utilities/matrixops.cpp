@@ -7,6 +7,7 @@
 
 #include "matrixops.h"
 #include <limits>
+#include <iomanip>
 
 using namespace Mu ;
 
@@ -407,7 +408,7 @@ void Matrix::print() const
 	{
 		for(size_t j = 0 ; j < numCols() ;j++)
 		{
-			std::cout << (*this)[i][j] << "   " << std::flush ;
+			std::cout << std::setprecision(16) << (*this)[i][j] << "   " << std::flush ;
 		}
 		
 		std::cout << std::endl ;

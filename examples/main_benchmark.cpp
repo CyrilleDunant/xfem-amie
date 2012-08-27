@@ -9,6 +9,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
+#include "../physics/homogenization/composite.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
 #include "../physics/diffusion.h"
@@ -241,16 +242,16 @@ int main(int argc, char *argv[])
 	std::cout << "<properties>\t\tdouble : value of the Young's Modulus or Diffusion coefficient of the inclusion(s)" << std::endl ;
 	std::cout << "<sampling>\t\tinteger : number of points at the surface of the REV" << std::endl ;
 
-	if(argc != 7)
-		return 1 ;
+//	if(argc != 7)
+//		return 1 ;
 
-	BenchmarkMicrostructure micro = getMicrostructure(std::string(argv[1])) ;
-	BenchmarkPhenomenon pheno = getPhenomenon(std::string(argv[2])) ;
-	int order = atoi(argv[3]) ;
+	BenchmarkMicrostructure micro = S1 ;//getMicrostructure(std::string(argv[1])) ;
+	BenchmarkPhenomenon pheno = ELASTICITY ;//getPhenomenon(std::string(argv[2])) ;
+	int order = 1; //atoi(argv[3]) ;
 	if(order < 1 || order > 2) { order = 1 ; }
-	double scale = atof(argv[4]) ;
-	prop = atof(argv[5]) ;
-	int sampling = atoi(argv[6]) ;
+	double scale = 100.;//atof(argv[4]) ;
+	prop = 3;//atof(argv[5]) ;
+	int sampling = 1000;//atoi(argv[6]) ;
 	double length = getLength(micro) ;
 
 	double size = scale*length ;
@@ -300,7 +301,7 @@ int main(int argc, char *argv[])
 		
 		m1 = m0 * prop ;
 //		m1.print() ;
-/*		E = prop ;
+		E = prop ;
 		std::cout << prop << std::endl ;
 		m1[0][0] = 1. - nu ; m1[0][1] = nu ; m1[0][2] = nu ;
 		m1[1][0] = nu ; m1[1][1] = 1. - nu ; m1[1][2] = nu ;
@@ -308,22 +309,26 @@ int main(int argc, char *argv[])
 		m1[3][3] = 0.5 - nu ;
 		m1[4][4] = 0.5 - nu ;
 		m1[5][5] = 0.5 - nu ;
-		m1 *= E/((1.+nu)*(1.-2.*nu)) ;*/
-		behaviour = new Stiffness(m1) ;
+		m1 *= E/((1.+nu)*(1.-2.*nu)) ;
+		Vector alpha(6) ;
+		alpha[0] = 0.1 ;
+		alpha[1] = 0.1 ;
+		alpha[2] = 0.1 ;
+		behaviour = new StiffnessWithImposedDeformation(m1,alpha) ;
 		break ;
 	}
 	}
 
 	std::string str_micro = "S1" ;
-	if(micro != O1)
-	{
+//	if(micro != O1)
+//	{
 		std::vector<Inclusion3D * > inclusions ;
-		if(micro == S1)
-		{
+//		if(micro == S1)
+//		{*/
 			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
 			inclusions[0]->setBehaviour(behaviour) ;
 			F.addFeature(&sample, inclusions[0]) ;
-			std::cout << inclusions[0]->volume() << std::endl ;
+/*			std::cout << inclusions[0]->volume() << std::endl ;
 			std::cout << sample.volume() << std::endl ;
 			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
 		}
@@ -371,7 +376,7 @@ int main(int argc, char *argv[])
 		std::cout << oct->volume() << std::endl ;
 		std::cout << sample.volume() << std::endl ;
 		F.addFeature(&sample, oct) ;
-	}
+	}*/
 
 	F.setSamplingNumber(sampling) ;
 	F.setMaxIterationsPerStep(2);
@@ -398,9 +403,16 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;*/
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 1.)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-	if(pheno == ELASTICITY)
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+/*	if(pheno == ELASTICITY)
 	{
 		F.step() ;
 		tets= F.getElements3D() ;
@@ -432,13 +444,13 @@ int main(int argc, char *argv[])
 //		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 1.)) ;
 //		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 //		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+/*		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
 	}
 	else
 	{
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_FLUX_XI, RIGHT, 1.)) ;
-	}
+	}*/
 
 	F.step() ;
 	
@@ -598,28 +610,34 @@ int main(int argc, char *argv[])
 		}
 		
 		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "max stress11 :" << stress11.max() << std::endl ;
-		std::cout << "min stress11 :" << stress11.min() << std::endl ;
-		std::cout << "max stress22 :" << stress22.max() << std::endl ;
-		std::cout << "min stress22 :" << stress22.min() << std::endl ;
-		std::cout << "max stress33 :" << stress33.max() << std::endl ;
-		std::cout << "min stress33 :" << stress33.min() << std::endl ;
+		std::cout << "max value :" << x.max() << std::endl ;
+		std::cout << "min value :" << x.min() << std::endl ;
+		std::cout << "max stress11 :" << std::setprecision(16) << stress11.max() << std::endl ;
+		std::cout << "min stress11 :" <<  std::setprecision(16) << stress11.min() << std::endl ;
+		std::cout << "noise stress11 :" <<  std::setprecision(16) << stress11.max()-stress11.min() << std::endl ;
+		std::cout << "max stress22 :" << std::setprecision(16) <<  stress22.max() << std::endl ;
+		std::cout << "min stress22 :" <<  std::setprecision(16) << stress22.min() << std::endl ;
+		std::cout << "noise stress22 :" <<  std::setprecision(16) << stress22.max()-stress22.min() << std::endl ;
+		std::cout << "max stress33 :" <<  std::setprecision(16) << stress33.max() << std::endl ;
+		std::cout << "min stress33 :" <<  std::setprecision(16) << stress33.min() << std::endl ;
+		std::cout << "noise stress33 :" <<  std::setprecision(16) << stress33.max()-stress33.min() << std::endl ;
 		
-		std::cout << "max strain11 :" << strain11.max() << std::endl ;
-		std::cout << "min strain11 :" << strain11.min() << std::endl ;
-		std::cout << "max strain22 :" << strain22.max() << std::endl ;
-		std::cout << "min strain22 :" << strain22.min() << std::endl ;
-		std::cout << "max strain33 :" << strain33.max() << std::endl ;
-		std::cout << "min strain33 :" << strain33.min() << std::endl ;
+		std::cout << "max strain11 :" <<  std::setprecision(16) << strain11.max() << std::endl ;
+		std::cout << "min strain11 :" <<  std::setprecision(16) << strain11.min() << std::endl ;
+		std::cout << "noise strain11 :" <<  std::setprecision(16) << strain11.max()-strain11.min() << std::endl ;
+		std::cout << "max strain22 :" << std::setprecision(16) <<  strain22.max() << std::endl ;
+		std::cout << "min strain22 :" <<  std::setprecision(16) << strain22.min() << std::endl ;
+		std::cout << "noise strain22 :" <<  std::setprecision(16) << strain22.max()-strain22.min() << std::endl ;
+		std::cout << "max strain33 :" <<  std::setprecision(16) << strain33.max() << std::endl ;
+		std::cout << "min strain33 :" <<  std::setprecision(16) << strain33.min() << std::endl ;
+		std::cout << "noise strain33 :" <<  std::setprecision(16) << strain33.max()-strain33.min() << std::endl ;
 		
-		std::cout << "average stress11 : " << average_stress[0]/total_volume << std::endl ;
-		std::cout << "average stress22 : " << average_stress[1]/total_volume << std::endl ;
-		std::cout << "average stress33 : " << average_stress[2]/total_volume << std::endl ;
-		std::cout << "average strain11 : " << average_strain[0]/total_volume << std::endl ;
-		std::cout << "average strain22 : " << average_strain[1]/total_volume << std::endl ;
-		std::cout << "average strain33 : " << average_strain[2]/total_volume << std::endl ;
+		std::cout << "average stress11 : " <<  std::setprecision(16) << average_stress[0]/total_volume << std::endl ;
+		std::cout << "average stress22 : " <<  std::setprecision(16) << average_stress[1]/total_volume << std::endl ;
+		std::cout << "average stress33 : " << std::setprecision(16) <<  average_stress[2]/total_volume << std::endl ;
+		std::cout << "average strain11 : " <<  std::setprecision(16) << average_strain[0]/total_volume << std::endl ;
+		std::cout << "average strain22 : " <<  std::setprecision(16) << average_strain[1]/total_volume << std::endl ;
+		std::cout << "average strain33 : " <<  std::setprecision(16) << average_strain[2]/total_volume << std::endl ;
 		
 /*		average_strain[1] = (average_strain[1]+average_strain[2])*.5 ;
 		average_stress[1] = (average_stress[1]+average_stress[2])*.5 ;*/
@@ -643,7 +661,7 @@ int main(int argc, char *argv[])
 		double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
 		
 		std::string filebench("benchmark.txt") ;
-		std::fstream out ;
+/*		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
 		out << "ELASTICITY\t" << str_micro ;
 			if(order==2)
@@ -653,15 +671,19 @@ int main(int argc, char *argv[])
 			<< "C1111 = " << c[0] << "\t"
 			<< "C1122 = " << c[1] << std::endl ;
 		out << "Time to solve (s) =" << delta/1e6 << std::endl ;
-		out.close() ;
+		out.close() ;*/
 		
 /*		VoxelWriter vw("simulation_out_stiffness", 200) ;
 		vw.getField(featureTree, VWFT_STIFFNESS) ;
 		vw.write();*/
 		
-/*		VoxelWriter vw0("simulation_out_stress", 100) ;
-		vw0.getField(featureTree, VWFT_STRAIN) ;
-		vw0.write();*/
+		VoxelWriter vw0("simulation_out_stress", 100) ;
+		vw0.getField(featureTree, VWFT_STRESS) ;
+		vw0.write();
+
+		VoxelWriter vw1("simulation_out_strain", 100) ;
+		vw1.getField(featureTree, VWFT_STRAIN) ;
+		vw1.write();
 		
 		break ;
 	}

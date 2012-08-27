@@ -40,7 +40,7 @@ ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceD
 Form * ElasticOnlyPasteBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1. - variability + variability*weib ;
+	double factor = 1. ;//- variability + variability*weib ;
 	return new Stiffness(param*factor) ;
 }
 

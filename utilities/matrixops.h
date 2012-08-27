@@ -4,6 +4,8 @@
 //
 //
 
+#define nullptr NULL
+
 #ifndef __MATRIXOPS_H__
 #define __MATRIXOPS_H__
 

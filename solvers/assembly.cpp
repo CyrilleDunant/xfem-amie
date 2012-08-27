@@ -323,19 +323,24 @@ void Assembly::setBoundaryConditions()
 
 //	size_t ndofs = multiplier_offset ;
 
+//	std::cout << multipliers.size() << std::endl ;
+	
 	std::sort(multipliers.begin(), multipliers.end()) ;
 	std::valarray<int> multiplierIds(multipliers.size()) ;
 	for(size_t i = 0 ; i < multiplierIds.size() ; i++)
+	{
 		multiplierIds[i] = multipliers[i].getId() ;
+//		std::cout << multiplierIds[i] << std::endl ;
+	}
+	
+	
 
-	
-	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
-	
 	int stride = coordinateIndexedMatrix->stride ;
+//	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
 	for(size_t k = 0 ; k < coordinateIndexedMatrix->row_size.size() ; k++)
 	{
-		if(k% 1000 == 0)
-			std::cerr << "\r setting BCs... displacement dof " << k*stride << "/" << coordinateIndexedMatrix->row_size.size()*stride << std::flush ;
+/*		if(k% 1000 == 0)
+			std::cerr << "\r setting BCs... displacement dof " << k*stride << "/" << coordinateIndexedMatrix->row_size.size()*stride << std::flush ;*/
 		int lineBlockIndex = k ;
 		int * start_multiplier = std::lower_bound(&multiplierIds[0], &multiplierIds[multiplierIds.size()], coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]]*stride) ;
 		int * end_multiplier = std::upper_bound(start_multiplier,  &multiplierIds[multiplierIds.size()],coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]+coordinateIndexedMatrix->row_size[k]-1]*stride+stride-1 ) ;
@@ -387,6 +392,7 @@ void Assembly::setBoundaryConditions()
 								if((columnBlockIndex*stride+n) == id)
 								{
 									getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
+//									count++ ;
 								}
 								else
 								{
@@ -397,6 +403,7 @@ void Assembly::setBoundaryConditions()
 					}
 				}
 			}
+			
 
 			for(int p = start_multiplier_in_block_index ; p != end_multiplier_in_block_index ; p++)
 			{
@@ -442,6 +449,7 @@ void Assembly::setBoundaryConditions()
 			
 		}
 	}
+	
 	
 	std::cerr << " ...done" << std::endl ;
 	for(size_t i = 0 ; i < multipliers.size() ; i++)
@@ -532,6 +540,27 @@ void Assembly::initialiseElementaryMatrices()
 	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
 }
 
+void Assembly::checkZeroLines()
+{
+	std::cerr << "removing 0-only lines..." << std::flush ;
+	bool zeros = true ;
+	for(size_t i = 0 ; i < ndof ; i++)
+	{
+		zeros = true ;
+		size_t j = 0 ;
+		while(zeros && (j < ndof))
+		{
+			zeros = (getMatrix()[i][j] < POINT_TOLERANCE_2D) ;
+			j++ ;
+		}
+		if(zeros && (j==ndof))
+		{
+			getMatrix()[i][i] = 1 ;
+			externalForces[i] = 0. ;
+		}
+	}
+	std::cerr << "done. " << std::endl ;
+}
 
 bool Assembly::make_final()
 {
@@ -679,6 +708,7 @@ bool Assembly::make_final()
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		setBoundaryConditions() ;
+		checkZeroLines() ;
 		
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
@@ -828,6 +858,7 @@ bool Assembly::make_final()
 		std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;
+		checkZeroLines() ;
 	}
 // 	std::cerr << smallestEigenValue(getMatrix()) << std::endl;
 	return symmetric ;
@@ -864,7 +895,7 @@ void Assembly::print()
 	for(size_t i = 0 ; i < externalForces.size() ; i++)
 	{
 		for(size_t j = 0 ; j < externalForces.size() ; j++)
-			std::cerr << getMatrix()[i][j] << "   " << std::flush ;
+			std::cerr << std::setprecision(16) <<getMatrix()[i][j] << "   " << std::flush ;
 		
 		std::cerr << std::endl ;
 	}
@@ -1076,6 +1107,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
+//				if((*duplicate).type != SET_FORCE_XI)
+//					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1088,6 +1121,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
+//				if((*duplicate).type != SET_FORCE_ETA)
+//					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1100,6 +1135,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
+//				if((*duplicate).type != SET_FORCE_ZETA)
+//					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1124,6 +1161,19 @@ void Assembly::addMultiplier(const LagrangeMultiplier & l)
 		multipliers.erase(duplicate) ;
 	}
 	multipliers.push_back(l) ;
+}
+
+void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id) 
+{
+	std::valarray<unsigned int> i(2) ;
+	Vector c(2) ;
+	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+		multipliers.erase(duplicate) ;
+
+	multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+axis)) ;
+	multipliers.back().type = SET_ALONG_INDEXED_AXIS ;
+	return ;
 }
 
 void Assembly::setPointAlong(Variable v, double val, size_t id) 

@@ -411,7 +411,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 	Point p_ = p ;
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
-
+	
 	switch(f)
 	{
 		case DISPLACEMENT_FIELD:
@@ -439,12 +439,15 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			}
 			return ;
 		case STRAIN_FIELD:
-			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 2 )
+			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() ==2)
 			{
 				double x_xi = 0;
 				double x_eta = 0;
 				double y_xi = 0;
 				double y_eta = 0;
+				
+				Vector dx(0., parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+				Vector dy(0., parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
 
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
@@ -1007,12 +1010,12 @@ void ElementState::getFieldAtCenter( FieldType f, Vector & ret, int )
 			ret = stressAtCenter ;
 			return ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-			if( stressAtCenter.size() == 0 )
+			if( principalStressAtCenter.size() == 0 )
 			{
-				stressAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, stressAtCenter, true) ;
+				principalStressAtCenter.resize(parent->spaceDimensions()) ;
+				this->getField(f, p_, principalStressAtCenter, true) ;
 			}
-			ret = stressAtCenter ;
+			ret = principalStressAtCenter ;
 			return ;
 	}
 	this->getField(f, p_, ret, true) ;
@@ -2432,7 +2435,7 @@ KelvinVoightSpaceTimeElementState & KelvinVoightSpaceTimeElementState::operator 
 }
 
 void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
-{
+{  
 	VirtualMachine vm ;
 	int n = 0 ;
 	Point p_ = p ;
@@ -2703,6 +2706,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 
 void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i, int j)  const 
 {
+	std::cout << ret1.size() << std::endl ;
 	Point p_ = p ;
 	if(!local)
 		p_ = parent->inLocalCoordinates(p) ;

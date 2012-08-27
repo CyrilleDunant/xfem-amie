@@ -6,30 +6,30 @@
 
 using namespace Mu ;
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double d ) : BoundaryCondition( t, d ), pos( pos ) { } ;
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a) : BoundaryCondition( t, d, a ), pos( pos ) { } ;
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d ) : BoundaryCondition( t, d ), pos( pos ) { } ;
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a ) : BoundaryCondition( t, d, a ), pos( pos ) { } ;
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d ) : BoundaryCondition( t, d ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( zm ), zmax( zp )
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition( t, d, a ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( zm ), zmax( zp )
 {
 
 }
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, const Function & d ) : BoundaryCondition( t, d ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( zm ), zmax( zp )
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, const Function & d, int a ) : BoundaryCondition( t, d, a ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( zm ), zmax( zp )
 {
 
 }
 
-BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, double d ) : BoundaryCondition( t, d ), pos( pos ), nearest( p ) {} ;
+BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, double d, int a  ) : BoundaryCondition( t, d, a ), pos( pos ), nearest( p ) {} ;
 
-BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, const Function & d ) : BoundaryCondition( t, d ), pos( pos ), nearest( p ) {} ;
+BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, const Function & d, int a  ) : BoundaryCondition( t, d, a ), pos( pos ), nearest( p ) {} ;
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d ): BoundaryCondition( t, d ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( 0 ), zmax( 0 )
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d, int a  ): BoundaryCondition( t, d, a ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( 0 ), zmax( 0 )
 {
 
 }
 
-BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, const Function & d ): BoundaryCondition( t, d ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( 0 ), zmax( 0 )
+BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, const Function & d, int a  ): BoundaryCondition( t, d, a ), pos( pos ),  xmin( xm ), xmax( xp ), ymin( ym ), ymax( yp ), zmin( 0 ), zmax( 0 )
 {
 
 }
@@ -42,27 +42,27 @@ ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementaryVolu
 {
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) : BoundaryCondition( t, d ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
 {
 
 }
 
-void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -98,6 +98,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 			case SET_ALONG_ETA:
 				a->setPointAlong( ETA, data, id[idit] ) ;
+				break ;
+				
+			case SET_ALONG_INDEXED_AXIS:
+				a->setPointAlongIndexedAxis( axis, data, id[idit] ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -154,11 +158,11 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 				  					
-					a->addForceOn( XI, forces[0], id[j] ) ;
-					a->addForceOn( ETA, forces[1], id[j] ) ;
+					a->addForceOn( XI, forces[0], id[idit] ) ;
+					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 
-				return ;
+				break ;
 			}
 
 			case SET_STRESS_ETA:
@@ -169,20 +173,17 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				std::vector<Function> shapeFunctions ;
 
-				for ( size_t j = 0 ; j < id.size() ; j++ )
+				for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
 				{
-					for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+					if ( id[idit] == e->getBoundingPoint( k ).id )
 					{
-						if ( id[j] == e->getBoundingPoint( k ).id )
-						{
-							shapeFunctions.push_back( e->getShapeFunction( k ) ) ;
-						}
+						shapeFunctions.push_back( e->getShapeFunction( k ) ) ;
 					}
-					for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
-					{
-						if ( id[j] == e->getEnrichmentFunction( k ).getDofID() )
-							shapeFunctions.push_back( e->getEnrichmentFunction( k ) ) ;
-					}
+				}
+				for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
+				{
+					if ( id[idit] == e->getEnrichmentFunction( k ).getDofID() )
+						shapeFunctions.push_back( e->getEnrichmentFunction( k ) ) ;
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -203,11 +204,11 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 					
-					a->addForceOn( XI, forces[0], id[j] ) ;
-					a->addForceOn( ETA, forces[1], id[j] ) ;
+					a->addForceOn( XI, forces[0], id[idit] ) ;
+					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 				
-				return ;
+				break ;
 			}
 
 			case SET_STRESS_XI_ETA:
@@ -248,8 +249,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
 					
-					a->addForceOn( XI, forces[0], id[j] ) ;
-					a->addForceOn( ETA, forces[1], id[j] ) ;
+					a->addForceOn( XI, forces[0], idit ) ;
+					a->addForceOn( ETA, forces[1], idit ) ;
 				}
 
 				return ;
@@ -292,7 +293,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i] ) ;
+					a->addForceOn( XI, f, idit ) ;
 				}
 
 				return ;
@@ -335,7 +336,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i] ) ;
+					a->addForceOn( XI, f, idit ) ;
 				}
 
 				return ;
@@ -347,7 +348,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 	}
 }
 
-void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
 // 	std::cout << "splash" << std::endl ;
 // 	std::cout << (size_t)(e) << std::endl ;
@@ -389,6 +390,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 			case SET_ALONG_ZETA:
 				a->setPointAlong( ZETA, data, id[i] ) ;
+				break ;
+
+			case SET_ALONG_INDEXED_AXIS:
+				a->setPointAlongIndexedAxis( axis, data, id[i] ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -857,27 +862,27 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 	}
 }
 
-void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
 	std::vector<size_t> ids ;
 
 	for ( size_t i = 0 ; i < id.size() ; i++ )
 		ids.push_back( id[i].id );
 
-	apply2DBC( e,gp,Jinv, ids, condition, data, a ) ;
+	apply2DBC( e,gp,Jinv, ids, condition, data, a, axis ) ;
 }
 
-void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
 	std::vector<size_t> ids ;
 
 	for ( size_t i = 0 ; i < id.size() ; i++ )
 		ids.push_back( id[i].id );
 
-	apply3DBC( e, gp, Jinv, ids, condition, data, a ) ;
+	apply3DBC( e, gp, Jinv, ids, condition, data, a, axis ) ;
 }
 
-void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
+void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -908,6 +913,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 			case SET_ALONG_ETA:
 				a->setPointAlong( ETA,  vm.eval( data, id[i] ), id[i].id ) ;
+				break ;
+
+			case SET_ALONG_INDEXED_AXIS:
+				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].id ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -1153,7 +1162,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 	}
 }
 
-void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a )
+void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, const Function & data, Assembly * a, int axis = 0 )
 {
 	if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
 		return ;
@@ -1191,6 +1200,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 			case SET_ALONG_ZETA:
 				a->setPointAlong( ZETA, vm.eval( data, id[i] ), id[i].id ) ;
+				break ;
+
+			case SET_ALONG_INDEXED_AXIS:
+				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].id ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -1826,7 +1839,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply2DBC( surface,gp, Jinv, id_, condition, data*getScale(), a ) ;
+		apply2DBC( surface,gp, Jinv, id_, condition, data*getScale(), a, axis ) ;
 	}
 	else
 	{
@@ -1837,7 +1850,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 			if ( surface->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( surface->getBoundingPoint( i ) );
-				apply2DBC( surface,gp,Jinv, id_, condition, dataFunction*getScale(), a ) ;
+				apply2DBC( surface,gp,Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
 				return ;
 			}
 		}
@@ -1853,7 +1866,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply3DBC( volume,gp,Jinv,  id_, condition, data*getScale(),  a ) ;
+		apply3DBC( volume,gp,Jinv,  id_, condition, data*getScale(),  a , axis) ;
 	}
 	else
 	{
@@ -1864,7 +1877,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 			if ( volume->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( volume->getBoundingPoint( i ) );
-				apply3DBC( volume,gp, Jinv, id_, condition, dataFunction*getScale(), a ) ;
+				apply3DBC( volume,gp, Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
 				return ;
 			}
 		}
@@ -3231,9 +3244,9 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 	}
 }
 
-GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition( LagrangeMultiplierType t, Geometry * source, double d ) : BoundaryCondition( t, d ), domain( source ) { };
+GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition( t, d, a ), domain( source ) { };
 
-GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition( LagrangeMultiplierType t, Geometry * source, const Function & d ) : BoundaryCondition( t, d ), domain( source ) { };
+GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition( t, d, a ), domain( source ) { };
 
 void GeometryDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
@@ -3858,9 +3871,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 				break ;
@@ -3873,7 +3886,7 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
 						continue ;
 
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; j++ )
 					{
 						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol )
 						{
@@ -3897,9 +3910,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
 					}
 				}
 
@@ -3937,9 +3950,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 
@@ -3977,9 +3990,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 
@@ -4017,9 +4030,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
 					}
 				}
 
@@ -4057,9 +4070,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 
@@ -4097,9 +4110,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 
@@ -4137,9 +4150,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 				}
 
@@ -4182,9 +4195,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 						}
 						
 						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 					}
 					}
 				}
@@ -4228,9 +4241,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 				}
@@ -4272,9 +4285,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 				}
@@ -4316,9 +4329,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 
@@ -4360,9 +4373,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 
@@ -4404,9 +4417,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 					
@@ -4448,9 +4461,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
 						}
 					}
 
@@ -4492,9 +4505,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 				}
 
@@ -4536,9 +4549,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 
@@ -4580,9 +4593,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 
@@ -4624,9 +4637,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 				}
 
@@ -4668,9 +4681,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 							}
 							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
 							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 						}
 					}
 
@@ -4697,9 +4710,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 			}
 
 			if ( !function )
-				apply2DBC( cache2d[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a, axis ) ;
 			else
-				apply2DBC( cache2d[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a, axis ) ;
 		}
 	}
 }
@@ -6012,9 +6025,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 
 			}
 
@@ -6046,9 +6059,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6079,9 +6092,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6112,9 +6125,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6145,9 +6158,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6178,9 +6191,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6211,9 +6224,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6244,9 +6257,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6277,9 +6290,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6310,9 +6323,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a , axis) ;
 			}
 
 			break ;
@@ -6343,9 +6356,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6376,9 +6389,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6409,9 +6422,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6442,9 +6455,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6475,9 +6488,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6508,9 +6521,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6543,9 +6556,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6578,9 +6591,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6613,9 +6626,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6648,9 +6661,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6683,9 +6696,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6718,9 +6731,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6753,9 +6766,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6788,9 +6801,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 				}
 
 				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
 				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
 			}
 
 			break ;
@@ -6803,9 +6816,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 	}
 }
 
-BoundaryCondition::BoundaryCondition( LagrangeMultiplierType t, const double & d ) : scale( 1 ), condition( t ), data( d ), function( false ) { } ;
+BoundaryCondition::BoundaryCondition( LagrangeMultiplierType t, const double & d, int a  ) : scale( 1 ), condition( t ), data( d ), function( false ), axis(a) { } ;
 
-BoundaryCondition::BoundaryCondition( LagrangeMultiplierType t, const Function & d ) : scale( 1 ), condition( t ), dataFunction( d ), function( true ) { } ;
+BoundaryCondition::BoundaryCondition( LagrangeMultiplierType t, const Function & d, int a ) : scale( 1 ), condition( t ), dataFunction( d ), function( true ), axis(a) { } ;
 
 void BoundaryCondition::setScale( double d )
 {
@@ -6817,7 +6830,7 @@ double BoundaryCondition::getScale() const
 	return scale ;
 }
 
-ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition( LagrangeMultiplierType t, const Point & dir, double d ) : BoundaryCondition( t, d ), direction( dir ) { }
+ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition( LagrangeMultiplierType t, const Point & dir, double d, int a ) : BoundaryCondition( t, d, a ), direction( dir ) { }
 
 void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {

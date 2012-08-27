@@ -450,7 +450,9 @@ void TriangleGLDrawer::computeDisplayList()
 			for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
 			{
 				float v = ( ( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] - min_val ) / ( max_val - min_val );
-
+				if( abs(max_val / min_val - 1) < 1e-6)
+					v = 0.5 ;
+				
 				if( v < ( double )fracdown / 10000. )
 					v = 0 ;
 				else if( v > ( double )fracup / 10000. )

@@ -341,6 +341,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
 						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
 						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+						
 						// epsilon11
 						ret[8][iterator]   = strain0[0];
 						ret[7][iterator]   = strain1[0];
@@ -472,6 +473,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
 						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
 						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+
 						// epsilon11
 						ret[8][iterator]   = strain0[0];
 						ret[7][iterator]   = strain1[0];

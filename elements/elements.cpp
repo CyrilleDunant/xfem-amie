@@ -364,12 +364,15 @@ const GaussPointArray & TriElement::genGaussPoints()
 // 			ordre = 1 ;
 // 			fin.resize(ordre);
 // 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0), 1) ;
-// 			ordre = 3 ;
-// 			fin.resize(ordre);
-// 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
-// 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
-// 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.774596669241483), 0.5555555555555556*0.5) ;
-			ordre = 5 ;
+/* 			ordre = 3 ;
+ 			fin.resize(ordre);
+ 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
+ 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
+ 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0., 0.774596669241483), 0.5555555555555556*0.5) ;*/
+ 			ordre = 1 ;
+ 			fin.resize(ordre);
+ 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 1.0) ;
+/*			ordre = 5 ;
 			fin.resize(ordre);
 			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
 			double b = 1./3.*sqrt(5.+2*sqrt(10./7.)) ;
@@ -377,12 +380,25 @@ const GaussPointArray & TriElement::genGaussPoints()
 			fin[1] = std::pair<Point, double>(Point(1./3., 1./3.,0,-b), (322.-13.*sqrt(70.))/1800.) ;
 			fin[2] = std::pair<Point, double>(Point(1./3., 1./3.,0,0), 128./450.) ;
 			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.,0,b), (322.-13.*sqrt(70.))/1800.) ;
-			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;
+			fin[4] = std::pair<Point, double>(Point(1./3., 1./3.,0,a), (322.+13.*sqrt(70.))/1800.) ;*/
 			
 			break ;
 		}
 	case LINEAR_TIME_QUADRATIC:
 		{
+ /*			ordre = 3 ;
+ 			fin.resize(ordre);
+ 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
+ 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
+ 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.774596669241483), 0.5555555555555556*0.5) ;*/
+/* 			ordre = 6 ;
+ 			fin.resize(ordre);
+ 			fin[0] = std::pair<Point, double>(Point(0.666666666666666, 0.166666666666667,0.,-0.577350269189626), 0.333333333333333333) ;
+ 			fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.666666666666666,0.,-0.577350269189626), 0.333333333333333333) ;
+ 			fin[2] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667,0.,-0.577350269189626), 0.333333333333333333) ;
+ 			fin[3] = std::pair<Point, double>(Point(0.666666666666666, 0.166666666666667,0., 0.577350269189626), 0.333333333333333333) ;
+ 			fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.666666666666666,0., 0.577350269189626), 0.333333333333333333) ;
+ 			fin[5] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667,0., 0.577350269189626), 0.333333333333333333) ;*/
 
 			ordre = 5 ;
 			fin.resize(ordre);
@@ -667,7 +683,7 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
 
-		//0
+		//0			
 			(*shapefunc)[0] = Function("y 0.5 0.5 t * - *") ;
 		//1
 			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;

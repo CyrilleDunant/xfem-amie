@@ -49,6 +49,8 @@ typedef enum
 	SET_ALONG_XI_ZETA,
 	FIX_ALONG_ETA_ZETA,
 	SET_ALONG_ETA_ZETA,
+	FIX_ALONG_INDEXED_AXIS,
+	SET_ALONG_INDEXED_AXIS,
 	SET_FORCE_XI,
 	SET_FORCE_ETA,
 	SET_FORCE_ZETA,
@@ -215,6 +217,9 @@ public:
 /** \brief add element to assembly*/
 	void add(ElementaryVolume * e) ;
 
+/** \brief chek if a line is equal to 0 or not*/
+	void checkZeroLines() ;
+	
 /** \brief update element e
 * 
 * @param element to update
@@ -341,6 +346,8 @@ public:
 	 * @param val value at which unknown is set
  */
 	void setPointAlong(Variable, double val, size_t id) ;
+	
+	void setPointAlongIndexedAxis(int index, double val, size_t id) ;
 	
 	/** Apply a force on given node
 	 * @param var Variable (XI, ETA, or ZETA) along which force is applied 

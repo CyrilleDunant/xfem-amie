@@ -14,6 +14,8 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/kelvinvoight.h"
+#include "../physics/maxwell.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -1442,20 +1444,39 @@ int main(int argc, char *argv[])
   
   
   
-	GeometryType reference = CIRCLE ;
+/*	GeometryType reference = CIRCLE ;
 	
 	if(std::string(argv[2]) == std::string("--ellipse"))
 		reference = ELLIPSE ;
 	if(std::string(argv[2]) == std::string("--triangle"))
 		reference = TRIANGLE ;
 	if(std::string(argv[2]) == std::string("--rectangle"))
-		reference = RECTANGLE ;
+		reference = RECTANGLE ;*/
 	
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
+	
+	Matrix C(3,3) ;
+	Matrix C0(3,3) ;
+	Matrix E(3,3) ;
+	
+	double young = 1e9 ;
+	double nu = 0.3 ;
+	double eta = 1 ;
+	double day = 1. ;
+	
+	C[0][0] = 1. ; C[1][0] = nu ; C[2][0] = 0. ;
+	C[0][1] = nu ; C[1][1] = 1. ; C[2][1] = 0. ;
+	C[0][2] = 0. ; C[1][2] = 0. ; C[2][2] = 1.-nu ;
+	
+	C *= young/(1.-nu*nu) ;
+	E = C*eta*day ;
+	C0 = C*3 ;
+	
+	sample.setBehaviour( new StandardLinearSolid(C0, C,E) ) ;
 
-	std::vector<Feature *> feats ;
+/*	std::vector<Feature *> feats ;
 	std::vector<Inclusion *> inclusions ;
 //	inclusions.push_back(new Inclusion(0.002,0.,0.)) ;
 	std::vector<EllipsoidalInclusion *> ellinc ;
@@ -1535,19 +1556,26 @@ int main(int argc, char *argv[])
 //			zones = generateExpansiveZonesHomogeneously(100, 3, recinc, F) ;
 // 			zones = generateExpansiveZonesAtCenter(recinc, F) ;
 			break ;
-	}
+	}*/
 
 
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -atoi(argv[4])*1e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BEFORE)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BEFORE)) ;
 
-	int nSampling = atof(argv[1]) ;
+	int nSampling = 100 ;
 	
 	F.setSamplingNumber(nSampling) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
 
-	step(reference, nSampling, 0,0) ;
+//	step(reference, nSampling, 0,0) ;
+
+	F.step() ;
+	
+	Vector x = F.getDisplacements() ;
+	std::cout << x.max() << std::endl ;
 	
 	return 0 ;
 }

@@ -25,18 +25,21 @@ protected:
 	double data ;
 	double scale ;
 	Function dataFunction ;
+	int axis ;
 	bool function ;
 	std::vector<DelaunayTriangle *> cache2d ;
 	std::vector<DelaunayTetrahedron *> cache3d ;
 	std::vector<std::vector<Point> > cache ;
 public:
-	BoundaryCondition(LagrangeMultiplierType t, const double & d) ;
-	BoundaryCondition(LagrangeMultiplierType t, const Function & d) ;
+	BoundaryCondition(LagrangeMultiplierType t, const double & d, int a = 0) ;
+	BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) = 0 ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) = 0 ;
 	void setData(double newval) { data = newval ;}
 	void setData(const Function & f) { dataFunction = f ;}
 	double getData() const { return data ;}
+	int getAxisIndex() const { return axis ; }
+	void setAxisIndex(int a) { axis = a ; }
 	void clearCache()
 	{
 		cache.clear();
@@ -46,7 +49,7 @@ public:
 	
 	virtual void setScale(double) ;
 	virtual double getScale() const;
-	
+		
 	LagrangeMultiplierType getConditionType() const {return condition ;}  ;
 } ;
 
@@ -56,7 +59,7 @@ class PlaneSectionsBoundaryConditions : public BoundaryCondition
 	double uplimit ;
 	double downlimit ;
 public:
-	PlaneSectionsBoundaryConditions(bool isVertical, double down, double up) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), downlimit(down), uplimit(up) { };
+	PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), downlimit(down), uplimit(up) { };
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) ;
 } ;
@@ -77,8 +80,8 @@ private:
 	Point direction ;
 
 public:
-	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, double d = 0) ;
-	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, const Function & d ) ;
+	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, double d = 0, int a = 0) ;
+	ProjectionDefinedBoundaryCondition(LagrangeMultiplierType t,const Point & direction, const Function & d, int a = 0 ) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -90,8 +93,8 @@ private:
 	BoundingBoxPosition pos ;
 	
 public:
-	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0 ) ;
-	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d ) ;
+	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double d = 0, int a = 0 ) ;
+	BoundingBoxDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a = 0 ) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -104,10 +107,10 @@ private:
 	double xmin, xmax, ymin, ymax, zmin, zmax ;
 	
 public:
-	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, double d = 0 ) ;
-	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double d = 0 ) ;
-	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, const Function & d ) ;
-	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, const Function & d ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, double d = 0, int a = 0 ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double d = 0, int a = 0 ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, double zm, double zp, const Function & d, int a = 0 ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp,double  ym, double yp, const Function & d, int a = 0 ) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -119,8 +122,8 @@ private:
 	Point nearest ;
 	
 public:
-	BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, double d = 0 ) ;
-	BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, const Function & d ) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, double d = 0, int a = 0 ) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition(LagrangeMultiplierType t, BoundingBoxPosition pos, Point nearest, const Function & d, int a = 0 ) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -132,8 +135,8 @@ protected:
 	Geometry * domain ;
 
 public:
-	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0) ;
-	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d) ;
+	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
+	GeometryDefinedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -146,8 +149,8 @@ private:
 	Point from ;
 	Point direction ;
 public:
-	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, double d = 0 ) ;
-	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, const Function & d ) ;
+	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, double d = 0 , int a = 0) ;
+	GeometryProjectedBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & from,  const Point & direction, const Function & d , int a = 0) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
@@ -176,10 +179,10 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 		std::valarray<Matrix> Jinv ;
 		GaussPointArray gp ;
 	public:
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, size_t id, double d = 0 ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d = 0 ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) ;
-		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, size_t id, double d = 0, int a = 0 ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d = 0, int a = 0 ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a = 0 ) ;
+		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a = 0 ) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;

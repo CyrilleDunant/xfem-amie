@@ -966,7 +966,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 				}
 			case TIME_VARIABLE : 
 				{
-					return( eval(f, x+eps, y, z, t+eps, u, v, w) - eval(f, x-eps, y, z, t+eps, u, v, w)- eval(f, x+eps, y, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
+					return ( eval(f, x+eps, y, z, t+eps, u, v, w) - eval(f, x-eps, y, z, t+eps, u, v, w)- eval(f, x+eps, y, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
 				}
 			case U_VARIABLE:
 				{
@@ -2049,8 +2049,8 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			{
 				std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
 				
-				Vector dxi = ddeval(f, var[0],TIME_VARIABLE, gp) ;
-				Vector deta = ddeval(f, var[1],TIME_VARIABLE, gp) ;
+				Vector dxi = ddeval(f, var[0], TIME_VARIABLE, gp) ;
+				Vector deta = ddeval(f, var[1], TIME_VARIABLE, gp) ;
 
 				for(size_t i = 0 ; i < ret.size() ; i++)
 				{
@@ -2060,9 +2060,7 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 					ret[i][2][1] = ret[i][0][0] ;
 					ret[i] *= m[i][2][2] ;
 					
-// 					ret[i].print() ;
 				}
-				
 				
 				return ret ;
 			}
@@ -3116,8 +3114,6 @@ void VirtualMachine::ieval(const GtMtG &f, const GaussPointArray &gp, const std:
 		matrix_matrix_matrix_multiply_and_add(B, f.second, B_, gp.gaussPoints[i].second, ret) ;
 	}
 
-
-	
 }
 
 Matrix VirtualMachine::ieval(const GtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
@@ -3288,6 +3284,7 @@ void VirtualMachine::ieval(const GDtMtGD & f, const GaussPointArray &gp, const s
 	{
 		ret += (Matrix)(B[i]*f.second*B_[i])*gp.gaussPoints[i].second ;
 	}
+	
 }
 
 Matrix VirtualMachine::ieval(const GDtMtG & f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars)
