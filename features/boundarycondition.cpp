@@ -6963,7 +6963,6 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
 	std::vector<Point> id ;
 	size_t timePlanes = tri[0]->timePlanes() ;
-	std::cout << "time-planes=" << timePlanes << std::endl ;
 
 	if ( timePlanes < 2 )
 		return ;
@@ -6973,29 +6972,43 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	size_t lastTimePlane = tri[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
 
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-	std::cout << "degrees-of-freedom=" << dof << std::endl ;
-	std::cout << "scale=" << getScale() << std::endl ;
 
-	if(previousDisp.size() == 0)
-	{
-		previousDisp.resize( a->getDisplacements().size()) ;
-		previousDisp = a->getDisplacements() ;
-	}
+	previousDisp.resize( a->getDisplacements().size()) ;
+	previousDisp = a->getDisplacements() ;
 
 	if ( previousDisp.size() == 0 )
+	{
+		for ( size_t i = 0 ; i < tri.size() ; i++ )
+		{
+			GaussPointArray gp = tri[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+			
+			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+			{
+				id.clear() ;
+				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
+				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
+				
+				for(size_t n = 0 ; n < dof ; n++)
+				{
+					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+				}
+			}
+		}
 		return ;
+	}
 
 	for ( size_t i = 0 ; i < tri.size() ; i++ )
 	{
-//		previousDisp = tri[i]->getState().getDisplacements() ;
-//		std::cout << previousDisp[previousDisp.size()-1] << std::endl ;
-
 		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 		{
 			id.clear() ;
 			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-//			std::cout << previousDisp[corresponding*2] << std::endl ;
 			
 			GaussPointArray gp = tri[i]->getGaussPoints() ;
 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
@@ -7005,8 +7018,13 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
 			
+			for(size_t n = 0 ; n < dof ; n++)
+			{
+				apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
+			}
+/*			
 			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
-			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;
+			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;*/
 				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
