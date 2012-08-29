@@ -659,16 +659,18 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
+						size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+					  
 						size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
 						size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
 						size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
 
-						ret[5][iterator] = x[id1 * 2] ;
-						ret[4][iterator] = x[id2 * 2] ;
-						ret[3][iterator] = x[id3 * 2] ;
-						ret[2][iterator] = x[id1 * 2 + 1] ;
-						ret[1][iterator] = x[id2 * 2 + 1] ;
-						ret[0][iterator++] = x[id3 * 2 + 1] ;
+						ret[5][iterator] = x[id1 * dof] ;
+						ret[4][iterator] = x[id2 * dof] ;
+						ret[3][iterator] = x[id3 * dof] ;
+						ret[2][iterator] = x[id1 * dof + 1] ;
+						ret[1][iterator] = x[id2 * dof + 1] ;
+						ret[0][iterator++] = x[id3 * dof + 1] ;
 					}
 				}
 			}

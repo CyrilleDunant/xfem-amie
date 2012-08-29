@@ -82,16 +82,16 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int n) : LinearForm(rig, false, false, (1+n+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+(m==MAXWELL))
-{
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL))
+{ 
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(rig.size() > 9)
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
-	param.resize(rig.numRows()*(1+n+(m == MAXWELL)), rig.numCols()*(1+n+(m == MAXWELL))) ;
-	eta.resize(rig.numRows()*(1+n+(m == MAXWELL)), rig.numCols()*(1+n+(m == MAXWELL))) ;
+	param.resize(rig.numRows()*(1+n+b+(m == MAXWELL)), rig.numCols()*(1+n+b+(m == MAXWELL))) ;
+	eta.resize(rig.numRows()*(1+n+b+(m == MAXWELL)), rig.numCols()*(1+n+b+(m == MAXWELL))) ;
 	param.array() = 0 ;
 	eta.array() = 0 ;
 	
@@ -105,10 +105,10 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		{
 			Matrix r0 = rig*(-1.) ;
 			placeMatrixInBlock( rig, 0,0, param) ;
-			placeMatrixInBlock( r0,  0,1, param) ;
-			placeMatrixInBlock( r0,  1,0, param) ;
-			placeMatrixInBlock( rig, 1,1, param) ;
-			placeMatrixInBlock( e, 1,1, eta) ;
+			placeMatrixInBlock( r0,  0,1+b, param) ;
+			placeMatrixInBlock( r0,  1+b,0, param) ;
+			placeMatrixInBlock( rig, 1+b,1+b, param) ;
+			placeMatrixInBlock( e, 1+b,1+b, eta) ;
 			break ;
 		}
 		default:
@@ -116,7 +116,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(m), blocks(n+b)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(const Matrix & rig, const Matrix & e, int b, int n) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -140,7 +140,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int n) : LinearForm(c_kv, false, false, (3+n)*(c_kv.numRows()/3+1)), model(m), blocks(3+n)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int b, int n) : LinearForm(c_kv, false, false, (3+n+b)*(c_kv.numRows()/3+1)), model(m), blocks(3+b+n)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -148,8 +148,8 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
-	param.resize(c_kv.numRows()*(3+n), c_kv.numCols()*(3+n)) ;
-	eta.resize(c_kv.numRows()*(3+n), c_kv.numCols()*(3+n)) ;
+	param.resize(c_kv.numRows()*(3+n+b), c_kv.numCols()*(3+n+b)) ;
+	eta.resize(c_kv.numRows()*(3+n+b), c_kv.numCols()*(3+n+b)) ;
 	param.array() = 0 ;
 	eta.array() = 0 ;
 	
@@ -158,22 +158,22 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		case BURGER:
 		{
 			placeMatrixInBlock( c_kv, 0,0, param) ;
-			placeMatrixInBlock( c_kv, 1,1, param) ;
-			addMatrixInBlock( c_mx, 1,1, param) ;
-			placeMatrixInBlock( c_mx, 2,2, param) ;
+			placeMatrixInBlock( c_kv, 1+b,1+b, param) ;
+			addMatrixInBlock( c_mx, 1+b,1+b, param) ;
+			placeMatrixInBlock( c_mx, 2+b,2+b, param) ;
 			Matrix r_kv = c_kv*(-1) ;
-			placeMatrixInBlock( r_kv, 0,1, param) ;
-			placeMatrixInBlock( r_kv, 1,0, param) ;
+			placeMatrixInBlock( r_kv, 0,1+b, param) ;
+			placeMatrixInBlock( r_kv, 1+b,0, param) ;
 			Matrix r_mx = c_mx*(-1) ;
-			placeMatrixInBlock( r_mx, 1,2, param) ;
-			placeMatrixInBlock( r_mx, 2,1, param) ;
+			placeMatrixInBlock( r_mx, 1+b,2+b, param) ;
+			placeMatrixInBlock( r_mx, 2+b,1+b, param) ;
 			
 			placeMatrixInBlock( e_kv, 0,0, eta) ;
-			placeMatrixInBlock( e_kv, 1,1, eta) ;
-			placeMatrixInBlock( e_mx, 2,2, eta) ;
+			placeMatrixInBlock( e_kv, 1+b,1+b, eta) ;
+			placeMatrixInBlock( e_mx, 2+b,2+b, eta) ;
 			Matrix v_kv = e_kv*(-1) ;
-			placeMatrixInBlock( v_kv, 0,1, eta) ;
-			placeMatrixInBlock( v_kv, 1,0, eta) ;
+			placeMatrixInBlock( v_kv, 0,1+b, eta) ;
+			placeMatrixInBlock( v_kv, 1+b,0, eta) ;
 			break ;
 		}
 		default:
@@ -181,7 +181,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int n) : LinearForm(c0, false, false, (1+n+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+branches.size())
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size())
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -189,8 +189,8 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
-	param.resize(c0.numRows()*(1+n+branches.size()), c0.numCols()*(1+n+branches.size())) ;
-	eta.resize(c0.numRows()*(1+n+branches.size()), c0.numCols()*(1+n+branches.size())) ;
+	param.resize(c0.numRows()*(1+n+b+branches.size()), c0.numCols()*(1+n+b+branches.size())) ;
+	eta.resize(c0.numRows()*(1+n+b+branches.size()), c0.numCols()*(1+n+b+branches.size())) ;
 	param.array() = 0 ;
 	eta.array() = 0 ;
 	
@@ -202,16 +202,16 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 			Matrix r0 = c0*(-1) ;
 			for(size_t i = 1 ; i < branches.size()+1 ; i++)
 			{
-				placeMatrixInBlock( r0, i,0, param) ;
-				placeMatrixInBlock( r0, 0,i, param) ;
-				placeMatrixInBlock( c0, i,i, param) ;
-				addMatrixInBlock( branches[i-1].first, i,i, param) ;
+				placeMatrixInBlock( r0, i+b,0, param) ;
+				placeMatrixInBlock( r0, 0,i+b, param) ;
+				placeMatrixInBlock( c0, i+b,i+b, param) ;
+				addMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
 				for(size_t j = i+1 ; j < branches.size()+1 ; j++)
 				{
-					placeMatrixInBlock( c0, i,j, param) ;
-					placeMatrixInBlock( c0, j,i, param) ;
+					placeMatrixInBlock( c0, i+b,j+b, param) ;
+					placeMatrixInBlock( c0, j+b,i+b, param) ;
 				}
-				placeMatrixInBlock( branches[i-1].second, i,i, eta) ;
+				placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
 			}
 			break ;
 		}
@@ -222,10 +222,10 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 			{
 				Matrix ri = branches[i-1].first * (-1) ;
 				addMatrixInBlock( branches[i-1].first, 0,0, param) ;
-				placeMatrixInBlock( branches[i-1].first, i,i, param) ;
-				placeMatrixInBlock( ri, 0,i, param) ;
-				placeMatrixInBlock( ri, i,0, param) ;
-				placeMatrixInBlock( branches[i-1].second, i,i, eta) ;
+				placeMatrixInBlock( branches[i-1].first, i+b,i+b, param) ;
+				placeMatrixInBlock( ri, 0,i+b, param) ;
+				placeMatrixInBlock( ri, i+b,0, param) ;
+				placeMatrixInBlock( branches[i-1].second, i+b,i+b, eta) ;
 			}
 			break ;
 		}
@@ -234,7 +234,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int n) : LinearForm(c0, false, false, (2+n)*(c0.numRows()/3+1)), model(m), blocks(2+n)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -242,8 +242,8 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
-	param.resize(c0.numRows()*(2+n), c0.numCols()*(2+n)) ;
-	eta.resize(c0.numRows()*(2+n), c0.numCols()*(2+n)) ;
+	param.resize(c0.numRows()*(2+n+b), c0.numCols()*(2+n+b)) ;
+	eta.resize(c0.numRows()*(2+n+b), c0.numCols()*(2+n+b)) ;
 	param.array() = 0 ;
 	eta.array() = 0 ;
 	
@@ -252,23 +252,23 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 		case GENERALIZED_KELVIN_VOIGT:
 		{
 			placeMatrixInBlock( c0, 0,0, param) ;
-			placeMatrixInBlock( c0, 1,1, param) ;
-			addMatrixInBlock( c1, 1,1, param) ;
+			placeMatrixInBlock( c0, 1+b,1+b, param) ;
+			addMatrixInBlock( c1, 1+b,1+b, param) ;
 			Matrix r0 = c0*(-1) ;
-			placeMatrixInBlock( r0, 1,0, param) ;
-			placeMatrixInBlock( r0, 0,1, param) ;
-			addMatrixInBlock( e1, 1,1, eta) ;
+			placeMatrixInBlock( r0, 1+b,0, param) ;
+			placeMatrixInBlock( r0, 0,1+b, param) ;
+			addMatrixInBlock( e1, 1+b,1+b, eta) ;
 			break ;
 		}
 		case GENERALIZED_MAXWELL:
 		{
 			placeMatrixInBlock( c0, 0,0, param) ;
 			addMatrixInBlock( c1, 0,0, param) ;
-			placeMatrixInBlock( c1, 1,1, param) ;
+			placeMatrixInBlock( c1, 1+b,1+b, param) ;
 			Matrix r1 = c1*(-1) ;
-			placeMatrixInBlock( r1, 1,0, param) ;
-			placeMatrixInBlock( r1, 0,1, param) ;
-			placeMatrixInBlock( e1, 1,1, eta) ;
+			placeMatrixInBlock( r1, 1+b,0, param) ;
+			placeMatrixInBlock( r1, 0,1+b, param) ;
+			placeMatrixInBlock( e1, 1+b,1+b, eta) ;
 			break ;
 		}
 		default:

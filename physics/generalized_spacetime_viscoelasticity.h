@@ -43,17 +43,17 @@ struct GeneralizedSpaceTimeViscoelasticity : public LinearForm
 	std::vector<Variable> v ;
 	
 	// constructor for pure elasticity or pure viscosity
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & rig, int n = 0) ; 
+	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & rig, int additionnalBlocksAfter = 0) ; 
 	// constructor for elementary Kelvin-Voigt or Maxwell
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & rig, const Matrix & eta, int n = 0) ; 
+	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & rig, const Matrix & eta, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ; 
 	// constructor for Burger (KV + Maxwell in serial)
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int n = 0) ; 
+	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ; 
 	// constructor for generalized KelvinVoigt or Maxwell
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_0, std::vector<std::pair<Matrix, Matrix> > & branches, int n = 0) ;
+	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_0, std::vector<std::pair<Matrix, Matrix> > & branches, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 	// constructor for generalized KelvinVoigt or Maxwell with 1 module only
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_0, const Matrix & c_1, const Matrix & e_1, int n = 0) ;
+	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & c_0, const Matrix & c_1, const Matrix & e_1, int additionnalBlocksBefore = 0, int additionnalBlocksAfter = 0) ;
 	// constructor for general viscoelasticity (rig and eta are supposed symmetric)
-	GeneralizedSpaceTimeViscoelasticity( ViscoelasticModel model, const Matrix & rig, const Matrix & eta, int blocks, int n = 0) ; 
+	GeneralizedSpaceTimeViscoelasticity( const Matrix & rig, const Matrix & eta, int blocks, int additionnalBlocksAfter = 0) ; 
 
 	virtual ~GeneralizedSpaceTimeViscoelasticity() ;
 

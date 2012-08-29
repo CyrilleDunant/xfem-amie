@@ -120,6 +120,11 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(tau) ;
 
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+
+	Matrix Ci = C*10 ;
+	Inclusion * inc = new Inclusion( 0.3,0.5,0.5 ) ;
+	inc->setBehaviour(new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, Ci, 1 ) ) ;
+	F.addFeature( &box, inc ) ;
 	
 // 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(PURE_ELASTICITY, C)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
@@ -129,9 +134,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
 // 	
-	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(KELVIN_VOIGT, C, E)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
+// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(KELVIN_VOIGT, C, E)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
 // 
 // 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(MAXWELL, C, E)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
@@ -147,11 +152,11 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 4)) ;
 // 
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 3)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
+	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, E)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
 // 	
 // 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(GENERALIZED_MAXWELL, K, C, E)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
@@ -172,11 +177,11 @@ int main(int argc, char *argv[])
 	stressNull = stressNull * 0. ;
 	BoundingBoxDefinedBoundaryCondition * stressBCRamp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressRamp) ;
 	BoundingBoxDefinedBoundaryCondition * stressBCConstant = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 0.) ;
- 	F.addBoundaryCondition(stressBCRamp) ;
- 	F.addBoundaryCondition(stressBCConstant) ;
+//  	F.addBoundaryCondition(stressBCRamp) ;
+//  	F.addBoundaryCondition(stressBCConstant) ;
 		
-//	BoundingBoxDefinedBoundaryCondition * imposedBC = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, imposed) ;
-//	F.addBoundaryCondition(imposedBC) ;
+	BoundingBoxDefinedBoundaryCondition * imposedBC = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, imposed) ;
+	F.addBoundaryCondition(imposedBC) ;
 	
 	int imax = 20 ; 
 	
@@ -184,13 +189,11 @@ int main(int argc, char *argv[])
 	{
 		F.step() ;
 		Vector x = F.getDisplacements() ;
-		double xm = x[1] ;
-		for(size_t j = 0 ; j < x.size()/4 ; j++)
-		{
-			if(x[j*4+1] > xm)
-				xm = x[j*4+1] ;
-		}
-		std::cout << xm << std::endl ;
+		
+		TriangleWriter writer( "test_"+itoa(i), &F, 1) ;
+		writer.getField(TWFT_STRESS) ;
+		writer.getField(TWFT_STRAIN) ;
+		writer.write() ;
 
 		if(i == 0)
 		{
