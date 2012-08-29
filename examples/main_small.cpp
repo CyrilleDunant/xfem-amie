@@ -1425,6 +1425,13 @@ void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep,
 int main(int argc, char *argv[])
 {
 
+//   Function test("1 x - y - 0.5 0.5 t * - *") ;
+// 	VirtualMachine().print(test);
+//              std::cout << VirtualMachine().eval(test, Point(0,0,0,-1)) 
+// << std::endl ;
+//              std::cout << VirtualMachine().eval(test, Point(0,1,0,-1)) 
+// << std::endl ;
+	
 // 	Function x("x") ;
 // 	Function xm("1 x 2 * 1 - abs -") ;
 // 	x = 1-f_abs(x*2.-1) ;
@@ -1435,8 +1442,8 @@ int main(int argc, char *argv[])
 // 	exit(0) ;
 	
 	
-// 	TetrahedralElement toto(QUADRATIC) ;
-// 	addSharedNodes(1, 1, 0, &toto) ;
+	TetrahedralElement toto(QUADRATIC) ;
+	addSharedNodes(1, 1, 0, &toto) ;
 // 	for(int i = 0 ; i < 10 ; i++)
 // 	{
 // 		for(int j = 0 ; j < 10 ; j++)
@@ -1463,31 +1470,32 @@ int main(int argc, char *argv[])
 // 	VirtualMachine().print(ztrans);
 // 	
 // 	
-// 		Function position(Point(0,0,0), &toto) ;
+		Function position(Point(0,0,0), &toto) ;
 // // 		VirtualMachine().print(position);
 // // 		exit(0) ;
 // // 		VirtualMachine().print(position-1.);
 // // 		VirtualMachine().print(f_abs(position-1.));
-// 		Function hat = 1.-f_abs(position-.5);
+		Function hat = 1.-f_abs(position-.5);
 // 		VirtualMachine().print(hat);
 // 		VirtualMachine().print(1.-hat);
 // 		exit(0) ;
 		
-// 		VirtualMachine().print(toto.getShapeFunction(0));
+// 		VirtualMachine().print(toto.getShapeFunction(1));
 // 		VirtualMachine().print(toto.getShapeFunction(1)*(hat-1.));
-// 		for(size_t k = 1 ; k < 2 ; k++)
+// 		for(size_t k = 6 ; k < 7 ; k++)
 // 		{
-// 			for(double i = -1.1 ; i < 1.1 ; i += 0.01)
+// 			for(double i = -0.1 ; i < 1.1 ; i += 0.01)
 // 			{
-// 				for(double j = -1.1 ; j < 1.1 ; j += 0.01)
+// 				for(double j = -0.1 ; j < 1.1 ; j += 0.01)
 // 				{
-// // 					if(toto.in(Point(i, j)))
-// 						std::cout << VirtualMachine().eval(hat, i, j) <<"  " << std::flush ;
-// // 					else
-// // 						std::cout << 0 <<"  " << std::flush ;
+// 					if(toto.in(Point(i, j, 0.25)))
+// 						std::cout << VirtualMachine().eval(toto.getShapeFunction(k)*(hat-VirtualMachine().eval(hat,toto.getBoundingPoint(k).x, toto.getBoundingPoint(k).y, toto.getBoundingPoint(k).z)), i, j, 0.25) <<"  " << std::flush ;
+// 					else
+// 						std::cout << 0 <<"  " << std::flush ;
 // 				}
 // 				std::cout << std::endl ;
 // 			}
+// 		}
 // 			for(double i = -1.1 ; i < 1.1 ; i += 0.01)
 // 			{
 // 				for(double j = -1.1 ; j < 1.1 ; j += 0.01)

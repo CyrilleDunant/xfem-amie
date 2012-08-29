@@ -49,7 +49,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		return ;
 	}
 	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
-	double score = maxscore ;//s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
+	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;//maxscore ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
 	if( !isInDamagingSet )
 	{
@@ -301,7 +301,7 @@ DamageModel::DamageModel(): state(0)
 	haslimit = false ;
 	error = 1 ;
 
-	ctype = CONSERVATIVE_CENTER ;
+	ctype = DISSIPATIVE_CENTER ;
 	fraction = -1 ;
 	converged = true ;
 	delta = 1 ;

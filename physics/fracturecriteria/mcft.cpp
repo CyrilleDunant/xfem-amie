@@ -97,6 +97,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	{
 		return criterion ;
 	}
+	
 	return POINT_TOLERANCE_2D ;
 }
 
@@ -115,7 +116,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 			double factor = 1 ;
 			double delta_tech = strain_te-strain_ch;
 			double mainCurve = 0 ;
-			while(std::abs(upTestVal-downTestVal) > 1e-4*upVal)
+			while(std::abs(upTestVal-downTestVal) > 1e-8*upVal)
 			{
 				double testVal = (upTestVal+downTestVal)*.5/(pseudoYoung) ;
 				mainCurve = 1./(1.+sqrt(value*testVal)) ;
@@ -240,9 +241,12 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 // 			return POINT_TOLERANCE_2D ;
 // 	}
 	double maxCompression = downVal*scaleFactor  ;
-	double maxCompressionStrain = downVal/pseudoYoung  ;
+	
 
-	if(cstrain < 0.05*critStrain )
+	
+	double maxCompressionStrain = downVal/pseudoYoung  ;
+	
+	if(true )
 	{
 		double C_d = 0. ;
 		double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
@@ -280,30 +284,54 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 
 	if(std::abs(maxCompressionStrain) > POINT_TOLERANCE_2D)
 		criterion = std::abs(cstrain/maxCompressionStrain) ;
-
+	
+// 	if(cstrain < 0.05*critStrain)
+// 	{
+// 		std::cout << "\n" << criterion << "\n" <<std::endl ;
+// 		exit(0) ;
+// 	}
+	
+	double strainc = -1 ;
+		
 	
 	if(criterion >= 1)
 	{
-		return 1.-1./criterion ;
+		strainc = 1.-1./criterion ;
 	}
 	else if(criterion >= 0)
 	{
-		return -1.+criterion ;
+		strainc = -1.+criterion ;
 	}
 	else if(criterion > -1)
 	{
-		return criterion ;
+		strainc = criterion ;
 	}
+	
+	criterion = std::abs(cstress/(maxCompressionStrain*pseudoYoung)) ;
+	
+	double stressc = -1 ;
+		
+	
+	if(criterion >= 1)
+	{
+		stressc = 1.-1./criterion ;
+	}
+	else if(criterion >= 0)
+	{
+		stressc = -1.+criterion ;
+	}
+	else if(criterion > -1)
+	{
+		stressc = criterion ;
+	}
+	return std::min(strainc, stressc) ;
 	return POINT_TOLERANCE_2D ;
 }
 
 void NonLocalMCFT::initialise( ElementState &s)
 {
-	double stressFactor = 1 ;
-	double strainFactor = 1 ;
 	double energy = 75. ; //N/m
-	double damagedfraction = 5.;
-	strain_ch = 2.*energy/(getMaterialCharacteristicRadius()*damagedfraction*upVal*stressFactor) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	strain_ch = 2.*energy/(.1*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	
 	if(strain_ch < tensionCritStrain)
 	{
@@ -311,13 +339,13 @@ void NonLocalMCFT::initialise( ElementState &s)
 		exit(0) ;
 	}
 	strain_te = 5.*strain_ch;
-	double del_0 = (strain_ch-tensionCritStrain*strainFactor) ;
+	double del_0 = (strain_ch-tensionCritStrain) ;
 	double del_1 = (strain_te-strain_ch) ;
 	
-	double k0 = 1e6 ;
+	double k0 = 1e12 ;
 	double k_low = 0 ;
 	double k_high = k0 ;
-	double elastic_energy = tensionCritStrain*upVal*.5*stressFactor ;
+	double elastic_energy = tensionCritStrain*upVal*.5 ;
 	double integral = elastic_energy ;
 	do
 	{
@@ -326,23 +354,25 @@ void NonLocalMCFT::initialise( ElementState &s)
 		      
 		for(double i = 0 ; i < 10000 ; i++)
 		{
-			integral+= (upVal*stressFactor/(1.+sqrt(k*(i)/10000.*del_0)) + upVal*stressFactor/(1.+sqrt(k*(i+1.)/10000.*del_0)))*del_0*1e-4 ;
+			integral+= (upVal/(1.+sqrt(k*(i)/10000.*del_0)) + upVal/(1.+sqrt(k*(i+1.)/10000.*del_0)))*del_0*1e-4 ;
 		}
 		      
-		for(double i = 0 ; i < 1000 ; i++)
+		for(double i = 0 ; i < 10000 ; i++)
 		{  
-			integral+= (upVal*stressFactor/(1.+sqrt(k*((i)/10000.*del_1+del_0)))+upVal*stressFactor/(1.+sqrt(k*((i+1.)/10000.*del_1+del_0))))*del_1*1e-4 ;
+			integral+= (upVal/(1.+sqrt(k*((i)/10000.*del_1+del_0)))+upVal/(1.+sqrt(k*((i+1.)/10000.*del_1+del_0))))*del_1*1e-4 ;
 		}
-		if(integral < energy*damagedfraction)
+		if(integral < energy)
 			k_high = k ;
 		else
 			k_low = k ;
 		
 	} while(std::abs(k_low-k_high) > 1e-8*k0) ;
 	
-	if(std::abs(integral-energy*damagedfraction) > 1e-3*energy*damagedfraction)
+	k/=1e6 ;
+	
+	if(std::abs(integral-energy) > 1e-3*energy)
 	{
-	  std::cout << "wrong energy! " << integral << " vs "<< energy*damagedfraction  << std::endl ;
+	  std::cout << "wrong energy! " << integral << " vs "<< energy  << std::endl ;
 	  exit(0) ;
 	}
 	initialised = true ;

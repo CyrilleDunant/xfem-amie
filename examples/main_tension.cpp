@@ -215,9 +215,9 @@ void step(size_t nsteps)
 // 			if(count < 80)
 // 				loadr->setData(loadr->getData()-1e-5) ;
 // 			else
-				loadr->setData(loadr->getData()+5e-7) ;
+				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-5e-7) ;
+			loadt->setData(loadt->getData()+1e-8) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -1471,7 +1471,7 @@ int main(int argc, char *argv[])
 	double compressionCrit = -32.6e6 ; 
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .1200*.025 ; // .010 ;//
+	double mradius = .1200*.05 ; // .010 ;//
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
 	double E_steel = 193e9 ;
@@ -1517,7 +1517,7 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-// 		samplef.setBehaviour(new ConcreteBehaviour()) ;
+		samplef.setBehaviour(new ConcreteBehaviour()) ;
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
@@ -1538,19 +1538,17 @@ int main(int argc, char *argv[])
 // 	inc.isVirtualFeature = true ;
 // 	inc.setBehaviourSource(&samplef);
 // 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
-	
-	samplef.setBehaviour( new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) )) ;
-	
+// 	
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x,samplef.getCenter().y-samplef.height()*.5));
 	
 // 	FeatureTree F(&box) ;
 // 	featureTree = &F ;
-// 	F.addFeature(nullptr,&sample) ;        F.setSamplingFactor(&sample, 2.) ;
-// 	F.addFeature(nullptr,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
-// 	F.addFeature(nullptr,&samplef, 0,1.-steelfraction) ;
-// 	F.addFeature(nullptr,&rebarright,0,1.-steelfraction) ;
-// 	F.addFeature(nullptr,&toprightvoid) ;
+// 	F.addFeature(NULL,&sample) ;        F.setSamplingFactor(&sample, 2.) ;
+// 	F.addFeature(NULL,&rebarinternal) ; F.setSamplingFactor(&rebarinternal, 2.) ;
+// 	F.addFeature(NULL,&samplef, 0,1.-steelfraction) ;
+// 	F.addFeature(NULL,&rebarright,0,1.-steelfraction) ;
+// 	F.addFeature(NULL,&toprightvoid) ;
 
 // 	BranchedCrack * bc = new BranchedCrack(new Point(0, samplef.height()*.15), new Point(0, -samplef.height()*.15));
 // 	bc->setEnrichementRadius(samplef.height()*0.) ;
@@ -1570,18 +1568,18 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT)) ;
 	
-// 	F.addBoundaryCondition(loadr);
-// 	F.addBoundaryCondition(loadt);
+	F.addBoundaryCondition(loadr);
+	F.addBoundaryCondition(loadt);
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(400000);
+	F.setMaxIterationsPerStep(200000);
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	

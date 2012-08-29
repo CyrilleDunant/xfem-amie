@@ -1386,6 +1386,8 @@ void FeatureTree::stitch()
 			for( size_t j = 0 ; j < coarseTrees.size() ; j++ )
 				coarseTrees[j]->setElementOrder( elemOrder, realDeltaTime ) ;
 			
+			return ;
+			
 			if( projectOnBoundaries )
 			{
 				switch( elemOrder )
@@ -1433,6 +1435,7 @@ void FeatureTree::stitch()
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
 			return ;
+			
 			if( projectOnBoundaries )
 			{
 				switch( elemOrder )

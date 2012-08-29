@@ -2394,7 +2394,10 @@ std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g 
 		}
 	}
 
-	return getNeighbouringElementsInGeometry( origin, g ) ;
+	if(origin)
+		return getNeighbouringElementsInGeometry( origin, g ) ;
+	
+	return std::vector<DelaunayTetrahedron *>() ;
 
 	/*
 
