@@ -260,11 +260,18 @@ const GaussPointArray & TriElement::genGaussPoints()
 	    break;
 	case LINEAR:
 		{
-			
-			ordre = 1 ;
+			ordre = 4 ;
 			fin.resize(ordre);
-			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.5) ;
+			fin[0] = std::pair<Point, double>(Point(0.2, 0.2), 0.260416666666667) ;
+			fin[1] = std::pair<Point, double>(Point(0.6, 0.2), 0.260416666666667) ;
+			fin[2] = std::pair<Point, double>(Point(0.2, 0.6), 0.260416666666667) ;
+			fin[3] = std::pair<Point, double>(Point(1./3., 1./3.), -0.28125) ;
 			break ;
+			
+// 			ordre = 1 ;
+// 			fin.resize(ordre);
+// 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.5) ;
+// 			break ;
 		}
 	case QUADRATIC:
 	{
@@ -621,7 +628,6 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 	case QUADRATIC :
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
-			
 			
 			Matrix xi(3,3) ; xi[1][0] = 1 ;
 			Matrix eta(3,3) ; eta[0][1] = 1 ;

@@ -189,6 +189,8 @@ public:
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 	
+	virtual void getAverageField( FieldType f, Vector & ret, int i= 0) ;
+	
 
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;

@@ -1137,6 +1137,22 @@ void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, in
 	this->getField(f, p_, ret, i) ;
 }
 
+void ElementState::getAverageField( FieldType f, Vector & ret, int i) 
+{
+	GaussPointArray gp = parent->getGaussPoints() ;
+	double total = 0 ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		Point p_ = gp.gaussPoints[i].first ;
+		Vector tmp = ret ;
+		getField(f, p_, tmp, i) ;
+		ret += tmp*gp.gaussPoints[i].second ;
+		total += gp.gaussPoints[i].second ;
+	}
+	
+	ret /= total ;
+}
+
 
 
 void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
