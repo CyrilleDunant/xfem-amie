@@ -354,7 +354,7 @@ public:
 	virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
 	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
 	
-	void extrude(double dt) ;
+	virtual void extrude(double dt) ;
 	void extrude(Vector dt) ;
 	
 public:

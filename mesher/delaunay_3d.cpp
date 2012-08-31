@@ -341,7 +341,6 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 				{
 					a.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
 					b.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
-// 					std::cout << a.t << std::endl ;
 				}
 
 				for( size_t node = 0 ; node < nodes_per_side + 2 ; node++ )
@@ -2658,6 +2657,69 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 
 // 	exit(0) ;
 	return cachedElementaryMatrix ;
+}
+
+void DelaunayTree3D::extrude(double dt)
+{
+	std::map<Point *, Point *> points ;
+	
+	std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
+	double beginning = tet[0]->getBoundingPoint(0).t ;
+	double end = tet[0]->getBoundingPoint(0).t ;
+	for(size_t i = 1 ; i < tet[0]->getBoundingPoints().size() ; i++)
+	{
+		if(tet[0]->getBoundingPoint(i).t < beginning)
+			beginning = tet[0]->getBoundingPoint(i).t ;
+		if(tet[0]->getBoundingPoint(i).t > end)
+			end = tet[0]->getBoundingPoint(i).t ;
+	}
+	
+	int indexOfLastTimePlane = (tet[0]->timePlanes()-1)*tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
+	int pointsPerTimePlane = tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
+
+	for(size_t i = 0 ; i < tet.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * next = new Point(tet[i]->getBoundingPoint(j).x, tet[i]->getBoundingPoint(j).y, tet[i]->getBoundingPoint(j).z) ;
+			next->t = tet[i]->getBoundingPoint(j).t ;
+			next->t = end + dt * (next->t - beginning) / (end - beginning) ;
+			bool increment = true ;
+			if(next->t == end)
+			{			
+				next = &tet[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
+				increment = false ;
+				next->print() ;
+			}
+			if(increment && !points.find(&tet[i]->getBoundingPoint(j))->second)
+			{
+				next->id = (global_counter++) ;
+			}
+			points.insert(std::pair<Point *, Point *>(&tet[i]->getBoundingPoint(j), next)) ;
+		}
+	}
+	
+	std::map<Point *, Point *>::iterator finder ;
+	for(size_t i = 0 ; i < tet.size() ; i++)
+	{
+		Point * a = points.find(&tet[i]->getBoundingPoint(0))->second ;
+		Point * b = points.find(&tet[i]->getBoundingPoint(pointsPerTimePlane/4))->second ;
+		Point * c = points.find(&tet[i]->getBoundingPoint(2*pointsPerTimePlane/4))->second ;
+		Point * d = points.find(&tet[i]->getBoundingPoint(3*pointsPerTimePlane/4))->second ;
+		
+		std::valarray<Point *> newPoints(tet[i]->getBoundingPoints().size()) ;
+		for(size_t j = 0 ; j < newPoints.size() ; j++)
+		{
+			newPoints[j] = points.find(&tet[i]->getBoundingPoint(j))->second ;
+//			newPoints[j]->print() ;
+		}
+		
+//		DelaunayTetrahedron * toInsert = new DelaunayDeadTetrahedron(tet[i]->tree, nullptr, a,b,c,d, a) ;
+// 		toInsert->setOrder(tet[i]->getOrder()) ;
+// 		toInsert->setBoundingPoints(newPoints) ;
+// 		toInsert->setBehaviour(tet[i]->getBehaviour()->getCopy()) ;
+	}
+
 }
 
 

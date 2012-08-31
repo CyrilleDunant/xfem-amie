@@ -383,6 +383,8 @@ public:
 	 * @return the list of triangles in conflict with p. A triangle is in conflict if the point is tricly in the circumcircle.
 	 */
 	std::vector<DelaunayTreeItem3D *> conflicts( const Point *p) const ;
+
+	virtual void extrude(double dt) ;
 	
 	/** \brief Get the list of triangles in conflict with a given geometry.
 	 * 

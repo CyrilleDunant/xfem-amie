@@ -199,7 +199,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				imposed[0] = 0 ;
 				imposed[1] = data ;
 				imposed[2] = 0 ;
-
+				
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v) ;
@@ -648,10 +648,13 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gp, Jinv, v) ;
 					
+//					std::cout << "constant\t" << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
+
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
 				}
+//				exit(0) ;
 				
 				return ;
 			}
@@ -875,7 +878,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<Point> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
 	std::vector<size_t> ids ;
-
+	
 	for ( size_t i = 0 ; i < id.size() ; i++ )
 		ids.push_back( id[i].id );
 
@@ -1266,10 +1269,13 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 6, shapeFunctions[i], e,gp, Jinv, v) ;
+
+//					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
 					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					
 				}
 
 				return ;
@@ -1312,10 +1318,14 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 6, shapeFunctions[i], e,gp, Jinv, v) ;
 					
+//					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
+					
+					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
 					a->addForceOn( ZETA, forces[2], id[i].id ) ;
 				}
+//				exit(0) ;
 
 				return ;
 			}
@@ -1351,7 +1361,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					v.push_back(TIME_VARIABLE) ;
 				}
 				Vector imposed( 6 ) ;
-
+				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e,gp, Jinv, v) ;
@@ -1961,6 +1971,191 @@ void ElementDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 	}
 };
 
+bool isInBoundary2D( Point test, Point min, Point max)
+{
+	return (test.x >= min.x && test.x <= max.x && test.y >= min.y && test.y <= max.y) ;
+}
+
+bool isInBoundary3D( Point test, Point min, Point max)
+{
+	return (test.x >= min.x && test.x <= max.x && test.y >= min.y && test.y <= max.y && test.z >= min.z && test.z <= max.z) ;
+}
+
+
+bool isOnBoundary( BoundingBoxPosition pos, Point test, Point min, Point max , double tol)
+{
+	switch( pos )
+	{
+		// 2D edges, 3D planes, 4D time planes
+		case LEFT:
+			return ( std::abs(test.x - min.x) < tol ) ;
+		case RIGHT:
+			return ( std::abs(test.x - max.x) < tol ) ;
+		case BOTTOM:
+			return ( std::abs(test.y - min.y) < tol ) ;
+		case TOP:
+			return ( std::abs(test.y - max.y) < tol ) ;
+		case BACK:
+			return ( std::abs(test.z - min.z) < tol ) ;
+		case FRONT:
+			return ( std::abs(test.z - max.z) < tol ) ;
+		case BEFORE:
+			return ( std::abs(test.t - min.t) < tol ) ;
+		case AFTER:
+			return ( std::abs(test.t - max.t) < tol ) ;
+		
+		// 2D corners, 3D edges, 4D planes
+		case BOTTOM_LEFT:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol )) ;
+		case BOTTOM_RIGHT:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol )) ;
+		case TOP_LEFT:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol )) ;
+		case TOP_RIGHT:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol )) ;
+			
+		case BACK_LEFT:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol )) ;
+		case BACK_RIGHT:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol )) ;
+		case FRONT_LEFT:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol )) ;
+		case FRONT_RIGHT:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol )) ;
+
+		case BOTTOM_BACK:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol )) ;
+		case TOP_BACK:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol )) ;
+		case FRONT_BOTTOM:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol )) ;
+		case FRONT_TOP:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol )) ;
+
+		case BOTTOM_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case BOTTOM_AFTER:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+		case TOP_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case TOP_AFTER:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+			
+		case BACK_BEFORE:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case BACK_AFTER:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+		case FRONT_BEFORE:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case FRONT_AFTER:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+
+		case LEFT_BEFORE:
+			return (isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case LEFT_AFTER:
+			return (isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+		case RIGHT_BEFORE:
+			return (isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol )) ;
+		case RIGHT_AFTER:
+			return (isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol )) ;
+
+		// 3D corners, 4D lines			
+		case BOTTOM_LEFT_BACK:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) ) ;
+		case BOTTOM_LEFT_FRONT:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) ) ;
+		case BOTTOM_RIGHT_BACK:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) ) ;
+		case BOTTOM_RIGHT_FRONT:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) ) ;
+		case TOP_LEFT_BACK:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) ) ;
+		case TOP_LEFT_FRONT:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) ) ;
+		case TOP_RIGHT_BACK:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) ) ;
+		case TOP_RIGHT_FRONT:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) ) ;
+			
+		case BOTTOM_LEFT_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case BOTTOM_RIGHT_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case TOP_LEFT_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case TOP_RIGHT_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+			
+		case BACK_LEFT_BEFORE:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case BACK_RIGHT_BEFORE:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case FRONT_LEFT_BEFORE:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case FRONT_RIGHT_BEFORE:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+
+		case BOTTOM_BACK_BEFORE:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case TOP_BACK_BEFORE:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case FRONT_BOTTOM_BEFORE:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case FRONT_TOP_BEFORE:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+
+		case BOTTOM_LEFT_AFTER:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case BOTTOM_RIGHT_AFTER:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case TOP_LEFT_AFTER:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case TOP_RIGHT_AFTER:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+			
+		case BACK_LEFT_AFTER:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case BACK_RIGHT_AFTER:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case FRONT_LEFT_AFTER:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case FRONT_RIGHT_AFTER:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+
+		case BOTTOM_BACK_AFTER:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case TOP_BACK_AFTER:
+			return (isOnBoundary( BACK, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case FRONT_BOTTOM_AFTER:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+		case FRONT_TOP_AFTER:
+			return (isOnBoundary( FRONT, test, min, max, tol ) && isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( AFTER, test, min, max, tol) ) ;
+
+		// 4D corners			
+		case BOTTOM_LEFT_BACK_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol) ) ;
+		case BOTTOM_LEFT_FRONT_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case BOTTOM_RIGHT_BACK_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case BOTTOM_RIGHT_FRONT_BEFORE:
+			return (isOnBoundary( BOTTOM, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case TOP_LEFT_BACK_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case TOP_LEFT_FRONT_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( LEFT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case TOP_RIGHT_BACK_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( BACK, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+		case TOP_RIGHT_FRONT_BEFORE:
+			return (isOnBoundary( TOP, test, min, max, tol ) && isOnBoundary( RIGHT, test, min, max, tol ) && isOnBoundary( FRONT, test, min, max, tol) && isOnBoundary( BEFORE, test, min, max, tol)  ) ;
+			
+	}
+	return false ;
+}
+
+
+
+
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
 	if ( cache.empty() )
@@ -1974,11 +2169,14 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 		}
 
 		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 
 		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
 
+		double mint = elements.front()->getBoundingPoint( 0 ).t ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
 			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
@@ -1997,318 +2195,56 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 				if ( elements[i]->getBoundingPoint( j ).y > maxy )
 					maxy = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).t < mint )
+					mint = elements[i]->getBoundingPoint( j ).t ;
+
+				if ( elements[i]->getBoundingPoint( j ).t > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).t ;
+			  
 			}
 		}
 
 		double tol = std::min( maxx - minx, maxy - miny ) * .0001 ;
+		
+		Point pmin(minx,miny, 0., mint) ;
+		Point pmax(maxx,maxy, 0., maxt) ;
 
 		std::map<double, std::pair<Point, DelaunayTriangle*> > id  ;
 
-		switch ( pos )
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
 
-			case TOP:
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
+				if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
+					id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
 				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-
-			}
-
-			case LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case BOTTOM:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-						continue ;
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							id[sqrt(squareDist2D( elements[i]->getBoundingPoint( j ), nearest ))] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-				
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case TOP_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case TOP_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case BOTTOM_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-						}
-					}
-				}
-
-				std::vector<Point> target ;
-
-				target.push_back( id.begin()->second.first ) ;
-				cache2d.push_back( id.begin()->second.second ) ;
-				cache.push_back( target ) ;
-				GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-				for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
-				{
-					id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
-				}
-				
-				if ( !function )
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-				else
-					apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-				break ;
-			}
-
-			default:
-			{
-				break;
 			}
 		}
+
+		std::vector<Point> target ;
+
+		target.push_back( id.begin()->second.first ) ;
+		cache2d.push_back( id.begin()->second.second ) ;
+		cache.push_back( target ) ;
+		GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+
+		for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+		{
+			id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+		}
+
+		if ( !function )
+			apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a , axis ) ;
+		else
+			apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a , axis ) ;
+		
+		
 	}
 	else
 	{
@@ -2332,916 +2268,122 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
-
-	if ( elements.empty() )
+	if ( cache.empty() )
 	{
-		std::cout << "no elements in assembly" << std::endl ;
-		return ;
+		std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
+
+		if ( elements.empty() )
+		{
+			std::cout << "no elements in assembly" << std::endl ;
+			return ;
+		}
+
+		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+
+		double miny = elements.front()->getBoundingPoint( 0 ).y ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+
+		double minz = elements.front()->getBoundingPoint( 0 ).z ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		
+		double mint = elements.front()->getBoundingPoint( 0 ).t ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
+		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+				continue ;
+
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			{
+				if ( elements[i]->getBoundingPoint( j ).x < minx )
+					minx = elements[i]->getBoundingPoint( j ).x ;
+
+				if ( elements[i]->getBoundingPoint( j ).x > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).x ;
+
+				if ( elements[i]->getBoundingPoint( j ).y < miny )
+					miny = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).y > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).z < minz )
+					minz = elements[i]->getBoundingPoint( j ).z ;
+
+				if ( elements[i]->getBoundingPoint( j ).z > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).z ;
+				
+				if ( elements[i]->getBoundingPoint( j ).t < mint )
+					mint = elements[i]->getBoundingPoint( j ).t ;
+
+				if ( elements[i]->getBoundingPoint( j ).t > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).t ;
+			  
+			}
+		}
+
+		double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+		
+		Point pmin( minx, miny, minz, mint) ;
+		Point pmax( maxx, maxy, maxz, maxt) ;
+
+		std::map<double, std::pair<Point, DelaunayTetrahedron*> > id  ;
+
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
+		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+				continue ;
+
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			{
+				if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) )
+				{
+					id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
+				}
+			}
+		}
+
+		std::vector<Point> target ;
+
+		target.push_back( id.begin()->second.first ) ;
+		cache3d.push_back( id.begin()->second.second ) ;
+		cache.push_back( target ) ;
+		GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
+		std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
+
+		for ( size_t i = 0 ; i < id.begin()->second.second->getGaussPoints().gaussPoints.size() ; i++ )
+		{
+			id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+		}
+
+		if ( !function )
+			apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a , axis) ;
+		else
+			apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a, axis ) ;
+		
+		
 	}
-
-	double minx = elements.front()->getBoundingPoint( 0 ).x ;
-
-	double miny = elements.front()->getBoundingPoint( 0 ).y ;
-	double minz = elements.front()->getBoundingPoint( 0 ).z ;
-	double maxx = elements.front()->getBoundingPoint( 0 ).x ;
-	double maxy = elements.front()->getBoundingPoint( 0 ).y ;
-	double maxz = elements.front()->getBoundingPoint( 0 ).z ;
-
-	for ( size_t i = 0 ; i < elements.size() ; ++i )
+	else
 	{
-		if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-			continue ;
-
-		for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+		for ( size_t i = 0 ; i < cache3d.size() ; ++i )
 		{
-			if ( elements[i]->getBoundingPoint( j ).x < minx )
-				minx = elements[i]->getBoundingPoint( j ).x ;
+			GaussPointArray gp = cache3d[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
 
-			if ( elements[i]->getBoundingPoint( j ).x > maxx )
-				maxx = elements[i]->getBoundingPoint( j ).x ;
-
-			if ( elements[i]->getBoundingPoint( j ).y < miny )
-				miny = elements[i]->getBoundingPoint( j ).y ;
-
-			if ( elements[i]->getBoundingPoint( j ).y > maxy )
-				maxy = elements[i]->getBoundingPoint( j ).y ;
-
-			if ( elements[i]->getBoundingPoint( j ).y < minz )
-				minz = elements[i]->getBoundingPoint( j ).z ;
-
-			if ( elements[i]->getBoundingPoint( j ).y > maxz )
-				maxz = elements[i]->getBoundingPoint( j ).z ;
-		}
-	}
-
-	double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
-
-	std::map<double, std::pair<Point, ElementaryVolume *> > id  ;
-
-	switch ( pos )
-	{
-
-		case TOP:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
 			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				cache3d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
-
+			
 			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
 			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-			break ;
-		}
-
-		case FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case FRONT_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case FRONT_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BACK_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BACK_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case FRONT_TOP:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case FRONT_BOTTOM:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_LEFT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_LEFT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_LEFT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_LEFT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_RIGHT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case TOP_RIGHT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id[dist( elements[i]->getBoundingPoint( j ), nearest )] = std::make_pair( elements[i]->getBoundingPoint( j ), elements[i] ) ;
-					}
-				}
-			}
-
-			std::vector<Point> target ;
-
-			target.push_back( id.begin()->second.first ) ;
-			GaussPointArray gp = id.begin()->second.second->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), id.begin()->second.second->getGaussPoints().gaussPoints.size() ) ;
- 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				id.begin()->second.second->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
-
-			if ( !function )
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a ) ;
-			else
-				apply3DBC( id.begin()->second.second,gp,Jinv, target, condition, dataFunction*getScale(), a ) ;
-
-			break ;
-		}
-
-		default:
-		{
-			break;
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a , axis) ;
 		}
 	}
+  
 }
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition( t, d, a ), domain( source ) { };
@@ -3336,412 +2478,86 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 		}
 
 		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 
 		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
 
+		double mint = elements.front()->getBoundingPoint( 0 ).t ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
-			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
 				continue ;
 
-			if ( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( elements[i]->getBoundingPoint( j ).x < minx )
-						minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).x < minx )
+					minx = elements[i]->getBoundingPoint( j ).x ;
 
-					if ( elements[i]->getBoundingPoint( j ).x > maxx )
-						maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).x > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).x ;
 
-					if ( elements[i]->getBoundingPoint( j ).y < miny )
-						miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).y < miny )
+					miny = elements[i]->getBoundingPoint( j ).y ;
 
-					if ( elements[i]->getBoundingPoint( j ).y > maxy )
-						maxy = elements[i]->getBoundingPoint( j ).y ;
-				}
+				if ( elements[i]->getBoundingPoint( j ).y > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).t < mint )
+					mint = elements[i]->getBoundingPoint( j ).t ;
+
+				if ( elements[i]->getBoundingPoint( j ).t > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).t ;
+			  
 			}
 		}
 
 		double tol = std::min( maxx - minx, maxy - miny ) * .0001 ;
+		
+		Point pmin(minx,miny, 0., mint) ;
+		Point pmax(maxx,maxy, 0., maxt) ;
+		
+		Point rmin(xmin, ymin) ;
+		Point rmax(xmax, ymax) ;
+		
+		  for ( size_t i = 0 ; i < elements.size() ; ++i )
+		  {
+			  if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+				  continue ;
 
-		switch ( pos )
-		{
+			  std::vector<Point> id  ;
 
-			case TOP:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
+			  for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			  {
+				  if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) && isInBoundary2D( elements[i]->getBoundingPoint( j ), rmin, rmax ) )
+				  {
+					  if ( cache2d.empty() || cache2d.back() != elements[i] )
+					  {
+						  cache.push_back( std::vector<Point>() );
+						  cache2d.push_back( elements[i] );
+					  }
 
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
+					  cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+				  }
+			  }
 
 
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+			  if ( !cache2d.empty() && cache2d.back() == elements[i] )
+			  {
+				  GaussPointArray gp = elements[i]->getGaussPoints() ;
+				  std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
 
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-				break ;
-			}
-
-			case TOP_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-				break ;
-			}
-
-			case TOP_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					std::vector<Point> id  ;
-
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						   )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			default:
-			{
-				break;
-			}
+				  for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				  {
+					  elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				  }
+				  if ( !function )
+					  apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+				  else
+					  apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
+			  }
 		}
 	}
 	else
@@ -3757,9 +2573,9 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 			}
 			
 			if ( !function )
-				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
 			else
-				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a , axis) ;
 		}
 	}
 }
@@ -3778,25 +2594,13 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 		}
 
 		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 
 		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
 
 		double mint = elements.front()->getBoundingPoint( 0 ).t ;
 		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
-
-		if ( elements.front()->getOrder() >= CONSTANT_TIME_LINEAR )
-		{
-			for ( size_t j = 0 ; j < elements.front()->getBoundingPoints().size() ; ++j )
-			{
-				if ( elements.front()->getBoundingPoint( j ).t < mint )
-					mint = elements.front()->getBoundingPoint( j ).t ;
-
-				if ( elements.front()->getBoundingPoint( j ).t > maxt )
-					maxt = elements.front()->getBoundingPoint( j ).t ;
-			}
-		}
 
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -3819,883 +2623,56 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 					if ( elements[i]->getBoundingPoint( j ).y > maxy )
 						maxy = elements[i]->getBoundingPoint( j ).y ;
 
-					if ( elements.front()->getOrder() >= CONSTANT_TIME_LINEAR )
-					{
-						for ( size_t j = 0 ; j < elements.front()->getBoundingPoints().size() ; ++j )
-						{
-							if ( elements[i]->getBoundingPoint( j ).t < mint )
-								mint = elements[i]->getBoundingPoint( j ).t ;
+					if ( elements[i]->getBoundingPoint( j ).t < mint )
+						mint = elements[i]->getBoundingPoint( j ).t ;
 
-							if ( elements[i]->getBoundingPoint( j ).t > maxt )
-								maxt = elements[i]->getBoundingPoint( j ).t ;
-						}
-					}
+					if ( elements[i]->getBoundingPoint( j ).t > maxt )
+						maxt = elements[i]->getBoundingPoint( j ).t ;
 				}
 			}
 		}
+		
+		Point pmin(minx, miny, 0., mint) ;
+		Point pmax(maxx, maxy, 0., maxt) ;
 
 		double tol = std::max( std::min( maxx - minx, maxy - miny ) * .001, POINT_TOLERANCE_2D ) ;
 
-		switch ( pos )
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+				continue ;
 
-			case TOP:
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
+				if( isOnBoundary( pos, elements[i]->getBoundingPoint(j), pmin, pmax, tol) )
 				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+					if ( cache2d.empty() || cache2d.back() != elements[i] )
 					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
+						cache.push_back( std::vector<Point>() );
+						cache2d.push_back( elements[i] );
 					}
 
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-				break ;
-			}
-
-			case LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; j++ )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BEFORE:
-			{
-
-				if ( maxt != mint )
-				{
-					tol = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if ( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tol )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-					if ( !cache2d.empty() && cache2d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						
-						if ( !function )
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-						else
-							apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-					}
-					}
-				}
-
-				break ;
-			}
-
-			case NOW:
-			{
-
-				if ( maxt != mint )
-				{
-					tol = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if ( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tol )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-				}
-
-				break ;
-			}
-
-			case AFTER:
-			{
-				if ( maxt != mint )
-				{
-					tol = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if ( std::abs( elements[i]->getBoundingPoint( j ).t - maxt ) < tol )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_BEFORE:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-
-					break ;
+					cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 				}
 			}
 
-			case LEFT_BEFORE:
+			if ( !cache2d.empty() && cache2d.back() == elements[i] )
 			{
-				if ( maxt != mint )
+				GaussPointArray gp = elements[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
 				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-
-					break ;
+					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 				}
-			}
-
-			case LEFT_NOW:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-					
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-						
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-								
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-					
-					break ;
-				}
-			}
-			
-			case LEFT_AFTER:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - maxt ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
-						}
-					}
-
-					break ;
-				}
-			}
-
-		case TOP_NOW:
-		{
-			if ( maxt != mint )
-			{
-				double tolt = ( maxt - mint ) * 0.001 ;
-
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol ) )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-				}
-
-				break ;
+				
+				if ( !function )
+					apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
+				else
+					apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
 			}
 		}
-
-			case TOP_AFTER:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - maxt ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-
-					break ;
-				}
-			}
-
-			case BOTTOM_BEFORE:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - mint ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-
-					break ;
-				}
-			}
-
-		case BOTTOM_NOW:
-		{
-			if ( maxt != mint )
-			{
-				double tolt = ( maxt - mint ) * 0.001 ;
-
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if (( std::abs( elements[i]->getBoundingPoint( j ).t - (mint+maxt)*0.5 ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol ) )
-						{
-							if ( cache2d.empty() || cache2d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache2d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-				}
-
-				break ;
-			}
-		}
-
-			case BOTTOM_AFTER:
-			{
-				if ( maxt != mint )
-				{
-					double tolt = ( maxt - mint ) * 0.001 ;
-
-					for ( size_t i = 0 ; i < elements.size() ; ++i )
-					{
-						if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-							continue ;
-
-						for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-						{
-							if (( std::abs( elements[i]->getBoundingPoint( j ).t - maxt ) < tolt ) && ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol ) )
-							{
-								if ( cache2d.empty() || cache2d.back() != elements[i] )
-								{
-									cache.push_back( std::vector<Point>() );
-									cache2d.push_back( elements[i] );
-								}
-
-								cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-							}
-						}
-						if ( !cache2d.empty() && cache2d.back() == elements[i] )
-						{
-							GaussPointArray gp = elements[i]->getGaussPoints() ;
-							std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-							for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-							{
-								elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-							}
-							if ( !function )
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a, axis ) ;
-							else
-								apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
-						}
-					}
-
-					break ;
-				}
-			}
-
-			default:
-			{
-				break;
-			}
-		}
+		
 	}
 	else
 	{
@@ -4719,2101 +2696,248 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<DelaunayTetrahedron *>  elements = t->getElements() ;
-	double minx = elements.front()->getBoundingPoint( 0 ).x ;
-	double miny = elements.front()->getBoundingPoint( 0 ).y ;
-	double minz = elements.front()->getBoundingPoint( 0 ).z ;
-	double maxx = elements.front()->getBoundingPoint( 0 ).x ;
-	double maxy = elements.front()->getBoundingPoint( 0 ).y ;
-	double maxz = elements.front()->getBoundingPoint( 0 ).z ;
-
-	for ( size_t i = 0 ; i < elements.size() ; ++i )
+	if ( cache.empty() )
 	{
-		if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-			continue ;
+		std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 
-		for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+		if ( elements.empty() )
 		{
-			if ( elements[i]->getBoundingPoint( j ).x < minx )
-				minx = elements[i]->getBoundingPoint( j ).x ;
-
-			if ( elements[i]->getBoundingPoint( j ).x > maxx )
-				maxx = elements[i]->getBoundingPoint( j ).x ;
-
-			if ( elements[i]->getBoundingPoint( j ).y < miny )
-				miny = elements[i]->getBoundingPoint( j ).y ;
-
-			if ( elements[i]->getBoundingPoint( j ).y > maxy )
-				maxy = elements[i]->getBoundingPoint( j ).y ;
-
-			if ( elements[i]->getBoundingPoint( j ).y < minz )
-				minz = elements[i]->getBoundingPoint( j ).z ;
-
-			if ( elements[i]->getBoundingPoint( j ).y > maxz )
-				maxz = elements[i]->getBoundingPoint( j ).z ;
+			std::cout << "no elements in assembly" << std::endl ;
+			return ;
 		}
-	}
 
-	double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 
-	if ( cache3d.empty() )
-	{
-		switch ( pos )
+		double miny = elements.front()->getBoundingPoint( 0 ).y ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+
+		double minz = elements.front()->getBoundingPoint( 0 ).z ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		
+		double mint = elements.front()->getBoundingPoint( 0 ).t ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+				continue ;
 
-			case TOP:
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
+				if ( elements[i]->getBoundingPoint( j ).x < minx )
+					minx = elements[i]->getBoundingPoint( j ).x ;
 
-					std::vector<Point> id  ;
+				if ( elements[i]->getBoundingPoint( j ).x > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).x ;
 
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
+				if ( elements[i]->getBoundingPoint( j ).y < miny )
+					miny = elements[i]->getBoundingPoint( j ).y ;
 
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
+				if ( elements[i]->getBoundingPoint( j ).y > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).y ;
 
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+				if ( elements[i]->getBoundingPoint( j ).z < minz )
+					minz = elements[i]->getBoundingPoint( j ).z ;
 
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
+				if ( elements[i]->getBoundingPoint( j ).z > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).z ;
 
-				break ;
-			}
+				if ( elements[i]->getBoundingPoint( j ).t < mint )
+					mint = elements[i]->getBoundingPoint( j ).t ;
 
-			case LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case FRONT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BACK:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case FRONT_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case FRONT_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BACK_LEFT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BACK_RIGHT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case FRONT_TOP:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case FRONT_BOTTOM:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_LEFT_FRONT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_LEFT_BACK:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_LEFT_FRONT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_LEFT_BACK:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_RIGHT_FRONT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case TOP_RIGHT_BACK:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT_FRONT:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			case BOTTOM_RIGHT_BACK:
-			{
-				for ( size_t i = 0 ; i < elements.size() ; ++i )
-				{
-					if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-						continue ;
-
-					std::vector<Point> id  ;
-
-					for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-					{
-						if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-						        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol
-						        && elements[i]->getBoundingPoint( j ).x >= xmin
-						        && elements[i]->getBoundingPoint( j ).x <= xmax
-						        && elements[i]->getBoundingPoint( j ).y >= ymin
-						        && elements[i]->getBoundingPoint( j ).y <= ymax
-						        && elements[i]->getBoundingPoint( j ).z >= zmin
-						        && elements[i]->getBoundingPoint( j ).z <= zmax
-						   )
-						{
-							if ( cache3d.empty() || cache3d.back() != elements[i] )
-							{
-								cache.push_back( std::vector<Point>() );
-								cache3d.push_back( elements[i] );
-							}
-
-							cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
-						}
-					}
-					if ( !cache3d.empty() && cache3d.back() == elements[i] )
-					{
-						GaussPointArray gp = elements[i]->getGaussPoints() ;
-						std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-						for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-						{
-							elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-						}
-						if ( !function )
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-						else
-							apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-					}
-				}
-
-				break ;
-			}
-
-			default:
-			{
-				break;
+				if ( elements[i]->getBoundingPoint( j ).t > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).t ;
+			  
 			}
 		}
-	}
 
+		double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+		
+		Point pmin(minx,miny, minz, mint) ;
+		Point pmax(maxx,maxy, maxz, maxt) ;
+		
+		Point rmin(xmin, ymin, zmin) ;
+		Point rmax(xmax, ymax, zmax) ;
+		
+		  for ( size_t i = 0 ; i < elements.size() ; ++i )
+		  {
+			  if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+				  continue ;
+
+			  std::vector<Point> id  ;
+
+			  for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			  {
+				  if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) && isInBoundary3D( elements[i]->getBoundingPoint( j ), rmin, rmax ) )
+				  {
+					  if ( cache3d.empty() || cache3d.back() != elements[i] )
+					  {
+						  cache.push_back( std::vector<Point>() );
+						  cache3d.push_back( elements[i] );
+					  }
+
+					  cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+				  }
+			  }
+
+
+			  if ( !cache3d.empty() && cache3d.back() == elements[i] )
+			  {
+				  GaussPointArray gp = elements[i]->getGaussPoints() ;
+				  std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				  for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				  {
+					  elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				  }
+				  if ( !function )
+					  apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
+				  else
+					  apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+			  }
+		}
+	}
 	else
 	{
 		for ( size_t i = 0 ; i < cache3d.size() ; ++i )
 		{
 			GaussPointArray gp = cache3d[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
+			std::valarray<Matrix> Jinv( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
 
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					cache3d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( cache3d[i],gp,Jinv, cache.back(), condition, data*getScale(), a ) ;
-				else
-					apply3DBC( cache3d[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a ) ;
-
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			{
+				cache3d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			}
+			
+			if ( !function )
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
+			else
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a , axis) ;
 		}
 	}
+  
 }
 
 void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<ElementaryVolume *> & elements = a->getElements3d() ;
-	double minx = elements.front()->getBoundingPoint( 0 ).x ;
-	double miny = elements.front()->getBoundingPoint( 0 ).y ;
-	double minz = elements.front()->getBoundingPoint( 0 ).z ;
-	double maxx = elements.front()->getBoundingPoint( 0 ).x ;
-	double maxy = elements.front()->getBoundingPoint( 0 ).y ;
-	double maxz = elements.front()->getBoundingPoint( 0 ).z ;
-
-	for ( size_t i = 0 ; i < elements.size() ; ++i )
+	if ( cache.empty() )
 	{
-		if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-			continue ;
+		std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 
-		for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+		if ( elements.empty() )
 		{
-			if ( elements[i]->getBoundingPoint( j ).x < minx )
-				minx = elements[i]->getBoundingPoint( j ).x ;
+			std::cout << "no elements in assembly" << std::endl ;
+			return ;
+		}
 
-			if ( elements[i]->getBoundingPoint( j ).x > maxx )
-				maxx = elements[i]->getBoundingPoint( j ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).x ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
 
-			if ( elements[i]->getBoundingPoint( j ).y < miny )
-				miny = elements[i]->getBoundingPoint( j ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).y ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
 
-			if ( elements[i]->getBoundingPoint( j ).y > maxy )
-				maxy = elements[i]->getBoundingPoint( j ).y ;
+		double minz = elements.front()->getBoundingPoint( 0 ).z ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		
+		double mint = elements.front()->getBoundingPoint( 0 ).t ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
+		{
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+				continue ;
 
-			if ( elements[i]->getBoundingPoint( j ).y < minz )
-				minz = elements[i]->getBoundingPoint( j ).z ;
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			{
+				if ( elements[i]->getBoundingPoint( j ).x < minx )
+					minx = elements[i]->getBoundingPoint( j ).x ;
 
-			if ( elements[i]->getBoundingPoint( j ).y > maxz )
-				maxz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).x > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).x ;
+
+				if ( elements[i]->getBoundingPoint( j ).y < miny )
+					miny = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).y > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).y ;
+
+				if ( elements[i]->getBoundingPoint( j ).z < minz )
+					minz = elements[i]->getBoundingPoint( j ).z ;
+
+				if ( elements[i]->getBoundingPoint( j ).z > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).z ;
+
+				if ( elements[i]->getBoundingPoint( j ).t < mint )
+					mint = elements[i]->getBoundingPoint( j ).t ;
+
+				if ( elements[i]->getBoundingPoint( j ).t > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).t ;
+			  
+			}
+		}
+
+		double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
+		
+		Point pmin(minx,miny, minz, mint) ;
+		Point pmax(maxx,maxy, maxz, maxt) ;
+		
+		  for ( size_t i = 0 ; i < elements.size() ; ++i )
+		  {
+			  if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+				  continue ;
+
+			  std::vector<Point> id  ;
+
+			  for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+			  {
+				  if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) )
+				  {
+					  if ( cache3d.empty() || cache3d.back() != elements[i] )
+					  {
+						  cache.push_back( std::vector<Point>() );
+						  cache3d.push_back( elements[i] );
+					  }
+
+					  cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
+				  }
+			  }
+
+
+			  if ( !cache3d.empty() && cache3d.back() == elements[i] )
+			  {
+				  GaussPointArray gp = elements[i]->getGaussPoints() ;
+				  std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+
+				  for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				  {
+					  elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				  }
+				  if ( !function )
+					  apply3DBC( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis) ;
+				  else
+					  apply3DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+			  }
 		}
 	}
-
-	double tol = std::min( std::min( maxx - minx, maxy - miny ), maxz - minz ) * .0001 ;
-
-	switch ( pos )
+	else
 	{
-
-		case TOP:
+		for ( size_t i = 0 ; i < cache3d.size() ; ++i )
 		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
+			GaussPointArray gp = cache3d[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
 			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-
+				cache3d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
-
-			break ;
+			
+			if ( !function )
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
+			else
+				apply3DBC( cache3d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a , axis) ;
 		}
-
-		case LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a , axis) ;
-			}
-
-			break ;
-		}
-
-		case FRONT_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case FRONT_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BACK_LEFT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BACK_RIGHT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case FRONT_TOP:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case FRONT_BOTTOM:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_LEFT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_LEFT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_LEFT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_LEFT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - minx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_RIGHT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case TOP_RIGHT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - maxy ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT_FRONT:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - minz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		case BOTTOM_RIGHT_BACK:
-		{
-			for ( size_t i = 0 ; i < elements.size() ; ++i )
-			{
-				if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-					continue ;
-
-				std::vector<Point> id  ;
-
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( std::abs( elements[i]->getBoundingPoint( j ).x - maxx ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).y - miny ) < tol
-					        && std::abs( elements[i]->getBoundingPoint( j ).z - maxz ) < tol )
-					{
-						id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-					}
-				}
-				GaussPointArray gp = elements[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
-
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
-
-				if ( !function )
-					apply3DBC( elements[i],gp,Jinv, id, condition, data*getScale(), a, axis ) ;
-				else
-					apply3DBC( elements[i],gp,Jinv, id, condition, dataFunction*getScale(), a, axis ) ;
-			}
-
-			break ;
-		}
-
-		default:
-		{
-			break;
-		}
-	}
+	}  
 }
 
 BoundaryCondition::BoundaryCondition( LagrangeMultiplierType t, const double & d, int a  ) : scale( 1 ), condition( t ), data( d ), function( false ), axis(a) { } ;
@@ -7034,53 +3158,77 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<DelaunayTetrahedron *> tet = t->getElements() ;
+	t->getAdditionalPoints() ;
+	std::vector<DelaunayTetrahedron *> tri = t->getElements() ;
 	std::vector<Point> id ;
-	size_t timePlanes = tet[0]->timePlanes() ;
+	size_t timePlanes = tri[0]->timePlanes() ;
 
 	if ( timePlanes < 2 )
 		return ;
 
-	size_t firstTimePlane = tet[0]->getBoundingPoints().size() / timePlanes ;
+	size_t firstTimePlane = tri[0]->getBoundingPoints().size() / timePlanes ;
 
-	size_t lastTimePlane = tet[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
+	size_t lastTimePlane = tri[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
 
-	size_t dof = tet[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-	Vector previousDisp ;
-
-	previousDisp.resize( tet[0]->getState().getPreviousDisplacements().size() ) ;
+	previousDisp.resize( a->getDisplacements().size()) ;
+	previousDisp = a->getDisplacements() ;
 
 	if ( previousDisp.size() == 0 )
-		return ;
-
-	std::valarray<LagrangeMultiplierType> disp( SET_ALONG_XI, 3 ) ;
-
-	disp[1] = SET_ALONG_ETA ;
-
-	disp[2] = SET_ALONG_ZETA ;
-
-	for ( size_t i = 0 ; i < tet.size() ; i++ )
 	{
-		previousDisp = tet[i]->getState().getPreviousDisplacements() ;
-		GaussPointArray gp = tet[i]->getGaussPoints() ;
-		std::valarray<Matrix> Jinv( Matrix(), tet[i]->getGaussPoints().gaussPoints.size() ) ;
-
-		for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+		for ( size_t i = 0 ; i < tri.size() ; i++ )
 		{
-				tet[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			
+			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+			{
+				id.clear() ;
+				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
+				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
+
+				GaussPointArray gp = tri[i]->getGaussPoints() ;
+				std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+				
+				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+				{
+					tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				}
+				
+				for(size_t n = 0 ; n < dof ; n++)
+				{
+					apply3DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+				}
+			}
 		}
-		
-		for ( size_t k = 0; k < firstTimePlane ; k++ )
+		return ;
+	}
+
+	for ( size_t i = 0 ; i < tri.size() ; i++ )
+	{
+		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 		{
 			id.clear() ;
-			id.push_back( tet[i]->getBoundingPoint( k ) ) ;
+			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
+			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 			
-			
-			for ( size_t j = 0 ; j < dof ; j++ )
+			GaussPointArray gp = tri[i]->getGaussPoints() ;
+			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+
+			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
 			{
-				apply3DBC( tet[i],gp,Jinv, id, disp[j], previousDisp[( lastTimePlane+k )*dof+j]*getScale(), a ) ;
+				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
+			
+			for(size_t n = 0 ; n < dof ; n++)
+			{
+				apply3DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
+			}
+/*			
+			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
+			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;*/
+				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
+								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
+								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
 		}
 	}
 }

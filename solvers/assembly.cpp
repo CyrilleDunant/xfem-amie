@@ -321,26 +321,21 @@ void Assembly::setBoundaryConditions()
 	this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
 	this->nonLinearExternalForces = 0 ;
 
-//	size_t ndofs = multiplier_offset ;
-
-//	std::cout << multipliers.size() << std::endl ;
-	
 	std::sort(multipliers.begin(), multipliers.end()) ;
 	std::valarray<int> multiplierIds(multipliers.size()) ;
 	for(size_t i = 0 ; i < multiplierIds.size() ; i++)
 	{
 		multiplierIds[i] = multipliers[i].getId() ;
-//		std::cout << multiplierIds[i] << std::endl ;
 	}
 	
 	
 
 	int stride = coordinateIndexedMatrix->stride ;
-//	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
+	std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
 	for(size_t k = 0 ; k < coordinateIndexedMatrix->row_size.size() ; k++)
 	{
-/*		if(k% 1000 == 0)
-			std::cerr << "\r setting BCs... displacement dof " << k*stride << "/" << coordinateIndexedMatrix->row_size.size()*stride << std::flush ;*/
+		if(k% 1000 == 0)
+			std::cerr << "\r setting BCs... displacement dof " << k*stride << "/" << coordinateIndexedMatrix->row_size.size()*stride << std::flush ;
 		int lineBlockIndex = k ;
 		int * start_multiplier = std::lower_bound(&multiplierIds[0], &multiplierIds[multiplierIds.size()], coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]]*stride) ;
 		int * end_multiplier = std::upper_bound(start_multiplier,  &multiplierIds[multiplierIds.size()],coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]+coordinateIndexedMatrix->row_size[k]-1]*stride+stride-1 ) ;
@@ -461,7 +456,7 @@ void Assembly::setBoundaryConditions()
 		else if(multipliers[i].type == SET_FORCE_XI 
 				|| multipliers[i].type == SET_FORCE_ETA
 				|| multipliers[i].type == SET_FORCE_ZETA)
-		{
+		{		  
 			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
 
@@ -1099,7 +1094,7 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
-
+	
 	switch(v)
 	{
 	case XI:
@@ -1107,8 +1102,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-//				if((*duplicate).type != SET_FORCE_XI)
-//					return ;
+				if((*duplicate).type != SET_FORCE_XI)
+					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1121,8 +1116,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-//				if((*duplicate).type != SET_FORCE_ETA)
-//					return ;
+				if((*duplicate).type != SET_FORCE_ETA)
+					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1135,8 +1130,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
 			if(!(multipliers.empty() || duplicate == multipliers.end()))
 			{
-//				if((*duplicate).type != SET_FORCE_ZETA)
-//					return ;
+				if((*duplicate).type != SET_FORCE_ZETA)
+					return ;
 				val += (*duplicate).value ;
 				multipliers.erase(duplicate) ;
 			}
@@ -1164,12 +1159,14 @@ void Assembly::addMultiplier(const LagrangeMultiplier & l)
 }
 
 void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id) 
-{
+{  
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
 	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
 	if(!(multipliers.empty() || duplicate == multipliers.end()))
+	{
 		multipliers.erase(duplicate) ;
+	}
 
 	multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+axis)) ;
 	multipliers.back().type = SET_ALONG_INDEXED_AXIS ;
@@ -1180,6 +1177,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
 	Vector c(2) ;
+	
 	switch(v)
 	{
 		case XI:

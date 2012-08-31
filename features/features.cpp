@@ -1430,7 +1430,7 @@ void FeatureTree::stitch()
 	{
 		if( elemOrder >= QUADRATIC )
 		{
-			dtree3D->setElementOrder( elemOrder ) ;
+			dtree3D->setElementOrder( elemOrder , realDeltaTime) ;
 			for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 

@@ -636,7 +636,7 @@ double Tetrahedron::area() const
 
 double Tetrahedron::volume() const
 {
-	if(this->getBoundingPoints().size() == 4)
+	if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
 	{
 		Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
 		Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;

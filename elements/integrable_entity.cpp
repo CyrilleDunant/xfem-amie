@@ -384,8 +384,7 @@ void ElementState::getExternalField( Vector & nodalValues, int externaldofs, con
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 
-	for(size_t k = 0 ; k < externaldofs ; k++)
-		ret[k] = 0 ;
+	ret = 0. ;
 	
 	for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 	{

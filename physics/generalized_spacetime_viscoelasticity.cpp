@@ -463,6 +463,8 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 			placeMatrixInBlock( a, 0,0, ret ) ;
 			addMatrixInBlock( b, 0,0, ret ) ;
+			
+			
 			return ;
 		}
 		
@@ -473,6 +475,7 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
 			placeMatrixInBlock( a, 0,0, ret ) ;
 			addMatrixInBlock( b, 0,0, ret ) ;
+			
 			return ;
 		}
 		
@@ -557,7 +560,8 @@ Vector GeneralizedSpaceTimeViscoelasticity::getForcesFromAppliedStress( const Fu
 	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 	
 	Vector f = vm.ieval( GradientDot( shape ) * g, e, v) ;
-	
+
+	field = 0 ;
 	for(size_t i = 0 ; i < n ; i++)
 		field[ i*externaldofs + index ] = vm.deval( data, TIME_VARIABLE, e->getBoundingPoint(i) ) ;
 

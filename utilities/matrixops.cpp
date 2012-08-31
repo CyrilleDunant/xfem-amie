@@ -633,6 +633,7 @@ void invert3x3Matrix(Mu::Matrix & m)
 
 Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s)
 {	
+  
 	Mu::Matrix ret(4,4) ;
 	
 	

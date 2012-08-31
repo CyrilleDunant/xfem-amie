@@ -564,7 +564,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 		Matrix J ;
 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = 1./det(J) ;
+		double j = volume()/0.166666666666666666667 ;//1./det(J) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -1102,7 +1102,10 @@ Vector TriElement::getNonLinearForces()
 const GaussPointArray & TetrahedralElement::genGaussPoints() 
 {
 	if(getCachedGaussPoints())
+	{
+//		std::cout <<getCachedGaussPoints()->gaussPoints.size() << std::endl ;
 		return *getCachedGaussPoints() ;
+	}
 		
 	size_t ordre=0 ;
 	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
@@ -1152,7 +1155,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 	else if(order == LINEAR_TIME_LINEAR )
 	{
-		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.1666666666666667*2.) ;
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*2.) ;
 	}
 	else if(order == LINEAR_TIME_QUADRATIC )
 	{
@@ -1195,13 +1198,23 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 	else
 	{
-		double j = volume()/0.1666666666666666 ;
-
+		Matrix J ;
+		getInverseJacobianMatrix(fin[0].first, J);
+		double j = 1./det(J) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second*=j ;
+			fin[i].second *= j;
 		}
+
+// 		double j = volume()/0.1666666666666666 ;
+// 
+// 		
+// 		for(size_t i = 0 ; i < fin.size() ; i++)
+// 		{
+// 			fin[i].second*=j ;
+// 		}
 	}
+	
 	setCachedGaussPoints( new GaussPointArray(fin, order)) ;
 	return *getCachedGaussPoints() ;
 }
@@ -1315,7 +1328,7 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 	else if(order == LINEAR_TIME_LINEAR)
 	{
 		shapefunc = new std::valarray<Function>(8) ;
-			//0
+			//0		
 		(*shapefunc)[0] = Function("z 0.5 0.5 t * - *") ;
 			//1
 		(*shapefunc)[1] = Function("1 x - y - z - 0.5 0.5 t * - *") ;
@@ -2362,7 +2375,6 @@ void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) c
 		ret[3][0] = 0 ; ret[3][1] = 0 ; ret[3][2] = 0 ; ret[3][3] = tdtheta;
 
 
-		
 		ret = inverse4x4Matrix(ret) ;
 	}
 
@@ -2412,36 +2424,85 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	}
 	else
 	{
-		if(ret.isNull())
+		if(ret.numRows() != 4)
 			ret.resize(4,4) ;
 		
-		double xdxi = this->getdXTransform(XI,p) ;
-		double ydxi = this->getdYTransform(XI,p) ;
-		double zdxi = this->getdZTransform(XI,p) ;
-// 		double tdxi = this->getdTTransform(XI,p) ;
+// 		double xdxi = this->getdXTransform(XI,p) ;
+// 		double ydxi = this->getdYTransform(XI,p) ;
+// 		double zdxi = this->getdZTransform(XI,p) ;
+// // 		double tdxi = this->getdTTransform(XI,p) ;
+// 		
+// 		double xdeta = this->getdXTransform(ETA,p) ;
+// 		double ydeta = this->getdYTransform(ETA,p) ;
+// 		double zdeta = this->getdZTransform(ETA,p) ;
+// // 		double tdeta = this->getdTTransform(ETA,p) ;
+// 		
+// 		double xdzeta = this->getdXTransform(ZETA,p) ;
+// 		double ydzeta = this->getdYTransform(ZETA,p) ;
+// 		double zdzeta = this->getdZTransform(ZETA,p) ;
+// // 		double tdzeta = this->getdTTransform(ZETA,p) ;
+// 		
+// // 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
+// // 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
+// // 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
+// 		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
+
+		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
+		double ydxi = 0 ;//this->getdYTransform(XI,p) ;
+		double zdxi = 0 ;//this->getdZTransform(XI,p) ;
+		double tdxi = 0 ;
 		
-		double xdeta = this->getdXTransform(ETA,p) ;
-		double ydeta = this->getdYTransform(ETA,p) ;
-		double zdeta = this->getdZTransform(ETA,p) ;
-// 		double tdeta = this->getdTTransform(ETA,p) ;
+		double xdeta = 0 ;//this->getdXTransform(ETA,p) ;
+		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
+		double zdeta = 0 ;//this->getdZTransform(ETA,p) ;
+		double tdeta = 0 ;
 		
-		double xdzeta = this->getdXTransform(ZETA,p) ;
-		double ydzeta = this->getdYTransform(ZETA,p) ;
-		double zdzeta = this->getdZTransform(ZETA,p) ;
-// 		double tdzeta = this->getdTTransform(ZETA,p) ;
+		double xdzeta = 0 ;//this->getdXTransform(ZETA,p) ;
+		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
+		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
+		double tdzeta = 0 ;
+
+		double xdtau = 0 ;//this->getdXTransform(ZETA,p) ;
+		double ydtau = 0 ;//this->getdYTransform(ZETA,p) ;
+		double zdtau = 0 ;//this->getdZTransform(ZETA,p) ;
+		double tdtau = 0 ;
 		
-// 		double xdtheta = this->getdXTransform(TIME_VARIABLE,p) ;
-// 		double ydtheta = this->getdYTransform(TIME_VARIABLE,p) ;
-// 		double zdtheta = this->getdZTransform(TIME_VARIABLE,p) ;
-		double tdtheta = this->getdTTransform(TIME_VARIABLE,p) ;
-		
+		VirtualMachine vm ;
+		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+		{
+			double dxi = vm.deval(getShapeFunction(i), XI, p, Point(0,0,0,0), 1e-5) ;
+			double deta = vm.deval(getShapeFunction(i), ETA, p, Point(0,0,0,0), 1e-5) ;
+			double dzeta = vm.deval(getShapeFunction(i), ZETA, p, Point(0,0,0,0), 1e-5) ;
+			double dtau = vm.deval(getShapeFunction(i), TIME_VARIABLE, p, Point(0,0,0,0), 1e-5) ;
+			
+			xdxi += dxi*getBoundingPoint(i).x ;
+			ydxi += dxi*getBoundingPoint(i).y ;
+			zdxi += dxi*getBoundingPoint(i).z ;
+			tdxi += dxi*getBoundingPoint(i).t ;
+
+			xdeta += deta*getBoundingPoint(i).x ;
+			ydeta += deta*getBoundingPoint(i).y ;
+			zdeta += deta*getBoundingPoint(i).z ;
+			tdeta += deta*getBoundingPoint(i).t ;
+
+			xdzeta += dzeta*getBoundingPoint(i).x ;
+			ydzeta += dzeta*getBoundingPoint(i).y ;
+			zdzeta += dzeta*getBoundingPoint(i).z ;
+			tdzeta += dzeta*getBoundingPoint(i).t ;
+			
+			xdtau += dtau*getBoundingPoint(i).x ;
+			ydtau += dtau*getBoundingPoint(i).y ;
+			zdtau += dtau*getBoundingPoint(i).z ;
+			tdtau += dtau*getBoundingPoint(i).t ;
+			
+		}
+
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; ret[0][3] = 0; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ; ret[1][3] = 0;
 		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ; ret[2][3] = 0;
-		ret[3][0] = 0 ; ret[3][1] = 0 ; ret[3][2] = 0 ; ret[3][3] = tdtheta;
+		ret[3][0] = 0 ; ret[3][1] = 0 ; ret[3][2] = 0 ; ret[3][3] = tdtau;
 
 
-		
 		ret = inverse4x4Matrix(ret) ;
 	}
 
