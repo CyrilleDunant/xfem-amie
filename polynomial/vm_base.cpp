@@ -25,7 +25,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	stack.memory.heap[6] = v ;
 	stack.memory.heap[7] = w ;
 	
-	std::reverse_copy(&f.values[0],&f.values[f.constNumber],&stack.memory.heap[512-f.constNumber] ) ;
+	std::reverse_copy(&f.values[0],&f.values[f.constNumber],&stack.memory.heap[FUNCTION_LENGTH-f.constNumber] ) ;
 // 	for(size_t i = 0 ; i < f.constNumber  ; ++i)
 // 	{
 // 		stack.memory.heap[511-i] = f.values[i] ;

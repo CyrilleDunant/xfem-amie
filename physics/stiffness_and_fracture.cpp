@@ -56,20 +56,23 @@ DamageModel * StiffnessAndFracture::getDamageModel() const
 
 void StiffnessAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
-	if(gp.gaussPoints.size() == 1)
+// 	if(gp.gaussPoints.size() == 1)
 		vm->ieval(Gradient(p_i) * dfunc->apply(param) * Gradient(p_j, true), gp, Jinv,v, ret) ;
-	else
-	{
-		std::valarray<Matrix> Jinv_i(Jinv[0], 1) ;
-		GaussPointArray gp_i(gp.gaussPoints[0]) ;
-		Matrix acc(ret) ;
-		vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[0].first, nullptr, 0) * Gradient(p_j, true), gp, Jinv,v, acc) ;
-		ret = acc ;
-		for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
-		{
-			vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[i].first, nullptr, i) * Gradient(p_j, true), gp, Jinv,v, acc) ;
-		}
-	}
+// 	else
+// 	{
+// 		std::valarray<Matrix> Jinv_i(Jinv[0], 1) ;
+// 		GaussPointArray gp_i(gp.gaussPoints[0]) ;
+// 		Matrix acc(ret) ;
+// 		vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[0].first, nullptr, 0) * Gradient(p_j, true), gp_i, Jinv_i,v, acc) ;
+// 		ret = acc ;
+// 		for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
+// 		{
+// 			Jinv_i = Jinv[i] ;
+// 			gp_i.gaussPoints[0] = gp.gaussPoints[i] ;
+// 			vm->ieval(Gradient(p_i) * dfunc->apply(param,gp.gaussPoints[i].first, nullptr, i) * Gradient(p_j, true), gp_i, Jinv_i,v, acc) ;
+// 			ret += acc ;
+// 		}
+// 	}
 }
 
 void StiffnessAndFracture::step(double timestep, ElementState & currentState, double maxscore) 

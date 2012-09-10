@@ -48,8 +48,8 @@ typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 */
 struct Memory
 {
-	double stack[512];
-	double heap[512] ;
+	double stack[2048];
+	double heap[2048] ;
 
 	/** \brief Constructor. Initialises stack and heap to 0.
 	 * 

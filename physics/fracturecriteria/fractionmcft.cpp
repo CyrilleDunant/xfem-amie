@@ -37,7 +37,8 @@ double FractionMCFT::grade(ElementState &s)
 	
 	Vector totalStrain(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
 	Vector totalStress(0., 3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-	s.getFieldAtCenter( STRAIN_FIELD, REAL_STRESS_FIELD, totalStrain, totalStress ) ;
+	s.getAverageField( STRAIN_FIELD, totalStrain ) ;
+	s.getAverageField( REAL_STRESS_FIELD, totalStress ) ;
 	
 	Vector concreteStress = (s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) - steelCGTensor*phi)*totalStrain ;
 	

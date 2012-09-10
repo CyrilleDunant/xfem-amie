@@ -1636,12 +1636,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f1, Field
 	this->getField(f2, p, ret2, local) ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int)   
-{
-	ElementState::getFieldAtCenter(f1, ret1) ;
-	ElementState::getFieldAtCenter(f2, ret2) ;
-}
-
 void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int)   
 {
 	this->getFieldAtNodes(f1, ret1) ;

@@ -405,6 +405,7 @@ public:
 	std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
 	
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = nullptr) ; 
+	void addSharedNodes(DelaunayTree * dt) ;
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	void refresh(TriElement *father) ;
 	

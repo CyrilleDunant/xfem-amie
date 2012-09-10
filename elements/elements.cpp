@@ -571,7 +571,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 		Matrix J ;
 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = volume()/0.166666666666666666667 ;//1./det(J) ;
+		double j = area()/0.166666666666666666667 ;//1./det(J) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;

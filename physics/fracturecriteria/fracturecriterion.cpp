@@ -136,8 +136,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	Vector stra(0., vlength) ;
 	Vector tmpstr(vlength) ;
 	Vector tmpstra(vlength) ;
-	Vector pistress = toPrincipal(s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter())) ;
-	pistress = 0 ;
+
 	if(factors.size()==0)
 		initialiseFactors(s) ;
 	double sumFactors = 0 ;
@@ -146,11 +145,18 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	{
 		double iteratorValue = factors[0] ;
 		if(m == EFFECTIVE_STRESS)
-			s.getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+		{
+			s.getAverageField( PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstr) ;
+			s.getAverageField( PRINCIPAL_STRAIN_FIELD, tmpstra) ;
+		}
 		else
-			s.getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+		{
+			s.getAverageField( PRINCIPAL_REAL_STRESS_FIELD, tmpstr) ;
+			s.getAverageField( PRINCIPAL_STRAIN_FIELD, tmpstra) ;
+		}
+		
 		stra = tmpstra*iteratorValue ;
-		str = (tmpstr-pistress)*iteratorValue ;
+		str = (tmpstr)*iteratorValue ;
 
 		sumFactors += iteratorValue ;
 
@@ -163,24 +169,29 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 			double fractureDistance = 0. ;
 
 			if(m == EFFECTIVE_STRESS)
-					ci->getState().getFieldAtCenter( PRINCIPAL_EFFECTIVE_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+			{
+				ci->getState().getAverageField( PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstr) ;
+				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD, tmpstra) ;
+			}
 			else
-				ci->getState().getFieldAtCenter( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, tmpstr, tmpstra) ;
+			{
+				ci->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, tmpstr) ;
+				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD, tmpstra) ;
+			}
 			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 				iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 
 			stra += tmpstra*iteratorValue ;
 			str += tmpstr*iteratorValue ;
-			
+				
 			sumFactors += iteratorValue ;
 		}
 
 		str /= sumFactors ;
-		str += pistress ;
 		stra /= sumFactors ;
 		tmpstr.resize(3) ;
 		tmpstra.resize(3) ;
-		s.getParent()->getState().getFieldAtCenter(STRAIN_FIELD, REAL_STRESS_FIELD, tmpstra,tmpstr) ;
+		s.getParent()->getState().getAverageField(STRAIN_FIELD, tmpstra) ;
 		currentAngle = 0.5*atan2( tmpstra[2], tmpstra[0] - tmpstra[1] ) ;
 		if(currentAngle < 0)
 			currentAngle += M_PI ;
@@ -189,6 +200,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 //			currentAngle0 += M_PI ;
 //		currentAngle = 0.5*(currentAngle+currentAngle0) ;
 
+// 		std::cout << str.max() << "  " << stra.max() << std::endl ;
 		return std::make_pair(str, stra) ;
 
 	}
@@ -954,9 +966,15 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	{
 		double iteratorValue = factors[0] ;
 		if(m == EFFECTIVE_STRESS)
-			s.getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		{
+			s.getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr);
+			s.getAverageField( STRAIN_FIELD, tmpstra) ;
+		}
 		else
-			s.getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		{
+			s.getAverageField( REAL_STRESS_FIELD, tmpstr) ;
+			s.getAverageField(STRAIN_FIELD,tmpstra) ;
+		}
 		return std::make_pair(tmpstr, tmpstra) ;
 		stra = tmpstra*iteratorValue ;
 		str = (tmpstr-istress)*iteratorValue ;
@@ -972,9 +990,15 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
 				if(m == EFFECTIVE_STRESS)
-					ci->getState().getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+				{
+					ci->getState().getAverageField( EFFECTIVE_STRESS_FIELD, tmpstr) ;
+					ci->getState().getAverageField( STRAIN_FIELD, tmpstra) ;
+				}
 				else
-					ci->getState().getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+				{
+					ci->getState().getAverageField( REAL_STRESS_FIELD, tmpstr) ;
+					ci->getState().getAverageField( STRAIN_FIELD, tmpstra) ;
+				}
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
@@ -1008,10 +1032,16 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0];
-		if(m == REAL_STRESS)
-			  s.getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		if(m == EFFECTIVE_STRESS)
+		{
+			s.getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr);
+			s.getAverageField( STRAIN_FIELD, tmpstra) ;
+		}
 		else
-			  s.getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+		{
+			s.getAverageField( REAL_STRESS_FIELD, tmpstr) ;
+			s.getAverageField(STRAIN_FIELD,tmpstra) ;
+		}
 		str = tmpstr*iteratorValue ;
 		stra =tmpstra*iteratorValue ;
 		sumStressFactors += iteratorValue ;
@@ -1019,10 +1049,16 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
-			if(m == REAL_STRESS)
-				  ci->getState().getFieldAtCenter( REAL_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
-			else
-				  ci->getState().getFieldAtCenter( EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, tmpstr, tmpstra) ;
+				if(m == EFFECTIVE_STRESS)
+				{
+					ci->getState().getAverageField( EFFECTIVE_STRESS_FIELD, tmpstr) ;
+					ci->getState().getAverageField( STRAIN_FIELD, tmpstra) ;
+				}
+				else
+				{
+					ci->getState().getAverageField( REAL_STRESS_FIELD, tmpstr) ;
+					ci->getState().getAverageField( STRAIN_FIELD, tmpstra) ;
+				}
 			iteratorValue = factors[i+1] ;
 			Point direction =  ci->getCenter()-s.getParent()->getCenter() ; 
 			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())

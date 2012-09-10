@@ -1380,13 +1380,12 @@ void FeatureTree::stitch()
 		{
 // 			dtree->setElementOrder( elemOrder, realDeltaTime ) ;
 			
-			for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
-				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
+			layer2d.begin()->second->setElementOrder( elemOrder, realDeltaTime ) ;
+			for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
+				dynamic_cast<DelaunayTree *>(i->second)->addSharedNodes( dynamic_cast<DelaunayTree *>(layer2d.begin()->second) ) ;
 			
 			for( size_t j = 0 ; j < coarseTrees.size() ; j++ )
 				coarseTrees[j]->setElementOrder( elemOrder, realDeltaTime ) ;
-			
-			return ;
 			
 			if( projectOnBoundaries )
 			{

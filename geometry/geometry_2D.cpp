@@ -693,6 +693,14 @@ bool Triangle::inCircumCircle(const Point *p) const
 
 double Triangle::area() const
 {
+// 	const DelaunayTriangle * tri = dynamic_cast<const DelaunayTriangle *>(this) ;
+// 	if(tri)
+// 	{
+// 		Segment s0(*(tri->first), *(tri->second)) ;
+// 		Segment s1(*(tri->first), *(tri->third)) ;
+// 		return 0.5*std::abs((s0.vector()^s1.vector()).z) ;
+// 	}
+	
 // 	assert(this->boundingPoints.size() == 3) ;
 	int pointsInTimePlane = this->boundingPoints.size() ;
 	if(getBoundingPoint(0).t != 0)

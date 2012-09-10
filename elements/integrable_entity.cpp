@@ -197,12 +197,6 @@ Vector &ElementState::getPreviousEnrichedDisplacements()
 
 ElementState &ElementState::operator =( const ElementState &s )
 {
-	stressAtCenter.resize(0);
-	strainAtCenter.resize(0);
-	effectiveStressAtCenter.resize(0);
-	pstressAtCenter.resize(0);
-	pstrainAtCenter.resize(0);
-	effectivePStressAtCenter.resize(0);
 	strainAtNodes.resize(0);
 	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
@@ -228,14 +222,14 @@ ElementState &ElementState::operator =( const ElementState &s )
 
 ElementState::ElementState( const ElementState &s )
 {
+	strainAtGaussPoints.resize(0) ;
+	stressAtGaussPoints.resize(0) ;
+	effectivePStressAtGaussPoints.resize(0) ;
+	pstrainAtGaussPoints.resize(0) ;
+	pstressAtGaussPoints.resize(0) ;
+	
 	strainAtNodes.resize( 0 ) ;
 	stressAtNodes.resize( 0 ) ;
-	strainAtCenter.resize( 0 ) ;
-	stressAtCenter.resize( 0 ) ;
-	effectiveStressAtCenter.resize(0);
-	pstrainAtCenter.resize( 0 ) ;
-	pstressAtCenter.resize( 0 ) ;
-	effectivePStressAtCenter.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -951,74 +945,6 @@ void ElementState::getField( FieldType f, const std::valarray<Point> & p, Vector
 	} 
 }
 
-void ElementState::getFieldAtCenter( FieldType f, Vector & ret, int ) 
-{
-	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
-	switch(f)
-	{
-		case STRAIN_FIELD :
-			if( strainAtCenter.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					strainAtCenter.resize( 3 ) ;
-				else
-					strainAtCenter.resize( 6 ) ;
-
-				this->getField(f, p_, strainAtCenter, true) ;
-			}
-			ret = strainAtCenter ;
-			return ;
-		case PRINCIPAL_STRAIN_FIELD :
-			if( principalStrainAtCenter.size() == 0 )
-			{
-				principalStrainAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, principalStrainAtCenter, true) ;
-			}
-			ret = principalStrainAtCenter ;
-			return ;
-		case REAL_STRESS_FIELD:
-			if( stressAtCenter.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtCenter.resize( 3 ) ;
-				else
-					stressAtCenter.resize( 6 ) ;
-
-				this->getField(f, p_, stressAtCenter, true) ;
-			}
-			ret = stressAtCenter ;
-			return ;
-		case PRINCIPAL_REAL_STRESS_FIELD :
-			if( principalStressAtCenter.size() == 0 )
-			{
-				principalStressAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, principalStressAtCenter, true) ;
-			}
-			ret = principalStressAtCenter ;
-			return ;
-		case EFFECTIVE_STRESS_FIELD:
-			if( stressAtCenter.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtCenter.resize( 3 ) ;
-				else
-					stressAtCenter.resize( 6 ) ;
-
-				this->getField(f, p_, stressAtCenter, true) ;
-			}
-			ret = stressAtCenter ;
-			return ;
-		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-			if( principalStressAtCenter.size() == 0 )
-			{
-				principalStressAtCenter.resize(parent->spaceDimensions()) ;
-				this->getField(f, p_, principalStressAtCenter, true) ;
-			}
-			ret = principalStressAtCenter ;
-			return ;
-	}
-	this->getField(f, p_, ret, true) ;
-}
 
 void ElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
 {
@@ -1137,20 +1063,256 @@ void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, in
 	this->getField(f, p_, ret, i) ;
 }
 
-void ElementState::getAverageField( FieldType f, Vector & ret, int i) 
+void ElementState::getAverageField( FieldType f, Vector & ret, int dummy) 
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
+	ret = 0 ;
 	double total = 0 ;
-	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-	{
-		Point p_ = gp.gaussPoints[i].first ;
-		Vector tmp = ret ;
-		getField(f, p_, tmp, i) ;
-		ret += tmp*gp.gaussPoints[i].second ;
-		total += gp.gaussPoints[i].second ;
-	}
 	
-	ret /= total ;
+	switch(f)
+	{
+		case STRAIN_FIELD :
+			if( strainAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					strainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				else
+					strainAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
+
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(strainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, gp.gaussPoints[i].first, tmp, true, i) ;
+					for(size_t j = 0 ; j < strainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(strainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < strainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		case PRINCIPAL_STRAIN_FIELD :
+			if( pstrainAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					pstrainAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
+				else
+					pstrainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+// 				std::cout << "plouf" << std::endl ;
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, gp.gaussPoints[i].first, tmp, true, i) ;
+					for(size_t j = 0 ; j < pstrainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+// 					gp.gaussPoints[i].first.print() ;
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+					
+				}
+// 				std::cout << total << std::endl ;;
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < pstrainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		case REAL_STRESS_FIELD:
+			if( stressAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					stressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				else
+					stressAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
+
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, gp.gaussPoints[i].first, tmp, true, i) ;
+					for(size_t j = 0 ; j < stressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < stressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		case PRINCIPAL_REAL_STRESS_FIELD :
+			if( pstressAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					pstressAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
+				else
+					pstressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, gp.gaussPoints[i].first, tmp, true, i) ;
+					for(size_t j = 0 ; j < pstressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Vector tmp(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < pstressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		case EFFECTIVE_STRESS_FIELD:
+			if( stressAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					stressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				else
+					stressAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
+
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Point p_ = gp.gaussPoints[i].first ;
+					Vector tmp(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, p_, tmp, true, i) ;
+					for(size_t j = 0 ; j < stressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Point p_ = gp.gaussPoints[i].first ;
+					Vector tmp(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < stressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+			if( pstressAtGaussPoints.size() == 0 )
+			{
+				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+					pstressAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
+				else
+					pstressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Point p_ = gp.gaussPoints[i].first ;
+					Vector tmp(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					getField(f, p_, tmp, true, i) ;
+					for(size_t j = 0 ; j < pstressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+			else
+			{
+				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+				{
+					Point p_ = gp.gaussPoints[i].first ;
+					Vector tmp(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+					for(size_t j = 0 ; j < pstressAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+					{
+						tmp[j] = pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					}
+					ret += tmp*gp.gaussPoints[i].second ;
+					total += gp.gaussPoints[i].second ;
+				}
+				ret /= total ;
+				return ;
+			}
+		default :
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				Point p_ = gp.gaussPoints[i].first ;
+				Vector tmp = ret ;
+				getField(f, p_, tmp, i) ;
+				ret += tmp*gp.gaussPoints[i].second ;
+				total += gp.gaussPoints[i].second ;
+			}
+			ret /= total ;
+			
+			return ;
+	}
 }
 
 
@@ -1262,135 +1424,6 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<Poi
 	}  
 }
 
-void ElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
-{
-	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
-	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
-	{
-		if( strainAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtCenter.resize( 3 ) ;
-			else
-				strainAtCenter.resize( 6 ) ;
-
-			this->getField(f1, p_, strainAtCenter, true) ;
-		}
-		if( stressAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				stressAtCenter.resize( 3 ) ;
-			else
-				stressAtCenter.resize( 6 ) ;
-			
-			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-
-		}
-		ret1 = strainAtCenter ;
-		ret2 = stressAtCenter ;
-		return ;
-	}
-
-	if((f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD)  && f2 == STRAIN_FIELD)
-	{
-		if( strainAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtCenter.resize( 3 ) ;
-			else
-				strainAtCenter.resize( 6 ) ;
-
-			this->getField(f2, p_, strainAtCenter, true) ;
-		}
-		if( stressAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				stressAtCenter.resize( 3 ) ;
-			else
-				stressAtCenter.resize( 6 ) ;
-			
-			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-
-		}
-		ret1 = stressAtCenter ;
-		ret2 = strainAtCenter ;
-		return ;
-	}
-	
-	if(f1 == PRINCIPAL_STRAIN_FIELD && (f2 == PRINCIPAL_REAL_STRESS_FIELD || f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) )
-	{
-		if( principalStrainAtCenter.size() == 0 )
-		{
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
-			principalStressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getField(STRAIN_FIELD, p_, strain, true) ;
-			if(isRealStressField(f2))
-				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-			principalStrainAtCenter = toPrincipal(strain) ;
-			principalStressAtCenter = toPrincipal(stress) ;
-		}
-		else if( principalStressAtCenter.size() == 0 )
-		{
-			principalStressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getFieldAtCenter(f2, principalStressAtCenter) ;
-		}
-		ret1 = principalStrainAtCenter ;
-		ret2 = principalStressAtCenter ;
-		return ;
-	}
-
-	if((f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) && f2 == PRINCIPAL_STRAIN_FIELD )
-	{
-		if( principalStrainAtCenter.size() == 0 && principalStressAtCenter.size() == 0)
-		{
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
-			principalStressAtCenter.resize(parent->spaceDimensions()) ;
-			this->getField(STRAIN_FIELD, p_, strain, true) ;
-			if(isRealStressField(f1))
-				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-			principalStrainAtCenter = toPrincipal(strain) ;
-			principalStressAtCenter = toPrincipal(stress) ;
-		}
-		else if( principalStressAtCenter.size() == 0 )
-		{
-			principalStressAtCenter.resize(parent->spaceDimensions()) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			this->getField(STRAIN_FIELD, p_, strain, true) ;
-			if(isRealStressField(f1))
-				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-			principalStressAtCenter = toPrincipal(stress) ;
-		}
-		else if(principalStrainAtCenter.size() == 0)
-		{
-			principalStrainAtCenter.resize(parent->spaceDimensions()) ;
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			principalStrainAtCenter = toPrincipal(strain) ;
-		}
-		ret1 = principalStressAtCenter ;
-		ret2 = principalStrainAtCenter ;
-		return ;
-	}
-	
-	this->getField(f1, f2, p_, ret1, ret2, true) ;
-  
-}
 
 void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
 {
@@ -1511,9 +1544,9 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				}
 			}
 		}
-		else if( stressAtCenter.size() == 0 )
+		else if( stressAtNodes.size() == 0 )
 		{
-			stressAtCenter.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
+			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
 			this->getFieldAtNodes(f2, stressAtNodes) ;
 		}
 		ret1 = strainAtNodes ;
@@ -1548,9 +1581,9 @@ void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, V
 				}
 			}
 		}
-		else if( stressAtCenter.size() == 0 )
+		else if( stressAtNodes.size() == 0 )
 		{
-			stressAtCenter.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
+			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
 			this->getFieldAtNodes(f2, stressAtNodes) ;
 		}
 		ret1 = stressAtNodes ;
@@ -1913,19 +1946,13 @@ void ElementState::step( double dt, const Vector *d )
 	
 	strainAtNodes.resize( 0 );
 	stressAtNodes.resize( 0 );
-
-	strainAtCenter.resize( 0 );
-	stressAtCenter.resize( 0 );
-
-	principalStrainAtCenter.resize( 0 );
-	principalStressAtCenter.resize( 0 );
+	strainAtGaussPoints.resize( 0 );
+	stressAtGaussPoints.resize( 0 );	
 	
-	effectiveStressAtCenter.resize(0);
+	pstrainAtGaussPoints.resize( 0 );
+	pstressAtGaussPoints.resize( 0 );
 	
-	pstrainAtCenter.resize( 0 );
-	pstressAtCenter.resize( 0 );
-	
-	effectivePStressAtCenter.resize(0);
+	effectivePStressAtGaussPoints.resize(0);
 
 	if( !history.empty() )
 		history.pop_back() ;
@@ -1998,7 +2025,7 @@ std::vector<Point> ElementState::getPrincipalFrame( const Point &p, bool local, 
 	if(getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
 		Vector principalStresses(0., 2) ;
-		this->getFieldAtCenter(principalStressFieldType(m), principalStresses) ;
+		getAverageField(principalStressFieldType(m), principalStresses) ;
 		double principalAngle = 0.5*atan2(principalStresses[0]-principalStresses[1], 2.*principalStresses[2]) ;
 		std::vector<Point> ret ;
 		ret.push_back(Point(cos(principalAngle), -sin(principalAngle)));
@@ -2133,12 +2160,9 @@ ElementStateWithInternalVariables::ElementStateWithInternalVariables(const Eleme
 						
 ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator =(const ElementStateWithInternalVariables & s) 
 {
-	stressAtCenter.resize(0);
-	strainAtCenter.resize(0);
-	effectiveStressAtCenter.resize(0);
-	pstressAtCenter.resize(0);
-	pstrainAtCenter.resize(0);
-	effectivePStressAtCenter.resize(0);
+	strainAtGaussPoints.resize(0);
+	stressAtGaussPoints.resize(0);
+	effectivePStressAtGaussPoints.resize(0);
 	strainAtNodes.resize(0);
 	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
@@ -2203,11 +2227,6 @@ void ElementStateWithInternalVariables::getField(FieldType f, const std::valarra
 		ElementState::getField(f, p, ret, local, i) ;
 }
 
-void ElementStateWithInternalVariables::getFieldAtCenter( FieldType f, Vector & ret, int i) 
-{
-	if(f != INTERNAL_VARIABLE_FIELD)
-		ElementState::getFieldAtCenter(f, ret, i) ; 
-}
 
 void ElementStateWithInternalVariables::getFieldAtNodes( FieldType f, Vector & ret, int i) 
 {
@@ -2257,12 +2276,6 @@ void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, con
 {
 	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
 		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
-}
-
-void ElementStateWithInternalVariables::getFieldAtCenter(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
-{
-	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
-		ElementState::getFieldAtCenter(f1, f2, ret1, ret2, i, j) ;
 }
 
 void ElementStateWithInternalVariables::getFieldAtNodes(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
@@ -2759,76 +2772,6 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, co
 	
 	this->getField(f1, p, ret1, local, i) ;
 	this->getField(f2, p, ret2, local, j) ;
-  
-}
-
-void KelvinVoightSpaceTimeElementState::getFieldAtCenter( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
-{
-	Point p_ = parent->inLocalCoordinates(parent->getCenter()) ;
-	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
-	{
-		if( strainAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtCenter.resize( 3 ) ;
-			else
-				strainAtCenter.resize( 6 ) ;
-
-			this->getField(f1, p_, strainAtCenter, true) ;
-		}
-		if( stressAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				stressAtCenter.resize( 3 ) ;
-			else
-				stressAtCenter.resize( 6 ) ;
-			
-			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-			Vector rate(0., strainAtCenter.size()) ;
-			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
-			stressAtCenter += dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ;
-		}
-		ret1 = strainAtCenter ;
-		ret2 = stressAtCenter ;
-		return ;
-	}
-
-	if((f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD)  && f2 == STRAIN_FIELD)
-	{
-		if( strainAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtCenter.resize( 3 ) ;
-			else
-				strainAtCenter.resize( 6 ) ;
-
-			this->getField(f2, p_, strainAtCenter, true) ;
-		}
-		if( stressAtCenter.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				stressAtCenter.resize( 3 ) ;
-			else
-				stressAtCenter.resize( 6 ) ;
-			
-			if(isRealStressField(f2))
-				stressAtCenter = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strainAtCenter) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-			else
-				stressAtCenter = (Vector) (parent->getBehaviour()->param * strainAtCenter) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-
-			Vector rate(0., strainAtCenter.size()) ;
-			this->getField( STRAIN_RATE_FIELD, p_, rate, true) ;
-			stressAtCenter += dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ;
-		}
-		ret1 = stressAtCenter ;
-		ret2 = strainAtCenter ;
-		return ;
-	}
-		
-	this->getField(f1, f2, p_, ret1, ret2, true) ;
   
 }
 

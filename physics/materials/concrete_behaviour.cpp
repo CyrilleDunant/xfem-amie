@@ -7,6 +7,7 @@
 
 #include "concrete_behaviour.h"
 #include "../stiffness_and_fracture.h"
+#include "../stiffness.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../fracturecriteria/mcft.h"
@@ -23,6 +24,7 @@ ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, pl
 
 Form * ConcreteBehaviour::getCopy() const 
 {
+// 	return new Stiffness(param) ;
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 	weib = RandomNumber().weibull(1,5) ;

@@ -518,20 +518,17 @@ void step()
 // 					ar *= psi ;
 // 			}
 				
-			Vector avgsig(3*npoints) ;
-			Vector avgeps(3*npoints) ;
+			Vector avgsig(3) ;
+			Vector avgeps(3) ;
 			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig);
 			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps);
-				
-			for ( int l = 0 ; l < npoints ;l++ )
-			{
-				avg_e_xx += avgeps[0] * ar;
-				avg_e_yy += avgeps[1] * ar;
-				avg_e_xy += avgeps[2] * ar;
-				avg_s_xx += avgsig[0] * ar;
-				avg_s_yy += avgsig[1] * ar;
-				avg_s_xy += avgsig[2] * ar;
-			}
+
+			avg_e_xx += avgeps[0] * ar;
+			avg_e_yy += avgeps[1] * ar;
+			avg_e_xy += avgeps[2] * ar;
+			avg_s_xx += avgsig[0] * ar;
+			avg_s_yy += avgsig[1] * ar;
+			avg_s_xy += avgsig[2] * ar;
 
 // 			if ( triangles[k]->getEnrichmentFunctions().size() == 0 )
 // 			{
@@ -1899,7 +1896,7 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar2, 3 ) ;
 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
-	F.setOrder( LINEAR ) ;
+	F.setOrder( QUADRATIC ) ;
 
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;

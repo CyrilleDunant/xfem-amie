@@ -447,6 +447,18 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 
 }
 
+void DelaunayTree::addSharedNodes(DelaunayTree * dt)
+{
+	std::vector<DelaunayTriangle *> tri = getTriangles() ;
+	std::vector<DelaunayTriangle *> tris = dt->getTriangles() ;
+	
+	for(size_t i = 0 ; i <  tris.size() ; i++)
+	{
+		std::valarray<Point *> newPoints = tris[i]->getBoundingPoints() ;
+		tri[i]->setBoundingPoints(newPoints) ;
+	}
+}
+
 void DelaunayTree::extrude(double dt)
 {
 	std::map<Point *, Point *> points ;

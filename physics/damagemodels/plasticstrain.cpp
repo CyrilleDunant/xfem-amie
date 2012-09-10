@@ -319,7 +319,7 @@ void PlasticStrain::postProcess()
 		                                       imposedStrain[2]*imposedStrain[2] )  ;
 		}
 		Vector str = imposedStrain ;
-		es->getFieldAtCenter(STRAIN_FIELD, str) ;
+		es->getAverageField(STRAIN_FIELD, str) ;
 		if(std::abs(str).max() > 0.03)
 			broken = true ;
 // 		if(state[0] > POINT_TOLERANCE_2D)
