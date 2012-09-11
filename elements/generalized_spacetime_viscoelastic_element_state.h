@@ -27,6 +27,8 @@ public:
 	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 			
 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	
+	virtual void getAverageField( FieldType f, Vector & ret, int i = 0) ;
 
 } ;
 

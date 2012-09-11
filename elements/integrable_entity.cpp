@@ -19,9 +19,9 @@ ElementState * Form::createElementState( IntegrableEntity * e)
 	return new ElementState(e) ;
 }
 
-IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr )
+IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr ), state(nullptr)
 {
-	state = new ElementState( this ) ;
+//	state = new ElementState( this ) ;
 }
 
 
@@ -907,11 +907,6 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 	}
 }
 
-void ElementState::getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int )  const 
-{
-	this->getField(f, p.first, ret, local) ;
-}
-
 void ElementState::getField( FieldType f, const PointArray & p, Vector & ret, bool local, int )  const 
 {
 	Vector buffer(0., ret.size()/p.size()) ;
@@ -933,18 +928,6 @@ void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, d
 			ret[j] = buffer[j - buffer.size()*i] ;
 	} 
 }
-
-void ElementState::getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int )  const 
-{
-	Vector buffer(0., ret.size()/p.size()) ;
-	for(size_t i = 0 ; i < p.size() ; i++)
-	{
-		this->getField(f, p[i], buffer, local) ;
-		for(size_t j = buffer.size()*i ; j < buffer.size()*(i+1) ; j++)
-			ret[j] = buffer[j - buffer.size()*i] ;
-	} 
-}
-
 
 void ElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
 {
@@ -1305,7 +1288,7 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 			{
 				Point p_ = gp.gaussPoints[i].first ;
 				Vector tmp = ret ;
-				getField(f, p_, tmp, i) ;
+				getField(f, p_, tmp, dummy) ;
 				ret += tmp*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 			}
@@ -1377,11 +1360,6 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
   
 }
 
-void ElementState::getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
-{
-	this->getField(f1, f2, p.first, ret1, ret2, local) ;
-}
-
 void ElementState::getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
 {
 	Vector b1(0., ret1.size()/p.size()) ;
@@ -1409,21 +1387,6 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std
 			ret2[j] = b2[j - b2.size()*i] ;
 	}  
 }
-
-void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
-{
-	Vector b1(0., ret1.size()/p.size()) ;
-	Vector b2(0., ret2.size()/p.size()) ;
-	for(size_t i = 0 ; i < p.size() ; i++)
-	{
-		this->getField(f1, f2, p[i], b1, b2, local) ;
-		for(size_t j = b1.size()*i ; j < b1.size()*(i+1) ; j++)
-			ret1[j] = b1[j - b1.size()*i] ;
-		for(size_t j = b2.size()*i ; j < b2.size()*(i+1) ; j++)
-			ret2[j] = b2[j - b2.size()*i] ;
-	}  
-}
-
 
 void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
 {
@@ -2203,12 +2166,6 @@ void ElementStateWithInternalVariables::getField(FieldType f, const Point & p, V
 		ElementState::getField(f, p, ret, local, i) ;
 }
 
-void ElementStateWithInternalVariables::getField(FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i) const
-{
-	if(f != INTERNAL_VARIABLE_FIELD)
-		ElementState::getField(f, p.first, ret, local, i) ;
-}
-
 void ElementStateWithInternalVariables::getField(FieldType f, const PointArray & p, Vector & ret, bool local, int i) const
 {
 	if(f != INTERNAL_VARIABLE_FIELD)
@@ -2220,13 +2177,6 @@ void ElementStateWithInternalVariables::getField(FieldType f, const std::valarra
 	if(f != INTERNAL_VARIABLE_FIELD)
 		ElementState::getField(f, p, ret, local, i) ;
 }
-
-void ElementStateWithInternalVariables::getField(FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i) const
-{
-	if(f != INTERNAL_VARIABLE_FIELD)
-		ElementState::getField(f, p, ret, local, i) ;
-}
-
 
 void ElementStateWithInternalVariables::getFieldAtNodes( FieldType f, Vector & ret, int i) 
 {
@@ -2254,12 +2204,6 @@ void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, con
 		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
 }
 
-void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::pair<Point, double> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
-{
-	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
-		ElementState::getField(f1, f2, p.first, ret1, ret2, local, i, j) ;
-}
-
 void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const PointArray & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
 {
 	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
@@ -2267,12 +2211,6 @@ void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, con
 }
 
 void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
-{
-	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
-		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
-}
-
-void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, const std::valarray<Point> & p,  Vector & ret1, Vector & ret2, bool local, int i, int j) const
 {
 	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
 		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;

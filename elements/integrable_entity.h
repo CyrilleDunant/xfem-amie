@@ -156,28 +156,20 @@ public:
 	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
-	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
-
 	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
 
 	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
 
-	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i = 0) const  ;
-		
 	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
 	
 	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 		
-	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
-
 	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
-		
 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
@@ -275,13 +267,9 @@ public:
 	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
 		
-	virtual void getField( FieldType f, const std::pair<Point, double> & p, Vector & ret, bool local, int i = 0) const  ;
-
 	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
 
 	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
-
-	virtual void getField( FieldType f, const std::valarray<Point> & p, Vector & ret, bool local, int i = 0) const  ;
 		
 	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
 
@@ -289,14 +277,10 @@ public:
 
 	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 		
-	virtual void getField( FieldType f1, FieldType f2, const std::pair<Point, double> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
-
 	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const std::valarray<Point> & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
-		
 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;

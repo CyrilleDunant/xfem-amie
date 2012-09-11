@@ -22,6 +22,18 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType & f, Vector & ret, int i ) 
+{
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		Point p_ = gp.gaussPoints[i].first ;
+		Vector tmp = ret ;
+		getField(f, p_, tmp, dummy) ;
+		ret += tmp*gp.gaussPoints[i].second ;
+		total += gp.gaussPoints[i].second ;
+	}
+	ret /= total ;
+}
 
 void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
 {

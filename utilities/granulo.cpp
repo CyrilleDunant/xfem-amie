@@ -29,23 +29,18 @@ ParticleSizeDistribution::ParticleSizeDistribution()
 
 ParticleSizeDistribution * ParticleSizeDistribution::getPSD(PSDType type)
 {
-	ParticleSizeDistribution * psd = new ParticleSizeDistribution() ;
 	switch(type)
 	{
 	  case BOLOME_A:
-	    psd = new PSDBolomeA() ;
-	    break ;
+	    return new PSDBolomeA() ;
 	  case BOLOME_B:
-	    psd = new PSDBolomeB() ;
-	    break ;
+	    return new PSDBolomeB() ;
 	  case BOLOME_C:
-	    psd = new PSDBolomeC() ;
-	    break ;
+	    return new PSDBolomeC() ;
 	  case BOLOME_D:
-	    psd = new PSDBolomeD() ;
-	    break ;
+	    return new PSDBolomeD() ;
 	}
-	return psd ;
+	return new ParticleSizeDistribution() ;
 }
 	
 std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, double mass, PSDType type, PSDEndCriteria crit) 

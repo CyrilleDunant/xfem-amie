@@ -56,7 +56,13 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		Grid grid(longueurX, longueurY, 10, box->getCenter()) ;
 		longueurX*=1.2 ;
 		longueurY*=1.2 ;
-		for(size_t i=0 ; i < inclusions.size() && tries < triesMax ; i++) 
+		for(size_t i = 0 ; i < nombreGranulatsDejaPlaces ; i++)
+		{
+			grid.add(inclusions[i]) ;
+			ret.push_back(inclusions[i]) ;
+		}
+		
+		for(size_t i=nombreGranulatsDejaPlaces ; i < inclusions.size() && tries < triesMax ; i++) 
 		{
 			tries++ ;
 			double ix = longueurX - 2.1*inclusions[i]->getRadius() ;
@@ -69,7 +75,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			}
 			inclusions[i]->setCenter(newCentre) ;
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )/*|| inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
 			{
 				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
@@ -82,7 +88,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
 				bbox = inclusions[i]->getBoundingBox() ;
-				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )/* || inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
 				{
 					Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 					inclusions[i]->setCenter(newCentre) ;

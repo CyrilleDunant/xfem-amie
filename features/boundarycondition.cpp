@@ -173,17 +173,19 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				std::vector<Function> shapeFunctions ;
 
-				for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+				for ( size_t j = 0 ; j < id.size() ; j++ )
 				{
-					if ( id[idit] == e->getBoundingPoint( k ).id )
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						shapeFunctions.push_back( e->getShapeFunction( k ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
-				}
-				for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
-				{
-					if ( id[idit] == e->getEnrichmentFunction( k ).getDofID() )
-						shapeFunctions.push_back( e->getEnrichmentFunction( k ) ) ;
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -208,7 +210,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 				
-				break ;
+				return ;
 			}
 
 			case SET_STRESS_XI_ETA:
@@ -3100,52 +3102,78 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
 
+	GaussPointArray gp = tri[0]->getGaussPoints() ;
+	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
+	
+	std::valarray<bool> done( false, tri.size()*tri[0]->getBoundingPoints().size() ) ;
+	
 	if ( previousDisp.size() == 0 )
 	{
 		for ( size_t i = 0 ; i < tri.size() ; i++ )
 		{
-			GaussPointArray gp = tri[i]->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
+			if(i%1000 == 0)
+				std::cerr << "\r applying time continuity boundary condition 0 (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
+// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
+// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+// 			{
+// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+// 			}
 			
 			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 			{
-				id.clear() ;
-				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-				
-				for(size_t n = 0 ; n < dof ; n++)
+				size_t id_ = tri[i]->getBoundingPoint(k).id ;
+				if(!done[id_])
 				{
-					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+					for(size_t n = 0 ; n < dof ; n++)
+					{
+						a->setPointAlongIndexedAxis( n, 0., id_ )  ;
+	//					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+					}
+					done[id_] = true ;
 				}
+// 				id.clear() ;
+// 				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
+// 				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
+				
 			}
 		}
+		std::cerr << " ...done" << std::endl ;
 		return ;
 	}
 
 	for ( size_t i = 0 ; i < tri.size() ; i++ )
 	{
+		if(i%1000 == 0)
+			std::cerr << "\r applying time continuity boundary condition (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
 		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 		{
-			id.clear() ;
-			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-			
-			GaussPointArray gp = tri[i]->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+			size_t id_ = tri[i]->getBoundingPoint(k).id ;
+ 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+			if(!done[id_])
 			{
-				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+				for(size_t n = 0 ; n < dof ; n++)
+				{
+					a->setPointAlongIndexedAxis( n, previousDisp[corresponding*dof+n], id_ )  ;
+//					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+				}
+				done[id_] = true ;
 			}
 			
-			for(size_t n = 0 ; n < dof ; n++)
-			{
-				apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
-			}
+// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
+// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+// 
+// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+// 			{
+// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+// 			}
+			
+// 			for(size_t n = 0 ; n < dof ; n++)
+// 			{
+// 					a->setPointAlongIndexedAxis( n,  previousDisp[corresponding*dof+n], tri[i]->getBoundingPoint(k).id )  ;
+// //				apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
+// 			}
 /*			
 			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
 			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;*/
@@ -3154,6 +3182,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
 		}
 	}
+	std::cerr << " ...done" << std::endl ;
 }
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
@@ -3174,6 +3203,9 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
+	
+	GaussPointArray gp = tri[0]->getGaussPoints() ;
+	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
 
 	if ( previousDisp.size() == 0 )
 	{
@@ -3186,13 +3218,13 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
 				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 
-				GaussPointArray gp = tri[i]->getGaussPoints() ;
-				std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-				
-				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-				{
-					tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-				}
+// 				GaussPointArray gp = tri[i]->getGaussPoints() ;
+// 				std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+// 				
+// 				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+// 				{
+// 					tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+// 				}
 				
 				for(size_t n = 0 ; n < dof ; n++)
 				{
@@ -3211,13 +3243,13 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
 			
-			GaussPointArray gp = tri[i]->getGaussPoints() ;
-			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-
-			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-			{
-				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-			}
+// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
+// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
+// 
+// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+// 			{
+// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+// 			}
 			
 			for(size_t n = 0 ; n < dof ; n++)
 			{
