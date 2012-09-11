@@ -22,8 +22,11 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType & f, Vector & ret, int i ) 
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy ) 
 {
+	GaussPointArray gp = parent->getGaussPoints() ;
+	ret = 0 ;
+	double total = 0 ;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;

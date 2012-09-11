@@ -87,115 +87,77 @@ using namespace Mu ;
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;
 
-Sample3D box(nullptr, 1.,1.,1.,0.5,0.5,0.5) ;
+Sample box(nullptr, 0.08, 0.16,0.0,0.0) ;
 
-double young = 1. ;
-double nu = 0.3 ;
-double eta = 1. ;
-double stress = 1. ;
-double imposed = 1e-3 ;
+double young = 1.25e9 ;
+double eta = 100. ;
+double stress = -10e6 ;
 
-double tau = 0.1 ;
-int sampling = 1 ;
+double tau = 15./(60*24) ;
+int sampling = 200 ;
+double dmax = 0.008 ;
 
-Matrix C(6,6) ;
-Matrix E(6,6) ;
-Matrix K(6,6) ;
+Matrix C0(3,3) ;
+Matrix Cagg(3,3) ;
+Matrix C(3,3) ;
+Matrix E(3,3) ;
 
 
 int main(int argc, char *argv[])
 {
 	C.array() = 0. ;
-	C[0][0] = 1.-nu ; C[1][0] = nu ; C[2][0] = nu ;
-	C[0][1] = nu ; C[1][1] = 1.-nu ; C[2][1] = nu ;
-	C[0][2] = nu ; C[1][2] = nu ; C[2][2] = 1.-nu ;
-	C[3][3] = 1-2*nu ;
-	C[4][4] = 1-2*nu ;
-	C[5][5] = 1-2*nu ;
-	C *= young/((1.+nu)*(1.-2*nu)) ;
-	C.print() ;
+	C[0][0] = 1. ;
+	C[1][1] = 1. ;
+	C[2][2] = 1. ;
+
+	Matrix C1(3,3) ;
+	Matrix C2(3,3) ;
+	Matrix C3(3,3) ;
 	
-	E = C*eta ;
+	C1 = C*1.2e9 ; 
+	C2 = C*750e9 ;
+	C3 = C*1.5e12 ;
 	
-	K = C*3 ;
+	Matrix E1(3,3) ;
+	Matrix E2(3,3) ;
+	Matrix E3(3,3) ;
+	
+	E1 = C1*1./2 ;
+	E2 = C2*1./10 ;
+	E3 = C3*1./140 ;
+	
+	std::vector<std::pair<Matrix, Matrix> > branches ;
+	branches.push_back(std::make_pair(C1,E1)) ;
+	branches.push_back(std::make_pair(C2,E2)) ;
+	branches.push_back(std::make_pair(C3,E3)) ;
+		
+	ElasticOnlyPasteBehaviour * elasticPaste = new ElasticOnlyPasteBehaviour() ;
+	C0 = elasticPaste->param ;
+	
+	ElasticOnlyAggregateBehaviour * elasticAggregate = new ElasticOnlyAggregateBehaviour() ;
+	Cagg = elasticAggregate->param ;
 	
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
-//	F.setOrder(LINEAR) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
+//	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 
+	GeneralizedSpaceTimeViscoelasticity * paste = new GeneralizedSpaceTimeViscoelasticity( GENERALIZED_KELVIN_VOIGT, C0, branches ) ;
+	GeneralizedSpaceTimeViscoelasticity * paste0= new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, C0, 0 ) ;
+	//GeneralizedSpaceTimeViscoelasticity * paste1= new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, C, 0 ) ;
+	GeneralizedSpaceTimeViscoelasticity * agg   = new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY , Cagg, 3 ) ;
+		
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
-
-	Matrix Ci = C*10 ;
-	Inclusion * inc = new Inclusion( 0.3,0.5,0.5 ) ;
-	inc->setBehaviour(new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, Ci, 1 ) ) ;
-//	F.addFeature( &box, inc ) ;
-	
-
-// 	box.setBehaviour(new Stiffness(C)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;
-	
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(PURE_ELASTICITY, C)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;
-// 
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(PURE_VISCOSITY, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-//  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;
-// 	
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(KELVIN_VOIGT, C, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-//   	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;	
-// 
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(MAXWELL, C, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 4)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 3)) ;
-//    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;	
-//    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 5)) ;	
-// 		
-	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(BURGER, C, E, C, E)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 5)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 7)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 4)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 6)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 2)) ;	
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 5)) ;	
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BACK, 0, 8)) ;	
-// 
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(GENERALIZED_KELVIN_VOIGT, C, C, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 3)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
-// 	
-// 	box.setBehaviour(new GeneralizedSpaceTimeViscoelasticity(GENERALIZED_MAXWELL, K, C, E)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0, 3)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 0)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0, 2)) ;
 
-	srand(0) ;
-	F.step() ;
-// 	std::vector<DelaunayTetrahedron *> tets = F.getElements3D() ;
-// 	for(size_t i = 0 ; i < tets.size() ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
-// 			tets[i]->getBoundingPoint(j).print() ;
-// 	}
-// 	exit(0) ;
-
-//	exit(0) ;
-	
 	Function stressRamp("t") ;
 	stressRamp = stressRamp + (tau/2) ;
 	stressRamp = stressRamp/tau ;
@@ -204,48 +166,87 @@ int main(int argc, char *argv[])
 	Function stressConstant("1") ;
 	stressConstant = stressConstant * stress ;
 	Function stressNull("0") ;
-//	stressNull = stressNull * 0. ;
 	
-	BoundingBoxDefinedBoundaryCondition * stressBCRamp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT_AFTER, stressRamp) ;
-	BoundingBoxDefinedBoundaryCondition * stressBCConstant = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT_AFTER, 0.) ;
+	BoundingBoxDefinedBoundaryCondition * stressBCRamp = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, stressRamp) ;
+	BoundingBoxDefinedBoundaryCondition * stressBCConstant = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 0.) ;
   	F.addBoundaryCondition(stressBCRamp) ;
-  	F.addBoundaryCondition(stressBCConstant) ;
-		
-	BoundingBoxDefinedBoundaryCondition * imposedBC = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, imposed) ;
-//	F.addBoundaryCondition(imposedBC) ;
+//  	F.addBoundaryCondition(stressBCConstant) ;
 	
-	int imax = 30 ; 
+ 	box.setBehaviour(paste) ;
+//	box.setBehaviour(elasticPaste) ;
+	
+	Sample * sensor = new Sample(NULL,0.005,0.1,-0.04,0) ;
+	sensor->setBehaviour(new VoidForm()) ;
+
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.105, 4000 ) ;
+	std::vector<Feature *> feats ;
+//	feats.push_back(sensor) ;
+	for( size_t i = 0; i < inclusions.size() ; i++ )
+		feats.push_back( inclusions[i] ) ;
+	inclusions.clear() ;
+	Rectangle placeGeometry( 0.08, 0.16, 0, 0 ) ;
+	int nAgg = 1 ;
+	feats = placement( &placeGeometry, feats, &nAgg, 0, 6400 );
+	for( size_t i = 0; i < feats.size() ; i++ )
+		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
+
+//	F.addFeature(&box, sensor) ;
+	for( size_t i = 0; i < inclusions.size() ; i++ )
+	{
+		inclusions[i]->setBehaviour( agg ) ;
+//		inclusions[i]->setBehaviour( elasticAggregate ) ;
+		F.addFeature(&box, inclusions[i] ) ;
+	}
+	
+	
+	srand(0) ;
+	int imax = 4*24 ; 
+	Vector straino(3) ;
+	straino = 0. ;
 	
 	for(size_t i = 0 ; i < imax ; i++)
 	{
 		F.step() ;
-// 		F.getAssembly()->print() ;
-// 		exit(0) ;
 		Vector x = F.getDisplacements() ;
-// 		Vector ymax(8) ;
-// 		ymax[0] = x[4*3+1] ;
-// 		ymax[1] = x[5*3+1] ;
-// 		ymax[2] = x[6*3+1] ;
-// 		ymax[3] = x[7*3+1] ;
-// 		ymax[4] = x[9*3+1] ;
-// 		ymax[5] = x[11*3+1] ;
-// 		ymax[6] = x[13*3+1] ;
-// 		ymax[7] = x[15*3+1] ;
-		std::cout << x.max() << std::endl ;
 		
-// 		TriangleWriter writer( "test_"+itoa(i), &F, 1) ;
-// 		writer.getField(TWFT_STRESS) ;
-// 		writer.getField(TWFT_STRAIN) ;
-// 		writer.write() ;
-
+		triangles = F.getElements2D() ;
+		Vector strain(3) ;
+		Vector bstrain(3) ;
+		strain = 0. ; bstrain = 0. ;
+		double area = 0. ;
+		double xmin = 0. ;
+		double xmax = 0. ;
+		for(size_t j = 0 ; j < triangles.size() ; j++)
+		{
+			triangles[j]->getState().getAverageField( STRAIN_FIELD, bstrain ) ;
+			strain += bstrain ;
+			area += triangles[j]->area() ;
+		}
 		if(i == 0)
 		{
-			stressBCRamp->setData( stressNull ) ;
+			straino = strain ;
+			straino *= 2. ;
+		}
+		else
+		{
+			std::cout << (strain[1]-straino[1])/(area*tau) << "\t" << (strain[0]-straino[0])/(area*tau) <<std::endl ;
+		}
+//		std::cout << x.min()/0.16 << "\t" << x.max()/0.08 << std::endl ;
+
+		
+		if(i == 0)
+		{
+			stressBCRamp->setData( stressConstant ) ;
 			stressBCConstant->setData( stress ) ;
 		}		
 	}
 	
-//	F.getAssembly()->print() ;
+// 	TriangleWriter writer( "test", &F, 1) ;
+// 	writer.getField(TWFT_STRESS) ;
+// 	writer.getField(TWFT_STRAIN) ;
+// 	writer.write() ;
+
+	
 	
 	return 0 ;
 }
