@@ -2749,9 +2749,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			
-			tri[i]->setOrder(LINEAR) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-			tri[i]->setOrder(LINEAR) ;
 			
 			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{

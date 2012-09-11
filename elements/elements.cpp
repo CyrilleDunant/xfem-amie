@@ -31,6 +31,7 @@ ElementarySurface::ElementarySurface(bool f ) : isFather(f)
 
 void ElementarySurface::setOrder(Order o)
 {
+	
 	order = o ;
 
 	switch(order)
@@ -574,9 +575,9 @@ const GaussPointArray & TriElement::genGaussPoints()
 	}
 	else
 	{
-		Matrix J ;
-		getInverseJacobianMatrix(fin[0].first, J);
-		double j = area()/0.166666666666666666667 ;//1./det(J) ;
+// 		Matrix J ;
+// 		getInverseJacobianMatrix(fin[0].first, J);
+		double j = area()*2. ;//1./det(J) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -833,11 +834,11 @@ void TriElement::refresh(const TriElement * parent)
 		return ;
 	setOrder( parent->getOrder() );
 	
-	if(shapefunc && isFather)
-	{
-		isFather = false ;
-		delete shapefunc ;
-	}
+// 	if(shapefunc && isFather)
+// 	{
+// 		isFather = false ;
+// 		delete shapefunc ;
+// 	}
 	shapefunc = parent->shapefunc ;
 // 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 // 	{
@@ -893,10 +894,11 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
 
 		VirtualMachine vm ;
+		TriElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
+			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
@@ -922,11 +924,12 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 		double tdtau = 0 ;
 
 		VirtualMachine vm ;
+		TriElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
-			double dtau = vm.deval(getShapeFunction(i),TIME_VARIABLE,p) ;
+			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
+			double dtau = vm.deval(father.getShapeFunction(i),TIME_VARIABLE,p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
@@ -967,10 +970,11 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
 
 		VirtualMachine vm ;
+		TriElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
+			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
@@ -1211,8 +1215,8 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	else
 	{
 		Matrix J ;
-		getInverseJacobianMatrix(fin[0].first, J);
-		double j = 1./det(J) ;
+// 		getInverseJacobianMatrix(fin[0].first, J);
+		double j = volume()*6. ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -1871,7 +1875,8 @@ Function ElementaryVolume::getdTTransform(Variable v) const
 
 double ElementaryVolume::getdXTransform(Variable v, const Point & p) const
 {
-	return dXTransform( getBoundingPoints(), getShapeFunctions(),v, p) ;
+	
+	return dXTransform( getBoundingPoints(),getShapeFunctions(),v, p) ;
 }
 
 double ElementaryVolume::getdYTransform(Variable v, const Point & p) const
@@ -2092,11 +2097,12 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
 		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
 		VirtualMachine vm ;
+		TetrahedralElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
-			double dzeta = vm.deval(getShapeFunction(i), ZETA, p) ;
+			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
+			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p) ;
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
 			zdxi += dxi*getBoundingPoint(i).z ;
@@ -2423,13 +2429,13 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
 		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
 		VirtualMachine vm ;
-// 		TetrahedralElement father(order) ;
+		TetrahedralElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 // 			std::cout << i << "  "<< shapefunc << std::endl ;
-			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
-			double dzeta = vm.deval(getShapeFunction(i), ZETA, p) ;
+			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
+			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p) ;
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
 			zdxi += dxi*getBoundingPoint(i).z ;
@@ -2545,8 +2551,7 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 }
 
 void ElementaryVolume::setBehaviour(Form * f)
-{
-	
+{	
 	bool init = false ;
 	if(state)
 	{	
@@ -2574,6 +2579,7 @@ Order ElementaryVolume::getOrder() const
 
  void ElementaryVolume::setOrder(Order o ) 
 {
+
 	order = o;
 	
 	switch(order)

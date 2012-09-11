@@ -35,6 +35,7 @@ void ExpansiveZone3D::reset()
 
 void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dtree)
 {
+	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
 	EnrichmentInclusion3D::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTetrahedron *> & disc = EnrichmentInclusion3D::cache ;
@@ -60,12 +61,10 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 
 			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
 			{
-//				std::cout << "get original" << std::endl ;
 				bi = new BimaterialInterface( getPrimitive(),
 				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
 				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getCopy()
 				                            ) ;
-//				std::cout << dynamic_cast<NonLocalMohrCoulomb *>( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->original->getFractureCriterion() )->upVal << std::endl ;
 			}
 			else
 			{
@@ -117,27 +116,12 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	
 		if( dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() ) )
 		{
-//			std::cout << "get original" << std::endl ;
 			dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->updateEquivalentBehaviour(feat, disc[0]) ;
 		}
 		else
 		{
-//			std::cout << "set as homogenized" << std::endl ;
 			disc[0]->setBehaviour(new HomogeneisedBehaviour( feat, disc[0] )) ;
 		}
-// 			else
-// 			{
-// 				BimaterialInterface * bi = new BimaterialInterface( getPrimitive(),
-// 				                       new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-// 				                       disc[0]->getBehaviour()->getCopy()
-// 				                                              ) ;
-// 				delete disc[0]->getBehaviour() ;
-// 				disc[0]->setBehaviour( bi ) ;
-// 			}
-// 
-// 			disc[0]->getBehaviour()->transform( disc[0]->getXTransform(), disc[0]->getYTransform(), disc[0]->getZTransform() ) ;
-// 			disc[0]->getBehaviour()->setSource( getPrimitive() );
-// 		}
 
 		newInterface.insert( disc[0] ) ;
 	}

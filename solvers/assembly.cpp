@@ -546,10 +546,8 @@ void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 	{
 		if(i%1000 == 0)
 			std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
-		dynamic_cast<DelaunayTetrahedron *>(element3d[i])->refresh(father) ;
 		if(element3d[i]->getBehaviour())
 		{
-			
 			element3d[i]->getElementaryMatrix() ;
 		}
 	}
@@ -566,15 +564,12 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
 
-
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 		if(i%10000 == 0)
 			std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
-		dynamic_cast<DelaunayTriangle *>(element2d[i])->refresh(father) ;
 		if(element2d[i]->getBehaviour())
 		{
-			
 			element2d[i]->getElementaryMatrix() ;
 		}
 		

@@ -47,29 +47,29 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, Functi
 		if(src1.geo_op[i])
 			dst.geo_op[i+src0.byteCodeSize] = src1.geo_op[i]->getCopy() ;
 			
-		if(src1.adress_a[i*4] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4] = src1.adress_a[i*4]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4+1] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4+1] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4+1] = src1.adress_a[i*4+1]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4+2] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4+2] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4+2] = src1.adress_a[i*4+2]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4] = src1.adress_a[i*4]+1 ;
-		if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4+1] = src1.adress_a[i*4+1]+1 ;
-		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4+2] = src1.adress_a[i*4+2]+1 ;
 		
 		if(src1.adress_a[i*4] < 8 )
@@ -114,31 +114,31 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 		if(src1.geo_op[i])
 			dst.geo_op[i+src0.byteCodeSize] = src1.geo_op[i]->getCopy() ;
 			
-		if(src1.adress_a[i*4] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4] = src1.adress_a[i*4]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4+1] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4+1] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4+1] = src1.adress_a[i*4+1]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4+2] >= 1023-src1.constNumber)
+		if(src1.adress_a[i*4+2] >= FUNCTION_LENGTH-1-src1.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize)*4+2] = src1.adress_a[i*4+2]-src0.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4] = src1.adress_a[i*4]+1 ;
 		
-		if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4+1] = src1.adress_a[i*4+1]+1 ;
 		
-		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < 1023-src1.constNumber)
+		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < FUNCTION_LENGTH-1-src1.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize)*4+2] = src1.adress_a[i*4+2]+1 ;
 		
 		if(src1.adress_a[i*4] < 8 )
@@ -159,31 +159,31 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 		if(src2.geo_op[i])
 			dst.geo_op[i+src0.byteCodeSize+src1.byteCodeSize] = src2.geo_op[i]->getCopy() ;
 			
-		if(src2.adress_a[i*4] >= 1023-src2.constNumber)
+		if(src2.adress_a[i*4] >= FUNCTION_LENGTH-1-src2.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4] = src2.adress_a[i*4]-src0.constNumber-src1.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src2.adress_a[i*4+1] >= 1023-src2.constNumber)
+		if(src2.adress_a[i*4+1] >= FUNCTION_LENGTH-1-src2.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4+1] = src2.adress_a[i*4+1]-src0.constNumber-src1.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src2.adress_a[i*4+2] >= 1023-src2.constNumber)
+		if(src2.adress_a[i*4+2] >= FUNCTION_LENGTH-1-src2.constNumber)
 		{
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4+2] = src2.adress_a[i*4+2]-src0.constNumber-src1.constNumber ;
 			dst.constNumber++ ;
 		}
 		
-		if(src2.adress_a[i*4] >= 8 && src2.adress_a[i*4] < 1023-src2.constNumber)
+		if(src2.adress_a[i*4] >= 8 && src2.adress_a[i*4] < FUNCTION_LENGTH-1-src2.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4] = src2.adress_a[i*4]+2 ;
 		
-		if(src2.adress_a[i*4+1] >= 8 && src2.adress_a[i*4+1] < 1023-src2.constNumber)
+		if(src2.adress_a[i*4+1] >= 8 && src2.adress_a[i*4+1] < FUNCTION_LENGTH-1-src2.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4+1] = src2.adress_a[i*4+1]+2 ;
 		
-		if(src2.adress_a[i*4+2] >= 8 && src2.adress_a[i*4+2] < 1023-src2.constNumber)
+		if(src2.adress_a[i*4+2] >= 8 && src2.adress_a[i*4+2] < FUNCTION_LENGTH-1-src2.constNumber)
 			dst.adress_a[(i+src0.byteCodeSize+src1.byteCodeSize)*4+2] = src2.adress_a[i*4+2]+2 ;
 		
 		if(src2.adress_a[i*4] < 8 )
@@ -1133,21 +1133,21 @@ void Function::initialiseAdresses(size_t offset)
 					if(adress_a[i*4] == adress_a[j*4])
 					{
 						newvalues[constcounter] = values[i] ;
-						adress_a[j*4] = 1023-constcounter++ ;
+						adress_a[j*4] = FUNCTION_LENGTH-1-constcounter++ ;
 						found = true ;
 						break ;
 					}
 					else if(adress_a[i*4] == adress_a[j*4+1])
 					{
 						newvalues[constcounter] = values[i] ;
-						adress_a[j*4+1] = 1023-constcounter++ ;
+						adress_a[j*4+1] = FUNCTION_LENGTH-1-constcounter++ ;
 						found = true ;
 						break ;
 					}
 					else if(adress_a[i*4] == adress_a[j*4+2])
 					{
 						newvalues[constcounter] = values[i] ;
-						adress_a[j*4+2] = 1023-constcounter++ ;
+						adress_a[j*4+2] = FUNCTION_LENGTH-1-constcounter++ ;
 						found = true ;
 						break ;
 					}
@@ -1155,7 +1155,7 @@ void Function::initialiseAdresses(size_t offset)
 				if(!found)
 				{
 					newvalues[constcounter] = values[i] ;
-					adress_a[i*4] = 1023-constcounter++ ;
+					adress_a[i*4] = FUNCTION_LENGTH-1-constcounter++ ;
 				}
 				
 				break ;
@@ -2118,22 +2118,22 @@ Function operator-(const double & a, const Function &f)
 		if(f.geo_op[i])
 			ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 			
-		if(f.adress_a[i*4] >= 1023-f.constNumber)
+		if(f.adress_a[i*4] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]-1 ;
 		
-		if(f.adress_a[i*4+1] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]-1 ;
 		
-		if(f.adress_a[i*4+2] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]-1 ;
 		
-		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < 1023-f.constNumber)
+		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4] ;
 		
-		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1] ;
 		
-		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2] ;
 		
 		if(f.adress_a[i*4] < 8 )
@@ -2148,7 +2148,7 @@ Function operator-(const double & a, const Function &f)
 	}
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4] = 1023 ;
+	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
 	return ret ;
 	
@@ -2171,20 +2171,20 @@ Function operator*(const double & a, const Function &f)
 		if(f.geo_op[i])
 			ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 			
-		if(f.adress_a[i*4] >= 1023-f.constNumber)
+		if(f.adress_a[i*4] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]-1 ;
 		
-		if(f.adress_a[i*4+1] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]-1 ;
 		
-		if(f.adress_a[i*4+2] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]-1 ;
 		
-		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < 1023-f.constNumber)
+		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]+1 ;
-		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]+1 ;
-		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]+1 ;
 		if(f.adress_a[i*4] < 8 )
 			ret.adress_a[(i)*4] = f.adress_a[i*4] ;
@@ -2196,7 +2196,7 @@ Function operator*(const double & a, const Function &f)
 	}
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4] = 1023 ;
+	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
 	return ret ;
 }
@@ -2218,20 +2218,20 @@ Function operator+(const double & a, const Function &f)
 		if(f.geo_op[i])
 			ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 			
-		if(f.adress_a[i*4] >= 1023-f.constNumber)
+		if(f.adress_a[i*4] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]-1 ;
 		
-		if(f.adress_a[i*4+1] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]-1 ;
 		
-		if(f.adress_a[i*4+2] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]-1 ;
 		
-		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < 1023-f.constNumber)
+		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]+1 ;
-		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]+1 ;
-		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]+1 ;
 		if(f.adress_a[i*4] < 8 )
 			ret.adress_a[(i)*4] = f.adress_a[i*4] ;
@@ -2243,7 +2243,7 @@ Function operator+(const double & a, const Function &f)
 	}
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4] = 1023 ;
+	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
 	return ret ;
 }
@@ -2265,20 +2265,20 @@ Function operator/(const double & a, const Function &f)
 		if(f.geo_op[i])
 			ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 			
-		if(f.adress_a[i*4] >= 1023-f.constNumber)
+		if(f.adress_a[i*4] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]-1 ;
 		
-		if(f.adress_a[i*4+1] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]-1 ;
 		
-		if(f.adress_a[i*4+2] >= 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]-1 ;
 		
-		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < 1023-f.constNumber)
+		if(f.adress_a[i*4] >= 8 && f.adress_a[i*4] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]+1 ;
-		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < 1023-f.constNumber)
+		if(f.adress_a[i*4+1] >= 8 && f.adress_a[i*4+1] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+1] = f.adress_a[i*4+1]+1 ;
-		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < 1023-f.constNumber)
+		if(f.adress_a[i*4+2] >= 8 && f.adress_a[i*4+2] < FUNCTION_LENGTH-1-f.constNumber)
 			ret.adress_a[(i)*4+2] = f.adress_a[i*4+2]+1 ;
 		if(f.adress_a[i*4] < 8 )
 			ret.adress_a[(i)*4] = f.adress_a[i*4] ;
@@ -2290,7 +2290,7 @@ Function operator/(const double & a, const Function &f)
 	}
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4] = 1023 ;
+	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
 	return ret ;
 	
@@ -2338,7 +2338,7 @@ Function Function::operator*(const double a) const
 	}
 	ret.constNumber = constNumber+1 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 1023-constNumber ;
+	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
 	return ret ;
@@ -2375,7 +2375,7 @@ Function Function::operator/(const double a) const
 	}
 	ret.constNumber = constNumber+1 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 1023-constNumber ;
+	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
 	return ret ;
@@ -2404,7 +2404,7 @@ Function Function::operator+(const double a) const
 	}
 	ret.constNumber = constNumber+1 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 1023-constNumber ;
+	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
 	return ret ;
@@ -2433,7 +2433,7 @@ Function Function::operator-(const double a) const
 	}
 	ret.constNumber = constNumber+1 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 1023-constNumber ;
+	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
 	return ret ;
@@ -2458,7 +2458,7 @@ Function  Function::operator^(const int a) const
 	}
 	ret.constNumber = constNumber+1 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
-	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 1023-constNumber ;
+	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_POWER ;
 	return ret ;
@@ -2546,7 +2546,7 @@ void Function::operator*=(const double a)
 	values[constNumber] = a ;
 	constNumber++;
 	adress_a[(byteCodeSize-1)*4+2] = 8 ;
-	adress_a[(byteCodeSize-1)*4+1] = 1023-constNumber+1 ;
+	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
 }
@@ -2564,7 +2564,7 @@ void Function::operator/=(const double a)
 	values[constNumber] = a ;
 	constNumber++;
 	adress_a[(byteCodeSize-1)*4+2] = 8 ;
-	adress_a[(byteCodeSize-1)*4+1] = 1023-constNumber+1 ;
+	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
 }
@@ -2577,7 +2577,7 @@ void Function::operator+=(const double a)
 	values[constNumber] = a ;
 	constNumber++;
 	adress_a[(byteCodeSize-1)*4+2] = 8 ;
-	adress_a[(byteCodeSize-1)*4+1] = 1023-constNumber+1 ;
+	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
 }
@@ -2590,7 +2590,7 @@ void Function::operator-=(const double a)
 	values[constNumber] = a ;
 	constNumber++;
 	adress_a[(byteCodeSize-1)*4+2] = 8 ;
-	adress_a[(byteCodeSize-1)*4+1] = 1023-constNumber+1 ;
+	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
 }

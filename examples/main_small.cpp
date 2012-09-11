@@ -326,7 +326,7 @@ void step()
 				epsilon23[k*npoints+3] = epsilon[k*npoints*6+23];
 				
 				Vector vm0(0.,1) ;
-				Vector agl(0.,1) ;
+				Vector agl(0.,3) ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 					tets[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD,  tets[k]->getCenter(), vm0, false) ;
 				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -338,20 +338,27 @@ void step()
 				}
 				
 				double ar = tets[k]->volume() ;
+				Vector avgsig(6) ;
+				Vector avgeps(6) ;
+				tets[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig);
+				tets[k]->getState().getAverageField(STRAIN_FIELD, avgeps);
+
+				avg_e_xx += avgeps[0] * ar;
+				avg_e_yy += avgeps[1] * ar;
+				avg_e_zz += avgeps[2] * ar;
+				avg_e_xy += avgeps[3] * ar;
+				avg_e_xz += avgeps[4] * ar;
+				avg_e_yz += avgeps[5] * ar;
+				
+				avg_s_xx += avgsig[0] * ar;
+				avg_s_yy += avgsig[1] * ar;
+				avg_s_zz += avgsig[2] * ar;
+				avg_s_xy += avgsig[3] * ar;
+				avg_s_xz += avgsig[4] * ar;
+				avg_s_yz += avgsig[5] * ar;
+			
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
-					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-					avg_e_zz += (epsilon33[k*npoints+l]/npoints)*ar;
-					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_e_xz += (epsilon13[k*npoints+l]/npoints)*ar;
-					avg_e_yz += (epsilon23[k*npoints+l]/npoints)*ar;
-					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-					avg_s_zz += (sigma33[k*npoints+l]/npoints)*ar;
-					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-					avg_s_xz += (sigma13[k*npoints+l]/npoints)*ar;
-					avg_s_yz += (sigma23[k*npoints+l]/npoints)*ar;
 					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
 				}
 	
@@ -1590,7 +1597,7 @@ int main(int argc, char *argv[])
 	
 // 	Inclusion3D * inc = new Inclusion3D(100, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
-// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1,a)) ;
+// 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 // 	inc->setBehaviour(new Stiffness(m1)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	

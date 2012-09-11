@@ -2645,6 +2645,18 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 	if( behaviour->hasInducedForces() )
 		cachedForces.resize( 0 ) ;
 
+// 	if(getEnrichmentFunctions().size())
+// 	{
+// 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+// 			getGaussPoints().gaussPoints[i].first.print() ;
+// 		
+// 		for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
+// 			cachedElementaryMatrix[i][i].print() ;
+// 		for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
+// 			cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()].print() ;
+// 		exit(0) ;
+// 	}
+	
 // 	exit(0) ;
 	return cachedElementaryMatrix ;
 }
@@ -2981,7 +2993,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 0;
+	size_t numberOfRefinements = 4;
 
 	VirtualMachine vm ;
 
@@ -3055,33 +3067,33 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 			for( size_t j = 0 ; j < tri.size() ; j++ )
 			{
-				if(i == 0)
+				if(i%4 == 0)
 				{
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5 );
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5 );
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5);
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5);
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5);
 				}
-				else if(i == 1)
+				else if(i%4 == 1)
 				{
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5 );
-					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5 );
-					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->second )*.5);
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5);
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5);
 				}
-				else if(i == 2)
+				else if(i%4 == 2)
 				{
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5 );
-					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5 );
-					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->third  )*.5);
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->third  )*.5);
+					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5);
 				}
-				else if(i == 3)
+				else if(i%4 == 3)
 				{
-					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5 );
-					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5 );
-					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5 );
+					newPoints.push_back( ( *tri[j]->first  + *tri[j]->fourth )*.5);
+					newPoints.push_back( ( *tri[j]->second + *tri[j]->fourth )*.5);
+					newPoints.push_back( ( *tri[j]->third  + *tri[j]->fourth )*.5);
 				}
 			}
 
-			std::vector<Point> uniquePoints ;
+			std::vector<Point *> uniquePoints ;
 
 			if( !newPoints.empty() )
 			{
@@ -3091,7 +3103,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 					for( size_t k = 0 ; k < uniquePoints.size() ; k++ )
 					{
-						if( squareDist3D( newPoints[j], uniquePoints[k] ) < .0005 )
+						if( squareDist3D( newPoints[j], *uniquePoints[k] ) < .05 )
 						{
 							unique  = false ;
 							break ;
@@ -3102,7 +3114,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < to_add.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *to_add[k] ) < .0005 )
+							if( squareDist3D( newPoints[j], *to_add[k] ) < .05 )
 							{
 								unique  = false ;
 								break ;
@@ -3114,7 +3126,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < pointsToCleanup.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .0005 )
+							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .05 )
 							{
 								unique  = false ;
 								break ;
@@ -3124,15 +3136,25 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 					if( unique )
 					{
-						uniquePoints.push_back( newPoints[j] );
+						uniquePoints.push_back( new Point(newPoints[j]) );
 					}
 				}
 			}
-			std::random_shuffle(uniquePoints.begin(), uniquePoints.end());
+			to_add.insert(to_add.end(), uniquePoints.begin(), uniquePoints.end()) ;
+			delete dt ;
+			
+			dt = new DelaunayTree3D( to_add[0], to_add[1], to_add[2], to_add[3] ) ;
+
+			std::random_shuffle( to_add.begin() + 8, to_add.end() ) ;
+
+			for( size_t i = 4 ; i < to_add.size() ; i++ )
+			{
+				dt->insert( to_add[i] ) ;
+			}
+			
 			for( size_t k = 0 ; k < uniquePoints.size() ; k++ )
 			{
-				pointsToCleanup.push_back( new Point( uniquePoints[k] ) ) ;
-				dt->insert( pointsToCleanup.back() );
+				pointsToCleanup.push_back( uniquePoints[k] ) ;
 			}
 		}
 
@@ -3143,9 +3165,9 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		for( size_t i = 0 ; i < tri.size() ; i++ )
 		{
-			tri[i]->setOrder( QUADRATIC ) ;
+// 			tri[i]->setOrder( QUADRATIC ) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-			tri[i]->setOrder( LINEAR ) ;
+// 			tri[i]->setOrder( LINEAR ) ;
 
 			if( f.in( tri[i]->getCenter() ) )
 			{
@@ -3159,12 +3181,11 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				{
 
 					gp_temp.gaussPoints[j].first.set( vm.eval( x, gp_temp.gaussPoints[j].first ), vm.eval( y, gp_temp.gaussPoints[j].first ), vm.eval( z, gp_temp.gaussPoints[j].first ) ) ;
-
 					if( !isFather && isMoved() )
-						gp_temp.gaussPoints[j].second *= jacobianAtPoint( gp_temp.gaussPoints[j].first ) ;
+						gp_temp.gaussPoints[j].second *= std::abs(jacobianAtPoint( gp_temp.gaussPoints[j].first )) ;
 					else
 						gp_temp.gaussPoints[j].second *= jac ;
-
+					
 					w += gp_temp.gaussPoints[j].second ;
 					gp_alternative.push_back( gp_temp.gaussPoints[j] ) ;
 				}

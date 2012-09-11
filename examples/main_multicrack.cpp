@@ -385,15 +385,19 @@ void step(size_t nsteps)
 			}
 			
 			double ar = triangles[k]->area() ;
-			for(int l = 0 ; l < npoints ;l++)
-			{
-				avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-				avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-				avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-				avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-				avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-				avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-			}
+			
+			
+			Vector avgsig(3) ;
+			Vector avgeps(3) ;
+			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig);
+			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps);
+
+			avg_e_xx += avgeps[0] * ar;
+			avg_e_yy += avgeps[1] * ar;
+			avg_e_xy += avgeps[2] * ar;
+			avg_s_xx += avgsig[0] * ar;
+			avg_s_yy += avgsig[1] * ar;
+			avg_s_xy += avgsig[2] * ar;
 			
 			if(triangles[k]->getEnrichmentFunctions().size() == 0)
 			{
@@ -1567,7 +1571,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(atoi(argv[1])) ;
 
 
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	triangles = F.getElements2D() ;
 	
