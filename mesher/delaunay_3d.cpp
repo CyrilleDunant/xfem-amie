@@ -454,13 +454,13 @@ void DelaunayTree3D::refresh( const TetrahedralElement *father )
 		}
 		std::cout << this->tree.size() << std::endl ;
 	*/
-	for( size_t i = 0 ; i < this->tree.size() ; i++ )
+	for( size_t i = 0 ; i < tree.size() ; i++ )
 	{
 //		if(this->tree[i] == nullptr)
 //			std::cout << "nullptr element in tree" << std::endl ;
-		if( this->tree[i]->isAlive() && this->tree[i]->isTetrahedron() )
+		if( tree[i]->isAlive() && tree[i]->isTetrahedron() )
 		{
-			static_cast<DelaunayTetrahedron *>( this->tree[i] )->refresh( father ) ;
+			static_cast<DelaunayTetrahedron *>( tree[i] )->refresh( father ) ;
 
 		}
 	}
@@ -1040,16 +1040,11 @@ DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTree
 
 	std::sort( &first, &first + 4 ) ;
 
-	assert( in( this->getCenter() ) ) ;
-
 	isSpace() = false ;
 	isTetrahedron() = true ;
 	isDeadTetrahedron() = false ;
 	visited() = false ;
-	assert( first->id > -1 ) ;
-	assert( second->id > -1 ) ;
-	assert( third->id > -1 ) ;
-	assert( fourth->id > -1 );
+
 }
 
 DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, DelaunayTreeItem3D *father,  Point *p0,  Point *p1, Point *p2, Point *p3,  Point *p4,  Point *p5, Point *p6, Point *p7, Point *c ) : TetrahedralElement( p0, p1, p2, p3, p4, p5, p6, p7 ), DelaunayTreeItem3D( t, father, c )
@@ -1059,18 +1054,14 @@ DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTree
 	second = &getBoundingPoint( 2 ) ;
 	third = &getBoundingPoint( 4 ) ;
 	fourth = &getBoundingPoint( 6 ) ;
+	
 	std::sort( &first, &first + 4 ) ;
-	assert( in( this->getCenter() ) ) ;
 
 	isSpace() = false ;
 	isTetrahedron() = true ;
 	isDeadTetrahedron() = false ;
 	visited() = false ;
 
-	assert( first->id > -1 ) ;
-	assert( second->id > -1 ) ;
-	assert( third->id > -1 ) ;
-	assert( fourth->id > -1 );
 
 }
 
@@ -1080,7 +1071,6 @@ DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem3D( nullptr, nullpt
 	second = &getBoundingPoint( 1 ) ;
 	third = &getBoundingPoint( 2 ) ;
 	fourth = &getBoundingPoint( 3 ) ;
-	assert( in( this->getCenter() ) ) ;
 
 	isSpace() = false ;
 	isTetrahedron() = true ;

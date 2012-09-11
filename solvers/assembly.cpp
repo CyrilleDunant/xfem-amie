@@ -524,10 +524,60 @@ void Assembly::initialiseElementaryMatrices()
 			#pragma omp parallel for 
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
-				if(element3d[i]->getBehaviour())	
+				if(element3d[i]->getBehaviour())
+				{
 					element3d[i]->getElementaryMatrix() ;
+				}
 			}
 		}
+	}
+
+	gettimeofday(&time1, nullptr);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
+}
+
+void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
+{
+	timeval time0, time1 ;
+	gettimeofday(&time0, nullptr);
+
+	for(size_t i = 0 ; i < element3d.size() ; i++)
+	{
+		if(i%1000 == 0)
+			std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
+		dynamic_cast<DelaunayTetrahedron *>(element3d[i])->refresh(father) ;
+		if(element3d[i]->getBehaviour())
+		{
+			
+			element3d[i]->getElementaryMatrix() ;
+		}
+	}
+
+	gettimeofday(&time1, nullptr);
+	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
+}
+
+
+void Assembly::initialiseElementaryMatrices(TriElement * father)
+{
+	timeval time0, time1 ;
+	gettimeofday(&time0, nullptr);
+//	std::cerr << "Generating elementary matrices..." << std::flush ;
+
+
+	for(size_t i = 0 ; i < element2d.size() ; i++)
+	{
+		if(i%10000 == 0)
+			std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
+		dynamic_cast<DelaunayTriangle *>(element2d[i])->refresh(father) ;
+		if(element2d[i]->getBehaviour())
+		{
+			
+			element2d[i]->getElementaryMatrix() ;
+		}
+		
 	}
 
 	gettimeofday(&time1, nullptr);

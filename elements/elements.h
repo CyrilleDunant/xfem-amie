@@ -178,7 +178,7 @@ public:
 	double jacobianAtPoint(const Point & p) const ;
 	virtual ~ElementaryVolume() ;
 	
-	const bool isFather ;
+	bool isFather ;
 	
 	virtual bool isMoved() const ;
 	

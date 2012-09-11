@@ -13,7 +13,7 @@ using namespace Mu ;
 
 ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, const Matrix & tensor, Vector def) : EnrichmentInclusion3D(father, radius, x, y, z),  imposedDef(def),cgTensor(tensor)
 {
-	this->setBehaviour(new StiffnessWithImposedDeformation(tensor, def)) ;
+	setBehaviour(new StiffnessWithImposedDeformation(tensor, def)) ;
 }
 
 ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, double y, double z, StiffnessWithImposedDeformation * exp) : EnrichmentInclusion3D(father, radius, x, y, z)
@@ -21,7 +21,7 @@ ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, doubl
 	imposedDef.resize(6) ;
 	imposedDef = exp->imposed ;
 	cgTensor = exp->getTensor(Point(0,0,0,0)) ;
-	this->setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
+	setBehaviour(new StiffnessWithImposedDeformation(cgTensor, imposedDef)) ;
 }
 
 
@@ -47,7 +47,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 	{
 		if(EnrichmentInclusion3D::enrichmentTarget(disc[i]))
 			ring.push_back(disc[i]) ;
-		else if(this->in(disc[i]->getCenter()))
+		else if(in(disc[i]->getCenter()))
 			inDisc.push_back(disc[i]) ;
 	}
 	std::set<DelaunayTetrahedron *> newInterface ;
@@ -106,7 +106,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 // 		{
 		std::vector<Feature *> brother ;
 		if(getFather())
-			brother = this->getFather()->getChildren() ;
+			brother = getFather()->getChildren() ;
 		std::vector<Feature *> feat ;
 		for(size_t i = 0 ; i < brother.size() ; i++)
 		{

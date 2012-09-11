@@ -311,7 +311,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 
 void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
 {
-	lastId = 40000;
+// 	lastId = 40000;
 	if(updated)
 		update(dtree) ;
 	updated = false ;

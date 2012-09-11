@@ -829,19 +829,20 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 	
 void TriElement::refresh(const TriElement * parent)
 {	
+	if(!parent)
+		return ;
 	setOrder( parent->getOrder() );
 	
-	if(this->isFather/* && this->shapefunc*/)
+	if(shapefunc && isFather)
 	{
-		this->isFather = false ;
-//		delete this->shapefunc ;
+		isFather = false ;
+		delete shapefunc ;
 	}
-	this->shapefunc = parent->shapefunc ;
-	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-	{
-		(*parent->shapefunc)[i].setPoint(&getBoundingPoint(i)) ;
-	}
-	
+	shapefunc = parent->shapefunc ;
+// 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+// 	{
+// 		(*parent->shapefunc)[i].setPoint(&getBoundingPoint(i)) ;
+// 	}
 }
 	
 std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix() 
@@ -1230,17 +1231,22 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	return *getCachedGaussPoints() ;
 }
 
-TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false) 
+TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false)
 {
 	this->order = LINEAR ;
 }
 
 TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3,  Point * p4,  Point * p5,  Point * p6, Point * p7, bool father ) : Tetrahedron(p0, p1, p2, p3, p4, p5, p6, p7), ElementaryVolume(father), moved(false) 
-{	 this->order = QUADRATIC ;}
+{	 this->order = QUADRATIC ;
+	
+}
 
 TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVolume(father),moved(false)
 {
 	setOrder( order );
+	
+	if(!father)
+		shapefunc = nullptr ;
 	
 	if(order == LINEAR)
 	{
@@ -1507,22 +1513,22 @@ TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVol
 	
 TetrahedralElement::TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t)
 {
-	this->order =  parent->getOrder() ;
+	order =  parent->getOrder() ;
 	
-	this->shapefunc = parent->shapefunc ;
+	shapefunc = parent->shapefunc ;
 // 		std::copy(&parent->getShapeFunctions()[0], &parent->getShapeFunctions()[parent->getShapeFunctions().size()], &this->shapefunc[0]) ;
 	for(size_t i =  0  ; i < this->size() ; i++)
 	{
-		delete &this->getPoint(i) ;
+		delete &getPoint(i) ;
 	}
 	
-	this->getInPoints().resize(t->getInPoints().size()) ;
-	this->getBoundingPoints().resize(t->getBoundingPoints().size()) ;
+	getInPoints().resize(t->getInPoints().size()) ;
+	getBoundingPoints().resize(t->getBoundingPoints().size()) ;
 	
 	
 	
-	std::copy(&t->getInPoints()[0], &t->getInPoints()[t->getInPoints().size()],&this->getInPoints()[0] ) ;
-	std::copy(&t->getBoundingPoints()[0], &t->getBoundingPoints()[t->getBoundingPoints().size()],&this->getBoundingPoints()[0] ) ;
+	std::copy(&t->getInPoints()[0], &t->getInPoints()[t->getInPoints().size()],&getInPoints()[0] ) ;
+	std::copy(&t->getBoundingPoints()[0], &t->getBoundingPoints()[t->getBoundingPoints().size()],&getBoundingPoints()[0] ) ;
 }
 	
 std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix() 
@@ -1576,8 +1582,15 @@ Vector TetrahedralElement::getNonLinearForces()
 	
 void TetrahedralElement::refresh(const TetrahedralElement * parent)
 {
-	
-	setOrder(parent->getOrder()) ;
+	if(!parent)
+		return ;
+	setOrder( parent->getOrder() );
+// 	
+// 	if(shapefunc)
+// 	{
+// 		isFather = false ;
+// 		delete shapefunc ;
+// 	}
 	this->shapefunc = parent->shapefunc ;
 }
 
@@ -2410,8 +2423,10 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
 		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
 		VirtualMachine vm ;
+// 		TetrahedralElement father(order) ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
+// 			std::cout << i << "  "<< shapefunc << std::endl ;
 			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
 			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
 			double dzeta = vm.deval(getShapeFunction(i), ZETA, p) ;
@@ -2531,9 +2546,25 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 
 void ElementaryVolume::setBehaviour(Form * f)
 {
+	
+	bool init = false ;
+	if(state)
+	{	
+ 		init = this->getState().getDisplacements().size() > 0 ;
+		delete state ;
+	}
+	state = f->createElementState( this ) ;
 //	Form * old = behaviour ;
-	behaviour =  f ;
-//	delete old ;
+	behaviour = f ;
+	if(init)
+	{
+		bool needCacheInit = false ;
+		if(f->getFractureCriterion())
+		{
+			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
+		}
+		state->initialize( needCacheInit ) ;
+	}
 }
 
 Order ElementaryVolume::getOrder() const

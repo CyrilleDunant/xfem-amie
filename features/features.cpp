@@ -468,6 +468,7 @@ void FeatureTree::setOrder( Order ord )
 {
 	state.stitched = false ;
 	state.renumbered = false ;
+	state.initialised = false ;
 
 	elemOrder = ord ;
 
@@ -550,7 +551,7 @@ void FeatureTree::renumber()
 	}
 	else if( is3D() )
 	{
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 
@@ -2756,7 +2757,7 @@ void FeatureTree::setElementBehaviours()
 				
 				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
 				{
-					tris[j]->setBehaviour( new VoidForm ) ;
+					tris[j]->setBehaviour( new VoidForm() ) ;
 // 					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
 // 					exit(0) ;
 				}
@@ -2804,21 +2805,21 @@ void FeatureTree::setElementBehaviours()
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> tetrahedrons = this->dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> tetrahedrons = dtree3D->getElements() ;
 
 		std::cerr << " setting behaviours..." << std::flush ;
 		int setcount = 0 ;
 
-		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
-			tetrahedrons[i]->refresh( father3D ) ;
+// 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
+// 			tetrahedrons[i]->refresh( father3D ) ;
 
 		for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
 		{
 			std::vector<DelaunayTetrahedron *> tets = i->second->getElements() ;
-			for( size_t j = 0 ; j < tets.size() ; j++ )
-			{
-				tets[j]->refresh( father3D ) ;
-			}
+// 			for( size_t j = 0 ; j < tets.size() ; j++ )
+// 			{
+// 				tets[j]->refresh( father3D ) ;
+// 			}
 		}
 
 		
@@ -2828,12 +2829,18 @@ void FeatureTree::setElementBehaviours()
 			if( setcount % 1000 == 0 )
 				std::cerr << "\r setting behaviours : base layer : tet " << setcount << "/" << tetrahedrons.size() << std::flush ;
 
-			if( !tetrahedrons[i]->getBehaviour() )
-				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ) ) ;
-
+			tetrahedrons[i]->refresh( father3D ) ;
+			Form * bf =  getElementBehaviour( tetrahedrons[i]);
+			
+			tetrahedrons[i]->setBehaviour( bf ) ;
+			
+			if(!tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+			{
+				tetrahedrons[i]->setBehaviour( new VoidForm() ) ;
+			}
 			setcount++ ;
 		}
-		
+
 
 		std::cerr << " ...done" << std::endl ;
 
@@ -3949,13 +3956,14 @@ void FeatureTree::solve()
 			}
 		}
 	}
-	K->initialiseElementaryMatrices();
+	
 	timeval time0, time1 ;
 	gettimeofday( &time0, nullptr );
 	std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 
 	if( dtree )
 	{
+		K->initialiseElementaryMatrices(father2D);
 		std::vector<DelaunayTriangle *> elements ;
 
 		for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
@@ -3971,6 +3979,7 @@ void FeatureTree::solve()
 	}
 	else
 	{
+		K->initialiseElementaryMatrices(father3D);
 		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
 
 		for( size_t i = 0 ; i < elements.size() ; ++i )
@@ -4935,7 +4944,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->enrich() ;
 		enriched = true ;
 	}
-
 	if( s == ENRICHED )
 		return ;
 
@@ -5395,11 +5403,10 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 	if( is3D() )
 	{
-		std::vector<DelaunayTetrahedron *> tets = this->dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		std::cout << " initialising..." ;
 
 		#pragma omp parallel for schedule(auto)
-
 		for( size_t i = 0 ; i < tets.size() ; i++ )
 		{
 			if(!tets[i]->getBehaviour())

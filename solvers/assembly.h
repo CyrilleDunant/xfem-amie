@@ -237,6 +237,8 @@ public:
 	void update(ElementaryVolume * e, double dt, Vector * params) ;
 	
 	void initialiseElementaryMatrices() ;
+	void initialiseElementaryMatrices(TriElement * father) ;
+	void initialiseElementaryMatrices(TetrahedralElement * father) ;
 
 /** \brief return true if Assembly is made of 2D elements*/
 	bool has2DElements() const;
