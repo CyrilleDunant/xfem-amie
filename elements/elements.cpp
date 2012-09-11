@@ -149,8 +149,13 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 }
 
 void ElementarySurface::setBehaviour(Form * f)
-{
-	bool init = this->getState().getDisplacements().size() > 0 ;
+{	
+	bool init = false ;
+	if(state)
+	{	
+ 		init = this->getState().getDisplacements().size() > 0 ;
+		delete state ;
+	}
 	state = f->createElementState( this ) ;
 //	Form * old = behaviour ;
 	behaviour = f ;
@@ -585,8 +590,8 @@ const GaussPointArray & TriElement::genGaussPoints()
 TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1, p2), ElementarySurface(true), moved(false) 
 { 
 	setOrder(LINEAR) ; 
-	shapefunc = new std::valarray<Function>(Function(),3) ;
-	Matrix xi(2,2) ; xi[1][0] = 1 ;
+	shapefunc = nullptr ; //new std::valarray<Function>(Function(),0) ;
+/*	Matrix xi(2,2) ; xi[1][0] = 1 ;
 	Matrix eta(2,2) ; eta[0][1] = 1 ;
 	Matrix one(2,2) ; one[0][0] = 1 ;
 //0
@@ -594,7 +599,7 @@ TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1,
 //1
 	(*shapefunc)[1] = Function(one-xi-eta) ;
 //2
-	(*shapefunc)[2] = Function(xi) ;
+	(*shapefunc)[2] = Function(xi) ;*/
 };
 	
 TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),moved(false) 
@@ -823,13 +828,13 @@ TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),m
 }
 	
 void TriElement::refresh(const TriElement * parent)
-{
+{	
 	setOrder( parent->getOrder() );
 	
-	if(this->shapefunc && this->isFather)
+	if(this->isFather/* && this->shapefunc*/)
 	{
 		this->isFather = false ;
-		delete this->shapefunc ;
+//		delete this->shapefunc ;
 	}
 	this->shapefunc = parent->shapefunc ;
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
