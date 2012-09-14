@@ -94,7 +94,7 @@ double eta = 100. ;
 double stress = -10e6 ;
 
 double tau = 0.25;
-int sampling = 100 ;
+int sampling = 500 ;
 double dmax = 0.008 ;
 
 Matrix Cel(3,3) ;
