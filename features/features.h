@@ -466,7 +466,7 @@ public:
 	 */
 	void setOrder(Order ord) ;
 	
-	void setDeltaTime(double d) {deltaTime = d ; realDeltaTime = d ;}
+	void setDeltaTime(double d) ;
 	
 	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
 	

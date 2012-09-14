@@ -494,9 +494,9 @@ void FeatureTree::renumber()
 
 			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 			size_t count = 0 ;
-			std::cerr << " renumbering... " << std::endl ;
+			std::cerr << " renumbering... " << std::flush ;
 
-			std::cout << triangles.size() << std::endl ;
+//			std::cerr << triangles.size() << std::endl ;
 			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
@@ -1435,7 +1435,6 @@ void FeatureTree::stitch()
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
 			return ;
-			
 			if( projectOnBoundaries )
 			{
 				switch( elemOrder )
@@ -1626,6 +1625,7 @@ void FeatureTree::sample()
 			double total_area = tree[0]->area() ;
 
 			tree[0]->sample( samplingNumber ) ;
+			int count = 0 ; 
 			#pragma omp parallel for schedule(auto)
 
 			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
@@ -1635,7 +1635,10 @@ void FeatureTree::sample()
 				if( shape_factor < POINT_TOLERANCE_2D )
 					continue ;
 
-				size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), ( size_t )8 ) ;
+				size_t npoints = ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ) ;
+				if(npoints < 8 && npoints >= 5)
+					npoints = 8 ;
+// 				size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), (size_t) 8 ) ;
 				double correctionfactor = 1. ;
 				if(samplingFactors.find(tree[i]) != samplingFactors.end())
 				{
@@ -1644,14 +1647,16 @@ void FeatureTree::sample()
 				}
 				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
 				{
+					count++ ;
 					tree[i]->sample( npoints ) ;
 					tree[i]->isUpdated = false ;
 				}
 			}
+//			std::cout << count << " particles meshed" << std::endl ;
 		}
 		else if( is3D() )
 		{
-			std::cout << samplingNumber << std::endl ;
+//			std::cout << samplingNumber << std::endl ;
 			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 			tree[0]->sample( samplingNumber ) ;
 
@@ -1730,7 +1735,7 @@ void FeatureTree::sample()
 		}
 		else if( is3D() )
 		{
-			std::cout << samplingNumber << std::endl ;
+//			std::cout << samplingNumber << std::endl ;
 			std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 
 			if( tree[0]->isUpdated )
@@ -5132,7 +5137,7 @@ bool FeatureTree::stepToCheckPoint()
 				currentmultiplier = (upmultiplier+downmultiplier)*.5 ;
 			}
 			scaleBoundaryConditions(currentmultiplier);
-			std::cout << currentmultiplier << std::endl ;
+//			std::cout << currentmultiplier << std::endl ;
 		}
 		
 		scaleBoundaryConditions(downmultiplier);
@@ -5455,6 +5460,29 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 	}
 
 }
+
+void FeatureTree::setDeltaTime(double d) 
+{
+	deltaTime = d ; realDeltaTime = d ;
+	if(dtree)
+	{
+		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+		if(triangles.size() && triangles[0]->timePlanes() > 0)
+		{
+			for(size_t i = 0 ; i < triangles.size() ; i++)
+			{
+				for(size_t k = 0 ; k < triangles[i]->getBoundingPoints().size() ; k++)
+				{
+					triangles[i]->getBoundingPoint(k).t = d/2 * sign(triangles[i]->getBoundingPoint(k).t) ;
+				}
+			}
+			needAssembly = true ;
+// 			if(K)
+// 				K->clear() ;
+		}
+	}
+}
+
 
 void FeatureTree::generateElements()
 {
@@ -6034,9 +6062,13 @@ void FeatureTree::generateElements()
 					j->second->insert(i->first) ;
 				}
 			}
+// 			std::vector< DelaunayTriangle * > tritmp = dtree->getElements();
+// 			std::cout << sizeof (tritmp[0]->getState()) << std::endl ;
+// 			exit(0) ;
 		}
 
 		std::cerr << "\r generating triangles.... point " << meshPoints.size() - 3 << "/" << meshPoints.size() - 4 << " ...done" << std::endl ;
+		
 
 		bool correct = false ;
 		int tries = correctionSteps ;

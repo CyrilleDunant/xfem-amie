@@ -742,7 +742,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
-// 			element2d[i]->clearElementaryMatrix() ;
+ 			element2d[i]->clearElementaryMatrix() ;
 		}
 
 		std::cerr << " ...done" << std::endl ;
@@ -1308,7 +1308,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
  		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(x0, nullptr, 5e-18, -1, verbose) ;
+		ret = cg.solve(x0, nullptr, 1e-10, -1, verbose) ;
 // 		ret = false ;
 		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

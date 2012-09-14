@@ -19,9 +19,9 @@ ElementState * Form::createElementState( IntegrableEntity * e)
 	return new ElementState(e) ;
 }
 
-IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr ), state(nullptr)
+IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr )
 {
-//	state = new ElementState( this ) ;
+	state = new ElementState( this ) ;
 }
 
 

@@ -118,13 +118,14 @@ protected:
 
 	Vector strainAtNodes ;
 	Vector stressAtNodes ;
+	Vector effectivePStressAtGaussPoints ;
+
 	Vector strainAtGaussPoints ;
 	Vector stressAtGaussPoints ;
 	
 	Vector pstrainAtGaussPoints ;
 	Vector pstressAtGaussPoints ;
-	Vector effectivePStressAtGaussPoints ;
-
+	
 	Vector displacements ;
 	Vector enrichedDisplacements ;
 	

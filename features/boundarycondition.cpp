@@ -3105,8 +3105,55 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	GaussPointArray gp = tri[0]->getGaussPoints() ;
 	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
 	
-	std::valarray<bool> done( false, tri.size()*tri[0]->getBoundingPoints().size() ) ;
 	
+	if(correspondance.size() == 0)
+	{
+		std::valarray<bool> done( false, tri.size()*tri[0]->getBoundingPoints().size() ) ;		
+		for ( size_t i = 0 ; i < tri.size() ; i++ )
+		{
+			if(i%1000 == 0)
+				std::cerr << "\r getting nodes for time continuity boundary condition 0 (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
+			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+			{
+				size_t id_ = tri[i]->getBoundingPoint(k).id ;
+				if(!done[id_])
+				{
+					size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
+					correspondance.push_back(std::make_pair(id_, corresponding)) ;
+					done[id_] = true ;
+				}
+			}
+		}
+		std::cerr << "... done" << std::endl ;
+	}
+	
+	if( previousDisp.size() == 0 )
+	{
+		for(size_t i = 0 ; i < correspondance.size() ; i++)
+		{
+			if(i%1000 == 0)
+				std::cerr << "\r applying time continuity boundary condition 0 (point "  << i << "/" << correspondance.size() << ")" << std::flush ;
+			for(size_t n = 0 ; n < dof ; n++)
+			{
+				a->setPointAlongIndexedAxis( n, 0., correspondance[i].first )  ;
+			}
+		}
+	}
+	else
+	{
+		for(size_t i = 0 ; i < correspondance.size() ; i++)
+		{
+			if(i%1000 == 0)
+				std::cerr << "\r applying time continuity boundary condition (point "  << i << "/" << correspondance.size() << ")" << std::flush ;
+			for(size_t n = 0 ; n < dof ; n++)
+			{
+				a->setPointAlongIndexedAxis( n, previousDisp[ correspondance[i].second * dof + n] , correspondance[i].first )  ;
+			}
+		}	  
+	}
+	std::cerr << "... done" << std::endl ;
+	return ;
+/*	
 	if ( previousDisp.size() == 0 )
 	{
 		for ( size_t i = 0 ; i < tri.size() ; i++ )
@@ -3180,9 +3227,9 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
 								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
-		}
-	}
-	std::cerr << " ...done" << std::endl ;
+// 		}
+// 	}
+// 	std::cerr << " ...done" << std::endl ;
 }
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
@@ -3206,6 +3253,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 	
 	GaussPointArray gp = tri[0]->getGaussPoints() ;
 	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
+	
 
 	if ( previousDisp.size() == 0 )
 	{

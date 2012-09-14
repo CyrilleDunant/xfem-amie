@@ -1056,8 +1056,9 @@ bool Grid::add(Geometry * inc)
 
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 	{
-
 		if(inc->intersects(toTest[i]))
+			return false ;
+		if(toTest[i]->in(inc->getCenter()))
 			return false ;
 	}
 	forceAdd(inc) ;

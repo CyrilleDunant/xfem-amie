@@ -189,6 +189,9 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 
 class TimeContinuityBoundaryCondition : public BoundaryCondition
 {
+	protected:
+		std::vector<std::pair<size_t, size_t> > correspondance ;
+  
 	public:
 		Vector previousDisp ;
 		TimeContinuityBoundaryCondition() ;
