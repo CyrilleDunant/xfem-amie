@@ -369,7 +369,6 @@ protected:
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;
-	bool enrichmentFunctionsCompiled ;
 	
 	IntegrableEntity() ;
 	virtual void getInverseJacobianMatrix(const Point &p, Matrix & ret) const = 0 ;

@@ -59,253 +59,120 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTetrahedron * t)
 {
 // 	return Function("1") ;
-	
-	if(t->getOrder() == LINEAR)
-	{
-		TetrahedralElement father(LINEAR) ;
-		
-// 		std::cout << std::endl ;
-// 	for(size_t i = 0 ; i < 4 ; i++)
-// 		{
-// 			for(size_t j = 0 ; j < 4 ; j++)
-// 			{
-// 				std::cout << i << "  " << j << "  " << VirtualMachine().eval(father.getShapeFunction(i), t->inLocalCoordinates(t->getBoundingPoint(j))) << std::endl ;
-// 			}
-// 		}
-// 		std::cout << std::endl ;
-		/*exit(0) */;
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() &&
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(0) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(1) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(1)+t->getShapeFunction(2)+t->getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(0)+t->getShapeFunction(2)+t->getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(1)+t->getShapeFunction(0)+t->getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(1)+t->getShapeFunction(2)+t->getShapeFunction(0) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(2) + t->getShapeFunction(3);
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(1) + t->getShapeFunction(3);
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(1) + t->getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) != dofIds.end())
-		{
-			return t->getShapeFunction(0) + t->getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(0) + t->getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(1))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(3))) == dofIds.end())
-		{
-			return t->getShapeFunction(0) + t->getShapeFunction(1) ;
-		}
-	}
-	else
-	{
-		TetrahedralElement father(LINEAR) ;
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(2) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
+	TetrahedralElement father(LINEAR) ;
+
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() &&
+			dofIds.find(t->fourth) == dofIds.end())
 		{
 			return father.getShapeFunction(0) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
 		{
 			return father.getShapeFunction(1) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
 		{
-			
+			return father.getShapeFunction(2) ;
+		}
+		
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
+		{
+			return father.getShapeFunction(3) ;
+		}
+		
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
+		{
+			return father.getShapeFunction(1)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+		}
+		
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
+		{
+			return father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(3) ;
+		}
+		
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
+		{
 			return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(3) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
 		{
-			return  father.getShapeFunction(0)+father.getShapeFunction(2)+father.getShapeFunction(1) ;
+			return father.getShapeFunction(1)+father.getShapeFunction(2)+father.getShapeFunction(0) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
 		{
-			return father.getShapeFunction(2)+father.getShapeFunction(1)+father.getShapeFunction(3) ;
+			return father.getShapeFunction(2) + father.getShapeFunction(3);
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
 		{
-			return father.getShapeFunction(0)+father.getShapeFunction(3)+father.getShapeFunction(2) ;
+			return father.getShapeFunction(1) + father.getShapeFunction(3);
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
-		{
-			return father.getShapeFunction(0) + father.getShapeFunction(1);
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
-		{
-			return father.getShapeFunction(2) + father.getShapeFunction(0);
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
-		{
-			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
-		}
-		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) != dofIds.end())
+		if(dofIds.find(t->first) == dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
 		{
 			return father.getShapeFunction(1) + father.getShapeFunction(2) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) != dofIds.end())
 		{
-			return father.getShapeFunction(1) + father.getShapeFunction(3) ;
+			return father.getShapeFunction(0) + father.getShapeFunction(3) ;
 		}
 		
-		if(dofIds.find(&(t->getBoundingPoint(0))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(2))) != dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(4))) == dofIds.end() && 
-			dofIds.find(&(t->getBoundingPoint(6))) == dofIds.end())
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) == dofIds.end() && 
+			dofIds.find(t->third) != dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
 		{
-			return father.getShapeFunction(2) + father.getShapeFunction(3) ;
+			return father.getShapeFunction(0) + father.getShapeFunction(2) ;
 		}
-	}
-	
-	
+		
+		if(dofIds.find(t->first) != dofIds.end() && 
+			dofIds.find(t->second) != dofIds.end() && 
+			dofIds.find(t->third) == dofIds.end() && 
+			dofIds.find(t->fourth) == dofIds.end())
+		{
+			return father.getShapeFunction(0) + father.getShapeFunction(1) ;
+		}
+
 	return Function("1") ;
 }
 

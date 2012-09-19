@@ -2240,7 +2240,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 		{
 			id.begin()->second.second->getInverseJacobianMatrix( id.begin()->second.second->getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
 		}
-
+		
 		if ( !function )
 			apply2DBC( id.begin()->second.second,gp,Jinv, target, condition, data*getScale(), a , axis ) ;
 		else
@@ -2260,8 +2260,12 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
 			
+
+			
 			if ( !function )
+			{
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
+			}
 			else
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
 		}
@@ -2422,7 +2426,6 @@ void GeometryDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangl
 			elements[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 		}
 
-		
 		if ( !function )
 			apply2DBC( elements[i],gp, Jinv, id, condition, data*getScale(), a ) ;
 		else
