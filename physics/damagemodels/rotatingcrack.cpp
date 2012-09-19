@@ -200,8 +200,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
 
-	if ( getState().max() < POINT_TOLERANCE_2D)
-		return m ;
+// 	if ( getState().max() < POINT_TOLERANCE_2D)
+// 		return m ;
 	
 	if(fractured())
 		return m *0 ;
@@ -307,26 +307,26 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 void RotatingCrack::postProcess()
 {
 	
-	if(converged && getState()[0] >= thresholdDamageDensity)
-	{
-		firstTensionFailure = true ;
-		getState(true)[0] = 1. ;
-	}
-	if(converged && getState()[1] >= thresholdDamageDensity)
-	{
-		firstCompressionFailure = true ;
-		getState(true)[1] = 1. ;
-	}
-	if(converged && getState()[2] >= thresholdDamageDensity)
-	{
-		secondTensionFailure = true ;
-		getState(true)[2] = 1. ;
-	}
-	if(converged && getState()[3] >= thresholdDamageDensity)
-	{
-		secondCompressionFailure = true ;
-		getState(true)[3] = 1. ;
-	}
+// 	if(converged && getState()[0] >= thresholdDamageDensity)
+// 	{
+// 		firstTensionFailure = true ;
+// 		getState(true)[0] = 1. ;
+// 	}
+// 	if(converged && getState()[1] >= thresholdDamageDensity)
+// 	{
+// 		firstCompressionFailure = true ;
+// 		getState(true)[1] = 1. ;
+// 	}
+// 	if(converged && getState()[2] >= thresholdDamageDensity)
+// 	{
+// 		secondTensionFailure = true ;
+// 		getState(true)[2] = 1. ;
+// 	}
+// 	if(converged && getState()[3] >= thresholdDamageDensity)
+// 	{
+// 		secondCompressionFailure = true ;
+// 		getState(true)[3] = 1. ;
+// 	}
 }
 
 RotatingCrack::~RotatingCrack()
@@ -413,7 +413,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 			{
 				range[1] = getState()[1] ;
 			}
-			else if(!firstCompressionFailure)
+			else if(firstTension && !firstCompressionFailure)
 			{
 				range[0] = getState()[0] ;
 			}
@@ -435,7 +435,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 			{
 				range[3] = getState()[3] ;
 			}
-			else if(!secondCompressionFailure)
+			else if(!secondTension && !secondCompressionFailure)
 			{
 				range[2] = getState()[2] ;
 			}
