@@ -116,8 +116,6 @@ class ElementState
 {
 protected:
 
-	Vector strainAtNodes ;
-	Vector stressAtNodes ;
 	Vector effectivePStressAtGaussPoints ;
 
 	Vector strainAtGaussPoints ;
@@ -139,9 +137,7 @@ protected:
 	double previousTimePos ;
 	
 	IntegrableEntity * parent ;
-	
-	std::vector<ElementState> history ;
-	
+		
 public:
 	
 	/** \brief Construct the state of the argument*/
@@ -160,8 +156,8 @@ public:
 	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
 
 	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
-
-	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
+	
+	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
 	
@@ -171,12 +167,7 @@ public:
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
-
-	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
-	
 	virtual void getAverageField( FieldType f, Vector & ret, int i= 0) ;
-	
 
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;
@@ -272,7 +263,7 @@ public:
 
 	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
 		
-	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
+// 	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
 
@@ -282,7 +273,7 @@ public:
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+// 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
@@ -341,7 +332,7 @@ public:
 		
 	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 			
-	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+// 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
 } ;
 

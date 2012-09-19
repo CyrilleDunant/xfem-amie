@@ -1546,100 +1546,32 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f,
 			ret = enrichedDisplacements ;
 			return ;
 		case STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
 
-				ElementState::getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
+			ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case PRINCIPAL_STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				strainAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				ElementState::getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
+			ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case NON_ENRICHED_STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				ElementState::getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
+			ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case REAL_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				ElementState::getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f,  parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case PRINCIPAL_REAL_STRESS_FIELD :
-			if( stressAtNodes.size() == 0 )
-			{
-				stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				ElementState::getField(f, parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case NON_ENRICHED_REAL_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				ElementState::getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f,  parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case EFFECTIVE_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				ElementState::getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f,  parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-			if( stressAtNodes.size() == 0 )
-			{
-				stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				ElementState::getField(f, parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 			return ;
 		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				ElementState::getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
+			ElementState::getField(f,  parent->getBoundingPoints(), ret, false) ;
 			return ;
 	}
 	ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;

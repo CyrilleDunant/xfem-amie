@@ -197,8 +197,6 @@ Vector &ElementState::getPreviousEnrichedDisplacements()
 
 ElementState &ElementState::operator =( const ElementState &s )
 {
-	strainAtNodes.resize(0);
-	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -228,8 +226,6 @@ ElementState::ElementState( const ElementState &s )
 	pstrainAtGaussPoints.resize(0) ;
 	pstressAtGaussPoints.resize(0) ;
 	
-	strainAtNodes.resize( 0 ) ;
-	stressAtNodes.resize( 0 ) ;
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -276,7 +272,6 @@ ElementState::ElementState( IntegrableEntity *s )
 	parent = s ;
 	this->timePos = 0 ;
 	this->previousTimePos = 0 ;
-	history.push_back( *this ) ;
 // 	size_t ndof = 2 ;
 // // 	if(s->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
 // // 		ndof = 3 ;
@@ -929,116 +924,47 @@ void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, d
 	} 
 }
 
-void ElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
-{
-	switch(f)
-	{
-		case DISPLACEMENT_FIELD:
-			ret = displacements ;
-			return ;
-		case ENRICHED_DISPLACEMENT_FIELD:
-			ret = enrichedDisplacements ;
-			return ;
-		case STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
-			return ;
-		case PRINCIPAL_STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				strainAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				this->getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
-			return ;
-		case NON_ENRICHED_STRAIN_FIELD :
-			if( strainAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f, parent->getBoundingPoints(), strainAtNodes, false) ;
-			}
-			ret = strainAtNodes ;
-			return ;
-		case REAL_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-		case PRINCIPAL_REAL_STRESS_FIELD :
-			if( stressAtNodes.size() == 0 )
-			{
-				stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				this->getField(f, parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-		case NON_ENRICHED_REAL_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-		case EFFECTIVE_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-			if( stressAtNodes.size() == 0 )
-			{
-				stressAtNodes.resize( parent->spaceDimensions() * parent->getBoundingPoints().size() ) ;
-				this->getField(f, parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
-			if( stressAtNodes.size() == 0 )
-			{
-				if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-					stressAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-				else
-					stressAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-				this->getField(f,  parent->getBoundingPoints(), stressAtNodes, false) ;
-			}
-			ret = stressAtNodes ;
-			return ;
-	}
-	this->getField(f, parent->getBoundingPoints(), ret, false) ;
-}
-
+// void ElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
+// {
+// 	switch(f)
+// 	{
+// 		case DISPLACEMENT_FIELD:
+// 			ret = displacements ;
+// 			return ;
+// 		case ENRICHED_DISPLACEMENT_FIELD:
+// 			ret = enrichedDisplacements ;
+// 			return ;
+// 		case STRAIN_FIELD :
+// 			this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case PRINCIPAL_STRAIN_FIELD :
+// 			this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case NON_ENRICHED_STRAIN_FIELD :
+// 			this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case REAL_STRESS_FIELD:
+// 			this->getField(f,  parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case PRINCIPAL_REAL_STRESS_FIELD :
+// 			this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case NON_ENRICHED_REAL_STRESS_FIELD:
+// 			this->getField(f,  parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case EFFECTIVE_STRESS_FIELD:
+// 			this->getField(f,  parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+// 			this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
+// 			this->getField(f,  parent->getBoundingPoints(), ret, false) ;
+// 			return ;
+// 	}
+// 	this->getField(f, parent->getBoundingPoints(), ret, false) ;
+// }
+// 
 
 void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, int i) 
 {
@@ -1388,174 +1314,133 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std
 	}  
 }
 
-void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
-{
-	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
-	{
-		if( strainAtNodes.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-			else
-				strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-			this->getField(f1, parent->getBoundingPoints(), strainAtNodes, false) ;
-		}
-		if( stressAtNodes.size() == 0 )
-		{
-			stressAtNodes.resize( strainAtNodes.size() ) ;
-			if(isRealStressField(f2))
-			{
-				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-				{
-					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
-					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-					  for(size_t j = 0 ; j < dim ; j++)
-						    stressAtNodes[i*dim + j] = stress[j] ;
-				}
-			}
-			else
-			{
-				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-				{
-					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
-					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-					  for(size_t j = 0 ; j < dim ; j++)
-						    stressAtNodes[i*dim + j] = stress[j] ;
-				}
-			}
-
-		}
-		ret1 = strainAtNodes ;
-		ret2 = stressAtNodes ;
-		return ;
-	}
-
-	if((f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD)  && f2 == STRAIN_FIELD)
-	{
-		if( strainAtNodes.size() == 0 )
-		{
-			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-				strainAtNodes.resize( 3 * parent->getBoundingPoints().size() ) ;
-			else
-				strainAtNodes.resize( 6 * parent->getBoundingPoints().size() ) ;
-
-			this->getField(f2, parent->getBoundingPoints(), strainAtNodes, false) ;
-		}
-		if( stressAtNodes.size() == 0 )
-		{
-			stressAtNodes.resize( strainAtNodes.size() ) ;
-			if(isRealStressField(f2))
-			{
-				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-				{
-					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
-					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-					  for(size_t j = 0 ; j < dim ; j++)
-						    stressAtNodes[i*dim + j] = stress[j] ;
-				}
-			}
-			else
-			{
-				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-				{
-					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
-					  Vector strain(&strainAtNodes[i*dim], dim) ;
-					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-					  for(size_t j = 0 ; j < dim ; j++)
-						    stressAtNodes[i*dim + j] = stress[j] ;
-				}
-			}
-
-		}
-		ret1 = stressAtNodes ;
-		ret2 = strainAtNodes ;
-		return ;
-	}
-
-	if(f1 == PRINCIPAL_STRAIN_FIELD && (f2 == PRINCIPAL_REAL_STRESS_FIELD || f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) )
-	{
-		if( strainAtNodes.size() == 0 )
-		{
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector pstrain(0., parent->spaceDimensions()) ;
-			Vector pstress(0., parent->spaceDimensions()) ;
-			strainAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-			{
-				Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-				this->getField(STRAIN_FIELD, p_, strain, true) ;
-				if(isRealStressField(f2))
-					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-				pstrain = toPrincipal(strain) ;
-				pstress = toPrincipal(stress) ;
-				for(size_t j = 0 ; j < pstrain.size() ; j++)
-				{
-					strainAtNodes[i*pstrain.size() + j] = pstrain[j] ;
-					stressAtNodes[i*pstress.size() + j] = pstress[j] ;
-				}
-			}
-		}
-		else if( stressAtNodes.size() == 0 )
-		{
-			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			this->getFieldAtNodes(f2, stressAtNodes) ;
-		}
-		ret1 = strainAtNodes ;
-		ret2 = stressAtNodes ;
-		return ;
-	}
-
-	if((f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) && f2 == PRINCIPAL_STRAIN_FIELD )
-	{
-		if( strainAtNodes.size() == 0 )
-		{
-			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
-			Vector pstrain(0., parent->spaceDimensions()) ;
-			Vector pstress(0., parent->spaceDimensions()) ;
-			strainAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
-			{
-				Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
-				this->getField(STRAIN_FIELD, p_, strain, true) ;
-				if(isRealStressField(f2))
-					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-				else
-					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
-				pstrain = toPrincipal(strain) ;
-				pstress = toPrincipal(stress) ;
-				for(size_t j = 0 ; j < pstrain.size() ; j++)
-				{
-					strainAtNodes[i*pstrain.size() + j] = pstrain[j] ;
-					stressAtNodes[i*pstress.size() + j] = pstress[j] ;
-				}
-			}
-		}
-		else if( stressAtNodes.size() == 0 )
-		{
-			stressAtNodes.resize(parent->spaceDimensions()*parent->getBoundingPoints().size()) ;
-			this->getFieldAtNodes(f2, stressAtNodes) ;
-		}
-		ret1 = stressAtNodes ;
-		ret2 = strainAtNodes ;
-		return ;
-	}
-	
-	this->getField(f1, f2, parent->getBoundingPoints(), ret1, ret2, false) ;  
-}
+// void ElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int) 
+// {
+// 	if(f1 == STRAIN_FIELD && (f2 == REAL_STRESS_FIELD || f2 == EFFECTIVE_STRESS_FIELD) )
+// 	{
+// 
+// 		this->getField(f1, parent->getBoundingPoints(), ret1, false) ;
+// 
+// 		if(isRealStressField(f2))
+// 		{
+// 			for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 			{
+// 					Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 					int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
+// 					Vector strain(&ret1[i*dim], dim) ;
+// 					Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+// 					for(size_t j = 0 ; j < dim ; j++)
+// 							ret2[i*dim + j] = stress[j] ;
+// 			}
+// 		}
+// 		else
+// 		{
+// 			for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 			{
+// 					Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 					int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
+// 					Vector strain(&ret1[i*dim], dim) ;
+// 					Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
+// 					for(size_t j = 0 ; j < dim ; j++)
+// 							ret2[i*dim + j] = stress[j] ;
+// 			}
+// 		}
+// 
+// 		return ;
+// 	}
+// 
+// 	if((f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD)  && f2 == STRAIN_FIELD)
+// 	{
+// 
+// 		this->getField(f2, parent->getBoundingPoints(), ret2, false) ;
+// 
+// 			if(isRealStressField(f2))
+// 			{
+// 				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 				{
+// 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
+// 					  Vector strain(&ret2[i*dim], dim) ;
+// 					  Vector stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+// 					  for(size_t j = 0 ; j < dim ; j++)
+// 						    ret1[i*dim + j] = stress[j] ;
+// 				}
+// 			}
+// 			else
+// 			{
+// 				for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 				{
+// 					  Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 					  int dim = 3 + 3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL) ;
+// 					  Vector strain(&ret2[i*dim], dim) ;
+// 					  Vector stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
+// 					  for(size_t j = 0 ; j < dim ; j++)
+// 						    ret1[i*dim + j] = stress[j] ;
+// 				}
+// 			}
+// 
+// 		return ;
+// 	}
+// 
+// 	if(f1 == PRINCIPAL_STRAIN_FIELD && (f2 == PRINCIPAL_REAL_STRESS_FIELD || f2 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) )
+// 	{
+// 
+// 		Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+// 		Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+// 		Vector pstrain(0., parent->spaceDimensions()) ;
+// 		Vector pstress(0., parent->spaceDimensions()) ;
+// 
+// 		for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 		{
+// 			Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 			this->getField(STRAIN_FIELD, p_, strain, true) ;
+// 			if(isRealStressField(f2))
+// 				stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+// 			else
+// 				stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
+// 			pstrain = toPrincipal(strain) ;
+// 			pstress = toPrincipal(stress) ;
+// 			for(size_t j = 0 ; j < pstrain.size() ; j++)
+// 			{
+// 				ret1[i*pstrain.size() + j] = pstrain[j] ;
+// 				ret2[i*pstress.size() + j] = pstress[j] ;
+// 			}
+// 		}
+// 
+// 
+// 		return ;
+// 	}
+// 
+// 	if((f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD) && f2 == PRINCIPAL_STRAIN_FIELD )
+// 	{
+// 
+// 			Vector strain(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+// 			Vector stress(0., 3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
+// 			Vector pstrain(0., parent->spaceDimensions()) ;
+// 			Vector pstress(0., parent->spaceDimensions()) ;
+// 			for(size_t i = 0 ; i < parent->getBoundingPoints().size() ; i++)
+// 			{
+// 				Point p_ = parent->inLocalCoordinates(parent->getBoundingPoint(i)) ;
+// 				this->getField(STRAIN_FIELD, p_, strain, true) ;
+// 				if(isRealStressField(f2))
+// 					stress = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+// 				else
+// 					stress = (Vector) (parent->getBehaviour()->param * strain) - getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;
+// 				pstrain = toPrincipal(strain) ;
+// 				pstress = toPrincipal(stress) ;
+// 				for(size_t j = 0 ; j < pstrain.size() ; j++)
+// 				{
+// 					ret2[i*pstrain.size() + j] = pstrain[j] ;
+// 					ret1[i*pstress.size() + j] = pstress[j] ;
+// 				}
+// 			}
+// 
+// 
+// 		return ;
+// 	}
+// 	
+// 	this->getField(f1, f2, parent->getBoundingPoints(), ret1, ret2, false) ;  
+// }
 
 void ElementState::getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t p, Vector & ret1, Vector & ret2, int i, int j) 
 {
@@ -1907,8 +1792,6 @@ Vector &ElementState::getBuffer()
 void ElementState::step( double dt, const Vector *d )
 {
 	
-	strainAtNodes.resize( 0 );
-	stressAtNodes.resize( 0 );
 	strainAtGaussPoints.resize( 0 );
 	stressAtGaussPoints.resize( 0 );	
 	
@@ -1916,11 +1799,6 @@ void ElementState::step( double dt, const Vector *d )
 	pstressAtGaussPoints.resize( 0 );
 	
 	effectivePStressAtGaussPoints.resize(0);
-
-	if( !history.empty() )
-		history.pop_back() ;
-
-	history.push_back( ElementState( *this ) ) ;
 
 	if( parent->getBehaviour()&& parent->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
@@ -2126,8 +2004,6 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
 	strainAtGaussPoints.resize(0);
 	stressAtGaussPoints.resize(0);
 	effectivePStressAtGaussPoints.resize(0);
-	strainAtNodes.resize(0);
-	stressAtNodes.resize(0);
 	displacements.resize( s.getDisplacements().size() ) ;
 	displacements = s.getDisplacements() ;
 	enrichedDisplacements.resize( s.getEnrichedDisplacements().size() ) ;
@@ -2178,11 +2054,11 @@ void ElementStateWithInternalVariables::getField(FieldType f, const std::valarra
 		ElementState::getField(f, p, ret, local, i) ;
 }
 
-void ElementStateWithInternalVariables::getFieldAtNodes( FieldType f, Vector & ret, int i) 
-{
-	if(f != INTERNAL_VARIABLE_FIELD)
-		ElementState::getFieldAtNodes(f, ret, i) ; 
-}
+// void ElementStateWithInternalVariables::getFieldAtNodes( FieldType f, Vector & ret, int i) 
+// {
+// 	if(f != INTERNAL_VARIABLE_FIELD)
+// 		ElementState::getFieldAtNodes(f, ret, i) ; 
+// }
 
 void ElementStateWithInternalVariables::getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i) 
 {
@@ -2216,11 +2092,11 @@ void ElementStateWithInternalVariables::getField(FieldType f1, FieldType f2, con
 		ElementState::getField(f1, f2, p, ret1, ret2, local, i, j) ;
 }
 
-void ElementStateWithInternalVariables::getFieldAtNodes(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
-{
-	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
-		ElementState::getFieldAtNodes(f1, f2, ret1, ret2, i, j) ;
-}
+// void ElementStateWithInternalVariables::getFieldAtNodes(FieldType f1, FieldType f2,  Vector & ret1, Vector & ret2, int i, int j) 
+// {
+// 	if(f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD)
+// 		ElementState::getFieldAtNodes(f1, f2, ret1, ret2, i, j) ;
+// }
 
 void ElementStateWithInternalVariables::getFieldAtGaussPoint(FieldType f1, FieldType f2, size_t g,  Vector & ret1, Vector & ret2, int i, int j) 
 {
@@ -2713,11 +2589,11 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, co
   
 }
 
-void KelvinVoightSpaceTimeElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i, int j) 
-{	
-	ElementState::getFieldAtNodes(f1, ret1, i) ;  
-	ElementState::getFieldAtNodes(f2, ret2, j) ;  
-}
+// void KelvinVoightSpaceTimeElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i, int j) 
+// {	
+// 	ElementState::getFieldAtNodes(f1, ret1, i) ;  
+// 	ElementState::getFieldAtNodes(f2, ret2, j) ;  
+// }
 
 Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
 {
