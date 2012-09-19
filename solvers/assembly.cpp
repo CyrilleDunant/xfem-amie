@@ -475,15 +475,15 @@ void Assembly::initialiseElementaryMatrices()
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
-	bool cannotParallelize = false ;
-	for(size_t i = 0 ; i < element2d.size() ; i++)
-	{
-		if(dynamic_cast<BimaterialInterface *>(element2d[i]->getBehaviour()))
-		{
-			cannotParallelize = true ;
-			break ;
-		}
-	}
+// 	bool cannotParallelize = false ;
+// 	for(size_t i = 0 ; i < element2d.size() ; i++)
+// 	{
+// 		if(dynamic_cast<BimaterialInterface *>(element2d[i]->getBehaviour()))
+// 		{
+// 			cannotParallelize = true ;
+// 			break ;
+// 		}
+// 	}
 
 	if(true)
 	{
@@ -742,7 +742,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
- 			element2d[i]->clearElementaryMatrix() ;
+//  			element2d[i]->clearElementaryMatrix() ;
 		}
 
 		std::cerr << " ...done" << std::endl ;
