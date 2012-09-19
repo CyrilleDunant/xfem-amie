@@ -1896,14 +1896,15 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar2, 3 ) ;
 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
-	F.setOrder( QUADRATIC ) ;
+	F.setOrder( LINEAR ) ;
 
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.02, -sampleHeight*.5 ) ) ;
-// 	F.addPoint( new Point( -supportLever, -sampleHeight*.5 - plateHeight ) ) ;
+	F.addPoint( new Point( supportLever, -sampleHeight*.5 - plateHeight ) ) ;
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep( 3200 );
+	
 	triangles = F.getElements2D() ;
 	step() ;
 

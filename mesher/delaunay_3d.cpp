@@ -2993,7 +2993,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 4;
+	size_t numberOfRefinements = 1;
 
 	VirtualMachine vm ;
 
@@ -3004,11 +3004,11 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		std::vector<std::pair<Point, double> > gp_alternative ;
 
-		if( false )
+		if( true )
 		{
-			TetrahedralElement father ;
-			double npoints = 16 ;
-
+			TetrahedralElement father(LINEAR) ;
+			double npoints = 256 ;
+			
 			while( gp_alternative.size() < npoints )
 			{
 				double x = ( double )rand() / ( double )RAND_MAX ;
@@ -3019,7 +3019,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					gp_alternative.push_back( std::make_pair( Point( x, y, z ), 0.1666666666666667 / npoints ) ) ;
 			}
 
-			double j = volume() / 0.1666666666666667 ;
+			double j = volume() *6. ;
 
 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
 			{
@@ -3103,7 +3103,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 					for( size_t k = 0 ; k < uniquePoints.size() ; k++ )
 					{
-						if( squareDist3D( newPoints[j], *uniquePoints[k] ) < .05 )
+						if( squareDist3D( newPoints[j], *uniquePoints[k] ) < .00125 )
 						{
 							unique  = false ;
 							break ;
@@ -3114,7 +3114,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < to_add.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *to_add[k] ) < .05 )
+							if( squareDist3D( newPoints[j], *to_add[k] ) < .00125 )
 							{
 								unique  = false ;
 								break ;
@@ -3126,7 +3126,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					{
 						for( size_t k = 0 ; k < pointsToCleanup.size() ; k++ )
 						{
-							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .05 )
+							if( squareDist3D( newPoints[j], *pointsToCleanup[k] ) < .00125 )
 							{
 								unique  = false ;
 								break ;
@@ -3159,19 +3159,14 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		}
 
 		tri = dt->getTetrahedrons( false ) ;
-		double jac = volume() / 0.16666666666666667 ;
-		double v = 0 ;
-		double w = 0 ;
+		double jac = volume() *6. ;
 
 		for( size_t i = 0 ; i < tri.size() ; i++ )
 		{
-// 			tri[i]->setOrder( QUADRATIC ) ;
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
-// 			tri[i]->setOrder( LINEAR ) ;
 
 			if( f.in( tri[i]->getCenter() ) )
 			{
-				v += tri[i]->volume() ;
 
 				Function x = XTransform( tri[i]->getBoundingPoints(), f.getShapeFunctions() ) ;
 				Function y = YTransform( tri[i]->getBoundingPoints(), f.getShapeFunctions() ) ;
@@ -3186,7 +3181,6 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 					else
 						gp_temp.gaussPoints[j].second *= jac ;
 					
-					w += gp_temp.gaussPoints[j].second ;
 					gp_alternative.push_back( gp_temp.gaussPoints[j] ) ;
 				}
 			}

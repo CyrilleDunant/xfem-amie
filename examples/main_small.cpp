@@ -414,14 +414,14 @@ void step()
 		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
 		
 	}
-	VoxelWriter vw1("sphere_stiffness", 100) ;
-	vw1.getField(featureTree, VWFT_STIFFNESS) ;
-	vw1.write();
+// 	VoxelWriter vw1("sphere_stiffness", 100) ;
+// 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
+// 	vw1.write();
 	
-	VoxelWriter vw("sphere_stress", 100) ;
+	VoxelWriter vw("sphere_stress", 200) ;
 	vw.getField(featureTree, VWFT_STRESS) ;
 	vw.write();
-	VoxelWriter vw0("sphere_strain", 100) ;
+	VoxelWriter vw0("sphere_strain", 200) ;
 	vw0.getField(featureTree, VWFT_STRAIN) ;
 	vw0.write();
 	exit(0) ;

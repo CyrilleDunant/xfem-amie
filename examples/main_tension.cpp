@@ -41,6 +41,7 @@
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/concrete_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/orthotropicstiffness.h"
 
 
 #include <fstream>
@@ -178,7 +179,7 @@ Vector vonMises(0) ;
 Vector angle(0) ; 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,1e6) ;
+BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,1e4) ;
 BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
@@ -209,17 +210,17 @@ void step(size_t nsteps)
 
 		bool go_on = featureTree->step() ;
 		double appliedForce = loadr->getData()*effectiveRadius*2.*rebarDiametre;
-// 		if(go_on)
-// 		{
-// // 			loadr->setData(sin(double(count)/40.)*5e-5) ;
-// // 			if(count < 80)
-// // 				loadr->setData(loadr->getData()-1e-5) ;
-// // 			else
+		if(go_on)
+		{
+// 			loadr->setData(sin(double(count)/40.)*5e-5) ;
+// 			if(count < 80)
+// 				loadr->setData(loadr->getData()-1e-5) ;
+// 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
-// 			count++ ;
-// 			loadt->setData(loadt->getData()+1e-8) ;
-// // 			loadt->setData(0) ;
-// 		}
+			count++ ;
+			loadt->setData(loadt->getData()+1e-6) ;
+// 			loadt->setData(0) ;
+		}
 		
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements().size() ) ;
@@ -1487,7 +1488,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(.1200*.5, .1200, 0., 0.) ;
+	Sample samplef(.1200, .1200, 0., 0.) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  

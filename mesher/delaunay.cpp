@@ -1175,7 +1175,7 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
 	assert(third->id > -1) ;
 }
 
-DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(nullptr, nullptr, nullptr), neighbourhood(0)
+DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(nullptr, nullptr, nullptr), TriElement(), neighbourhood(0)
 {
 	first = &getBoundingPoint(0) ;
 	second = &getBoundingPoint(1) ;
@@ -2413,12 +2413,13 @@ void DelaunayTriangle::refresh(const TriElement * father)
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
 	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
-	int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	
 // 	std::cout << "aa " << index<< std::endl ;
 	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == dofCount)
 	{
 		return cachedElementaryMatrix ;
 	}
+	int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 // 	std::cout << "ab " << index<< std::endl ;
 	if(enrichmentUpdated || behaviourUpdated 
 		|| cachedElementaryMatrix.size() == 0 
@@ -2431,28 +2432,25 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		getSubTriangulatedGaussPoints() ;
 	}
 // 	std::cout << "a " << index<< std::endl ;
-	std::valarray<Matrix> Jinv(Matrix(ndofs, ndofs),  getGaussPoints().gaussPoints.size()) ;
-	if(true ||moved)
+	Matrix J(ndofs, ndofs) ;
+	getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
+	std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
+	
+	if(moved)
 	{
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
-	else
-	{
-		Matrix J(ndofs, ndofs) ;
-		getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
-		Jinv.resize(getGaussPoints().gaussPoints.size(),J) ;
-	}
 // 	std::cout << "b " << index<< std::endl ;
 	VirtualMachine vm ;
-	Point a(0,1,0,-1) ;
-	Point b(0,0,0,-1) ;
-	Point c(1,0,0,-1) ;
-	Point d(0,1,0,1) ;
-	Point e(0,0,0,1) ;
-	Point f(1,0,0,1) ;
+// 	Point a(0,1,0,-1) ;
+// 	Point b(0,0,0,-1) ;
+// 	Point c(1,0,0,-1) ;
+// 	Point d(0,1,0,1) ;
+// 	Point e(0,0,0,1) ;
+// 	Point f(1,0,0,1) ;
 	
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
@@ -2743,24 +2741,29 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			tri = newTris ;
 		}
 // 		
+
+		TriElement * father = new TriElement(QUADRATIC) ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
 
 			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
+			double jac = std::abs(jacobianAtPoint(Point(.33333, .3333333, .333333))) ;
+			tri[i]->refresh(father) ;
 			
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			
 			for(size_t j = 0 ; j < gp_temp.gaussPoints.size() ; j++)
 			{
 				gp_temp.gaussPoints[j].first.set(vm.eval(x, gp_temp.gaussPoints[j].first), vm.eval(y, gp_temp.gaussPoints[j].first)) ;
-				gp_temp.gaussPoints[j].second *= jacobianAtPoint(gp_temp.gaussPoints[j].first) ;
+				gp_temp.gaussPoints[j].second *= jac ;
 				gp_alternative.push_back(gp_temp.gaussPoints[j]) ;
 			}
 		}
 
 		
 		delete dt ;
+		
 		if(numberOfRefinements)
 		{
 
@@ -2776,6 +2779,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;
 		
+		delete father ;
 		
 		if(gp.gaussPoints.size() < gp_alternative.size())
 		{
