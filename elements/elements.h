@@ -48,7 +48,7 @@ class ElementarySurface : public IntegrableEntity
 {
 
 protected:
-	std::valarray< Function > * shapefunc ;
+	
 	std::vector< Function > enrichfunc ;
 	std::vector< const Geometry *> enrichmentSource ;
 	Form * behaviour ;
@@ -56,17 +56,15 @@ protected:
 
 public:
 
-	ElementarySurface(bool f = false) ;
+	ElementarySurface() ;
 	virtual Function jacobian() const = 0;
 	virtual ~ElementarySurface() ;
 	virtual void clearElementaryMatrix() = 0 ;
 	virtual void print()  const = 0 ;
 	
-	bool isFather ;
-	
 	virtual bool isMoved() const = 0 ;
 	
-	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	virtual const std::valarray< Function > & getShapeFunctions() const = 0;
 
 	virtual const std::vector< size_t > getDofIds() const ;
 	
@@ -114,6 +112,8 @@ class TriElement : public Triangle, public ElementarySurface
 {
 protected :
 	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
+	std::valarray< Function > * shapefunc ;
+	bool isFather ;
 protected :
 	
 	const GaussPointArray & genGaussPoints();
@@ -126,7 +126,7 @@ public:
 	
 	TriElement( Point * p0,  Point * p1,  Point * p2) ;
 	
-	TriElement(Order order = LINEAR, bool father = true) ;
+	TriElement(Order order = LINEAR) ;
 	void refresh(const TriElement * parent) ;
 	
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
@@ -141,6 +141,8 @@ public:
 	
 	const GaussPointArray & getGaussPoints();
 	
+	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	
 	virtual bool isMoved() const;
 	
 	virtual void print() const;
@@ -152,15 +154,19 @@ public:
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
 	
-    virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return nullptr ;}
-    virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return nullptr ;}
+	virtual ~TriElement();
+	
+	virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {return nullptr ;}
+	virtual Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* get3DMesh() const {return nullptr ;}
+	
+	friend class ElementarySurface ;
 	
 } ;
 
 class ElementaryVolume : public IntegrableEntity
 {
 protected:
-	std::valarray< Function > *shapefunc ;
+	
 	std::vector< Function> enrichfunc ;
 	std::vector<Geometry *> enrichmentSource ;
 	virtual const GaussPointArray & genGaussPoints()= 0 ;
@@ -178,8 +184,6 @@ public:
 	double jacobianAtPoint(const Point & p) const ;
 	virtual ~ElementaryVolume() ;
 	
-	bool isFather ;
-	
 	virtual bool isMoved() const ;
 	
 // 	virtual const std::vector<std::pair<size_t,const Function &> > getDofs() const ;
@@ -194,7 +198,7 @@ public:
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
-	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	virtual const std::valarray< Function > & getShapeFunctions() const = 0 ;
 	virtual const Function & getShapeFunction(size_t i) const ;
 // 	virtual Function & getShapeFunction(size_t i)  ;
 	virtual const Function & getEnrichmentFunction(size_t i) const  ;
@@ -244,19 +248,21 @@ public:
 class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
+	std::valarray< Function > *shapefunc ;
 	const GaussPointArray & genGaussPoints();
+	bool isFather ;
 public:
 	bool moved;
 	GEO_DERIVED_OBJECT(Tetrahedron) ;
 	
-	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father = false) ;
-	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7, bool father = false) ;
-	TetrahedralElement(Order order = LINEAR, bool father = true);
+	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3) ;
+	TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7) ;
+	TetrahedralElement(Order order = LINEAR);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const;
-		
+	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual Vector getNonLinearForces() ;
 	
 	void refresh(const TetrahedralElement * parent);
@@ -287,13 +293,17 @@ public:
 	virtual double getdYTransform(Variable v, const Point & p) const ;
 	virtual double getdZTransform(Variable v, const Point & p) const ;
 	virtual double getdTTransform(Variable v, const Point & p) const ;
+	
+	virtual ~TetrahedralElement();
 
+	friend class ElementaryVolume ;
 } ;
 
 class HexahedralElement : public Hexahedron,  public ElementaryVolume
 {
 protected :
 	const GaussPointArray & genGaussPoints() ;
+	std::valarray< Function > *shapefunc ;
 	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 public:
 	std::vector<HexahedralElement *> neighbourhood ;
@@ -305,6 +315,7 @@ public:
 
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	
+	
 	const GaussPointArray & getGaussPoints()
 	{
 		return genGaussPoints() ;
@@ -314,6 +325,7 @@ public:
 	virtual Point inLocalCoordinates(const Point & p) const ;
 	virtual Vector getNonLinearForces() ;
 	virtual std::valarray<std::valarray<Mu::Matrix> > getNonLinearElementaryMatrix() ;
+	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	bool visited ;
 
 	virtual Function getXTransform() const ;

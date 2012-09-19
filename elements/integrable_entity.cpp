@@ -131,7 +131,7 @@ IntegrableEntity::~IntegrableEntity()
 		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
 			delete( *boundaryConditionCache )[i] ;
 	}
-
+	delete state ;
 	delete boundaryConditionCache ;
 	delete cachedGps ;
 }

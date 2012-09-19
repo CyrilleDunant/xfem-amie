@@ -18,13 +18,13 @@ using namespace Mu ;
 Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
-	this->behaviour = new VoidForm() ;
+	this->behaviour = nullptr ;
 }
 
 Sample::Sample( double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
-	this->behaviour = new VoidForm() ;
+	this->behaviour = nullptr ;
 }
 
 std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt) 

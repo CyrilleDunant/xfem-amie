@@ -449,7 +449,6 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 
 void DelaunayTree::addSharedNodes(DelaunayTree * dt)
 {
-	exit(0) ;
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
 	std::vector<DelaunayTriangle *> tris = dt->getTriangles() ;
 	

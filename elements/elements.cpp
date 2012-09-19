@@ -14,19 +14,33 @@ using namespace Mu ;
 
 ElementarySurface::~ElementarySurface()
 {
-	if(isFather)
+
+	delete behaviour ;
+}
+
+TriElement::~TriElement()
+{
+	if(isFather && shapefunc)
+	{
+		delete shapefunc ;
+		shapefunc = nullptr ;
+	}
+	delete behaviour ;
+}
+
+TetrahedralElement::~TetrahedralElement()
+{
+	if(isFather && shapefunc)
 		delete shapefunc ;
 	delete behaviour ;
 }
 
-ElementarySurface::ElementarySurface(bool f ) : isFather(f)
+ElementarySurface::ElementarySurface()
 {
-	shapefunc = nullptr ;
 	nonlinbehaviour = nullptr ;
 	behaviour = nullptr ;
 	enrichmentUpdated = true ;
 	behaviourUpdated = true ;
-	enrichmentFunctionsCompiled = false ;
 }
 
 void ElementarySurface::setOrder(Order o)
@@ -229,9 +243,6 @@ void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 const std::vector< size_t > ElementarySurface::getDofIds() const
 {
 	std::vector<size_t> ret ;
-
-	if(!shapefunc)
-		return ret ;
 
 	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
@@ -588,8 +599,9 @@ const GaussPointArray & TriElement::genGaussPoints()
 } ;
 
 
-TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1, p2), ElementarySurface(true), moved(false) 
+TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1, p2), moved(false) 
 { 
+	isFather = false ;
 	setOrder(LINEAR) ; 
 	shapefunc = nullptr ; //new std::valarray<Function>(Function(),0) ;
 /*	Matrix xi(2,2) ; xi[1][0] = 1 ;
@@ -603,8 +615,9 @@ TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1,
 	(*shapefunc)[2] = Function(xi) ;*/
 };
 	
-TriElement::TriElement(Order order_ , bool father ): ElementarySurface(father),moved(false) 
+TriElement::TriElement(Order order_ ): moved(false) 
 {
+	isFather = true ;
 	setOrder( order_ );
 	
 	switch(order_)
@@ -1209,7 +1222,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
-			fin[i].second *= this->jacobianAtPoint(fin[i].first) ;
+			fin[i].second *= jacobianAtPoint(fin[i].first) ;
 		}
 	}
 	else
@@ -1235,22 +1248,24 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	return *getCachedGaussPoints() ;
 }
 
-TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, bool father ) : Tetrahedron(p0, p1, p2, p3), ElementaryVolume(father), moved(false)
+TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3 ) : Tetrahedron(p0, p1, p2, p3), moved(false)
 {
+	isFather = false ;
 	this->order = LINEAR ;
+	shapefunc = nullptr ;
 }
 
-TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3,  Point * p4,  Point * p5,  Point * p6, Point * p7, bool father ) : Tetrahedron(p0, p1, p2, p3, p4, p5, p6, p7), ElementaryVolume(father), moved(false) 
-{	 this->order = QUADRATIC ;
-	
-}
-
-TetrahedralElement::TetrahedralElement(Order order , bool father): ElementaryVolume(father),moved(false)
+TetrahedralElement::TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3,  Point * p4,  Point * p5,  Point * p6, Point * p7 ) : Tetrahedron(p0, p1, p2, p3, p4, p5, p6, p7), moved(false) 
 {
+	isFather = false ;
+	this->order = QUADRATIC ;
+	shapefunc = nullptr ;
+}
+
+TetrahedralElement::TetrahedralElement(Order order ): moved(false)
+{
+	isFather = true ;
 	setOrder( order );
-	
-	if(!father)
-		shapefunc = nullptr ;
 	
 	if(order == LINEAR)
 	{
@@ -1678,9 +1693,9 @@ const  Function & ElementarySurface::getEnrichmentFunction(size_t i) const
 // }
 
 
-const std::valarray< Function >  & ElementarySurface::getShapeFunctions() const
+const std::valarray< Function >  & TriElement::getShapeFunctions() const
 {
-	return *this->shapefunc   ;
+	return *shapefunc   ;
 }
 
 
@@ -1812,7 +1827,7 @@ Point HexahedralElement::inLocalCoordinates(const Point& p) const
 
 const Function &  ElementarySurface::getShapeFunction(size_t i) const
 {
-	return (*shapefunc)[i] ;
+	return getShapeFunctions()[i] ;
 }
 
 void ElementarySurface::compileAndPrecalculate()
@@ -1824,7 +1839,7 @@ void ElementarySurface::compileAndPrecalculate()
 		vars.push_back(ETA) ;
 		if(order > CONSTANT_TIME_LINEAR)
 			vars.push_back(TIME_VARIABLE) ;
-		(*shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
+		(*static_cast<TriElement *>(this)->shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
 	}
 }
 
@@ -1838,7 +1853,7 @@ void ElementaryVolume::compileAndPrecalculate()
 		vars.push_back(ZETA) ;
 		if(order > CONSTANT_TIME_LINEAR)
 			vars.push_back(TIME_VARIABLE) ;
-		(*shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
+		(*static_cast<TetrahedralElement *>(this)->shapefunc)[k].preCalculate(getGaussPoints(), vars) ;
 	}
 }
 
@@ -2042,21 +2057,17 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 	return ret ;
 }
 
-ElementaryVolume::ElementaryVolume(bool f )  : isFather(f)
+ElementaryVolume::ElementaryVolume(bool f ) 
 {
 	this->behaviour = nullptr ;
 	this->nonlinbehaviour = nullptr ;
 	enrichmentUpdated = true ;
 	behaviourUpdated = true ;
-	enrichmentFunctionsCompiled = false ;
 }
 ////
 
 ElementaryVolume::~ElementaryVolume()
 {
-	if(isFather)
-		delete shapefunc ;
-
 	delete behaviour ;
 }
 
@@ -2230,7 +2241,7 @@ void ElementaryVolume::setEnrichment(const Function & p, Geometry * g)
 
 const Function& ElementaryVolume::getEnrichmentFunction(size_t i)  const
 {
-	return this->enrichfunc[i] ;
+	return enrichfunc[i] ;
 }
 
 // Function& ElementaryVolume::getEnrichmentFunction(size_t i) 
@@ -2238,9 +2249,14 @@ const Function& ElementaryVolume::getEnrichmentFunction(size_t i)  const
 // 	return this->enrichfunc[i] ;
 // }
 
-const std::valarray<Function  >  & ElementaryVolume::getShapeFunctions() const
+const std::valarray<Function  >  & TetrahedralElement::getShapeFunctions() const
 {
-	return *this->shapefunc ;
+	return *shapefunc ;
+}
+
+const std::valarray<Function  >  & HexahedralElement::getShapeFunctions() const
+{
+	return *shapefunc ;
 }
 
 bool ElementaryVolume::isMoved() const
@@ -2346,7 +2362,7 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
 
 const Function  & ElementaryVolume::getShapeFunction(size_t i) const
 {
-	return (*shapefunc)[i] ;
+	return getShapeFunctions()[i] ;
 }
 
 

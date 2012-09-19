@@ -348,16 +348,8 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 		double sinphi = renormdir*tricross ; sinphi *= sinphi ;
 		
 	
-		Vector sigman(0., s.getParent()->getBoundingPoints().size()*(3+3*(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL))) ;
-		s.getFieldAtNodes(PRINCIPAL_REAL_STRESS_FIELD, sigman) ;
-		Vector sigma(0., sigman.size()/s.getParent()->getBoundingPoints().size()) ;
-		for(int i = 0 ; i < s.getParent()->getBoundingPoints().size() ; ++i )
-		{
-			for(int j = 0 ; j <  sigma.size() ; ++j)
-			{
-				sigma[j] += sigman[i*sigma.size()+j]/s.getParent()->getBoundingPoints().size() ;
-			}
-		}
+		Vector sigma(0., s.getParent()->spaceDimensions()) ;
+		s.getAverageField(PRINCIPAL_REAL_STRESS_FIELD, sigma) ;
 		double limit = getTensileLimit(s) ;
 		if(std::abs(sigma).min() < POINT_TOLERANCE_2D)
 		{
