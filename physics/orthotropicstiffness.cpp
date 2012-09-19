@@ -30,8 +30,19 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 {
 	v.push_back(XI);
 	v.push_back(ETA);
-		if(v.size() == 2)
+	if(v.size() == 2)
 	{
+// 		for(double i = 0 ; i < 3.15 ; i +=0.01)
+// 		{
+// 			double c = cos(i) ;
+// 			double s = sin(i) ;
+// 			Matrix transform(3,3) ;
+// 			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+// 			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+// 			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// 			
+// 			std::cout << i << ", " << transform.froebeniusNorm() << std::endl ;
+// 		}
 // 		std::cout << angle << std::endl ;
 // 		angle = .4 ;
 		double c = cos(angle) ;
@@ -40,6 +51,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// 		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
 // 		Matrix test = transform.transpose()*param ;
@@ -69,6 +81,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 		transform[3][0] = lx*rx ; transform[3][1] = ly*ry ; transform[3][5] = lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+// 		transform /= transform.froebeniusNorm() ;
 		param =  transform*(param*transform.transpose()) ;
 	}
 	
@@ -95,6 +108,7 @@ nu((nu_12+nu_21)*.5)
 		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// 		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
 // 		Matrix test = transform.transpose()*param ;
@@ -124,6 +138,7 @@ nu((nu_12+nu_21)*.5)
 		transform[3][0] = lx*rx ; transform[3][1] = ly*ry ; transform[3][5] = lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+// 		transform /= transform.froebeniusNorm() ;
 		param =  transform*(param*transform.transpose()) ;
 	}
 } ;
@@ -149,6 +164,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
 // 		Matrix test = transform.transpose()*param ;
@@ -178,6 +194,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 		transform[3][0] = lx*rx ; transform[3][1] = ly*ry ; transform[3][5] = lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+// 		transform /= transform.froebeniusNorm() ;
 		param =  transform*(param*transform.transpose()) ;
 	}
 } ;
