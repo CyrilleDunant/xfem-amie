@@ -4347,8 +4347,17 @@ bool FeatureTree::stepElements()
 						elements.push_back(elementstmp[i]);
 				}
 			}
-			
-			double volume = 0;
+			if(cachedVolumes.empty())
+			{
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+						cachedVolumes.push_back(elements[i]->area()) ;
+					else
+						cachedVolumes.push_back(0.) ;
+				}
+			}
+			double volume = std::accumulate(cachedVolumes.begin(), cachedVolumes.end(), double(0)) ;
 			double previousAverageDamage = averageDamage ;
 			double adamage = 0 ;
 			if(!elastic)
@@ -4405,23 +4414,24 @@ bool FeatureTree::stepElements()
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
-					double are = elements[i]->area() ;
+					double are = cachedVolumes[i] ;
 
 					if( i % 10000 == 0 )
 						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
-						volume += are ;
 						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
 						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
 						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxScoreInit ) ;
 						if( dmodel )
 						{
-						//	if( !elements[i]->getBehaviour()->fractured() )
+							if( !elements[i]->getBehaviour()->fractured() )
+							{
 								adamage += are * dmodel->getState().max() ;
-						//	else
-						//		averageDamage += are ;
+// 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
+// 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
+							}
 						}
 						if( elements[i]->getBehaviour()->changed() )
 						{
@@ -4446,7 +4456,7 @@ bool FeatureTree::stepElements()
 						}
 					}
 				}
-				averageDamage = adamage ;
+				averageDamage = adamage/volume ;
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
@@ -4488,7 +4498,6 @@ bool FeatureTree::stepElements()
 				}
 			}
 			
-			averageDamage /= volume ;
 			if( !elastic && foundCheckPoint )
 			{
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
@@ -4544,6 +4553,7 @@ bool FeatureTree::stepElements()
 				if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
 				{
 					behaviourChange = true ;
+// 					needAssembly = true ;
 					break ;
 				}
 			}
