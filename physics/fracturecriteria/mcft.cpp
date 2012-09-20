@@ -51,40 +51,65 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	if(tstrain > tensionCritStrain )
 	{
 		
-		double downTestVal = 0 ;
-		double upTestVal = upVal ;
-		double factor = 1 ;
-		double delta_tech = strain_te-strain_ch;
-		while(std::abs(upTestVal-downTestVal) > 1e-6*upVal)
-		{
-			
-			double testVal = (upTestVal+downTestVal)*.5/(pseudoYoung) ;
-			double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
-			if(testVal < tensionCritStrain)
-				factor = 1. ;
-			else if(testVal < strain_ch)
+// 		for(double i = 0 ; i < 1 ; i+=0.001)
+// 		{
+			double downTestVal = tensionCritStrain ;
+			double upTestVal = strain_te*1.1 ;
+			double factor = 1 ;
+			double delta_tech = strain_te-strain_ch;
+			while(std::abs(upTestVal-downTestVal) > 1e-12*tensionCritStrain)
+			{
+				
+				double testVal = (upTestVal+downTestVal)*.5 ;
+				double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
+
 				factor = mainCurve ;
-			else if(testVal < strain_te)
-				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-			else
+
+				if( testVal > upVal*factor/pseudoYoung )
+					upTestVal = testVal ;
+				else
+					downTestVal = testVal ;
+			}
+			
+			if((upTestVal+downTestVal)*.5 > strain_ch)
+			{
+				downTestVal = strain_ch ;
+				upTestVal = strain_te*1.1 ;
+				factor = 1 ;
+				delta_tech = strain_te-strain_ch;
+				while(std::abs(upTestVal-downTestVal) > 1e-12*tensionCritStrain)
+				{
+					double testVal = (upTestVal+downTestVal)*.5 ;
+					double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
+
+					factor = mainCurve*(strain_te-testVal)/delta_tech ;
+				
+					if( testVal > upVal*factor/pseudoYoung )
+						upTestVal = testVal ;
+					else
+						downTestVal = testVal ;
+				}
+			}
+			
+			if((upTestVal+downTestVal)*.5 > strain_te)
 				factor = 0 ;
 		
-			if( testVal*pseudoYoung > upVal*factor )
-				upTestVal = testVal*pseudoYoung ;
-			else
-				downTestVal = testVal*pseudoYoung ;
-		}
 		
+// 			std::cout << i << "  " << (upTestVal+downTestVal)*.5 << std::endl ;
+			maxTensionStrain = (upTestVal+downTestVal)*.5 ;
+			
 		
-		maxTensionStrain = (upTestVal+downTestVal)*.5/(pseudoYoung) ;
-		if(factor < POINT_TOLERANCE_2D)
-			return POINT_TOLERANCE_2D ;
+			if(factor < POINT_TOLERANCE_2D)
+				return POINT_TOLERANCE_2D ;
+			
+// 		}
+// 		exit(0) ;
 	}
 	
 	double criterion = 0 ;
   if(maxTensionStrain > POINT_TOLERANCE_2D)
-		criterion = std::abs(tstrain/maxTensionStrain) ;
-	
+		criterion = std::abs(tstress/(maxTensionStrain*pseudoYoung)) ;
+		
 	if(criterion >= 1)
 	{
 		return 1.-1./criterion ;
