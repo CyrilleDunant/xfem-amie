@@ -983,11 +983,19 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
 
 		VirtualMachine vm ;
-		TriElement father(order) ;
+		TriElement * father = nullptr ;
+
+		std::valarray<Function> * functions = shapefunc ;
+		if(!shapefunc)
+		{
+			father = new TriElement(order) ;
+			functions = father->shapefunc ;
+		}
+		
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
+			double dxi = vm.deval((*functions)[i], XI, p) ;
+			double deta = vm.deval((*functions)[i], ETA, p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
@@ -998,6 +1006,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ;
 		invert2x2Matrix(ret) ;
+		delete father ;
 //		ret.print() ;
 //		exit(0) ;
 	}
@@ -2445,13 +2454,21 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
 		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
 		VirtualMachine vm ;
-		TetrahedralElement father(order) ;
+		TetrahedralElement * father = nullptr ;
+
+		std::valarray<Function> * functions = shapefunc ;
+		if(!shapefunc)
+		{
+			father = new TetrahedralElement(order) ;
+			functions = father->shapefunc ;
+		}
+		
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
 // 			std::cout << i << "  "<< shapefunc << std::endl ;
-			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
-			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p) ;
+			double dxi = vm.deval((*functions)[i], XI, p) ;
+			double deta = vm.deval((*functions)[i], ETA, p) ;
+			double dzeta = vm.deval((*functions)[i], ZETA, p) ;
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
 			zdxi += dxi*getBoundingPoint(i).z ;
@@ -2469,6 +2486,7 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ;
 		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ;
 		invert3x3Matrix(ret) ;
+		delete father ;
 	}
 	else
 	{
