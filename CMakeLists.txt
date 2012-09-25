@@ -68,6 +68,7 @@ physics/damagemodels/damageindexeddamage.cpp
 physics/damagemodels/rotatingcrack.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
+physics/mass.cpp 
 physics/laplacian.cpp 
 physics/dual_behaviour.cpp 
 physics/generalized_spacetime_viscoelasticity.cpp 
