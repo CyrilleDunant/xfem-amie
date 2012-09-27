@@ -46,11 +46,12 @@ namespace Mu
 			Mesh() {} ;
 			virtual ~Mesh() {} ;
 			virtual std::vector<ETYPE *> getElements() = 0;
-			virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) const = 0;
-			virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const = 0;
+			virtual std::vector<ETYPE *> getConflictingElements(const Point  * p)  = 0;
+			virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) = 0;
 			
 			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g) const
 			{
+				
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;
 				found.insert(start) ;
@@ -89,7 +90,7 @@ namespace Mu
 				return ret ;
 			}
 
-			virtual ETYPE * getUniqueConflictingElement(const Point  * p) const
+			virtual ETYPE * getUniqueConflictingElement(const Point  * p) 
 			{
 				std::vector<ETYPE *> elements = getConflictingElements(p) ;
 				for(size_t i = 0 ; i < elements.size() ; i++)
@@ -106,7 +107,7 @@ namespace Mu
 			template <class ETARGETTYPE>
 			/** \brief Return the displacements in source mesh projected on current mesh. 
 			*/
-			void project(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
+			void project( Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
 			{
 				if(cache.find(mesh) == cache.end())
 				{
@@ -452,7 +453,7 @@ namespace Mu
 			ret.push_back(element) ; 
 			return ret ; 
 		}
-		virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) const
+		virtual std::vector<ETYPE *> getConflictingElements(const Point  * p) 
 		{
 			std::vector<ETYPE *> ret ; 
 			if(element->in(*p))	
@@ -465,7 +466,7 @@ namespace Mu
 		virtual std::vector<Point * > & getAdditionalPoints() {return points ; };
 		virtual const std::vector<Point * > & getAdditionalPoints() const { return points ;};
 		
-		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) const
+		virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) 
 		{
 			std::vector<ETYPE *> ret ; 
 			if(element->intersects(g) || g->in(element->getCenter()) || element->in(g->getCenter()))

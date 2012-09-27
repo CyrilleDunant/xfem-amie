@@ -2993,7 +2993,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 1;
+	size_t numberOfRefinements = 3;
 
 	VirtualMachine vm ;
 
@@ -3004,7 +3004,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		std::vector<std::pair<Point, double> > gp_alternative ;
 
-		if( true )
+		if( false )
 		{
 			TetrahedralElement father(LINEAR) ;
 			double npoints = 256 ;
@@ -3159,7 +3159,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		}
 
 		tri = dt->getTetrahedrons( false ) ;
-		double jac = volume() *6. ;
+		double jac = volume() * 6. ;
 
 		for( size_t i = 0 ; i < tri.size() ; i++ )
 		{

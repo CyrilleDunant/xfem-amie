@@ -62,8 +62,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-	double propagationAngleFromTip(const std::pair< Mu::Point*, double >& tip, const Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree) ;
-	std::pair<double, double> computeJIntegralAtTip ( std::pair< Mu::Point*, double >& tip, const Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree ) ;
+	double propagationAngleFromTip(const std::pair< Mu::Point*, double >& tip,  Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree) ;
+	std::pair<double, double> computeJIntegralAtTip ( std::pair< Mu::Point*, double >& tip,  Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree ) ;
 	std::set<Point *> donePoints ;
 	
 	bool scorePropagation ; 
@@ -189,7 +189,7 @@ public:
 * @param tree Element tree
 *
 */
-	virtual void step(double dt , Vector* v, const Mesh<DelaunayTriangle, DelaunayTreeItem>* tree) ;
+	virtual void step(double dt , Vector* v, Mesh<DelaunayTriangle, DelaunayTreeItem>* tree) ;
 
 /** \brief if the crack grew this simulation step, return true*/
 	virtual bool moved() const ;

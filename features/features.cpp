@@ -1487,6 +1487,61 @@ void FeatureTree::setSamplingNumber( size_t news )
 
 }
 
+void FeatureTree::quadTreeRefine(const Geometry * location)
+{
+	if(location->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+	{
+		std::vector<DelaunayTriangle *> conflictingElements = dtree->getConflictingElements(location) ;
+		std::vector<Point> pointsToAdd ;
+		for(size_t i = 0 ; i < conflictingElements.size() ; i++)
+		{
+// 			conflictingElements[i]->print() ;
+			Point a = *conflictingElements[i]->first*.5+*conflictingElements[i]->second*.5 ;
+			Point b = *conflictingElements[i]->first*.5+*conflictingElements[i]->third*.5 ;
+			Point c = *conflictingElements[i]->third*.5+*conflictingElements[i]->second*.5 ;
+			
+			bool uniquea = true ;
+			bool uniqueb = true ;
+			bool uniquec = true ;
+			for(size_t j = 0 ; j < pointsToAdd.size() ; j++)
+			{
+				if(uniquea && dist(a, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+				{
+					uniquea = false ;
+				}
+				if(uniqueb && dist(b, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+				{
+					uniqueb = false ;
+				}
+				if(uniquec && dist(c, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+				{
+					uniquec = false ;
+				}
+				if(!uniquea && !uniqueb && !uniquec)
+					break ;
+			}
+			
+			if(uniquea)
+				pointsToAdd.push_back(a);
+			if(uniqueb)
+				pointsToAdd.push_back(b);
+			if(uniquec)
+				pointsToAdd.push_back(c);
+		}
+		
+		for(size_t i = 0 ; i < pointsToAdd.size() ; i++)
+		{
+			additionalPoints.push_back(new Point(pointsToAdd[i]));
+			for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
+			{
+				j->second->insert(additionalPoints.back()) ;
+			}
+		}
+		
+	}
+}
+
+
 void FeatureTree::duplicate2DMeshPoints()
 {
 	std::map<Point *, Point *> oldNew ;
@@ -1645,7 +1700,8 @@ void FeatureTree::sample()
 					correctionfactor = samplingFactors[tree[i]] ;
 					npoints = ( size_t )round(correctionfactor*npoints) ;
 				}
-				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+				
+				if(/* npoints >= 8 &&*/ !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
 				{
 					count++ ;
 					tree[i]->sample( npoints ) ;
@@ -6128,6 +6184,9 @@ void FeatureTree::generateElements()
 
 		std::cerr << " ...done." << std::endl ;
 
+		for(size_t i = 0 ; i < refinementZones.size() ; i++)
+			quadTreeRefine(refinementZones[i]) ;
+		
 		if( oldDtree )
 		{
 			setElementBehavioursFromMesh<Mesh<DelaunayTriangle, DelaunayTreeItem>, DelaunayTriangle>( oldDtree, dtree ) ;

@@ -206,8 +206,8 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	if(fractured())
 		return m *0 ;
 	
-	double E_0 = factor*E*(1.-nu) ;
-	double E_1 = factor*E*(1.-nu) ;
+	double E_0 = E*(1.-nu) ;
+	double E_1 = E*(1.-nu) ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
 	if(!firstTension)
@@ -231,9 +231,9 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+																E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
 																nu * ( 1. -  getState().max()), 
-																currentAngle ).getTensor( Point() ) ;
+																currentAngle ).getTensor( Point() )*factor ;
 
 
 }
@@ -413,7 +413,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 			{
 				range[1] = getState()[1] ;
 			}
-			else if(firstTension && !firstCompressionFailure)
+			else if( !firstTension && !firstCompressionFailure)
 			{
 				range[0] = getState()[0] ;
 			}

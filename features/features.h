@@ -124,6 +124,9 @@ protected:
 	Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree ;
 	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree3D ;
 	
+	std::vector<const Geometry * > refinementZones ;
+	void quadTreeRefine(const Geometry * location) ;
+	
 	std::map<int, Mesh<DelaunayTriangle, DelaunayTreeItem> *> layer2d ;
 	std::map<int, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> layer3d ;
 	
@@ -228,7 +231,7 @@ protected:
 	void assemble() ;
 	
 	template<class MTYPE, class ETYPE>
-	void setElementBehavioursFromMesh( const MTYPE * source, MTYPE * destination)
+	void setElementBehavioursFromMesh( MTYPE * source, MTYPE * destination)
 	{
 		std::cout << "setting element behaviours from previous mesh... " << std::flush ;
 		std::vector<ETYPE * > elems = destination->getElements() ;
@@ -330,6 +333,11 @@ public:
 	void print() const;
 	void printForFeature(const Feature *f) const;
 	void reMesh() ;
+	
+	void addRefinementZone(const Geometry * geo)
+	{
+		refinementZones.push_back(geo);
+	}
 	
 	bool hasLayers() const 
 	{

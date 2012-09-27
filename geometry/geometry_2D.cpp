@@ -1270,7 +1270,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
   //	assert(num_points%4 == 0) ;
 	double perimeter = 2*(size_x+size_y) ;
 	
-	double distanceBetweenPoints = perimeter/num_points ;
+	double distanceBetweenPoints = std::min(std::min(perimeter/num_points, size_x),size_y) ;
 	
 	this->numberOfPointsAlongX = static_cast<size_t>(std::ceil(size_x/distanceBetweenPoints) + 1);
 	double distanceBetweenPointsAlongX = size_x/(this->numberOfPointsAlongX-1) ;

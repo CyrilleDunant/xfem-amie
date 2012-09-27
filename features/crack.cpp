@@ -241,7 +241,7 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 
 }
 
-double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> & tip, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	double acount = 0 ;
 	double aangle = 0 ;
@@ -318,7 +318,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	return aangle ;
 }
 
-std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
+std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point *, double> & tip, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
 {
 	Point direction ( cos(tip.second), sin(tip.second)) ;
 	Segment tipSegment ( *(tip.first) , direction) ;
@@ -1444,7 +1444,7 @@ void BranchedCrack::setEnergyPropagationMethod()
 	scorePropagation = false ;
 }
 
-void BranchedCrack::step(double dt, Vector* v, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
+void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
 	changed = false ;
 	std::vector<Point *> tipsToGrow ; 

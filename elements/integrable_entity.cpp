@@ -1224,6 +1224,127 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 	}
 }
 
+void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy) 
+{
+	GaussPointArray gp = parent->getGaussPoints() ;
+	ret = 0 ;
+	double total = 0 ;
+	
+	if(f == STRAIN_FIELD && (f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD))
+	{
+		if( strainAtGaussPoints.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+			{
+				strainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				stressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+			}
+			else
+			{
+				strainAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
+				stressAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
+			}
+			
+
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				Vector tmp(strainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				Vector tmp_(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				getField(f,f_, gp.gaussPoints[i].first, tmp, tmp_, true, i) ;
+				for(size_t j = 0 ; j < strainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+				{
+					strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					stressAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
+				}
+				ret += tmp*gp.gaussPoints[i].second ;
+				ret_ += tmp_*gp.gaussPoints[i].second ;
+				total += gp.gaussPoints[i].second ;
+			}
+			ret /= total ;
+			ret_ /= total ;
+			return ;
+		}
+		else
+		{
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				Vector tmp(strainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				Vector tmp_(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				for(size_t j = 0 ; j < strainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+				{
+					tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					tmp_[j] = stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+				}
+				ret += tmp*gp.gaussPoints[i].second ;
+				ret_ += tmp_*gp.gaussPoints[i].second ;
+				total += gp.gaussPoints[i].second ;
+			}
+			ret /= total ;
+			ret_ /= total ;
+			return ;
+		}
+	}
+	if(f == PRINCIPAL_STRAIN_FIELD && (f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD))
+	{
+		if( pstrainAtGaussPoints.size() == 0 )
+		{
+			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+			{
+				pstrainAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
+				pstressAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
+			}
+			else
+			{
+				pstrainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+				pstressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
+			}
+// 				std::cout << "plouf" << std::endl ;
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				Vector tmp_(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				getField(f,f_, gp.gaussPoints[i].first, tmp,tmp_, true, i) ;
+				for(size_t j = 0 ; j < pstrainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+				{
+					pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
+					pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
+				}
+// 					gp.gaussPoints[i].first.print() ;
+				ret += tmp*gp.gaussPoints[i].second ;
+				ret_ += tmp_*gp.gaussPoints[i].second ;
+				total += gp.gaussPoints[i].second ;
+				
+			}
+// 				std::cout << total << std::endl ;;
+			ret /= total ;
+			ret_ /= total ;
+			return ;
+		}
+		else
+		{
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				Vector tmp_(pstressAtGaussPoints.size()/gp.gaussPoints.size()) ;
+				for(size_t j = 0 ; j < pstrainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
+				{
+					tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j];
+					tmp_[j] = pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j];
+				}
+				ret += tmp*gp.gaussPoints[i].second ;
+				ret_ += tmp_*gp.gaussPoints[i].second ;
+				total += gp.gaussPoints[i].second ;
+			}
+			ret /= total ;
+			ret_ /= total ;
+			return ;
+		}
+	}
+
+	getAverageField(f, ret, dummy) ;
+	getAverageField(f_, ret_, dummy);
+	
+}
 
 
 void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 

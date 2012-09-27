@@ -163,6 +163,7 @@ std::vector< double > displacements ;
 std::vector< double > loadsx ;
 std::vector< double > displacementsx ;
 std::vector< double > damages ;
+std::vector< double > cmod ;
 Vector fracCrit(0) ;
 
 Vector b(0) ;
@@ -178,10 +179,13 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(-.1800*.5*.25, .0700*.5), 0.) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadt = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(.1800*.5*.25, .0700*.5), 0.) ;
+
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+// BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,1e4) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
+// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
 // BoundingBoxDefinedBoundaryCondition * loadl = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_ETA, TOP, Point(0., 1.2), 0) ;
@@ -192,6 +196,9 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
+
+MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
+MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
 void step(size_t nsteps)
 {
@@ -218,7 +225,8 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()+1e-6) ;
+			loadt->setData(loadt->getData()-1e-7) ;
+			loadr->setData(loadr->getData()-1e-7) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -266,6 +274,8 @@ void step(size_t nsteps)
 		double avg_s_yy_nogel = 0;
 		double avg_s_xy_nogel = 0;
 		double nogel_area = 0 ;
+		double leftDisp = 0;
+		double rightDisp = 0 ;
 		int tsize = 0 ;
 		std::vector< std::pair<double, double> > pos_strain ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
@@ -288,6 +298,19 @@ void step(size_t nsteps)
 					pos_strain.push_back(std::make_pair( triangles[k]->getCenter().x , stra[0] )) ;
 				}
 			}
+			if(dist(triangles[k]->getCenter(), Point(-0.0025*.5, -.0700)) < 1.5*triangles[k]->getRadius())
+			{
+				Vector tmpd(2) ;
+				triangles[k]->getState().getField(DISPLACEMENT_FIELD, triangles[k]->getCenter(),tmpd, false) ;
+				leftDisp = tmpd[0] ;
+			}
+			if(dist(triangles[k]->getCenter(), Point(0.0025*.5, -.0700)) < 1.5*triangles[k]->getRadius())
+			{
+				Vector tmpd(2) ;
+				triangles[k]->getState().getField(DISPLACEMENT_FIELD,triangles[k]->getCenter(),tmpd, false) ;
+				rightDisp = tmpd[0] ;
+			}
+			
 			for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 			{
 				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -419,7 +442,7 @@ void step(size_t nsteps)
 			displacementsx.push_back(1e6*avg_e_xx/area);
 			loadsx.push_back((avg_s_xx/area)/1e6);
 			damages.push_back(featureTree->averageDamage);
-			
+			cmod.push_back(rightDisp-leftDisp);
 		}
 		if(v%5 == 0 || true)
 		{
@@ -463,7 +486,7 @@ void step(size_t nsteps)
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << "\n" ;
+			ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << "  " << cmod[j] << "\n" ;
 		}
 		ldfile.close();
 		
@@ -476,30 +499,30 @@ void step(size_t nsteps)
 		}
 		strfile.close();
 		
-		if(true)
+		if ( true )
 		{
-			std::stringstream filename ;
-			if(dit >= dsteps)
-				filename << "intermediate-" ;
-			
-			filename << "triangles-" ;
-			filename << round(appliedForce*1e9) ;
-			
-	// 		filename.append(itoa(totit++, 10)) ;
-	// 		std::cout << filename.str() << std::endl ;
-
-			TriangleWriter writer(filename.str(), featureTree) ;
-			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
-			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField(TWFT_CRITERION) ;
-			writer.getField(TWFT_STIFFNESS) ;
-			writer.getField(TWFT_IMPOSED_STRESS_NORM) ;
-			writer.getField(TWFT_DAMAGE) ;
-			writer.write() ;
+			writer.reset( featureTree ) ;
+			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writer.getField( TWFT_CRITERION ) ;
+			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
+			writer.getField( TWFT_STIFFNESS_X ) ;
+			writer.getField( TWFT_STIFFNESS_Y ) ;
+			writer.getField( TWFT_DAMAGE ) ;
+			writer.append() ;
 		}
-		
-		if(!go_on)
-			break ;
+		if(go_on)
+		{
+			writerc.reset( featureTree ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writerc.getField( TWFT_CRITERION ) ;
+			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
+			writerc.getField( TWFT_STIFFNESS_X ) ;
+			writerc.getField( TWFT_STIFFNESS_Y ) ;
+			writerc.getField( TWFT_DAMAGE ) ;
+			writerc.append() ;
+		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
 
@@ -1488,7 +1511,9 @@ int main(int argc, char *argv[])
 	box.setBehaviour(new VoidForm()) ;  
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
-	Sample samplef(.1200, .1200, 0., 0.) ;
+// 	Sample samplef(.1200, .1200, 0., 0.) ;
+	Sample samplef(.1800, .0700, 0., 0.) ;
+	Sample notch(.0025, .0701, 0., -.0700*.5) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1518,7 +1543,8 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-		samplef.setBehaviour(new ConcreteBehaviour()) ;
+		samplef.setBehaviour(new AggregateBehaviour()) ;
+		notch.setBehaviour(new VoidForm());
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
 // 		samplef.setBehaviour(new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ,new NonLocalVonMises(20e6, E_paste, mradius), new NullDamage())) ;
@@ -1531,6 +1557,7 @@ int main(int argc, char *argv[])
 	
 		
 	FeatureTree F(&samplef) ;
+	F.addFeature(&samplef,&notch);
 	featureTree = &F ;
 	Inclusion inc(samplef.height()*.05, 0, 0) ;
 // 	F.addFeature(&samplef, &inc);
@@ -1571,16 +1598,28 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(loadt);
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-.1800*.5*.5, -.0700*.5))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-.1800*.5*.5, -.0700*.5))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(.1800*.5*.5, -.0700*.5))) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
+	
+	F.addRefinementZone(new Rectangle(0.03, .0700*.5, 0., .0700*.5*.5)) ;
+	F.addRefinementZone(new Rectangle(0.015, .0700*.5, 0., .0700*.5*.5)) ;
+	F.addRefinementZone(new Rectangle(0.0075, .0700*.5, 0., .0700*.5*.5)) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(200000);
+	F.setMaxIterationsPerStep(1200);
+	F.addPoint(new Point(-.1800*.5*.5, -.0700*.5)) ;
+	F.addPoint(new Point(.1800*.5*.5, -.0700*.5)) ;
+	F.addPoint(new Point(-.1800*.5*.25, .0700*.5)) ;
+	F.addPoint(new Point(.1800*.5*.25, .0700*.5)) ;
+	
+	
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	

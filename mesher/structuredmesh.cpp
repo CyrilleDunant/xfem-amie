@@ -105,7 +105,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 		triangles.push_back( static_cast<DelaunayTriangle *>(tree[i])) ;
 	return triangles ;
 }
-std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) const
+std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	double startX = grid.getX()*.5-grid.getCenter().x + p->x ;
@@ -147,7 +147,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 	ret.erase(e, ret.end()) ;
 	return ret ;
 }
-std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * geo) const
+std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * geo) 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	double startX = grid.getX()*.5-grid.getCenter().x + geo->getCenter().x-2.*geo->getRadius() ;

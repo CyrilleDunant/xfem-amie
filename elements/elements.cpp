@@ -41,11 +41,12 @@ ElementarySurface::ElementarySurface()
 	behaviour = nullptr ;
 	enrichmentUpdated = true ;
 	behaviourUpdated = true ;
+	cachedGps = nullptr ;
 }
 
 void ElementarySurface::setOrder(Order o)
 {
-	
+
 	order = o ;
 
 	switch(order)

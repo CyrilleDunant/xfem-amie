@@ -238,6 +238,11 @@ void DamageModel::step( ElementState &s , double maxscore)
 				state[i] = std::min(state[i], 1.) ;
 
 			trialRatio = 0 ;
+// 			std::cout << "case green"<<error << std::endl ;
+// 			for(size_t i = 0 ; i < states.size() ; i++ )
+// 			{
+// 				states[i].print();
+// 			}
 // 			if(states.size() < 10)
 // 			{
 // 				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
@@ -250,6 +255,12 @@ void DamageModel::step( ElementState &s , double maxscore)
 		}
 		else if(states.size() > 32)
 		{
+// 			std::cout << "case red"<<error << std::endl ;
+// 			for(size_t i = 0 ; i < states.size() ; i++ )
+// 			{
+// 				states[i].print();
+// 			}
+			
 			double minscoreRatio = states[0].fraction ;
 			double mindeltaRatio = states[0].fraction ;
 			double minscore =  states[0].score ;

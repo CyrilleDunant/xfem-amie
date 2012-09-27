@@ -610,26 +610,6 @@ void step()
 		ldfile.close();
 		if ( true )
 		{
-// 			std::stringstream filename ;
-// 			if(dit >= dsteps)
-// 				filename << "intermediate-" ;
-//
-// 			filename << "triangles-" ;
-// 			filename << round(appliedForce) ;
-// 			filename << "-" ;
-// 			filename << 1000.*e_xx/(double)ex_count ;
-//
-// 	// 		filename.append(itoa(totit++, 10)) ;
-// 	// 		std::cout << filename.str() << std::endl ;
-//
-// 			TriangleWriter writer(filename.str(), featureTree) ;
-// 			writer.getField(TWFT_PRINCIPAL_STRESS ) ;
-// 			writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-// 			writer.getField(TWFT_CRITERION) ;
-// 			writer.getField(TWFT_STIFFNESS) ;
-// 			writer.getField(TWFT_DAMAGE) ;
-// 			writer.write() ;
-
 			writer.reset( featureTree ) ;
 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
@@ -1869,8 +1849,8 @@ int main( int argc, char *argv[] )
 
 		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
 		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-// 		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-// 		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;
@@ -1880,8 +1860,8 @@ int main( int argc, char *argv[] )
 	{
 		F.addFeature( &samplebulk, &rebar0, rebarlayer, phi ) ;
 		F.addFeature( &samplebulk, &rebar1, rebarlayer, phi ) ;
-// 		F.addFeature( &samplebulk, &rebar2, rebarlayer, phi ) ;
-// 		F.addFeature( &samplebulk, &rebar3, rebarlayer, phi ) ;
+		F.addFeature( &samplebulk, &rebar2, rebarlayer, phi ) ;
+		F.addFeature( &samplebulk, &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;
@@ -1896,7 +1876,7 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar2, 3 ) ;
 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
-	F.setOrder( LINEAR ) ;
+	F.setOrder( QUADRATIC ) ;
 
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;

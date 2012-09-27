@@ -401,7 +401,8 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
 	if(maxStrain < limitystrain)
 		tfactor = 1. ;
 	
-	double  upStrain = tfactor*upVal/effectiveStiffness ;
+	double  upStrain = tfactor*upVal ;
+	maxStrain *= effectiveStiffness ;
 	std::vector<double> scores ;
 	scores.push_back(-1);
 	if( maxStrain >= upStrain )

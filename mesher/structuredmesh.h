@@ -21,8 +21,8 @@ namespace Mu
 		StructuredMesh(double sizeX, double sizeY, int div, const Point & center ) ;
 		virtual ~StructuredMesh() ;
 		virtual std::vector<DelaunayTriangle *> getElements();
-		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) const;
-		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) const;
+		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;
+		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 		virtual std::vector<Point * > & getAdditionalPoints(){ return points ;} ;
 		virtual const std::vector<Point * > & getAdditionalPoints() const {return points ;} ;
 		virtual void setElementOrder(Order o, double dt = 0);

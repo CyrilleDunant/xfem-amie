@@ -80,7 +80,7 @@ bool DelaunayDemiPlane::isConflicting(const Geometry * g) const
 
 bool DelaunayTreeItem::isConflicting(const Geometry * g) const
 {
-	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second)  ;
+	return inCircumCircle(g->getCenter()) || g->in(*first) || g->in(*second) || (isTriangle && g->in(*third)) ;
 }
 
 
@@ -2226,8 +2226,9 @@ std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
 }
 
 
-std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) const
+std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g) 
 {
+	getTriangles(true) ;
 	std::vector<DelaunayTreeItem *> cons = this->conflicts(&g->getCenter()) ;
 	DelaunayTriangle * origin = nullptr ;
 	for(size_t i = 0 ; i < cons.size() ; i++)

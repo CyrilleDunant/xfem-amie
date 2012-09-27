@@ -336,7 +336,7 @@ public:
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ;};
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
-	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Mu::Point* p) const
+	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Mu::Point* p) 
 	{
 		std::vector< DelaunayTreeItem* > targets = conflicts(p) ;
 		std::vector<DelaunayTriangle*> ret ;
@@ -347,7 +347,7 @@ public:
 		}
 		return ret ;
 	};
-	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Geometry* g) const
+	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Geometry* g) 
 	{
 		return conflicts(g) ;
 	}
@@ -389,7 +389,7 @@ public:
 	 * @param g test geometry.
 	 * @return all the triangles for which at least one node is in the geometry.
 	 */
-	std::vector<DelaunayTriangle *> conflicts( const Geometry *g) const ;
+	std::vector<DelaunayTriangle *> conflicts( const Geometry *g)  ;
 	
 	
 	/** \brief  Find the boundaries of the triangulation
