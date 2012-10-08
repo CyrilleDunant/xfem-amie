@@ -200,6 +200,19 @@ class TimeContinuityBoundaryCondition : public BoundaryCondition
 		
 } ;
 
+class GlobalForceBoundaryCondition : public BoundaryCondition
+{
+	protected:
+		Vector dataVector ;
+
+	public:
+		GlobalForceBoundaryCondition(Vector & data) ;
+
+		void setDataVector(Vector & d) ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
+
 
 } ;
 

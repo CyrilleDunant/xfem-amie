@@ -3317,3 +3317,23 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 }
 
 
+GlobalForceBoundaryCondition::GlobalForceBoundaryCondition( Vector & data) : BoundaryCondition( SET_FORCE_XI, 0., 0 )
+{
+	dataVector = data ;
+}
+
+void GlobalForceBoundaryCondition::setDataVector( Vector & data)
+{
+	dataVector = data ;
+}
+
+void GlobalForceBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) 
+{
+	a->addForceVector(dataVector) ;
+}
+
+void GlobalForceBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  
+{
+	a->addForceVector(dataVector) ;
+}
+

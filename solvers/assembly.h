@@ -65,7 +65,8 @@ typedef enum
 	SET_STRESS_ETA_ZETA,
 	VERTICAL_PLANE_SECTIONS,
 	HORIZONTAL_PLANE_SECTIONS,
-	nullptr_CONDITION
+	nullptr_CONDITION,
+	SET_GLOBAL_FORCE_VECTOR,
 } LagrangeMultiplierType ;
 
 /** \brief Abstract representation of a Boundary condition. Can be an actual Lagrange Multiplier, or a hint for set displacements or forces.*/
@@ -375,6 +376,8 @@ public:
 	 * @param l Multiplier to add
 	 */
 	void addMultiplier(const LagrangeMultiplier & l) ;
+
+	void addForceVector(const Vector & v) ;
 
 /** \brief set boundary condition. Point with ID id has 0 displacement along prescribed axis*/
 	void fixPoint(size_t id, Mu::Variable v) ;

@@ -459,6 +459,10 @@ void Assembly::setBoundaryConditions()
 		{		  
 			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
+		else if(multipliers[i].type == SET_GLOBAL_FORCE_VECTOR)
+		{
+			this->externalForces += multipliers[i].coefs ;
+		}
 
 	}
 
@@ -998,6 +1002,7 @@ void Assembly::setPoint(double ex, double ey, size_t id)
 	return ;
 }
 
+
 void Assembly::setPoint(double ex, double ey, double ez, size_t id)
 {
 	setSpaceDimension(SPACE_THREE_DIMENSIONAL) ;
@@ -1135,6 +1140,15 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 	
 	return ;
 }
+
+void Mu::Assembly::addForceVector(const Vector & v)
+{
+	std::valarray<unsigned int> i(2) ;
+	multipliers.push_back( LagrangeMultiplier(i, v, 0., -1) ) ;
+	multipliers.back().type = SET_GLOBAL_FORCE_VECTOR ;
+}
+
+
 void Assembly::addForceOn(Variable v, double val, size_t id)
 {
 	std::valarray<unsigned int> i(2) ;
@@ -1308,7 +1322,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
  		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(x0, nullptr, 1e-10, -1, verbose) ;
+		ret = cg.solve(x0, nullptr, 1e-18, -1, verbose) ;
 // 		ret = false ;
 		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
