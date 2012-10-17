@@ -105,6 +105,7 @@ double placed_area = 0 ;
 double stress = 15e6 ;
 
 Sample sample(nullptr, 0.07, 0.07, 0.0, 0.0) ;
+Sample placing(nullptr, 0.08, 0.08, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -210,11 +211,11 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber)
 {
 
-	int nsteps = 20;
+	int nsteps = 1;
 	int nstepstot = 20;
 	int maxtries = 400 ;
 	int tries = 0 ;
-	featureTree->setMaxIterationsPerStep(4200) ;
+	featureTree->setMaxIterationsPerStep(40000) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
@@ -510,8 +511,8 @@ void step(GeometryType ref, int samplingNumber)
 		std::cout << filename << std::endl ;
 
 		TriangleWriter writer(filename, featureTree) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-		writer.getField(TWFT_VON_MISES) ;
+//		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+//		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
@@ -691,6 +692,62 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	std::cout << "initial Reacted Area = " << M_PI*radius*radius*ret.size() << " in "<< ret.size() << " zones"<< std::endl ;
 	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
 	return ret ;	
+}
+
+void generatePoresHomogeneously(int n, int max, std::vector<Inclusion * > & incs , Sample & b, FeatureTree & F)
+{
+	RandomNumber gen ;
+	double radius = 0.0005 ;
+	VoidForm * v = new VoidForm() ;
+	
+	std::vector<Inclusion *> poresToPlace ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		double w = sample.width()*0.5 ;
+		double h = sample.height()*0.5 ;
+		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		pos += sample.getCenter() ;
+		bool alone  = true ;
+		for(size_t j = 0 ; j< poresToPlace.size() ; j++)
+		{
+			if (squareDist(pos, poresToPlace[j]->Circle::getCenter()) < (radius*radius*100))
+			{
+				alone = false ;
+				break ;
+			}
+		}
+		if (alone)
+			poresToPlace.push_back(new Inclusion(nullptr, radius, pos.x, pos.y)) ;
+	}
+
+
+	size_t count = 0 ;
+	for(size_t i = 0 ; i < poresToPlace.size() ; i++)
+	{
+		bool in = false ;
+		for(int j = 0 ; j < incs.size() ; j++)
+		{
+			Circle circle(incs[j]->getRadius() + radius*3, incs[j]->getCenter()) ;
+			if(circle.in(poresToPlace[i]->getCenter()))
+			{
+				in = true ;
+				break ;
+			}
+		}
+		if(!in)
+		{
+			poresToPlace[i]->setBehaviour(v) ;
+			F.addFeature(&b, poresToPlace[i]) ;
+		} 
+
+
+		if(count == max)
+			return ;
+	}
+
+
+	
 }
 
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<EllipsoidalInclusion * > & incs , FeatureTree & F)
@@ -1154,7 +1211,7 @@ int main(int argc, char *argv[])
 	double itzSize = 0.000000005;
  	int inclusionNumber = 200 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,2) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,4000) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1166,13 +1223,9 @@ int main(int argc, char *argv[])
 		c_area += inclusions[i]->area() ;
 	}
 	
-	inclusions.clear() ;
+//	inclusions.clear() ;
 	int nAgg = 1 ;
-	srand(0) ;
-	feats = placement(sample.getPrimitive(), feats, &nAgg, 0, 16000);
-	
-	for(size_t i = 0; i < feats.size() ; i++)
-		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+	srand(20) ;
 
 	if(reference != CIRCLE)
 	{
@@ -1183,10 +1236,16 @@ int main(int argc, char *argv[])
 		if(reference == ELLIPSE)
 		{
 			cnv.setAspectRatio(0.5) ;
-			cnv.setOrientation(new UniformDistribution(M_PI)) ;
+			cnv.setOrientation(new UniformDistribution(-M_PI*0.1,M_PI*0.1)) ;
 		}
 		feats = cnv.convert(inclusions) ;
 	}
+
+	feats = placement(placing.getPrimitive(), feats, &nAgg, 0, 16000);
+	
+//	for(size_t i = 0; i < feats.size() ; i++)
+//		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+
 
 	std::vector<EllipsoidalInclusion *> ellinc ;
 	std::vector<TriangularInclusion *> triinc ;
@@ -1194,6 +1253,14 @@ int main(int argc, char *argv[])
 	
 	switch(reference)
 	{
+		case CIRCLE:
+			inclusions.clear() ;
+			for(size_t i = 0 ; i < feats.size() ; i++)
+			{
+				inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
+				t_area += inclusions[i]->area() ;
+			}
+			break ;
 		case ELLIPSE:
 			for(size_t i = 0 ; i < feats.size() ; i++)
 			{
@@ -1255,7 +1322,8 @@ int main(int argc, char *argv[])
 	
 	
 	sample.setBehaviour(new PasteBehaviour()) ;
-	AggregateBehaviour * agg = new AggregateBehaviour() ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+	VoidForm * v = new VoidForm() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		switch(reference)
@@ -1282,8 +1350,10 @@ int main(int argc, char *argv[])
 				break ;
 		}
 	}
+
+//	generatePoresHomogeneously(500,100,inclusions, sample, F) ;
     
-	switch(reference)
+/*	switch(reference)
 	{
 		case CIRCLE:
 			zones = generateExpansiveZonesHomogeneously(100, 20, inclusions, F) ;
@@ -1297,11 +1367,12 @@ int main(int argc, char *argv[])
 		case RECTANGLE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, recinc, F) ;
 			break ;
-	}
+	}*/
 
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -15e6)) ;
 
 	int nSampling = atof(argv[1]) ;
 	
