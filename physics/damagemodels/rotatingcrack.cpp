@@ -92,7 +92,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		es = &s ;
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 			
-		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
+		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) && state.max() < .95)
 		{
 // 			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
@@ -231,7 +231,7 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+																std::min(E_0, E_1)/(2.*1-nu*std::min(1. - fs, 1. - ss)),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
 																nu * ( 1. -  getState().max()), 
 																currentAngle ).getTensor( Point() )*factor ;
 
@@ -307,26 +307,26 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 void RotatingCrack::postProcess()
 {
 	
-// 	if(converged && getState()[0] >= thresholdDamageDensity)
-// 	{
-// 		firstTensionFailure = true ;
-// 		getState(true)[0] = 1. ;
-// 	}
-// 	if(converged && getState()[1] >= thresholdDamageDensity)
-// 	{
-// 		firstCompressionFailure = true ;
-// 		getState(true)[1] = 1. ;
-// 	}
-// 	if(converged && getState()[2] >= thresholdDamageDensity)
-// 	{
-// 		secondTensionFailure = true ;
-// 		getState(true)[2] = 1. ;
-// 	}
-// 	if(converged && getState()[3] >= thresholdDamageDensity)
-// 	{
-// 		secondCompressionFailure = true ;
-// 		getState(true)[3] = 1. ;
-// 	}
+ 	if(converged && getState()[0] >= thresholdDamageDensity)
+ 	{
+ 		firstTensionFailure = true ;
+ 		getState(true)[0] = 1. ;
+ 	}
+ 	if(converged && getState()[1] >= thresholdDamageDensity)
+ 	{
+ 		firstCompressionFailure = true ;
+ 		getState(true)[1] = 1. ;
+ 	}
+ 	if(converged && getState()[2] >= thresholdDamageDensity)
+ 	{
+ 		secondTensionFailure = true ;
+ 		getState(true)[2] = 1. ;
+ 	}
+ 	if(converged && getState()[3] >= thresholdDamageDensity)
+ 	{
+ 		secondCompressionFailure = true ;
+ 		getState(true)[3] = 1. ;
+ 	}
 }
 
 RotatingCrack::~RotatingCrack()
@@ -415,7 +415,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 			}
 			else if( !firstTension && !firstCompressionFailure)
 			{
-				range[0] = getState()[0] ;
+// 				range[0] = getState()[0] ;
 			}
 			else
 			{
@@ -437,7 +437,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 			}
 			else if(!secondTension && !secondCompressionFailure)
 			{
-				range[2] = getState()[2] ;
+// 				range[2] = getState()[2] ;
 			}
 			else
 			{
@@ -492,8 +492,8 @@ Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEnti
 // 	if(fractured())
 // 		return m *0 ;
 	
-	double E_0 = factor*E ;
-	double E_1 = factor*E ;
+	double E_0 = E ;
+	double E_1 = E ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
 	if(!firstTension)
@@ -513,9 +513,9 @@ Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEnti
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
-																nu * ( 1. -  getState().max()), 
-																currentAngle ).getTensor( Point() ) ;
+																E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
+																nu, 
+																currentAngle ).getTensor( Point() )*factor ;
 
 
 }

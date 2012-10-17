@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 {
 	elementState = &s ;
 	
-	
+	double iterationNumber = 20 ;
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -200,14 +200,15 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			states[i].print();
 // 		}
 		
-		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > 32
+		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > iterationNumber
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
+			Vector delta = ( upState - downState ) ;
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-4*effectiveDeltaFraction ; //effectiveDeltaFraction*2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*delta ; //effectiveDeltaFraction*2.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{
@@ -216,12 +217,12 @@ void DamageModel::step( ElementState &s , double maxscore)
 			else if(ctype == DISSIPATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-4*effectiveDeltaFraction ; //+ effectiveDeltaFraction*2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*delta ; //+ effectiveDeltaFraction*2.*damageDensityTolerance;
 			}
 			else if(ctype == DISSIPATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-4*effectiveDeltaFraction; //+ effectiveDeltaFraction*2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*delta; //+ effectiveDeltaFraction*2.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_MAX)
 			{
@@ -253,7 +254,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 				exit(0) ;
 // 			}
 		}
-		else if(states.size() > 32)
+		else if(states.size() > iterationNumber)
 		{
 // 			std::cout << "case red"<<error << std::endl ;
 // 			for(size_t i = 0 ; i < states.size() ; i++ )

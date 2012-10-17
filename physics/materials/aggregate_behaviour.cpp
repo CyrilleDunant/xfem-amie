@@ -16,13 +16,13 @@ using namespace Mu ;
 
 AggregateBehaviour::AggregateBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-	materialRadius = 0.00025 ;
+	materialRadius = 0.001 ;
 }
 
 Form * AggregateBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1. - variability + variability*weib ;
+	double factor = 1. ;//- variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
 	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalInverseRootMohrCoulomb(up*factor,yield*factor, E, c)) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);

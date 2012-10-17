@@ -162,9 +162,6 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		{
 			iteratorValue = factors[i] ;
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-			
-			
-			double fractureDistance = 0. ;
 
 			if(m == EFFECTIVE_STRESS)
 			{
@@ -185,10 +182,11 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 
 		str /= sumFactors ;
 		stra /= sumFactors ;
-		tmpstr.resize(3) ;
+// 		tmpstr.resize(3) ;
 		tmpstra.resize(3) ;
 		s.getParent()->getState().getAverageField(STRAIN_FIELD, tmpstra) ;
-		currentAngle = 0.5*atan2( tmpstra[2], tmpstra[0] - tmpstra[1] ) ;
+// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
+		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 		if(currentAngle < 0)
 			currentAngle += M_PI ;
 //		double currentAngle0 = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] );
@@ -405,28 +403,43 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 	VirtualMachine vm ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
+		std::valarray< std::pair<Point, double> > fin(7) ;
+		fin[0] = std::pair<Point, double>(Point(0.101286507323456, 0.101286507323456), 0.062969590272413) ;
+		fin[1] = std::pair<Point, double>(Point(0.797426985353087, 0.101286507323456), 0.062969590272413) ;
+		fin[2] = std::pair<Point, double>(Point(0.101286507323456, 0.797426985353087), 0.062969590272413) ;
+		fin[3] = std::pair<Point, double>(Point(0.470142064105115, 0.059715871789770), 0.066197076394253) ;
+		fin[4] = std::pair<Point, double>(Point(0.470142064105115, 0.470142064105115), 0.066197076394253) ;
+		fin[5] = std::pair<Point, double>(Point(0.059715871789770, 0.470142064105115), 0.066197076394253) ;
+		fin[6] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333), 0.1125) ;
+			
+		std::valarray< std::pair<Point, double> > fintmp = fin ;
+		double j = s.getParent()->area()*2. ;//1./det(J) ;
+		for(size_t i = 0 ; i < fintmp.size() ; i++)
+		{
+			fintmp[i].second *= j;
+		}
+		GaussPointArray gp(fintmp, QUINTIC) ;
 		
 		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
 		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 		Function rr = x*x+y*y ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-		Function smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-		double weight = vm.ieval(smooth, s.getParent()) ;
+		Function smooth =  f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+		double weight = vm.ieval(smooth, gp) ;
 		double fact = weight ;
+
 		
 		tmpfactors.push_back(weight);
 		tmpphysicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
 		
-		double selfarea = s.getParent()->area() ;
-		double farthest = 0 ;
 		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
 			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
 			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			smooth =  f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
@@ -436,8 +449,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().x ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			smooth = f_exp(rrn*-0.25); // (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
@@ -447,8 +460,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			smooth = f_exp(rrn*-0.25); // (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
@@ -458,8 +471,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-			weight = vm.ieval(smooth, s.getParent()) ;
+			smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
@@ -473,29 +486,37 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			{
 				continue ;
 			}
-			double mindist = physicalCharacteristicRadius ;
 
 			//this is to eliminate scaling effects ;
-			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
+// 			double factor = 1.;//-ci->getBehaviour()->getDamageModel()->getState().max() ; ;
 // 			if(std::abs(s.getParent()->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D && std::abs(ci->getBehaviour()->param[0][0]) > POINT_TOLERANCE_3D)
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
-			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
-			if(d > farthest)
-				farthest = d ;
+// 			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
+// 			if(d > farthest)
+// 				farthest = d ;
 			x = ci->getXTransform()-s.getParent()->getCenter().x ;
 			y = ci->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
-			rrn = rr/(mindist * mindist ) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-			weight = vm.ieval(smooth, ci) ;
+			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius ) ;
+			smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			
-			if(weight*factor < POINT_TOLERANCE_2D)
+			fintmp = fin ;
+			double j = ci->area()*2. ;//1./det(J) ;
+			for(size_t i = 0 ; i < fintmp.size() ; i++)
+			{
+				fintmp[i].second *= j;
+			}
+			GaussPointArray gp(fintmp, QUINTIC) ;
+		
+			weight = vm.ieval(smooth, gp) ;
+			
+			if(weight < POINT_TOLERANCE_2D)
 				continue ;
 			
 			tmpphysicalcache.push_back(ci->index) ;
-			tmpfactors.push_back(weight*factor);
+			tmpfactors.push_back(weight);
 			
-			fact += weight*factor ;
+			fact += weight ;
 			
 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
@@ -503,8 +524,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-				weight = vm.ieval(smooth, ci) ;
+				smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
@@ -515,8 +536,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-				weight = vm.ieval(smooth, ci) ;
+				smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
@@ -527,8 +548,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-				weight = vm.ieval(smooth, ci) ;
+				smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
@@ -539,8 +560,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-				weight = vm.ieval(smooth, ci) ;
+				smooth = f_exp(rrn*-0.25); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
 			}
@@ -550,6 +571,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		physicalcache.resize(tmpphysicalcache.size());
 		std::copy(tmpfactors.begin(), tmpfactors.end(), &factors[0]) ;
 		std::copy(tmpphysicalcache.begin(), tmpphysicalcache.end(), &physicalcache[0]) ;
+
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1254,7 +1276,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*4.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*5.+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

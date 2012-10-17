@@ -51,8 +51,14 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 {
 	double maxTension = upVal*scaleFactor;
 	double maxTensionStrain = tensionCritStrain;
+	if(std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D)
+	{
+		maxTensionStrain = /*1.6**/tensionCritStrain ;
+		maxTension = /*1.6**/maxTension ;
+	}
 	
-	if(tstrain > tensionCritStrain )
+	
+	if(tstrain > /*1.6**/tensionCritStrain && std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D || tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) >= POINT_TOLERANCE_2D)
 	{
 		double downTestVal = tensionCritStrain ;
 		double upTestVal = strain_te*1.1 ;
@@ -71,28 +77,28 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 				downTestVal = testVal ;
 		}
 		
-		if((upTestVal+downTestVal)*.5 > strain_ch)
-		{
-			downTestVal = strain_ch ;
-			upTestVal = strain_te*1.1 ;
-			factor = 1 ;
-			delta_tech = strain_te-strain_ch;
-			while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain)
-			{
-				double testVal = (upTestVal+downTestVal)*.5 ;
-				double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
-
-				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-			
-				if( testVal > upVal*factor/pseudoYoung )
-					upTestVal = testVal ;
-				else
-					downTestVal = testVal ;
-			}
-		}
+// 		if((upTestVal+downTestVal)*.5 > strain_ch)
+// 		{
+// 			downTestVal = strain_ch ;
+// 			upTestVal = strain_te*1.1 ;
+// 			factor = 1 ;
+// 			delta_tech = strain_te-strain_ch;
+// 			while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain)
+// 			{
+// 				double testVal = (upTestVal+downTestVal)*.5 ;
+// 				double mainCurve = 1./(1.+sqrt(k*(testVal-tensionCritStrain))) ;
+// 
+// 				factor = mainCurve*(strain_te-testVal)/delta_tech ;
+// 			
+// 				if( testVal > upVal*factor/pseudoYoung )
+// 					upTestVal = testVal ;
+// 				else
+// 					downTestVal = testVal ;
+// 			}
+// 		}
 		
-		if((upTestVal+downTestVal)*.5 > strain_te)
-			factor = 0 ;
+// 		if((upTestVal+downTestVal)*.5 > strain_te)
+// 			factor = 0 ;
 	
 		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
 		
@@ -120,7 +126,6 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	{
 		strainc = criterion ;
 	}
-	
 	criterion = std::abs(tstrain/maxTensionStrain) ;
 	
 	double stressc = -1 ;
@@ -138,7 +143,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	{
 		stressc = criterion ;
 	}
-	return strainc ;
+	return stressc ; // strain criterion misnamed
 	
 	return POINT_TOLERANCE_2D ;
 }
@@ -147,7 +152,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 {
 	double maxTension = upVal*scaleFactor;
 	double maxTensionStrain = tensionCritStrain;
-	
+	//value /= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
 	if(tstrain > tensionCritStrain )
 	{
 		double downTestVal = tensionCritStrain ;
@@ -162,12 +167,12 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 
 			if(testVal < tensionCritStrain)
 				factor = 1. ;
-			else if(testVal < strain_ch)
+			else /*if(testVal < strain_ch)*/
 				factor = mainCurve ;
-			else if(testVal < strain_te)
-				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-			else
-				factor = 0 ;
+// 			else if(testVal < strain_te)
+// 				factor = mainCurve*(strain_te-testVal)/delta_tech ;
+// 			else
+// 				factor = 0 ;
 			
 
 			if( testVal*pseudoYoung > upVal*factor )
@@ -229,6 +234,8 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 
 double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress)
 {
+//	return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+	
 // 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 // 	{
 // 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->tensionFailure)
@@ -238,17 +245,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2.;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2. ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2. && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2. ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -275,8 +282,8 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 // 	}
 
 	double f = (distanceToRebar)/(effectiveInfluenceDistance) ;
-	double df = f ;
-//	double df = 3.*f*f-2.*f*f*f ;
+// 	double df = f ;
+	double df = 3.*f*f-2.*f*f*f ;
 //
 // 	return barecrit ;
 	return df*barecrit + (1.-df)*rebcrit ;
@@ -381,16 +388,17 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 void NonLocalMCFT::initialise( ElementState &s)
 {
 	double energy = 75. ; //N/m
-	strain_ch = 2.*energy/(.1*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	strain_ch = 2.*energy/(getMaterialCharacteristicRadius()*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	
 	if(strain_ch < tensionCritStrain)
 	{
 		std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
 		exit(0) ;
 	}
-	strain_te = 5.*strain_ch;
+	strain_te = 15.*strain_ch;
 	double del_0 = (strain_ch-tensionCritStrain) ;
 	double del_1 = (strain_te-strain_ch) ;
+	double del = (strain_te-tensionCritStrain) ;
 	
 	double k0 = 1e12 ;
 	double k_low = 0 ;
@@ -404,13 +412,14 @@ void NonLocalMCFT::initialise( ElementState &s)
 		      
 		for(double i = 0 ; i < 1e4 ; i++)
 		{
-			integral+= 0.5*(upVal/(1.+sqrt(k*(i)*1e-4*del_0)) + upVal/(1.+sqrt(k*(i+1.)*1e-4*del_0)))*del_0*1e-4 ;
+// 			integral+= 0.5*(upVal/(1.+sqrt(k*(i)*1e-4*del_0)) + upVal/(1.+sqrt(k*(i+1.)*1e-4*del_0)))*del_0*1e-4 ;
+			integral+= 0.5*(upVal/(1.+sqrt(k*(i)*1e-4*del)) + upVal/(1.+sqrt(k*(i+1.)*1e-4*del)))*del*1e-4 ;
 		}
 		      
-		for(double i = 0 ; i < 10000 ; i++)
-		{  
-			integral+= 0.5*(upVal/(1.+sqrt(k*((i)*1e-4*del_1+del_0)))+upVal/(1.+sqrt(k*((i+1.)*1e-4*del_1+del_0))))*del_1*1e-4 ;
-		}
+// 		for(double i = 0 ; i < 10000 ; i++)
+// 		{  
+// 			integral+= 0.5*((del_1-(i)*1e-4*del_1)/del_1)*(upVal/(1.+sqrt(k*((i)*1e-4*del_1+del_0)))+upVal/(1.+sqrt(k*((i+1.)*1e-4*del_1+del_0))))*del_1*1e-4 ;
+// 		}
 		if(integral < energy)
 			k_high = k ;
 		else
@@ -418,7 +427,8 @@ void NonLocalMCFT::initialise( ElementState &s)
 		
 	} while(std::abs(k_low-k_high) > 1e-8*k0) ;
 	
-	k/=1e3 ;
+// 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
+		k/=2e6 ;
 	
 	if(std::abs(integral-energy) > 1e-3*energy)
 	{
@@ -434,10 +444,11 @@ double NonLocalMCFT::grade( ElementState &s )
 		initialise(s);
 	
 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s, REAL_STRESS) ;
-	double tstrain = stressStrain.second[0];
-	double cstrain = stressStrain.second[1];
-	double tstress = stressStrain.first[0];
-	double cstress = stressStrain.first[1];
+// 	std::pair<Vector, Vector> stressStrain = smoothedStressAndStrain(s, REAL_STRESS) ;
+	double tstrain = stressStrain.second.max() ;
+	double cstrain = stressStrain.second.min();
+	double tstress = stressStrain.first.max();
+	double cstress = stressStrain.first.min();
 
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
 	firstCompression = tstrain < 0 ;

@@ -293,7 +293,7 @@ void step()
 			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
 			double l_real = 2e5*tries ;
-			loadFunction = f_negativity(x-platewidth)*(-1e3*2-l_real)*(1.-f) ; //5e4*52
+			loadFunction = f_negativity(x-platewidth)*(-1e3*2-l_real) ; //5e4*52
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
@@ -302,7 +302,7 @@ void step()
 			Function x("x") ;
 			Function f = (x)/(platewidth) ;
 			Function df = 3.*f*f-2.*f*f*f ;
-			Function loadFunction = f_negativity(x-platewidth)*(-1e3*2)*(1.-f) ;
+			Function loadFunction = f_negativity(x-platewidth)*(-1e3*2) ;
 			load->setData( loadFunction ) ;
 			tries++ ;
 		}
@@ -1675,7 +1675,7 @@ void Display( void )
 int main( int argc, char *argv[] )
 {
 	
-	double softeningFactor = .85 ;
+	double softeningFactor = 1 ; .85 ;
 	
 	sampleLength = atof( argv[3] ) ;
 	sampleHeight = atof( argv[4] ) ;
@@ -1688,11 +1688,10 @@ int main( int argc, char *argv[] )
 	
 	psi = 2.*0.0084261498/.4  ;
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
-	double mradius = 0.06; //0.015 ;//0.055 ;//.11 ; // .015
+// 	double mradius = 0.1; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
-	//the .65 factor is optimised to reproduce the voigt homogenisation of steel-in-concrete.
-	double E_steel = 200e9*M_PI*.25 ; // next .6
+	double E_steel = 200e9 ; 
 	double nu_steel = 0.2 ;
 	double nu = 0.3 ;
 	double E_paste = 37e9*softeningFactor ;
@@ -1738,19 +1737,19 @@ int main( int argc, char *argv[] )
 	
 	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 
 	std::vector<Sample*> stirrups ;
@@ -1759,7 +1758,7 @@ int main( int argc, char *argv[] )
 	{
 		stirrups.push_back( new Sample( 0.0084261498, sampleHeight - 2.*( 0.064 ), 0.175 + i*0.35, 0. ) );
 		stirrups.back()->setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
+		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	}
 // 	for ( size_t i = 0 ;  i < 7 ; i++ )
 // 	{
@@ -1779,7 +1778,6 @@ int main( int argc, char *argv[] )
 
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
@@ -1788,7 +1786,6 @@ int main( int argc, char *argv[] )
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
@@ -1798,7 +1795,6 @@ int main( int argc, char *argv[] )
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->materialRadius = mradius ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
@@ -1876,7 +1872,7 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar2, 3 ) ;
 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
-	F.setOrder( QUADRATIC ) ;
+	F.setOrder( LINEAR ) ;
 
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;

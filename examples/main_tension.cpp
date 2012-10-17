@@ -164,6 +164,8 @@ std::vector< double > loadsx ;
 std::vector< double > displacementsx ;
 std::vector< double > damages ;
 std::vector< double > cmod ;
+std::vector< double > idx ;
+
 Vector fracCrit(0) ;
 
 Vector b(0) ;
@@ -179,8 +181,8 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(-.1800*.5*.25, .0700*.5), 0.) ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadt = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(.1800*.5*.25, .0700*.5), 0.) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(+0.15*.5, 0.05), 0.) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadt = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(-0.15*.5, 0.05), 0.) ;
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 // BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
@@ -225,8 +227,8 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-1e-7) ;
-			loadr->setData(loadr->getData()-1e-7) ;
+			loadt->setData(loadt->getData()-1e-6) ;
+			loadr->setData(loadr->getData()-1e-6) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -298,13 +300,13 @@ void step(size_t nsteps)
 					pos_strain.push_back(std::make_pair( triangles[k]->getCenter().x , stra[0] )) ;
 				}
 			}
-			if(dist(triangles[k]->getCenter(), Point(-0.0025*.5, -.0700)) < 1.5*triangles[k]->getRadius())
+			if(dist(triangles[k]->getCenter(), Point(0.0025, -.1*.5+.03*.5)) < 1.5*triangles[k]->getRadius())
 			{
 				Vector tmpd(2) ;
 				triangles[k]->getState().getField(DISPLACEMENT_FIELD, triangles[k]->getCenter(),tmpd, false) ;
 				leftDisp = tmpd[0] ;
 			}
-			if(dist(triangles[k]->getCenter(), Point(0.0025*.5, -.0700)) < 1.5*triangles[k]->getRadius())
+			if(dist(triangles[k]->getCenter(), Point(-0.0025, -.1*.5+.03*.5)) < 1.5*triangles[k]->getRadius())
 			{
 				Vector tmpd(2) ;
 				triangles[k]->getState().getField(DISPLACEMENT_FIELD,triangles[k]->getCenter(),tmpd, false) ;
@@ -443,6 +445,7 @@ void step(size_t nsteps)
 			loadsx.push_back((avg_s_xx/area)/1e6);
 			damages.push_back(featureTree->averageDamage);
 			cmod.push_back(rightDisp-leftDisp);
+			idx.push_back(loadr->getData());
 		}
 		if(v%5 == 0 || true)
 		{
@@ -486,7 +489,7 @@ void step(size_t nsteps)
 		ldfile.open("ldn", std::ios::out) ;
 		for(int j = 0 ; j < loads.size() ; j++)
 		{
-			ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << "  " << cmod[j] << "\n" ;
+			ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] << "  " << cmod[j] <<  "  "<<  idx[j]<< "\n" ;
 		}
 		ldfile.close();
 		
@@ -1498,7 +1501,7 @@ int main(int argc, char *argv[])
 	double mradius = .1200*.05 ; // .010 ;//
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
-	double E_steel = 193e9 ;
+	double E_steel = 193e9/1.7 ;
 	double nu_steel = 0. ; 
 	
 	double nu = 0.2 ;
@@ -1512,8 +1515,8 @@ int main(int argc, char *argv[])
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 // 	Sample samplef(.1200, .1200, 0., 0.) ;
-	Sample samplef(.1800, .0700, 0., 0.) ;
-	Sample notch(.0025, .0701, 0., -.0700*.5) ;
+	Sample samplef(0.5, .1, 0., 0.) ;
+	Sample notch(.005, .03, 0., -.1*.5+.03*.5) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
 	toprightvoid.setBehaviour(new VoidForm()) ;  
@@ -1543,7 +1546,7 @@ int main(int argc, char *argv[])
 // 	samplef.setBehaviour(new ConcreteBehaviour(E_paste, nu, compressionCrit,PLANE_STRESS)) ;
 // 	dynamic_cast<ConcreteBehaviour *>(samplef.getBehaviour())->materialRadius = mradius ;
 	
-		samplef.setBehaviour(new AggregateBehaviour()) ;
+		samplef.setBehaviour(new ConcreteBehaviour()) ;
 		notch.setBehaviour(new VoidForm());
 	
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS))) ;
@@ -1598,26 +1601,26 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(loadt);
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-.1800*.5*.5, -.0700*.5))) ;
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-.1800*.5*.5, -.0700*.5))) ;
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(.1800*.5*.5, -.0700*.5))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.15*1.5, -0.05))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-0.15*1.5, -0.05))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(+0.15*1.5, -0.05))) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	
-	F.addRefinementZone(new Rectangle(0.03, .0700*.5, 0., .0700*.5*.5)) ;
-	F.addRefinementZone(new Rectangle(0.015, .0700*.5, 0., .0700*.5*.5)) ;
-	F.addRefinementZone(new Rectangle(0.0075, .0700*.5, 0., .0700*.5*.5)) ;
+	F.addRefinementZone(new Rectangle(0.3*.3, .100*.7, 0., .100*.5*.35)) ;
+	F.addRefinementZone(new Rectangle(0.15*.3, .100*.7, 0., .100*.5*.35)) ;
+// 	F.addRefinementZone(new Rectangle(0.075*.3, .100*.7, 0., .100*.5*.35)) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(1200);
-	F.addPoint(new Point(-.1800*.5*.5, -.0700*.5)) ;
-	F.addPoint(new Point(.1800*.5*.5, -.0700*.5)) ;
-	F.addPoint(new Point(-.1800*.5*.25, .0700*.5)) ;
-	F.addPoint(new Point(.1800*.5*.25, .0700*.5)) ;
+	F.setMaxIterationsPerStep(3600);
+	F.addPoint(new Point(-0.15*.5, 0.05)) ;
+	F.addPoint(new Point(+0.15*.5, 0.05)) ;
+	F.addPoint(new Point(-0.15*1.5, -0.05)) ;
+	F.addPoint(new Point(+0.15*1.5, -0.05)) ;
 	
 	
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;

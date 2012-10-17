@@ -48,9 +48,12 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
-		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
-		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// 		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+// 		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+// 		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+			transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
+			transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
+			transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =     1 ; 
 // 		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
@@ -60,11 +63,11 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 // 		std::cout << std::endl ;
 // 		((Matrix)((transform.transpose()*param)*transform)).print() ;
 // 		exit(0) ;
-		double pnorm = param.froebeniusNorm() ;
+// 		double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform.transpose()) ;
+		param = transform.transpose()*(param*transform) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 	else
 	{
@@ -86,11 +89,11 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
 // 		transform /= transform.froebeniusNorm() ;
-		double pnorm = param.froebeniusNorm() ;
+// 		double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform.transpose()) ;
+		param = transform.transpose()*(param*transform) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 	
 // 	std::cout << "created with angle " << this->angle << std::endl ;
@@ -113,9 +116,9 @@ nu((nu_12+nu_21)*.5)
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
-		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
-		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+		transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
+		transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
+		transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =     1 ; 
 // 		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
@@ -125,11 +128,11 @@ nu((nu_12+nu_21)*.5)
 // 		std::cout << std::endl ;
 // 		((Matrix)((transform.transpose()*param)*transform)).print() ;
 // 		exit(0) ;
-				double pnorm = param.froebeniusNorm() ;
+// 				double pnorm = param.froebeniusNorm() ;
 		
 		param = transform*(param*transform.transpose()) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 	else
 	{
@@ -151,11 +154,11 @@ nu((nu_12+nu_21)*.5)
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
 // 		transform /= transform.froebeniusNorm() ;
-				double pnorm = param.froebeniusNorm() ;
+// 				double pnorm = param.froebeniusNorm() ;
 		
 		param = transform*(param*transform.transpose()) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 } ;
 
@@ -177,9 +180,9 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
-		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
-		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+		transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
+		transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
+		transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =  1 ; 
 // 		transform /= transform.froebeniusNorm() ;
 // 		param.print() ;
 // 		std::cout << std::endl ;
@@ -189,11 +192,11 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 // 		std::cout << std::endl ;
 // 		((Matrix)((transform.transpose()*param)*transform)).print() ;
 // 		exit(0) ;
-				double pnorm = param.froebeniusNorm() ;
+// 				double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform.transpose()) ;
+		param = transform.transpose()*(param*transform) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 	else
 	{
@@ -215,11 +218,11 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
 		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
 // 		transform /= transform.froebeniusNorm() ;
-				double pnorm = param.froebeniusNorm() ;
+// 				double pnorm = param.froebeniusNorm() ;
 		
 		param = transform*(param*transform.transpose()) ;
 		
-		param *= pnorm/param.froebeniusNorm() ;
+// 		param *= pnorm/param.froebeniusNorm() ;
 	}
 } ;
 
