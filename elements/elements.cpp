@@ -14,7 +14,6 @@ using namespace Mu ;
 
 ElementarySurface::~ElementarySurface()
 {
-
 	delete behaviour ;
 }
 
