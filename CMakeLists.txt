@@ -6,12 +6,13 @@ find_package(OpenMP)
 if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
-#find_package(GLUT)
-#if( GLUT_FOUND EQUAL 1 )
+find_package(GLUT)
+find_package(OpenGL)
+if( GLUT_FOUND EQUAL 1 )
 	include(FindGLUT)
-#else( GLUT_FOUND EQUAL 0 )
-#	message( STATUS " GLUT not found " )
-#endif( GLUT_FOUND EQUAL 1 )
+else( GLUT_FOUND EQUAL 0 )
+	message( STATUS " GLUT not found " )
+endif( GLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 
 elements/elements.cpp 
@@ -94,7 +95,9 @@ physics/orthotropicstiffness.cpp
 physics/stiffness_and_indexed_fracture.cpp
 physics/fraction_stiffness_and_fracture.cpp
 physics/stiffness_with_imposed_deformation.cpp 
+physics/stiffness_with_imposed_stress.cpp 
 physics/stiffness_with_imposed_deformation_and_fracture.cpp 
+physics/stiffness_with_imposed_stress_and_fracture.cpp 
 physics/stiffness_with_kinetics_imposed_deformation.cpp
 physics/stiffness_with_variable_imposed_deformation_and_fracture.cpp 
 physics/stiffness_with_diffusion_deformation_and_fracture.cpp
@@ -283,6 +286,10 @@ message (STATUS "  found OpenMP")
 # 	endif()
 endif(OPENMP_FOUND)
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+	add_definitions ( "-std=c++11" )
+endif()
+
 if(DEBUG_BUILD EQUAL 1)
 	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -funroll-loops)
 	message (STATUS "  Debug Build")
@@ -296,15 +303,13 @@ if(CMAKE_HOST_WIN32)
 	set(GLUT_LIBRARY "-lfreeglut -lopengl32 -lglu32")
 endif(CMAKE_HOST_WIN32)
 
-#message(${GLUT_LIBRARY})
-
 add_library (Amie ${ALL_SRC})
 
 add_executable(small examples/main_small.cpp )
-target_link_libraries( small Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( small Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(3d  examples/main_3d.cpp  )
-target_link_libraries( 3d Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( 3d Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -313,10 +318,10 @@ target_link_libraries( 3d Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 #target_link_libraries( cl Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(example examples/main.cpp )
-target_link_libraries( example Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( example Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(def examples/main_def.cpp )
-target_link_libraries( def Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( def Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable(detail examples/main_detail.cpp )
 #target_link_libraries( detail Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -325,54 +330,54 @@ target_link_libraries( def Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m
 #target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(multicrack examples/main_multicrack.cpp )
-target_link_libraries( multicrack Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( multicrack Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(steel examples/main_steel.cpp )
-target_link_libraries( steel Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( steel Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(alain examples/main_alain.cpp )
-target_link_libraries( alain Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( alain Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(rag examples/main_rag.cpp )
-target_link_libraries( rag Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(rag_simple examples/main_rag_simple.cpp )
-target_link_libraries( rag_simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag_simple Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable(ellipse_test examples/main_ellipse_test.cpp )
 #target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
-target_link_libraries( thermal_expansion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( thermal_expansion Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(geometry examples/main_geometry.cpp )
-target_link_libraries( geometry Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( geometry Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(benchmark examples/main_benchmark.cpp )
-target_link_libraries( benchmark Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( benchmark Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(rag_shape examples/main_rag_shape.cpp )
-target_link_libraries( rag_shape Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag_shape Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(homogenization examples/main_homogenization.cpp )
-target_link_libraries( homogenization Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( homogenization Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable(simple examples/main_simple.cpp )
 #target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(tripoint examples/main_tripoint.cpp )
-target_link_libraries( tripoint Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( tripoint Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(visco examples/main_visco.cpp )
-target_link_libraries( visco Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( visco Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(tension examples/main_tension.cpp )
-target_link_libraries( tension Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( tension Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable( wave examples/main_wave.cpp )
 #target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable( cyrille_test examples/main_cyrille.cpp )
-target_link_libraries( cyrille_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( cyrille_test Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 
