@@ -137,36 +137,100 @@ struct StandardLinearSolid : public LinearForm
 
 
 
-
+	/** \brief generic class for iterative Maxwell behaviour. This class can be inherited to provide alternative iteration schemes */
 	struct IterativeMaxwell : public LinearForm
 	{
+		/** \brief characteristic time of the branch */
 		double chartime ;
 		std::vector<Variable> v ;
-		
+		/** \brief list of viscoelastic imposed stresses at all Gauss points */
 		std::vector<Vector> imposedStressAtGaussPoints ;
-		
+		/** \brief coefficients relating a_{n+1} to u_{n+1} u_n and a_n. These coefficients are updated at each time step to account for the state of the system */
 		double coeff_unext, coeff_uprev, coeff_aprev;
 		
+		/** \brief Constructor 
+		 * @param rig stiffness matrix of the spring of the branch
+		 * @param eta characteristic time of the dashpot of the branch
+		 */
 		IterativeMaxwell(const Matrix & rig, double eta) ;
 		virtual ~IterativeMaxwell() ;
 
+		/** \brief construct the elementary matrix associated to the nodes i and j in an element
+		 * @param p_i shape function
+		 * @param p_j shape function
+		 * @param gp Gauss points of the element
+		 * @param Jinv list of inverse jacobian matrices of the element at each Gauss point
+		 * @param ret storage matrix
+		 * @param vm virtual machine
+		 */
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		/** \brief updates the behaviour (does nothing) */
 		virtual void step(double timestep, ElementState & currentState) ;
+		/** \brief updates the element state according to the current state
+		 * @param timestep duration of the last time step
+		 * @param currentState state of the current element after the last time step
+		 */
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
+		/** \brief modifies the rigidity tensor and the viscoelastic stresses to account for the state of the current element 
+		 * @param timestep the duration of the upcoming time step
+		 * @param currentState the element state of the current element after the last time step
+		 */
 		virtual void preProcess( double timeStep, ElementState & currentState ) ;
+		/** \brief modifies the imposed stress at the current Gausse point
+		 * @param timestep the duration of the upcoming time step
+		 * @param currentState the element state of the current element after the last time step
+		 * @param g index of the Gauss point
+		 */
  		void preProcessAtGaussPoint(double timestep, ElementState & currentState, int g) ;	  
 		
+		/** \brief instantiate a hard copy of the current behaviour */
 		virtual Form * getCopy() const ;
+
+		/** \brief instantiate an element state containing internal variables corresponding to the strain and the anelastic strain at the previous time step 
+		 * @param e element		 
+		 */
 		virtual ElementState * createElementState( IntegrableEntity * e) ;
 
+		/** \brief flag to force application of boundary conditions */
 		virtual bool hasInducedForces() const { return true ; }
 
+		/** \brief returns the imposed stress at a given point
+		 * @param p point
+		 * @param e element for the discretization
+		 * @param g index of Gauss point (if p is a Gauss point)
+		 */
 		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		
+		/** \brief returns the imposed strain at a given point
+		 * @param p point
+		 * @param e element for the discretization
+		 * @param g index of Gauss point (if p is a Gauss point)
+		 */
 		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		
+		/** \brief transforms the imposed stress in an element into boundary conditions that are applied to the right-hand side of the equation
+		 * @param s state of the element before the time step
+		 * @param id node at which the boundary conditions are calculated
+		 * @param p_i shape function associated to the node
+		 * @param gp Gauss points of the element
+		 * @param Jinv inverse jacoblian matrices calculated at each Gauss points
+		 */
 		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
- 		void setNumberOfGaussPoints(size_t n) ;
+		/** \brief adapts the number of Gauss points
+		 * @param n the new number of Gauss points
+		 */
+		void setNumberOfGaussPoints(size_t n) ;
+		
+		/** \brief creates the coefficients for the iteration. The coefficients are given in this format:
+		 * a_{n+1} = coeff_unext u_{n+1} + coeff_uprev u_n + coeff_aprev a_n
+		 * they are used to modify the stiffness tensor of the system and the imposed stress at each Gauss points
+		 * You can create various iterative procedure by inheriting this structure and overload this method
+		 * @param timestep duration of the upcoming time step
+		 */
 		virtual void getCoefficients(double timestep) ;
+
+		/** \brief creates the coefficients for the iteration for instantaneous time step : a_{n+1} = a_n */
 		void getInstantaneousCoefficients() ;
 	} ;
 
