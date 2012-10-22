@@ -19,55 +19,6 @@
 
 namespace Mu
 {
-	struct NewmarkNumeroffMaxwell : public LinearForm
-	{
-		Matrix stiffness ;
-		Vector decay ;
-		int p ;
-		double gamma ;
-		Function affine, constant ;
-		std::vector<Variable> v ;
-		
-		std::vector<Matrix> reducedStiffnessAtGaussPoints ;
-		std::vector<Vector> imposedStressAtGaussPoints ;
-		std::vector<Vector> fi, gi, li, pi ;
-		
-		NewmarkNumeroffMaxwell(const Matrix & rig, Vector d, int p = 10, double g = 0.5) ;
-		NewmarkNumeroffMaxwell(const Matrix & rig, Vector d, Function affine, Function constant, int p = 10, double g = 0.5) ;
-		virtual ~NewmarkNumeroffMaxwell() ;
-
-		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-		
-		virtual bool fractured() const { return false ; } 
-		
-		virtual Form * getCopy() const ;
-
-		virtual bool hasInducedForces() const { return true ; }
-
-		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
-		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
-
-		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
-		
-		virtual void step(double timestep, ElementState & currentState) ;
-		
-		virtual ElementState * createElementState( IntegrableEntity * e) ;
-
-		virtual void updateElementState(double timestep, ElementState & currentState) const ;
-
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
-		
-		virtual void preProcess( double timeStep, ElementState & currentState ) ;
-
-		
-	protected:
-		void preProcessAtGaussPoint(double timestep, ElementState & currentState, int g) ;	  
-		void nextDelta(int k, double timestep, Vector & d0, Vector & d1, Vector & d2, Vector & d3, Vector & prev) ;
-		Vector updateInternalStrain( size_t g, const Vector & eps) const ;
-		Vector updateInternalStrainRate( size_t g, const Vector & eps) const ;
-		void setNumberOfGaussPoints(size_t n) ;
-	} ;
-      
   
 struct Maxwell : public LinearForm
 {
@@ -183,6 +134,41 @@ struct StandardLinearSolid : public LinearForm
 	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
 	
 } ;
+
+
+
+
+	struct IterativeMaxwell : public LinearForm
+	{
+		double chartime ;
+		std::vector<Variable> v ;
+		
+		std::vector<Vector> imposedStressAtGaussPoints ;
+		
+		double coeff_unext, coeff_uprev, coeff_aprev;
+		
+		IterativeMaxwell(const Matrix & rig, double eta) ;
+		virtual ~IterativeMaxwell() ;
+
+		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		virtual void step(double timestep, ElementState & currentState) ;
+		virtual void updateElementState(double timestep, ElementState & currentState) const ;
+		virtual void preProcess( double timeStep, ElementState & currentState ) ;
+ 		void preProcessAtGaussPoint(double timestep, ElementState & currentState, int g) ;	  
+		
+		virtual Form * getCopy() const ;
+		virtual ElementState * createElementState( IntegrableEntity * e) ;
+
+		virtual bool hasInducedForces() const { return true ; }
+
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+		
+ 		void setNumberOfGaussPoints(size_t n) ;
+		virtual void getCoefficients(double timestep) ;
+		void getInstantaneousCoefficients() ;
+	} ;
 
 } ;
 

@@ -7,62 +7,45 @@
 using namespace Mu ;
 
 
-NewmarkNumeroffMaxwell::NewmarkNumeroffMaxwell(const Matrix & rig, Vector d, int p, double g) : LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), decay(d), p(p), gamma(g)
+IterativeMaxwell::IterativeMaxwell(const Matrix & rig, double e) : LinearForm(rig, false, false, rig.numRows()/3+1)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() > 9)
 		v.push_back(ZETA);
-	reducedStiffnessAtGaussPoints.resize(1, rig) ;
-	imposedStressAtGaussPoints.resize(1, Vector(0.,rig.numRows())) ;
-	fi.resize(1, Vector(0.,rig.numRows())) ;
-	gi.resize(1, Vector(0.,rig.numRows())) ;
-	li.resize(1, Vector(0.,rig.numRows())) ;
-	pi.resize(1, Vector(0.,rig.numRows())) ;
 	
-	Function k("x") ;
-	affine = k/p;
-	constant = 1.-k/p ;
+	chartime = e ;
 	
-}
-
-
-NewmarkNumeroffMaxwell::NewmarkNumeroffMaxwell(const Matrix & rig, Vector d, Function a, Function c, int p, double g) : LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), decay(d), p(p), gamma(g), affine(a), constant(c)
-{
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() > 9)
-		v.push_back(ZETA);
-	reducedStiffnessAtGaussPoints.resize(1, rig) ;
 	imposedStressAtGaussPoints.resize(1, Vector(0.,rig.numRows())) ;
-	fi.resize(1, Vector(0.,rig.numRows())) ;
-	gi.resize(1, Vector(0.,rig.numRows())) ;
-	li.resize(1, Vector(0.,rig.numRows())) ;
-	pi.resize(1, Vector(0.,rig.numRows())) ;
+	
+	coeff_unext = 0. ;
+	coeff_uprev = 0. ;
+	coeff_aprev = 0. ;
 }
 
-NewmarkNumeroffMaxwell::~NewmarkNumeroffMaxwell() { } ;
 
-void NewmarkNumeroffMaxwell::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
+IterativeMaxwell::~IterativeMaxwell() { } ;
+
+void IterativeMaxwell::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
 {
-	vm->ieval(Gradient(p_i) * reducedStiffnessAtGaussPoints * Gradient(p_j, true), gp, Jinv,v,ret) ;
+	vm->ieval(Gradient(p_i) * (param*(1.-coeff_unext)) * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
-Form * NewmarkNumeroffMaxwell::getCopy() const 
+Form * IterativeMaxwell::getCopy() const 
 {
-	return new NewmarkNumeroffMaxwell(stiffness, decay, affine, constant, p, gamma) ;
+	return new IterativeMaxwell(param, chartime) ;
 }
 
-Vector NewmarkNumeroffMaxwell::getImposedStress(const Point & p, IntegrableEntity * e, int g) const 
+Vector IterativeMaxwell::getImposedStress(const Point & p, IntegrableEntity * e, int g) const 
 {
-	if(g > -1)
+	if(g != -1)
 		return imposedStressAtGaussPoints[g] ;
 	if(e)
 	{
 		if(e->getOrder() > LINEAR)
 		{
 			int ga = Mu::isGaussPoint(p, e) ;
-			if( ga > -1)
+			if( ga != -1)
 				return imposedStressAtGaussPoints[ga] ;
 		  
 			VirtualMachine vm ;
@@ -79,18 +62,18 @@ Vector NewmarkNumeroffMaxwell::getImposedStress(const Point & p, IntegrableEntit
 	return imposedStressAtGaussPoints[0] ;  
 }
 
-Vector NewmarkNumeroffMaxwell::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const 
+Vector IterativeMaxwell::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const 
 {
 	Vector imposed = this->getImposedStress(p,e,g) ;
-	Matrix m = this->getTensor(p,e,g) ;
+	Matrix m = param*(1-coeff_unext) ;
 	Composite::invertTensor(m) ;
 	return (Vector) (m*imposed) ;
 }
 
-std::vector<BoundaryCondition * > NewmarkNumeroffMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+std::vector<BoundaryCondition * > IterativeMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
 	Vector f = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints, gp, Jinv,v) ;
-	
+
 	std::vector<BoundaryCondition * > ret ;
 	if(f.size() == 2)
 	{
@@ -107,193 +90,98 @@ std::vector<BoundaryCondition * > NewmarkNumeroffMaxwell::getBoundaryConditions(
  
 }
 
-void NewmarkNumeroffMaxwell::step(double timestep, ElementState & currentState) 
+void IterativeMaxwell::step(double timestep, ElementState & currentState) 
 {
 	currentState.getParent()->behaviourUpdated = true ;  
 }
 
-ElementState * NewmarkNumeroffMaxwell::createElementState( IntegrableEntity * e) 
+ElementState * IterativeMaxwell::createElementState( IntegrableEntity * e) 
 {
 	setNumberOfGaussPoints( e->getGaussPoints().gaussPoints.size() ) ;
-	return new ElementStateWithInternalVariables(e, 3, param.numRows() ) ;
+	return new ElementStateWithInternalVariables(e, 2, param.numRows() ) ;
 }
 
-void NewmarkNumeroffMaxwell::updateElementState(double timestep, ElementState & currentState) const 
+void IterativeMaxwell::updateElementState(double timestep, ElementState & currentState) const 
 {
 	LinearForm::updateElementState(timestep, currentState) ;
+	if(timestep < POINT_TOLERANCE_2D)
+		return ;
+	
+	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
+	Vector strain_next( 0., 3+3*(num_dof == 3)) ;
+	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
+	Vector alpha_next( 0., 3+3*(num_dof == 3)) ;
 	for(size_t g = 0 ; g < imposedStressAtGaussPoints.size() ; g++)
 	{
-		Vector strain( 0., 3+3*(num_dof == 3)) ;
-		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain) ;
-		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strain, g, 0) ;
-		Vector alpha = this->updateInternalStrain(g, strain) ;
-		Vector alphadot = this->updateInternalStrainRate(g, strain) ;
-		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alpha, g, 1) ;
-		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alphadot, g, 2) ;
+		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain_next) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, 1) ;
+		
+		alpha_next = (strain_next*coeff_unext) ;
+		alpha_next += (strain_prev*coeff_uprev) ;
+		alpha_next += (alpha_prev*coeff_aprev) ;
+		
+		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strain_next, g, 0) ;
+		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alpha_next, g, 1) ;
 	} 
 }
 
-Matrix NewmarkNumeroffMaxwell::getTensor(const Point & p, IntegrableEntity * e, int g) const 
-{
-	if(g > -1)
-		return reducedStiffnessAtGaussPoints[g] ;
-	if(e)
-	{
-		if(e->getOrder() > LINEAR)
-		{
-			int g = isGaussPoint(p, e) ;
-			if( g > -1)
-				return reducedStiffnessAtGaussPoints[g] ;
-			
-			VirtualMachine vm ;
-			Matrix ret = reducedStiffnessAtGaussPoints[0] ;
-			ret.array() = 0. ;
-			for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
-			{
-				Function ffi = e->getShapeFunction(i) ;
-				Matrix mi = vm.ieval( Gradient(ffi) * reducedStiffnessAtGaussPoints, e, v) ;
-				ret += vm.geval( Gradient(ffi), e, v, p.x, p.y, p.z, p.t ) * mi ;
-			}
-			return ret ;
-		}
-	}
-	return reducedStiffnessAtGaussPoints[0] ;
-}
-
-void NewmarkNumeroffMaxwell::preProcess( double timeStep, ElementState & currentState ) 
+void IterativeMaxwell::preProcess( double timeStep, ElementState & currentState ) 
 {
 	if(timeStep < POINT_TOLERANCE_2D)
+	{
+	      getInstantaneousCoefficients() ;
+	}
 		return ;
+	this->getCoefficients(timeStep) ;
 	for(size_t j = 0 ; j < currentState.getParent()->getGaussPoints().gaussPoints.size() ; j++)
 	      this->preProcessAtGaussPoint(timeStep, currentState, j) ;
+	currentState.getParent()->behaviourUpdated = true ;  
 }
 
-void NewmarkNumeroffMaxwell::preProcessAtGaussPoint(double timestep, ElementState & currentState, int j) 
+void IterativeMaxwell::preProcessAtGaussPoint(double timestep, ElementState & currentState, int j) 
 {  
-	reducedStiffnessAtGaussPoints[j] = stiffness ;
-	Matrix reduction(stiffness.numRows(), stiffness.numRows()) ;
+	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
+	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
+	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, 0) ;
+	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev, 1) ;
+	strain_prev *= coeff_uprev ;
+	alpha_prev *= coeff_aprev ;
 	
-	Vector fp(0., decay.size()) ;
-	Vector fn(0., decay.size()) ;
-	Vector gp(0., decay.size()) ;
-	Vector gn(0., decay.size()) ;
-	Vector lp(0., decay.size()) ;
-	Vector ln(0., decay.size()) ;
-	Vector pp(0., decay.size()) ;
-	Vector pn(0., decay.size()) ;
-	
-	Vector delta0(0., decay.size()) ;
-	Vector delta1(0., decay.size()) ;
-	Vector delta2(0., decay.size()) ;
-	Vector delta3(0., decay.size()) ;
-	
-	Vector lambda0(0., decay.size()) ;
-	Vector lambda1(0., decay.size()) ;
-	Vector lambda2(0., decay.size()) ;
-	Vector lambda3(0., decay.size()) ;
-	
-	Vector mu0(0., decay.size()) ;
-	Vector mu1(0., decay.size()) ;
-	Vector mu2(0., decay.size()) ;
-	Vector mu3(0., decay.size()) ;
-	
-	Vector prev(0., decay.size()) ;
-	
-	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, prev, 0) ; 
-	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, gp, 1) ; 
-	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, pp, 2) ; 
-	
-	for(size_t k = 1 ; k < p+1 ; k++)
-	{	  
-		this->nextDelta(k, timestep/p, delta0, delta1, delta2, delta3, prev) ;
-		
-		lambda0 = delta0 ;
-		lambda1 = 1. + delta1 ;
-		lambda2 = timestep/p + delta2 ;
-		lambda3 = delta3 ;
-
-		delta0 *= (double) p/(gamma*timestep) ;
-		delta1 *= (double) p/(gamma*timestep) ;
-		delta2 *= (double) p/(gamma*timestep) ;
-		delta3 *= (double) p/(gamma*timestep) ;
-		
-		mu0 = delta0 ;
-		mu1 = delta1 ;
-		mu2 = 1. + delta2 ;
-		mu3 = delta3 ;
-		
-		fn = lambda0 + lambda1*fp + lambda2*lp ;
-		ln = mu0 + mu1*fp + mu2*lp ;
-
-		gn = lambda3 + lambda1*gp + lambda2*pp ;
-		pn = mu3 + mu1*gp + mu2*pp ;
-				
-		fp = fn ;
-		gp = gn ;
-		lp = ln ;
-		pp = pn ;
-		
-	}
-	
-
-	fi[j] = fn ;
-	gi[j] = gn ;
-	li[j] = ln ;
-	pi[j] = pn ;
-	
-	for(size_t n = 0 ; n < decay.size() ; n++)
-		reduction[n][n] = 1. - fn[n] ;
-	
-	reducedStiffnessAtGaussPoints[j] = stiffness * reduction ;
-	imposedStressAtGaussPoints[j] = (Vector) (stiffness * gn) ;
-	
+	imposedStressAtGaussPoints[j] = 0. ;
+	imposedStressAtGaussPoints[j] += (Vector)(param*strain_prev) ;
+	imposedStressAtGaussPoints[j] += (Vector)(param*alpha_prev) ;	
 }
 
-void NewmarkNumeroffMaxwell::nextDelta(int k, double tau, Vector & delta0, Vector & delta1, Vector & delta2, Vector & delta3, Vector & prev) 
-{
-	VirtualMachine vm ;
-	Point pk((double) k, 0.) ;
-	for(size_t n = 0 ; n < delta0.size() ; n++)
-	{
-		double z = decay[n] / ( 1./(gamma*tau) + decay[n] ) ;
-		delta0[n] = z * vm.eval(affine, pk) ;
-		delta1[n] = 0. - z ;
-		delta2[n] = 0. - (1. + decay[n]*tau)/( 1./(gamma*tau) + decay[n] ) ;
-		delta3[n] = z * vm.eval(constant, pk) * prev[n] ;
-	}
-}
-
-Vector NewmarkNumeroffMaxwell::updateInternalStrain( size_t g, const Vector & eps) const
-{
-	return fi[g] * eps + gi[g] ;
-}  
-
-Vector NewmarkNumeroffMaxwell::updateInternalStrainRate( size_t g, const Vector & eps) const
-{
-	return li[g] * eps + pi[g] ;
-}  
-
-void NewmarkNumeroffMaxwell::setNumberOfGaussPoints(size_t n) 
+void IterativeMaxwell::setNumberOfGaussPoints(size_t n) 
 {
 	if(n == 1)
 		return ;
-	reducedStiffnessAtGaussPoints.resize(n) ;
 	imposedStressAtGaussPoints.resize(n) ;
-	fi.resize(n) ;
-	gi.resize(n) ;
-	pi.resize(n) ;
-	li.resize(n) ;
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		reducedStiffnessAtGaussPoints[i].resize(decay.size(), decay.size()) ;
-		reducedStiffnessAtGaussPoints[i] = stiffness ;
-		imposedStressAtGaussPoints[i].resize(decay.size()) ;
-		fi[i].resize(decay.size()) ;
-		gi[i].resize(decay.size()) ;
-		pi[i].resize(decay.size()) ;
-		li[i].resize(decay.size()) ;
+		imposedStressAtGaussPoints[i].resize(param.numRows()) ;
 	}
 }
+
+void IterativeMaxwell::getCoefficients(double timestep) 
+{
+	coeff_unext = timestep / ( chartime + timestep) ;
+	coeff_uprev = 0. ;
+	coeff_aprev = chartime / ( chartime + timestep) ;
+}
+
+void IterativeMaxwell::getInstantaneousCoefficients() 
+{
+	coeff_unext = 0. ;
+	coeff_uprev = 0. ;
+	coeff_aprev = 1. ;
+}
+
+
+
+
+
 
 Maxwell::Maxwell(const Matrix & rig, const Matrix & e ) : LinearForm(e, false, false, e.numRows()/3+1), decay(e)
 {
