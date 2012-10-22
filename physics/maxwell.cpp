@@ -130,10 +130,12 @@ void IterativeMaxwell::preProcess( double timeStep, ElementState & currentState 
 {
 	if(timeStep < POINT_TOLERANCE_2D)
 	{
-	      getInstantaneousCoefficients() ;
+		this->getInstantaneousCoefficients() ;
 	}
-		return ;
-	this->getCoefficients(timeStep) ;
+	else
+	{
+		this->getCoefficients(timeStep) ;
+	}
 	for(size_t j = 0 ; j < currentState.getParent()->getGaussPoints().gaussPoints.size() ; j++)
 	      this->preProcessAtGaussPoint(timeStep, currentState, j) ;
 	currentState.getParent()->behaviourUpdated = true ;  
