@@ -32,15 +32,15 @@ namespace Mu
 		virtual Form * getCopy() const ;	
 	} ;
 	
-	struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
-	{
-		double Evisc ;
-		double nuvisc ;
-		double tau ;
-		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu=0.3, double E_visc=4e9, double nuvisc = 0.3, double tau=1., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
-		
-		virtual Form * getCopy() const ;
-	} ;
+// 	struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
+// 	{
+// 		double Evisc ;
+// 		double nuvisc ;
+// 		double tau ;
+// 		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu=0.3, double E_visc=4e9, double nuvisc = 0.3, double tau=1., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+// 		
+// 		virtual Form * getCopy() const ;
+// 	} ;
 	
 } ;
 
