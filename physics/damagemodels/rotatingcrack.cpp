@@ -92,12 +92,17 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 		es = &s ;
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 			
-		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) && state.max() < .95)
-		{
+// 		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) && state.max() < .01)
+// 		{
 // 			double prevAngle = currentAngle ;
-			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+//  			if(state.max() < POINT_TOLERANCE_2D)
+				currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+// 				std::cout << currentAngle << std::endl ;
+// 			else
+// 				currentAngle = currentAngle*(state.max()) + s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()*(1.-state.max()) ;
+// 			
 // 			change = std::abs(currentAngle-prevAngle) > M_PI*.03  && state.max() > POINT_TOLERANCE_2D;
-		}
+// 		}
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{
 			firstTension = true ;
@@ -231,7 +236,7 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																std::min(E_0, E_1)/(2.*1-nu*std::min(1. - fs, 1. - ss)),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
+																std::min(E_0, E_1)/(2.*(1.-nu*std::min(1. - fs, 1. - ss))),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
 																nu * ( 1. -  getState().max()), 
 																currentAngle ).getTensor( Point() )*factor ;
 
@@ -306,7 +311,13 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
-	
+		if(converged)
+	{
+		getState(true)[0] = std::max(getState(true)[0],getState(true)[2]) ;
+		getState(true)[2] = std::max(getState(true)[0],getState(true)[2]) ;
+		getState(true)[1] = std::max(getState(true)[1],getState(true)[3]) ;
+		getState(true)[3] = std::max(getState(true)[1],getState(true)[3]) ;
+	}
  	if(converged && getState()[0] >= thresholdDamageDensity)
  	{
  		firstTensionFailure = true ;
@@ -497,9 +508,13 @@ Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEnti
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
 	if(!firstTension)
+	{
 		fs = getState()[1] ;
+	}
 	if(!secondTension)
+	{
 		ss = getState()[3] ;
+	}
 	
 	E_0 *= ( 1. - fs ) ;
 	E_1 *= ( 1. - ss ) ;
@@ -563,6 +578,13 @@ bool FixedCrack::fractured() const
 
 void FixedCrack::postProcess()
 {
+	if(converged)
+	{
+		getState(true)[0] = std::max(getState(true)[0],getState(true)[2]) ;
+		getState(true)[2] = std::max(getState(true)[0],getState(true)[2]) ;
+		getState(true)[1] = std::max(getState(true)[1],getState(true)[3]) ;
+		getState(true)[3] = std::max(getState(true)[1],getState(true)[3]) ;
+	}
 	if(converged && getState()[0] >= thresholdDamageDensity)
 	{
 		firstTensionFailure = true ;

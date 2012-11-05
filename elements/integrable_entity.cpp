@@ -427,7 +427,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			}
 			return ;
 		case STRAIN_FIELD:
-			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() ==2)
+			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 			{
 				double x_xi = 0;
 				double x_eta = 0;
@@ -436,17 +436,18 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				
 				Vector dx(0., parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
 				Vector dy(0., parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
-
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+				if(displacements.size()/2 == parent->getBoundingPoints().size())
 				{
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-					x_xi += f_xi * displacements[j * 2] ;
-					x_eta += f_eta * displacements[j * 2] ;
-					y_xi += f_xi * displacements[j * 2 + 1] ;
-					y_eta += f_eta * displacements[j * 2 + 1] ;
+					for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+					{
+						double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+						double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+						x_xi += f_xi * displacements[j * 2] ;
+						x_eta += f_eta * displacements[j * 2] ;
+						y_xi += f_xi * displacements[j * 2 + 1] ;
+						y_eta += f_eta * displacements[j * 2 + 1] ;
+					}
 				}
-
 				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
 				{
 					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
@@ -546,7 +547,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case PRINCIPAL_STRAIN_FIELD:
 		{
-			Vector strains(0.,3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL)) ;
+			Vector strains(0.,2+1*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL)) ;
 			this->getField(STRAIN_FIELD, p_, strains, true) ;
 /*			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 				cachedPrincipalStressAngle = 0.5*atan2( strains[2], strains[0] - strains[1] ) ;*/
@@ -561,14 +562,17 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				double y_xi = 0;
 				double y_eta = 0;
 
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+				if(displacements.size()/2 == parent->getBoundingPoints().size())
 				{
-					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
-					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
-					x_xi += f_xi * displacements[j * 2] ;
-					x_eta += f_eta * displacements[j * 2] ;
-					y_xi += f_xi * displacements[j * 2 + 1] ;
-					y_eta += f_eta * displacements[j * 2 + 1] ;
+					for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+					{
+						double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+						double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+						x_xi += f_xi * displacements[j * 2] ;
+						x_eta += f_eta * displacements[j * 2] ;
+						y_xi += f_xi * displacements[j * 2 + 1] ;
+						y_eta += f_eta * displacements[j * 2 + 1] ;
+					}
 				}
 
 				Matrix Jinv ;
@@ -577,7 +581,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 			}
-			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
+			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 			{
 				double x_xi = 0;
 				double x_eta = 0;
@@ -651,7 +655,13 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		}
 		case REAL_STRESS_FIELD:
+			
 			this->getField(STRAIN_FIELD, p_, ret, true) ;
+			if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret.size())
+			{
+				ret = 0 ;
+				return ;
+			}
 			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case PRINCIPAL_REAL_STRESS_FIELD:
@@ -663,6 +673,11 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 		}
 		case NON_ENRICHED_REAL_STRESS_FIELD:
 			this->getField(NON_ENRICHED_STRAIN_FIELD, p_, ret, true) ;
+			if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret.size())
+			{
+				ret = 0 ;
+				return ;
+			}
 			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		case VON_MISES_REAL_STRESS_FIELD:
@@ -999,7 +1014,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1014,7 +1032,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		case PRINCIPAL_STRAIN_FIELD :
@@ -1024,7 +1045,6 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					pstrainAtGaussPoints.resize( 2*gp.gaussPoints.size() ) ;
 				else
 					pstrainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
-// 				std::cout << "plouf" << std::endl ;
 				for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 				{
 					Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
@@ -1033,13 +1053,14 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					{
 						pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					}
-// 					gp.gaussPoints[i].first.print() ;
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 					
 				}
-// 				std::cout << total << std::endl ;;
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1054,7 +1075,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		case REAL_STRESS_FIELD:
@@ -1076,7 +1100,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1091,7 +1118,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		case PRINCIPAL_REAL_STRESS_FIELD :
@@ -1113,7 +1143,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1128,7 +1161,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		case EFFECTIVE_STRESS_FIELD:
@@ -1151,7 +1187,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1167,7 +1206,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
@@ -1190,7 +1232,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 			else
@@ -1206,7 +1251,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 					ret += tmp*gp.gaussPoints[i].second ;
 					total += gp.gaussPoints[i].second ;
 				}
-				ret /= total ;
+				if(total > POINT_TOLERANCE_2D)
+					ret /= total ;
+				else
+					ret = 0 ;
 				return ;
 			}
 		default :
@@ -1218,7 +1266,10 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 				ret += tmp*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 			}
-			ret /= total ;
+			if(total > POINT_TOLERANCE_2D)
+				ret /= total ;
+			else
+				ret = 0 ;
 			
 			return ;
 	}
@@ -1260,8 +1311,16 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				ret_ += tmp_*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 			}
-			ret /= total ;
-			ret_ /= total ;
+			if(total > POINT_TOLERANCE_2D)
+			{
+				ret_ /= total ;
+				ret /= total ;
+			}
+			else
+			{
+				ret = 0 ;
+				ret_ = 0 ;
+			}
 			return ;
 		}
 		else
@@ -1279,8 +1338,16 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				ret_ += tmp_*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 			}
-			ret /= total ;
-			ret_ /= total ;
+			if(total > POINT_TOLERANCE_2D)
+			{
+				ret_ /= total ;
+				ret /= total ;
+			}
+			else
+			{
+				ret = 0 ;
+				ret_ = 0 ;
+			}
 			return ;
 		}
 	}
@@ -1298,7 +1365,6 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				pstrainAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
 				pstressAtGaussPoints.resize( 3*gp.gaussPoints.size() ) ;
 			}
-// 				std::cout << "plouf" << std::endl ;
 			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 			{
 				Vector tmp(pstrainAtGaussPoints.size()/gp.gaussPoints.size()) ;
@@ -1309,15 +1375,21 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 					pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
 				}
-// 					gp.gaussPoints[i].first.print() ;
 				ret += tmp*gp.gaussPoints[i].second ;
 				ret_ += tmp_*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 				
 			}
-// 				std::cout << total << std::endl ;;
-			ret /= total ;
-			ret_ /= total ;
+			if(total > POINT_TOLERANCE_2D)
+			{
+				ret_ /= total ;
+				ret /= total ;
+			}
+			else
+			{
+				ret = 0 ;
+				ret_ = 0 ;
+			}
 			return ;
 		}
 		else
@@ -1335,8 +1407,16 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				ret_ += tmp_*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
 			}
-			ret /= total ;
-			ret_ /= total ;
+			if(total > POINT_TOLERANCE_2D)
+			{
+				ret_ /= total ;
+				ret /= total ;
+			}
+			else
+			{
+				ret = 0 ;
+				ret_ = 0 ;
+			}
 			return ;
 		}
 	}
@@ -1355,6 +1435,11 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
 	if(isStrainField(f1) && isStressField(f2))
 	{
 		this->getField(f1, p, ret1, local) ;
+		if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret2.size())
+		{
+			ret2 = 0 ;
+			return ;
+		}
 		if(isRealStressField(f2))
 			ret2 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret1) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		else
@@ -1376,6 +1461,11 @@ void ElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector
 	if(isStrainField(f2) && isStressField(f1))
 	{
 		this->getField(f2, p, ret2, local) ;
+		if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret1.size())
+		{
+			ret1 = 0 ;
+			return ;
+		}
 		if(isRealStressField(f1))
 			ret1 = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret2) - getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 		else
@@ -2048,7 +2138,6 @@ std::vector<Point> ElementState::getPrincipalFrame( const Point &p, bool local, 
 			}
 		}
 		solveSystem( m_reduced, v_reduced, principalVectors.back());
-// 		std::cout << " = " << principalVectors.back()[0] << ",  " << principalVectors.back()[1] << std::endl ;
 	}
 	std::vector<Point> ret ;
 	
@@ -2627,6 +2716,11 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 			Vector strain(0., ret.size()) ;
 			Vector rate(0., ret.size()) ;
 			this->getField(STRAIN_FIELD, STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret.size())
+			{
+				ret = 0 ;
+				return ;
+			}
 			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) ;
 			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -2637,6 +2731,11 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 			Vector strain(0., ret.size()) ;
 			Vector rate(0., ret.size()) ;
 			this->getField(NON_ENRICHED_STRAIN_FIELD, NON_ENRICHED_STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			if(parent->getBehaviour()->getTensor(p_, parent).numCols() != ret.size())
+			{
+				ret = 0 ;
+				return ;
+			}
 			ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * strain) ;
 			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -2647,6 +2746,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 			Vector strain(0., ret.size()) ;
 			Vector rate(0., ret.size()) ;
 			this->getField(STRAIN_FIELD, STRAIN_RATE_FIELD, p_, strain, rate, true) ;
+			
 			ret = (Vector) (parent->getBehaviour()->param * strain) ;
 			ret += (Vector) (dynamic_cast<KelvinVoight *>(parent->getBehaviour())->eta * rate ) ;
 			ret -= getParent()->getBehaviour()->getImposedStrain(p_, parent)*parent->getBehaviour()->param ;

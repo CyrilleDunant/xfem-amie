@@ -483,12 +483,21 @@ void step()
 				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
 			}
 
+// 			std::cout << "VM start" << std::endl ;
 			for ( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
 			{
-				Vector vm0(0., 3) ;
+				Vector vm0(0., 2) ;
 				triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
 				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-
+// 				if(vonMises[k*triangles[k]->getBoundingPoints().size()+l] > 1000)
+// 				{
+// 					triangles[k]->print() ;
+// 					std::cout << vonMises[k*triangles[k]->getBoundingPoints().size()+l] << std::endl ;
+// 					std::cout << vm0[0] << "  " << vm0[1] << std::endl ;
+// 					std::cout << x[triangles[k]->getBoundingPoint(0).id*2] << ", " << x[triangles[k]->getBoundingPoint(0).id*2+1] << "  "<< x[triangles[k]->getBoundingPoint(1).id*2] << ", " << x[triangles[k]->getBoundingPoint(1).id*2+1] << "  "<<  x[triangles[k]->getBoundingPoint(2).id*2] << ", " << x[triangles[k]->getBoundingPoint(2).id*2+1] << std::endl ;
+// 					exit(0) ;
+// 				}
+				
 				Vector agl(0., 1) ;
 				triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
 				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
@@ -498,7 +507,7 @@ void step()
 					fracCrit[k*triangles[k]->getBoundingPoints().size() + l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade( triangles[k]->getState() ) ;
 				}
 			}
-
+// 			std::cout << "VM end" << std::endl ;
 			double ar = triangles[k]->area() ;
 
 // 			if(!haveStirrups)

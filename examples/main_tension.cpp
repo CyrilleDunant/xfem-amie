@@ -181,8 +181,9 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(+0.15*.5, 0.05), 0.) ;
-BoundingBoxNearestNodeDefinedBoundaryCondition * loadt = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(-0.15*.5, 0.05), 0.) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(+0.04445, .0672*.5), -0.000005) ;
+BoundingBoxNearestNodeDefinedBoundaryCondition * loadt = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(-0.04445, .0672*.5), -0.000005) ;
+
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
 // BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
@@ -227,8 +228,8 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-1e-6) ;
-			loadr->setData(loadr->getData()-1e-6) ;
+			loadt->setData(loadt->getData()-2e-6) ;
+			loadr->setData(loadr->getData()-2e-6) ;
 // 			loadt->setData(0) ;
 		}
 		
@@ -1515,7 +1516,7 @@ int main(int argc, char *argv[])
 	Sample sample(1.300*.5, effectiveRadius-rebarDiametre*.5, 1.300*.25, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 // 	Sample samplef(.1200, .1200, 0., 0.) ;
-	Sample samplef(0.5, .1, 0., 0.) ;
+	Sample samplef(0.3048, .0672, 0., 0.) ;
 	Sample notch(.005, .03, 0., -.1*.5+.03*.5) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
@@ -1560,7 +1561,7 @@ int main(int argc, char *argv[])
 	
 		
 	FeatureTree F(&samplef) ;
-	F.addFeature(&samplef,&notch);
+// 	F.addFeature(&samplef,&notch);
 	featureTree = &F ;
 	Inclusion inc(samplef.height()*.05, 0, 0) ;
 // 	F.addFeature(&samplef, &inc);
@@ -1601,26 +1602,31 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(loadr);
 	F.addBoundaryCondition(loadt);
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.15*1.5, -0.05))) ;
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(-0.15*1.5, -0.05))) ;
-	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(+0.15*1.5, -0.05))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(-0.13335, -.0672*.5))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(+0.13335, -.0672*.5))) ;
+	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, Point(+0.13335, -.0672*.5))) ;
+// 	F.addBoundaryCondition(new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM, Point(+0.13335, -.0672*.5))) ;
+	
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(+0.04445, .0672*.5))) ;
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(-0.04445, .0672*.5))) ;
+	
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI,RIGHT, -2e6)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	
-	F.addRefinementZone(new Rectangle(0.3*.3, .100*.7, 0., .100*.5*.35)) ;
-	F.addRefinementZone(new Rectangle(0.15*.3, .100*.7, 0., .100*.5*.35)) ;
-// 	F.addRefinementZone(new Rectangle(0.075*.3, .100*.7, 0., .100*.5*.35)) ;
+	F.addRefinementZone(new Rectangle(0.04445*4, .0672, 0., 0.)) ;
+// 	F.addRefinementZone(new Rectangle(0.04445*3, .0672, 0., 0.)) ;
+// 	F.addRefinementZone(new Rectangle(0.04445*2, .0672, 0., 0.)) ;
 	F.setOrder(LINEAR) ;
 
 	triangles = F.getElements2D() ;
-	F.setMaxIterationsPerStep(3600);
-	F.addPoint(new Point(-0.15*.5, 0.05)) ;
-	F.addPoint(new Point(+0.15*.5, 0.05)) ;
-	F.addPoint(new Point(-0.15*1.5, -0.05)) ;
-	F.addPoint(new Point(+0.15*1.5, -0.05)) ;
+	F.setMaxIterationsPerStep(3400);
+	F.addPoint(new Point(-0.04445, .0672*.5)) ;
+	F.addPoint(new Point(+0.04445, .0672*.5)) ;
+	F.addPoint(new Point(-0.13335, -.0672*.5)) ;
+	F.addPoint(new Point(+0.13335, -.0672*.5)) ;
 	
 	
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
