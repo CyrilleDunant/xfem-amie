@@ -76,6 +76,7 @@ protected:
 	float getYtrans() const ; //
 	
 	size_t currentDisplayList ;
+	size_t wireFrameList ;
 	int currentSet ;
 	int fracup ; 
 	int fracdown ;

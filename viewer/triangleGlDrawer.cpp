@@ -13,6 +13,7 @@ void TriangleGLDrawer::computeDisplay( ) const
 	glVertex2f( 0.50 * .8 - .15, -0.50 * .8 + .05) ;
 	glEnd() ;
 	glCallList( currentDisplayList ) ;
+	glCallList( wireFrameList ) ;
 }
 
 void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
@@ -31,8 +32,6 @@ void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 		
 		double downcut =  ( limits[currentSet].first - limits[currentSet].second ) * ( fracdown / 10000. ) ;
 		double upcut =  ( limits[currentSet].second - limits[currentSet].first ) * ( fracup / 10000.-1. ) ;
-		std::cout << downcut << "  " << upcut << " " << limits[currentSet].second+upcut- limits[currentSet].first +downcut << std::endl ;
-		std::cout << fracdown / 10000. << "  " << fracup / 10000. << " " <<  std::endl ;
 		valUnderCursor = 1.049*limits[currentSet].first + downcut + (float)QColor(color).lightness()/255.*( limits[currentSet].second- limits[currentSet].first ) - ((float)QColor(color).lightness()/255.)*0.049 - downcut;
 		mousePosOnLeftClick = QPoint( 0, 0 ) ;
 	}
@@ -295,9 +294,7 @@ void TriangleGLDrawer::initializeGL()
 	//glActiveTextureARB = (void (*)(GLuint))glXGetProcAddressARB((const GLubyte*)"glActiveTextureARB") ;
 	//glTexEnvf = (void (*)(GLenum, GLenum, GLboolean))glXGetProcAddressARB((const GLubyte*)"glTexEnvf") ;
 
-	displayList = glGenLists( numberOfExtraFields ) ;
-	std::cout << "numberOfExtraFields = " << numberOfExtraFields << std::endl ;
-	std::cout << "displayList = " << displayList << std::endl ;
+	displayList = glGenLists( numberOfExtraFields+1 ) ;
 	currentDisplayList = currentSet + 1 ;
 	glViewport( 0, 0, 600, 600 ) ;
 	glEnable( GL_BLEND );
@@ -311,10 +308,6 @@ void TriangleGLDrawer::initializeGL()
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );                                 // Black Background
 	glClearDepth( 1.0f );                                                   // Depth Buffer Setup
 	glDisable( GL_DEPTH_TEST );
-
-
-
-
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 
 	computeDisplayList() ;
@@ -346,7 +339,6 @@ void TriangleGLDrawer::grab()
 
 void TriangleGLDrawer::computeDisplayList()
 {
-
 
 	if( !minmaxinit )
 	{
@@ -398,8 +390,6 @@ void TriangleGLDrawer::computeDisplayList()
 			}
 		}
 
-
-
 		if( limits.size() <= N )
 		{
 			limits.push_back( std::make_pair( max_val, min_val ) ) ;
@@ -450,7 +440,7 @@ void TriangleGLDrawer::computeDisplayList()
 			for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
 			{
 				float v = ( ( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] - min_val ) / ( max_val - min_val );
-				if( abs(max_val / min_val - 1) < 1e-6)
+				if( std::abs(min_val) > 1e-4  &&  abs(max_val / min_val - 1) < 1e-6)
 					v = 0.5 ;
 				
 				if( v < ( double )fracdown / 10000. )
@@ -461,19 +451,7 @@ void TriangleGLDrawer::computeDisplayList()
 					v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
 
 				HSVtoRGB( &r, &g, &b, 180., 0., 1. - v * 0.95 ) ;
-// 					HSVtoRGB( &r, &g, &b, 360.*(1. - v * 0.95),1 , 1 ) ;
-// 					if(( *valuesAtPoint )[( 2 + N ) * numberOfPointsPerTriangle + j][i] > 0)
-// 					{
-// 						r = 255*v ; 
-// 						g = 255*(1.-v) ;
-// 						b = 0 ;
-// 					}
-// 					else
-// 					{
-// 						r = 0 ; 
-// 						g = 255*v ;
-// 						b = 255*(1.-v) ;
-// 					}
+
 				glColor4ub( r, g, b, 255 ) ;
 
 				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
@@ -486,6 +464,42 @@ void TriangleGLDrawer::computeDisplayList()
 
 		glEndList() ;
 	}
+	
+	glNewList( displayList+numberOfExtraFields, GL_COMPILE ) ;
+	wireFrameList = displayList+numberOfExtraFields ;
+	double maxdelta = std::max( max_x - min_x, max_y - min_y ) / 0.8 ;
+	double mindelta = std::min( max_x - min_x, max_y - min_y ) / 0.8 ;
+	double cx = 0.7 ;
+	double cy = 0.7 ;
+	double mag = scale ;
+
+	if( max_x - min_x > max_y - min_y )
+		cy = 0.7 * mindelta / maxdelta ;
+	else
+		cx = 0.7 * mindelta / maxdelta ;
+
+	size_t r, g, b ;
+
+	for( size_t i = 0 ; i < numberOfTriangles ; i++ )
+	{
+		glBegin( GL_LINE_LOOP ) ;
+
+		for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
+		{
+
+			HSVtoRGB( &r, &g, &b, 180., 0., 0.5 ) ;
+
+			glColor4ub( r, g, b, 25 ) ;
+
+			double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+			double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+			glVertex2f( ( ( *valuesAtPoint )[j * 2][i] - min_x ) / maxdelta - 0.5 * cx + dx - 0.2, ( ( *valuesAtPoint )[j * 2 + 1][i] - min_y ) / maxdelta - 0.5 * cy + dy ) ;
+		}
+
+		glEnd() ;
+	}
+
+	glEndList() ;
 }
 
 
