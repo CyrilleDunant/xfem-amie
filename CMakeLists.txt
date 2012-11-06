@@ -287,7 +287,7 @@ message (STATUS "  found OpenMP")
 endif(OPENMP_FOUND)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions ( "-std=c++11" )
+	add_definitions ( "-std=c++0x" )
 endif()
 
 if(DEBUG_BUILD EQUAL 1)

@@ -132,6 +132,8 @@ struct Data
 		diff += 60*60* ( hour - d.hour ) ;
 		diff += 60*60*24* ( day - d.day ) ;
 		diff += 60*60*24*30* (month - d.month ) ;
+		
+		return diff ;
 	}
 	
 } ;

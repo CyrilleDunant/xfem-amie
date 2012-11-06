@@ -674,21 +674,45 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					}
 				}
 			}
-			else if( field == TWFT_DAMAGE )
+			else if( field == TWFT_CRACKS )
 			{
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-				Vector x( triangles.size() * 3 ) ;
+
+				for( int i = 0 ; i < triangles.size() ; i++ )
+				{
+					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+					{
+
+						std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
+						ret[0][iterator] = np.first;
+						ret[1][iterator] = np.first ;
+						ret[2][iterator] = np.first ;
+						ret[3][iterator] = np.second;
+						ret[4][iterator] = np.second ;
+						ret[5][iterator++] = np.second ;
+
+					}
+					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						ret[0][iterator] = 0;
+						ret[1][iterator] = 0 ;
+						ret[2][iterator] = 0 ;
+						ret[3][iterator] = 0;
+						ret[4][iterator] = 0 ;
+						ret[5][iterator++] = 0 ;
+					}
+				}
+			}
+			else if( field == TWFT_DAMAGE)
+			{
+				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
 					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
 					{
 						double d = triangles[i]->getBehaviour()->getDamageModel()->getState().max();
-						if(!triangles[i]->getBehaviour()->getDamageModel()->converged)
-						{
-							std::cout << "unconverged" << std::endl ;
-//							exit(0) ;
-						}
+
 						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
 							d = 1 ;
 
@@ -788,6 +812,31 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
 				ret[0] = 180.*v[0]/M_PI ;
 
+				found = true ;
+				break ;
+			}
+			case TWFT_CRACKS:
+			{
+				if( tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+				{
+					std::pair<double, double> np = tri->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(tri->getState()) ;
+					ret[0] = np.first;
+					ret[1] = np.first ;
+					ret[2] = np.first ;
+					ret[3] = np.second;
+					ret[4] = np.second ;
+					ret[5] = np.second ;
+
+				}
+				else
+				{
+					ret[0] = 0;
+					ret[1] = 0 ;
+					ret[2] = 0 ;
+					ret[3] = 0;
+					ret[4] = 0 ;
+					ret[5] = 0 ;
+				}
 				found = true ;
 				break ;
 			}
@@ -1055,6 +1104,8 @@ int numberOfFields( TWFieldType field )
 			return 3 ;
 		case TWFT_IMPOSED_STRESS_NORM:
 			return 3 ;
+		case TWFT_CRACKS:
+			return 6 ;
 	}
 
 	return 3 ;

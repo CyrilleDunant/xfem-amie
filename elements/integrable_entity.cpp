@@ -547,7 +547,9 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case PRINCIPAL_STRAIN_FIELD:
 		{
-			Vector strains(0.,2+1*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL)) ;
+			Vector strains(0.,3) ;
+			if(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
+				strains.resize(6) ;
 			this->getField(STRAIN_FIELD, p_, strains, true) ;
 /*			if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 				cachedPrincipalStressAngle = 0.5*atan2( strains[2], strains[0] - strains[1] ) ;*/
@@ -666,7 +668,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 			return ;
 		case PRINCIPAL_REAL_STRESS_FIELD:
 		{
-			Vector stress(0.,3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL)) ;
+			Vector stress(0.,3+3*(parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)) ;
 			this->getField(REAL_STRESS_FIELD, p_, stress, true) ;
 			ret = toPrincipal(stress) ;
 			return ;

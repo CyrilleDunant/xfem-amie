@@ -1273,6 +1273,40 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 	return (originalenergy-energy)/(delta_d) ;
 }
 
+
+std::pair<double, double> FractureCriterion::getCrackOpeningAndSlip(const ElementState & s)
+{
+	Matrix rotationMatrix(2,2) ;
+	rotationMatrix[0][0] = cos(-currentAngle) ; rotationMatrix[0][1] = sin(-currentAngle) ; 
+	rotationMatrix[1][0] = -sin(-currentAngle) ; rotationMatrix[1][1] = cos(-currentAngle) ; 
+	
+	Vector displacementLeft(0., 2) ;
+	Vector displacementRight(0., 2) ;
+	double countLeft = 0 ;
+	double countRight = 0 ;
+	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+	{
+		if((s.getParent()->getBoundingPoint(i) - s.getParent()->getCenter()).angle()-currentAngle > 0)
+		{
+			displacementLeft[0] += s.getDisplacements()[2*i] ;
+			displacementLeft[1] += s.getDisplacements()[2*i+1] ;
+			countLeft++ ;
+		}
+		else
+		{
+			displacementRight[0] += s.getDisplacements()[2*i] ;
+			displacementRight[1] += s.getDisplacements()[2*i+1] ;
+			countRight++ ;
+		}
+	}
+	
+	displacementLeft /= countLeft ;
+	displacementRight /= countRight ;
+	Vector delta = rotationMatrix*(displacementLeft-displacementRight) ;
+	
+	return std::make_pair(delta[0], delta[1]) ;
+}
+
 void FractureCriterion::initialiseCache(const ElementState & s)
 {
 	DelaunayTriangle * testedTri = dynamic_cast<DelaunayTriangle *>(s.getParent()) ;

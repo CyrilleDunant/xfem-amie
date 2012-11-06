@@ -107,6 +107,8 @@ typedef enum{
 		double smoothedCrackAngle( ElementState &s) const ;
 		double getCurrentAngle() const {return currentAngle ; }
 		
+		std::pair<double, double> getCrackOpeningAndSlip(const ElementState & s) ;
+		
 	public:
 		std::vector<unsigned int> cache ;
 		std::vector<DelaunayTreeItem *>  *mesh2d ;

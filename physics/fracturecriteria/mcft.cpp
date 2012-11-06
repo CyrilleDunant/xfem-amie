@@ -468,7 +468,7 @@ void NonLocalMCFT::initialise( ElementState &s)
 	} while(std::abs(k_low-k_high) > 1e-8*k0) ;
 	
 // 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
-		k/=2e6 ;
+		k/=1e6 ;
 	
 	if(std::abs(integral-energy) > 1e-3*energy)
 	{

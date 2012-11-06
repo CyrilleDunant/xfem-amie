@@ -42,6 +42,7 @@ typedef enum
 	TWFT_FLUX,
 	TWFT_GRADIENT_AND_FLUX,
 	TWFT_VON_MISES,
+	TWFT_CRACKS
 } TWFieldType ;
 
 /** \brief utility class to write the values of various fields of a 2D sample in a text file. You need to use getField() to get your data before writing the file.*/
