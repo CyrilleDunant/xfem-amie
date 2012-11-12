@@ -85,7 +85,8 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 1., 1.,0.0,0.0) ;
+Sample box(nullptr, 0.08, 0.16,0.0,0.0) ;
+Rectangle rbox(0.08,0.16,0.0,0.0) ;
 double tau = 0.1;
 
 double s2d(double s)
@@ -98,35 +99,90 @@ int main(int argc, char *argv[])
 	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
   
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(20) ;
+	F.setSamplingNumber(250) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new IterativeMaxwell(paste_e->param, 15.)) ;
+	double fa = 1.;//1e-9;//0.075;//41666666 ;0.4/1.1;//4./9. ;
+	double k = 1.657e9 /*+ 0.7587e9 + 0.7356e9 */+ 0.8275e9*2 + 0.9981e9 /*+ 1.1587e9 + 1.3465e9*/ /*+ 0.9543e9*/ ;
+	double g = 1.173e9 /*+ 0.5223e9 + 0.5060e9 */+ 0.4787e9*2 + 0.7640e9 /*+ 0.7978e9 + 0.9271e9*/ /*+ 0.5412e9*/ ;
+	double Eel = 9*k*g / (3*k+g) ;
+	double E0  = 9*1.657e9*1.173e9 / (3*1.657e9+1.173e9) ;
+	
+	std::cout << Eel << std::endl ;
+	
+	double fb = fa ; //(Eel - fa*E0) / ( Eel - E0 ) ;
+	
+	std::vector<Matrix> rig ;
+	rig.push_back(Material::cauchyGreen(0.7587e9,0.5223e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+	rig.push_back(Material::cauchyGreen(0.7356e9,0.5060e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+ 	rig.push_back(Material::cauchyGreen(0.8275e9,0.4787e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+ 	rig.push_back(Material::cauchyGreen(0.9981e9,0.7640e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+	rig.push_back(Material::cauchyGreen(1.1587e9,0.7978e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+	rig.push_back(Material::cauchyGreen(1.3465e9,0.9271e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+ 	rig.push_back(Material::cauchyGreen(0.9543e9,0.5412e9,false, SPACE_TWO_DIMENSIONAL)*fb) ;
+
+	std::vector<double> eta ;
+	eta.push_back(0.005) ;
+	eta.push_back(0.05) ;
+ 	eta.push_back(0.5) ;
+ 	eta.push_back(5) ;
+	eta.push_back(50) ;
+	eta.push_back(500) ;
+	eta.push_back(5000) ;
+
+	box.setBehaviour( new GeneralizedIterativeMaxwell(Material::cauchyGreen(1.657e9,1.173e9,false, SPACE_TWO_DIMENSIONAL)*fa, rig, eta)) ;
+	
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.016, 0.113, 6000) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
+	
+//	exit(0) ;
+	
+	std::vector<Feature *> feats ;
+
+	for( size_t i = 0; i < inclusions.size() ; i++ )
+		feats.push_back( inclusions[i] ) ;
+
+	inclusions.clear() ;
+	int nAgg = 1 ;
+
+	feats = placement( &rbox, feats, &nAgg, 0, 6400 );
+
+	for( size_t i = 0; i < feats.size() ; i++ )
+		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
+	
+	ElasticOnlyAggregateBehaviour *stiff = new ElasticOnlyAggregateBehaviour() ;
+	for( size_t i = 0 ; i < inclusions.size() ; i++ )
+	{
+		inclusions[i]->setBehaviour( stiff ) ;
+ 		F.addFeature( &box, inclusions[i] ) ;
+	}
+	
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.step() ;
 	F.step() ;
-  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 1e6)) ;
+	size_t i = 0 ;
+  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -10e6)) ;
 	
-	size_t i = 2 ;
-	double time = tau ;
+	double time = 0. ;
 	F.step() ;
 	Vector x = F.getDisplacements() ;
 	double hey = x.max() ;
-	std::cout << time << "\t" << x.max() << std::endl ;
-
-	while(time < 200.)
+	std::fstream out ;
+	out.open("/home/alain/Code/FitExperiment/fit10.txt", std::ios::out) ;
+	out << time << "\t" << 1000*x.min()/0.16 << std::endl ;
+	
+	while(time < 365)
 	{
+		i++ ;
  		F.setDeltaTime( tau*i ) ;
 		F.step() ;
 		x = F.getDisplacements() ;
-		time += tau*i ;
-		std::cout << time << "\t" << x.max() << std::endl ;
-		i++ ;
+		time += tau *i ;
+		out << time << "\t" << 1000*x.min()/0.16 << std::endl ;
 	}
-	
+		
 	return 0 ;
 }
 
