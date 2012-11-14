@@ -166,17 +166,11 @@ int main(int argc, char *argv[])
 	out << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
-	bool upgrade = true ;
 	while(time < 36500)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
 		time += tau *i ;
-		if(time > timeScale * 2 && upgrade)
-		{
-			i *= 10000/timeScale ;
-			upgrade = false ;
-		}
 			
 		if(time < timeScale )
 			updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
