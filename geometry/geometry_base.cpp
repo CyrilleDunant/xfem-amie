@@ -1314,7 +1314,7 @@ bool Geometry::intersects(const Geometry *g) const
 				if(getCenter().y - birad > g->getCenter().y)
 					return false ;
 				
-				return squareDist2D( getCenter(), g->getCenter()) < birad*birad && squareDist2D( getCenter(), g->getCenter()) > (getRadius()-g->getRadius())*(getRadius()-g->getRadius());
+				return squareDist2D( getCenter(), g->getCenter()) < birad*birad ;
 			}
 			
 			std::vector<Segment> segs ;
