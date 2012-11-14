@@ -155,9 +155,15 @@ int main(int argc, char *argv[])
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
 	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
 	
+	std::fstream out ;
+	std::string toto = "rag_visco_" ;
+	toto.append(argv[1]) ;
+	out.open(toto.c_str(), std::ios::out ) ;
+	
+	
 	x = F.getAverageField(STRAIN_FIELD) ;
 	y = F.getAverageField(EFFECTIVE_STRESS_FIELD, paste) ;
-	std::cout << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
+	out << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
 	while(time < 365)
@@ -172,7 +178,7 @@ int main(int argc, char *argv[])
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
-		std::cout << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
+		out << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 	}
 		
 	return 0 ;
