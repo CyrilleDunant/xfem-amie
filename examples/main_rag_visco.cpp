@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 	out << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
-	while(time < 365)
+	while(time < 36500)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
