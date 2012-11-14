@@ -188,6 +188,7 @@ protected:
 	std::vector<LagrangeMultiplier> multipliers ;
 	size_t ndof ;
 	SpaceDimensionality dim ;
+	bool removeZeroOnlyLines ;
 
 	Vector externalForces ;
 	Vector naturalBoundaryConditionForces ;
@@ -236,6 +237,8 @@ public:
 * @param params Supplementary parameters 
 */
 	void update(ElementaryVolume * e, double dt, Vector * params) ;
+
+	void setRemoveZeroOnlyLines(bool r) { removeZeroOnlyLines = r ; }
 	
 	void initialiseElementaryMatrices() ;
 	void initialiseElementaryMatrices(TriElement * father) ;

@@ -9,6 +9,7 @@
 #include "main.h"
 #include "../physics/homogenization/composite.h"
 #include "../physics/homogenization/phase.h"
+#include "../physics/stiffness.h"
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
@@ -19,40 +20,60 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
-	std::fstream writer ;
-	writer.open("elastic.csv", std::ios::out) ;
-	for(int i = 0 ; i < 1000 ; i++)
-	{
-		double f_gel = ((double) i)*0.001 ;
-
-		Phase gel(new GelBehaviour(), f_gel) ;
-		Phase aggregate(new ElasticOnlyAggregateBehaviour(), (1.-f_gel)) ;
-		MoriTanakaMatrixInclusionComposite lowerAggregate(aggregate, gel) ;
-		lowerAggregate.apply() ;
-
-		double f_paste = 0.36 ;
-		lowerAggregate.volume = 1.-f_paste ;
-
-		Phase cement(new ElasticOnlyPasteBehaviour(), 0.36) ;
-		MoriTanakaMatrixInclusionComposite lowerConcrete(cement, lowerAggregate) ;
-		lowerConcrete.apply() ;
-		Matrix S = lowerConcrete.C ;
-		Composite::invertTensor(S) ;
-		Vector lowerAlpha = S*lowerConcrete.beta ;
-
-		InverseMoriTanakaMatrixInclusionComposite upperAggregate(aggregate, gel) ;
-		upperAggregate.apply() ;
-
-		upperAggregate.volume = 1.-f_paste ;
-
-		InverseMoriTanakaMatrixInclusionComposite upperConcrete(cement, lowerAggregate) ;
-		upperConcrete.apply() ;
-		S = upperConcrete.C ;
-		Composite::invertTensor(S) ;
-		Vector upperAlpha = S*upperConcrete.beta ;
+	Phase cement(new Stiffness(Material::cauchyGreen(17*1e9, 0.3, true, SPACE_THREE_DIMENSIONAL)), 0.35) ;
+	Phase aggregates(new Stiffness(Material::cauchyGreen(60*1e9, 0.3, true, SPACE_THREE_DIMENSIONAL)), 0.65) ;
+	MoriTanakaMatrixInclusionComposite concrete(cement, aggregates) ;
+	concrete.apply() ;
+	Matrix S = concrete.C ;
+	Composite::invertTensor(S) ;
 	
-		writer << f_gel << "," << lowerConcrete.C[0][0] << "," << lowerAlpha[0] << "," << upperConcrete.C[0][0] << "," << upperAlpha[0]<< std::endl ;
-	}
+
+	Matrix A = concrete.matrix.A ;
+	
+	Matrix W = A*A*S ;
+	
+	Vector b ; b.resize(6) ; b=0. ;
+	for(size_t i = 0 ; i < 3 ; i++)
+		b[i] = 8.512*1e6 ;
+	
+	Vector eps = A*b ;
+	std::cout << 0.35*eps[0] << std::endl ;
+	
+  
+// 	std::fstream writer ;
+// 	writer.open("elastic.csv", std::ios::out) ;
+// 	for(int i = 0 ; i < 1000 ; i++)
+// 	{
+// 		double f_gel = ((double) i)*0.001 ;
+// 
+// 		Phase gel(new GelBehaviour(), f_gel) ;
+// 		Phase aggregate(new ElasticOnlyAggregateBehaviour(), (1.-f_gel)) ;
+// 		MoriTanakaMatrixInclusionComposite lowerAggregate(aggregate, gel) ;
+// 		lowerAggregate.apply() ;
+// 
+// 		double f_paste = 0.36 ;
+// 		lowerAggregate.volume = 1.-f_paste ;
+// 
+// 		Phase cement(new ElasticOnlyPasteBehaviour(), 0.36) ;
+// 		MoriTanakaMatrixInclusionComposite lowerConcrete(cement, lowerAggregate) ;
+// 		lowerConcrete.apply() ;
+// 		Matrix S = lowerConcrete.C ;
+// 		Composite::invertTensor(S) ;
+// 		Vector lowerAlpha = S*lowerConcrete.beta ;
+// 
+// 		InverseMoriTanakaMatrixInclusionComposite upperAggregate(aggregate, gel) ;
+// 		upperAggregate.apply() ;
+// 
+// 		upperAggregate.volume = 1.-f_paste ;
+// 
+// 		InverseMoriTanakaMatrixInclusionComposite upperConcrete(cement, lowerAggregate) ;
+// 		upperConcrete.apply() ;
+// 		S = upperConcrete.C ;
+// 		Composite::invertTensor(S) ;
+// 		Vector upperAlpha = S*upperConcrete.beta ;
+// 	
+// 		writer << f_gel << "," << lowerConcrete.C[0][0] << "," << lowerAlpha[0] << "," << upperConcrete.C[0][0] << "," << upperAlpha[0]<< std::endl ;
+// 	}
 	
 	return 0 ;
 }

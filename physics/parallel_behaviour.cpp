@@ -34,11 +34,11 @@ ParallelBehaviour::~ParallelBehaviour()
 
 void ParallelBehaviour::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
 {
-	std::vector<Matrix> tensorAtGaussPoints ;
-	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
-		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, nullptr, g )) ;
+// 	std::vector<Matrix> tensorAtGaussPoints ;
+// 	for(size_t g = 0 ; g < gp.gaussPoints.size() ; g++)
+// 		tensorAtGaussPoints.push_back(this->getTensor( gp.gaussPoints[g].first, nullptr, g )) ;
 		
-	vm->ieval(Gradient(p_i) * tensorAtGaussPoints * Gradient(p_j, true), gp, Jinv,v,ret) ;
+	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
 bool ParallelBehaviour::fractured() const 

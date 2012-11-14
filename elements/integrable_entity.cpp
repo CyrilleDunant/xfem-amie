@@ -2281,8 +2281,9 @@ void ElementStateWithInternalVariables::getFieldAtGaussPoint( FieldType f, size_
 	}
 	else
 	{
-		Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
-		this->getField(f, p_, ret, false, i) ;
+		ElementState::getFieldAtGaussPoint(f, g, ret, i) ;
+// 		Point p_ = parent->getGaussPoints().gaussPoints[g].first ;
+// 		this->getField(f, p_, ret, true, i) ;
 	}
 }
 

@@ -171,9 +171,9 @@ void IterativeMaxwell::getCoefficients(double timestep)
 	double alpha = exp(-timestep/chartime) ;
 	double gamma = 1.-alpha ;
 	double lambda = gamma*(chartime/timestep) ;
-	coeff_unext = 1.-lambda ;
-	coeff_uprev = gamma - coeff_unext ;
-	coeff_aprev = alpha ;
+	coeff_unext = timestep/(chartime+timestep) ;//1.-lambda ;
+	coeff_uprev = 0. ;//gamma - coeff_unext ;
+	coeff_aprev = 1-coeff_unext ;//alpha ;
 }
 
 void IterativeMaxwell::getInstantaneousCoefficients() 
@@ -387,7 +387,7 @@ void GeneralizedIterativeMaxwell::getCoefficients(double timestep)
 	for(size_t b = 0 ; b < branches.size() ; b++)
 	{
 		branches[b]->getCoefficients(timestep) ;
-// 		std::cout << branches[b]->coeff_unext << "\t" << branches[b]->coeff_uprev << "\t" <<  branches[b]->coeff_aprev << "\t" <<   std::endl ;
+ 		std::cout << branches[b]->coeff_unext << "\t" << branches[b]->coeff_uprev << "\t" <<  branches[b]->coeff_aprev << "\t" <<   std::endl ;
 	}
 }
 

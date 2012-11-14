@@ -815,6 +815,24 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				found = true ;
 				break ;
 			}
+			case TWFT_TRIANGLE_ANGLE:
+			{
+				Vector v(0., 1) ;
+				double a = tri->area() ;
+				double r = tri->getRadius() ;
+				ret[2] = a/(M_PI*r*r) ;
+				ret[1] = a/(M_PI*r*r) ;
+				ret[0] = a/(M_PI*r*r) ;
+// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false ) ;
+// 				ret[2] = 180.*v[0]/M_PI ;
+// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false ) ;
+// 				ret[1] = 180.*v[0]/M_PI ;
+// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
+// 				ret[0] = 180.*v[0]/M_PI ;
+
+				found = true ;
+				break ;
+			}
 			case TWFT_CRACKS:
 			{
 				if( tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
@@ -923,7 +941,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 				if( dynamic_cast<LinearForm *>( tri->getBehaviour() ) )
 				{
-					ret[2] = (dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[0][0]+dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 1, 0, 0, t ) )[1][1])*.5 ;
+					ret[2] = (dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 0.5, 0, 0, t ) )[0][0]+dynamic_cast<LinearForm *>( tri->getBehaviour() )->getTensor( Point( 0.5, 0, 0, t ) )[1][1])*.5 ;
 					ret[1] = ret[2] ;
 					ret[0] = ret[2] ;
 					found = true ;
@@ -1069,6 +1087,8 @@ int numberOfFields( TWFieldType field )
 		case TWFT_DISPLACEMENTS:
 			return 6 ;
 		case TWFT_PRINCIPAL_ANGLE:
+			return 3 ;
+		case TWFT_TRIANGLE_ANGLE:
 			return 3 ;
 		case TWFT_CRACK_ANGLE:
 			return 3 ;

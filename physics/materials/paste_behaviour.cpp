@@ -40,25 +40,50 @@ ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceD
 Form * ElasticOnlyPasteBehaviour::getCopy() const 
 {
 	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1. ;//- variability + variability*weib ;
+	double factor = 1. - variability + variability*weib ;
 	return new Stiffness(param*factor) ;
 }
 
-// ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double Evisc, double nuvisc, double tau, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0., dim), Evisc(Evisc), nuvisc(nuvisc), tau(tau) 
-// {
-// 
-// }
-// 
-// Form * ViscoElasticOnlyPasteBehaviour::getCopy() const 
-// {
-// 	double weib = RandomNumber().weibull(1,5) ;
-// 	double factor = 1. ;//- variability + variability*weib ;
-// 	Matrix Kvisc = Material::cauchyGreen(std::make_pair(Evisc, nuvisc), true, param.numRows() == 3 ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) ;
-// 	Vector decay(1./(tau*24*60*60), param.numRows()) ;
-// 	
-// 	Stiffness * stiff = new Stiffness(param*factor) ;
-// 	NewmarkNumeroffMaxwell * max = new NewmarkNumeroffMaxwell(Kvisc, decay) ;
-// 	
-// 	return new ParallelBehaviour(stiff, max) ;
-// }
+ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(SpaceDimensionality dim) : PasteBehaviour(12e9, 0.3, 0, dim)
+{
+	Kinf = 1.6752e6 ;
+	Ginf = 1.1173e6 ;
+	
+	addBranch(3.9268e9, 2.6365e9, 0.003) ;
+	addBranch(3.8072e9, 2.5542e9, 0.03) ;
+	addBranch(206.88e6, 119.67e6, 0.33) ;
+	addBranch(249.50e6, 191.00e6, 3) ;
+	addBranch(289.68e6, 199.45e6, 27) ;
+	addBranch(336.62e6, 231.77e6, 285) ;
+	addBranch(238.57e6, 135.30e6, 3000) ;
+}
+
+void ViscoElasticOnlyPasteBehaviour::addBranch(double k, double g, double eta) 
+{
+	branches.push_back(std::make_pair(std::make_pair(k,g), eta)) ;
+}
+
+void ViscoElasticOnlyPasteBehaviour::clearBranches() 
+{
+	branches.clear() ;
+}
+
+Form * ViscoElasticOnlyPasteBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. - variability + variability*weib ;
+	
+	Matrix Kvisc = Material::cauchyGreen(std::make_pair(Kinf, Ginf), false, param.numRows() == 3 ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) * factor;
+	
+	std::vector<Matrix> rig ;
+	std::vector<double> eta ;
+	
+	for(size_t i = 0 ; i < branches.size() ; i++)
+	{
+		  rig.push_back( Material::cauchyGreen(std::make_pair(branches[i].first.first, branches[i].first.second), false, param.numRows() == 3 ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) * factor )  ;
+		  eta.push_back( branches[i].second * factor ) ;
+	}
+	
+	return new GeneralizedIterativeMaxwell(Kvisc, rig, eta) ;
+}
 

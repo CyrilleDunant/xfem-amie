@@ -1701,7 +1701,7 @@ void FeatureTree::sample()
 					npoints = ( size_t )round(correctionfactor*npoints) ;
 				}
 				
-				if(/* npoints >= 8 &&*/ !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
 				{
 					count++ ;
 					tree[i]->sample( npoints ) ;
@@ -2214,6 +2214,7 @@ void FeatureTree::refine( size_t level )
 		std::cerr << "...done" << std::endl ;
 	}
 }
+
 
 Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  bool onlyUpdate ) const
 {
@@ -3169,6 +3170,7 @@ void FeatureTree::assemble()
 	{
 		numdofs = dtree->getLastNodeId() ;
 		triangles = dtree->getElements() ;
+//		std::cout << deltaTime << std::endl ;
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
@@ -4425,13 +4427,14 @@ bool FeatureTree::stepElements()
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
-			std::cerr << " stepping through elements... " << std::flush ;
-#pragma omp parallel for schedule(auto)
+ 			std::cerr << " stepping through elements... " << std::flush ;
+//#pragma omp parallel for schedule(auto)
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
 					std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
 				
+//				std::cout << deltaTime << std::endl ;
 				elements[i]->step( deltaTime, &K->getDisplacements() ) ;
 			}
 
@@ -5085,7 +5088,7 @@ bool FeatureTree::step()
 	do
 	{
 		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
-		deltaTime = 0 ;
+ 		deltaTime = 0 ;
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;
@@ -5466,7 +5469,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 					if(!triangles[j]->getBehaviour())
 						continue ;
 					triangles[j]->refresh( father2D );
-					triangles[j]->getState().initialize( initialiseFractureCache ) ;
+					  triangles[j]->getState().initialize( initialiseFractureCache ) ;
 				}
 			}
 		}
