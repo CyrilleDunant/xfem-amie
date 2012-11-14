@@ -109,6 +109,9 @@ struct DamageModel ;
 struct VirtualMachine ;
 struct BoundaryCondition ;
 
+size_t fieldTypeElementarySize(FieldType f, SpaceDimensionality dim) ;
+
+
 /** \brief State of the element, allows easy extraction of the various fields
  * 
  */

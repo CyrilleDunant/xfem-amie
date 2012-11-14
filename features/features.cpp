@@ -5231,6 +5231,74 @@ bool FeatureTree::stepToCheckPoint()
 	return solverConverged();
 }
 
+
+Vector FeatureTree::getAverageField( FieldType f, int grid ) 
+{
+	Vector avg ;
+	Vector buffer ;
+	double volume = 0 ;
+	if(is2D())
+	{
+		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
+		avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+		avg = 0 ; buffer = 0 ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			elements[i]->getState().getAverageField( f, buffer ) ;
+			avg += buffer * elements[i]->area() ;
+			volume += elements[i]->area() ;
+		}
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> elements = this->getElements3D( grid ) ;
+		avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+		avg = 0 ; buffer = 0 ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			elements[i]->getState().getAverageField( f, buffer ) ;
+			avg += buffer * elements[i]->volume() ;
+			volume += elements[i]->volume() ;
+		}
+	  
+	}
+	return avg/volume ;
+}
+
+Vector FeatureTree::getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri ) 
+{
+	Vector avg ;
+	Vector buffer ;
+	double volume = 0 ;
+	avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+	avg = 0 ; buffer = 0 ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		tri[i]->getState().getAverageField( f, buffer ) ;
+		avg += buffer * tri[i]->area() ;
+		volume += tri[i]->area() ;
+	}
+	return avg/volume ;
+}
+
+
+Vector FeatureTree::getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet ) 
+{
+	Vector avg ;
+	Vector buffer ;
+	double volume = 0 ;
+	avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+	avg = 0 ; buffer = 0 ;
+	for(size_t i = 0 ; i < tet.size() ; i++)
+	{
+		tet[i]->getState().getAverageField( f, buffer ) ;
+		avg += buffer * tet[i]->volume() ;
+		volume += tet[i]->volume() ;
+	}
+	return avg/volume ;
+}
+
+
 bool FeatureTree::isStable()
 {
 	bool needAssemblyinit = needAssembly ;

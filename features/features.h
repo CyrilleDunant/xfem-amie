@@ -517,6 +517,10 @@ public:
 	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer, bool stepTree = true) ;
 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 	
+	Vector getAverageField( FieldType f, int grid = -1) ;
+	Vector getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri) ;
+	Vector getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet) ;
+	
 	size_t numPoints() const ;
 	
 /** \brief Step in time

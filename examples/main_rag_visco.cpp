@@ -18,6 +18,7 @@
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
 #include "../utilities/writer/triangle_writer.h"
+#include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/homogenization/homogenization_base.h"
@@ -94,66 +95,89 @@ double s2d(double s)
 	return s/(24*60*60) ;
 }
 
+double reaction( std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones)
+{
+	double r = zones[0].first->getRadius() ;
+	return M_PI*r*r*zones.size() ;
+}
+
+void updateZones(  std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones, double nexta)
+{
+	double prevr = zones[0].first->getRadius() ;
+	if(nexta > reaction(zones))
+	{
+		double newr = sqrt(nexta/(M_PI*zones.size())) ;
+		std::cout << prevr << "\t" << newr << std::endl ;
+		for(size_t i = 0 ; i < zones.size() ; i++)
+		{
+			zones[i].first->setRadius(newr) ;
+			if(zones[i].first->intersects(dynamic_cast<Circle *>(zones[i].second)))
+			{
+				std::cout << i << std::endl ;
+				zones[i].first->setRadius(prevr) ;
+			}
+		}
+	}
+}
+
+double getReactiveSurface( std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones )
+{
+	double area = 0 ; 
+	Inclusion * last = nullptr ;
+	for(size_t i = 0 ; i < zones.size() ; i++)
+	{
+		if(zones[i].second != last)
+			area += zones[i].second->area() ;
+		last = zones[i].second ;
+	}
+	return area ;
+}
+
 int main(int argc, char *argv[])
 {
-	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
+	double timeScale = atof(argv[1]) ;
   
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(100) ;
+	F.setSamplingNumber(200) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
-	
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07, 50) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
-	std::vector<Feature *> feats ;
-	for( size_t i = 0; i < inclusions.size() ; i++ )
-		feats.push_back( inclusions[i] ) ;
-	inclusions.clear() ;
-
-	int nAgg = 1 ;
-	srand(0) ;
-	feats = placement( &rbox, feats, &nAgg, 0, 6400 );
-	for( size_t i = 0; i < feats.size() ; i++ )
-		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
-	
-	ElasticOnlyAggregateBehaviour *stiff = new ElasticOnlyAggregateBehaviour() ;
-	GeneralizedSpaceTimeViscoelasticity * agg = new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, stiff->param, 7) ;
-	for( size_t i = 0 ; i < inclusions.size() ; i++ )
-	{
-// 		inclusions[i]->setBehaviour( agg ) ;
-		inclusions[i]->setBehaviour( stiff ) ;
-		F.addFeature( &box, inclusions[i] ) ;
-	}
-	
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 50) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
- 	F.step() ;
- 	size_t i = 0 ;
-   	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*_AFTER*/, -10e6)) ;
+	Vector x = F.getAverageField(STRAIN_FIELD) ;
+	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
+	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
-	
+	size_t i = 0 ;
 	double time = 0. ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 10) ;
 	F.step() ;
-	Vector x = F.getDisplacements() ;
-	double hey = x.max() ;
-	std::fstream out ;
-	std::string toto = "/home/alain/Code/FitExperiment/fit10_" ;
-	toto.append(argv[1]) ;
-	out.open(toto.c_str(), std::ios::out) ;
-	out << time << "\t" << x.min()/(0.07*10) << std::endl ;
+	
+	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
+	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
+	
+	x = F.getAverageField(STRAIN_FIELD) ;
+	y = F.getAverageField(EFFECTIVE_STRESS_FIELD, paste) ;
+	std::cout << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
+
 	
 	while(time < 365)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
-		F.step() ;
-		x = F.getDisplacements() ;
 		time += tau *i ;
-		out << time << "\t" << x.min()/(0.07*10) << std::endl ;
+		if(time < timeScale )
+			updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
+		else
+			updateZones( zones, getReactiveSurface(zones)*0.03) ;
+		F.step() ;
+		x = F.getAverageField(STRAIN_FIELD) ;
+		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
+		std::cout << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 	}
 		
 	return 0 ;

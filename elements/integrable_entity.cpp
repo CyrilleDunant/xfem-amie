@@ -14,6 +14,35 @@
 using namespace Mu ;
 
 
+size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim) 
+{
+	switch(f)
+	{
+		case DISPLACEMENT_FIELD :
+		case ENRICHED_DISPLACEMENT_FIELD :
+		case SPEED_FIELD :
+		case FLUX_FIELD:
+		case GRADIENT_FIELD:
+		case PRINCIPAL_STRAIN_FIELD:
+		case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
+		case PRINCIPAL_REAL_STRESS_FIELD:
+			return dim == SPACE_THREE_DIMENSIONAL ? 3 : 2 ;
+			
+		case STRAIN_FIELD:
+		case STRAIN_RATE_FIELD:
+		case EFFECTIVE_STRESS_FIELD:
+		case REAL_STRESS_FIELD:
+		case NON_ENRICHED_STRAIN_FIELD:
+		case NON_ENRICHED_STRAIN_RATE_FIELD:
+		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
+		case NON_ENRICHED_REAL_STRESS_FIELD:
+			return dim == SPACE_THREE_DIMENSIONAL ? 6 : 3 ;
+		  
+	}
+	return 0 ;
+}
+
+
 ElementState * Form::createElementState( IntegrableEntity * e) 
 {
 	return new ElementState(e) ;

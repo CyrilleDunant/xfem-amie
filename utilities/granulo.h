@@ -14,7 +14,9 @@
 #include <iostream>
 #include <vector>
 #include "../features/inclusion.h"
+#include "../features/expansiveZone.h"
 #include "../features/inclusion3d.h"
+#include "../physics/stiffness_with_imposed_deformation.h"
 #include "../geometry/geometry_base.h"
 
 
@@ -133,6 +135,42 @@ public:
 	 */
 	static std::vector<Inclusion *> get2DConcrete(double rmax = 0.008, double width = 0.07, size_t n = 6000, PSDType type = BOLOME_A) ;
 
+	/**
+	 * \brief Creates concrete PSD, set the behaviour and place the inclusions in the sample
+	 * @param F Feature tree
+	 * @param behaviour aggregate behaviour
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param n maximum number of aggregates
+	 * @param type type of PSD to use
+	 * @param tries number of tries for the placement
+	 * @param seed seed for random generator
+	 * @return vector of Inclusion*
+	 */
+	static std::vector<Inclusion *> get2DConcrete(FeatureTree * F, Form * behaviour, double rmax = 0.008, size_t n = 6000, PSDType type = BOLOME_A, size_t tries = 10000, size_t seed = 0) ;
+
+		/**
+	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample
+	 * @param F Feature tree
+	 * @param behaviour aggregate behaviour
+	 * @param rmax maximum radius in the particle size distribution
+	 * @param n maximum number of aggregates
+	 * @param type type of PSD to use
+	 * @param tries number of tries for the placement
+	 * @param seed seed for random generator
+	 * @return vector of Inclusion*
+	 */
+	static std::vector<Inclusion *> get2DMortar(FeatureTree * F, Form * behaviour, double rmax = 0.0025, size_t n = 4000, PSDType type = BOLOME_D, size_t tries = 10000, size_t seed = 0) ;
+
+	/** \brief Creates expansive zones randomly distribued in the aggregates
+	 * @param F feature tree
+	 * @param aggregates reactive aggregates
+	 * @param behaviour expansive zones behaviour
+	 * @param radius radius of the expansive zones
+	 * @param n number of generated zones
+	 * @param max maximum number of kept zones
+	 */
+	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max) ;
+	
 	/**
 	 * \brief Returns appropriate ParticleSizeDistribution* object corresponding to the given type
 	 * @param type PSD type to use
