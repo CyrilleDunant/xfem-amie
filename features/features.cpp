@@ -246,6 +246,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	this->dtree = nullptr ;
 	this->dtree3D = nullptr ;
 	
+	samplingRestriction = SAMPLE_RESTRICT_8 ;
 
 	if( first )
 	{
@@ -1701,11 +1702,41 @@ void FeatureTree::sample()
 					npoints = ( size_t )round(correctionfactor*npoints) ;
 				}
 				
-				if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+				if(samplingRestriction = SAMPLE_RESTRICT_8)
 				{
-					count++ ;
-					tree[i]->sample( npoints ) ;
-					tree[i]->isUpdated = false ;
+					if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					{
+						count++ ;
+						tree[i]->sample( npoints ) ;
+						tree[i]->isUpdated = false ;
+					}
+				}
+				else if(samplingRestriction = SAMPLE_RESTRICT_4)
+				{
+					if( npoints >= 4 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					{
+						count++ ;
+						tree[i]->sample( npoints ) ;
+						tree[i]->isUpdated = false ;
+					}
+				}
+				else if(samplingRestriction = SAMPLE_RESTRICT_16)
+				{
+					if( npoints >= 16 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					{
+						count++ ;
+						tree[i]->sample( npoints ) ;
+						tree[i]->isUpdated = false ;
+					}
+				}
+				else
+				{
+					if( !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					{
+						count++ ;
+						tree[i]->sample( npoints ) ;
+						tree[i]->isUpdated = false ;
+					}
 				}
 			}
 //			std::cout << count << " particles meshed" << std::endl ;

@@ -1884,6 +1884,7 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar3, 3 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
 	F.setOrder( LINEAR ) ;
+	F.setSamplingRestriction(SAMPLE_NO_RESTRICTION);
 
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;

@@ -31,7 +31,13 @@
 namespace Mu
 {
 
-
+	typedef enum 
+	{
+		SAMPLE_RESTRICT_4,
+		SAMPLE_RESTRICT_8,
+		SAMPLE_RESTRICT_16,
+		SAMPLE_NO_RESTRICTION
+	} SamplingRestrictionType ;
 
 /** \brief Container for the features defining the setup.
  * 
@@ -101,6 +107,8 @@ protected:
 
 	State state ;
 protected:
+	
+	SamplingRestrictionType samplingRestriction ;
 	
 	void duplicate2DMeshPoints() ;
 	void duplicate3DMeshPoints() ;
@@ -343,6 +351,12 @@ public:
 	{
 		return layer2d.size() || layer3d.size() ;
 	}
+	
+	void setSamplingRestriction(SamplingRestrictionType sr)
+	{
+		samplingRestriction = sr ;
+	}
+	
 	std::vector<int> listLayers() const ;
 	
 	Point * checkElement( const DelaunayTetrahedron * t ) const;

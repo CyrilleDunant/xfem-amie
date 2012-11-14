@@ -1284,21 +1284,29 @@ std::pair<double, double> FractureCriterion::getCrackOpeningAndSlip(const Elemen
 	Vector displacementRight(0., 2) ;
 	double countLeft = 0 ;
 	double countRight = 0 ;
-	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
+	
+	for(size_t i = 0 ; i < physicalcache.size() ; i++)
 	{
-		if((s.getParent()->getBoundingPoint(i) - s.getParent()->getCenter()).angle()-currentAngle > 0)
+		DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+		for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
 		{
-			displacementLeft[0] += s.getDisplacements()[2*i] ;
-			displacementLeft[1] += s.getDisplacements()[2*i+1] ;
-			countLeft++ ;
-		}
-		else
-		{
-			displacementRight[0] += s.getDisplacements()[2*i] ;
-			displacementRight[1] += s.getDisplacements()[2*i+1] ;
-			countRight++ ;
+			if((ci->getBoundingPoint(j) - s.getParent()->getCenter()).angle()-currentAngle > 0 &&
+				 (ci->getBoundingPoint(j) - s.getParent()->getCenter()).angle()-currentAngle < M_PI
+			)
+			{
+				displacementLeft[0] += ci->getState().getDisplacements()[2*j]*factors[i] ;
+				displacementLeft[1] += ci->getState().getDisplacements()[2*j+1]*factors[i] ;
+				countLeft += factors[i];
+			}
+			else
+			{
+				displacementRight[0] += ci->getState().getDisplacements()[2*j]*factors[i] ;
+				displacementRight[1] += ci->getState().getDisplacements()[2*j+1]*factors[i] ;
+				countRight += factors[i];
+			}
 		}
 	}
+
 	
 	displacementLeft /= countLeft ;
 	displacementRight /= countRight ;

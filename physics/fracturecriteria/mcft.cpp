@@ -178,48 +178,138 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value)
 {
-	double maxTension = upVal*scaleFactor;
-	double maxTensionStrain = tensionCritStrain;
-	//value /= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
-	if(tstrain > tensionCritStrain )
-	{
-		double downTestVal = tensionCritStrain ;
-		double upTestVal = strain_te*3. ;
-		double factor = 1 ;
-		double delta_tech = strain_te*3.-strain_ch*3.;
-		double mainCurve = 0 ;
-		int count = 0 ;
-		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32)
-		{
-			double testVal = (upTestVal+downTestVal)*.5 ;
-			mainCurve = 1./(1.+sqrt(value)*pow(testVal, 0.5)) ;
-
-			if(testVal < tensionCritStrain)
-				factor = 1. ;
- 			else if(testVal < strain_ch*3.)
- 				factor = mainCurve ;
-			else if(testVal < strain_te*3.)
-			{
-				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-// 				factor = std::min((strain_te*3.-testVal)/(strain_te*3.-tensionCritStrain), mainCurve) ;
-			}
-			else
-				factor = 0 ;
-			
-
-			if( testVal*pseudoYoung > upVal*factor )
-				upTestVal = testVal ;
-			else
-				downTestVal = testVal ;
-
-		}
+// 	double delta = currentAngle ; // this assumes horizontal rebars
+// 	double epsilon_0 = tensionCritStrain*cos(delta)*cos(delta) ; // strain at which the stifening activates
+//	double epsilon_ys = 0.00125 ;
+//	double concreteCover = .04 ; 
+//	double barSpacing = .06 ;
+//	double barPropCoef = 0.4 ; //plain bars (0.8 for deformed bars)
+//	double strainGradientCoef = .25 ;
+//	double rho_cf = 0.01; //A_steel/Aconcrete ;
+//	double w = 2.*(concreteCover+barSpacing*.1)+barPropCoef*strainGradientCoef*rebarLocationsAndDiameters[0].second/rho_cf ;
+//	double G = 50. ;
 	
-		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
-		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
+//	double epsilon_cu = 2.*cos(delta)*cos(delta)*G/(w*upVal) ;
+//	double epsilon_u = epsilon_ys - upVal/(rho_cf*40e9) ;
+	
+//	double maxTension = upVal*scaleFactor;
+//	double maxTensionStrain = tensionCritStrain;
+//	if(std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D)
+//	{
+//		maxTensionStrain = tensionCritStrain ;
+//		maxTension = maxTension ;
+//	}
+	
+//	double interactionStress = 0 ;
+//	
+//	if(tstrain > epsilon_0)
+//	{
+//		if(tstrain < epsilon_cu)
+//		{
+//			interactionStress = upVal*(tstrain-epsilon_0)/(epsilon_cu-epsilon_0) ;
+//		}
+//		else if(tstrain < epsilon_u)
+//			interactionStress = upVal ;
+//		else if(tstrain < epsilon_ys )
+//			interactionStress = upVal*(1.-(tstrain-epsilon_u)/(epsilon_ys-epsilon_u)) ;
+//		else
+//			interactionStress = 0 ;
+//	}
+//	
+	
+//	if(tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D || tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) >= POINT_TOLERANCE_2D)
+//	{
+//		double downTestVal = tensionCritStrain ;
+//		double upTestVal = strain_te*1.1 ;
+//		double factor = 1 ;
+//		double delta_tech = strain_te-strain_ch;
+//		int count = 0 ;
+//		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32 )
+//		{
+//			double testVal = (upTestVal+downTestVal)*.5 ;
+//			double mainCurve = 1./(1.+sqrt(k)*pow(testVal-tensionCritStrain,0.8)) ;
+//
+//			if(testVal < tensionCritStrain)
+//				factor = 1. ;
+//			else if(testVal < strain_ch)
+//				factor = mainCurve ;
+//			else if(testVal < strain_te)
+//				factor = mainCurve*(strain_te-testVal)/delta_tech ;
+//			else
+//				factor = 0 ;
+//			
+//			
+//			if( testVal*pseudoYoung > upVal*factor+interactionStress )
+//				upTestVal = testVal ;
+//			else
+//				downTestVal = testVal ;
+//			
+//		}
+//
+//		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
+//		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
+//	}
+//	
+	if(factors.size() == 0)
+		initialiseFactors(s) ;
+	double nlfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ;
+	
+	double corrfact = 1 ;
+// 	for(size_t i = 1 ; i < 24 ; i++)
+// 	{
+// 		double a = 1./nlfactor * (sqrt(value*strain_ch)-log(sqrt(value*strain_ch+1)))+log(corrfact*value*strain_ch) ;
+// 		a *= a ;
+// 		a /= corrfact*strain_ch ;
+// 		corrfact = a ;
+// // 		std::cout << corrfact << std::endl ;
+// 	}
+	
+// 	exit(0) ;
+	
+ 	double maxTension = upVal*scaleFactor;
+ 	double maxTensionStrain = tensionCritStrain;
 
-		if(factor < POINT_TOLERANCE_2D)
-			return POINT_TOLERANCE_2D ;
-	}
+//  	value /= factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ; //getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
+ 	if(tstrain > tensionCritStrain*4. )
+ 	{
+ 		double downTestVal = tensionCritStrain*4. ;
+ 		double upTestVal = strain_te*3. ;
+ 		double factor = 1 ;
+ 		double delta_tech = strain_te*3-strain_ch*3.;
+ 		double mainCurve = 0 ;
+ 		int count = 0 ;
+ 		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32)
+ 		{
+ 			double testVal = (upTestVal+downTestVal)*.5 ;
+ 			mainCurve = 1./(1.+sqrt(value*corrfact)*sqrt(testVal-tensionCritStrain*3.)) ;
+ 
+ 			if(testVal < strain_ch*3.)
+  			factor = mainCurve ;
+ 			else if(testVal < strain_te*3.)
+ 			{
+ 				factor = mainCurve*(strain_te*3.-testVal)/delta_tech ;
+ // 				factor = std::min((strain_te*3.-testVal)/(strain_te*3.-tensionCritStrain), mainCurve) ;
+ 			}
+ 			else
+ 				factor = 0 ;
+ 			
+ 
+ 			if( testVal*pseudoYoung > upVal*factor )
+ 				upTestVal = testVal ;
+ 			else
+ 				downTestVal = testVal ;
+ 
+ 		}
+ 	
+ 		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
+ 		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
+ 
+ 		if(factor < POINT_TOLERANCE_2D)
+ 			return POINT_TOLERANCE_2D ;
+ 	}
+ 	else
+		return getBareConcreteTensileCriterion( s, pseudoYoung, tstrain, tstress) ;
+	
 	double criterion = 0 ;
 	if(maxTensionStrain > POINT_TOLERANCE_2D)
 		criterion = std::abs(tstrain/maxTensionStrain) ;
@@ -272,7 +362,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(tstress <= 0 || tstrain <= 0)
 		return -1 ;
 // 	return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
-//	return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+// 	return getBareConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
 	
 // 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 // 	{
@@ -428,8 +518,11 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 void NonLocalMCFT::initialise( ElementState &s)
 {
 	double energy = 75. ; //N/m
-	strain_ch = 2.*energy/(0.01*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
-	
+	strain_ch = 2.*energy/(8.*getMaterialCharacteristicRadius()*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	if(factors.size()==0)
+		initialiseFactors(s) ;
+	double nlcorrection = factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ;
+	energy *= nlcorrection ;
 	if(strain_ch < tensionCritStrain)
 	{
 		std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
@@ -440,10 +533,10 @@ void NonLocalMCFT::initialise( ElementState &s)
 	double del_1 = (strain_te-strain_ch) ;
 	double del = (strain_te-tensionCritStrain) ;
 	
-	double k0 = 1e14 ;
+	double k0 = 1e24 ;
 	double k_low = 0 ;
 	double k_high = k0 ;
-	double elastic_energy = tensionCritStrain*upVal*.5 ;
+	double elastic_energy = tensionCritStrain*upVal*.5*nlcorrection ;
 	double integral = elastic_energy ;
 	do
 	{
@@ -465,11 +558,12 @@ void NonLocalMCFT::initialise( ElementState &s)
 		else
 			k_low = k ;
 		
-	} while(std::abs(k_low-k_high) > 1e-8*k0) ;
+	} while(std::abs(integral-energy) > 1e-3*energy) ;
 	
 // 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
 		k/=1e6 ;
-	
+
+		
 	if(std::abs(integral-energy) > 1e-3*energy)
 	{
 	  std::cout << "wrong energy! " << integral << " vs "<< energy  << std::endl ;
@@ -489,36 +583,9 @@ std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double 
 	double a3 = 2.45/tau_0 ;
 	double a4 = 2.44*(1.-4./tau_0) ;
 	
-	double crackAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() ;
-	Matrix rotationMatrix(2,2) ;
-	rotationMatrix[0][0] = cos(-crackAngle) ; rotationMatrix[0][1] = sin(-crackAngle) ; 
-	rotationMatrix[1][0] = -sin(-crackAngle) ; rotationMatrix[1][1] = cos(-crackAngle) ; 
-	
-	Vector displacementLeft(0., 2) ;
-	Vector displacementRight(0., 2) ;
-	double countLeft = 0 ;
-	double countRight = 0 ;
-	for(size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++)
-	{
-		if((s.getParent()->getBoundingPoint(i) - s.getParent()->getCenter()).angle()-crackAngle > 0)
-		{
-			displacementLeft[0] += s.getDisplacements()[2*i] ;
-			displacementLeft[1] += s.getDisplacements()[2*i+1] ;
-			countLeft++ ;
-		}
-		else
-		{
-			displacementRight[0] += s.getDisplacements()[2*i] ;
-			displacementRight[1] += s.getDisplacements()[2*i+1] ;
-			countRight++ ;
-		}
-	}
-	
-	displacementLeft /= countLeft ;
-	displacementRight /= countRight ;
-	Vector delta = rotationMatrix*(displacementLeft-displacementRight) ;
-	double delta_n = delta[0]*1000. ;
-	double delta_t = delta[1]*1000. ;
+	std::pair<double, double> deltas = s.getParent()->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(s) ;
+	double delta_n = deltas.first*1000. ;
+	double delta_t = deltas.second*1000. ;
 	if(delta_n < 0.01)
 		return std::make_pair(0, 0) ;
 	
@@ -555,8 +622,8 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 // 	if(std::max(crackstress.first, 0.) > POINT_TOLERANCE_2D ||  std::min(crackstress.second, 0.) > POINT_TOLERANCE_2D)
 // 		std::cout << "\n"<< std::max(crackstress.first, 0.) << "   " << std::min(crackstress.second, 0.) << std::endl ;
-	double tstress = first.max()-2.*std::max(crackstress.first, 0.);// stressStrain.first.max()-std::max(crackstress.first, 0.);   //
-	double cstress = first.min()+2.*std::min(crackstress.second, 0.);// stressStrain.first.min()+std::min(crackstress.second, 0.);   //
+	double tstress = first.max();//std::min(first.max()-2.*std::max(crackstress.first, 0.), first.max());// stressStrain.first.max()-std::max(crackstress.first, 0.);   //
+	double cstress = first.min();//std::max(first.min()+2.*std::min(crackstress.second, 0.), first.min());// stressStrain.first.min()+std::min(crackstress.second, 0.);   //
 
 	
 	
