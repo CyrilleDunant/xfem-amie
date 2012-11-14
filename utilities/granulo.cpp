@@ -211,7 +211,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
 			Circle circle(incs[j]->getRadius()*0.95 - radius*100, incs[j]->getCenter()) ;
-			if(circle.in(zonesToPlace[i]->getCenter()) && incs[j]->getBoundingPoints().size() > 10)
+			if(circle.in(zonesToPlace[i]->getCenter()) && incs[j]->getBoundingPoints().size() >= 8)
 			{
 				zonesPerIncs[incs[j]]++ ; ;
 				F->addFeature(incs[j],zonesToPlace[i]) ;

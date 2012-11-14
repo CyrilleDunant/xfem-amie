@@ -88,7 +88,6 @@ using namespace Mu ;
 
 Sample box(nullptr, 0.07, 0.07,0.0,0.0) ;
 Rectangle rbox(0.07,0.07,0.0,0.0) ;
-double tau = 1.;
 
 double s2d(double s)
 {
@@ -111,11 +110,6 @@ void updateZones(  std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones, d
 		for(size_t i = 0 ; i < zones.size() ; i++)
 		{
 			zones[i].first->setRadius(newr) ;
-			if(zones[i].first->intersects(dynamic_cast<Circle *>(zones[i].second)))
-			{
-				std::cout << i << std::endl ;
-				zones[i].first->setRadius(prevr) ;
-			}
 		}
 	}
 }
@@ -136,14 +130,15 @@ double getReactiveSurface( std::vector<std::pair<ExpansiveZone *, Inclusion*> > 
 int main(int argc, char *argv[])
 {
 	double timeScale = atof(argv[1]) ;
-  
+	double tau = atof(argv[2]);
+
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(200) ;
+	F.setSamplingNumber(500) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 50) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -154,7 +149,7 @@ int main(int argc, char *argv[])
 
 	size_t i = 0 ;
 	double time = 0. ;
-	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 10) ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 1200) ;
 	F.step() ;
 	
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
