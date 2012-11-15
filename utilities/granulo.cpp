@@ -208,23 +208,24 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		if(ret.size() < max)
 		{
-			Circle circle(incs[j]->getRadius()*0.95 - radius*100, incs[j]->getCenter()) ;
-			if(circle.in(zonesToPlace[i]->getCenter()) && incs[j]->getBoundingPoints().size() >= 8)
-			{
-				zonesPerIncs[incs[j]]++ ; ;
-				F->addFeature(incs[j],zonesToPlace[i]) ;
-				ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
-				placed = true ;
-				break ;
-			}
+			  for(int j = 0 ; j < incs.size() ; j++)
+			  {
+				  Circle circle(incs[j]->getRadius()*0.95 - radius*100, incs[j]->getCenter()) ;
+				  if(circle.in(zonesToPlace[i]->getCenter()) && incs[j]->getBoundingPoints().size() >= 8)
+				  {
+					  zonesPerIncs[incs[j]]++ ; ;
+					  F->addFeature(incs[j],zonesToPlace[i]) ;
+					  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+					  placed = true ;
+					  break ;
+				  }
+			  }
 		}
 		if(!placed)
 			delete zonesToPlace[i] ;
 		
-		if(ret.size() == max)
-		  break ;
 	}
 	
 // 	exit(0) ;

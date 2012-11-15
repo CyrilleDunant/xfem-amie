@@ -129,16 +129,16 @@ double getReactiveSurface( std::vector<std::pair<ExpansiveZone *, Inclusion*> > 
 
 int main(int argc, char *argv[])
 {
-	double timeScale = atof(argv[1]) ;
-	double tau = atof(argv[2]);
+	double timeScale = 100 ;
+	double tau = 1.;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(500) ;
+	F.setSamplingNumber(50) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 10) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -149,24 +149,24 @@ int main(int argc, char *argv[])
 
 	size_t i = 0 ;
 	double time = 0. ;
-	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 1200) ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 1) ;
 	F.step() ;
 	
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
 	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
 	
-	std::fstream out ;
-	std::string toto = "rag_visco_" ;
-	toto.append(argv[1]) ;
-	out.open(toto.c_str(), std::ios::out ) ;
+// 	std::fstream out ;
+// 	std::string toto = "rag_visco_" ;
+// 	toto.append(argv[1]) ;
+// 	out.open(toto.c_str(), std::ios::out ) ;
 	
 	
 	x = F.getAverageField(STRAIN_FIELD) ;
 	y = F.getAverageField(EFFECTIVE_STRESS_FIELD, paste) ;
-	out << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
+	std::cout << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
-	while(time < 36500)
+	while(time < 100)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
-		out << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
+		std::cout << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 	}
 		
 	return 0 ;
