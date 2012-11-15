@@ -51,6 +51,7 @@ public:
 	virtual double getScale() const;
 		
 	LagrangeMultiplierType getConditionType() const {return condition ;}  ;
+	virtual ~BoundaryCondition() {} ;
 } ;
 
 class PlaneSectionsBoundaryConditions : public BoundaryCondition
@@ -176,8 +177,8 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 		size_t id ;
 		ElementarySurface * surface ;
 		ElementaryVolume * volume ;
-		std::valarray<Matrix> Jinv ;
-		GaussPointArray gp ;
+		std::valarray<Matrix> * Jinv ;
+		GaussPointArray * gp ;
 	public:
 		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, size_t id, double d = 0, int a = 0 ) ;
 		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d = 0, int a = 0 ) ;
@@ -185,6 +186,7 @@ class DofDefinedBoundaryCondition : public BoundaryCondition
 		DofDefinedBoundaryCondition(LagrangeMultiplierType t, ElementaryVolume * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a = 0 ) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 		virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+		virtual ~DofDefinedBoundaryCondition() { delete gp ; delete Jinv ;}
 } ;
 
 class TimeContinuityBoundaryCondition : public BoundaryCondition

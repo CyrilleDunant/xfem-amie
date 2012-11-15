@@ -24,14 +24,12 @@ TriElement::~TriElement()
 		delete shapefunc ;
 		shapefunc = nullptr ;
 	}
-	delete behaviour ;
 }
 
 TetrahedralElement::~TetrahedralElement()
 {
 	if(isFather && shapefunc)
 		delete shapefunc ;
-	delete behaviour ;
 }
 
 ElementarySurface::ElementarySurface()

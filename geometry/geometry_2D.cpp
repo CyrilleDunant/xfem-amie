@@ -1321,6 +1321,7 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 
 void Rectangle::sampleSurface(size_t num_points)
 {
+	
 	if(std::max(size_x/size_y, size_y/size_x) < 10)
 	{
 		sampleBoundingSurface((size_t)round((double)num_points*2.*std::max(size_x/size_y, size_y/size_x)/(M_PI))) ;

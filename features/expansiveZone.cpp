@@ -39,7 +39,7 @@ void ExpansiveZone::reset()
 
 void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
 {
-	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+// 	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
 	EnrichmentInclusion::enrich( lastId, dtree ) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;

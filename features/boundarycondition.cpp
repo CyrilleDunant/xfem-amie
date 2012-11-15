@@ -42,24 +42,32 @@ ElementDefinedBoundaryCondition::ElementDefinedBoundaryCondition( ElementaryVolu
 {
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & g, const std::valarray<Matrix> & J , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr )
 {
-
+	gp = new GaussPointArray(g) ;
+	Jinv = new std::valarray<Matrix> (J.size()) ;
+	std::copy(&J[0], &J[J.size()], &(*this->Jinv)[0]) ;
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementarySurface * surface, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( surface ), volume( nullptr )
 {
-
+	this->gp = new GaussPointArray(gp) ;
+	this->Jinv = new std::valarray<Matrix> (Jinv.size()) ;
+	std::copy(&Jinv[0], &Jinv[Jinv.size()], &(*this->Jinv)[0]) ;
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, double d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume )
 {
-
+	this->gp = new GaussPointArray(gp) ;
+	this->Jinv = new std::valarray<Matrix> (Jinv.size()) ;
+	std::copy(&Jinv[0], &Jinv[Jinv.size()], &(*this->Jinv)[0]) ;
 }
 
-DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume ), gp(gp), Jinv(Jinv)
+DofDefinedBoundaryCondition::DofDefinedBoundaryCondition( LagrangeMultiplierType t, ElementaryVolume * volume, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv , size_t id, const Function & d, int a  ) : BoundaryCondition( t, d, a ), id( id ), surface( nullptr ), volume( volume )
 {
-
+	this->gp = new GaussPointArray(gp) ;
+	this->Jinv = new std::valarray<Matrix> (Jinv.size()) ;
+	std::copy(&Jinv[0], &Jinv[Jinv.size()], &(*this->Jinv)[0]) ;
 }
 
 void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
@@ -1851,7 +1859,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply2DBC( surface,gp, Jinv, id_, condition, data*getScale(), a, axis ) ;
+		apply2DBC( surface,*gp, *Jinv, id_, condition, data*getScale(), a, axis ) ;
 	}
 	else
 	{
@@ -1862,7 +1870,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 			if ( surface->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( surface->getBoundingPoint( i ) );
-				apply2DBC( surface,gp,Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
+				apply2DBC( surface,*gp,*Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
 				return ;
 			}
 		}
@@ -1878,7 +1886,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 	{
 		std::vector<size_t> id_ ;
 		id_.push_back( id );
-		apply3DBC( volume,gp,Jinv,  id_, condition, data*getScale(),  a , axis) ;
+		apply3DBC( volume,*gp,*Jinv,  id_, condition, data*getScale(),  a , axis) ;
 	}
 	else
 	{
@@ -1889,7 +1897,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 			if ( volume->getBoundingPoint( i ).id == id )
 			{
 				id_.push_back( volume->getBoundingPoint( i ) );
-				apply3DBC( volume,gp, Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
+				apply3DBC( volume,*gp, *Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
 				return ;
 			}
 		}

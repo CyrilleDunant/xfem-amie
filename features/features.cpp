@@ -1704,7 +1704,7 @@ void FeatureTree::sample()
 				
 				if(samplingRestriction == SAMPLE_RESTRICT_8)
 				{
-					if( npoints >= 8 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					if( npoints >= 8 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */)
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
@@ -1713,7 +1713,7 @@ void FeatureTree::sample()
 				}
 				else if(samplingRestriction == SAMPLE_RESTRICT_4)
 				{
-					if( npoints >= 4 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					if( npoints >= 4 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */)
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
@@ -1722,7 +1722,7 @@ void FeatureTree::sample()
 				}
 				else if(samplingRestriction == SAMPLE_RESTRICT_16)
 				{
-					if( npoints >= 16 && !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					if( npoints >= 16 && !tree[i]->isVirtualFeature /*&& npoints < correctionfactor*samplingNumber */)
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
@@ -1731,7 +1731,7 @@ void FeatureTree::sample()
 				}
 				else
 				{
-					if( !tree[i]->isVirtualFeature && npoints < correctionfactor*samplingNumber )
+					if( !tree[i]->isVirtualFeature )
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;

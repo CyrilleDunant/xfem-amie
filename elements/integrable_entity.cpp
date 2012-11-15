@@ -108,12 +108,9 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 {
 	if( !getBehaviour())
 		return ;
+	std::vector<BoundaryCondition *> bcCache ;
 	if( getBehaviour()->type != VOID_BEHAVIOUR )
 	{
-
-		if (!boundaryConditionCache)
-			boundaryConditionCache = new std::vector<BoundaryCondition *>;
-		
 		std::valarray<Matrix> Jinv( getGaussPoints().gaussPoints.size() ) ;
 
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
@@ -124,33 +121,29 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 		for( size_t i = 0 ; i < getBoundingPoints().size() ; i++ )
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getBoundingPoint( i ).id,  getShapeFunction( i ), getGaussPoints(), Jinv ) ;
-			boundaryConditionCache->insert( boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end() ) ;
+			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
+			{
+				if( get2DMesh() )
+					boundaryConditionCachetmp[j]->apply( a, get2DMesh() ) ;
+				else
+					boundaryConditionCachetmp[j]->apply( a, get3DMesh() ) ;
+				delete boundaryConditionCachetmp[j] ;
+			}
 		}
 
 		for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
-			boundaryConditionCache->insert( boundaryConditionCache->end(), boundaryConditionCachetmp.begin(), boundaryConditionCachetmp.end() ) ;
-		}
-
-	}
-
-	if(boundaryConditionCache &&  !boundaryConditionCache->empty())
-	{
-		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
-		{
-			if( get2DMesh() )
-				( *boundaryConditionCache )[i]->apply( a, get2DMesh() ) ;
-			else
+			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
 			{
-				( *boundaryConditionCache )[i]->apply( a, get3DMesh() ) ;
+				if( get2DMesh() )
+					boundaryConditionCachetmp[j]->apply( a, get2DMesh() ) ;
+				else
+					boundaryConditionCachetmp[j]->apply( a, get3DMesh() ) ;
+				delete boundaryConditionCachetmp[j] ;
 			}
 		}
-		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
-			delete( *boundaryConditionCache )[i] ;
-		boundaryConditionCache->clear();
 	}
-
 }
 
 IntegrableEntity::~IntegrableEntity()
@@ -2375,15 +2368,13 @@ void ElementStateWithInternalVariables::initialize( bool initializeFractureCache
 	ElementState::initialize(initializeFractureCache) ;
 	
 	size_t ngp = parent->getGaussPoints().gaussPoints.size() ;
-	internalVariablesAtGaussPoints.resize(ngp) ;
 
 	for(size_t g = 0 ; g < ngp ; g++)
 	{
-		internalVariablesAtGaussPoints[g].resize( n ) ;
+		internalVariablesAtGaussPoints.push_back(std::vector<Vector>(0)) ;
 		for(size_t k = 0 ; k < n ; k++)
 		{
-			internalVariablesAtGaussPoints[g][k].resize(p) ;
-			internalVariablesAtGaussPoints[g][k] = 0. ;
+			internalVariablesAtGaussPoints[g].push_back(Vector(0., p)) ;
 		}
 	}
 	
