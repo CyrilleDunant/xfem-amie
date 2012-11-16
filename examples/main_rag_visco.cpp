@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
+	box.setBehaviour( new ElasticOnlyPasteBehaviour(14e9) ) ;
 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
@@ -172,10 +172,7 @@ int main(int argc, char *argv[])
  		F.setDeltaTime( tau*i ) ;
 		time += tau *i ;
 			
-		if(time < timeScale )
-			updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
-		else
-			updateZones( zones, getReactiveSurface(zones)*0.03) ;
+		updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
