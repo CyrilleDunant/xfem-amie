@@ -172,6 +172,10 @@ int main(int argc, char *argv[])
  		F.setDeltaTime( tau*i ) ;
 		time += tau *i ;
 			
+		if(time < timeScale )
+			updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
+		else
+			updateZones( zones, getReactiveSurface(zones)*0.03) ;
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
