@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new ElasticOnlyPasteBehaviour(14e9) ) ;
+	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
