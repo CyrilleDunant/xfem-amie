@@ -166,16 +166,12 @@ int main(int argc, char *argv[])
 	/*std::c*/out << time << "\t" << reaction(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
-	while(time < 200)
+	while(reaction(zones)/getReactiveSurface(zones) < 0.03)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
 		time += tau *i ;
 			
-		if(time < timeScale )
-			updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
-		else
-			updateZones( zones, getReactiveSurface(zones)*0.03) ;
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
