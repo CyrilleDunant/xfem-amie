@@ -258,6 +258,7 @@ public:
 	ElementStateWithInternalVariables & operator =(const ElementStateWithInternalVariables &) ;
 	
 	int numberOfInternalVariables() const { return n ; }
+	void setNumberOfGaussPoints(int g) ;
 	
 	int sizeOfInternalVariable() const { return p ; }
 	

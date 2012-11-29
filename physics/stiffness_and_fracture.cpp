@@ -17,6 +17,7 @@
 #include "fracturecriteria/mohrcoulomb.h"
 #include "damagemodels/nonlocalisotropiclineardamage.h"
 #include "damagemodels/plasticstrain.h"
+#include "damagemodels/fiberbasedisotropiclineardamage.h"
 
 using namespace Mu ;
 
@@ -24,7 +25,7 @@ using namespace Mu ;
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, DamageModel * d) : LinearForm(rig, false, true, rig.numRows()/3+1)
 {
 	if(!d)
-		dfunc = new /*NonLocal*/IsotropicLinearDamage() ;
+		dfunc = new /*NonLocal*/FiberBasedIsotropicLinearDamage() ;
 	else
 		dfunc = d ;
 	criterion = crit ;

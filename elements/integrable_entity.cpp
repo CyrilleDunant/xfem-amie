@@ -2368,17 +2368,37 @@ void ElementStateWithInternalVariables::initialize( bool initializeFractureCache
 	ElementState::initialize(initializeFractureCache) ;
 	
 	size_t ngp = parent->getGaussPoints().gaussPoints.size() ;
+	std::vector<Vector> dummy(0) ;
+	Vector vdummy(0., p) ;
 
 	for(size_t g = 0 ; g < ngp ; g++)
 	{
-		internalVariablesAtGaussPoints.push_back(std::vector<Vector>(0)) ;
+		internalVariablesAtGaussPoints.push_back(dummy) ;
 		for(size_t k = 0 ; k < n ; k++)
 		{
-			internalVariablesAtGaussPoints[g].push_back(Vector(0., p)) ;
+			internalVariablesAtGaussPoints[g].push_back(vdummy) ;
 		}
 	}
 	
 }
+
+void ElementStateWithInternalVariables::setNumberOfGaussPoints(int g) 
+{
+	while(internalVariablesAtGaussPoints.size() < g)
+	{
+		std::vector<Vector> dummy(0) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			dummy.push_back(internalVariablesAtGaussPoints[0][i]) ;
+		}
+		internalVariablesAtGaussPoints.push_back(dummy) ;
+	}
+	while(internalVariablesAtGaussPoints.size() > g)
+	{
+		internalVariablesAtGaussPoints.pop_back() ;
+	}
+}
+
 
 void ElementStateWithInternalVariables::setInternalVariableAtGaussPoint(Vector & v, size_t g, int i) 
 {

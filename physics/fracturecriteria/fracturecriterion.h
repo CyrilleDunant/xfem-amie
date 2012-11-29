@@ -77,6 +77,7 @@ typedef enum{
 		double currentAngle ;
 		double minDeltaInNeighbourhood ;
 		int maxModeInNeighbourhood ;
+		double maxScoreInNeighbourhood ;
 		double maxAngleShiftInNeighbourhood ;
 		
 		double scoreTolerance ;
@@ -119,6 +120,7 @@ typedef enum{
 		double getDeltaEnergyAtState() const {return deltaEnergyAtState ;}
 		double getScoreTolerance() const { return scoreTolerance ; }
 		double getMinDeltaInNeighbourhood() const { return minDeltaInNeighbourhood ;}
+		double getMaxScoreInNeighbourhood() const ;
 		
 		FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 		virtual void initialiseCache(const ElementState & s) ;

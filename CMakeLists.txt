@@ -60,6 +60,7 @@ physics/fracturecriteria/boundedvonmises.cpp
 physics/damagemodels/damagemodel.cpp
 physics/damagemodels/isotropiclineardamage.cpp 
 physics/damagemodels/nonlocalisotropiclineardamage.cpp 
+physics/damagemodels/fiberbasedisotropiclineardamage.cpp 
 physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp

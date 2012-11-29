@@ -106,7 +106,7 @@ void updateZones(  std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones, d
 	if(nexta > reaction(zones))
 	{
 		double newr = sqrt(nexta/(M_PI*zones.size())) ;
-		std::cout << prevr << "\t" << newr << std::endl ;
+//		std::cout << prevr << "\t" << newr << std::endl ;
 		for(size_t i = 0 ; i < zones.size() ; i++)
 		{
 			zones[i].first->setRadius(newr) ;
@@ -133,13 +133,13 @@ int main(int argc, char *argv[])
 	double tau = atof(argv[2]) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(100) ;
-	F.setMaxIterationsPerStep(500) ;
+	F.setSamplingNumber(500) ;
+	F.setMaxIterationsPerStep(50000) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 10) ;
+	box.setBehaviour( new PasteBehaviour() ) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 6000) ;
 		
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -150,21 +150,21 @@ int main(int argc, char *argv[])
 
 	size_t i = 0 ;
 	double time = 0. ;
-	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 3000, 5) ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 10000, 6000) ;
 	F.step() ;
 	
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
 	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
 	
 	std::fstream out ;
-	std::string toto = "rag_visco_" ;
+	std::string toto = "rag_elastic_" ;
 	toto.append(argv[1]) ;
 	out.open(toto.c_str(), std::ios::out ) ;
 	
 	
 	x = F.getAverageField(STRAIN_FIELD) ;
-	y = F.getAverageField(EFFECTIVE_STRESS_FIELD, paste) ;
-	/*std::c*/out << time << "\t" << /*reaction(zones) <<*/ "\t" << x[0] << "\t" << y[0] << std::endl ;
+	y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
+	std::cout << time << "\t" << /*reaction(zones) <<*/ "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	
 	while(reaction(zones)/getReactiveSurface(zones) < 0.03)
@@ -172,6 +172,17 @@ int main(int argc, char *argv[])
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
 		time += tau *i ;
+		
+		
+		std::string tati = toto ;
+		tati.append("_") ;
+		tati.append(itoa(i)) ;
+		TriangleWriter writer(tati, &F) ;
+		writer.getField(TWFT_STRAIN) ;
+		writer.getField(TWFT_STRESS) ;
+		writer.getField(TWFT_DAMAGE) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.write() ;
 			
 		updateZones( zones, getReactiveSurface(zones)*0.03*time/timeScale) ;
 		F.step() ;

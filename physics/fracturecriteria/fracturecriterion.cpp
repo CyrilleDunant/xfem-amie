@@ -36,6 +36,7 @@ initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
 minDeltaInNeighbourhood(1),
+maxScoreInNeighbourhood(0),
 maxModeInNeighbourhood(-1),
 maxAngleShiftInNeighbourhood(0)
 {
@@ -1707,6 +1708,21 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 	return std::make_pair( (energy-originalenergy)/(delta_d),(score-originalscore)/(delta_d)) ;
 }
 
+double FractureCriterion::getMaxScoreInNeighbourhood() const
+{
+	double maxScore = nonLocalScoreAtState ;
+	for(size_t i = 0 ; i< cache.size() ; i++)
+	{
+		DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[cache[i]]) ;
+		if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
+		{
+			double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
+			maxScore = std::max(maxScore, renormScore) ;
+		}
+	}
+	return maxScore ;
+}
+
 std::pair<double, double> FractureCriterion::setChange(const ElementState &s, double thresholdScore) 
 {
 	stable = true ;
@@ -1734,6 +1750,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 			std::vector<unsigned int> newSet ;
 			std::set<unsigned int> newProximity ;
 			std::multimap<double, DelaunayTriangle *> sortedElements ;
+			maxScoreInNeighbourhood = nonLocalScoreAtState ;
 			
 			for(size_t i = 0 ; i< cache.size() ; i++)
 			{
@@ -1742,6 +1759,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 				{
 					double renormScore = ci->getBehaviour()->getFractureCriterion()->nonLocalScoreAtState ;
 					sortedElements.insert( std::make_pair(-renormScore, ci)) ;
+					maxScoreInNeighbourhood = std::max(maxScoreInNeighbourhood, renormScore) ;
 				}
 			}
 
@@ -2060,7 +2078,9 @@ void FractureCriterion::step(ElementState &s)
 		return ;
 	}
 	if(checkpoint || inIteration)
+	{
 		scoreAtState = grade(s) ;
+	}
 // 	if(!directionMet(0) && !directionMet(1) && !directionMet(2))
 // 		scoreAtState = -1 ;
 }

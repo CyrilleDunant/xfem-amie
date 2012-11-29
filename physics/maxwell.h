@@ -261,6 +261,7 @@ struct StandardLinearSolid : public LinearForm
 		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 		void setNumberOfGaussPoints(size_t n) ;
+		void syncNumberOfGaussPoints(ElementState & state) ;
 		virtual void getCoefficients(double timestep) ;
 		void getInstantaneousCoefficients() ;
 	} ;

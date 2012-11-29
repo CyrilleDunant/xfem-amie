@@ -269,7 +269,19 @@ Vector GeneralizedIterativeMaxwell::getImposedStrain(const Point & p, Integrable
 
 std::vector<BoundaryCondition * > GeneralizedIterativeMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	Vector f = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints, gp, Jinv,v) ;
+	Vector f(0) ;
+	if(gp.gaussPoints.size() != imposedStressAtGaussPoints.size())
+	{
+		Vector g = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints[0], gp, Jinv,v) ;
+		f.resize(g.size()) ;
+		f = g ;
+	}
+	else
+	{
+		Vector g = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints, gp, Jinv,v) ;
+		f.resize(g.size()) ;
+		f = g ;	  
+	}
 
 	std::vector<BoundaryCondition * > ret ;
 	if(f.size() == 2)
@@ -303,7 +315,9 @@ void GeneralizedIterativeMaxwell::updateElementState(double timestep, ElementSta
 // 	branches[2]->param = r0 ;
 	LinearForm::updateElementState(timestep, currentState) ;
 	if(timestep < POINT_TOLERANCE_2D)
+	{
 		return ;
+	}
 	
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector strain_next( 0., 3+3*(num_dof == 3)) ;
@@ -331,14 +345,19 @@ void GeneralizedIterativeMaxwell::updateElementState(double timestep, ElementSta
 
 void GeneralizedIterativeMaxwell::preProcess( double timeStep, ElementState & currentState ) 
 {
+	if(currentState.getParent()->getGaussPoints().gaussPoints.size() != imposedStressAtGaussPoints.size())
+	      this->syncNumberOfGaussPoints(currentState) ;
 	if(timeStep < POINT_TOLERANCE_2D)
 	{
-		this->getInstantaneousCoefficients() ;
+//		std::cout << param[0][0] << " " ;
+//		this->getInstantaneousCoefficients() ;
+		return ;
 	}
 	else
 	{
 		this->getCoefficients(timeStep) ;
 	}
+	
 	for(size_t j = 0 ; j < currentState.getParent()->getGaussPoints().gaussPoints.size() ; j++)
 	      this->preProcessAtGaussPoint(timeStep, currentState, j) ;
 	
@@ -347,6 +366,21 @@ void GeneralizedIterativeMaxwell::preProcess( double timeStep, ElementState & cu
 		param += (Matrix) (branches[i]->param*(1.-branches[i]->coeff_unext)) ;
 		
 	currentState.getParent()->behaviourUpdated = true ;	
+//	std::cout << param[0][0] << " " ;
+}
+
+void GeneralizedIterativeMaxwell::syncNumberOfGaussPoints(ElementState & state)
+{
+	size_t g = state.getParent()->getGaussPoints().gaussPoints.size() ;
+	Vector imposed = imposedStressAtGaussPoints[0] ;
+	imposedStressAtGaussPoints.resize(g) ;
+	for(size_t i = 0 ; i < g ; i++)
+	{
+		imposedStressAtGaussPoints[i].resize(imposed.size()) ;
+		imposedStressAtGaussPoints[i] = imposed ;
+	}
+	dynamic_cast<ElementStateWithInternalVariables &>(state).setNumberOfGaussPoints(g) ;
+	
 }
 
 void GeneralizedIterativeMaxwell::preProcessAtGaussPoint(double timestep, ElementState & currentState, int j) 
@@ -365,6 +399,7 @@ void GeneralizedIterativeMaxwell::preProcessAtGaussPoint(double timestep, Elemen
 		imposedStressAtGaussPoints[j] += (Vector)(branches[i]->param*strain_prev) ;
 		imposedStressAtGaussPoints[j] += (Vector)(branches[i]->param*alpha_prev) ;
 	}
+//	std::cout << imposedStressAtGaussPoints[j][0] ;
 }
 
 void GeneralizedIterativeMaxwell::setNumberOfGaussPoints(size_t n) 
@@ -387,7 +422,7 @@ void GeneralizedIterativeMaxwell::getCoefficients(double timestep)
 	for(size_t b = 0 ; b < branches.size() ; b++)
 	{
 		branches[b]->getCoefficients(timestep) ;
- 		std::cout << branches[b]->coeff_unext << "\t" << branches[b]->coeff_uprev << "\t" <<  branches[b]->coeff_aprev << "\t" <<   std::endl ;
+// 		std::cout << branches[b]->coeff_unext << "\t" << branches[b]->coeff_uprev << "\t" <<  branches[b]->coeff_aprev << "\t" <<   std::endl ;
 	}
 }
 

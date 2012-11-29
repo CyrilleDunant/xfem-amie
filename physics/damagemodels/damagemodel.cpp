@@ -48,7 +48,8 @@ void DamageModel::step( ElementState &s , double maxscore)
 		converged = true ;
 		return ;
 	}
-	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxscore) ;
+	double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood() ;
+	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxScoreInNeighbourhood) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;//maxscore ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
 	if( !isInDamagingSet )
@@ -208,7 +209,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*delta ; //effectiveDeltaFraction*2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.1*delta ; //effectiveDeltaFraction*2.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{

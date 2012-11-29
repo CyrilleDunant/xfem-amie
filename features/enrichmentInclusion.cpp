@@ -9,6 +9,7 @@
 #include "sample.h"
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/stiffness.h"
+#include "../physics/maxwell.h"
 #include "../physics/void_form.h"
 
 using namespace Mu ;
@@ -206,8 +207,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		} 
 		else if(disc.size() == 1)
 		{
-			return ;
-			std::cout << "first" << std::endl ;
+//			return ;
+//			std::cout << "first" << std::endl ;
 			std::vector<Feature *> brother ;
 			if(getFather())
 				brother = getFather()->getChildren() ;
@@ -313,7 +314,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			hint.push_back(ring[i]->inLocalCoordinates(inter[1])) ;
 		}
 		
-
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		//this function returns the distance to the centre
