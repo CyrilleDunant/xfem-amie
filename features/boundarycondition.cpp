@@ -115,16 +115,16 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 			case SET_FORCE_XI:
 			{
 				if ( !e->getBehaviour()->fractured() )
-					a->setForceOn( XI, data/nTimePlanes, id[idit]) ;
+					a->addForceOn( XI, data/nTimePlanes, id[idit]) ;
 
-				break ;
+				return ;
 			}
 
 			case SET_FORCE_ETA:
 				if ( !e->getBehaviour()->fractured() )
-					a->setForceOn( ETA, data/nTimePlanes, id[idit] ) ;
+					a->addForceOn( ETA, data/nTimePlanes, id[idit] ) ;
 
-				break ;
+				return ;
 
 			case SET_STRESS_XI:
 			{
@@ -170,7 +170,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 
-				break ;
+				return ;
 			}
 
 			case SET_STRESS_ETA:

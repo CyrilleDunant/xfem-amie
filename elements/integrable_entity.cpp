@@ -1008,7 +1008,7 @@ void ElementState::getField( FieldType f, const std::valarray<std::pair<Point, d
 void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, int i) 
 {
 	Point p_ = parent->getGaussPoints().gaussPoints[p].first ;
-	this->getField(f, p_, ret, i) ;
+	this->getField(f, p_, ret, true, i) ;
 }
 
 void ElementState::getAverageField( FieldType f, Vector & ret, int dummy) 
@@ -1680,7 +1680,7 @@ void ElementState::getField( FieldType f1, FieldType f2, const std::valarray<std
 void ElementState::getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t p, Vector & ret1, Vector & ret2, int i, int j) 
 {
 	Point p_ = parent->getGaussPoints().gaussPoints[p].first ;
-	this->getField(f1, f2, p_, ret1, ret2, i, j) ;
+	this->getField(f1, f2, p_, ret1, ret2, true, i, j) ;
 }
 
 

@@ -190,7 +190,9 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 				hom->updateEquivalentBehaviour(feat, disc[i]) ;
 				disc[i]->setBehaviour(hom) ;
 				disc[i]->getBehaviour()->setSource(getPrimitive()) ;
-				double rad = std::max(hom->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., disc[i]->getRadius()*3.) ;
+				double rad = disc[0]->getRadius()*3. ;
+				if(hom->getOriginalBehaviour()->getFractureCriterion())
+					rad = std::max(hom->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., rad) ;
 				Circle circ(rad, disc[i]->getCenter()) ;
 				std::vector<DelaunayTriangle *> neighbourhood = dtree->getConflictingElements(&circ) ;
 				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
@@ -222,17 +224,19 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			Geometry * src = disc[0]->getBehaviour()->getSource() ;
 			disc[0]->setBehaviour(hom2) ;
 			disc[0]->getBehaviour()->setSource(getPrimitive()) ;
-			double rad = std::max(hom2->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., disc[0]->getRadius()*3.) ;
+			double rad = disc[0]->getRadius()*3. ;
+			if(hom2->getOriginalBehaviour()->getFractureCriterion())
+				rad = std::max(hom2->getOriginalBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*3., rad) ;
 			Circle circ(rad, disc[0]->getCenter()) ;
 			std::vector<DelaunayTriangle *> neighbourhood = dtree->getConflictingElements(&circ) ;
 			for(size_t j = 0 ; j < neighbourhood.size() ; j++)
 			{
-// 				if(!neighbourhood[j]->getBehaviour()->getFractureCriterion() || neighbourhood[j] == disc[0])
-// 					continue ;
+				if(!neighbourhood[j]->getBehaviour()->getFractureCriterion() || neighbourhood[j] == disc[0])
+					continue ;
 // 				double d =(dist(neighbourhood[j]->getCenter(), disc[0]->getCenter())-disc[0]->getRadius())/rad ;
 // 				neighbourhood[j]->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(neighbourhood[j]->getBehaviour()->getFractureCriterion()->getMaterialCharacteristicRadius()*d);
-					neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
-					neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
+				neighbourhood[j]->getBehaviour()->setFractureCriterion(nullptr);
+				neighbourhood[j]->getBehaviour()->setSource(getPrimitive());
 			}
 			
 			return ;

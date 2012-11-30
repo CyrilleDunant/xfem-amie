@@ -281,6 +281,14 @@ The function is assumed to be expressed in the local coordinates of e.
 */
 	double ieval(Vector &f, IntegrableEntity *e) ;
 
+/** \brief Compute the sum of the values of f, weighted by the quadrature given by the IntegrableEntity e. 
+The function is assumed to be expressed in the local coordinates of e.
+@param f Vector of values to sum.
+@param e IntegrableEntity on which to integrate
+*/
+	Vector ieval(const std::vector<Vector> &f, IntegrableEntity *e) ;
+
+
 /** \brief Compute the numerical integration of FunctionMatrix f over the IntegrableEntity e. 
 The function is assumed to be expressed in the local coordinates of e.
 @param f FunctionMatrix to integrate.

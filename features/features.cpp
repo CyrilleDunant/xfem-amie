@@ -1172,16 +1172,6 @@ void FeatureTree::projectTrianglesOnBoundaries( size_t edge, size_t time )
 		}
 	}
 
-// debug to make sure indexes are in good order
-	for( size_t i = 0 ; i < indexes.size() / 3 ; i++ )
-	{
-		for( size_t j = 0 ; j < 3 ; j++ )
-			std::cout << indexes[i * 3 + j] << "\t" ;
-
-		std::cout << std::endl ;
-	}
-
-
 	size_t count = 0 ;
 	size_t pd = 0 ;
 	size_t k = 0 ;
@@ -3208,7 +3198,7 @@ void FeatureTree::assemble()
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( j % 1000 == 0 )
-					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
+					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::endl ;
 						
 				if(tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
@@ -4053,19 +4043,18 @@ void FeatureTree::solve()
 	
 	timeval time0, time1 ;
 	gettimeofday( &time0, nullptr );
-	std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 
 	if( dtree )
 	{
 		K->initialiseElementaryMatrices(father2D);
 		std::vector<DelaunayTriangle *> elements ;
 
+		std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 		for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
 		{
 			std::vector<DelaunayTriangle *> elementstmp = j->second->getElements() ;
 			elements.insert(elements.end(), elementstmp.begin(), elementstmp.end()) ;
 		}
-			
 		for( size_t i = 0 ; i < elements.size() ; ++i )
 		{
 			elements[i]->applyBoundaryCondition( K ) ;
@@ -4076,6 +4065,7 @@ void FeatureTree::solve()
 		K->initialiseElementaryMatrices(father3D);
 		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
 
+		std::cerr << "finding nodes for boundary conditions... " << std::flush ;
 		for( size_t i = 0 ; i < elements.size() ; ++i )
 		{
 			elements[i]->applyBoundaryCondition( K ) ;
@@ -4465,7 +4455,6 @@ bool FeatureTree::stepElements()
 				if( i % 1000 == 0 )
 					std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
 				
-//				std::cout << deltaTime << std::endl ;
 				elements[i]->step( deltaTime, &K->getDisplacements() ) ;
 			}
 
@@ -4477,13 +4466,6 @@ bool FeatureTree::stepElements()
 			if( !elastic )
 			{
 				double maxScoreInit = -1;
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (0)... " << i << "/" << elements.size() << std::flush ;
-				}
-					std::cerr << " ...done. " << std::endl ;
-				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					
@@ -4591,6 +4573,7 @@ bool FeatureTree::stepElements()
 			if( !elastic && foundCheckPoint )
 			{
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
+				maxScore = -1. ;
 #pragma omp parallel for shared(maxScore,maxTolerance) schedule(auto)
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
@@ -5156,6 +5139,8 @@ bool FeatureTree::step()
 		ret = false ;
 	std::cout << std::endl ;
 	deltaTime = realdt ;
+	
+	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 	
 	return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
 }

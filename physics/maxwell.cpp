@@ -239,19 +239,25 @@ Vector GeneralizedIterativeMaxwell::getImposedStress(const Point & p, Integrable
 		return imposedStressAtGaussPoints[g] ;
 	if(e)
 	{
-		if(e->getOrder() > LINEAR)
+		if(imposedStressAtGaussPoints.size() > 1)
 		{
 			int ga = Mu::isGaussPoint(p, e) ;
 			if( ga != -1)
 				return imposedStressAtGaussPoints[ga] ;
 		  
 			VirtualMachine vm ;
-			Vector ret(0., imposedStressAtGaussPoints[0].size()) ;
-			for(size_t i = 0 ; i < e->getBoundingPoints().size() ; i++)
+			Vector ret ; ret.resize(imposedStressAtGaussPoints[0].size()) ; ret = 0 ;
+			for(size_t i = 0 ; i < e->getShapeFunctions().size() ; i++)
 			{
 				Function ffi = e->getShapeFunction(i) ;
-				Vector mi = vm.ieval( Gradient(ffi) * imposedStressAtGaussPoints, e, v) ;
-				ret += vm.geval( Gradient(ffi), e, v, p.x, p.y, p.z, p.t ) * mi ;
+				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
+				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
+			}
+			for(size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++)
+			{
+				Function ffi = e->getEnrichmentFunction(i) ;
+				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
+				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
 			}
 			return ret ;
 		}
@@ -269,31 +275,34 @@ Vector GeneralizedIterativeMaxwell::getImposedStrain(const Point & p, Integrable
 
 std::vector<BoundaryCondition * > GeneralizedIterativeMaxwell::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
 {
-	Vector f(0) ;
-	if(gp.gaussPoints.size() != imposedStressAtGaussPoints.size())
-	{
-		Vector g = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints[0], gp, Jinv,v) ;
-		f.resize(g.size()) ;
-		f = g ;
-	}
-	else
-	{
-		Vector g = VirtualMachine().ieval(Gradient(p_i) * imposedStressAtGaussPoints, gp, Jinv,v) ;
-		f.resize(g.size()) ;
-		f = g ;	  
-	}
-
 	std::vector<BoundaryCondition * > ret ;
-	if(f.size() == 2)
+	Vector istress ;
+	for ( size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++ )
 	{
-		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, f[0]));
-		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, f[1]));
+		if ( id == s.getParent()->getBoundingPoint( i ).id )
+		{
+			  Point p = s.getParent()->inLocalCoordinates(s.getParent()->getBoundingPoint(i)) ;
+			  Vector tmp = getImposedStress(p, s.getParent()) ;
+			  istress.resize(tmp.size()) ;
+			  istress = tmp ;
+			  break ;
+		}
 	}
-	if(f.size() == 3)
+	
+ 	if(istress.size() == 3)
+ 	{
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[2]));
+	}
+	else if(istress.size() == 6)
 	{
-		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_XI, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, f[0]));
-		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, f[1]));
-		ret.push_back(new DofDefinedBoundaryCondition(SET_FORCE_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, f[2]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[0]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[3]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_XI_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[4]));
+		ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[5]));	  
 	}
 	return ret ;
  
@@ -325,21 +334,23 @@ void GeneralizedIterativeMaxwell::updateElementState(double timestep, ElementSta
 	Vector alpha_next( 0., 3+3*(num_dof == 3)) ;
 	for(size_t g = 0 ; g < imposedStressAtGaussPoints.size() ; g++)
 	{
+		strain_next = 0 ; strain_prev = 0 ; alpha_next = 0 ; alpha_prev = 0 ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain_next) ;
 		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev, 0) ;
 		for(size_t i = 0 ; i < branches.size() ; i++)
 		{
+			alpha_prev = 0 ; 
 			currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, i+1) ;
 			
 			alpha_next = (strain_next*branches[i]->coeff_unext) ;
 			alpha_next += (strain_prev*branches[i]->coeff_uprev) ;
 			alpha_next += (alpha_prev*branches[i]->coeff_aprev) ;
 			
-// 			std::cout << strain_prev[0] << "\t" << strain_next[0] << "\t" << alpha_prev[0] << "\t" << alpha_next[0] << "\n" ;
 			
 			dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(alpha_next, g, i+1) ;
 		} 
 		dynamic_cast<ElementStateWithInternalVariables &>(currentState).setInternalVariableAtGaussPoint(strain_next, g, 0) ;
+//		std::cout << strain_prev[0] << "\t" << strain_next[0] << "\t" << alpha_prev[0] << "\t" << alpha_next[0] << "\n" ;
 	}
 }
 
@@ -391,6 +402,7 @@ void GeneralizedIterativeMaxwell::preProcessAtGaussPoint(double timestep, Elemen
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
+		alpha_prev = 0 ; strain_prev = 0 ;
 		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, 0) ;
 		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev, i+1) ;
 		strain_prev *= branches[i]->coeff_uprev ;

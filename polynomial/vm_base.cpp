@@ -30,7 +30,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 // 	{
 // 		stack.memory.heap[511-i] = f.values[i] ;
 // 	}
-	
+	  
 	for(size_t i = 0 ; i < size  ; ++i)
 	{
 #define REG_A stack.memory.heap[f.adress_a[i*4]]
@@ -1443,6 +1443,21 @@ double VirtualMachine::ieval(Vector &f, IntegrableEntity *e)
 	double ret = 0 ;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 		ret += f[i]*gp.gaussPoints[i].second ;
+	
+	return ret ;
+}
+
+Vector VirtualMachine::ieval(const std::vector<Vector> &f, IntegrableEntity *e)
+{
+	Vector ret ; ret.resize(f[0].size()) ; ret = 0 ;
+	GaussPointArray gp = e->getGaussPoints() ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		ret += f[i]*gp.gaussPoints[i].second ;
+	
+	if(e->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		ret /= e->area() ;
+	else
+		ret /= e->volume() ;
 	
 	return ret ;
 }
@@ -3001,6 +3016,7 @@ Vector VirtualMachine::ieval(const GtVL &f, IntegrableEntity *e, const std::vect
 	B *= gp.gaussPoints[0].second ;
 //	B.print() ;
 	Vector ret = B*f.second[0] ;
+//	std::cout << gp.gaussPoints.size() << "\t" << f.second.size() << std::endl ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
 		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
@@ -3018,7 +3034,8 @@ Vector VirtualMachine::ieval(const GtV &f, IntegrableEntity *e, const std::vecto
 	Vector ret = B*f.second ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		B *= gp.gaussPoints[i].second ;
 		ret += B*f.second ;
 	}
 	return ret ;
@@ -3470,7 +3487,8 @@ Vector VirtualMachine::ieval(const GtV &f, const GaussPointArray &gp, const std:
 			temp[j] = f.second[j] ;
 		}
 		r_  = M*temp ;
-		ret += r_ * gp.gaussPoints[i].second ;
+		r_ *= gp.gaussPoints[i].second ;
+		ret += r_ ;
 	}
 	
 	return ret ;
@@ -3491,16 +3509,20 @@ Vector VirtualMachine::ieval(const GtVL &f, const GaussPointArray &gp, const std
 	
 	Vector r_  = M*temp ;
 	Vector ret = r_ * gp.gaussPoints[0].second;
+//	std::cout << gp.gaussPoints.size() << "\t" << f.second.size() << std::endl ;
+
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		  geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose, M) ;
+		 M = geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
 		
 		for(size_t j = 0 ; j < temp.size() ; j++)
 		{
 			temp[j] = f.second[i][j] ;
 		}
+		r_ = 0. ;
 		r_  = M*temp ;
-		ret += r_ * gp.gaussPoints[i].second ;
+		r_ *= gp.gaussPoints[i].second ;
+		ret += r_ ;
 	}
 	
 	return ret ;

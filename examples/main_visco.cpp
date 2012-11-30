@@ -99,13 +99,13 @@ int main(int argc, char *argv[])
 	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
   
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(100) ;
+	F.setSamplingNumber(500) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
 	
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07, 50) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07, 6000) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
 	std::vector<Feature *> feats ;
 	for( size_t i = 0; i < inclusions.size() ; i++ )
 		feats.push_back( inclusions[i] ) ;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	F.step() ;
  	F.step() ;
  	size_t i = 0 ;
-   	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP/*_AFTER*/, -10e6)) ;
+   	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -10e6)) ;
 
 	
 	double time = 0. ;
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 	out.open(toto.c_str(), std::ios::out) ;
 	out << time << "\t" << x.min()/(0.07*10) << std::endl ;
 	
-	while(time < 365)
+	while(time < 10000)
 	{
 		i++ ;
  		F.setDeltaTime( tau*i ) ;
