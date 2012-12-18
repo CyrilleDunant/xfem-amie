@@ -395,8 +395,8 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
 	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	
-	double tfactor = 1./(1+sqrt(c*(maxStrain-limitystrain))) ;
-	if(maxStrain < limitystrain)
+	double tfactor = 1. ;///(1+sqrt(c*(maxStrain-limitystrain))) ;
+	if(maxStrain > limitystrain)
 		tfactor = 1. ;
 	
 	double  upStrain = tfactor*upVal ;
