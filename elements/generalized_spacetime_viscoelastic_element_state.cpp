@@ -293,6 +293,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 					ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+//					std::cout << ret.size() << std::endl ;
 				}
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 // 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -1161,6 +1162,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 		}
 		case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
 		{
+// 			visco->getTensor(p_,parent).print() ;
+// 			visco->eta.print() ;
+// 			exit(0) ;
 			Vector strains(0., blocks*(3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL))) ;
 			Vector speeds(0., blocks*(3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL))) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true) ;

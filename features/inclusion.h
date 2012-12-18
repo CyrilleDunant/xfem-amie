@@ -263,16 +263,19 @@ class ITZFeature : public LevelSet, public VirtualFeature
 {
 protected:
 	double length ;
-	Feature * source ;
+	double min ;
+	double max ;
+	std::vector<Feature *> sources ;
 	virtual void computeCenter() {} ;
 
 public:
-	ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l,double ca, double cb) ;
+	ITZFeature(Feature *father, Feature * g, double l, double a = 0., double b = 1.) ;
+	ITZFeature(Feature *father, std::vector<Inclusion *> & g, double l, double a = 0., double b = 1.) ;
 
 	virtual void print() {} ;
 	virtual Form * getBehaviour( const Point & p ) ;
-	virtual Feature * getSource() {return source ; } ;
-	virtual const Feature * getSource() const {return source ; } ;
+	virtual Feature * getSource() {return sources[0] ; } ;
+	virtual const Feature * getSource() const {return sources[0] ; } ;
 	virtual bool in( const Point &) const ;
 
 	double getLength() const {return length ; } ;

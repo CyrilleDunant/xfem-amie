@@ -14,6 +14,7 @@
 namespace Mu
 {
 
+struct FtF ;
 struct GtFMtG ;
 struct VGtMtVG ;
 struct GtM ;
@@ -268,6 +269,8 @@ The function is assumed to be expressed in the local coordinates of e.
 */
 	double ieval(const Function &f, IntegrableEntity *e)  ;
 
+	Matrix ieval(const FtF & f, const GaussPointArray &gp, const std::valarray<Matrix> & Jinv) ;
+	
 /** \brief Compute the numerical integration of function f using the GaussPointArray to perform the quadrature.
 @param f Function to integrate.
 @param gp GaussPointArray defining the quadrature.

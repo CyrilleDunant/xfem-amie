@@ -455,7 +455,8 @@ void Assembly::setBoundaryConditions()
 		}
 		else if(multipliers[i].type == SET_FORCE_XI 
 				|| multipliers[i].type == SET_FORCE_ETA
-				|| multipliers[i].type == SET_FORCE_ZETA)
+				|| multipliers[i].type == SET_FORCE_ZETA
+				|| multipliers[i].type == SET_FORCE_INDEXED_AXIS)
 		{		  
 			this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ; 
 		}
@@ -1232,6 +1233,26 @@ void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id)
 	return ;
 }
 
+
+void Assembly::addForceOnIndexedAxis(int axis, double val, size_t id)
+{
+	std::valarray<unsigned int> i(2) ;
+	Vector c(2) ;
+	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
+	if(!(multipliers.empty() || duplicate == multipliers.end()))
+	{
+		if((*duplicate).type != SET_FORCE_INDEXED_AXIS)
+			return ;
+		val += (*duplicate).value ;
+		multipliers.erase(duplicate) ;
+	}
+
+	multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+axis)) ;
+	multipliers.back().type = SET_FORCE_INDEXED_AXIS ;
+	
+	return ;
+}
+
 void Assembly::setPointAlong(Variable v, double val, size_t id) 
 {
 	std::valarray<unsigned int> i(2) ;
@@ -1322,7 +1343,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
  		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(x0, nullptr, 1e-18, -1, verbose) ;
+		ret = cg.solve(x0, nullptr, 1e-22, -1, verbose) ;
 // 		ret = false ;
 		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

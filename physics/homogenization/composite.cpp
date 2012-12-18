@@ -604,7 +604,6 @@ void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor()
 		grains[i].A = Cg * C ;
 
 	}
-
 }
 
 GeneralizedSelfConsistentComposite::GeneralizedSelfConsistentComposite( std::vector<DelaunayTriangle *> tri ) : VoigtMatrixMultiInclusionComposite( tri )

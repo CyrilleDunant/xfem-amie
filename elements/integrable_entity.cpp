@@ -14,7 +14,7 @@
 using namespace Mu ;
 
 
-size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim) 
+size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t blocks) 
 {
 	switch(f)
 	{
@@ -38,6 +38,22 @@ size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim)
 		case NON_ENRICHED_REAL_STRESS_FIELD:
 			return dim == SPACE_THREE_DIMENSIONAL ? 6 : 3 ;
 		  
+
+		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :
+		case GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD :
+		case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
+			return dim == SPACE_THREE_DIMENSIONAL ? 3*blocks : 2*blocks ;
+			
+		case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
+		case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
+		case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD:
+		case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD:
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD:
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD:
+			return dim == SPACE_THREE_DIMENSIONAL ? 6*blocks : 3*blocks ;
+	  
 	}
 	return 0 ;
 }

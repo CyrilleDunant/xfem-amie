@@ -1,4 +1,6 @@
 #include <QApplication>
+#define nullptr NULL ;
+
 
 /*#include "voxelGlDrawer.h"*/
 #include "mainwindow.h"

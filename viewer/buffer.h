@@ -1,3 +1,5 @@
+#define nullptr NULL ;
+
 #ifndef BUFFER_H
 #define BUFFER_H
 

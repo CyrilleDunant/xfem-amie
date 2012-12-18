@@ -41,28 +41,3 @@ Form * Mass::getCopy() const
 }
 
 
-MassByBlock::MassByBlock(double rho, size_t b, SpaceDimensionality dim) : LinearForm(Matrix(b*(3+3*(dim == SPACE_THREE_DIMENSIONAL)), b*(3+3*(dim == SPACE_THREE_DIMENSIONAL))), false, false, b*(2+(dim == SPACE_THREE_DIMENSIONAL))), density(rho), blocks(b)
-{
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(dim == SPACE_THREE_DIMENSIONAL)
-		v.push_back(ZETA);
-} ;
-
-MassByBlock::~MassByBlock() { } ;
-
-void MassByBlock::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
-{
-	double m = density*vm->ieval(p_i*p_j, gp) ;
-	for(size_t i = 0 ; i < v.size() ; i++)
-	{
-		ret[i][i] = m ;
-	}
-}
-
-Form * MassByBlock::getCopy() const 
-{
-	return new MassByBlock(*this) ;
-}
-
-

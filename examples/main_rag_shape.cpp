@@ -105,7 +105,7 @@ double placed_area = 0 ;
 double stress = 15e6 ;
 
 Sample sample(nullptr, 0.07, 0.07, 0.0, 0.0) ;
-Sample placing(nullptr, 0.08, 0.08, 0.0, 0.0) ;
+Sample placing(nullptr, 0.07, 0.07, 0.0, 0.0) ;
 
 bool firstRun = true ;
 
@@ -152,9 +152,6 @@ GelBehaviour * gel = new GelBehaviour() ;
 double shape ;
 double orientation ;
 double spread ;
-
-MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
-MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
 struct Zone
 {
@@ -214,10 +211,11 @@ std::vector<Zone> zones ;
 void step(GeometryType ref, int samplingNumber)
 {
 
-	int nsteps = 50;
+	int nsteps = 1;
 	int nstepstot = 20;
 	int maxtries = 400 ;
 	int tries = 0 ;
+	featureTree->setMaxIterationsPerStep(40000) ;
 	
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
@@ -491,57 +489,33 @@ void step(GeometryType ref, int samplingNumber)
 				}
 			}
 		}
-// 		std::string filename("triangles_") ;
-// 		switch(ref)
-// 		{
-// 			case CIRCLE:
-// 				filename.append("circle_") ;
-// 				break ;
-// 			case ELLIPSE:
-// 				filename.append("ellipse_") ;
-// 				break ;
-// 			case TRIANGLE:
-// 				filename.append("triangle_") ;
-// 				break ;
-// 			case RECTANGLE:
-// 				filename.append("square_") ;
-// 				break ;
-// 		}
-// 		filename.append(itoa(samplingNumber, 10)) ;
-// 		filename.append("_") ;
-// 		filename.append(itoa(i, 10)) ;
-// 		std::cout << filename << std::endl ;
-// 
-// 		TriangleWriter writer(filename, featureTree) ;
-// //		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-// //		writer.getField(TWFT_VON_MISES) ;
-// 		writer.getField(TWFT_STIFFNESS) ;
-// 		writer.getField(TWFT_DAMAGE) ;
-// 		writer.write() ;
-				if ( true )
+		std::string filename("triangles_") ;
+		switch(ref)
 		{
-			writer.reset( featureTree ) ;
-			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
-			writer.getField( TWFT_STIFFNESS_X ) ;
-			writer.getField( TWFT_STIFFNESS_Y ) ;
-			writer.getField( TWFT_DAMAGE ) ;
-			writer.append() ;
+			case CIRCLE:
+				filename.append("circle_") ;
+				break ;
+			case ELLIPSE:
+				filename.append("ellipse_") ;
+				break ;
+			case TRIANGLE:
+				filename.append("triangle_") ;
+				break ;
+			case RECTANGLE:
+				filename.append("square_") ;
+				break ;
 		}
-		if(go_on)
-		{
-			writerc.reset( featureTree ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writerc.getField( TWFT_CRITERION ) ;
-			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
-			writerc.getField( TWFT_STIFFNESS_X ) ;
-			writerc.getField( TWFT_STIFFNESS_Y ) ;
-			writerc.getField( TWFT_DAMAGE ) ;
-			writerc.append() ;
-		}
+		filename.append(itoa(samplingNumber, 10)) ;
+		filename.append("_") ;
+		filename.append(itoa(i, 10)) ;
+		std::cout << filename << std::endl ;
+
+		TriangleWriter writer(filename, featureTree) ;
+//		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+//		writer.getField(TWFT_VON_MISES) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.getField(TWFT_DAMAGE) ;
+		writer.write() ;
 
 		e_xx_max /= e_xx_max_count ;
 		e_xx_min /= e_xx_min_count ;
@@ -575,12 +549,12 @@ void step(GeometryType ref, int samplingNumber)
 		std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
 		std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
 		
+		std::cout << "apparent extension (y) " << (e_yy_max - e_yy_min)/sample.height() << std::endl ;
 		std::cout << "apparent extension (x) " << (e_xx_max - e_xx_min)/sample.width() << std::endl ;
-		std::cout << "apparent extension (y) " << (e_yy_max - e_yy_min)/sample.width() << std::endl ;
 
 		std::cout << tries << std::endl ;
 
-    if (tries < maxtries && featureTree->solverConverged() && go_on)
+        if (tries < maxtries && featureTree->solverConverged() && go_on)
 		{
 			double delta_r = sqrt(aggregateArea*.05/((double)zones.size()*M_PI))/(double)nstepstot ;
             std::cout << "delta_r => " << delta_r << std::endl ;
@@ -691,9 +665,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
-                            if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
-                                std::cout << i << ";" << j << "||" ;
-                            }
+				std::cout << dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) << std::endl ;
 				zonesPerIncs[incs[j]]++ ; ;
 				F.addFeature(incs[j],zonesToPlace[i]) ;
 				ret.push_back(Zone(zonesToPlace[i],incs[j])) ;
@@ -707,6 +679,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		if(ret.size() == max)
 		  break ;
 	}
+	exit(0) ;
 	
 	int count = 0 ;
 	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
@@ -1235,9 +1208,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	double itzSize = 0.000000005;
- 	int inclusionNumber = 3 ;
+ 	int inclusionNumber = 200 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,inclusionNumber) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,10) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1348,28 +1321,29 @@ int main(int argc, char *argv[])
 	
 	
 	sample.setBehaviour(new PasteBehaviour()) ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
 	VoidForm * v = new VoidForm() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
 		switch(reference)
 		{
 			case CIRCLE:
-				inclusions[i]->setBehaviour(new AggregateBehaviour()) ;
+				inclusions[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, inclusions[i]) ;
 				placed_area += inclusions[i]->area() ;
 				break ;
 			case ELLIPSE:
-				ellinc[i]->setBehaviour(new AggregateBehaviour()) ;
+				ellinc[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, ellinc[i]) ;
 				placed_area += ellinc[i]->area() ;
 				break ;
 			case TRIANGLE:
-				triinc[i]->setBehaviour(new AggregateBehaviour()) ;
+				triinc[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, triinc[i]) ;
 				placed_area += triinc[i]->area() ;
 				break ;
 			case RECTANGLE:
-				recinc[i]->setBehaviour(new AggregateBehaviour()) ;
+				recinc[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, recinc[i]) ;
 				placed_area += recinc[i]->area() ;
 				break ;
@@ -1397,15 +1371,19 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -15e6)) ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.005*1e-3) ;
+	F.addBoundaryCondition(stress) ;
 
 	int nSampling = atof(argv[1]) ;
 	
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep( 120 );
 
-	step(reference, nSampling) ;
+	for(size_t i = 0 ; i < 30 ; i++)
+	{
+		step(reference, nSampling+i) ;
+		stress->setData( -0.005*(i+2)*1e-3 ) ;
+	}
 	
 	double area = 0 ;
 	for(int i = 0 ; i < inclusions.size() ; i++)

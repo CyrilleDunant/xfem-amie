@@ -716,14 +716,23 @@ const GaussPointArray & TriElement::genGaussPoints()
 // 			ordre = 1 ;
 // 			fin.resize(ordre);
 // 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0), 1) ;
-/* 			ordre = 3 ;
+//  			ordre = 3 ;
+//  			fin.resize(ordre);
+//  			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
+//  			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
+//  			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0., 0.774596669241483), 0.5555555555555556*0.5) ;
+//  			ordre = 1 ;
+//  			fin.resize(ordre);
+//  			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 1.0) ;
+ 			ordre = 2 ;
  			fin.resize(ordre);
- 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-0.774596669241483), 0.5555555555555556*0.5) ;
- 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 0.8888888888888889*0.5) ;
- 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0., 0.774596669241483), 0.5555555555555556*0.5) ;*/
- 			ordre = 1 ;
+ 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-sqrt(0.333333333333333333333)), 0.5) ;
+ 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,sqrt(0.333333333333333333333)), 0.5) ;
+ 			ordre = 3 ;
  			fin.resize(ordre);
- 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 1.0) ;
+ 			fin[0] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,-sqrt(0.6)), 5./18) ;
+ 			fin[1] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,0.), 8./18) ;
+ 			fin[2] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0.,sqrt(0.6)), 5./18) ;
 /*			ordre = 5 ;
 			fin.resize(ordre);
 			double a = 1./3.*sqrt(5.-2*sqrt(10./7.)) ;
@@ -1053,33 +1062,40 @@ TriElement::TriElement(Order order_ ): moved(false)
 	case LINEAR_TIME_QUADRATIC :
 		{
 			shapefunc = new std::valarray<Function>(Function(),9) ;
+			Function s0("y") ;
+			Function s1("1 x - y -") ;
+			Function s2("y") ;
+			
+			Function t0("t 2 ^ t - 0.5 *") ;			
+			Function t1("1 t 2 ^ -") ;
+			Function t2("t 2 ^ t + 0.5 *") ;
 			
 		//0
-			(*shapefunc)[0] = Function("y t 2 ^ t - 0.5 * *") ;
+			(*shapefunc)[0] = s0*t0 ;
 //			(*shapefunc)[0].d(TIME_VARIABLE) = Function("y t 0.5 - *") ;
 		//1
-			(*shapefunc)[1] = Function("1 x - y - t 2 ^ t - 0.5 * *") ;
+			(*shapefunc)[1] = s1*t0 ;
 //			(*shapefunc)[1].d(TIME_VARIABLE) = Function("1 x - y - t 0.5 - *") ;
 		//2
-			(*shapefunc)[2] = Function("x t 2 ^ t - 0.5 * *") ;
+			(*shapefunc)[2] = s2*t0 ;
 //			(*shapefunc)[2].d(TIME_VARIABLE) = Function("x t 0.5 - *") ;
 		//3
-			(*shapefunc)[3] = Function("y 1 t 2 ^ - *") ;
+			(*shapefunc)[3] = s0*t1 ;
 //			(*shapefunc)[3].d(TIME_VARIABLE) = Function("y t 2 * *") ;
 		//4
-			(*shapefunc)[4] = Function("1 x - y - 1 t 2 ^ - *") ;
+			(*shapefunc)[4] = s1*t1 ;
 //			(*shapefunc)[4].d(TIME_VARIABLE) = Function("1 x - y - t 2 * *") ;
 		//5
-			(*shapefunc)[5] = Function("x 1 t 2 ^ - *") ;
+			(*shapefunc)[5] = s2*t1 ;
 //			(*shapefunc)[5].d(TIME_VARIABLE) = Function("x t 2 * *") ;
 		//6
-			(*shapefunc)[6] = Function("y t 2 ^ t + 0.5 * *") ;
+			(*shapefunc)[6] = s0*t2 ;
 //			(*shapefunc)[6].d(TIME_VARIABLE) = Function("y t 0.5 + *") ;
 		//7
-			(*shapefunc)[7] = Function("1 x - y - t 2 ^ t + 0.5 * *") ;
+			(*shapefunc)[7] = s1*t2 ;
 // 			(*shapefunc)[7].d(TIME_VARIABLE) = Function("1 x - y - t 0.5 + *") ;
 		//8
-			(*shapefunc)[8] = Function("x t 2 ^ t + 0.5 * *") ;
+			(*shapefunc)[8] = s2*t2 ;
 // 			(*shapefunc)[8].d(TIME_VARIABLE) = Function("x t 0.5 + *") ;
 			
 			break ;

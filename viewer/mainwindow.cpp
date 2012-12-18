@@ -385,7 +385,7 @@ void MainWindow::open( const QString &fileName )
 			triangledisplay->ytransleft = ypos ;
 			triangledisplay->scale = scale ;
 			
-			if( triangledisplay == nullptr )
+			if( triangledisplay == NULL )
 				std::cerr << "nullptr" << std::endl ;
 
 			setCentralWidget( triangledisplay );
@@ -424,7 +424,7 @@ void MainWindow::open( const QString &fileName )
 			delete voxeldisplay ;
 			delete triangledisplay ;
 			voxeldisplay = new VoxelGLDrawer( fileName ) ;
-			triangledisplay = nullptr ;
+			triangledisplay = NULL ;
 			setCentralWidget( voxeldisplay );
 			QFileInfo pathInfo( fileName );
 			setWindowTitle( pathInfo.fileName() );

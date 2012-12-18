@@ -1,3 +1,7 @@
+#define nullptr NULL ;
+
+
+
 #ifndef __Triangle_DRAWER__H__
 #define __Triangle_DRAWER__H__
 

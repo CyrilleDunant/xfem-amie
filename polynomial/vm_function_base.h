@@ -542,6 +542,7 @@ public:
 	const Vector & getPrecalculatedValue(const GaussPointArray & gp, Variable v) const ;
 } ;
 
+struct FtF ;
 struct DtF ;
 struct GtM ;
 struct GtML ;
@@ -732,6 +733,14 @@ struct VectorGradient
 	 * @return VGtV
 	 */
 	VGtV operator *(const Vector & f) const ;
+} ;
+
+struct FtF
+{
+	const Function & first ;
+	const Function & second ;
+	
+	FtF(const Function &f, const Function &s) : first(f), second(s) { } ; 
 } ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Matrix structure*/

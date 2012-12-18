@@ -85,76 +85,124 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.07, 0.07,0.0,0.0) ;
+Sample box(nullptr, 0.1, 0.4,0.0,0.0) ;
 Rectangle rbox(0.07,0.07,0.0,0.0) ;
-double tau = 1.;
+double tau = 0.1;
 
 double s2d(double s)
 {
 	return s/(24*60*60) ;
 }
 
+double getMinDisplacement(const Vector & x)
+{
+	double ret = x[0] ;
+	for(size_t i = 0 ; i < x.size()/6 ; i++)
+	{
+		if(x[i*6] < ret)
+			ret = x[i*6] ;
+		if(x[i*6+1] < ret)
+			ret = x[i*6+1] ;
+	}
+	return ret ;
+}
+
 int main(int argc, char *argv[])
 {
-	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
+	tau = atof(argv[1]) ;
+//	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
   
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(500) ;
-	F.setOrder(LINEAR) ;
+	F.setSamplingNumber(2) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
-	
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07, 6000) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
-	std::vector<Feature *> feats ;
-	for( size_t i = 0; i < inclusions.size() ; i++ )
-		feats.push_back( inclusions[i] ) ;
-	inclusions.clear() ;
+// 	Sample Gbox(nullptr, 0.1,0.4,0.,0.) ;
+// 	FeatureTree G(&Gbox) ;
+// 	G.setSamplingNumber(2) ;
+// 	G.setOrder(LINEAR) ;
+// 	G.setDeltaTime(tau) ;
+// 
+// 	Sample Hbox(nullptr, 0.1,0.4,0.,0.) ;
+// 	FeatureTree H(&Hbox) ;
+// 	H.setSamplingNumber(2) ;
+// 	H.setOrder(LINEAR) ;
+// 	H.setDeltaTime(tau) ;
 
-	int nAgg = 1 ;
-	srand(0) ;
-	feats = placement( &rbox, feats, &nAgg, 0, 6400 );
-	for( size_t i = 0; i < feats.size() ; i++ )
-		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
+
+	Matrix ckv = Material::cauchyGreen(30e9,0.3,true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
+	Matrix ekv = ckv*300 ;
+	Matrix cmx = Material::cauchyGreen(14e9,0.3,true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
+	Matrix emx = cmx*5000 ;
 	
-	ElasticOnlyAggregateBehaviour *stiff = new ElasticOnlyAggregateBehaviour() ;
-	GeneralizedSpaceTimeViscoelasticity * agg = new GeneralizedSpaceTimeViscoelasticity( PURE_ELASTICITY, stiff->param, 7) ;
-	for( size_t i = 0 ; i < inclusions.size() ; i++ )
-	{
-// 		inclusions[i]->setBehaviour( agg ) ;
-		inclusions[i]->setBehaviour( stiff ) ;
-		F.addFeature( &box, inclusions[i] ) ;
-	}
+	GeneralizedSpaceTimeViscoelasticity * burger =  new GeneralizedSpaceTimeViscoelasticity(BURGER,ckv,ekv,cmx,emx) ;
 	
-		
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+	double density = 2300 ;
+	Matrix stiffness = burger->param ;
+	Matrix viscosity = burger->eta ;
+	
+	double tausquare = tau*tau ;
+	
+	box.setBehaviour(burger) ;
+	
+// 	box.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness, viscosity*(1.5/tau), density*(1./tausquare) ,3)) ;	
+// 	Gbox.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness*0., viscosity*(-2./tau), density*(-2./tausquare) ,3)) ;	
+// 	Hbox.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness*0., viscosity*(0.5/tau), density*(1./tausquare),3)) ;
+
+
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+	srand(0) ;
 	F.step() ;
- 	F.step() ;
- 	size_t i = 0 ;
-   	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -10e6)) ;
+// 	G.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT, 0,0)) ;
+// 	G.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0,1)) ;
+// 	srand(0) ;
+// 	G.step() ;
+// 	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT, 0,0)) ;
+// 	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0,1)) ;
+// 	srand(0) ;
+// 	H.step() ;
 
+// 	Vector uprev = F.getDisplacements() ;
+// 	Vector unow = uprev ;
+// 	Vector forces = unow ;
+// 	
+// 	forces = (Vector) (G.getAssembly()->getMatrix() * unow) + (Vector) (H.getAssembly()->getMatrix() * unow) ;
+// 	forces *= -1 ;
+// 	
+// 	GlobalForceBoundaryCondition * bc = new GlobalForceBoundaryCondition(forces) ;
+// 	F.addBoundaryCondition(bc) ;
+	F.step() ;
+ 	size_t i = 0 ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -7e6) ;
+	F.addBoundaryCondition(stress) ;
+
+	std::string toto = "fit_bengougam_fem3_" ;
+	toto.append(argv[1]) ;
+	std::fstream out(toto.c_str(), std::ios::out) ;
 	
 	double time = 0. ;
 	F.step() ;
-	Vector x = F.getDisplacements() ;
-	double hey = x.max() ;
-	std::fstream out ;
-	std::string toto = "/home/alain/Code/FitExperiment/fit10_" ;
-	toto.append(argv[1]) ;
-	out.open(toto.c_str(), std::ios::out) ;
-	out << time << "\t" << x.min()/(0.07*10) << std::endl ;
 	
-	while(time < 10000)
+	while(time < 3500)
 	{
 		i++ ;
- 		F.setDeltaTime( tau*i ) ;
+// 		uprev = unow ;
+// 		unow = F.getDisplacements() ;
+		out << time << /*"\t" << unow.min()/(0.4*-7e-6) <<*/ "\t" << F.getAverageField(STRAIN_FIELD)[1]/(-7e-6) << std::endl ;
+// 		forces = (Vector) (G.getAssembly()->getMatrix() * unow) + (Vector) (H.getAssembly()->getMatrix() * uprev) ;
+// 		forces *= -1 ;
+// 		bc->setDataVector(forces) ;
 		F.step() ;
-		x = F.getDisplacements() ;
-		time += tau *i ;
-		out << time << "\t" << x.min()/(0.07*10) << std::endl ;
+//		F.getAssembly()->print() ;
+		time += tau ;
 	}
+	
 		
 	return 0 ;
 }

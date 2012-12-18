@@ -328,29 +328,64 @@ void EllipsoidalInclusion::sample(size_t n)
 
 }
 
-ITZFeature::ITZFeature(Feature *father, Feature * g, const Matrix & m, const Matrix & p, double l, double ca,double cb) : LevelSet(g), VirtualFeature(father)
+ITZFeature::ITZFeature(Feature *father, Feature * g, double l, double a, double b) : LevelSet(g), VirtualFeature(father)
 {
-	behaviour = new SpatiallyDistributedStiffness(m,p,l,ca,cb) ;
-	source = g ;
+	min = a ;
+	max = b ;
+//	behaviour = new SpatiallyDistributedStiffness(m,p,l,ca,cb) ;
+	sources.push_back(g) ;
+	length = l ;
+	this->isEnrichmentFeature = false ;
+}
+
+ITZFeature::ITZFeature(Feature *father, std::vector<Inclusion *> & g, double l, double a, double b) : LevelSet(dynamic_cast<Circle *>(g[0])), VirtualFeature(father)
+{
+	min = a ;
+	max = b ;
+//	behaviour = new SpatiallyDistributedStiffness(m,p,l,ca,cb) ;
+	for(size_t i = 0 ; i < g.size() ; i++)
+		sources.push_back(g[i]) ;
 	length = l ;
 	this->isEnrichmentFeature = false ;
 }
 
 bool ITZFeature::in(const Point & p) const
 {
-        Point proj(p.x,p.y) ;
-        source->project(&proj) ;
-        return dist(p,proj) < getLength() ;
+	double d = -1 ;
+	for(size_t i = 0 ; i < sources.size() ; i++)
+	{
+		Point proj(p.x,p.y) ;
+		Circle r(sources[i]->getRadius(), sources[i]->getCenter().x, sources[i]->getCenter().y-getLength()*0.5) ;
+		r.project(&proj) ;
+		if(sources[i]->in(p))
+			return false ;
+		if(d < 0 || dist(p,proj) < d)
+			d = dist(p,proj) ;
+	}
+        return d < getLength() ;
 
 }
 
 Form * ITZFeature::getBehaviour( const Point & p)
 {
-        Point proj(p.x,p.y) ;
-        source->project(&proj) ;
-	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(dist(p,proj)) ;
+	double d = -1 ;
+	for(size_t i = 0 ; i < sources.size() ; i++)
+	{
+		Point proj(p.x,p.y) ;
+		Circle r(sources[i]->getRadius(), sources[i]->getCenter().x, sources[i]->getCenter().y-getLength()*0.5) ;
+		r.project(&proj) ;
+		if(sources[i]->in(p))
+			continue ;
+		if(d < 0 || dist(p,proj) < d)
+			d = dist(p,proj) ;
+	}
 	
-	return this->behaviour->getCopy() ;
+	Form * ret = this->getFather()->getBehaviour(p)->getCopy() ;
+	ret->scale(min+(max-min)*d/length) ;
+	
+//	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(dist(p,proj)) ;
+	
+ 	return ret ;
 }
 
 

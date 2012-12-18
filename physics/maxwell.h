@@ -247,7 +247,6 @@ struct StandardLinearSolid : public LinearForm
 		virtual ~GeneralizedIterativeMaxwell() ;
 
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-		virtual void step(double timestep, ElementState & currentState) ;
 		virtual void updateElementState(double timestep, ElementState & currentState) const ;
 		virtual void preProcess( double timeStep, ElementState & currentState ) ;
  		void preProcessAtGaussPoint(double timestep, ElementState & currentState, int g) ;	  

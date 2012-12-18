@@ -7,6 +7,7 @@
 //
 
 #include "main.h"
+#include "../utilities/matrixops.h"
 #include "../physics/homogenization/composite.h"
 #include "../physics/homogenization/phase.h"
 #include "../physics/stiffness.h"
@@ -18,62 +19,90 @@
 
 using namespace Mu ;
 
+Matrix i4_2D()
+{
+	Matrix ret(3,3) ;
+	for(size_t i = 0 ; i < 3 ; i++)
+	{
+		ret[i][i] = 1. ;
+		for(size_t j = 0 ; j < i ; j++)
+		{
+			ret[i][j] = 0. ;
+			ret[j][i] = 0. ;
+		}
+	}
+	return ret ;
+}
+
+Vector i2_2D()
+{
+	Vector ret(3) ;
+	for(size_t i = 0 ; i < 2 ; i++)
+	{
+		ret[i] = 1. ;
+	}
+	return ret ;
+}
+
+Matrix invert(Matrix & m)
+{
+	return inverse3x3Matrix(m) ;
+}
+
+void print(Vector v)
+{
+	for(size_t i = 0 ; i < v.size() ; i++)
+		std::cout << v[i] << "\t" ;
+	std::cout << std::endl ;
+}
+
 int main(int argc, char *argv[])
 {
-	Phase cement(new Stiffness(Material::cauchyGreen(17*1e9, 0.3, true, SPACE_THREE_DIMENSIONAL)), 0.35) ;
-	Phase aggregates(new Stiffness(Material::cauchyGreen(60*1e9, 0.3, true, SPACE_THREE_DIMENSIONAL)), 0.65) ;
-	MoriTanakaMatrixInclusionComposite concrete(cement, aggregates) ;
-	concrete.apply() ;
-	Matrix S = concrete.C ;
-	Composite::invertTensor(S) ;
+	double vp = 0.3 ;
+	double va = 0.7*0.99 ;
+	double vg = 0.7*0.01 ;
+	double fa = 11.e6 ;
 	
-
-	Matrix A = concrete.matrix.A ;
+	Matrix Cp = (new ElasticOnlyPasteBehaviour())->param ;
+	Matrix Ca = (new ElasticOnlyAggregateBehaviour())->param ;
+	Matrix Cg = (new GelBehaviour())->param ;
 	
-	Matrix W = A*A*S ;
+	Matrix Ap = i4_2D() ;
+	Matrix Aa = i4_2D() ;
+	Matrix Ag = i4_2D() ;
 	
-	Vector b ; b.resize(6) ; b=0. ;
-	for(size_t i = 0 ; i < 3 ; i++)
-		b[i] = 8.512*1e6 ;
+	Matrix Da = i4_2D() ;
 	
-	Vector eps = A*b ;
-	std::cout << 0.35*eps[0] << std::endl ;
+	Vector bg = (Vector) (Cg*i2_2D())*(-0.22) ;
 	
+ 	Matrix Ch = (Matrix) (Cp*Ap)*vp + (Matrix) (Da*Ca*Aa)*va + (Matrix) (Cg*Ag)*vg ;
+ 	Vector bh = (Vector) (Ag*bg)*vg ;
+ 	
+	Vector sh = i2_2D()*0. ;
+ 	Vector eh = sh - (Vector) (invert(Ch)*bh) ;
+	
+	Vector ea = Aa*eh ;
+	Vector sa = Da*Ca*ea ;
+	bool met = false ;
+	while(!met)
+	{
+		met = true ;
+		for(size_t i = 0 ; i < 3 ; i++)
+		{
+			if(sa[i] > fa || sa[i] < fa*(-8))
+			{
+				met = false ;
+				Da[i][i] -= 0.01 ;
+			}
+		}
+		Ch = (Matrix) (Cp*Ap)*vp + (Matrix) (Da*Ca*Aa)*va + (Matrix) (Cg*Ag)*vg ;
+		Ch.print() ;
+		eh = sh - (Vector) (invert(Ch)*bh) ;
+		ea = Aa*eh ;
+		sa = (Da*Ca)*ea ;
+//		print(sa) ;
+	}
   
-// 	std::fstream writer ;
-// 	writer.open("elastic.csv", std::ios::out) ;
-// 	for(int i = 0 ; i < 1000 ; i++)
-// 	{
-// 		double f_gel = ((double) i)*0.001 ;
-// 
-// 		Phase gel(new GelBehaviour(), f_gel) ;
-// 		Phase aggregate(new ElasticOnlyAggregateBehaviour(), (1.-f_gel)) ;
-// 		MoriTanakaMatrixInclusionComposite lowerAggregate(aggregate, gel) ;
-// 		lowerAggregate.apply() ;
-// 
-// 		double f_paste = 0.36 ;
-// 		lowerAggregate.volume = 1.-f_paste ;
-// 
-// 		Phase cement(new ElasticOnlyPasteBehaviour(), 0.36) ;
-// 		MoriTanakaMatrixInclusionComposite lowerConcrete(cement, lowerAggregate) ;
-// 		lowerConcrete.apply() ;
-// 		Matrix S = lowerConcrete.C ;
-// 		Composite::invertTensor(S) ;
-// 		Vector lowerAlpha = S*lowerConcrete.beta ;
-// 
-// 		InverseMoriTanakaMatrixInclusionComposite upperAggregate(aggregate, gel) ;
-// 		upperAggregate.apply() ;
-// 
-// 		upperAggregate.volume = 1.-f_paste ;
-// 
-// 		InverseMoriTanakaMatrixInclusionComposite upperConcrete(cement, lowerAggregate) ;
-// 		upperConcrete.apply() ;
-// 		S = upperConcrete.C ;
-// 		Composite::invertTensor(S) ;
-// 		Vector upperAlpha = S*upperConcrete.beta ;
-// 	
-// 		writer << f_gel << "," << lowerConcrete.C[0][0] << "," << lowerAlpha[0] << "," << upperConcrete.C[0][0] << "," << upperAlpha[0]<< std::endl ;
-// 	}
-	
+  
 	return 0 ;
 }

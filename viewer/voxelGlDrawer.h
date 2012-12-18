@@ -1,3 +1,7 @@
+#define nullptr NULL ;
+
+
+
 #ifndef __VOXEL_DRAWER__H__
 #define __VOXEL_DRAWER__H__
 

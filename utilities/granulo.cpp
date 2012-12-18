@@ -75,7 +75,9 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, 
 	
 	std::vector<Inclusion *> incs ;
 	for(size_t i = 0 ; i < radii.size() ; i++)
+	{
 	      incs.push_back(new Inclusion(radii[i],0.,0.)) ;
+	}
 	delete psd ;
 	return incs ;
 }

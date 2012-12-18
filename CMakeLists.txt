@@ -90,6 +90,7 @@ physics/homogeneised_behaviour.cpp
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
 physics/maxwell.cpp 
+physics/maxwell_and_fracture.cpp 
 physics/parallel_behaviour.cpp 
 physics/serial_behaviour.cpp 
 physics/orthotropicstiffness.cpp 

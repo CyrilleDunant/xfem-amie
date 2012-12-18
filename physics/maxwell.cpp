@@ -308,11 +308,6 @@ std::vector<BoundaryCondition * > GeneralizedIterativeMaxwell::getBoundaryCondit
  
 }
 
-void GeneralizedIterativeMaxwell::step(double timestep, ElementState & currentState) 
-{
-	currentState.getParent()->behaviourUpdated = true ;  
-}
-
 ElementState * GeneralizedIterativeMaxwell::createElementState( IntegrableEntity * e) 
 {
 	setNumberOfGaussPoints( e->getGaussPoints().gaussPoints.size() ) ;

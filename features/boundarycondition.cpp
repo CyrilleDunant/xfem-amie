@@ -3124,14 +3124,17 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		{
 			if(i%1000 == 0)
 				std::cerr << "\r getting nodes for time continuity boundary condition 0 (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
-			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+			for(size_t p = 0 ; p < timePlanes - 1 ; p++)
 			{
-				size_t id_ = tri[i]->getBoundingPoint(k).id ;
-				if(!done[id_])
+				for ( size_t k = 0 ; k < firstTimePlane ; k++ )
 				{
-					size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-					correspondance.push_back(std::make_pair(id_, corresponding)) ;
-					done[id_] = true ;
+					size_t id_ = tri[i]->getBoundingPoint(p*firstTimePlane+k).id ;
+					if(!done[id_])
+					{
+						size_t corresponding = tri[i]->getBoundingPoint( (p+1)*firstTimePlane + k ).id ;
+						correspondance.push_back(std::make_pair(id_, corresponding)) ;
+						done[id_] = true ;
+					}
 				}
 			}
 		}

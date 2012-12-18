@@ -1410,6 +1410,21 @@ double VirtualMachine::ieval(const Function &f, const GaussPointArray &gp)
 	return ret ;
 }
 
+Matrix VirtualMachine::ieval(const FtF & f, const GaussPointArray &gp, const std::valarray<Matrix> & Jinv) 
+{
+	Matrix ret(Jinv[0].numRows(),Jinv[0].numRows()) ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+	  	double d = eval(f.first*f.second, gp.gaussPoints[i].first)*gp.gaussPoints[i].second ;
+		Matrix m = Jinv[i].transpose() ;
+		ret += (Matrix) (m*Jinv[i])*d ;
+	}
+	
+	return ret ;
+	
+}
+
+
 double VirtualMachine::ieval(const Function &f, IntegrableEntity *e)
 {
 
@@ -2068,8 +2083,8 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			{
 				std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
 				
-				Vector dxi = ddeval(f, var[0], TIME_VARIABLE, gp) ;
-				Vector deta = ddeval(f, var[1], TIME_VARIABLE, gp) ;
+				Vector dxi = ddeval(f, var[0], TIME_VARIABLE, gp,default_derivation_delta/**0.01*/) ;
+				Vector deta = ddeval(f, var[1], TIME_VARIABLE, gp,default_derivation_delta/**0.01*/) ;
 
 				for(size_t i = 0 ; i < ret.size() ; i++)
 				{
@@ -2087,8 +2102,8 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			{
 				std::valarray<Matrix> ret(Matrix(2,3), gp.gaussPoints.size()) ;
 				
-				Vector dxi = ddeval(f, var[0],TIME_VARIABLE, gp) ;
-				Vector deta = ddeval(f, var[1],TIME_VARIABLE, gp) ;
+				Vector dxi = ddeval(f, var[0],TIME_VARIABLE, gp,default_derivation_delta/**0.01*/) ;
+				Vector deta = ddeval(f, var[1],TIME_VARIABLE, gp,default_derivation_delta/**0.01*/) ;
 				
 				for(size_t i = 0 ; i < ret.size() ; i++)
 				{

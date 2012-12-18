@@ -55,7 +55,7 @@ ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(SpaceDimensionali
 	addBranch(249.50e6, 191.00e6, 3) ;
 	addBranch(289.68e6, 199.45e6, 27) ;
 	addBranch(336.62e6, 231.77e6, 285) ;
-	addBranch(238.57e6, 135.30e6, 3000) ;
+	addBranch(238.57e6, 135.30e6, 30000) ;
 }
 
 void ViscoElasticOnlyPasteBehaviour::addBranch(double k, double g, double eta) 

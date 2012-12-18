@@ -1670,7 +1670,7 @@ void FeatureTree::sample()
 			std::cerr << "2D features" << std::endl ;
 			double total_area = tree[0]->area() ;
 
-			tree[0]->sample( samplingNumber ) ;
+			tree[0]->sample( 4*samplingNumber ) ;
 			int count = 0 ; 
 			#pragma omp parallel for schedule(auto)
 
@@ -1784,7 +1784,7 @@ void FeatureTree::sample()
 			double total_area = tree[0]->area() ;
 
 			if( tree[0]->isUpdated )
-				tree[0]->sample( samplingNumber ) ;
+				tree[0]->sample( 4*samplingNumber ) ;
 
 			#pragma omp parallel for schedule(auto) 
 
@@ -2825,11 +2825,11 @@ void FeatureTree::setElementBehaviours()
 		{
 			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
-			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
+			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::endl ;
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( setcount++ % 1000 == 0 )
-					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::flush ;
+					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::endl ;
 				
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
@@ -5256,11 +5256,12 @@ Vector FeatureTree::getAverageField( FieldType f, int grid )
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
-		avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
+		avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			elements[i]->getState().getAverageField( f, buffer ) ;
+			elements[i]->getState().getAverageField( f, buffer) ;
 			avg += buffer * elements[i]->area() ;
 			volume += elements[i]->area() ;
 		}

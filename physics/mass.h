@@ -41,24 +41,6 @@ namespace Mu
 		
 	} ;
 	
-	struct MassByBlock : public LinearForm
-	{
-		std::vector<Variable> v ;
-		double density ;
-		size_t blocks ;
-		
-		MassByBlock(double density, size_t b = 1, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
-	
-		virtual ~MassByBlock() ;
-
-		virtual XMLTree * toXML() { return new XMLTree("mass",density) ; } ;
-		
-		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-		
-		virtual bool fractured() const { return false ; }
-		
-		virtual Form * getCopy() const ;
-	} ;
 	
 } ;
 

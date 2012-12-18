@@ -54,6 +54,7 @@ typedef enum
 	SET_FORCE_XI,
 	SET_FORCE_ETA,
 	SET_FORCE_ZETA,
+	SET_FORCE_INDEXED_AXIS,
 	SET_FLUX_XI,
 	SET_FLUX_ETA,
 	SET_FLUX_ZETA,
@@ -368,7 +369,9 @@ public:
 	 * @param val intensity of the force
 	 */
 	void addForceOn(Variable var, double val, size_t id) ;
-	
+
+	void addForceOnIndexedAxis(int index, double val, size_t id) ;
+
 	/** Apply a force on given node (1D)
 	 * @param id ID of the node 
 	 * @param val intensity of the force

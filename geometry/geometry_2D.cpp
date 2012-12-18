@@ -2232,7 +2232,7 @@ void Ellipse::sampleSurface (size_t num_points)
 	inPoints.resize(1) ;
 	inPoints[0] = new Point(center) ;
         
-	 size_t n = num_points ;
+	 size_t n = num_points*3/2 ;
 
 	sampleBoundingSurface(n) ;
 	sampled = true ;

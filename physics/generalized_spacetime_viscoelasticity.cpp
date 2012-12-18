@@ -56,7 +56,7 @@ void getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & ret)
 }
 
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, int n) : LinearForm(rig, false, false, (1+n)*(rig.numRows()/3+1)), model(m), blocks(1+n)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, int n, double r) : LinearForm(rig, false, false, (1+n)*(rig.numRows()/3+1)), model(m), blocks(1+n)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -82,7 +82,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL))
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL))
 { 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -116,7 +116,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(const Matrix & rig, const Matrix & e, int b, int n) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -140,7 +140,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(const M
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int b, int n) : LinearForm(c_kv, false, false, (3+n+b)*(c_kv.numRows()/3+1)), model(m), blocks(3+b+n)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int b, int n, double r) : LinearForm(c_kv, false, false, (3+n+b)*(c_kv.numRows()/3+1)), model(m), blocks(3+b+n)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -157,23 +157,25 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	{
 		case BURGER:
 		{
-			placeMatrixInBlock( c_kv, 0,0, param) ;
-			placeMatrixInBlock( c_kv, 1+b,1+b, param) ;
-			addMatrixInBlock( c_mx, 1+b,1+b, param) ;
-			placeMatrixInBlock( c_mx, 2+b,2+b, param) ;
-			Matrix r_kv = c_kv*(-1) ;
-			placeMatrixInBlock( r_kv, 0,1+b, param) ;
-			placeMatrixInBlock( r_kv, 1+b,0, param) ;
-			Matrix r_mx = c_mx*(-1) ;
-			placeMatrixInBlock( r_mx, 1+b,2+b, param) ;
-			placeMatrixInBlock( r_mx, 2+b,1+b, param) ;
+			placeMatrixInBlock( c_mx, 0,0, param) ;
+			placeMatrixInBlock( c_mx, 1+b,1+b, param) ;
+ 			placeMatrixInBlock( c_mx, 2+b,2+b, param) ;
+			placeMatrixInBlock( c_mx, 1+b,2+b, param) ;
+			placeMatrixInBlock( c_mx, 2+b,1+b, param) ;
+			Matrix r_mx = c_mx * (-1.) ;
+			placeMatrixInBlock( r_mx, 0+b,1+b, param) ;
+			placeMatrixInBlock( r_mx, 0+b,2+b, param) ;
+			placeMatrixInBlock( r_mx, 1+b,0+b, param) ;
+ 			placeMatrixInBlock( r_mx, 2+b,0+b, param) ;
+			addMatrixInBlock( c_kv, 2+b,2+b, param) ;
 			
-			placeMatrixInBlock( e_kv, 0,0, eta) ;
-			placeMatrixInBlock( e_kv, 1+b,1+b, eta) ;
-			placeMatrixInBlock( e_mx, 2+b,2+b, eta) ;
-			Matrix v_kv = e_kv*(-1) ;
-			placeMatrixInBlock( v_kv, 0,1+b, eta) ;
-			placeMatrixInBlock( v_kv, 1+b,0, eta) ;
+			
+			placeMatrixInBlock( e_mx, 1+b,1+b, eta) ;
+			placeMatrixInBlock( e_kv, 2+b,2+b, eta) ;
+			
+// 			param.print() ;
+// 			eta.print() ;
+// 			exit(0) ;
 			break ;
 		}
 		default:
@@ -181,7 +183,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size())
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n, double r) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size())
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -234,7 +236,7 @@ GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(Viscoel
 	}
 } ;
 
-GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b)
+GeneralizedSpaceTimeViscoelasticity::GeneralizedSpaceTimeViscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -333,6 +335,7 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 				addMatrixInBlock( a, i,i, ret ) ;
 				addMatrixInBlock( b, i,i, ret ) ;
 			}
+			
 			return ;
 		}
 		
@@ -371,7 +374,7 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 		
 		case BURGER:
 		{
-			// stiffness KV
+			// stiffness Maxwell
 			getBlockInMatrix(param, 0,0, buffer) ;
 			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
@@ -379,35 +382,32 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			addMatrixInBlock( b, 0,0, ret ) ;
 			placeMatrixInBlock( a, 1,1, ret ) ;
 			addMatrixInBlock( b, 1,1, ret ) ;
+			placeMatrixInBlock( a, 1,2, ret ) ;
+			addMatrixInBlock( b, 1,2, ret ) ;
+			placeMatrixInBlock( a, 2,1, ret ) ;
+			addMatrixInBlock( b, 2,1, ret ) ;
 			substractMatrixInBlock( a, 0,1, ret ) ;
 			substractMatrixInBlock( b, 0,1, ret ) ;
-			substractMatrixInBlock( a, 1,0, ret ) ;
-			substractMatrixInBlock( b, 1,0, ret ) ;
-			// stiffness Maxwell
+ 			substractMatrixInBlock( a, 1,0, ret ) ;
+ 			substractMatrixInBlock( b, 1,0, ret ) ;
+			substractMatrixInBlock( a, 0,2, ret ) ;
+			substractMatrixInBlock( b, 0,2, ret ) ;
+ 			substractMatrixInBlock( a, 2,0, ret ) ;
+ 			substractMatrixInBlock( b, 2,0, ret ) ;
+			// stiffness KV
 			getBlockInMatrix(param, 2,2, buffer) ;
 			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			addMatrixInBlock( a, 1,1, ret ) ;
-			addMatrixInBlock( b, 1,1, ret ) ;
 			placeMatrixInBlock( a, 2,2, ret ) ;
 			addMatrixInBlock( b, 2,2, ret ) ;
-			substractMatrixInBlock( a, 1,2, ret ) ;
-			substractMatrixInBlock( b, 1,2, ret ) ;
-			substractMatrixInBlock( a, 2,1, ret ) ;
-			substractMatrixInBlock( b, 2,1, ret ) ;
-			// viscosity KV
-			getBlockInMatrix(eta, 0,0, buffer) ;
+
+			// viscosity Maxwell
+			getBlockInMatrix(eta, 1,1, buffer) ;
 			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			addMatrixInBlock( a, 0,0, ret ) ;
-			addMatrixInBlock( b, 0,0, ret ) ;
 			addMatrixInBlock( a, 1,1, ret ) ;
 			addMatrixInBlock( b, 1,1, ret ) ;
-			substractMatrixInBlock( a, 0,1, ret ) ;
-			substractMatrixInBlock( b, 0,1, ret ) ;
-			substractMatrixInBlock( a, 1,0, ret ) ;
-			substractMatrixInBlock( b, 1,0, ret ) ;
-			// viscosity Maxwell
+			// viscosity KV
 			getBlockInMatrix(eta, 2,2, buffer) ;
 			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
@@ -570,4 +570,68 @@ Vector GeneralizedSpaceTimeViscoelasticity::getForcesFromAppliedStress( const Fu
 	f += vm.ieval( Gradient( shape ) * g, e, v) ;
 	
 	return f ;
+}
+
+MassAndViscosityAndStiffnessByBlock::MassAndViscosityAndStiffnessByBlock(const Matrix & rig, const Matrix & eta, double rho, int b) : LinearForm(rig, false, false, b*(rig.numRows()/(3*b)+1)), viscosity(eta), density(rho), blocks(b)
+{
+	v.push_back(XI);
+	v.push_back(ETA);
+	if(rig.numRows()/blocks > 3)
+		v.push_back(ZETA);
+	
+	param += viscosity ;
+		
+}
+
+MassAndViscosityAndStiffnessByBlock::~MassAndViscosityAndStiffnessByBlock() { }
+
+ElementState * MassAndViscosityAndStiffnessByBlock::createElementState( IntegrableEntity * e) 
+{
+	return new GeneralizedSpaceTimeViscoElasticElementState(e) ;  
+}
+
+void MassAndViscosityAndStiffnessByBlock::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
+{	
+	Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+	
+	for(size_t i = 0 ; i < blocks ; i++)
+	{
+		// elastic matrix (diagonal)
+		getBlockInMatrix(param, i,i, buffer) ;
+		vm->ieval(Gradient(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+		placeMatrixInBlock( a, i,i, ret ) ;
+		// elastic matrix (upper-triangle)
+		for(size_t j = i+1 ; j < blocks ; j++)
+		{
+			getBlockInMatrix(param, i,j, buffer) ;
+			vm->ieval(Gradient(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, a) ;
+			placeMatrixInBlock( a, i,j, ret ) ;
+			placeMatrixInBlock( a, j,i, ret ) ;
+		}
+
+/*		// viscous matrix (diagonal)
+		getBlockInMatrix(viscosity, i,i, buffer) ;
+		vm->ieval(Gradient(p_i)    * buffer   * Gradient(p_j, true), gp, Jinv,v,a);
+		addMatrixInBlock( a, i,i, ret ) ;
+		// viscous matrix (upper-triangle)
+		for(size_t j = i+1 ; j < blocks ; j++)
+		{
+			getBlockInMatrix(viscosity, i,j, buffer) ;
+			vm->ieval(Gradient(p_i)    * buffer   * Gradient(p_j, true), gp, Jinv,v,a);
+			addMatrixInBlock( a, i,j, ret ) ;
+			addMatrixInBlock( a, j,i, ret ) ;
+		}*/
+	}
+
+	Matrix m = vm->ieval(FtF(p_i,p_j), gp, Jinv)*density ;
+	addMatrixInBlock( m, 0,0, ret) ;
+// 	if(m != 0)
+// 	{
+// 		for(size_t i = 0 ; i < v.size() ; i++)
+// 		{
+// 			ret[i][i] += m[i][i] ;
+// 		}
+// 	}
+	
 }
