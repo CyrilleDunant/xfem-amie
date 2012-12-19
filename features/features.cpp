@@ -1670,7 +1670,7 @@ void FeatureTree::sample()
 			std::cerr << "2D features" << std::endl ;
 			double total_area = tree[0]->area() ;
 
-			tree[0]->sample( 4*samplingNumber ) ;
+			tree[0]->sample( samplingNumber ) ;
 			int count = 0 ; 
 			#pragma omp parallel for schedule(auto)
 
@@ -1784,7 +1784,7 @@ void FeatureTree::sample()
 			double total_area = tree[0]->area() ;
 
 			if( tree[0]->isUpdated )
-				tree[0]->sample( 4*samplingNumber ) ;
+				tree[0]->sample( samplingNumber ) ;
 
 			#pragma omp parallel for schedule(auto) 
 

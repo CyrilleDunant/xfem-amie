@@ -55,6 +55,7 @@ size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t 
 			return dim == SPACE_THREE_DIMENSIONAL ? 6*blocks : 3*blocks ;
 	  
 	}
+	exit(0) ;
 	return 0 ;
 }
 
