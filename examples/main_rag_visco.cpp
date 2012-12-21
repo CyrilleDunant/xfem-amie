@@ -140,8 +140,10 @@ double getDamagedAggregateArea( std::vector<std::pair<ExpansiveZone *, Inclusion
 			agg = zones[i].second->getElements2D(F) ;
 			for(size_t j = 0 ; j < agg.size() ; j++)
 			{
-				if(agg[j]->getBehaviour()->fractured())
-					area += agg[j]->area() ;
+				if(agg[j]->getBehaviour()->getDamageModel())
+				{
+					area += (agg[j]->area())*(agg[j]->getBehaviour()->getDamageModel()->getState()[0]) ;
+				}
 			}
 		}
 		last = zones[i].second ;
@@ -149,30 +151,68 @@ double getDamagedAggregateArea( std::vector<std::pair<ExpansiveZone *, Inclusion
 	return area ;
 }
 
+double getDamagedArea(std::vector<DelaunayTriangle *> & paste)
+{
+	double area = 0 ;
+	for(size_t i = 0 ; i < paste.size() ; i++)
+	{
+		if(paste[i]->getBehaviour()->getFractureCriterion())
+		{
+			area += (paste[i]->area()) ;
+		}
+	}
+	return area ;
+}
+
+double getCrackedArea(std::vector<DelaunayTriangle *> & paste)
+{
+	double area = 0 ;
+	for(size_t i = 0 ; i < paste.size() ; i++)
+	{
+		if(paste[i]->getBehaviour()->fractured())
+		{
+			area += (paste[i]->area()) ;
+		}
+	}
+	return area ;
+}
+
 int main(int argc, char *argv[])
 {
-	double timeScale = atof(argv[1]) ;
-	double tau = atof(argv[2]) ;
+	double timeScale = 1000 ;
+	double tau = 1 ;
+	int nzones = atof(argv[1]) ;
+	double stress = 0 ;	
+	if(argc == 3)
+		double stress = atof(argv[2])*(-1e6) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(40) ;
+	F.setSamplingNumber(500) ;
 	F.setMaxIterationsPerStep(50000) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new PasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(/*59e9,0.3,0.00025,0.00035,12000*/), 0.008, 6) ;
-		
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 6000) ;
+	
+	double aggregate_area = 0 ;
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		aggregate_area += inclusions[i]->area() ;
+	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.step() ;
 	Vector x = F.getAverageField(STRAIN_FIELD) ;
 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
-	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
+	Vector z = F.getAverageField(REAL_STRESS_FIELD) ;
+//	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
+
+	if(stress != 0)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, stress) ) ;
 
 	size_t i = 0 ;
 	double time = 0. ;
-	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 300, 3) ;
+	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, nzones*5, nzones) ;
 	F.step() ;
 	
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
@@ -181,19 +221,23 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string toto = "rag_moritanaka_" ;
 	toto.append(argv[1]) ;
+	toto.append("_") ;
+	if(argc == 5)
+		toto.append(argv[2]) ;
 	out.open(toto.c_str(), std::ios::out ) ;
 	
 	
 	x = F.getAverageField(STRAIN_FIELD) ;
 	y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
-	std::cout << time << "\t" << /*reaction(zones) <<*/ "\t" << x[0] << "\t" << y[0] << std::endl ;
+	z = F.getAverageField(REAL_STRESS_FIELD) ;
+	out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << getDamagedAggregateArea(zones,&F) << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 
 	
-	while(reaction(zones)/getReactiveSurface(zones) < 0.01)
+	while(getDamagedAggregateArea(zones,&F)/aggregate_area < 0.05)
 	{
 		i++ ;
- 		F.setDeltaTime( tau*i ) ;
-		time += tau *i ;
+ 		F.setDeltaTime( tau ) ;
+		time += tau  ;
 		
 		std::string tati = toto ;
 		tati.append("_") ;
@@ -209,13 +253,8 @@ int main(int argc, char *argv[])
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
-		std::cout << time << "\t" << reaction(zones)/getReactiveSurface(zones) << "\t" << getDamagedAggregateArea(zones,&F)/getReactiveSurface(zones) << "\t" << x[0] << "\t" << y[0] << std::endl ;
-
-		if(i > 15)
-		{
-			F.getAssembly()->print() ;
-			exit(0) ;
-		}
+		z = F.getAverageField(REAL_STRESS_FIELD) ;
+		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << getDamagedAggregateArea(zones,&F) << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 	}
 		
 	return 0 ;

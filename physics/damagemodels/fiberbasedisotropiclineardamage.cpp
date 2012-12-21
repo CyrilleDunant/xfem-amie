@@ -34,7 +34,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
 {
 
 	if(fractured())
-		return m*1e-6 ;
+		return m*0. ;
 	
 //	std::cout << getState()[0] << "_" ;
 	
@@ -47,7 +47,7 @@ bool FiberBasedIsotropicLinearDamage::fractured() const
 {
 	if(fraction < 0)
 		return false ;
-	return getState()[0] >= thresholdDamageDensity ;
+	return getState().max() >= thresholdDamageDensity ;
 }
 
 
@@ -82,7 +82,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
 		for(size_t i = 0 ; i < state.size() ; i++)
 		{
 			if(state[i] > 1)
-				state[i] = 0.999999999 ;
+				state[i] = 1. ;
 		}
 		change = true ;
 	}

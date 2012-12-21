@@ -18,7 +18,7 @@ namespace Mu
 		double up ;
 		double yield ;
 		double c ;
-		AggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00025, double yield = 0.00035, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		AggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00075, double yield = 0.001, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
