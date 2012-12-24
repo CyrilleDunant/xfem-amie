@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 	std::string toto = "rag_moritanaka_" ;
 	toto.append(argv[1]) ;
 	toto.append("_") ;
-	if(argc == 5)
+	if(argc == 3)
 		toto.append(argv[2]) ;
 	out.open(toto.c_str(), std::ios::out ) ;
 	
@@ -232,8 +232,10 @@ int main(int argc, char *argv[])
 	z = F.getAverageField(REAL_STRESS_FIELD) ;
 	out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << getDamagedAggregateArea(zones,&F) << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 
+
+	double damage = 0. ;
 	
-	while(getDamagedAggregateArea(zones,&F)/aggregate_area < 0.05)
+	while(damage < 0.05*aggregate_area)
 	{
 		i++ ;
  		F.setDeltaTime( tau ) ;
@@ -254,7 +256,10 @@ int main(int argc, char *argv[])
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
 		z = F.getAverageField(REAL_STRESS_FIELD) ;
-		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << getDamagedAggregateArea(zones,&F) << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
+
+		damage = getCrackedArea(all)-getCrackedArea(paste) ;
+
+		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << damage << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 	}
 		
 	return 0 ;
