@@ -240,7 +240,9 @@ int main(int argc, char *argv[])
 		i++ ;
  		F.setDeltaTime( tau ) ;
 		time += tau  ;
-		
+
+		if(time > timeScale)
+			return 0 ;
 		std::string tati = toto ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;

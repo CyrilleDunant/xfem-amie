@@ -29,7 +29,7 @@ public:
 	 * 
 	 * @param numDof number of degrees of freedom
 	 */
-	FiberBasedIsotropicLinearDamage(double f = 0.0999999999) ;
+	FiberBasedIsotropicLinearDamage(double f = 0.1) ;
 
 	virtual ~FiberBasedIsotropicLinearDamage();
 
