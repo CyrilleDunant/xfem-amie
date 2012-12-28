@@ -156,9 +156,9 @@ double getDamagedArea(std::vector<DelaunayTriangle *> & paste)
 	double area = 0 ;
 	for(size_t i = 0 ; i < paste.size() ; i++)
 	{
-		if(paste[i]->getBehaviour()->getFractureCriterion())
+		if(paste[i]->getBehaviour()->getDamageModel())
 		{
-			area += (paste[i]->area()) ;
+			area += (paste[i]->area())*paste[i]->getBehaviour()->getDamageModel()->getState()[0] ;
 		}
 	}
 	return area ;
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
 		z = F.getAverageField(REAL_STRESS_FIELD) ;
 
-		damage = getCrackedArea(all)-getCrackedArea(paste) ;
+		damage = getDamagedArea(all)-getDamagedArea(paste) ;
 
 		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << damage << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 	}
