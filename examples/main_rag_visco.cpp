@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 
 		damage = reaction(zones) + getDamagedArea(all)-getDamagedArea(paste) ;
 
-		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << damage << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
+		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << damage << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  "\t" << getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
 	}
 		
 	return 0 ;
