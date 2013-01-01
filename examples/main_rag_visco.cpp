@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	int nzones = atof(argv[1]) ;
 	double stress = 0 ;	
 	if(argc == 3)
-		double stress = atof(argv[2])*(-1e6) ;
+		stress = atof(argv[2])*(-1e6) ;
 
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(500) ;

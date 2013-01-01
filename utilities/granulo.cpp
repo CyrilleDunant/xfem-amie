@@ -177,7 +177,7 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(FeatureTree * F, 
 	return inc ;
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max) 
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg) 
 {
   	Feature * box = F->getFeature(0) ;
 	Sample * sample = dynamic_cast<Sample *>(box) ;
@@ -215,13 +215,16 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 			  for(int j = 0 ; j < incs.size() ; j++)
 			  {
 				  Circle circle(incs[j]->getRadius()*0.95 - radius*100, incs[j]->getCenter()) ;
-				  if(circle.in(zonesToPlace[i]->getCenter()) && incs[j]->getBoundingPoints().size() >= 8)
+				  if(circle.in(zonesToPlace[i]->getCenter()))
 				  {
-					  zonesPerIncs[incs[j]]++ ; ;
+					if(maxPerAgg < 0 || zonesPerIncs[incs[j]] < maxPerAgg)
+					{
+					  zonesPerIncs[incs[j]]++ ; 
 					  F->addFeature(incs[j],zonesToPlace[i]) ;
 					  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
 					  placed = true ;
 					  break ;
+					}
 				  }
 			  }
 		}

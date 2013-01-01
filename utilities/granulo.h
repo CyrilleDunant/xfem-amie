@@ -169,7 +169,7 @@ public:
 	 * @param n number of generated zones
 	 * @param max maximum number of kept zones
 	 */
-	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max) ;
+	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg = -1) ;
 	
 	/**
 	 * \brief Returns appropriate ParticleSizeDistribution* object corresponding to the given type
