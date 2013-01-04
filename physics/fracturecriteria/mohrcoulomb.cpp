@@ -130,29 +130,30 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	
-	double  upStrain = upVal/effectiveStiffness ;
-	double  downStrain = downVal/effectiveStiffness ;
+	double  upStrain = upVal ;///effectiveStiffness ;
+	double  downStrain = downVal ;///effectiveStiffness ;
 	std::vector<double> scores ;
 	scores.push_back(-1);
-	if( maxStrain >= upStrain && maxStrain > 0 )
+	if( maxStress >= upStrain*stiffness && maxStress > 0 )
 	{
 		metInTension = true;
-		scores.push_back(1. - std::abs( upStrain / maxStrain ));
+		scores.push_back(1. - std::abs( upStrain*stiffness / maxStress ));
 	}
-	else if(maxStrain > 0)
-			scores.push_back(-1. + std::abs( maxStrain / upStrain ));
+	else if(maxStress > 0)
+			scores.push_back(-1. + std::abs( maxStress / (upStrain*stiffness) ));
 
-	if( minStrain <= downStrain && minStrain < 0 )
+	if( minStress <= downStrain*stiffness && minStress < 0 )
 	{
 		metInCompression = true ;
-		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
+		scores.push_back(1. - std::abs( downStrain*stiffness / minStress )) ;
 	}
-	else if(minStrain < 0 )
+	else if(minStress < 0 )
 	{
-		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
+		scores.push_back(-1. + std::abs( minStress / (downStrain*stiffness) )) ;
 	}
 	std::sort(scores.begin(), scores.end()) ;
 	return scores.back() ;
+
 }
 
 FractureCriterion *NonLocalMohrCoulomb::getCopy() const

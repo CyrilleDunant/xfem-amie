@@ -61,8 +61,11 @@ struct GeneralizedSpaceTimeViscoelasticity : public LinearForm
 	virtual ~GeneralizedSpaceTimeViscoelasticity() ;
 
 	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
 
 	virtual bool fractured() const ;
+
+	virtual bool isViscous() const { return true ; }
 
 	virtual ElementState * createElementState( IntegrableEntity * e) ;
 

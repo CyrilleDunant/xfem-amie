@@ -215,6 +215,12 @@ Matrix &Matrix::operator*=(double d)
 	return *this ;
 }
 
+Matrix &Matrix::operator=(double d)
+{
+	(*v) =d ;
+	return *this ;
+}
+
 Matrix Matrix::operator*(double d) const
 {
 	Matrix ret(*this) ;

@@ -1208,6 +1208,11 @@ std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix()
 	return cachedElementaryMatrix ;
 }
 
+std::valarray<std::valarray<Matrix> > & TriElement::getViscousElementaryMatrix() 
+{
+	return cachedViscousElementaryMatrix ;
+}
+
 std::valarray<std::valarray<Matrix> > TriElement::getNonLinearElementaryMatrix(Vector * state) 
 {
 	return std::valarray<std::valarray<Matrix> >() ;
@@ -1906,6 +1911,11 @@ TetrahedralElement::TetrahedralElement(TetrahedralElement * parent, Tetrahedron 
 std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix() 
 {
 	return cachedElementaryMatrix ;
+}
+
+std::valarray<std::valarray<Matrix> > & TetrahedralElement::getViscousElementaryMatrix() 
+{
+	return cachedViscousElementaryMatrix ;
 }
 
 std::valarray<std::valarray<Matrix> > TetrahedralElement::getNonLinearElementaryMatrix() 
@@ -2711,6 +2721,11 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
 
 	}
 
+
+std::valarray<std::valarray<Matrix> > & HexahedralElement::getViscousElementaryMatrix() 
+{
+	return cachedViscousElementaryMatrix ;
+}
 
 
 const Function  & ElementaryVolume::getShapeFunction(size_t i) const

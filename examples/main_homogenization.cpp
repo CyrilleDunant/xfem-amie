@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(4) ;
 	F.setOrder(LINEAR) ;
 	F.addFeature(&box, zone) ;
+	F.addPoint(&(zone->getCenter())) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) ) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) ) ;

@@ -490,6 +490,8 @@ public:
 	void setOrder(Order ord) ;
 	
 	void setDeltaTime(double d) ;
+
+	void moveFirstTimePlanes(double d) ;
 	
 	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
 	

@@ -61,7 +61,6 @@ public:
 	virtual DamageModel * getCopy() const { return new FiberBasedIsotropicLinearDamage(fibreFraction) ;}
 };
 
-	
 };
 
 #endif

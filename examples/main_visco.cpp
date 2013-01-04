@@ -192,9 +192,10 @@ int main(int argc, char *argv[])
 	while(time < 3500)
 	{
 		i++ ;
+		F.setDeltaTime(tau) ;
 // 		uprev = unow ;
 // 		unow = F.getDisplacements() ;
-		out << time << /*"\t" << unow.min()/(0.4*-7e-6) <<*/ "\t" << F.getAverageField(STRAIN_FIELD)[1]/(-7e-6) << std::endl ;
+		std::cout << time << /*"\t" << unow.min()/(0.4*-7e-6) <<*/ "\t" << F.getAverageField(STRAIN_FIELD)[1]/(-7e-6) << std::endl ;
 // 		forces = (Vector) (G.getAssembly()->getMatrix() * unow) + (Vector) (H.getAssembly()->getMatrix() * uprev) ;
 // 		forces *= -1 ;
 // 		bc->setDataVector(forces) ;

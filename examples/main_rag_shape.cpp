@@ -516,6 +516,7 @@ void step(GeometryType ref, int samplingNumber)
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
+		exit(0) ;
 
 		e_xx_max /= e_xx_max_count ;
 		e_xx_min /= e_xx_min_count ;
@@ -1210,7 +1211,7 @@ int main(int argc, char *argv[])
 	double itzSize = 0.000000005;
  	int inclusionNumber = 200 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,10) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,100) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1221,9 +1222,13 @@ int main(int argc, char *argv[])
 		feats.push_back(inclusions[i]) ;
 		c_area += inclusions[i]->area() ;
 	}
-	
-//	inclusions.clear() ;
+
 	int nAgg = 1 ;
+	feats = placement(placing.getPrimitive(), feats, &nAgg, 0, 16000);
+	inclusions.clear() ;
+	for(size_t i = 0; i < feats.size() ; i++)
+		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
+	
 	srand(20) ;
 
 	if(reference != CIRCLE)
@@ -1235,15 +1240,12 @@ int main(int argc, char *argv[])
 		if(reference == ELLIPSE)
 		{
 			cnv.setAspectRatio(0.5) ;
-			cnv.setOrientation(new UniformDistribution(-M_PI*0.1,M_PI*0.1)) ;
+			cnv.setOrientation(new UniformDistribution(-M_PI*0.01,M_PI*0.01)) ;
 		}
 		feats = cnv.convert(inclusions) ;
 	}
 
-	feats = placement(placing.getPrimitive(), feats, &nAgg, 0, 16000);
 	
-//	for(size_t i = 0; i < feats.size() ; i++)
-//		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
 
 
 	std::vector<EllipsoidalInclusion *> ellinc ;
@@ -1293,6 +1295,11 @@ int main(int argc, char *argv[])
 		{
 			if(rotateUntilNoIntersection(ellinc, i, &sample))
 				rotated-- ;
+			else
+			{
+				delete ellinc[i] ;
+				rotated-- ;
+			}
 		}
 		
 		for(size_t i = 0 ; i < triinc.size() ; i++)
@@ -1320,7 +1327,7 @@ int main(int argc, char *argv[])
 // 	return 0 ;
 	
 	
-	sample.setBehaviour(new PasteBehaviour()) ;
+	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
 	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
 	VoidForm * v = new VoidForm() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
@@ -1333,10 +1340,13 @@ int main(int argc, char *argv[])
 				placed_area += inclusions[i]->area() ;
 				break ;
 			case ELLIPSE:
+				if(ellinc[i])
+				{
 				ellinc[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, ellinc[i]) ;
 				placed_area += ellinc[i]->area() ;
 				break ;
+				}
 			case TRIANGLE:
 				triinc[i]->setBehaviour(agg) ;
 				F.addFeature(&sample, triinc[i]) ;
@@ -1371,13 +1381,15 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.005*1e-3) ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.00005*1e-3) ;
 	F.addBoundaryCondition(stress) ;
 
 	int nSampling = atof(argv[1]) ;
 	
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
+	
+	
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{

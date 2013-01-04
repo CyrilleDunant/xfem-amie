@@ -537,7 +537,7 @@ void FeatureTree::renumber()
 
 				if( tri && tri->getBehaviour())
 				{
-					for( size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++ )
+					for( size_t j = 0 ; j < tri->getBoundingPoints().size()/tri->timePlanes() ; j++ )
 					{
 						if( tri->getBoundingPoint( j ).id == -1 )
 							tri->getBoundingPoint( j ).id = count++ ;
@@ -545,6 +545,28 @@ void FeatureTree::renumber()
 				}
 			}
 
+			lastNodeId = count ;
+
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			{
+				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
+
+				if( tri && tri->getBehaviour())
+				{
+					for(size_t k = 1 ; k < tri->timePlanes() ; k++)
+					{
+						for( size_t j = 0 ; j < tri->getBoundingPoints().size()/tri->timePlanes() ; j++ )
+						{
+							if( tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes() ).id == -1 )
+							{
+								tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes()).id = tri->getBoundingPoint( j).id + lastNodeId ;
+								count++ ;
+							}
+						}
+					}
+				}
+			}
+			
 			lastNodeId = count ;
 
 			std::cerr << count * 2 << " ...done " << std::endl ;
@@ -1728,6 +1750,8 @@ void FeatureTree::sample()
 						tree[i]->isUpdated = false ;
 					}
 				}
+
+				tree[i]->addMeshPointsInFather() ;
 			}
 //			std::cout << count << " particles meshed" << std::endl ;
 		}
@@ -5617,11 +5641,14 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 void FeatureTree::setDeltaTime(double d) 
 {
+	if(d == deltaTime)
+		return ;
+	double prev = deltaTime ;
 	deltaTime = d ; realDeltaTime = d ;
 	if(dtree)
 	{
 		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
-		if(triangles.size() && triangles[0]->timePlanes() > 0)
+		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
@@ -5629,14 +5656,57 @@ void FeatureTree::setDeltaTime(double d)
 				{
 					triangles[i]->getBoundingPoint(k).t = d/2 * sign(triangles[i]->getBoundingPoint(k).t) ;
 				}
+
+				triangles[i]->scaleCachedElementaryMatrix(prev/d) ;
+				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->isViscous()) 
+				{
+					triangles[i]->scaleCachedViscousElementaryMatrix(prev*prev/(d*d)) ;
+				}
 			}
-			needAssembly = true ;
-// 			if(K)
-// 				K->clear() ;
 		}
 	}
 }
 
+
+void FeatureTree::moveFirstTimePlanes(double d) 
+{
+	if(d == 0)
+		return ;
+	double prev = deltaTime ;
+	deltaTime = prev-d ; realDeltaTime = prev-d ;
+	if(dtree)
+	{
+		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+		if(triangles.size() && triangles[0]->timePlanes() > 1)
+		{
+			size_t ndof = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+			Vector buff(ndof) ; buff = 0. ;
+			for(size_t i = 0 ; i < triangles.size() ; i++)
+			{
+				for(size_t k = 0 ; k < triangles[i]->getBoundingPoints().size() ; k++)
+				{
+					triangles[i]->getBoundingPoint(k).t = deltaTime/2 * sign(triangles[i]->getBoundingPoint(k).t) ;
+					if(k > triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes())
+					{
+						Point p = triangles[i]->inLocalCoordinates(triangles[i]->getBoundingPoint(k)) ;
+						p.t = -1.+2.*(d/prev) ;
+						triangles[i]->getState().getField( DISPLACEMENT_FIELD, p, buff, true) ;
+						for(size_t n = 0 ; n < ndof ; n++)
+							triangles[i]->getState().getDisplacements()[k*ndof+n] = buff[n] ;
+					}
+				}
+
+				triangles[i]->scaleCachedElementaryMatrix(prev/deltaTime) ;
+				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->isViscous()) 
+				{
+					triangles[i]->scaleCachedViscousElementaryMatrix(prev*prev/(deltaTime*deltaTime)) ;
+				}
+
+				
+			}
+		}
+	}
+}
 
 void FeatureTree::generateElements()
 {

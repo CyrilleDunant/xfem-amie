@@ -3098,233 +3098,90 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 {
 	t->getAdditionalPoints() ;
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
-	std::vector<Point> id ;
 	size_t timePlanes = tri[0]->timePlanes() ;
 
 	if ( timePlanes < 2 )
 		return ;
 
-	size_t firstTimePlane = tri[0]->getBoundingPoints().size() / timePlanes ;
-
-	size_t lastTimePlane = tri[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
-
+	size_t ndofmax = a->getMaxDofID() ;
+	size_t dofPerPlane = ndofmax / timePlanes ;
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
-
-	GaussPointArray gp = tri[0]->getGaussPoints() ;
-	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
-	
-	
-	if(correspondance.size() == 0)
-	{
-		std::valarray<bool> done( false, tri.size()*tri[0]->getBoundingPoints().size() ) ;		
-		for ( size_t i = 0 ; i < tri.size() ; i++ )
-		{
-			if(i%1000 == 0)
-				std::cerr << "\r getting nodes for time continuity boundary condition 0 (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
-			for(size_t p = 0 ; p < timePlanes - 1 ; p++)
-			{
-				for ( size_t k = 0 ; k < firstTimePlane ; k++ )
-				{
-					size_t id_ = tri[i]->getBoundingPoint(p*firstTimePlane+k).id ;
-					if(!done[id_])
-					{
-						size_t corresponding = tri[i]->getBoundingPoint( (p+1)*firstTimePlane + k ).id ;
-						correspondance.push_back(std::make_pair(id_, corresponding)) ;
-						done[id_] = true ;
-					}
-				}
-			}
-		}
-		std::cerr << "... done" << std::endl ;
-	}
 	
 	if( previousDisp.size() == 0 )
 	{
-		for(size_t i = 0 ; i < correspondance.size() ; i++)
+		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
-			if(i%1000 == 0)
-				std::cerr << "\r applying time continuity boundary condition 0 (point "  << i << "/" << correspondance.size() << ")" << std::flush ;
-			for(size_t n = 0 ; n < dof ; n++)
+			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
-				a->setPointAlongIndexedAxis( n, 0., correspondance[i].first )  ;
+				for(size_t n = 0 ; n < dof ; n++)
+				{
+					a->setPointAlongIndexedAxis( n, 0., dofPerPlane*i + j )  ;
+				}
 			}
 		}
 	}
 	else
 	{
-		for(size_t i = 0 ; i < correspondance.size() ; i++)
+		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
-			if(i%1000 == 0)
-				std::cerr << "\r applying time continuity boundary condition (point "  << i << "/" << correspondance.size() << ")" << std::flush ;
-			for(size_t n = 0 ; n < dof ; n++)
-			{
-				a->setPointAlongIndexedAxis( n, previousDisp[ correspondance[i].second * dof + n] , correspondance[i].first )  ;
-			}
-		}	  
-	}
-	std::cerr << "... done" << std::endl ;
-	return ;
-/*	
-	if ( previousDisp.size() == 0 )
-	{
-		for ( size_t i = 0 ; i < tri.size() ; i++ )
-		{
-			if(i%1000 == 0)
-				std::cerr << "\r applying time continuity boundary condition 0 (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
-// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
-// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-// 			{
-// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-// 			}
-			
-			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
-			{
-				size_t id_ = tri[i]->getBoundingPoint(k).id ;
-				if(!done[id_])
-				{
-					for(size_t n = 0 ; n < dof ; n++)
-					{
-						a->setPointAlongIndexedAxis( n, 0., id_ )  ;
-	//					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
-					}
-					done[id_] = true ;
-				}
-// 				id.clear() ;
-// 				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-// 				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-				
-			}
-		}
-		std::cerr << " ...done" << std::endl ;
-		return ;
-	}
-
-	for ( size_t i = 0 ; i < tri.size() ; i++ )
-	{
-		if(i%1000 == 0)
-			std::cerr << "\r applying time continuity boundary condition (triangle "  << i << "/" << tri.size() << ")" << std::flush ;
-		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
-		{
-			size_t id_ = tri[i]->getBoundingPoint(k).id ;
- 			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-
-			if(!done[id_])
+			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
 				for(size_t n = 0 ; n < dof ; n++)
 				{
-					a->setPointAlongIndexedAxis( n, previousDisp[corresponding*dof+n], id_ )  ;
-//					apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;
 				}
-				done[id_] = true ;
 			}
-			
-// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
-// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-// 
-// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-// 			{
-// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-// 			}
-			
-// 			for(size_t n = 0 ; n < dof ; n++)
-// 			{
-// 					a->setPointAlongIndexedAxis( n,  previousDisp[corresponding*dof+n], tri[i]->getBoundingPoint(k).id )  ;
-// //				apply2DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
-// 			}
-/*			
-			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
-			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;*/
-				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
-								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
-								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
-// 		}
-// 	}
-// 	std::cerr << " ...done" << std::endl ;
+		}
+	}
+	return ;
 }
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
 	t->getAdditionalPoints() ;
 	std::vector<DelaunayTetrahedron *> tri = t->getElements() ;
-	std::vector<Point> id ;
 	size_t timePlanes = tri[0]->timePlanes() ;
 
 	if ( timePlanes < 2 )
 		return ;
 
-	size_t firstTimePlane = tri[0]->getBoundingPoints().size() / timePlanes ;
-
-	size_t lastTimePlane = tri[0]->getBoundingPoints().size() * ( timePlanes - 1 ) / timePlanes ;
-
+	size_t ndofmax = a->getMaxDofID() ;
+	size_t dofPerPlane = ndofmax / timePlanes ;
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
 	
-	GaussPointArray gp = tri[0]->getGaussPoints() ;
-	std::valarray<Matrix> Jinv( Matrix(), gp.gaussPoints.size() ) ;
-	
-
-	if ( previousDisp.size() == 0 )
+	if( previousDisp.size() == 0 )
 	{
-		for ( size_t i = 0 ; i < tri.size() ; i++ )
+		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
-			
-			for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
-				id.clear() ;
-				id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-				size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-
-// 				GaussPointArray gp = tri[i]->getGaussPoints() ;
-// 				std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-// 				
-// 				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-// 				{
-// 					tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-// 				}
-				
 				for(size_t n = 0 ; n < dof ; n++)
 				{
-					apply3DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, 0., a, n) ;
+					a->setPointAlongIndexedAxis( n, 0., dofPerPlane*i + j )  ;
 				}
 			}
 		}
-		return ;
 	}
-
-	for ( size_t i = 0 ; i < tri.size() ; i++ )
+	else
 	{
-		for ( size_t k = 0 ; k < firstTimePlane ; k++ )
+		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
-			id.clear() ;
-			id.push_back( tri[i]->getBoundingPoint( k ) ) ;
-			size_t corresponding = tri[i]->getBoundingPoint( lastTimePlane + k ).id ;
-			
-// 			GaussPointArray gp = tri[i]->getGaussPoints() ;
-// 			std::valarray<Matrix> Jinv( Matrix(), tri[i]->getGaussPoints().gaussPoints.size() ) ;
-// 
-// 			for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-// 			{
-// 				tri[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-// 			}
-			
-			for(size_t n = 0 ; n < dof ; n++)
+			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
-				apply3DBC( tri[i], gp, Jinv, id, SET_ALONG_INDEXED_AXIS, previousDisp[corresponding*dof+n]*getScale(), a, n) ;
+				for(size_t n = 0 ; n < dof ; n++)
+				{
+					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;
+				}
 			}
-/*			
-			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_XI, previousDisp[corresponding*dof]*getScale(), a ) ;
-			apply2DBC( tri[i],gp,Jinv, id, SET_ALONG_ETA, previousDisp[corresponding*dof+1]*getScale(), a ) ;*/
-				/*				apply2DBC(tri[i], id, SET_STRESS_XI, previousStress[0], a) ;
-								apply2DBC(tri[i], id, SET_STRESS_ETA, previousStress[1], a) ;
-								apply2DBC(tri[i], id, SET_STRESS_XI_ETA, previousStress[2], a) ;*/
 		}
 	}
+	return ;
 }
 
 

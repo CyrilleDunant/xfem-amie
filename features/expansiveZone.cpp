@@ -38,6 +38,20 @@ void ExpansiveZone::reset()
 	updated = true ;
 }
 
+void ExpansiveZone::addMeshPointsInFather()
+{
+/*	PointArray back = getFather()->getInPoints() ;
+	if(back.size() < 2)
+		return ;
+	PointArray next = back ;
+	back.resize(back.size()+1) ;
+	for(size_t i = 0 ; i < next.size() ; i++)
+		back[i]=next[i] ;
+	back[next.size()] = new Point(this->getCenter()) ;
+	getFather()->getInPoints() = back ;*/
+}
+
+
 void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
 {
 // 	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;

@@ -161,7 +161,10 @@ public:
 	virtual void refresh(const TriElement *) ;
 	
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
+	virtual void scaleCachedViscousElementaryMatrix(double s) ;
+	virtual void scaleCachedElementaryMatrix(double s) ;
 	virtual Vector getNonLinearForces() ;
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints() ;
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;

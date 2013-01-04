@@ -92,7 +92,7 @@ public:
 		
 	virtual Form * getBehaviour() const ;
 	void setBehaviour(Form *);
-	
+
 	virtual NonLinearForm * getNonLinearBehaviour() const;
 	void setNonLinearBehaviour(NonLinearForm * f) ;
 	
@@ -112,6 +112,7 @@ class TriElement : public Triangle, public ElementarySurface
 {
 protected :
 	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
+	std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
 	std::valarray< Function > * shapefunc ;
 	bool isFather ;
 protected :
@@ -130,7 +131,8 @@ public:
 	void refresh(const TriElement * parent) ;
 	
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);} ;
+	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);cachedViscousElementaryMatrix.resize(0) ;} ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
 	
 	Function jacobian() const ;
@@ -140,7 +142,7 @@ public:
 	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
 	
 	const GaussPointArray & getGaussPoints();
-	
+
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	
 	virtual bool isMoved() const;
@@ -175,6 +177,7 @@ protected:
 	NonLinearForm * nonlinbehaviour ;
 	
 	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
+	std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
 	Vector cachedForces ;
 
 public:
@@ -260,6 +263,7 @@ public:
 	TetrahedralElement(Order order = LINEAR);
 	TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
@@ -314,6 +318,7 @@ public:
 	HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	
 	
 	const GaussPointArray & getGaussPoints()

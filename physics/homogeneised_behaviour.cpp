@@ -62,6 +62,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 	equivalent = composite.getBehaviour() ;
+	std::cout << "HEY" << std::endl ;
 /*	equivalent = composite.inclusions[0].getBehaviour() ;
 	equivalent->getTensor(Point(0,0)).print() ;*/
 	

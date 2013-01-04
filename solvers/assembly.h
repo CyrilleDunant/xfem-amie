@@ -208,6 +208,8 @@ public:
 	
 	virtual ~Assembly() ;
 	
+	size_t getMaxDofID() const ; 
+
 /** \brief add element to assembly*/
 	void operator +=(ElementarySurface * e) ;
 
@@ -246,10 +248,10 @@ public:
 	void initialiseElementaryMatrices(TetrahedralElement * father) ;
 
 /** \brief return true if Assembly is made of 2D elements*/
-	bool has2DElements() const;
+	bool has2DElements() const { return element2d.size() > 0 ; }
 
 /** \brief return true if Assembly is made of 3D elements*/
-	bool has3DElements() const;	
+	bool has3DElements() const { return element3d.size() > 0 ; }
 
 /** \brief print assembled matrix ans vector*/
 	void print() ;

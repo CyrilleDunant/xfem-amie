@@ -57,6 +57,8 @@ public:
 	}
 	
 	void reset() ;
+
+	virtual void addMeshPointsInFather() ;
 	
 	bool isHomogeneized() const { return homogeneized ; }
 	

@@ -221,6 +221,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 					{
 					  zonesPerIncs[incs[j]]++ ; 
 					  F->addFeature(incs[j],zonesToPlace[i]) ;
+					  F->addPoint(&(zonesToPlace[i]->getCenter())) ;
 					  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
 					  placed = true ;
 					  break ;

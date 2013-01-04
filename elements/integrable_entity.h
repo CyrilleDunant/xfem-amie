@@ -406,6 +406,7 @@ public:
 	virtual Form * getBehaviour() const = 0;
 	virtual NonLinearForm * getNonLinearBehaviour() const = 0;
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix()  = 0 ;
+	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix()  = 0 ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
 // 	virtual Vector getForces() = 0 ;
 	virtual Vector getNonLinearForces() = 0 ;
@@ -452,6 +453,7 @@ public:
 	 * @return The vector of the symbolic matrices at the integration points
 	 */
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
+	virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const { } ;
 
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
 	
@@ -476,6 +478,8 @@ public:
 	
 	virtual void scale(double d) ;
 	
+	virtual bool isViscous() const { return false ; }
+
 	virtual size_t getNumberOfDegreesOfFreedom() const { return num_dof ; }
 	
 	virtual void transform(const ElementarySurface *) { } ;

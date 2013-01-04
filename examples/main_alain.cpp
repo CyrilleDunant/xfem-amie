@@ -86,115 +86,45 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.07, 0.07,0.0,0.0) ;
-Rectangle rbox(0.07,0.07,0.0,0.0) ;
-
-double s2d(double s)
-{
-	return s/(24*60*60) ;
-}
-
-double reaction( std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones)
-{
-	double r = zones[0].first->getRadius() ;
-	return M_PI*r*r*zones.size() ;
-}
-
-void updateZones(  std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones, double nexta)
-{
-	double prevr = zones[0].first->getRadius() ;
-	if(nexta > reaction(zones))
-	{
-		double newr = sqrt(nexta/(M_PI*zones.size())) ;
-//		std::cout << prevr << "\t" << newr << std::endl ;
-		for(size_t i = 0 ; i < zones.size() ; i++)
-		{
-			zones[i].first->setRadius(newr) ;
-		}
-	}
-}
-
-double getReactiveSurface( std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones )
-{
-	double area = 0 ; 
-	Inclusion * last = nullptr ;
-	for(size_t i = 0 ; i < zones.size() ; i++)
-	{
-		if(zones[i].second != last)
-			area += zones[i].second->area() ;
-		last = zones[i].second ;
-	}
-	return area ;
-}
-
-double getDamagedAggregateArea( std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones, FeatureTree * F)
-{
-	double area = 0 ;
-	Inclusion * last = nullptr ;
-	std::vector<DelaunayTriangle *> agg ;
-	for(size_t i = 0 ; i < zones.size() ; i++)
-	{
-		agg.clear() ;
-		if(zones[i].second != last)
-		{
-			agg = zones[i].second->getElements2D(F) ;
-			for(size_t j = 0 ; j < agg.size() ; j++)
-			{
-				if(agg[j]->getBehaviour()->fractured())
-					area += agg[j]->area() ;
-			}
-		}
-		last = zones[i].second ;
-	}
-	return area ;
-}
+double sampleLength = 0.08 ; //5.5 ;
+double sampleHeight = 0.04 ;
+double supportLever = 0.05 ;//2.5 ;
+double platewidth = 0.005 ;
+double plateHeight = 0.0025 ;
+Sample box(nullptr, sampleLength, sampleHeight,0.0,0.0) ;
 
 int main(int argc, char *argv[])
 {
-	double timeScale = atof(argv[1]) ;
-	double tau = atof(argv[2]) ;
-
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(500) ;
-	F.setMaxIterationsPerStep(50000) ;
+	F.setSamplingNumber(30) ;
+//	F.setMaxIterationsPerStep(50000) ;
 	F.setOrder(LINEAR) ;
-	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new PasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(/*59e9,0.3,0.00025,0.00035,12000*/), 0.008, 6000) ;
-		
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	
-	BoundingBoxDefinedBoundaryCondition * pull = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0.00001) ;	
+	BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -sampleLength*0.5, platewidth-sampleLength*0.5, -10, 10, 0. ) ;
+	F.addBoundaryCondition(load) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point(supportLever-sampleLength*0.5,-sampleHeight*0.5) ) ) ;
+
+
 	F.step() ;
 	Vector x = F.getAverageField(STRAIN_FIELD) ;
 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
 	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	size_t i = 0 ;
-	double time = 0. ;
-//	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, 300, 3) ;
-	F.step() ;
-	
-//	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
-//	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
-	
+
 	std::fstream out ;
-	std::string toto = "tensile_" ;
-	toto.append(argv[1]) ;
-	out.open(toto.c_str(), std::ios::out ) ;
-	
-	
-	F.addBoundaryCondition(pull) ;
+	out.open("tripoint_curve", std::ios::out) ;
 	
 	while(i < 100)
 	{
-		pull->setData(0.00001*i) ;
 		i++ ;
- 		F.setDeltaTime( tau*i ) ;
+		load->setData( 0.00001*i ) ;
+
+		F.step() ;
 		
-		std::string tati = toto ;
+		std::string tati = "tripoint" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
 		TriangleWriter writer(tati, &F) ;
@@ -204,9 +134,9 @@ int main(int argc, char *argv[])
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 			
-		F.step() ;
-		x = F.getAverageField(REAL_STRESS_FIELD) ;
-		std::cout << 0.00001*i << "\t" << x[0] << std::endl ;
+		x = F.getAverageField(STRAIN_FIELD) ;
+		y = F.getAverageField(REAL_STRESS_FIELD) ;
+		out << 0.00001*i << "\t" << x[1] << "\t" << y[1]*sampleLength*sampleHeight*sampleHeight << "\t" << F.averageDamage << std::endl ;
 
 	}
 		

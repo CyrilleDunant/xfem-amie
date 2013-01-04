@@ -149,6 +149,8 @@ public:
 	 */
 	virtual std::vector<Feature *> & getChildren();
 
+	virtual void addMeshPointsInFather() { } ;
+
 	/** \brief Return the children and their children recursively
 	 * 
 	 * @return all descendants

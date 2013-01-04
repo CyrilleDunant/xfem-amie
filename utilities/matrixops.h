@@ -204,6 +204,7 @@ public:
 	Matrix &operator -=(const Vector &v);
 	Matrix &operator +=(const Vector &v);
 	Matrix& operator =(const MtM& m) ;
+	Matrix& operator =(double) ;
 	Matrix& operator =(const MtMtM& m) ;
 	
 	bool operator ==(const Matrix &m) ;

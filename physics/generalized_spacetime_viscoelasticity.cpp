@@ -328,12 +328,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 				vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				addMatrixInBlock( b, i,i, ret ) ;
-				// viscosity (diagonal)
-				getBlockInMatrix(eta, i,i, buffer) ;
-				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-				vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-				addMatrixInBlock( a, i,i, ret ) ;
-				addMatrixInBlock( b, i,i, ret ) ;
 			}
 			
 			return ;
@@ -362,12 +356,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 				substractMatrixInBlock( a, 0,i, ret ) ;
 				substractMatrixInBlock( b, 0,i, ret ) ;
 				
-				// viscosity (diagonal)
-				getBlockInMatrix(eta, i,i, buffer) ;
-				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-				vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-				addMatrixInBlock( a, i,i, ret ) ;
-				addMatrixInBlock( b, i,i, ret ) ;
 			}
 			return ;
 		}
@@ -401,18 +389,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			placeMatrixInBlock( a, 2,2, ret ) ;
 			addMatrixInBlock( b, 2,2, ret ) ;
 
-			// viscosity Maxwell
-			getBlockInMatrix(eta, 1,1, buffer) ;
-			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			addMatrixInBlock( a, 1,1, ret ) ;
-			addMatrixInBlock( b, 1,1, ret ) ;
-			// viscosity KV
-			getBlockInMatrix(eta, 2,2, buffer) ;
-			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			addMatrixInBlock( a, 2,2, ret ) ;
-			addMatrixInBlock( b, 2,2, ret ) ;
 			return ;
 		}
 		
@@ -430,12 +406,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			substractMatrixInBlock( b, 0,1, ret ) ;
 			substractMatrixInBlock( a, 1,0, ret ) ;
 			substractMatrixInBlock( b, 1,0, ret ) ;
-			// viscosity
-			getBlockInMatrix(eta, 1,1, buffer) ;
-			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			addMatrixInBlock( a, 1,1, ret ) ;
-			addMatrixInBlock( b, 1,1, ret ) ;
 			return ;
 		}
 		
@@ -446,12 +416,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			addMatrixInBlock( b, 0,0, ret ) ;
-			// viscosity
-			getBlockInMatrix(eta, 0,0, buffer) ;
-			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			addMatrixInBlock( a, 0,0, ret ) ;
 			addMatrixInBlock( b, 0,0, ret ) ;
 			return ;
 		}
@@ -470,12 +434,6 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 		
 		case PURE_VISCOSITY:
 		{
-			getBlockInMatrix(eta, 0,0, buffer) ;
-			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			placeMatrixInBlock( a, 0,0, ret ) ;
-			addMatrixInBlock( b, 0,0, ret ) ;
-			
 			return ;
 		}
 		
@@ -502,11 +460,121 @@ void GeneralizedSpaceTimeViscoelasticity::apply(const Function & p_i, const Func
 					addMatrixInBlock( b, j,i, ret ) ;
 				}
 
+			}
+		}
+	}
+	
+  
+}
+
+void GeneralizedSpaceTimeViscoelasticity::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+	Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+	Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+
+	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+
+	switch(model)
+	{
+		case GENERALIZED_KELVIN_VOIGT:
+		{
+			for(size_t i = 1 ; i < blocks ; i++)
+			{
+				// viscosity (diagonal)
+				getBlockInMatrix(eta, i,i, buffer) ;
+				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+				vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+				placeMatrixInBlock( a, i,i, ret ) ;
+				addMatrixInBlock( b, i,i, ret ) ;
+			}
+			
+			return ;
+		}
+		
+		case GENERALIZED_MAXWELL:
+		{
+			for(size_t i = 1 ; i < blocks ; i++)
+			{
+				// viscosity (diagonal)
+				getBlockInMatrix(eta, i,i, buffer) ;
+				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+				vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+				placeMatrixInBlock( a, i,i, ret ) ;
+				addMatrixInBlock( b, i,i, ret ) ;
+			}
+			return ;
+		}
+		
+		case BURGER:
+		{
+			// viscosity Maxwell
+			getBlockInMatrix(eta, 1,1, buffer) ;
+			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
+			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+			placeMatrixInBlock( a, 1,1, ret ) ;
+			addMatrixInBlock( b, 1,1, ret ) ;
+			// viscosity KV
+			getBlockInMatrix(eta, 2,2, buffer) ;
+			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
+			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+			placeMatrixInBlock( a, 2,2, ret ) ;
+			addMatrixInBlock( b, 2,2, ret ) ;
+			return ;
+		}
+		
+		case MAXWELL:
+		{
+			// viscosity
+			getBlockInMatrix(eta, 1,1, buffer) ;
+			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
+			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+			placeMatrixInBlock( a, 1,1, ret ) ;
+			addMatrixInBlock( b, 1,1, ret ) ;
+			return ;
+		}
+		
+		case KELVIN_VOIGT:
+		{
+			// stiffness
+			getBlockInMatrix(param, 0,0, buffer) ;
+			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+			placeMatrixInBlock( a, 0,0, ret ) ;
+			addMatrixInBlock( b, 0,0, ret ) ;
+			// viscosity
+			getBlockInMatrix(eta, 0,0, buffer) ;
+			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
+			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+			addMatrixInBlock( a, 0,0, ret ) ;
+			addMatrixInBlock( b, 0,0, ret ) ;
+			return ;
+		}
+		
+		case PURE_ELASTICITY:
+		{
+			return ;
+		}
+		
+		case PURE_VISCOSITY:
+		{
+			getBlockInMatrix(eta, 0,0, buffer) ;
+			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
+			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+			placeMatrixInBlock( a, 0,0, ret ) ;
+			addMatrixInBlock( b, 0,0, ret ) ;
+			
+			return ;
+		}
+		
+		default:
+		{
+			for(size_t i = 0 ; i < blocks ; i++)
+			{
 				// viscous matrix (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
 				vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
 				vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-				addMatrixInBlock( a, i,i, ret ) ;
+				placeMatrixInBlock( a, i,i, ret ) ;
 				addMatrixInBlock( b, i,i, ret ) ;
 				// viscous matrix (upper-triangle)
 				for(size_t j = i+1 ; j < blocks ; j++)

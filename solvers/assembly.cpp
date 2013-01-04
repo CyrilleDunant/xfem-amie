@@ -171,6 +171,7 @@ void Assembly::add(ElementarySurface * e)
 	multiplier_offset =  ndof;
 	element2d.push_back(e) ;
 }
+
 void Mu::Assembly::add(Mu::ElementaryVolume * e)
 {
 	dim = SPACE_THREE_DIMENSIONAL ;
@@ -499,7 +500,11 @@ void Assembly::initialiseElementaryMatrices()
 				if(i%10000 == 0)
 					std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
 				if(element2d[i]->getBehaviour())
+				{
 					element2d[i]->getElementaryMatrix() ;
+					if(element2d[i]->getBehaviour()->isViscous())
+						element2d[i]->getViscousElementaryMatrix() ;
+				}
 			}
 		}
 		else if(dim == SPACE_THREE_DIMENSIONAL)
@@ -734,6 +739,34 @@ bool Assembly::make_final()
 					}
 				}
 			}
+
+			if(element2d[i]->getBehaviour()->isViscous())
+			{
+				for(size_t j = 0 ; j < ids.size() ;j++)
+				{
+					for(size_t n = 0 ; n < ndof ; n++)
+					{
+						for(size_t m = 0 ; m < ndof ; m++)
+						{
+							getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += element2d[i]->getViscousElementaryMatrix()[j][j][n][m] ;
+						}
+					}
+					for(size_t k = j+1 ; k < ids.size() ;k++)
+					{
+						for(size_t n = 0 ; n < ndof ; n++)
+						{
+							for(size_t m = 0 ; m < ndof ; m++)
+							{
+								getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += element2d[i]->getViscousElementaryMatrix()[j][k][n][m] ;
+								getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += element2d[i]->getViscousElementaryMatrix()[k][j][n][m] ;
+								test[j*ndof+n][k*ndof+m] = element2d[i]->getViscousElementaryMatrix()[j][k][n][m] ;
+								test[k*ndof+n][j*ndof+m] = element2d[i]->getViscousElementaryMatrix()[k][j][n][m] ;
+							}
+						}
+					}
+				}
+			}
+
 			dmax = std::abs(test.array()).max() ;
 			if(dmax > POINT_TOLERANCE_2D)
 			{
@@ -1544,4 +1577,38 @@ Vector solveCholeskyDecomposedSystem(std::map<std::pair<size_t, size_t>, Matrix>
 	return Vector() ; //shut up the compiler
 }
 
+
+size_t Assembly::getMaxDofID() const
+{
+	if(coordinateIndexedMatrix)
+	{
+		if(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride > 0)
+			return (coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride)/ndof ;
+	}
+
+	size_t max = 0 ;
+	if(has2DElements())
+	{
+		for(size_t i = 0 ; i < element2d.size() ; i++)
+		{
+			for(size_t j = 0 ; j < element2d[i]->getBoundingPoints().size() ; j++)
+			{
+				max = (element2d[i]->getBoundingPoint(j).id > max ? element2d[i]->getBoundingPoint(j).id : max ) ;
+			}
+		}
+		return max+1 ;
+	}
+	if(has3DElements())
+	{
+		for(size_t i = 0 ; i < element3d.size() ; i++)
+		{
+			for(size_t j = 0 ; j < element3d[i]->getBoundingPoints().size() ; j++)
+			{
+				max = (element3d[i]->getBoundingPoint(j).id > max ? element3d[i]->getBoundingPoint(j).id : max ) ;
+			}
+		}
+		return max+1 ;
+	}
+	return 0 ;
+}
 
