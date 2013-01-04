@@ -7,102 +7,92 @@
 //
 
 #include "main.h"
-#include "../utilities/matrixops.h"
-#include "../physics/homogenization/composite.h"
-#include "../physics/homogenization/phase.h"
+#include "../utilities/samplingcriterion.h"
+#include "../features/features.h"
+#include "../physics/physics_base.h"
+#include "../physics/kelvinvoight.h"
+#include "../physics/maxwell.h"
+#include "../physics/homogeneised_behaviour.h"
 #include "../physics/stiffness.h"
+#include "../physics/parallel_behaviour.h"
+#include "../physics/generalized_spacetime_viscoelasticity.h"
+#include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/ruptureenergy.h"
+#include "../physics/weibull_distributed_stiffness.h"
+#include "../features/pore.h"
+#include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/gel_behaviour.h"
-#include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/homogenization/homogenization_base.h"
+#include "../features/sample.h"
+#include "../features/sample3d.h"
+#include "../features/inclusion.h"
+#include "../features/expansiveZone.h"
+#include "../features/crack.h"
+#include "../features/features.h"
+#include "../features/enrichmentInclusion.h"
+#include "../mesher/delaunay_3d.h"
+#include "../solvers/assembly.h"
+#include "../utilities/granulo.h"
+#include "../utilities/placement.h"
+#include "../utilities/itoa.h"
 
 #include <fstream>
 
+#include <cmath>
+#include <typeinfo>
+#include <limits>
+#include <GL/glut.h>
+#include <sys/time.h>
+
 using namespace Mu ;
-
-Matrix i4_2D()
-{
-	Matrix ret(3,3) ;
-	for(size_t i = 0 ; i < 3 ; i++)
-	{
-		ret[i][i] = 1. ;
-		for(size_t j = 0 ; j < i ; j++)
-		{
-			ret[i][j] = 0. ;
-			ret[j][i] = 0. ;
-		}
-	}
-	return ret ;
-}
-
-Vector i2_2D()
-{
-	Vector ret(3) ;
-	for(size_t i = 0 ; i < 2 ; i++)
-	{
-		ret[i] = 1. ;
-	}
-	return ret ;
-}
-
-Matrix invert(Matrix & m)
-{
-	return inverse3x3Matrix(m) ;
-}
-
-void print(Vector v)
-{
-	for(size_t i = 0 ; i < v.size() ; i++)
-		std::cout << v[i] << "\t" ;
-	std::cout << std::endl ;
-}
 
 int main(int argc, char *argv[])
 {
-	double vp = 0.3 ;
-	double va = 0.7*0.99 ;
-	double vg = 0.7*0.01 ;
-	double fa = 11.e6 ;
+  	Sample box(nullptr, 0.01,0.01,0.,0.) ;
+	box.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
+	// no intersection
+//	ExpansiveZone * zone = new ExpansiveZone(nullptr, 0.001, 0.001,0.001, new GelBehaviour()) ;
+	// intersect without node inside
+	ExpansiveZone * zone = new ExpansiveZone(nullptr, 0.0012, -0.0005,0.000, new GelBehaviour(1e6)) ;
+	// intersect with node inside
+//	ExpansiveZone * zone = new ExpansiveZone(nullptr, 0.001, 0.0015,0.001, new GelBehaviour()) ;
 	
-	Matrix Cp = (new ElasticOnlyPasteBehaviour())->param ;
-	Matrix Ca = (new ElasticOnlyAggregateBehaviour())->param ;
-	Matrix Cg = (new GelBehaviour())->param ;
-	
-	Matrix Ap = i4_2D() ;
-	Matrix Aa = i4_2D() ;
-	Matrix Ag = i4_2D() ;
-	
-	Matrix Da = i4_2D() ;
-	
-	Vector bg = (Vector) (Cg*i2_2D())*(-0.22) ;
-	
- 	Matrix Ch = (Matrix) (Cp*Ap)*vp + (Matrix) (Da*Ca*Aa)*va + (Matrix) (Cg*Ag)*vg ;
- 	Vector bh = (Vector) (Ag*bg)*vg ;
- 	
-	Vector sh = i2_2D()*0. ;
- 	Vector eh = sh - (Vector) (invert(Ch)*bh) ;
-	
-	Vector ea = Aa*eh ;
-	Vector sa = Da*Ca*ea ;
-	bool met = false ;
-	while(!met)
+	FeatureTree F(&box) ;
+	F.setSamplingNumber(4) ;
+	F.setOrder(LINEAR) ;
+	F.addFeature(&box, zone) ;
+
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT) ) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM) ) ;
+
+	F.step() ;
+
+	Vector strain = F.getAverageField(STRAIN_FIELD) ;
+	Vector stress = F.getAverageField(REAL_STRESS_FIELD) ;
+
+	std::cout << strain[0] << "\t" << stress[0] << std::endl ;
+
+	std::vector<DelaunayTriangle *> triangles = F.getElements2D() ;
+	for(size_t i = 0 ; i < triangles.size() ; i++)
 	{
-		met = true ;
-		for(size_t i = 0 ; i < 3 ; i++)
+		if(dynamic_cast<HomogeneisedBehaviour *>(triangles[i]->getBehaviour()))
+			std::cout << "homogeneised" << std::endl ;
+		if(zone->intersects(dynamic_cast<Triangle*>(triangles[i])))
+			std::cout << "intersection" << std::endl  ;
+		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)	
 		{
-			if(sa[i] > fa || sa[i] < fa*(-8))
-			{
-				met = false ;
-				Da[i][i] -= 0.01 ;
-			}
+			if(zone->in(triangles[i]->getBoundingPoint(j)))
+				triangles[i]->getBoundingPoint(j).print() ;
 		}
-		Ch = (Matrix) (Cp*Ap)*vp + (Matrix) (Da*Ca*Aa)*va + (Matrix) (Cg*Ag)*vg ;
-		Ch.print() ;
-		eh = sh - (Vector) (invert(Ch)*bh) ;
-		ea = Aa*eh ;
-		sa = (Da*Ca)*ea ;
-//		print(sa) ;
 	}
   
-  
+	TriangleWriter writer("test-zone", &F) ;
+	writer.getField(TWFT_STRAIN) ;
+	writer.getField(TWFT_STRESS) ;
+	writer.getField(TWFT_STIFFNESS) ;
+	writer.write() ;
+
 	return 0 ;
 }

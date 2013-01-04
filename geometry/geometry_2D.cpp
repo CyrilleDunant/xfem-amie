@@ -2232,14 +2232,14 @@ void Ellipse::sampleSurface (size_t num_points)
 	inPoints.resize(1) ;
 	inPoints[0] = new Point(center) ;
         
-	 size_t n = num_points*3/2 ;
+	 size_t n = num_points*3 ;
 
-	sampleBoundingSurface(n) ;
+	sampleBoundingSurface(n*4/3) ;
 	sampled = true ;
 
 	double dist = (getBoundingPoint(0)-getBoundingPoint(1)).norm() ;
 
-	size_t ring = (num_points / 5) - 1 ;
+	size_t ring = (num_points*3 / 5) - 1 ;
 
 	if(getMinorRadius() / getMajorRadius() < 0.5)
 		ring-- ;

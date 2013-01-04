@@ -210,7 +210,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		else if(disc.size() == 1)
 		{
 //			return ;
-//			std::cout << "first" << std::endl ;
+			std::cout << "first" << std::endl ;
 			std::vector<Feature *> brother ;
 			if(getFather())
 				brother = getFather()->getChildren() ;
@@ -245,7 +245,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 	
 	
-// 	std::cout << "not-homogeneized" << std::endl ;
+ 	std::cout << "not-homogeneized " << disc.size() << std::endl ;
 		
 	
 //	for(size_t i = 0 ; i < disc.size() ; i++)
