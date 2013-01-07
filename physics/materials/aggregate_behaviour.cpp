@@ -25,7 +25,7 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalInverseRootMohrCoulomb(up*factor,yield*factor, E, c)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E)) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 // 	ret->dfunc->setThresholdDamageDensity(1.);
 	return ret ;

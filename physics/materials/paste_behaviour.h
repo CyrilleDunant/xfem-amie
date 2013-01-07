@@ -19,7 +19,7 @@ namespace Mu
 		double up ;
 		double yield ;
 		double c ;
-		PasteBehaviour(double E=12e9, double nu=0.3,  double up = 0.00025, double yield = 0.00035, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		PasteBehaviour(double E=12e9, double nu=0.3,  double up = 0.0005, double yield = 0.00035, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
