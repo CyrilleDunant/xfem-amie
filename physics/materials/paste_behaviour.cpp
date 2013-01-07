@@ -12,6 +12,7 @@
 #include "../parallel_behaviour.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
+#include "../damagemodels/fiberbasedisotropiclineardamage.h"
 #include "../../utilities/random.h"
 
 using namespace Mu ;
@@ -26,9 +27,9 @@ Form * PasteBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalInverseRootMohrCoulomb(up*factor,yield*factor, E, c)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E), new FiberBasedIsotropicLinearDamage(0.1,0.6)) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-// 	ret->dfunc->setThresholdDamageDensity(.999);
+ 	ret->dfunc->setThresholdDamageDensity(.6);
 	return ret ;
 }
 

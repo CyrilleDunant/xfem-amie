@@ -14,8 +14,9 @@
 
 namespace Mu {
 
-FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f)  : fibreFraction(f)
+FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, double c)  : fibreFraction(f)
 {
+	thresholdDamageDensity = c ;
 	getState(true).resize(1, 0.);
 	isNull = false ;
 }
@@ -76,7 +77,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
 	}
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;//maxscore ;
 	double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood() ;
-	if(!fractured() && score == maxScoreInNeighbourhood)
+	if(!fractured() && score > 0 && score == maxScoreInNeighbourhood)
 	{
 		state += fibreFraction ;
 		for(size_t i = 0 ; i < state.size() ; i++)

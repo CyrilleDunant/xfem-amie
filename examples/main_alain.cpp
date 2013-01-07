@@ -96,11 +96,14 @@ Sample box(nullptr, sampleLength, sampleHeight,0.0,0.0) ;
 int main(int argc, char *argv[])
 {
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(30) ;
+	F.setSamplingNumber(200) ;
 //	F.setMaxIterationsPerStep(50000) ;
 	F.setOrder(LINEAR) ;
 	
 	box.setBehaviour( new PasteBehaviour() ) ;
+
+	ParticleSizeDistribution::get2DMortar(&F, new AggregateBehaviour(), 0.0025, 500) ;
+
 	BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -sampleLength*0.5, platewidth-sampleLength*0.5, -10, 10, 0. ) ;
 	F.addBoundaryCondition(load) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
@@ -120,13 +123,14 @@ int main(int argc, char *argv[])
 	while(i < 100)
 	{
 		i++ ;
-		load->setData( 0.00001*i ) ;
+		load->setData(- 0.000001*i ) ;
 
 		F.step() ;
 		
 		std::string tati = "tripoint" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
+		std::cout << tati << std::endl ;
 		TriangleWriter writer(tati, &F) ;
 		writer.getField(TWFT_STRAIN) ;
 		writer.getField(TWFT_STRESS) ;
@@ -136,7 +140,7 @@ int main(int argc, char *argv[])
 			
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD) ;
-		out << 0.00001*i << "\t" << x[1] << "\t" << y[1]*sampleLength*sampleHeight*sampleHeight << "\t" << F.averageDamage << std::endl ;
+		out << 0.000001*i << "\t" << x[1] << "\t" << y[1]*sampleLength*sampleHeight*sampleHeight << "\t" << F.averageDamage << std::endl ;
 
 	}
 		
