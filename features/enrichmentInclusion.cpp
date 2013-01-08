@@ -245,7 +245,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 	
 	
- 	std::cout << "not-homogeneized " << disc.size() << std::endl ;
+// 	std::cout << "not-homogeneized " << disc.size() << std::endl ;
 		
 	
 //	for(size_t i = 0 ; i < disc.size() ; i++)

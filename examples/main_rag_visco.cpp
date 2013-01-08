@@ -201,10 +201,6 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	F.step() ;
-	Vector x = F.getAverageField(STRAIN_FIELD) ;
-	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
-	Vector z = F.getAverageField(REAL_STRESS_FIELD) ;
 //	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	if(stress != 0)
@@ -214,12 +210,15 @@ int main(int argc, char *argv[])
 	double time = 0. ;
 	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, nzones*5, nzones) ;
 	F.step() ;
+	Vector x = F.getAverageField(STRAIN_FIELD) ;
+	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
+	Vector z = F.getAverageField(REAL_STRESS_FIELD) ;
 	
 	std::vector<DelaunayTriangle *> paste = F.getFeature(0)->getElements2D(&F) ;
 	std::vector<DelaunayTriangle *> all = F.getElements2D() ;
 	
 	std::fstream out ;
-	std::string toto = "rag_moritanaka_" ;
+	std::string toto = "rag_" ;
 	toto.append(argv[1]) ;
 	toto.append("_") ;
 	if(argc == 3)
@@ -234,6 +233,7 @@ int main(int argc, char *argv[])
 
 
 	double damage = 0. ;
+	int notConverged = 0 ;	
 	
 	while(damage < 0.05*aggregate_area)
 	{
@@ -241,11 +241,15 @@ int main(int argc, char *argv[])
  		F.setDeltaTime( tau ) ;
 		time += tau  ;
 
-		if(time > timeScale)
+		notConverged += !F.solverConverged() ;
+		if(time > timeScale || notConverged > 4)
 			return 0 ;
 		std::string tati = toto ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
+		if(!F.solverConverged())
+			tati.append("_notconverged") ;
+		std::cout << tati << std::endl ;
 		TriangleWriter writer(tati, &F) ;
 		writer.getField(TWFT_STRAIN) ;
 		writer.getField(TWFT_STRESS) ;

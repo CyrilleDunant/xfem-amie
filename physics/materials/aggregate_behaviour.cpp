@@ -11,13 +11,14 @@
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../damagemodels/rotatingcrack.h"
+#include "../damagemodels/fiberbasedisotropiclineardamage.h"
 #include "../../utilities/random.h"
 
 using namespace Mu ;
 
 AggregateBehaviour::AggregateBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-	materialRadius = 0.00001 ;
+	materialRadius = 0.0001 ;
 }
 
 Form * AggregateBehaviour::getCopy() const 
@@ -25,7 +26,7 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E)) ;
+	StiffnessAndFracture * ret = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.1,0.6)) ;
 	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
 // 	ret->dfunc->setThresholdDamageDensity(1.);
 	return ret ;

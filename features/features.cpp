@@ -2378,7 +2378,6 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 		}
 	}
 
-
 	if( !onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
 		if( tree[root_box]->getBehaviour( t->getCenter() )->timeDependent() )
@@ -3146,7 +3145,7 @@ void FeatureTree::enrich()
 		for( size_t j =  0 ; j < coarseTrees.size() ; j++ )
 			coarseLastEnrichmentId.push_back( coarseLastNodeId[j] ) ;
 
-	std::cerr << "\r enriching... feature " << 0 << "/" << this->tree.size() << std::flush ;
+	std::cerr << "\r enriching... feature " << 0 << "/" << this->tree.size() << std::endl ;
 
 	for( size_t i = 1 ; i < this->tree.size() ; i++ )
 	{
@@ -3172,7 +3171,7 @@ void FeatureTree::enrich()
 			}
 
 			if( i % 10 == 0 )
-				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
+				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::endl ;
 		}
 		else
 		{
@@ -3197,7 +3196,7 @@ void FeatureTree::enrich()
 			}
 
 			if( i % 10 == 0 )
-				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
+				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::endl ;
 		}
 	}
 
@@ -4430,7 +4429,9 @@ void FeatureTree::stepXfem()
 
 bool sortByScore( DelaunayTriangle * tri1, DelaunayTriangle * tri2)
 {
-	return tri1->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() > tri2->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState();
+	if(tri1->getBehaviour()->getFractureCriterion() && tri2->getBehaviour()->getFractureCriterion())
+		return tri1->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() > tri2->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState();
+	return false ;
 }
 
 bool FeatureTree::stepElements()
