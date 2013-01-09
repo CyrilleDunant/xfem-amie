@@ -600,8 +600,8 @@ void NonLocalMCFT::initialise( ElementState &s)
 // interlock in concrete, Gambarova and Valente
 std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double dmax = 16)
 {
-	double tau_0 = 0.25*downVal*1e-6 ;
-	double a12 = 0.62 ;
+	double tau_0 = 0.25*downVal ;
+	double a12 = 0.62*downVal ;
 	double a3 = 2.45/tau_0 ;
 	double a4 = 2.44*(1.-4./tau_0) ;
 	
@@ -621,7 +621,7 @@ std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double 
 	double sigma_nt = tau_0*(1.-sqrt(2.*delta_n/dmax))*r*f/g ;
 	double sigma_nn = a12*r*sqrt(delta_n)*sigma_nt*.25 ;
 	
-	return std::make_pair(sigma_nn*1e6, sigma_nt*1e6) ;
+	return std::make_pair(sigma_nn, sigma_nt) ;
 }
 
 double NonLocalMCFT::grade( ElementState &s )
@@ -643,8 +643,8 @@ double NonLocalMCFT::grade( ElementState &s )
 	double sfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()],double(0)) ;
 // 	if(std::max(crackstress.first, 0.) > POINT_TOLERANCE_2D ||  std::min(crackstress.second, 0.) > POINT_TOLERANCE_2D)
 // 		std::cout << "\n"<< std::max(crackstress.first, 0.) << "   " << std::min(crackstress.second, 0.) << std::endl ;
-	double tstress = first.max()-std::max(std::abs(crackstress.first)*1e6, 0.);   //first.max();//std::min(first.max()-2.*std::max(crackstress.first, 0.), first.max());// 
-	double cstress = first.min()+std::min(std::abs(crackstress.second)*1e6, 0.);   //first.min();//std::max(first.min()+2.*std::min(crackstress.second, 0.), first.min());// 
+	double tstress = first.max()-std::max(std::abs(crackstress.first), 0.);   //first.max();//std::min(first.max()-2.*std::max(crackstress.first, 0.), first.max());// 
+	double cstress = first.min()+std::min(std::abs(crackstress.second), 0.);   //first.min();//std::max(first.min()+2.*std::min(crackstress.second, 0.), first.min());// 
 
 	
 	

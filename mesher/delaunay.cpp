@@ -2833,14 +2833,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		}
 // 		
 
-		TriElement * father = new TriElement(QUADRATIC) ;
 		for(size_t i = 0 ; i < tri.size() ; i++)
 		{
 
 			Function x = XTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
 			Function y = YTransform(tri[i]->getBoundingPoints(), f.getShapeFunctions()) ;
-			double jac = std::abs(jacobianAtPoint(Point(.33333, .3333333, .333333))) ;
-			tri[i]->refresh(father) ;
+			double jac = std::abs(jacobianAtPoint(Point(.333333, .3333333, .333333))) ;
+			tri[i]->refresh(&f) ;
 			
 			GaussPointArray gp_temp = tri[i]->getGaussPoints() ;
 			
@@ -2869,8 +2868,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		}
 		for(size_t i = 0 ; i < pointsToCleanup.size() ; i++)
 			delete pointsToCleanup[i] ;
-		
-		delete father ;
 		
 		if(gp.gaussPoints.size() < gp_alternative.size())
 		{

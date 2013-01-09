@@ -1716,7 +1716,7 @@ int main( int argc, char *argv[] )
 // 		
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
 
-	Sample box( nullptr, sampleLength*.5+ plateHeight*2, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
+	Sample box( nullptr, sampleLength*.5, sampleHeight + plateHeight*2, halfSampleOffset, 0 ) ;
 	box.setBehaviour( new VoidForm() ) ;
 
 	Sample sample( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;

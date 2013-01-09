@@ -1327,7 +1327,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*5.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*6.+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
