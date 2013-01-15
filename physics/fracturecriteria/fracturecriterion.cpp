@@ -870,8 +870,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		vlength = 6 ;
 	Vector str(0., vlength) ;
 	Vector stra(0., vlength) ;
-	Vector tmpstr(vlength) ;
-	Vector tmpstra(vlength) ;
+	Vector tmpstr(0.,vlength) ;
+	Vector tmpstra(0.,vlength) ;
 	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
 	istress = 0 ;
 	if(factors.size() == 0)
@@ -928,7 +928,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 		str /= sumStressFactors ;
 		str += istress ;
-
 		stra /= sumStrainFactors ;
 		
 		

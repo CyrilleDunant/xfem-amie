@@ -66,10 +66,10 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		Matrix stressMatrix(v.size(), v.size()) ;
 		Vector stress(3) ;
 		Vector strain(3) ;
-		s.getField(STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
-// 		std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s) ;
-// 		stress = ss.first ;
-// 		strain = ss.second ;
+// 		s.getField(STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
+		std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->smoothedStressAndStrain(s) ;
+		stress = ss.first ;
+		strain = ss.second ;
 		stressMatrix[0][0] = stress[0] ;
 		stressMatrix[1][1] = stress[1] ;
 		stressMatrix[0][1] = stress[2] ;
@@ -104,10 +104,9 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 			imposedStrain /= sqrt(imposedStrain[0]*imposedStrain[0]+imposedStrain[1]*imposedStrain[1]+imposedStrain[2]*imposedStrain[2]) ;
 			double snorm =  sqrt(strain[0]*strain[0]+strain[1]*strain[1]+strain[2]*strain[2]) ;
 			if(snorm > POINT_TOLERANCE_2D && s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-				imposedStrain *= snorm*(1.-getDamage()) ;
+				imposedStrain *= 1e-4 ;// snorm*(1.-getDamage())*0.005 ;
 		}
 // 		imposedStrain[2] = 0 ;
-// 		std::cout << imposedStrain[0] << "  " << imposedStrain[1] << "  "<< imposedStrain[2] << "  " << std::endl ;
 		inCompression = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(1) ;
 		inTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionMet(0) ;
 	}
@@ -320,8 +319,8 @@ void PlasticStrain::postProcess()
 		}
 		Vector str = imposedStrain ;
 		es->getAverageField(STRAIN_FIELD, str) ;
-		if(std::abs(str).max() > 0.03)
-			broken = true ;
+// 		if(std::abs(str).max() > 0.03)
+// 			broken = true ;
 // 		if(state[0] > POINT_TOLERANCE_2D)
 // 		{
 // 			std::cout <<std::endl ;
