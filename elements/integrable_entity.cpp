@@ -1320,6 +1320,7 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
+	ret_ = 0 ;
 	double total = 0 ;
 	
 	if(f == STRAIN_FIELD && (f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD))
@@ -1337,17 +1338,18 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				stressAtGaussPoints.resize( 6*gp.gaussPoints.size() ) ;
 			}
 			
-
 			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 			{
 				Vector tmp(strainAtGaussPoints.size()/gp.gaussPoints.size()) ;
 				Vector tmp_(stressAtGaussPoints.size()/gp.gaussPoints.size()) ;
 				getField(f,f_, gp.gaussPoints[i].first, tmp, tmp_, true, i) ;
+				
 				for(size_t j = 0 ; j < strainAtGaussPoints.size()/gp.gaussPoints.size() ; j++)
 				{
 					strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					stressAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
 				}
+
 				ret += tmp*gp.gaussPoints[i].second ;
 				ret_ += tmp_*gp.gaussPoints[i].second ;
 				total += gp.gaussPoints[i].second ;
@@ -1362,6 +1364,7 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 				ret = 0 ;
 				ret_ = 0 ;
 			}
+
 			return ;
 		}
 		else
