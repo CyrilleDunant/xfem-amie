@@ -21,6 +21,7 @@ DruckerPrager::DruckerPrager(double downthres,double upthres, double modulus,  d
 	metInCompression = false ;
 	metInTension = false ;
 	inTension = true ;
+	cap = 1 ;
 }
 
 
@@ -31,9 +32,9 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	std::pair<Vector, Vector> stressstrain( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
-	Vector str = stressstrain.first ;
-	Vector stra = stressstrain.second ;
+	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s,REAL_STRESS) ) ;
+	Vector stra = toPrincipal(stressstrain.second) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.first ;
+	Vector str =  (stressstrain.second-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3., 1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3., 1./3.)) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.second ;
 	double maxStress = 0 ;
 	double maxStrain = 0 ;
 	double pseudomodulus = modulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
@@ -45,22 +46,25 @@ double DruckerPrager::grade(ElementState &s)
 	
 		PlasticStrain* ps = static_cast<PlasticStrain*>(s.getParent()->getBehaviour()->getDamageModel()) ;
 		
-		double kappa_0 = ps->kappa_0 ;
-		double kappa_p = ps->getPlasticity() ;
-		if(kappa_0 > 0)
-		{
-			(kappa_p <= kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
-		}
-// 		std::cout << kappa_p << " , " << kappa_0 << " :: " << std::flush ;
+// 		double kappa_0 = ps->kappa_0 ;
+// 		double kappa_p = ps->getPlasticity() ;
+// 		if(kappa_0 > 0 )
+// 		{
+// 			(kappa_p <= kappa_0 )?factor = ((kappa_p)*(kappa_p)-3.*(kappa_p)*kappa_0+3.*kappa_0*kappa_0)*(kappa_p)/(kappa_0*kappa_0*kappa_0):factor = 1. ;
+// 		}
+// // 		std::cout << kappa_p << " , " << kappa_0 << " :: " << std::flush ;
+// 
+// 		factor = std::min(factor, factor*cap) ;
 		dfactor = 1.-ps->getDamage() ;
 		pseudomodulus = modulus*dfactor ;
 	}
+	
 	if(pseudomodulus < POINT_TOLERANCE_2D)
 	  return -1 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double tr = str[0]+str[1] ;
-		maxStress = tr*friction - sqrt(0.5)*sqrt((str[0]-tr*.5)*(str[0]-tr*.5)+(str[1]-tr*.5)*(str[1]-tr*.5)+2.*(str[0]-str[1])*(str[0]-str[1])) ;
+		maxStress = tr*friction - sqrt(0.5)*sqrt((str[0]-tr/3.)*(str[0]-tr/3.)+(str[1]-tr/3.)*(str[1]-tr/3.)+2.*(str[0]-str[1])*(str[0]-str[1])) ;
 		maxStrain = maxStress/pseudomodulus ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -103,36 +107,36 @@ double DruckerPrager::grade(ElementState &s)
 // 	std::cout << factor << ", "<< dfactor << ", "<< maxStress<< std::endl ;
 
 	
-	double effectiveUp = upthreshold*factor/modulus ;
-	double effectiveDown = downthreshold*factor/modulus ;
-	if(maxStrain > effectiveUp && maxStrain > POINT_TOLERANCE_2D)
+	double effectiveUp = upthreshold*factor*dfactor ;
+	double effectiveDown = downthreshold*factor*dfactor ;
+	if(maxStress > effectiveUp && maxStrain > POINT_TOLERANCE_2D)
 	{
 // 		std::cout << factor << ", "<< maxStress<< std::endl ;
 		metInTension = true ;
 		metInCompression = false ;
 		inTension = true ;
-		return 1. - std::abs(effectiveUp/maxStrain) ;
+		return 1. - std::abs(effectiveUp/maxStress) ;
 	}
-	else if(maxStrain >= 0 && std::abs(effectiveUp) > POINT_TOLERANCE_2D)
+	else if(maxStress >= 0 && std::abs(effectiveUp) > POINT_TOLERANCE_2D)
 	{
 		metInTension = false ;
 		metInCompression = false ;
 		inTension = true ;
-		return -1.+ std::abs(maxStrain/effectiveUp) ;
+		return -1.+ std::abs(maxStress/effectiveUp) ;
 	}
-	else if(maxStrain < effectiveDown && maxStrain < -POINT_TOLERANCE_2D)
+	else if(maxStress < effectiveDown && maxStress < -POINT_TOLERANCE_2D)
 	{
 		metInTension = false ;
 		metInCompression = true ;
 		inTension = false ;
-		return 1. - std::abs(effectiveDown/maxStrain) ;
+		return 1. - std::abs(effectiveDown/maxStress) ;
 	}
 	else if(std::abs(effectiveDown) > POINT_TOLERANCE_2D)
 	{
 		metInTension = false ;
 		metInCompression = false ;
 		inTension = false ;
-		return -1.+std::abs( maxStrain/effectiveDown) ;
+		return -1.+std::abs( maxStress/effectiveDown) ;
 	}
 	metInTension = false ;
 	metInCompression = false ;
@@ -144,7 +148,9 @@ double DruckerPrager::grade(ElementState &s)
 
 FractureCriterion * DruckerPrager::getCopy() const
 {
-	return new DruckerPrager(downthreshold, upthreshold, modulus, friction, getMaterialCharacteristicRadius()) ;
+	DruckerPrager * ret = new DruckerPrager(downthreshold, upthreshold, modulus, friction, getMaterialCharacteristicRadius()) ;
+	ret->cap = cap ;
+	return ret  ;
 }
 
 Material DruckerPrager::toMaterial()

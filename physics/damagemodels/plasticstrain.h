@@ -25,7 +25,6 @@ public:
 	std::vector<Variable> v ;
 	Matrix * param ;
 	Vector imposedStrain ;
-	Vector dimposedStrain ;
 	Vector previousCompressiveImposedStrain ;
 	Vector previousTensileImposedStrain ;
 	Vector lastStress ;
@@ -39,9 +38,12 @@ public:
 	bool broken ;
 	bool inCompression ;
 	bool inTension ;
+
 	ElementState * es ;
 	
 public:
+	double factor ;
+	
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
 	 * @param numDof number of degrees of freedom
@@ -80,7 +82,12 @@ public:
 	virtual Vector getImposedStrain(const Point & p) const ;
 	virtual int getMode() const ;
 	
-	virtual DamageModel * getCopy() const { return new PlasticStrain() ;}
+	virtual DamageModel * getCopy() const 
+	{ 
+		PlasticStrain * ret = new PlasticStrain() ;
+		ret->factor = factor ;
+		return ret ;
+	}
 	
 	virtual void postProcess() ;
 	double getDamage() const ;

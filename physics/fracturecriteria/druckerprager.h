@@ -30,6 +30,7 @@ namespace Mu {
 		double downthreshold ;
 		double friction ;
 		double modulus ;
+		double cap ;
 		virtual bool directionInTension(size_t direction) 
 		{
 			return inTension ;

@@ -228,7 +228,7 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-2e-6) ;
+			loadt->setData(loadt->getData()-6e-5) ;
 // 			loadr->setData(loadr->getData()-2e-6) ;
 
 // 			loadt->setData(0) ;
@@ -513,8 +513,6 @@ void step(size_t nsteps)
 			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
 			writer.getField( TWFT_STIFFNESS_X ) ;
 			writer.getField( TWFT_STIFFNESS_Y ) ;
-			writer.getField( TWFT_CRACKS ) ;
-			writer.getField( TWFT_DAMAGE ) ;
 			writer.append() ;
 		}
 		if(go_on)
@@ -526,8 +524,6 @@ void step(size_t nsteps)
 			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
 			writerc.getField( TWFT_STIFFNESS_X ) ;
 			writerc.getField( TWFT_STIFFNESS_Y ) ;
-			writerc.getField( TWFT_CRACKS ) ;
-			writerc.getField( TWFT_DAMAGE ) ;
 			writerc.append() ;
 		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
@@ -1502,7 +1498,7 @@ int main(int argc, char *argv[])
 	double compressionCrit = -32.6e6 ; 
 	double steelfraction = 0.5*rebarDiametre/effectiveRadius ;
 	std::cout << "steel fraction = " << steelfraction << std::endl ;
-	double mradius = .1200*.05 ; // .010 ;//
+	double mradius = .05 ; // .010 ;//
 // 	double mradius = .25 ;
 	double length =  0.3048 ; //1.300*.5;//
 	double E_steel = 193e9/1.7 ;
@@ -1520,7 +1516,7 @@ int main(int argc, char *argv[])
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 // 	Sample samplef(.1200, .1200, 0., 0.) ;
 // 	Sample samplef(0.3048, .0672, 0., 0.) ;
-	Sample samplef(0.06, .12, 0., 0.) ;
+	Sample samplef(0.6, 1.2, 0., 0.) ;
 
 	Sample notch(.005, .03, 0., -.1*.5+.03*.5) ;
 	
@@ -1568,14 +1564,69 @@ int main(int argc, char *argv[])
 	FeatureTree F(&samplef) ;
 // 	F.addFeature(&samplef,&notch);
 	featureTree = &F ;
-	Inclusion inc(samplef.height()*.05, 0, 0) ;
-	F.addFeature(&samplef, &inc);
-	inc.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste*1.01,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste*1.01,0.1 , mradius),new PlasticStrain()));
-// 	inc.setBehaviour(new VoidForm()) ;
-	inc.isVirtualFeature = true ;
-	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
+	
+// 	Inclusion inc(.06, -samplef.width()*.5, samplef.width()*.5) ;
+// 	F.addFeature(&samplef, &inc);
+// 	PlasticStrain * incdamagemodel = new PlasticStrain() ;
+// 	incdamagemodel->factor = .90 ;
+// 	inc.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),incdamagemodel));
+// 	inc.isVirtualFeature = true ;
+// // 	
+// 	Inclusion inc0(.06, samplef.width()*.5,  -samplef.width()*.5) ;
+// 	F.addFeature(&samplef, &inc0);
+// 	PlasticStrain * inc0damagemodel = new PlasticStrain() ;
+// 	inc0damagemodel->factor = .90 ;
+// 	inc0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),inc0damagemodel));
+// 	inc0.isVirtualFeature = true ;
 // 	
+// 	Inclusion inc2(.06, -samplef.width()*.25, samplef.width()*.25) ;
+// 	F.addFeature(&samplef, &inc2);
+// 	PlasticStrain * inc2damagemodel = new PlasticStrain() ;
+// 	inc2damagemodel->factor = .90 ;
+// 	inc2.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),inc2damagemodel));
+// 	inc2.isVirtualFeature = true ;
+// // 	
+// 	Inclusion inc3(.06, samplef.width()*.25,  -samplef.width()*.25) ;
+// 	F.addFeature(&samplef, &inc3);
+// 	PlasticStrain * inc3damagemodel = new PlasticStrain() ;
+// 	inc3damagemodel->factor = .90 ;
+// 	inc3.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-12.315e6, 12.315e6,E_paste,0.1 , mradius),inc3damagemodel));
+// 	inc3.isVirtualFeature = true ;
+// 	
+// 	Inclusion inc1(.06, 0., 0.) ;
+// 	F.addFeature(&samplef, &inc1);
+// 	DruckerPrager * inc1criterion = new DruckerPrager(-20e6*.9, -20e6*.9,E_paste,0.1 , mradius) ; 
+// 	PlasticStrain * inc1damagemodel = new PlasticStrain() ;
+// // 	inc1criterion->cap = .99 ;
+// // 	inc1damagemodel->factor = .90 ;
+// 	StiffnessAndFracture * inc1Behaviour = new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , inc1criterion , inc1damagemodel) ; 
+// 	inc1.setBehaviour( inc1Behaviour );
+// 	inc1.setBehaviourSource(&samplef);
+// 	inc1.isVirtualFeature = true ;
+	
+	TriangularInclusion t0(Point(samplef.width()*.5,-samplef.width()*.5-mradius*.5),
+				 Point(samplef.width()*.5,-samplef.width()*.5+mradius*.5), 
+				 Point(-samplef.width()*.5,samplef.width()*.5+mradius*.5));
+	TriangularInclusion t1(Point(samplef.width()*.5,-samplef.width()*.5-mradius*.5), 
+				 Point(-samplef.width()*.5,samplef.width()*.5+mradius*.5), 
+				 Point(-samplef.width()*.5,samplef.width()*.5-mradius*.5));
+	t0.isVirtualFeature = true ;
+	t1.isVirtualFeature = true ;
+	PlasticStrain * t0damagemodel = new PlasticStrain() ;
+	PlasticStrain * t1damagemodel = new PlasticStrain() ;
+	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
+	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
+	F.addFeature(&samplef, &t0);
+	F.addFeature(&samplef, &t1);
+	t0.setBehaviourSource(&samplef);
+	t1.setBehaviourSource(&samplef);
+	
+	
+// 	
+// 	
+// 	inc.setBehaviourSource(&samplef);
+	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6, -20e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
+// 	inc.setBehaviour(new VoidForm()) ;
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x,samplef.getCenter().y-samplef.height()*.5));
 	
@@ -1616,25 +1667,30 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(+0.04445, .0672*.5))) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(-0.04445, .0672*.5))) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
 
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	
-// 	F.addRefinementZone(new Rectangle(0.04445*4, .0672, 0., 0.)) ;
+// 	F.addRefinementZone(new Circle(.02, 0., 0.)) ;
+// 	F.addRefinementZone(new Circle(.01, 0., 0.)) ;
+// 	F.addRefinementZone(new Rectangle(.06, .03, 0., 0.)) ;
+	
+	
 // 	F.addRefinementZone(new Rectangle(0.04445*3, .0672, 0., 0.)) ;
 // 	F.addRefinementZone(new Rectangle(0.04445*2, .0672, 0., 0.)) ;
 
 	F.setOrder(LINEAR) ;
-
+// F.addPoint(new Point(0, 0)) ;
 	triangles = F.getElements2D() ;
 	F.setMaxIterationsPerStep(3400);
-	F.addPoint(new Point(-0.04445, .0672*.5)) ;
-	F.addPoint(new Point(+0.04445, .0672*.5)) ;
-	F.addPoint(new Point(-0.13335, -.0672*.5)) ;
-	F.addPoint(new Point(+0.13335, -.0672*.5)) ;
+// 	F.addPoint( new Point( 0, -sampleHeight*.5 - plateHeight ) ) ;
+// 	F.addPoint(new Point(-0.04445, .0672*.5)) ;
+// 	F.addPoint(new Point(+0.04445, .0672*.5)) ;
+// 	F.addPoint(new Point(-0.13335, -.0672*.5)) ;
+// 	F.addPoint(new Point(+0.13335, -.0672*.5)) ;
 	
 	
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
