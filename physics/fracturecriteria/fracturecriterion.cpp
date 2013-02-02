@@ -128,8 +128,14 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 	return smoothedPrincipalStressAndStrain(s).second ;
 }
 
-std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, StressCalculationMethod m , bool useStressLimit )
+std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , bool useStressLimit )
 {
+	if(ss == FROM_STRESS_STRAIN)
+	{
+		std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m) ;
+		return std::make_pair(toPrincipal(stressStrain.first), toPrincipal(stressStrain.second)) ;
+	}
+	
 	size_t vlength = 2 ;
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 3 ;
@@ -393,6 +399,9 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 
 void FractureCriterion::initialiseFactors(const ElementState & s)
 {
+	
+	bool compact = true ;
+	
 	if(cache.empty())
 	{
 		physicalcache.resize(0);
@@ -427,7 +436,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 		Function rr = x*x+y*y ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-		Function smooth =  f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+		Function smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 		double weight = vm.ieval(smooth, gp) ;
 		double fact = weight ;
 
@@ -441,7 +450,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -452,7 +461,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().x ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = f_exp(rrn*-0.5); // (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -463,7 +472,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = f_exp(rrn*-0.5); // (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -474,7 +483,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, gp) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -501,7 +510,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			y = ci->getYTransform()-s.getParent()->getCenter().y ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius ) ;
-			smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			
 			fintmp = fin ;
 			double j = ci->area()*2. ;//1./det(J) ;
@@ -527,7 +536,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
@@ -539,7 +548,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
@@ -551,7 +560,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
@@ -563,7 +572,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-				smooth = f_exp(rrn*-0.5); //(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+				smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 				weight = vm.ieval(smooth, gp) ;
 				tmpfactors.back() += weight ;
 				fact += weight ;
@@ -585,7 +594,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		Function z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 		Function rr = x*x+y*y+z*z ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-		Function smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+		Function smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 		double weight = vm.ieval(smooth, s.getParent()) ;
 		double fact = weight ;
 		
@@ -601,7 +610,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -613,7 +622,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -625,7 +634,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -638,7 +647,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			s.getParent()->setOrder(CUBIC) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -650,7 +659,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -662,7 +671,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -674,7 +683,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -686,7 +695,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -698,7 +707,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, s.getParent()) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -726,7 +735,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-s.getParent()->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(mindist * mindist) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			
 			if(weight*factor < POINT_TOLERANCE_2D)
@@ -744,7 +753,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -756,7 +765,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -768,7 +777,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -780,7 +789,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -792,7 +801,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -804,7 +813,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -816,7 +825,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -828,7 +837,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth =  (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -840,7 +849,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
-			smooth = (rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 			weight = vm.ieval(smooth, ci) ;
 			tmpfactors.back() += weight ;
 			fact += weight ;
@@ -858,22 +867,24 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 
 Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalculationMethod m)
 {
-	return smoothedPrincipalStressAndStrain(s, m).first ;
+	return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
 }
 
-std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s, StressCalculationMethod m, bool useStressLimit )
+std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, bool useStressLimit )
 {
 // 	useStressLimit = true ;
+	
 	
 	size_t vlength = 3 ;
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 6 ;
+	
 	Vector str(0., vlength) ;
 	Vector stra(0., vlength) ;
 	Vector tmpstr(0.,vlength) ;
 	Vector tmpstra(0.,vlength) ;
-	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-	istress = 0 ;
+// 	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
+// 	istress = 0 ;
 	if(factors.size() == 0)
 		initialiseFactors(s) ;
 	double sumStressFactors = 0 ;
@@ -881,6 +892,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		double iteratorValue = factors[0] ;
+
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr);
@@ -890,8 +902,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
 
 		}
+
 		stra = tmpstra*iteratorValue ;
-		str = (tmpstr-istress)*iteratorValue ;
+		str = tmpstr*iteratorValue ;
 
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
@@ -903,6 +916,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 			if(iteratorValue > POINT_TOLERANCE_2D)
 			{
+
 				if(m == EFFECTIVE_STRESS)
 				{
 					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr);
@@ -911,6 +925,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
 				}
+
+
 				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 				
@@ -927,7 +943,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		}
 
 		str /= sumStressFactors ;
-		str += istress ;
+// 		str += istress ;
 		stra /= sumStrainFactors ;
 		
 		
@@ -943,8 +959,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 // 			if(currentAngle < 0)
 // 				currentAngle += M_PI ;
 // 		}
-
-		return std::make_pair(str, stra) ;
+		return std::make_pair((stra-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3.,1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3.,1./3.)), stra) ;
 
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1326,7 +1341,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*6.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*4.+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;
@@ -1817,7 +1832,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 			for(size_t i = 0 ; i < proximitySet.size() ; i++)
 				static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->inIteration = true ;
 			
-			return std::make_pair(minscore - maxscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - minscore /*+ scoreTolerance*initialScore*/) ;
+			return std::make_pair(minscore - maxscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - minscore/* - scoreTolerance*initialScore*/) ;
 		}
 		else if (inset)
 		{
@@ -1867,7 +1882,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 				}
 			}
 //			std::cout << "b" << std::endl ;
-			return std::make_pair(maxscore - minscore /*- scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*+ scoreTolerance*initialScore*/) ;
+			return std::make_pair(maxscore - minscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*- scoreTolerance*initialScore*/) ;
 		}
 	}
 	else
