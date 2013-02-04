@@ -439,6 +439,8 @@ public:
 	void addPoint(Point * p) ;
 
 	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
+
+	void homothety(double before, double now, double after) ;
 	
 	/** \brief  Attempt to enhance the mesh, based on a sampling citerion.
 	 * 

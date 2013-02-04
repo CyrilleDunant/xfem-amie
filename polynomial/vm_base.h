@@ -31,6 +31,10 @@ struct GDtMtGD ;
 struct GDDtMtG ;
 struct GtMtGD ;
 struct GDtMtG ;
+struct GDtMLtGD ;
+struct GDDtMLtG ;
+struct GtMLtGD ;
+struct GDtMLtG ;
 struct GDtV ;
 struct GDtVL ;
 struct IntegrableEntity ;
@@ -440,6 +444,8 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */	
 	void ieval(const GDtMtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+	void ieval(const GDtMLtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
 /** \brief Overloaded function to compute the integral of a GradientDot times a FunctionMatrix times a GradientDot using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * GradientDot is the operator \f$ \dot{\nabla}\otimes \f$ operator.
 @param f GDtMtGD to integrate.
@@ -462,6 +468,10 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 
 	void ieval(const GDDtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+	void ieval(const GDtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
+	void ieval(const GDDtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+
 /** \brief Overloaded function to compute the integral of a GradientDot times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * GradientDot is the operator \f$ \dot{\nabla}\otimes \f$ operator.
 @param f GDtMtG to integrate.
@@ -470,6 +480,8 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param vars std::vector of space Variable s
 */	
 	Matrix ieval(const GDtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
+	Matrix ieval(const GDtMLtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a GradientDot using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
@@ -482,6 +494,8 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */	
 	void ieval(const GtMtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
 
+	void ieval(const GtMLtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars, Matrix & ret) ;
+	
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a GradientDot using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars.
  * GradientDot is the operator \f$ \dot{\nabla}\otimes \f$ operator.
 @param f GtMtGD to integrate.

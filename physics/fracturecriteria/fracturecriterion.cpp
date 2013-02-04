@@ -128,7 +128,7 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 	return smoothedPrincipalStressAndStrain(s).second ;
 }
 
-std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , bool useStressLimit )
+std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , bool useStressLimit, double t )
 {
 	if(ss == FROM_STRESS_STRAIN)
 	{
@@ -153,11 +153,11 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		double iteratorValue = factors[0] ;
 		if(m == EFFECTIVE_STRESS)
 		{
-			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr) ;
+			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
 		}
 		else
 		{
-			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr) ;
+			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
 		}
 		
 		stra = tmpstra*iteratorValue ;
@@ -172,11 +172,11 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 
 			if(m == EFFECTIVE_STRESS)
 			{
-				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr) ;
+				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
 			}
 			else
 			{
-				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD,tmpstra ,tmpstr) ;
+				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD,tmpstra ,tmpstr, 0, t) ;
 			}
 			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
 				iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;

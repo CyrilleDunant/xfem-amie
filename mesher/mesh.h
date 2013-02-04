@@ -52,6 +52,7 @@ namespace Mu
 			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g) const
 			{
 				
+			  
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;
 				found.insert(start) ;
@@ -77,6 +78,7 @@ namespace Mu
 								|| (*j)->getNeighbourhood(i)->in(g->getCenter()) 
 								|| g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) ))
 							{
+								  
 								new_test.insert((*j)->getNeighbourhood(i)) ;
 							}
 						}

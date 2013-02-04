@@ -12,7 +12,7 @@
 #include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
 #include "../physics/parallel_behaviour.h"
-#include "../physics/generalized_spacetime_viscoelasticity.h"
+#include "../physics/viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
@@ -85,9 +85,7 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.1, 0.4,0.0,0.0) ;
-Rectangle rbox(0.07,0.07,0.0,0.0) ;
-double tau = 0.1;
+Sample box(nullptr, 1., 1.,0.0,0.0) ;
 
 double s2d(double s)
 {
@@ -109,47 +107,23 @@ double getMinDisplacement(const Vector & x)
 
 int main(int argc, char *argv[])
 {
-	tau = atof(argv[1]) ;
-//	ElasticOnlyPasteBehaviour * paste_e = new ElasticOnlyPasteBehaviour() ;
-  
+	double tau = 10 ;
+//	double tauRadius = atof(argv[1]) ;
+
+/*	if(tauRadius == 0)
+		tauRadius = 1e-9 ;  */
+
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(2) ;
+	F.setSamplingNumber(10) ;
+
+	Matrix e = (new ElasticOnlyPasteBehaviour())->param ;
+	box.setBehaviour(new Viscoelasticity(BURGER, e, e*500, e, e*300)) ;
+//	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new GeneralizedSpaceTimeViscoelasticity(PURE_ELASTICITY, (new ElasticOnlyAggregateBehaviour())->param, 2), 0.008, 1000) ;
+
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
-	
-// 	Sample Gbox(nullptr, 0.1,0.4,0.,0.) ;
-// 	FeatureTree G(&Gbox) ;
-// 	G.setSamplingNumber(2) ;
-// 	G.setOrder(LINEAR) ;
-// 	G.setDeltaTime(tau) ;
-// 
-// 	Sample Hbox(nullptr, 0.1,0.4,0.,0.) ;
-// 	FeatureTree H(&Hbox) ;
-// 	H.setSamplingNumber(2) ;
-// 	H.setOrder(LINEAR) ;
-// 	H.setDeltaTime(tau) ;
 
-
-	Matrix ckv = Material::cauchyGreen(30e9,0.3,true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
-	Matrix ekv = ckv*300 ;
-	Matrix cmx = Material::cauchyGreen(14e9,0.3,true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
-	Matrix emx = cmx*5000 ;
 	
-	GeneralizedSpaceTimeViscoelasticity * burger =  new GeneralizedSpaceTimeViscoelasticity(BURGER,ckv,ekv,cmx,emx) ;
-	
-	double density = 2300 ;
-	Matrix stiffness = burger->param ;
-	Matrix viscosity = burger->eta ;
-	
-	double tausquare = tau*tau ;
-	
-	box.setBehaviour(burger) ;
-	
-// 	box.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness, viscosity*(1.5/tau), density*(1./tausquare) ,3)) ;	
-// 	Gbox.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness*0., viscosity*(-2./tau), density*(-2./tausquare) ,3)) ;	
-// 	Hbox.setBehaviour( new MassAndViscosityAndStiffnessByBlock(stiffness*0., viscosity*(0.5/tau), density*(1./tausquare),3)) ;
-
-
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,2)) ;
@@ -159,49 +133,26 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	srand(0) ;
 	F.step() ;
-// 	G.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT, 0,0)) ;
-// 	G.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0,1)) ;
-// 	srand(0) ;
-// 	G.step() ;
-// 	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT, 0,0)) ;
-// 	H.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM, 0,1)) ;
-// 	srand(0) ;
-// 	H.step() ;
 
-// 	Vector uprev = F.getDisplacements() ;
-// 	Vector unow = uprev ;
-// 	Vector forces = unow ;
-// 	
-// 	forces = (Vector) (G.getAssembly()->getMatrix() * unow) + (Vector) (H.getAssembly()->getMatrix() * unow) ;
-// 	forces *= -1 ;
-// 	
-// 	GlobalForceBoundaryCondition * bc = new GlobalForceBoundaryCondition(forces) ;
-// 	F.addBoundaryCondition(bc) ;
-	F.step() ;
- 	size_t i = 0 ;
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -7e6) ;
-	F.addBoundaryCondition(stress) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6) ) ;
 
-	std::string toto = "fit_bengougam_fem3_" ;
-	toto.append(argv[1]) ;
+	std::string toto = "cyrille" ;
 	std::fstream out(toto.c_str(), std::ios::out) ;
-	
-	double time = 0. ;
+
 	F.step() ;
+	double time = tau ;
+
+	out << time << "\t" << F.getDisplacements().min() << std::endl ;
+	std::cout << time << "\t" << F.getDisplacements().min() << std::endl ;
 	
-	while(time < 3500)
+	while(time < 50)
 	{
-		i++ ;
-		F.setDeltaTime(tau) ;
-// 		uprev = unow ;
-// 		unow = F.getDisplacements() ;
-		std::cout << time << /*"\t" << unow.min()/(0.4*-7e-6) <<*/ "\t" << F.getAverageField(STRAIN_FIELD)[1]/(-7e-6) << std::endl ;
-// 		forces = (Vector) (G.getAssembly()->getMatrix() * unow) + (Vector) (H.getAssembly()->getMatrix() * uprev) ;
-// 		forces *= -1 ;
-// 		bc->setDataVector(forces) ;
-		F.step() ;
-//		F.getAssembly()->print() ;
 		time += tau ;
+		F.step() ;
+
+		out << time <<  "\t" << F.getDisplacements().max() << std::endl ;
+		std::cout << time << "\t" << F.getDisplacements().min() << std::endl ;
+
 	}
 	
 		

@@ -2447,14 +2447,14 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{	
-		if(i < ndofs - ndofs/timePlanes())
+		if(false)//i < ndofs - ndofs/timePlanes())
 			cachedElementaryMatrix[i][i] = 0. ;
 		else
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			if(i < ndofs - ndofs/timePlanes() && j < ndofs - ndofs/timePlanes())
+			if(false)//i < ndofs - ndofs/timePlanes() && j < ndofs - ndofs/timePlanes())
 			{
 				cachedElementaryMatrix[i][j] = 0. ;
 				cachedElementaryMatrix[j][i] = 0. ;
@@ -2528,14 +2528,14 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{	
-		if(i < ndofs - ndofs/timePlanes())
+		if(false)//i < ndofs - ndofs/timePlanes())
 			cachedViscousElementaryMatrix[i][i] = 0. ;
 		else
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
 
 		for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 		{
-			if(i < ndofs - ndofs/timePlanes() && j < ndofs - ndofs/timePlanes())
+			if(false)//i < ndofs - ndofs/timePlanes() && j < ndofs - ndofs/timePlanes())
 			{
 				cachedViscousElementaryMatrix[i][j] = 0. ;
 				cachedViscousElementaryMatrix[j][i] = 0. ;
@@ -2581,6 +2581,21 @@ void DelaunayTriangle::scaleCachedViscousElementaryMatrix(double s)
 		{
 			cachedViscousElementaryMatrix[i][j] *= s ;
 		}
+	}
+}
+
+void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double nextTimeStep) 
+{
+	if(! this->getBehaviour()->timeDependent() && ! this->getBehaviour()->spaceDependent())
+	{
+		scaleCachedElementaryMatrix( previousTimeStep / nextTimeStep) ;
+		if(getBehaviour() && getBehaviour()->isViscous())
+			scaleCachedViscousElementaryMatrix( (previousTimeStep / nextTimeStep) * (previousTimeStep / nextTimeStep)) ;
+	}
+	else
+	{
+		clearElementaryMatrix() ;
+		behaviourUpdated = true ;
 	}
 }
 

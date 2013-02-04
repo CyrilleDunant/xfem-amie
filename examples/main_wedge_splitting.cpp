@@ -11,14 +11,18 @@
 #include "../physics/kelvinvoight.h"
 #include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
+#include "../physics/stiffness_and_fracture.h"
 #include "../physics/parallel_behaviour.h"
-#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
+#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include "../physics/damagemodels/fiberbasedisotropiclineardamage.h"
 #include "../features/pore.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/gel_behaviour.h"
+#include "../physics/viscoelasticity.h"
+#include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/homogenization/homogenization_base.h"
@@ -86,29 +90,46 @@
 
 using namespace Mu ;
 
-double sampleLength = 0.08 ; //5.5 ;
-double sampleHeight = 0.04 ;
-double supportLever = 0.05 ;//2.5 ;
-double platewidth = 0.005 ;
-double plateHeight = 0.0025 ;
-Sample box(nullptr, sampleLength, sampleHeight,0.0,0.0) ;
+// see Cecot 2001, p98, for sample dimensions
+
+double length = 0.2 ; //5.5 ;
+double width = 0.06 ;
+double depth = 0.03 ;//2.5 ;
+double nnotch = 0.085 ;
+double nwidth = 0.0025 ;
+Sample box(nullptr, length, length,0.0,0.0) ;
+Sample top(nullptr, width, depth, 0.0, length*0.5 - depth*0.5) ;
+Sample notch(nullptr,nwidth, nnotch, 0.0, length*0.5 - depth - nnotch*0.5) ;
 
 int main(int argc, char *argv[])
 {
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(30) ;
-//	F.setMaxIterationsPerStep(50000) ;
+	F.setSamplingNumber(atof(argv[1])) ;
+//	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setDeltaTime(1.) ;
 	F.setOrder(LINEAR) ;
 	
-	box.setBehaviour( new AggregateBehaviour() ) ;
+	Matrix c = (new PasteBehaviour())->param ;
+	
+//	box.setBehaviour( new ViscoelasticityAndFracture(PURE_ELASTICITY, c, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
+	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.0001);	
+	top.setBehaviour( new VoidForm() ) ;
+	notch.setBehaviour( new VoidForm() ) ;
 
-//	ParticleSizeDistribution::get2DMortar(&F, new AggregateBehaviour(), 0.0025, 500) ;
-
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -sampleLength*0.5, platewidth-sampleLength*0.5, -10, 10, 0. ) ;
-	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point(supportLever-sampleLength*0.5,-sampleHeight*0.5) ) ) ;
-
+//	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 1000) ;
+ 	F.addFeature(&box, &top) ;
+ 	F.addFeature(&box, &notch) ;
+	
+// 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ;
+// 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, -10,10, 0. ) ;
+// 	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER, -length*0.02, length*0.02, -10,10 ) ) ;
+// 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP, width*0.4, width*0.6, -10,10, 0. ) ;
+	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, -length*0.02, length*0.02, -10,10 ) ) ;
+	F.addBoundaryCondition(fix) ;
+	F.addBoundaryCondition(disp) ;
 
 	F.step() ;
 	Vector x = F.getAverageField(STRAIN_FIELD) ;
@@ -118,16 +139,17 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 
 	std::fstream out ;
-	out.open("tripoint_curve", std::ios::out) ;
+	out.open("wedge.txt", std::ios::out) ;
 	
 	while(i < 100)
 	{
 		i++ ;
-		load->setData(- 0.000001*i ) ;
+		disp->setData( 0.00003*i ) ;
 
+		F.setDeltaTime(1.) ;
 		F.step() ;
 		
-		std::string tati = "tripoint" ;
+		std::string tati = "wedge" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
 		std::cout << tati << std::endl ;
@@ -140,10 +162,10 @@ int main(int argc, char *argv[])
 			
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD) ;
-		out << 0.000001*i << "\t" << x[1] << "\t" << y[1]*sampleLength*sampleHeight << "\t" << F.averageDamage << std::endl ;
+		std::cout << 0.00003*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
 
 	}
-		
+	
 	return 0 ;
 }
 

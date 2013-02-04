@@ -2303,6 +2303,9 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 		}
 	}
 
+	Form * found = nullptr ;
+	
+	
 	if( !targets.empty() )
 	{
 
@@ -2335,7 +2338,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 								b->setSource(targets[i]->getBehaviourSource());
 							 else
 								b->setSource(targets[i]);
-							 return b ;
+							 found = b ;
 						}
 						else
 						{
@@ -2345,7 +2348,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 								b->setSource(targets[i]->getBehaviourSource());
 							else
 								b->setSource(targets[i]);
-							return b ;
+							found = b ;
 						}
 					}
 					else if( !targets[i]->getBehaviour( t->getCenter() )->spaceDependent() )
@@ -2355,7 +2358,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 							b->setSource(targets[i]->getBehaviourSource());
 						else
 							b->setSource(targets[i]);
-						 return b ;
+						 found = b ;
 					}
 					else
 					{
@@ -2365,18 +2368,21 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 							b->setSource(targets[i]->getBehaviourSource());
 						else
 							b->setSource(targets[i]);
-						return b ;
+						found = b ;
 					}
 					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
 					if(targets[i]->getBehaviourSource())
 						b->setSource(targets[i]->getBehaviourSource());
 					else
 						b->setSource(targets[i]);
-					return b ;
+					found = b ;
 				}
 			}
 		}
 	}
+	
+	if(found)
+		return found ;
 
 	if( !onlyUpdate && tree[root_box]->getLayer() == layer)
 	{
@@ -4564,6 +4570,14 @@ bool FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScoreInit > 0)
+				{
+					std::cerr << "adjusting time step..." << std::endl ;
+					double begin = elements[0]->getBoundingPoint(0).t ;
+					double end = elements[0]->getBoundingPoint( elements[0]->getBoundingPoints().size() -1).t ;
+					this->moveFirstTimePlanes( (1.-maxScoreInit)*(end-begin) ) ;
+				}
+				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -5565,6 +5579,8 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 				}
 				tris[i]->refresh( father2D );
 				tris[i]->getState().initialize( initialiseFractureCache ) ;
+				if(i % 100 == 0)
+					std::cerr << "\r initialising... element " << i << "/" << tris.size() << std::flush ;
 			}
 		}
 
@@ -5656,20 +5672,29 @@ void FeatureTree::setDeltaTime(double d)
 	if(dtree)
 	{
 		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+		prev = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t - triangles[0]->getBoundingPoint(0).t ;
+		double end = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t ;
+		double begin = triangles[0]->getBoundingPoint( 0 ).t ;
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
-				for(size_t k = 0 ; k < triangles[i]->getBoundingPoints().size() ; k++)
+				size_t k0 = triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes() ;
+				for(size_t t = 0 ; t < triangles[i]->timePlanes() -2 ; t++)
 				{
-					triangles[i]->getBoundingPoint(k).t = d/2 * sign(triangles[i]->getBoundingPoint(k).t) ;
+					for(size_t k = 0 ; k < k0 ; k++)
+					{
+						triangles[i]->getBoundingPoint(k+k0*t).t = triangles[i]->getBoundingPoint(k+k0*(t+1)).t ;
+					}
 				}
+				size_t t0 = triangles[i]->timePlanes()-2 ;
+				for(size_t k = 0 ; k < k0 ; k++)
+				{
+					triangles[i]->getBoundingPoint(k+k0*t0).t = end - d*( triangles[i]->timePlanes()-t0 )/triangles[i]->timePlanes() ;
+				}
+				
 
-				triangles[i]->scaleCachedElementaryMatrix(prev/d) ;
-				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->isViscous()) 
-				{
-					triangles[i]->scaleCachedViscousElementaryMatrix(prev*prev/(d*d)) ;
-				}
+				triangles[i]->adjustElementaryMatrix( prev, d ) ;
 			}
 		}
 	}
@@ -5678,42 +5703,44 @@ void FeatureTree::setDeltaTime(double d)
 
 void FeatureTree::moveFirstTimePlanes(double d) 
 {
-	if(d == 0)
-		return ;
-	double prev = deltaTime ;
-	deltaTime = prev-d ; realDeltaTime = prev-d ;
+  
+	double prev = 0.; 
 	if(dtree)
-	{
+	{	
 		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+		prev = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t - triangles[0]->getBoundingPoint(0).t ;
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 			size_t ndof = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 			Vector buff(ndof) ; buff = 0. ;
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
-				for(size_t k = 0 ; k < triangles[i]->getBoundingPoints().size() ; k++)
+				size_t k0 = triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes() ;
+				for(size_t t = 0 ; t < triangles[i]->timePlanes() -1 ; t++)
 				{
-					triangles[i]->getBoundingPoint(k).t = deltaTime/2 * sign(triangles[i]->getBoundingPoint(k).t) ;
-					if(k > triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes())
+					for(size_t k = 0 ; k < k0 ; k++)
 					{
-						Point p = triangles[i]->inLocalCoordinates(triangles[i]->getBoundingPoint(k)) ;
-						p.t = -1.+2.*(d/prev) ;
-						triangles[i]->getState().getField( DISPLACEMENT_FIELD, p, buff, true) ;
+						Point p ;
+						p.x = triangles[i]->getBoundingPoint(k+k0*t).x ;
+						p.y = triangles[i]->getBoundingPoint(k+k0*t).y ;
+						p.t = triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes() ;
+						triangles[i]->getState().getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
 						for(size_t n = 0 ; n < ndof ; n++)
-							triangles[i]->getState().getDisplacements()[k*ndof+n] = buff[n] ;
+						{
+							K->getDisplacements()[ triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n ] = buff[n] ;
+						}
 					}
 				}
 
-				triangles[i]->scaleCachedElementaryMatrix(prev/deltaTime) ;
-				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->isViscous()) 
-				{
-					triangles[i]->scaleCachedViscousElementaryMatrix(prev*prev/(deltaTime*deltaTime)) ;
-				}
-
-				
 			}
 		}
+		setDeltaTime( prev - d ) ;
+		
+		return ;
 	}
+	
+
+  
 }
 
 void FeatureTree::generateElements()
@@ -6663,4 +6690,57 @@ void FeatureTree::shuffleMeshPoints()
 	std::cout << "done... " << std::endl ;
 }
 
-
+void FeatureTree::homothety(double before, double now, double after)
+{
+	std::valarray<bool> nodes(getDisplacements().size()/2) ;
+	if(nodes.size() == 0)
+		return ;
+	nodes = false ;
+	std::vector<DelaunayTriangle *> tri = getElements2D() ;
+	if(tri[0]->timePlanes() != 2)
+		return ;
+	double stepa = after/now ;
+	double stepb = now/before ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size()/2 ; j++)
+		{
+			size_t id = tri[i]->getBoundingPoint(j).id ;
+			if(!nodes[id])
+			{
+				nodes[id] = true ;
+				tri[i]->getBoundingPoint(j).x = tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/2+j).x ;
+				tri[i]->getBoundingPoint(j).y = tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/2+j).y ;
+			}
+		}
+		for(size_t j = tri[i]->getBoundingPoints().size()/2 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			size_t id = tri[i]->getBoundingPoint(j).id ;
+			if(!nodes[id])
+			{
+				nodes[id] = true ;
+				if(tri[i]->getBoundingPoint(j).x != 0.5 && tri[i]->getBoundingPoint(j).x != -0.5 && tri[i]->getBoundingPoint(j).y != 0.5 && tri[i]->getBoundingPoint(j).y != -0.5)
+				{
+					double r = sqrt(tri[i]->getBoundingPoint(j).x*tri[i]->getBoundingPoint(j).x + tri[i]->getBoundingPoint(j).y*tri[i]->getBoundingPoint(j).y) ;
+					if(r < now)
+					{
+						tri[i]->getBoundingPoint(j).x /= now ;
+						tri[i]->getBoundingPoint(j).y /= now ;
+						tri[i]->getBoundingPoint(j).x *= after ;
+						tri[i]->getBoundingPoint(j).y *= after ;
+					}
+					else
+					{
+						Point inter(tri[i]->getBoundingPoint(j).x, tri[i]->getBoundingPoint(j).y) ;
+						dynamic_cast<Rectangle *>(tree[0])->project(&inter) ;
+						double rl = sqrt(inter.x*inter.x + inter.y*inter.y) ;
+						tri[i]->getBoundingPoint(j).x *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
+						tri[i]->getBoundingPoint(j).y *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
+					}
+				}
+			}
+		}
+		tri[i]->clearElementaryMatrix() ;
+	}
+//	tri[0]->getBoundingPoint(0).print() ;
+}

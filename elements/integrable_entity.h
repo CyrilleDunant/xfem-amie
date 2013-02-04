@@ -170,9 +170,10 @@ public:
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
 
-	virtual void getAverageField( FieldType f, Vector & ret, int i= 0) ;
-	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0)  ;
-
+	virtual void getAverageField( FieldType f, Vector & ret, int i= 0, double t = 0) ;
+	
+	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0, double t = 0)  ;
+	
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;
 
@@ -411,6 +412,8 @@ public:
 // 	virtual Vector getForces() = 0 ;
 	virtual Vector getNonLinearForces() = 0 ;
 	virtual void applyBoundaryCondition(Assembly * a) ;
+
+	virtual void adjustElementaryMatrix(double previousTimeStep, double nextTimeStep) { } ;	
 	
 	virtual bool isMoved() const = 0 ;
 	virtual void print() const = 0;
@@ -462,6 +465,9 @@ public:
 		return this->time_d ;
 	} ;
 	
+	virtual void setTimeDependent(bool t) { time_d = t ; }
+	virtual void setSpaceDependent(bool s) { space_d = s ; }
+	
 	virtual bool spaceDependent() const
 	{
 		return this->space_d ;
@@ -503,6 +509,11 @@ public:
 	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const
 	{
 		return param ;
+	}
+	
+	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const
+	{
+		return param * 0 ;
 	}
 	
 	virtual void setTensor(const Matrix & m)

@@ -1410,9 +1410,9 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 
 		}
 
-		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = 0 ;
-		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = 0 ;
-		ret[2][0] = 0 ; ret[2][1] = 0 ; ret[2][2] = tdtau;
+		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = tdxi ;
+		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = tdeta ;
+		ret[2][0] = xdtau ; ret[2][1] = ydtau ; ret[2][2] = tdtau;
 		
 		
 
@@ -1459,6 +1459,7 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	v[2] = 1 ;
 	
 	Vector coeff = inverse3x3Matrix( S) * v ;
+	
 
 	double tmin = getBoundingPoint(0).t ;
 	double tmax = getBoundingPoint(getBoundingPoints().size()-1).t ;
@@ -1467,8 +1468,37 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	ret += Point(0,1,0,0)*coeff[0] ;
 	ret += Point(0,0,0,0)*coeff[1] ;
 	ret += Point(1,0,0,0)*coeff[2] ;
-	if(tmax-tmin > POINT_TOLERANCE_2D)
-	  ret.t = -1 + 2*(p.t-tmin)/(tmax-tmin) ;
+
+	std::vector<double> instants ;
+	for(size_t i = 0 ; i < timePlanes() ; i++)
+	{
+		instants.push_back(getBoundingPoint( i*getBoundingPoints().size() / timePlanes() ).t) ;
+	}
+	if(instants.size() > 1)
+	{
+		if(p.t < instants[1])
+		{
+			ret.t = -1. + (2./(timePlanes()-1))*(p.t-instants[0])/(instants[1]-instants[0]) ;
+			return ret ;
+		}
+		else if(p.t > instants[instants.size()-2])
+		{
+			ret.t = 1. - (2./(timePlanes()-1))*(instants[instants.size()-1]-p.t)/(instants[instants.size()-1]-instants[instants.size()-2]) ;
+			return ret ;
+		}
+		else
+		{
+			for(size_t i = 1 ; i < instants.size() - 2 ; i++)
+			{
+				if(p.t > instants[i] && p.t < instants[i+1])
+				{
+					ret.t = -1. + 2.*((double) i )/ (timePlanes()-1) + (2./(timePlanes()-1))*(p.t-instants[i])/(instants[i+1]-instants[i]) ;
+					return ret ;
+				}
+			}
+		  
+		}
+	}
 	
 	return ret ;
 }

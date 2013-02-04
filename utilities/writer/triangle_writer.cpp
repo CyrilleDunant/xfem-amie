@@ -793,12 +793,12 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 		switch( field )
 		{
 			case TWFT_COORDINATE:
-				ret[5] = tri->first->x ;
-				ret[4] = tri->first->y ;
-				ret[3] = tri->second->x ;
-				ret[2] = tri->second->y ;
-				ret[1] = tri->third->x ;
-				ret[0] = tri->third->y ;
+				ret[5] = tri->getBoundingPoint(0).x ;
+				ret[4] = tri->getBoundingPoint(0).y ;
+				ret[3] = tri->getBoundingPoint(1).x ;
+				ret[2] = tri->getBoundingPoint(1).y ;
+				ret[1] = tri->getBoundingPoint(2).x ;
+				ret[0] = tri->getBoundingPoint(2).y ;
 				found = true ;
 				break ;
 

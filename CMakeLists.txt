@@ -61,6 +61,7 @@ physics/damagemodels/damagemodel.cpp
 physics/damagemodels/isotropiclineardamage.cpp 
 physics/damagemodels/nonlocalisotropiclineardamage.cpp 
 physics/damagemodels/fiberbasedisotropiclineardamage.cpp 
+physics/damagemodels/spacetimefiberbasedisotropiclineardamage.cpp 
 physics/damagemodels/anisotropicdamage.cpp
 physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
@@ -73,7 +74,8 @@ physics/diffusion.cpp
 physics/mass.cpp 
 physics/laplacian.cpp 
 physics/dual_behaviour.cpp 
-physics/generalized_spacetime_viscoelasticity.cpp 
+physics/viscoelasticity.cpp 
+physics/viscoelasticity_and_fracture.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
 physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp
@@ -345,6 +347,9 @@ target_link_libraries( rag Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU $
 
 add_executable(rag_simple examples/main_rag_simple.cpp )
 target_link_libraries( rag_simple Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+
+add_executable(wedge examples/main_wedge_splitting.cpp )
+target_link_libraries( wedge Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 #add_executable(ellipse_test examples/main_ellipse_test.cpp )
 #target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)

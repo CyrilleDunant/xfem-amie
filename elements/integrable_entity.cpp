@@ -1028,7 +1028,7 @@ void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, in
 	this->getField(f, p_, ret, true, i) ;
 }
 
-void ElementState::getAverageField( FieldType f, Vector & ret, int dummy) 
+void ElementState::getAverageField( FieldType f, Vector & ret, int dummy, double t) 
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
@@ -1316,7 +1316,7 @@ void ElementState::getAverageField( FieldType f, Vector & ret, int dummy)
 	}
 }
 
-void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy) 
+void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy, double t) 
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;

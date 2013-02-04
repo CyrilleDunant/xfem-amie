@@ -3310,7 +3310,6 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 				if(s.intersects(*this))
 					ret.push_back(intersection(s)) ;
 			}
-			
 			return ret ;
 		}
 	case CONVEX_POLYGON:
@@ -3910,6 +3909,7 @@ bool Segment::intersects(const Segment & l) const
 {
 	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
+// 		std::cout << "a" ;
 		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 	}
 	
@@ -3921,15 +3921,20 @@ bool Segment::intersects(const Segment & l) const
 	
 	if(std::abs(vec.x) < POINT_TOLERANCE_2D && std::abs(l.vector().x) < POINT_TOLERANCE_2D)
 	{
+// 		std::cout << "b" ;
 		return false ;
 	}	
 
 	if(std::abs(vec.y) < POINT_TOLERANCE_2D && std::abs(l.vector().y) < POINT_TOLERANCE_2D)
 	{
+// 		std::cout << "c" ;
 		return false ;
 	}
 	if(dist(vec/vec.norm(), l.vector()/l.vector().norm()) < POINT_TOLERANCE_2D)
+	{
+// 		std::cout << "d" ;
 		return false ;
+	}
 
 	m[0][0] = -vec.x ; m[0][1] = l.vector().x ;
 	m[1][0] = -vec.y ; m[1][1] = l.vector().y ;
@@ -3941,6 +3946,11 @@ bool Segment::intersects(const Segment & l) const
 	Vector fac = m * v ;
 	
 	Point intersect = f + vec*fac[0];
+// 	if(on(intersect))
+// 		std::cout << "e" ;
+// 	if(l.on(intersect))
+// 		std::cout << "f" ;
+// 	std::cout << std::endl ;
 	return on(intersect) && l.on(intersect) ;
 	
 }
@@ -4268,25 +4278,27 @@ double dist(const Point & v1, const Point & v2)
 #ifdef HAVE_SSE4
 		__m128d temp ;
 	vecdouble r ;
-	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-	r.vec = _mm_dp_pd(temp, temp, 61) ;
+//	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r.vec += _mm_dp_pd(temp, temp, 62) ;
-	return sqrt(r.val[0]+ r.val[1] );
+	r.vec = _mm_dp_pd(temp, temp, 61) ;
+//	r.vec += _mm_dp_pd(temp, temp, 62) ;
+	double z = vi.veczt.z - v2.veczt.z ;
+	return sqrt(r.val[0]+ r.val[1] + z*z);
 #elif defined HAVE_SSE3
-	vecdouble rzt ;
+//	vecdouble rzt ;
 	vecdouble rxy ;
-	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+// 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+// 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-	return sqrt(rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1]);
+	double z = vi.veczt.z - v2.veczt.z ;
+	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
 #else 
 	double x = v1.x-v2.x ;
 	double y = v1.y-v2.y ;
 	double z = v1.z-v2.z ;
-	double t = v1.t-v2.t ;
-	return sqrt(x*x+y*y+z*z+t*t) ;
+//	double t = v1.t-v2.t ;
+	return sqrt(x*x+y*y+z*z) ;
 #endif
 }
 

@@ -104,6 +104,29 @@ public:
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
 
+
+class SpaceTimeNonLocalMohrCoulomb : public NonLocalMohrCoulomb
+{
+protected:
+	PointArray testPoints ;
+public:
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	SpaceTimeNonLocalMohrCoulomb(double up, double down, double E, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : NonLocalMohrCoulomb(up, down, E, mirroring, delta_x, delta_y, delta_z) { } ;
+
+	virtual ~SpaceTimeNonLocalMohrCoulomb() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalMohrCoulomb(*this) ; }
+
+	virtual double grade(ElementState &s)  ;
+
+};
+
+
 class NonLocalLinearlyDecreasingMohrCoulomb : public FractureCriterion
 {
 public:

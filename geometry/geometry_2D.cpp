@@ -702,15 +702,15 @@ double Triangle::area() const
 // 	}
 	
 // 	assert(this->boundingPoints.size() == 3) ;
-	int pointsInTimePlane = this->boundingPoints.size() ;
-	if(getBoundingPoint(0).t != 0)
-	{
-		pointsInTimePlane = 0 ;
-		double init = getBoundingPoint(0).t ;
-		int counter = 0 ;
-		while(std::abs(getBoundingPoint(counter++).t-init) < POINT_TOLERANCE_2D)
-			pointsInTimePlane++ ;
-	}
+	int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
+// 	if(getBoundingPoint(0).t != 0)
+// 	{
+// 		pointsInTimePlane = 0 ;
+// 		double init = getBoundingPoint(0).t ;
+// 		int counter = 0 ;
+// 		while(std::abs(getBoundingPoint(counter++).t-init) < POINT_TOLERANCE_2D)
+// 			pointsInTimePlane++ ;
+// 	}
 	Segment s0(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3)) ;
 	Segment s1(getBoundingPoint(0), getBoundingPoint(2*pointsInTimePlane/3)) ;
 
@@ -725,7 +725,7 @@ void Triangle::project(Point * p) const
 		return ;
 	std::vector<Point> pts ;
 	std::multimap<double, Point> pt ;
-	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
+	for(size_t i = 0 ; i <  getBoundingPoints().size()/timePlanes() ;  i++)
 	{
 		pt.insert(std::make_pair(std::abs(squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
 	}
@@ -852,30 +852,53 @@ bool Triangle::in(const Point &p) const
 	if(isOnSurface)
 		return true ;
 	
-	Segment s(p, getCenter()) ;
+	proj = p ;
+	proj.t = getBoundingPoint(0).t ;
 	
+	Point c = getCenter() ;
+	c.t = proj.t ;
 	
-	std::vector<Point> pts ;
-	std::multimap<double, Point> pt ;
-	for(size_t i = 0 ; i < getBoundingPoints().size() ;  i++)
-	{
-		pt.insert(std::make_pair(
-		std::abs(
-		squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
-	}
-	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
-	ptend++ ; ptend++ ; ptend++ ;
-
-	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
-		pts.push_back(i->second);
-
-	if(s.on(pts[0]) || s.on(pts[1]) || s.on(pts[2]))
+	Segment s(proj, c) ;
+	
+// 	std::vector<Point> pts ;
+// 	std::multimap<double, Point> pt ;
+// 	for(size_t i = 0 ; i < getBoundingPoints().size()/timePlanes() ;  i++)
+// 	{
+// 		pt.insert(std::make_pair(
+// 		std::abs(
+// 		squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
+// 	}
+// 	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
+// 	ptend++ ; ptend++ ; ptend++ ;
+// 
+// 	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
+// 		pts.push_back(i->second);
+// 
+ 	size_t npts = getBoundingPoints().size()/timePlanes() ;
+	
+// 	proj.print() ;
+// 	c.print() ;
+// 	
+// 	getBoundingPoint(0).print() ;
+// 	getBoundingPoint(npts/3).print() ;
+// 	getBoundingPoint(npts*2/3).print() ;
+// 
+// 	if(s.on(getBoundingPoint(0)))
+// 		std::cout << "x" <<
+	
+	if(s.on(getBoundingPoint(0)) || s.on(getBoundingPoint(npts/3)) || s.on(getBoundingPoint(npts*2/3)))
 		return false ;
 
-	Segment sa(pts[0],pts[1]) ;
-	Segment sb(pts[1],pts[2]) ;
-	Segment sc(pts[2],pts[0]) ;
+	Segment sa(getBoundingPoint(0),getBoundingPoint(npts/3)) ;
+	Segment sb(getBoundingPoint(npts/3),getBoundingPoint(npts*2/3)) ;
+	Segment sc(getBoundingPoint(npts*2/3),getBoundingPoint(0)) ;
 	
+// 	if(sa.intersects(s))
+// 		std::cout << "a" << std::endl ;
+// 	if(sb.intersects(s))
+// 		std::cout << "b" << std::endl ;
+// 	if(sc.intersects(s))
+// 		std::cout << "c" << std::endl ;
 
 	return !(sa.intersects(s) || sb.intersects(s) || sc.intersects(s)) ;
 	
@@ -1535,7 +1558,7 @@ void Circle::sampleSurface(size_t num_points)
 	if(!sampled)
 	{
 	// 	num_points = std::max(round(num_points*1.5), 16.) ;
-		sampleBoundingSurface(num_points) ;
+		sampleBoundingSurface(num_points*3/2) ;
 		sampled = true ;
 		size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
 	// 	if(numberOfRings > 0)

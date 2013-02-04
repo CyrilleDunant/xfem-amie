@@ -1,5 +1,6 @@
 #include "generalized_spacetime_viscoelastic_element_state.h"
-#include "../physics/generalized_spacetime_viscoelasticity.h"
+#include "../physics/viscoelasticity.h"
+#include "../mesher/delaunay.h"
 
 using namespace Mu ;
 
@@ -22,7 +23,7 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy ) 
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
@@ -30,16 +31,28 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;
+		p_.t = t ;
 		Vector tmp = ret ;
-		getField(f, p_, tmp, dummy) ;
+		getField(f, p_, tmp, true, dummy) ;
 		ret += tmp*gp.gaussPoints[i].second ;
 		total += gp.gaussPoints[i].second ;
 	}
 	ret /= total ;
+// 	double dt = this->getParent()->getBoundingPoint( this->getParent()->getBoundingPoints().size() -1 ).t ;
+// 	dt -= this->getParent()->getBoundingPoint( 0 ).t ;
+// 	ret /= dt ;
+}
+
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
+{	
+	this->getAverageField(f1, r1, dummy, t) ;
+	this->getAverageField(f2, r2, dummy, t) ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
 {
+	ret = 0. ; 
+	
 	VirtualMachine vm ;
 	int totaldof = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int realdof = parent->spaceDimensions() ;
@@ -48,7 +61,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 	
-	GeneralizedSpaceTimeViscoelasticity * visco = dynamic_cast<GeneralizedSpaceTimeViscoelasticity *>(parent->getBehaviour()) ;
+	Viscoelasticity * visco = dynamic_cast<Viscoelasticity *>(parent->getBehaviour()) ;
 	
 	switch(f)
 	{
@@ -1154,7 +1167,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->getTensor(p_, parent) * strains) 
-					+ (Vector) (visco->eta * speeds) ;
+					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -1163,14 +1176,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 		case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
 		{
 // 			visco->getTensor(p_,parent).print() ;
-// 			visco->eta.print() ;
+// 			visco->getViscousTensor(p_, parent).print() ;
 // 			exit(0) ;
 			Vector strains(0., blocks*(3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL))) ;
 			Vector speeds(0., blocks*(3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL))) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			ret = (Vector) (visco->getTensor(p_, parent) * strains) 
-			    + (Vector) (visco->eta * speeds) ;
+			    + (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			Vector stresses = visco->getImposedStress(p_, parent) ;
 			for(size_t i = 0 ; i < stresses.size() ; i++)
 				ret[i] -= stresses[i] ;
@@ -1206,7 +1219,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->getTensor(p_, parent) * strains) 
-					+ (Vector) (visco->eta * speeds) ;
+					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -1219,7 +1232,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			ret = (Vector) (visco->getTensor(p_, parent) * strains) 
-			    + (Vector) (visco->eta * speeds) ;
+			    + (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			Vector stresses = visco->getImposedStress(p_, parent) ;
 			for(size_t i = 0 ; i < stresses.size() ; i++)
 				ret[i] -= stresses[i] ;
@@ -1592,3 +1605,5 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f1
 	this->getFieldAtNodes(f1, ret1) ;
 	this->getFieldAtNodes(f2, ret2) ;
 }
+
+

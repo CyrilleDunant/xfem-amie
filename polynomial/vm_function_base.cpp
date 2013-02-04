@@ -259,15 +259,41 @@ GDDtM GradientDotDot::operator*( const Matrix & f) const
 	return GDDtM(*this, f) ;
 }
 
+GDDtML GradientDotDot::operator*( const std::vector<Matrix> & f) const
+{
+	return GDDtML(*this, f) ;
+}
+
 GDDtMtG GDDtM::operator*( const Gradient & f) const
 {
 	return GDDtMtG(*this, f) ;
+}
+
+GDDtMLtG GDDtML::operator*( const Gradient & f) const
+{
+	return GDDtMLtG(*this, f) ;
 }
 
 GtML Gradient::operator*( const std::vector<Matrix> & f) const
 {
 	return GtML(*this, f) ;
 }
+
+GDtML GradientDot::operator*( const std::vector<Matrix> & f) const
+{
+	return GDtML(*this, f) ;
+}
+
+GDtMLtG GDtML::operator*( const Gradient & f) const
+{
+	return GDtMLtG(*this, f) ;
+}
+
+GDtMLtGD GDtML::operator*( const GradientDot & f) const
+{
+	return GDtMLtGD(*this, f) ;
+}
+
 
 GtV Gradient::operator*( const Vector & f) const
 {
@@ -292,6 +318,11 @@ GtMtG GtM::operator*(const Gradient & f) const
 GtMLtG GtML::operator*(const Gradient & f) const
 {
 	return GtMLtG(this->first, this->second, f) ;
+}
+
+GtMLtGD GtML::operator*(const GradientDot & f) const
+{
+	return GtMLtGD(*this, f) ;
 }
 
 GtMtGD GtM::operator*(const GradientDot & f) const

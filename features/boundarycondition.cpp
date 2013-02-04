@@ -3104,16 +3104,17 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		return ;
 
 	size_t ndofmax = a->getMaxDofID() ;
-	size_t dofPerPlane = ndofmax / timePlanes ;
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	size_t dofPerPlane = ndofmax / timePlanes ;
 
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
-	
+
 	if( previousDisp.size() == 0 )
 	{
 		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
+			#pragma omp for
 			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
 				for(size_t n = 0 ; n < dof ; n++)
@@ -3129,6 +3130,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		{
 			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
+				#pragma omp for
 				for(size_t n = 0 ; n < dof ; n++)
 				{
 					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;
@@ -3147,7 +3149,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 
 	if ( timePlanes < 2 )
 		return ;
-
+	
 	size_t ndofmax = a->getMaxDofID() ;
 	size_t dofPerPlane = ndofmax / timePlanes ;
 	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;

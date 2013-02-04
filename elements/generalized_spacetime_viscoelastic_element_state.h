@@ -28,8 +28,11 @@ public:
 			
 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 	
-	virtual void getAverageField( FieldType f, Vector & ret, int i = 0) ;
+	virtual void getAverageField( FieldType f, Vector & ret, int i = 0, double t = 0) ;
 
+	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0, double t = 0)  ;
+	
+	
 } ;
 
 } ;

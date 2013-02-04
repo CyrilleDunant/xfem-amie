@@ -558,13 +558,19 @@ struct DtVL ;
 struct VGtMtVG ;
 struct DtGtMtG ;
 struct GDtM ;
+struct GDtML ;
 struct GDtV ;
 struct GDtVL ;
 struct GDtMtGD ;
 struct GDtMtG ;
 struct GDDtMtG ;
 struct GDDtM ;
+struct GDDtML ;
 struct GtMtGD ;
+struct GDtMLtGD ;
+struct GDDtMLtG ;
+struct GtMLtGD ;
+struct GDtMLtG ;
 
 /** \brief Structure used for the lazy computation of the differential of a function
  * This is equivalent to a derivative, but can be used on all functions, even if their 
@@ -676,6 +682,7 @@ struct GradientDot
 	 * @return GDtM
 	 */
 	GDtM operator *(const Matrix & f) const ;
+	GDtML operator *(const std::vector<Matrix> & f) const ;
 	GDtV operator *(const Vector & v) const ;
 	GDtVL operator *(const std::vector<Vector> & f) const ;
 
@@ -700,6 +707,7 @@ struct GradientDotDot
 	 * @return GDtM
 	 */
 	GDDtM operator *(const Matrix & f) const ;
+	GDDtML operator *(const std::vector<Matrix> & f) const ;
 
   
 } ;
@@ -791,6 +799,8 @@ struct GtML
 	 */
 	GtMLtG operator*(const Mu::Gradient & f) const ;
 
+	GtMLtGD operator*(const Mu::GradientDot & f) const ;
+
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix */
@@ -821,6 +831,34 @@ struct GDtM
 	GDtMtG operator*(const Mu::Gradient & f) const ;
 } ;
 
+/** \brief Structure for the lazy evaluation of a GradientDot * Matrix */
+struct GDtML
+{
+	const GradientDot & first ;
+	const std::vector<Matrix> & second ;
+
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GradientDot
+	 * @param f Matrix
+	 */
+	GDtML(const GradientDot & g, const std::vector<Matrix> & f) : first(g), second(f) { };
+
+	/** \brief Create a structure for the lazy evaluation of a GradientDot * Matrix * GradientDot
+	 * 
+	 * @param f GradientDot
+	 * @return GDtMtGD
+	 */
+	GDtMLtGD operator*(const Mu::GradientDot & f) const ;
+
+	/** \brief Create a structure for the lazy evaluation of a GradientDot * Matrix * Gradient
+	 * 
+	 * @param f Gradient
+	 * @return GDtMtGD
+	 */
+	GDtMLtG operator*(const Mu::Gradient & f) const ;
+} ;
+
 /** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix */
 struct GDDtM
 {
@@ -842,6 +880,27 @@ struct GDDtM
 	GDDtMtG operator*(const Mu::Gradient & f) const ;
 } ;
 
+/** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix */
+struct GDDtML
+{
+	const GradientDotDot & first ;
+	const std::vector<Matrix> & second ;
+
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GradientDot
+	 * @param f Matrix
+	 */
+	GDDtML(const GradientDotDot & g, const std::vector<Matrix> & f) : first(g), second(f) { };
+
+	/** \brief Create a structure for the lazy evaluation of a GradientDotDot * Matrix 
+	 * 
+	 * @param f GradientDot
+	 * @return GDtMtGD
+	 */
+	GDDtMLtG operator*(const Mu::Gradient & f) const ;
+} ;
+
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix * GradientDot */
 struct GDtMtGD
 {
@@ -854,6 +913,21 @@ struct GDtMtGD
 	 * @param f GradientDot
 	 */
 	GDtMtGD(const GDtM & g, const GradientDot & p) : first(g.first), second(g.second), third(p) { };
+
+} ;
+
+/** \brief Structure for the lazy evaluation of a GradientDot * Matrix * GradientDot */
+struct GDtMLtGD
+{
+	const GradientDot & first ;
+	const std::vector<Matrix> & second ;
+	const GradientDot & third ;
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GDtM
+	 * @param f GradientDot
+	 */
+	GDtMLtGD(const GDtML & g, const GradientDot & p) : first(g.first), second(g.second), third(p) { };
 
 } ;
 
@@ -872,6 +946,21 @@ struct GDtMtG
 
 } ;
 
+/** \brief Structure for the lazy evaluation of a GradientDot * Matrix * Gradient */
+struct GDtMLtG
+{
+	const GradientDot & first ;
+	const std::vector<Matrix> & second ;
+	const Gradient & third ;
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GDtM
+	 * @param f GradientDot
+	 */
+	GDtMLtG(const GDtML & g, const Gradient & p) : first(g.first), second(g.second), third(p) { };
+
+} ;
+
 /** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix * Gradient */
 struct GDDtMtG
 {
@@ -887,6 +976,21 @@ struct GDDtMtG
 
 } ;
 
+/** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix * Gradient */
+struct GDDtMLtG
+{
+	const GradientDotDot & first ;
+	const std::vector<Matrix> & second ;
+	const Gradient & third ;
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GDtM
+	 * @param f GradientDot
+	 */
+	GDDtMLtG(const GDDtML & g, const Gradient & p) : first(g.first), second(g.second), third(p) { };
+
+} ;
+
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix * Gradient */
 struct GtMtGD
 {
@@ -899,6 +1003,21 @@ struct GtMtGD
 	 * @param f GradientDot
 	 */
 	GtMtGD(const GtM & g, const GradientDot & p) : first(g.first), second(g.second), third(p) { };
+
+} ;
+
+/** \brief Structure for the lazy evaluation of a GradientDot * Matrix * Gradient */
+struct GtMLtGD
+{
+	const Gradient & first ;
+	const std::vector<Matrix> & second ;
+	const GradientDot & third ;
+	/** \brief Constructor, initalise the references
+	 * 
+	 * @param g GtM
+	 * @param f GradientDot
+	 */
+	GtMLtGD(const GtML & g, const GradientDot & p) : first(g.first), second(g.second), third(p) { };
 
 } ;
 
