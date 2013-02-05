@@ -185,31 +185,29 @@ double getCrackedArea(std::vector<DelaunayTriangle *> & paste)
 int main(int argc, char *argv[])
 {
 	double timeScale = 1000 ;
-	double tau = 1 ;
+	double tau = 10 ;
 	int nzones = atof(argv[1]) ;
 	double stress = 0 ;	
 	if(argc == 3)
 		stress = atof(argv[2])*(-1e6) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(256) ;
+	F.setSamplingNumber(450) ;
 	F.setMaxIterationsPerStep(50000) ;
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new PasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 120) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 6000, BOLOME_A) ;
 	
 	double aggregate_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		aggregate_area += inclusions[i]->area() ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 //	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
-	BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_XI, RIGHT, 0) ;
-	F.addBoundaryCondition(load) ;
 	if(stress != 0)
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, stress) ) ;
 
@@ -258,7 +256,6 @@ int main(int argc, char *argv[])
 	do
 	{
 		i++ ;
-		load->setData(load->getData()+1e-7);
  		F.setDeltaTime( tau ) ;
 		time += tau  ;
 
@@ -278,7 +275,7 @@ int main(int argc, char *argv[])
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 			
-		updateZones( zones, getReactiveSurface(zones)*0.01*time/timeScale) ;
+		updateZones( zones, getReactiveSurface(zones)*0.05*time/timeScale) ;
 		F.step() ;
 		x = F.getAverageField(STRAIN_FIELD) ;
 		y = F.getAverageField(REAL_STRESS_FIELD, paste) ;
@@ -287,7 +284,7 @@ int main(int argc, char *argv[])
 		damage = reaction(zones) + getDamagedArea(all)-getDamagedArea(paste) ;
 
 		out << time << "\t" << reaction(zones) << "\t" << aggregate_area << "\t" << damage << "\t" << x[0] << "\t" << x[1] << "\t" << y[0] << "\t" << y[1] << "\t" << z[0] << "\t" << z[1] <<  "\t" << getDamagedArea(paste) << "\t" <<  getDamagedArea(all) << "\t" << getCrackedArea(paste) << "\t" << getCrackedArea(all) << std::endl ;
-	} while (damage < 0.1*aggregate_area) ;
+	} while (time < timeScale) ;
 		
 	return 0 ;
 }

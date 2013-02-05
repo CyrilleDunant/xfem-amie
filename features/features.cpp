@@ -2854,11 +2854,11 @@ void FeatureTree::setElementBehaviours()
 		{
 			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
-			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::endl ;
+			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( setcount++ % 1000 == 0 )
-					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::endl ;
+					std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount << "/" << tris.size() << "    " << std::flush ;
 				
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
@@ -3151,7 +3151,7 @@ void FeatureTree::enrich()
 		for( size_t j =  0 ; j < coarseTrees.size() ; j++ )
 			coarseLastEnrichmentId.push_back( coarseLastNodeId[j] ) ;
 
-	std::cerr << "\r enriching... feature " << 0 << "/" << this->tree.size() << std::endl ;
+	std::cerr << "\r enriching... feature " << 0 << "/" << this->tree.size() << std::flush ;
 
 	for( size_t i = 1 ; i < this->tree.size() ; i++ )
 	{
@@ -3177,7 +3177,7 @@ void FeatureTree::enrich()
 			}
 
 			if( i % 10 == 0 )
-				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::endl ;
+				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
 		}
 		else
 		{
@@ -3202,7 +3202,7 @@ void FeatureTree::enrich()
 			}
 
 			if( i % 10 == 0 )
-				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::endl ;
+				std::cerr << "\r enriching... feature " << i + 1 << "/" << this->tree.size() << std::flush ;
 		}
 	}
 
@@ -3227,7 +3227,7 @@ void FeatureTree::assemble()
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( j % 1000 == 0 )
-					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::endl ;
+					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
 						
 				if(tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
