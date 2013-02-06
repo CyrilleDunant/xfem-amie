@@ -214,6 +214,7 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 	double time = 0. ;
 	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, nzones*5, nzones) ;
+	F.getAssembly()->setEpsilon(1e-15) ;
 	F.step() ;
 	Vector x = F.getAverageField(STRAIN_FIELD) ;
 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;

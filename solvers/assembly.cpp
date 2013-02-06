@@ -76,6 +76,7 @@ Assembly::Assembly()
 	this->boundaryMatrix = nullptr ;
 	ndof = 1 ;
 	dim = SPACE_THREE_DIMENSIONAL ;
+	epsilon = 1e-18 ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
 }
 
@@ -1376,7 +1377,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
  		ConjugateGradientWithSecant cg(this) ;
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
-		ret = cg.solve(x0, nullptr, 5e-18, -1, verbose) ;
+		ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
 // 		ret = false ;
 		gettimeofday(&time1, nullptr);
 		double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

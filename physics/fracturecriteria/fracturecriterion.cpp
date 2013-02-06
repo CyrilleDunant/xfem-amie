@@ -400,7 +400,7 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 void FractureCriterion::initialiseFactors(const ElementState & s)
 {
 	
-	bool compact = true ;
+	bool compact = false ;
 	
 	if(cache.empty())
 	{

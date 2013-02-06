@@ -203,6 +203,8 @@ protected:
 
 	size_t multiplier_offset ;
 
+	double epsilon ;
+
 public:
 	Assembly() ;
 	
@@ -271,6 +273,9 @@ public:
 
 /** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
 	bool cgsolve(Vector x0 = Vector(0), int maxit = -1, bool verbose = true) ;
+
+	void setEpsilon(double e) { epsilon = e ; }
+	double getEpsilon() const { return epsilon ; }
 	
 /** \brief Solve linear system using provided solver*/
 
