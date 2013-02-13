@@ -1604,12 +1604,13 @@ int main(int argc, char *argv[])
 // 	inc1.setBehaviourSource(&samplef);
 // 	inc1.isVirtualFeature = true ;
 	
-	TriangularInclusion t0(Point(samplef.width()*.5,-samplef.width()*.5-mradius*.5),
-				 Point(samplef.width()*.5,-samplef.width()*.5+mradius*.5), 
-				 Point(-samplef.width()*.5,samplef.width()*.5+mradius*.5));
-	TriangularInclusion t1(Point(samplef.width()*.5,-samplef.width()*.5-mradius*.5), 
-				 Point(-samplef.width()*.5,samplef.width()*.5+mradius*.5), 
-				 Point(-samplef.width()*.5,samplef.width()*.5-mradius*.5));
+	double verticaloffset = 0 ; //1./14.*samplef.height()
+	TriangularInclusion t0(Point(samplef.width()*.5,-samplef.width()*.5-mradius+verticaloffset),
+				 Point(samplef.width()*.5,-samplef.width()*.5+mradius+verticaloffset), 
+				 Point(-samplef.width()*.5,samplef.width()*.5+mradius+verticaloffset));
+	TriangularInclusion t1(Point(samplef.width()*.5,-samplef.width()*.5-mradius+verticaloffset), 
+				 Point(-samplef.width()*.5,samplef.width()*.5+mradius+verticaloffset), 
+				 Point(-samplef.width()*.5,samplef.width()*.5-mradius+verticaloffset));
 	t0.isVirtualFeature = true ;
 	t1.isVirtualFeature = true ;
 	PlasticStrain * t0damagemodel = new PlasticStrain() ;
