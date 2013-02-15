@@ -38,7 +38,8 @@ currentAngle(0),
 minDeltaInNeighbourhood(1),
 maxScoreInNeighbourhood(0),
 maxModeInNeighbourhood(-1),
-maxAngleShiftInNeighbourhood(0)
+maxAngleShiftInNeighbourhood(0),
+smoothingType(GAUSSIAN_NONCOMPACT)
 {
 }
 
@@ -400,7 +401,7 @@ double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point 
 void FractureCriterion::initialiseFactors(const ElementState & s)
 {
 	
-	bool compact = false ;
+	bool compact = (smoothingType == QUARTIC_COMPACT) ;
 	
 	if(cache.empty())
 	{
@@ -1341,7 +1342,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*4.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*3.+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

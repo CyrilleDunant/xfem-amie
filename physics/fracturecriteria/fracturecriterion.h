@@ -42,6 +42,11 @@ typedef enum{
 	FROM_PRINCIPAL_STRESS_STRAIN
 } SmoothingSourceType ;
 
+typedef enum{
+	QUARTIC_COMPACT,
+	GAUSSIAN_NONCOMPACT
+} SmoothingFunctionType ;
+
 	/**
 	Abstract definition of a fracture criterion
 	
@@ -89,7 +94,7 @@ typedef enum{
 		double scoreTolerance ;
 		bool checkpoint ;
 		bool inset ;
-		
+		SmoothingFunctionType smoothingType ;
 		
 		double getDeltaEnergy(const ElementState & s, double delta_d) ;
 		

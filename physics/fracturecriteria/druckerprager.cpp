@@ -22,6 +22,7 @@ DruckerPrager::DruckerPrager(double downthres,double upthres, double modulus,  d
 	metInTension = false ;
 	inTension = true ;
 	cap = 1 ;
+	smoothingType = QUARTIC_COMPACT ;
 }
 
 

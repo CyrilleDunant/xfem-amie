@@ -36,7 +36,7 @@ NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, R
 	initialised = false ;
 	radiusInitialised = false ;
 	scaleFactor = 1 ;
-	
+	crackInitiated = false ;
 	inRebarInfluence = false ;
 	distanceToRebar = -1 ;
 	effectiveInfluenceDistance = -1 ;
@@ -51,56 +51,59 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 {
 	double maxTension = upVal*scaleFactor;
 	double maxTensionStrain = tensionCritStrain;
+	double correctionFactor = crackInitiated?1.7:1. ;
 	if(std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D)
 	{
-		maxTensionStrain = /*1.6**/tensionCritStrain ;
-		maxTension = /*1.6**/maxTension ;
+		maxTensionStrain = correctionFactor*tensionCritStrain ;
+		maxTension = maxTension ;
 	}
 	
 	
-	if(tstrain > /*1.6**/tensionCritStrain && std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D || tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) >= POINT_TOLERANCE_2D)
+	if(tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D || tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) >= POINT_TOLERANCE_2D)
 	{
+		crackInitiated = true ;
 		double downTestVal = tensionCritStrain ;
-		double upTestVal = strain_te*1.1 ;
+		double upTestVal = correctionFactor*strain_te*1.1 ;
 		double factor = 1 ;
-		double delta_tech = strain_te-strain_ch;
+		double delta_tech = (strain_te-strain_ch);
 		int count = 0 ;
-		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32 )
-		{
-			double testVal = (upTestVal+downTestVal)*.5 ;
-			double mainCurve = 1./(1.+sqrt(k)*pow(testVal-tensionCritStrain,0.8)) ;
-// 
-// 			factor = mainCurve ;
-// 
-// 			if( testVal > upVal*factor/pseudoYoung )
-// 				upTestVal = testVal ;
-// 			else
-// 				downTestVal = testVal ;
-			
-			
-// 			double testVal = (upTestVal+downTestVal)*.5 ;
-// 			double mainCurve = 1./(1.+sqrt(50000)*pow(testVal, 0.8)) ;
+	
+			while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32 )
+			{
+				double testVal = (upTestVal+downTestVal)*.5 ;
+				double mainCurve = 1./(1.+sqrt(k)*pow((testVal-tensionCritStrain)/correctionFactor,0.8)) ;
+	// 
+	// 			factor = mainCurve ;
+	// 
+	// 			if( testVal > upVal*factor/pseudoYoung )
+	// 				upTestVal = testVal ;
+	// 			else
+	// 				downTestVal = testVal ;
+				
+				
+	// 			double testVal = (upTestVal+downTestVal)*.5 ;
+	// 			double mainCurve = 1./(1.+sqrt(50000)*pow(testVal, 0.8)) ;
 
-			if(testVal < tensionCritStrain)
-				factor = 1. ;
-			else if(testVal < strain_ch)
-				factor = mainCurve ;
-			else if(testVal < strain_te)
-// 			{
-				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-// 				factor = exp(-175.*(testVal-tensionCritStrain)) ;
-// 				factor = std::min((strain_te-testVal)/(strain_te-tensionCritStrain), mainCurve) ;
-// 			}
-			else
-				factor = 0 ;
-			
-			
-			if( testVal*pseudoYoung > upVal*factor )
-				upTestVal = testVal ;
-			else
-				downTestVal = testVal ;
-			
-		}
+				if(testVal < correctionFactor*tensionCritStrain)
+					factor = 1. ;
+				else if(testVal < correctionFactor*strain_ch)
+					factor = mainCurve ;
+				else if(testVal < correctionFactor*strain_te)
+	// 			{
+					factor = mainCurve*(correctionFactor*strain_te-testVal)/(correctionFactor*delta_tech) ;
+	// 				factor = exp(-175.*(testVal-tensionCritStrain)) ;
+	// 				factor = std::min((strain_te-testVal)/(strain_te-tensionCritStrain), mainCurve) ;
+	// 			}
+				else
+					factor = 0 ;
+				
+				
+				if( testVal*pseudoYoung > upVal*factor )
+					upTestVal = testVal ;
+				else
+					downTestVal = testVal ;
+				
+			}
 		
 // 		if((upTestVal+downTestVal)*.5 > strain_ch)
 // 		{
@@ -180,126 +183,49 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 {
 	double delta = currentAngle ; // this assumes horizontal rebars
 	double epsilon_0 = 2.*tensionCritStrain*cos(delta)*cos(delta) ; // strain at which the stifening activates
-//	double epsilon_ys = 0.00125 ;
-//	double concreteCover = .04 ; 
-//	double barSpacing = .06 ;
-//	double barPropCoef = 0.4 ; //plain bars (0.8 for deformed bars)
-//	double strainGradientCoef = .25 ;
-//	double rho_cf = 0.01; //A_steel/Aconcrete ;
-//	double w = 2.*(concreteCover+barSpacing*.1)+barPropCoef*strainGradientCoef*rebarLocationsAndDiameters[0].second/rho_cf ;
-//	double G = 50. ;
-	
-//	double epsilon_cu = 2.*cos(delta)*cos(delta)*G/(w*upVal) ;
-//	double epsilon_u = epsilon_ys - upVal/(rho_cf*40e9) ;
-	
-//	double maxTension = upVal*scaleFactor;
-//	double maxTensionStrain = tensionCritStrain;
-//	if(std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D)
-//	{
-//		maxTensionStrain = tensionCritStrain ;
-//		maxTension = maxTension ;
-//	}
-	
-//	double interactionStress = 0 ;
-//	
-//	if(tstrain > epsilon_0)
-//	{
-//		if(tstrain < epsilon_cu)
-//		{
-//			interactionStress = upVal*(tstrain-epsilon_0)/(epsilon_cu-epsilon_0) ;
-//		}
-//		else if(tstrain < epsilon_u)
-//			interactionStress = upVal ;
-//		else if(tstrain < epsilon_ys )
-//			interactionStress = upVal*(1.-(tstrain-epsilon_u)/(epsilon_ys-epsilon_u)) ;
-//		else
-//			interactionStress = 0 ;
-//	}
-//	
-	
-//	if(tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) < POINT_TOLERANCE_2D || tstrain > tensionCritStrain && std::abs(pseudoYoung-youngModulus) >= POINT_TOLERANCE_2D)
-//	{
-//		double downTestVal = tensionCritStrain ;
-//		double upTestVal = strain_te*1.1 ;
-//		double factor = 1 ;
-//		double delta_tech = strain_te-strain_ch;
-//		int count = 0 ;
-//		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32 )
-//		{
-//			double testVal = (upTestVal+downTestVal)*.5 ;
-//			double mainCurve = 1./(1.+sqrt(k)*pow(testVal-tensionCritStrain,0.8)) ;
-//
-//			if(testVal < tensionCritStrain)
-//				factor = 1. ;
-//			else if(testVal < strain_ch)
-//				factor = mainCurve ;
-//			else if(testVal < strain_te)
-//				factor = mainCurve*(strain_te-testVal)/delta_tech ;
-//			else
-//				factor = 0 ;
-//			
-//			
-//			if( testVal*pseudoYoung > upVal*factor+interactionStress )
-//				upTestVal = testVal ;
-//			else
-//				downTestVal = testVal ;
-//			
-//		}
-//
-//		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
-//		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
-//	}
-//	
+
 	if(factors.size() == 0)
 		initialiseFactors(s) ;
 	double nlfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ;
 	
 	double corrfact = 1 ;
-// 	for(size_t i = 1 ; i < 24 ; i++)
-// 	{
-// 		double a = 1./nlfactor * (sqrt(value*strain_ch)-log(sqrt(value*strain_ch+1)))+log(corrfact*value*strain_ch) ;
-// 		a *= a ;
-// 		a /= corrfact*strain_ch ;
-// 		corrfact = a ;
-// // 		std::cout << corrfact << std::endl ;
-// 	}
-	
-// 	exit(0) ;
+	double correctionFactor = crackInitiated?1.7:1. ;
+
 	
  	double maxTension = upVal*scaleFactor;
  	double maxTensionStrain = tensionCritStrain;
 
-//  	value /= factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ; //getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
  	if(tstrain > epsilon_0 )
  	{
+		crackInitiated = true ;
  		double downTestVal = epsilon_0 ;
- 		double upTestVal = strain_te*3. ;
+ 		double upTestVal = strain_te*30. ;
  		double factor = 1 ;
- 		double delta_tech = strain_te*3-strain_ch*3.;
+ 		double delta_tech = (strain_te*30-strain_ch*30.);
  		double mainCurve = 0 ;
  		int count = 0 ;
- 		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32)
- 		{
- 			double testVal = (upTestVal+downTestVal)*.5 ;
- 			mainCurve = 1./(1.+sqrt(value*corrfact)*sqrt(testVal-epsilon_0*.5)) ;
- 
- 			if(testVal < strain_ch*3.)
-  			factor = mainCurve ;
- 			else if(testVal < strain_te*3.)
- 			{
- 				factor = mainCurve*(strain_te*3.-testVal)/delta_tech ;
- // 				factor = std::min((strain_te*3.-testVal)/(strain_te*3.-tensionCritStrain), mainCurve) ;
- 			}
- 			else
- 				factor = 0 ;
- 			
- 
- 			if( testVal*pseudoYoung > upVal*factor )
- 				upTestVal = testVal ;
- 			else
- 				downTestVal = testVal ;
- 
- 		}
+
+			while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32)
+			{
+				double testVal = (upTestVal+downTestVal)*.5 ;
+				mainCurve = 1./(1.+sqrt(value*corrfact)*sqrt((testVal-epsilon_0)/correctionFactor)) ;
+	
+				if(testVal < strain_ch*3.*correctionFactor)
+					factor = mainCurve ;
+				else if(testVal < strain_te*3.*correctionFactor)
+				{
+					factor = mainCurve*(strain_te*3.*correctionFactor-testVal)/(delta_tech*correctionFactor) ;
+				}
+				else
+					factor = 0 ;
+				
+	
+				if( testVal*pseudoYoung > upVal*factor )
+					upTestVal = testVal ;
+				else
+					downTestVal = testVal ;
+	
+			}
  	
  		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
  		maxTensionStrain = (upTestVal+downTestVal)*.5 ;

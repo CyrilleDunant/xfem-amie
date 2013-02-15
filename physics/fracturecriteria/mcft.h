@@ -35,7 +35,7 @@ class NonLocalMCFT : public FractureCriterion
 	bool inRebarInfluence  ;
 	double distanceToRebar  ;
 	double effectiveInfluenceDistance ;
-	
+	bool crackInitiated ;
 public:
 	bool initialised ;
 	bool radiusInitialised ;
@@ -53,6 +53,7 @@ public:
 	double k ;
 	double strain_ch ;
 	double strain_te ;
+	
 
 	double scaleFactor ;
 	virtual bool directionInTension(size_t direction) 
