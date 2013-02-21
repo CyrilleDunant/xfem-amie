@@ -66,7 +66,7 @@ struct Viscoelasticity : public LinearForm
 
 	virtual ~Viscoelasticity() ;
 
-	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
 
 	virtual bool fractured() const ;
@@ -84,6 +84,8 @@ struct Viscoelasticity : public LinearForm
 		param *= d ;
 		eta *= d ;
 	}
+	
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return param ; }	
 	
 	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return eta ; }	
 	

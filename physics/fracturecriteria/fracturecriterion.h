@@ -113,7 +113,7 @@ typedef enum{
 		Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedScore(ElementState& s) ;
 		Vector smoothedPrincipalStrain( ElementState &s) ;
-		std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, bool useStressLimit = false) ;
+		std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, bool useStressLimit = false, double t = 0) ;
 		std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s, SmoothingSourceType ss = FROM_STRESS_STRAIN , StressCalculationMethod m = REAL_STRESS, bool useStressLimit = false, double t = 0) ;
 		double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
 		double smoothedCrackAngle( ElementState &s) const ;

@@ -105,14 +105,16 @@ int main(int argc, char *argv[])
 {
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(atof(argv[1])) ;
-//	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(1.) ;
-	F.setOrder(LINEAR) ;
+//	F.setOrder(LINEAR) ;
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-//	box.setBehaviour( new ViscoelasticityAndFracture(PURE_ELASTICITY, c, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
-	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(MAXWELL, c, c*1e6, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+//	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
+//	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
+//	box.setBehaviour( new Stiffness( c ) ) ;
 	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.0001);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
@@ -121,50 +123,54 @@ int main(int argc, char *argv[])
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
 	
-// 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ;
-// 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, -10,10, 0. ) ;
-// 	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER, -length*0.02, length*0.02, -10,10 ) ) ;
-// 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
-	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ;
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP, width*0.4, width*0.6, -10,10, 0. ) ;
-	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, -length*0.02, length*0.02, -10,10 ) ) ;
+ 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
+ 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER, Point(0., -length*0.5)) ) ;
+ 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
+// 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ;
+// 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, RIGHT, length*0.4, length*0.6, length*0.4, length*0.6, 0. ) ;
+// 	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, -length*0.1, length*0.1, -10,10 ) ) ;
 	F.addBoundaryCondition(fix) ;
 	F.addBoundaryCondition(disp) ;
 
 	F.step() ;
-	Vector x = F.getAverageField(STRAIN_FIELD) ;
-	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
-	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
+// 	Vector x = F.getAverageField(STRAIN_FIELD) ;
+// 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
+//	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	size_t i = 0 ;
 
 	std::fstream out ;
 	out.open("wedge.txt", std::ios::out) ;
 	
-	while(i < 100)
+	while(i < 20)
 	{
 		i++ ;
-		disp->setData( 0.00003*i ) ;
+		disp->setData( 0.00005*i ) ;
 
-		F.setDeltaTime(1.) ;
+//		F.setDeltaTime(1.) ;
 		F.step() ;
 		
 		std::string tati = "wedge" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
 		std::cout << tati << std::endl ;
-		TriangleWriter writer(tati, &F) ;
-		writer.getField(TWFT_STRAIN) ;
-		writer.getField(TWFT_STRESS) ;
+		TriangleWriter writer(tati, &F, 1) ;
+// 		writer.getField(TWFT_STRAIN) ;
+// 		writer.getField(TWFT_STRESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 			
-		x = F.getAverageField(STRAIN_FIELD) ;
-		y = F.getAverageField(REAL_STRESS_FIELD) ;
-		std::cout << 0.00003*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
+// 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+// 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+//		std::cout << 0.00005*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
 
 	}
+	
+//	F.getAssembly()->print() ;
 	
 	return 0 ;
 }

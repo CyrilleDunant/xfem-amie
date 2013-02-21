@@ -231,6 +231,7 @@ public:
 	
 	double getTime() const ;
 	double getDeltaTime() const ;
+	double getNodalDeltaTime() const ;
 	
 	IntegrableEntity * getParent() const
 	{
@@ -435,6 +436,7 @@ class Form
 protected:
 	bool time_d ;
 	bool space_d ;
+	bool symmetric ;
 	size_t num_dof ;
 	
 	Geometry * source ;
@@ -445,8 +447,8 @@ public:
 	/** The type helps to know the available parameters and methods of the subclasses*/
 	ParametersType type;
 	
-	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2) : time_d(t), space_d(s), num_dof(numdof), param(p), source(nullptr) { } ;
-	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)), source(nullptr){ } ;
+	Form(const Matrix & p, bool t = false, bool s = false, size_t numdof = 2, bool sym = true) : time_d(t), space_d(s), num_dof(numdof), param(p), source(nullptr), symmetric(sym) { } ;
+	Form() : time_d(false), space_d(false), num_dof(0), param(Matrix(0,0)), source(nullptr), symmetric(false) { } ;
 	
 	/** apply the form on a pair of functions
 	 * 
@@ -458,6 +460,9 @@ public:
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const = 0 ;
 	virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm) const { } ;
 
+	virtual bool isSymmetric() const { return symmetric ; }
+	virtual void setSymmetric(bool s) { symmetric = s ; } 
+	
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
 	
 	virtual bool timeDependent() const

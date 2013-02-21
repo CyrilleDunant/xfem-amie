@@ -596,12 +596,13 @@ Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity *
 {
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+	Matrix tmp = dfunc->apply(param) ;
 	for(size_t i = 0 ; i < blocks ; i++)
 	{
 		for(size_t j = 0 ; j < blocks ; j++)
 		{
-			getBlockInMatrix(param, i,j, buffer) ;
-			placeMatrixInBlock( dfunc->apply(buffer) * coeffsDamageElastic[i][j], i, j, tensor) ;
+			getBlockInMatrix(tmp, i,j, buffer) ;
+			placeMatrixInBlock( buffer * coeffsDamageElastic[i][j], i, j, tensor) ;
 		}
 	}
 	return tensor ;
@@ -611,12 +612,13 @@ Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableE
 {
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+	Matrix tmp = dfunc->apply(eta) ;
 	for(size_t i = 0 ; i < blocks ; i++)
 	{
 		for(size_t j = 0 ; j < blocks ; j++)
 		{
-			getBlockInMatrix(eta, i,j, buffer) ;
-			placeMatrixInBlock( dfunc->apply(buffer) * coeffsDamageViscous[i][j], i, j, tensor) ;
+			getBlockInMatrix(tmp, i,j, buffer) ;
+			placeMatrixInBlock( buffer * coeffsDamageViscous[i][j], i, j, tensor) ;
 		}
 	}
 	return tensor ;

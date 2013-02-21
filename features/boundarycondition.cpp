@@ -2572,6 +2572,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 					  apply2DBC( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis) ;
 			  }
 		}
+		
 	}
 	else
 	{
@@ -3096,6 +3097,7 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() : BoundaryCon
 
 void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
+  
 	t->getAdditionalPoints() ;
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
 	size_t timePlanes = tri[0]->timePlanes() ;
@@ -3114,7 +3116,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	{
 		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
-			#pragma omp for
+//			#pragma omp for
 			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
 				for(size_t n = 0 ; n < dof ; n++)
@@ -3130,7 +3132,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 		{
 			for(size_t j = 0 ; j < dofPerPlane ; j++)
 			{
-				#pragma omp for
+//				#pragma omp for
 				for(size_t n = 0 ; n < dof ; n++)
 				{
 					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;

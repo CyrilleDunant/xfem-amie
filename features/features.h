@@ -145,6 +145,7 @@ protected:
 	double now ;
 	double deltaTime ; 
 	double realDeltaTime ;
+	double minDeltaTime ;
 	
 	size_t numdofs ;
 	size_t samplingNumber ;
@@ -492,6 +493,7 @@ public:
 	void setOrder(Order ord) ;
 	
 	void setDeltaTime(double d) ;
+	void setMinDeltaTime(double d) { minDeltaTime = d ; }
 
 	void moveFirstTimePlanes(double d) ;
 	
@@ -535,7 +537,7 @@ public:
 	std::pair<Vector , Vector > getStressAndStrainInLayer(int layer, bool stepTree = true) ;
 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 	
-	Vector getAverageField( FieldType f, int grid = -1) ;
+	Vector getAverageField( FieldType f, int grid = -1, double t = 0) ;
 	Vector getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri) ;
 	Vector getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet) ;
 	

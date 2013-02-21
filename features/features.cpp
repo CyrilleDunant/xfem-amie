@@ -238,6 +238,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( nullptr ), grid3d( nullptr ), state( this )
 {
 	deltaTime = 0 ;
+	minDeltaTime = 0.001 ; 
 	reuseDisplacements = false ;
 	useMultigrid = false ;
 	foundCheckPoint = true ;
@@ -559,7 +560,7 @@ void FeatureTree::renumber()
 						{
 							if( tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes() ).id == -1 )
 							{
-								tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes()).id = tri->getBoundingPoint( j).id + lastNodeId ;
+								tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes()).id = tri->getBoundingPoint( j).id + lastNodeId*k ;
 								count++ ;
 							}
 						}
@@ -4513,6 +4514,7 @@ bool FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
 						maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
+						
 					}
 				}
 				
@@ -4570,14 +4572,6 @@ bool FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
-				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScoreInit > 0)
-				{
-					std::cerr << "adjusting time step..." << std::endl ;
-					double begin = elements[0]->getBoundingPoint(0).t ;
-					double end = elements[0]->getBoundingPoint( elements[0]->getBoundingPoints().size() -1).t ;
-					this->moveFirstTimePlanes( (1.-maxScoreInit)*(end-begin) ) ;
-				}
-				
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4599,6 +4593,7 @@ bool FeatureTree::stepElements()
 					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
 					{
 						foundCheckPoint = false ;
+						maxScore = maxScoreInit ;
 						break ;
 					}
 				}
@@ -4631,13 +4626,42 @@ bool FeatureTree::stepElements()
 					}
 				}
 				std::cout << maxScore << "]" << std::flush ;
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1.)
+				{
+					std::cerr << "adjusting time step..." << std::endl ;
+					double begin = elements[0]->getBoundingPoint(0).t ;
+					double end = elements[0]->getBoundingPoint( elements[0]->getBoundingPoints().size() -1).t ;
+					if(maxScore*(end-begin) > minDeltaTime) 
+						this->moveFirstTimePlanes( (1.-maxScore)*(end-begin) ) ;
+					else if(end - begin > minDeltaTime)
+					{
+						this->moveFirstTimePlanes( end-begin-minDeltaTime ) ;
+					}
+					else
+						this->moveFirstTimePlanes( 0.) ;
+						
+				}
+				
+				
 			}
 			else if(!elastic)
 			{
-#pragma omp parallel for schedule(auto)
+					
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
+				{
+					this->moveFirstTimePlanes( 0. ) ;
+				}
+
+			    
+				#pragma omp parallel for schedule(auto)
 				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
+				}
+
+
+			  
 			}
 			std::cerr << " ...done. " << std::endl ;
 				
@@ -5184,7 +5208,7 @@ bool FeatureTree::step()
 	if(notConvergedCounts >= 8)
 		ret = false ;
 	std::cout << std::endl ;
-	deltaTime = realdt ;
+	setDeltaTime(realdt) ;
 	
 	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 	
@@ -5289,12 +5313,12 @@ bool FeatureTree::stepToCheckPoint()
 	}
 
 	std::cout  << std::endl ;
-	deltaTime = realdt ;
+	setDeltaTime(realdt) ;
 	return solverConverged();
 }
 
 
-Vector FeatureTree::getAverageField( FieldType f, int grid ) 
+Vector FeatureTree::getAverageField( FieldType f, int grid , double t) 
 {
 	Vector avg ;
 	Vector buffer ;
@@ -5307,7 +5331,7 @@ Vector FeatureTree::getAverageField( FieldType f, int grid )
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			elements[i]->getState().getAverageField( f, buffer) ;
+			elements[i]->getState().getAverageField( f, buffer, 0, t) ;
 			avg += buffer * elements[i]->area() ;
 			volume += elements[i]->area() ;
 		}
@@ -5665,8 +5689,6 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 void FeatureTree::setDeltaTime(double d) 
 {
-	if(d == deltaTime)
-		return ;
 	double prev = deltaTime ;
 	deltaTime = d ; realDeltaTime = d ;
 	if(dtree)
@@ -5680,21 +5702,16 @@ void FeatureTree::setDeltaTime(double d)
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
 				size_t k0 = triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes() ;
-				for(size_t t = 0 ; t < triangles[i]->timePlanes() -2 ; t++)
+				for(size_t t = 0 ; t < triangles[i]->timePlanes() -1 ; t++)
 				{
 					for(size_t k = 0 ; k < k0 ; k++)
 					{
-						triangles[i]->getBoundingPoint(k+k0*t).t = triangles[i]->getBoundingPoint(k+k0*(t+1)).t ;
+						triangles[i]->getBoundingPoint(k+k0*t).t = end - d + d*t/(triangles[i]->timePlanes()-1) ;
 					}
 				}
-				size_t t0 = triangles[i]->timePlanes()-2 ;
-				for(size_t k = 0 ; k < k0 ; k++)
-				{
-					triangles[i]->getBoundingPoint(k+k0*t0).t = end - d*( triangles[i]->timePlanes()-t0 )/triangles[i]->timePlanes() ;
-				}
 				
-
-				triangles[i]->adjustElementaryMatrix( prev, d ) ;
+				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+					  triangles[i]->adjustElementaryMatrix( prev, d ) ;
 			}
 		}
 	}
@@ -5709,32 +5726,37 @@ void FeatureTree::moveFirstTimePlanes(double d)
 	{	
 		std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 		prev = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t - triangles[0]->getBoundingPoint(0).t ;
+		
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 			size_t ndof = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 			Vector buff(ndof) ; buff = 0. ;
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
-				size_t k0 = triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes() ;
-				for(size_t t = 0 ; t < triangles[i]->timePlanes() -1 ; t++)
+				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					for(size_t k = 0 ; k < k0 ; k++)
+					size_t k0 = triangles[i]->getBoundingPoints().size()/triangles[i]->timePlanes() ;
+					for(size_t t = 0 ; t < triangles[i]->timePlanes() -1 ; t++)
 					{
-						Point p ;
-						p.x = triangles[i]->getBoundingPoint(k+k0*t).x ;
-						p.y = triangles[i]->getBoundingPoint(k+k0*t).y ;
-						p.t = triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes() ;
-						triangles[i]->getState().getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
-						for(size_t n = 0 ; n < ndof ; n++)
+						for(size_t k = 0 ; k < k0 ; k++)
 						{
-							K->getDisplacements()[ triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n ] = buff[n] ;
+							Point p ;
+							p.x = triangles[i]->getBoundingPoint(k+k0*t).x ;
+							p.y = triangles[i]->getBoundingPoint(k+k0*t).y ;
+							p.t = triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes() ;
+							triangles[i]->getState().getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
+							for(size_t n = 0 ; n < ndof ; n++)
+							{
+								K->getDisplacements()[ triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n ] = buff[n] ;
+							}
 						}
 					}
 				}
 
 			}
 		}
-		setDeltaTime( prev - d ) ;
+		if(std::abs(d) > POINT_TOLERANCE_2D)
+			  setDeltaTime( prev - d ) ;
 		
 		return ;
 	}

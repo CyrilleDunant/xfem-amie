@@ -91,10 +91,10 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 			if( dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() ) )
 			{
+				Matrix p = dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()->getTensor(Point(1./3,1./3)) ;
 				bi = new BimaterialInterface( getPrimitive(),
 				                              new StiffnessWithImposedDeformation( cgTensor, imposedDef ),
-				                              dynamic_cast<HomogeneisedBehaviour *>( ring[i]->getBehaviour() )->getOriginalBehaviour()
-				                            ) ;
+				                              new Stiffness( p ) ) ;
 			}
 			else
 			{

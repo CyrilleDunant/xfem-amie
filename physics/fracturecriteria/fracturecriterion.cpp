@@ -133,7 +133,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 {
 	if(ss == FROM_STRESS_STRAIN)
 	{
-		std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m) ;
+		std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m, useStressLimit, t) ;
 		return std::make_pair(toPrincipal(stressStrain.first), toPrincipal(stressStrain.second)) ;
 	}
 	
@@ -193,7 +193,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 // 		tmpstr.resize(3) ;
 // 		tmpstra.resize(3) ;
 // 		s.getParent()->getState().getAverageField(STRAIN_FIELD, tmpstra) ;
-		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
+		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m, useStressLimit, t) ;
 		currentAngle = 0.5*atan2( smss.second[2],  smss.second[0] -  smss.second[1] ) ;
 // 		std::cout <<   tmpstra[2] << "  "<< tmpstra[0] -  tmpstra[1] << " " << currentAngle << std::endl ;
 		
@@ -211,7 +211,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m) ;
+		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m, useStressLimit, t) ;
 		
 		Vector lprincipal( 3 ) ;
 		Matrix stresses(3,3) ;
@@ -871,7 +871,7 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalcul
 	return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
 }
 
-std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, bool useStressLimit )
+std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, bool useStressLimit , double t)
 {
 // 	useStressLimit = true ;
 	
@@ -896,11 +896,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 		if(m == EFFECTIVE_STRESS)
 		{
-			s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr);
+			s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 		}
 		else
 		{
-			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
+			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 
 		}
 
@@ -920,11 +920,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 				if(m == EFFECTIVE_STRESS)
 				{
-					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr);
+					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 				}
 				else
 				{
-					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
+					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 				}
 
 
@@ -937,7 +937,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					str += tmpstr*iteratorValue ;
 
 					sumStrainFactors += iteratorValue ;
-				  sumStressFactors += iteratorValue ;
+					sumStressFactors += iteratorValue ;
 
 				}
 			}
@@ -960,7 +960,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 // 			if(currentAngle < 0)
 // 				currentAngle += M_PI ;
 // 		}
-		return std::make_pair((stra-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3.,1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3.,1./3.)), stra) ;
+		
+		if(s.getParent()->getBehaviour()->isViscous())
+		      return std::make_pair(str, stra) ;
+		
+		return std::make_pair((stra-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3.,1./3.,0,t)))*s.getParent()->getBehaviour()->getTensor(Point(1./3.,1./3.,0,t)), stra) ;
 
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )

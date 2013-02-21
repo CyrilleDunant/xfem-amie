@@ -9,8 +9,8 @@
 // Copyright: See COPYING file that comes with this distribution
 //
 //
-#ifndef MUFIBERLINEARDAMAGE_H
-#define MUFIBERLINEARDAMAGE_H
+#ifndef MU_SPACETIME_FIBERLINEARDAMAGE_H
+#define MU_SPACETIME_FIBERLINEARDAMAGE_H
 
 #include "damagemodel.h"
 
@@ -61,7 +61,7 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance) ;}
+	virtual DamageModel * getCopy() const { return new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;}
 };
 
 };

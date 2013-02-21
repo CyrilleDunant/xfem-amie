@@ -2106,6 +2106,11 @@ double ElementState::getDeltaTime() const
 	return timePos - previousTimePos ;
 }
 
+double ElementState::getNodalDeltaTime() const
+{
+	return parent->getBoundingPoint(parent->getBoundingPoints().size() -1).t - parent->getBoundingPoint(0).t ;
+}
+
 FieldType stressFieldType(StressCalculationMethod m)
 {
 	return m == REAL_STRESS ? REAL_STRESS_FIELD : EFFECTIVE_STRESS_FIELD ;

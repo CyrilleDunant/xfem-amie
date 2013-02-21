@@ -1,5 +1,6 @@
 #include "generalized_spacetime_viscoelastic_element_state.h"
 #include "../physics/viscoelasticity.h"
+#include "../physics/damagemodels/damagemodel.h"
 #include "../mesher/delaunay.h"
 
 using namespace Mu ;
@@ -38,9 +39,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		total += gp.gaussPoints[i].second ;
 	}
 	ret /= total ;
-// 	double dt = this->getParent()->getBoundingPoint( this->getParent()->getBoundingPoints().size() -1 ).t ;
-// 	dt -= this->getParent()->getBoundingPoint( 0 ).t ;
-// 	ret /= dt ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 

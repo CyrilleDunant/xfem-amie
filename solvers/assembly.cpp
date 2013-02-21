@@ -315,7 +315,6 @@ bool Assembly::nonLinearStep()
 
 void Assembly::setBoundaryConditions()
 {
-
 	this->externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
 	this->externalForces = 0 ;
 	this->naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;

@@ -27,6 +27,8 @@ struct VGtM ;
 struct VGtV ;
 struct FMtMtFM ;
 struct DtGtMtG ;
+struct DdGtMtG ;
+struct DdGtMtGD ;
 struct GDtMtGD ;
 struct GDDtMtG ;
 struct GtMtGD ;
@@ -346,6 +348,11 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */
 	Matrix ieval(const GtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
+	std::valarray<Matrix> ievalDecomposed(const GtMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	
+	std::valarray<Matrix> ievalDecomposed(const GtMtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	std::valarray<Matrix> ievalDecomposedDebug(const GtMtGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+	
 /** \brief Overloaded function to compute the integral of a Gradient times a Matrix times a Gradient using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars. 
 The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
 Gradient is the usual \f$ \nabla\otimes \f$ operator.
@@ -530,6 +537,10 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator, and Differential is the de
 @param vars std::vector of space Variable s
 */
 	Matrix ieval(const DtGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
+	void ieval(const DdGtMtG & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
+
+	void ieval(const DdGtMtGD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret) ;
 
 /** \brief Overloaded function to compute the integral of a VectorGradient times a Matrix times a VectorGradient over the IntegrableEntity e, with variables defined by vars.  
 The function is assumed to be expressed in the local coordinates of e.

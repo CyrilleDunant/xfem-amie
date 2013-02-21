@@ -13,10 +13,12 @@
 #include "../physics/stiffness.h"
 #include "../physics/parallel_behaviour.h"
 #include "../physics/viscoelasticity.h"
+#include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
+#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
@@ -85,7 +87,7 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 1., 1.,0.0,0.0) ;
+Sample box(nullptr, 1., 1.,0.5,0.5) ;
 
 double s2d(double s)
 {
@@ -107,51 +109,51 @@ double getMinDisplacement(const Vector & x)
 
 int main(int argc, char *argv[])
 {
-	double tau = 10 ;
-//	double tauRadius = atof(argv[1]) ;
-
-/*	if(tauRadius == 0)
-		tauRadius = 1e-9 ;  */
+	double tau = 3 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(10) ;
-
+	F.setSamplingNumber(1) ;
+	
 	Matrix e = (new ElasticOnlyPasteBehaviour())->param ;
-	box.setBehaviour(new Viscoelasticity(BURGER, e, e*500, e, e*300)) ;
-//	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new GeneralizedSpaceTimeViscoelasticity(PURE_ELASTICITY, (new ElasticOnlyAggregateBehaviour())->param, 2), 0.008, 1000) ;
+// 	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e)) ;
+// 	box.setBehaviour(new Viscoelasticity(PURE_VISCOSITY, e)) ;
+// 	box.setBehaviour(new Viscoelasticity(KELVIN_VOIGT, e, e*100)) ;
+	box.setBehaviour(new ViscoelasticityAndFracture(MAXWELL, e, e*100, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage())) ;
+// 	box.setBehaviour(new Viscoelasticity(BURGER, e, e*200, e, e*10)) ;
 
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,4)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,5)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	srand(0) ;
 	F.step() ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6) ) ;
-
-	std::string toto = "cyrille" ;
-	std::fstream out(toto.c_str(), std::ios::out) ;
+	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.0001, 1)  ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6) ;
+	F.addBoundaryCondition(disp) ;
+//	F.addBoundaryCondition(stress) ;
 
 	F.step() ;
+
 	double time = tau ;
 
-	out << time << "\t" << F.getDisplacements().min() << std::endl ;
-	std::cout << time << "\t" << F.getDisplacements().min() << std::endl ;
-	
-	while(time < 50)
+	std::cout << time << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1] << std::endl ;
+
+	while(time < 150)
 	{
-		time += tau ;
+// 		if(time > 5)
+// 			disp->setData((1+time/tau)*(-0.0001)) ;
 		F.step() ;
 
-		out << time <<  "\t" << F.getDisplacements().max() << std::endl ;
-		std::cout << time << "\t" << F.getDisplacements().min() << std::endl ;
+		std::cout << time << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
+		time += tau ;
 
 	}
 	
