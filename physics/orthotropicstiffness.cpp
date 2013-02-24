@@ -40,34 +40,31 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 // 			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 // 			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 // 			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+// // 			transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] = 0 ;
+// // 			transform[1][0] = -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
+// // 			transform[2][0] =  0 ;  transform[2][1] = 0 ; transform[2][2] = 1 ; 
 // 			
-// 			std::cout << i << ", " << transform.froebeniusNorm() << std::endl ;
+// 			std::cout << i << ", " << ((Matrix)(transform*(param*inverse3x3Matrix(transform) ))).froebeniusNorm() << std::endl ;
 // 		}
+// 		exit(0) ;
 // 		std::cout << angle << std::endl ;
 // 		angle = .4 ;
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-// 		transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
-// 		transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
-// 		transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
-			transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
-			transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
-			transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =     1 ; 
-// 		transform /= transform.froebeniusNorm() ;
-// 		param.print() ;
-// 		std::cout << std::endl ;
-// 		Matrix test = transform.transpose()*param ;
-// 		test = test*transform ;
-// 		test.print() ;
-// 		std::cout << std::endl ;
-// 		((Matrix)((transform.transpose()*param)*transform)).print() ;
-// 		exit(0) ;
-// 		double pnorm = param.froebeniusNorm() ;
-		
-		param = transform.transpose()*(param*transform) ;
-		
-// 		param *= pnorm/param.froebeniusNorm() ;
+
+// 			transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] = 0 ;
+// 			transform[1][0] = -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
+// 			transform[2][0] =  0 ;  transform[2][1] = 0 ; transform[2][2] = 1 ; 
+			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+
+// 		param = transform*param*inverse3x3Matrix(transform) ;
+		param = (transform*param)*transform.transpose() ;
+// 		param = (param+param.transpose())*.5 ;
+// 			param = transform*param*transform.transpose() ;
+// 			param = transform*param*inverse3x3Matrix(transform) ;
 	}
 	else
 	{
@@ -91,7 +88,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 // 		transform /= transform.froebeniusNorm() ;
 // 		double pnorm = param.froebeniusNorm() ;
 		
-		param = transform.transpose()*(param*transform) ;
+		param = transform*(param*transform) ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}
@@ -111,28 +108,15 @@ nu((nu_12+nu_21)*.5)
   v.push_back(ETA);
 			if(v.size() == 2)
 	{
-// 		std::cout << angle << std::endl ;
-// 		angle = .4 ;
+
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
-		transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
-		transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =     1 ; 
-// 		transform /= transform.froebeniusNorm() ;
-// 		param.print() ;
-// 		std::cout << std::endl ;
-// 		Matrix test = transform.transpose()*param ;
-// 		test = test*transform ;
-// 		test.print() ;
-// 		std::cout << std::endl ;
-// 		((Matrix)((transform.transpose()*param)*transform)).print() ;
-// 		exit(0) ;
-// 				double pnorm = param.froebeniusNorm() ;
-		
-		param = transform*(param*transform.transpose()) ;
-		
-// 		param *= pnorm/param.froebeniusNorm() ;
+			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+		param = (inverse3x3Matrix(transform)*transform)*param ;
+
 	}
 	else
 	{
@@ -180,21 +164,10 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 		double c = cos(angle) ;
 		double s = sin(angle) ;
 		Matrix transform(3,3) ;
-		transform[0][0] =  c ;  transform[0][1] = s ; transform[0][2] =  0 ;
-		transform[1][0] =  -s ;  transform[1][1] = c ; transform[1][2] = 0 ;
-		transform[2][0] = 0 ;  transform[2][1] = 0 ; transform[2][2] =  1 ; 
-// 		transform /= transform.froebeniusNorm() ;
-// 		param.print() ;
-// 		std::cout << std::endl ;
-// 		Matrix test = transform.transpose()*param ;
-// 		test = test*transform ;
-// 		test.print() ;
-// 		std::cout << std::endl ;
-// 		((Matrix)((transform.transpose()*param)*transform)).print() ;
-// 		exit(0) ;
-// 				double pnorm = param.froebeniusNorm() ;
-		
-		param = transform.transpose()*(param*transform) ;
+			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
+			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
+			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
+		param = (inverse3x3Matrix(transform)*transform)*param ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}

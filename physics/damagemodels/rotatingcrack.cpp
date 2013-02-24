@@ -35,6 +35,8 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 	secondCompressionFailure = false ;
 	firstMet = false ;
 	secondMet = false ;
+	ctype = CONSERVATIVE_CENTER ;
+	
 }
 
 
@@ -97,6 +99,9 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 // 			double prevAngle = currentAngle ;
 //  			if(state.max() < POINT_TOLERANCE_2D)
 				currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+				if(currentAngle < 0)
+					currentAngle+=M_PI ;
+				
 // 				std::cout << currentAngle << std::endl ;
 // 			else
 // 				currentAngle = currentAngle*(state.max()) + s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()*(1.-state.max()) ;
@@ -169,7 +174,6 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			range[2] = getState()[2] ;
 			secondMet = false ;
 		}
-		
 // 		if(tensionFailure)
 // 		{
 // 			inTension = false ;
@@ -178,26 +182,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 // 		if(compressionFailure)
 // 			range[1] = getState()[1] ;
 	}
-	else if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-	{
-		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
-		{
-			firstTension = true ;
-		}
-		else
-		{
-			firstTension = false ;
-		}
 
-		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(1) )
-		{
-			secondTension = true ;
-		}
-		else
-		{
-			secondTension = false ;
-		}
-	}
+	
 
 	return std::make_pair( getState(),  range) ;
 }
@@ -211,8 +197,8 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	if(fractured())
 		return m *0 ;
 	
-	double E_0 = E*(1.-nu) ;
-	double E_1 = E*(1.-nu) ;
+	double E_0 = E ;
+	double E_1 = E ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
 	if(!firstTension)
@@ -220,8 +206,20 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	if(!secondTension)
 		ss = getState()[3] ;
 	
-	E_0 *= ( 1. - fs ) ;
-	E_1 *= ( 1. - ss ) ;
+// 	if(std::abs(currentAngle- M_PI*.5) < M_PI*.25)
+// 	{
+// 		E_0 *= ( 1. - ss ) ;
+// 		E_1 *= ( 1. - fs ) ;
+// 	}
+// 	else
+// 	{
+		E_0 *= ( 1. - fs ) ;
+		E_1 *= ( 1. - ss ) ;
+// 	}
+// 	else
+// 	{
+
+// 	}
 	
 // 	for(double i = 0 ; i < M_PI ; i += .2)
 // 	{
@@ -238,7 +236,7 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 																E_1, 
 																std::min(E_0, E_1)/(2.*(1.-nu*std::min(1. - fs, 1. - ss))),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
 																nu * ( 1. -  getState().max()), 
-																currentAngle ).getTensor( Point() )*factor ;
+																currentAngle).getTensor( Point() )*factor ;
 
 
 }

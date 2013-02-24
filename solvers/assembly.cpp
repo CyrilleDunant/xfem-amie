@@ -76,7 +76,7 @@ Assembly::Assembly()
 	this->boundaryMatrix = nullptr ;
 	ndof = 1 ;
 	dim = SPACE_THREE_DIMENSIONAL ;
-	epsilon = 1e-18 ;
+	epsilon = 1e-16 ;
 // 	multiplier_offset = 2 ;//bookmark...chk if =3
 }
 

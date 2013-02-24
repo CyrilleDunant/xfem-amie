@@ -186,7 +186,7 @@ BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestN
 
 
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -.15, .15, -10, 10, -10.) ;
-BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxDefinedBoundaryCondition * loadt = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT,1e4) ;
 // BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
 // BoundingBoxNearestNodeDefinedBoundaryCondition * loadr = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_FORCE_XI, RIGHT, Point(1.3*.5+.225, 0)) ;
@@ -1467,6 +1467,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
+	OrthothropicStiffness orth(1, 2, 1,  .2, 0) ;
 // 	std::vector<std::pair<std::string, double> >  vars ;
 // 	vars.push_back(std::make_pair("L", 300)); Function L("L") ;
 // 	vars.push_back(std::make_pair("f", 1.)); Function f("f") ;
@@ -1516,8 +1517,7 @@ int main(int argc, char *argv[])
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 // 	Sample samplef(.1200, .1200, 0., 0.) ;
 // 	Sample samplef(0.3048, .0672, 0., 0.) ;
-	Sample samplef(0.6, 1.2, 0., 0.) ;
-
+	Sample samplef(1.2, 0.6, 0., 0.) ;
 	Sample notch(.005, .03, 0., -.1*.5+.03*.5) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
@@ -1615,10 +1615,14 @@ int main(int argc, char *argv[])
 	t1.isVirtualFeature = true ;
 	PlasticStrain * t0damagemodel = new PlasticStrain() ;
 	PlasticStrain * t1damagemodel = new PlasticStrain() ;
-	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
-	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
-	F.addFeature(&samplef, &t0);
-	F.addFeature(&samplef, &t1);
+// 	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
+// 	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
+	
+	t0.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.95,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
+	t1.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.95,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
+	
+// 	F.addFeature(&samplef, &t0);
+// 	F.addFeature(&samplef, &t1);
 	t0.setBehaviourSource(&samplef);
 	t1.setBehaviourSource(&samplef);
 	
@@ -1626,7 +1630,9 @@ int main(int argc, char *argv[])
 // 	
 // 	
 // 	inc.setBehaviourSource(&samplef);
-	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6, -20e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
+// 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6, -20e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
+	samplef.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+	
 // 	inc.setBehaviour(new VoidForm()) ;
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.1, samplef.getCenter().x,samplef.getCenter().y-samplef.height()*.5));
@@ -1668,9 +1674,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(+0.04445, .0672*.5))) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(-0.04445, .0672*.5))) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 
 	F.setSamplingNumber(atoi(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
@@ -1697,7 +1703,7 @@ int main(int argc, char *argv[])
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
-	step(3000) ;
+	step(90) ;
 	
 	glutInit(&argc, argv) ;	
 	glutInitDisplayMode(GLUT_RGBA) ;

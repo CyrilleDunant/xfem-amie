@@ -903,7 +903,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 
 		}
-
+		currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
+		
 		stra = tmpstra*iteratorValue ;
 		str = tmpstr*iteratorValue ;
 
@@ -947,12 +948,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 // 		str += istress ;
 		stra /= sumStrainFactors ;
 		
-		
+		currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
+
 // 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
 // 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
-		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
-		if(currentAngle < 0)
-			currentAngle += M_PI ;
+
 		
 // 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
 // 		{
@@ -1345,8 +1345,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
+		double overlap = (smoothingType == QUARTIC_COMPACT)?3.:4.5 ;
 // 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*3.+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

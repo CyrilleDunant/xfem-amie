@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 {
 	elementState = &s ;
 	
-	double iterationNumber = 20 ;
+	double iterationNumber = 22 ;
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -103,13 +103,14 @@ void DamageModel::step( ElementState &s , double maxscore)
 		
 		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
 		
-		double n = 3. ;
+		double n = 5. ;
 		if(states.size() <= n)
 		{
 			if(states.size() == 1)
 			{
 				if(score < 0)
 				{
+					getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-3*effectiveDeltaFraction ;
 					converged = true ;
 					trialRatio = 0 ;
 					return ;
@@ -201,7 +202,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			states[i].print();
 // 		}
 		
-		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > iterationNumber
+		if( /*std::abs( minFraction - maxFraction ) < damageDensityTolerance*effectiveDeltaFraction  */states.size() > iterationNumber+n
 			&& (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
 		)
 		{
@@ -209,21 +210,21 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 5e-3*effectiveDeltaFraction ; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction ; //+ 2.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-3*effectiveDeltaFraction;
 			}
 			else if(ctype == DISSIPATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 5e-3*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
 			}
 			else if(ctype == DISSIPATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 5e-3*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_MAX)
 			{
@@ -260,7 +261,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			}
 			trialRatio = 0 ;
 		}
-		else if(states.size() > iterationNumber)
+		else if(states.size() > iterationNumber+n)
 		{
 // 			std::cout << "case red"<<error << std::endl ;
 // 			for(size_t i = 0 ; i < states.size() ; i++ )
