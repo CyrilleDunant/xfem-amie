@@ -502,7 +502,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret[2] =  ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 			{
@@ -562,21 +562,21 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
 				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				ret[3] = ( ( y_xi ) * Jinv[2][0] +
 						    ( y_eta ) * Jinv[2][1] +
 						    ( y_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[1][0] +
 						    ( z_eta ) * Jinv[1][1] +
 						    ( z_zeta ) * Jinv[1][2] );
 
-				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				ret[4] =  ( ( x_xi ) * Jinv[2][0] +
 						    ( x_eta ) * Jinv[2][1] +
 						    ( x_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[0][0] +
 						    ( z_eta ) * Jinv[0][1] +
 						    ( z_zeta ) * Jinv[0][2] );
 
-				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+				ret[5] =  ( ( y_xi )   * Jinv[0][0] +
 						    ( y_eta )  * Jinv[0][1] +
 						    ( y_zeta ) * Jinv[0][2] +
 						    ( x_xi )   * Jinv[1][0] +
@@ -620,7 +620,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret[2] =  ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 			{
@@ -661,21 +661,21 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
 				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				ret[3] =  ( ( y_xi ) * Jinv[2][0] +
 						    ( y_eta ) * Jinv[2][1] +
 						    ( y_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[1][0] +
 						    ( z_eta ) * Jinv[1][1] +
 						    ( z_zeta ) * Jinv[1][2] );
 
-				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				ret[4] =  ( ( x_xi ) * Jinv[2][0] +
 						    ( x_eta ) * Jinv[2][1] +
 						    ( x_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[0][0] +
 						    ( z_eta ) * Jinv[0][1] +
 						    ( z_zeta ) * Jinv[0][2] );
 
-				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+				ret[5] =  ( ( y_xi )   * Jinv[0][0] +
 						    ( y_eta )  * Jinv[0][1] +
 						    ( y_zeta ) * Jinv[0][2] +
 						    ( x_xi )   * Jinv[1][0] +
@@ -2612,7 +2612,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret[2] =  ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 				ret *= Jinv[2][2] ;
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
@@ -2673,21 +2673,21 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
 				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				ret[3] =  ( ( y_xi ) * Jinv[2][0] +
 						    ( y_eta ) * Jinv[2][1] +
 						    ( y_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[1][0] +
 						    ( z_eta ) * Jinv[1][1] +
 						    ( z_zeta ) * Jinv[1][2] );
 
-				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				ret[4] =  ( ( x_xi ) * Jinv[2][0] +
 						    ( x_eta ) * Jinv[2][1] +
 						    ( x_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[0][0] +
 						    ( z_eta ) * Jinv[0][1] +
 						    ( z_zeta ) * Jinv[0][2] );
 
-				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+				ret[5] =  ( ( y_xi )   * Jinv[0][0] +
 						    ( y_eta )  * Jinv[0][1] +
 						    ( y_zeta ) * Jinv[0][2] +
 						    ( x_xi )   * Jinv[1][0] +
@@ -2717,7 +2717,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret[2] =  ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
 			{
@@ -2757,21 +2757,21 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f, const Point & p, 
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
 				ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
 
-				ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+				ret[3] =  ( ( y_xi ) * Jinv[2][0] +
 						    ( y_eta ) * Jinv[2][1] +
 						    ( y_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[1][0] +
 						    ( z_eta ) * Jinv[1][1] +
 						    ( z_zeta ) * Jinv[1][2] );
 
-				ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+				ret[4] =  ( ( x_xi ) * Jinv[2][0] +
 						    ( x_eta ) * Jinv[2][1] +
 						    ( x_zeta ) * Jinv[2][2] +
 						    ( z_xi ) * Jinv[0][0] +
 						    ( z_eta ) * Jinv[0][1] +
 						    ( z_zeta ) * Jinv[0][2] );
 
-				ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+				ret[5] =  ( ( y_xi )   * Jinv[0][0] +
 						    ( y_eta )  * Jinv[0][1] +
 						    ( y_zeta ) * Jinv[0][2] +
 						    ( x_xi )   * Jinv[1][0] +

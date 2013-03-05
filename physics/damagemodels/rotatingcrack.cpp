@@ -88,8 +88,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	
 // 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
 // 		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && 
-		s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
 	{
 		es = &s ;
 // 		if(getState().max() < POINT_TOLERANCE_2D)
@@ -99,8 +98,6 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 // 			double prevAngle = currentAngle ;
 //  			if(state.max() < POINT_TOLERANCE_2D)
 				currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-				if(currentAngle < 0)
-					currentAngle+=M_PI ;
 				
 // 				std::cout << currentAngle << std::endl ;
 // 			else
@@ -174,6 +171,9 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			range[2] = getState()[2] ;
 			secondMet = false ;
 		}
+		
+		if(firstMet && !firstTension || secondMet && !secondTension)
+			range = 1 ;
 // 		if(tensionFailure)
 // 		{
 // 			inTension = false ;
@@ -201,10 +201,16 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	double E_1 = E ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
-	if(!firstTension)
+		if(!firstTension)
+	{
 		fs = getState()[1] ;
+// 		E_0 *= 0.5 ;
+	}
 	if(!secondTension)
+	{
 		ss = getState()[3] ;
+// 		E_1 *= 0.5 ;
+	}
 	
 // 	if(std::abs(currentAngle- M_PI*.5) < M_PI*.25)
 // 	{
@@ -232,10 +238,14 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 // 																
 // 	exit(0) ;
 	
+		double nunu = nu ;
+// 	if(getState().max() > POINT_TOLERANCE_2D)
+// 		nunu = 0 ;
+		
 	return OrthothropicStiffness( E_0, 
 																E_1, 
-																std::min(E_0, E_1)/(2.*(1.-nu*std::min(1. - fs, 1. - ss))),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
-																nu * ( 1. -  getState().max()), 
+																std::min(E_0, E_1)/(2.*(1.-nunu*std::min(1. - fs, 1. - ss))),/*E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5*/ 
+																nunu * ( 1. -  getState().max()), 
 																currentAngle).getTensor( Point() )*factor ;
 
 
@@ -309,32 +319,40 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
-		if(converged)
-	{
-		getState(true)[0] = std::max(getState(true)[0],getState(true)[2]) ;
-		getState(true)[2] = std::max(getState(true)[0],getState(true)[2]) ;
-		getState(true)[1] = std::max(getState(true)[1],getState(true)[3]) ;
-		getState(true)[3] = std::max(getState(true)[1],getState(true)[3]) ;
-	}
+// 	if(converged)
+// 	{
+// 		getState(true)[0] = std::max(getState(true)[0],getState(true)[2]) ;
+// 		getState(true)[2] = std::max(getState(true)[0],getState(true)[2]) ;
+// 		getState(true)[1] = std::max(getState(true)[1],getState(true)[3]) ;
+// 		getState(true)[3] = std::max(getState(true)[1],getState(true)[3]) ;
+// 	}
  	if(converged && getState()[0] >= thresholdDamageDensity)
  	{
  		firstTensionFailure = true ;
  		getState(true)[0] = 1. ;
+// 		getState(true)[2] = 1. ;
  	}
  	if(converged && getState()[1] >= thresholdDamageDensity)
  	{
  		firstCompressionFailure = true ;
  		getState(true)[1] = 1. ;
+		getState(true)[2] = 1. ;
+		getState(true)[0] = 1. ;
+		getState(true)[3] = 1. ;
  	}
  	if(converged && getState()[2] >= thresholdDamageDensity)
  	{
  		secondTensionFailure = true ;
  		getState(true)[2] = 1. ;
+// 		getState(true)[0] = 1. ;
  	}
  	if(converged && getState()[3] >= thresholdDamageDensity)
  	{
  		secondCompressionFailure = true ;
  		getState(true)[3] = 1. ;
+		getState(true)[2] = 1. ;
+		getState(true)[0] = 1. ;
+		getState(true)[1] = 1. ;
  	}
 }
 
@@ -508,10 +526,12 @@ Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEnti
 	if(!firstTension)
 	{
 		fs = getState()[1] ;
+		E_0 *= 0.5 ;
 	}
 	if(!secondTension)
 	{
 		ss = getState()[3] ;
+		E_1 *= 0.5 ;
 	}
 	
 	E_0 *= ( 1. - fs ) ;

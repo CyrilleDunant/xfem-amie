@@ -163,7 +163,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		
 		stra = tmpstra*iteratorValue ;
 		str = (tmpstr)*iteratorValue ;
-
+		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] )*iteratorValue ;
 		sumFactors += iteratorValue ;
 
 		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
@@ -184,27 +184,20 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 
 			stra += tmpstra*iteratorValue ;
 			str += tmpstr*iteratorValue ;
-				
+			currentAngle += 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] )*iteratorValue ;
 			sumFactors += iteratorValue ;
 		}
 
 		str /= sumFactors ;
 		stra /= sumFactors ;
+		currentAngle /= sumFactors ;
+		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
 // 		tmpstr.resize(3) ;
 // 		tmpstra.resize(3) ;
 // 		s.getParent()->getState().getAverageField(STRAIN_FIELD, tmpstra) ;
 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m, useStressLimit, t) ;
-		currentAngle = 0.5*atan2( smss.second[2],  smss.second[0] -  smss.second[1] ) ;
-// 		std::cout <<   tmpstra[2] << "  "<< tmpstra[0] -  tmpstra[1] << " " << currentAngle << std::endl ;
-		
-		if(currentAngle < 0)
-			currentAngle += M_PI ;
-//		double currentAngle0 = 0.5*atan2( tmpstr[2], tmpstr[0] - tmpstr[1] );
-//		if(currentAngle0 < 0)
-//			currentAngle0 += M_PI ;
-//		currentAngle = 0.5*(currentAngle+currentAngle0) ;
+// 		currentAngle = 0.5*atan2( smss.second[2],  smss.second[0] -  smss.second[1] ) ;
 
-// 		std::cout << str.max() << "  " << stra.max() << std::endl ;
 		return std::make_pair(str, stra) ;
 
 	}
@@ -903,14 +896,14 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
 
 		}
-		currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
+// 		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 		
 		stra = tmpstra*iteratorValue ;
 		str = tmpstr*iteratorValue ;
 
 		sumStressFactors += iteratorValue ;
 		sumStrainFactors += iteratorValue ;
-
+		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] )*iteratorValue ;
 		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 		{
 			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
@@ -936,7 +929,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					stra += tmpstra*iteratorValue ;
 					str += tmpstr*iteratorValue ;
-
+					currentAngle += 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] )*iteratorValue ;
 					sumStrainFactors += iteratorValue ;
 					sumStressFactors += iteratorValue ;
 
@@ -947,8 +940,8 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		str /= sumStressFactors ;
 // 		str += istress ;
 		stra /= sumStrainFactors ;
-		
-		currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
+// 		currentAngle /= sumStrainFactors ;
+		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
 
 // 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
 // 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
@@ -1010,7 +1003,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		}
 		str /= sumStressFactors ;
 		stra /= sumStrainFactors ;
-		currentAngle = 0.5 * atan2(str[3] , str[0] - str[1] ) ;
+		currentAngle = 0.5 * atan2(stra[3] , stra[0] - stra[1] ) ;
 		return std::make_pair(str,stra)  ;
 	}
 	
@@ -1345,9 +1338,9 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		double overlap = (smoothingType == QUARTIC_COMPACT)?3.:4.5 ;
-// 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*1. ) ;
-		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius())*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
+		double overlap = (smoothingType == QUARTIC_COMPACT)?5.:6.5 ;
+		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
+		Circle epsilon( physicalCharacteristicRadius*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree() ;

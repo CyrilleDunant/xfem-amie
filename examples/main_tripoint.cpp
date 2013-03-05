@@ -140,7 +140,7 @@ double supportLever = 1.7 ;//2.5 ;
 double supportMidPointToEndClearance = 0.25 ;
 double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
-double rebarDiametre = sqrt( 4*0.000506/M_PI ) ;
+double rebarDiametre = sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
 double phi = 0. ;
 double psi = 0. ;
@@ -178,7 +178,8 @@ MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
 Function loadFunction("0") ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
+// BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0. ) ;
 
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
@@ -270,7 +271,7 @@ void computeDisplacement()
 void step()
 {
 	
-	size_t nsteps = 3000 ; //16*10;
+	size_t nsteps = 200 ; //16*10;
 	size_t nit = 2 ;
 	size_t tries = 0 ;
 	int totit = 0 ;
@@ -286,26 +287,29 @@ void step()
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-
-		if ( go_on  && v > 0)
+		if ( go_on)
 		{
-			Function x("x") ;
-			Function f = (x)/(platewidth) ;
-			Function df = 3.*f*f-2.*f*f*f ;
-			double l_real = 2e5*tries ;
-			loadFunction = f_negativity(x-platewidth)*(-1e3*2-l_real) ; //5e4*52
-			load->setData( loadFunction ) ;
-			tries++ ;
+			load->setData( load->getData()-0.05e-3 ) ;
 		}
-		else if (v == 0)
-		{
-			Function x("x") ;
-			Function f = (x)/(platewidth) ;
-			Function df = 3.*f*f-2.*f*f*f ;
-			Function loadFunction = f_negativity(x-platewidth)*(-1e3*2) ;
-			load->setData( loadFunction ) ;
-			tries++ ;
-		}
+// 		if ( go_on  && v > 0)
+// 		{
+// 			Function x("x") ;
+// 			Function f = (x)/(platewidth) ;
+// 			Function df = 3.*f*f-2.*f*f*f ;
+// 			double l_real = 2e5*tries ;
+// 			loadFunction = f_negativity(x-platewidth)*(-1e3*2-l_real) ; //5e4*52
+// 			load->setData( loadFunction ) ;
+// 			tries++ ;
+// 		}
+// 		else if (v == 0)
+// 		{
+// 			Function x("x") ;
+// 			Function f = (x)/(platewidth) ;
+// 			Function df = 3.*f*f-2.*f*f*f ;
+// 			Function loadFunction = f_negativity(x-platewidth)*(-1e3*2) ;
+// 			load->setData( loadFunction ) ;
+// 			tries++ ;
+// 		}
 
 		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements(-1, false).size() ) ;
@@ -403,7 +407,7 @@ void step()
 							forceCheck += forces[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
 						}
 
-						if ( true || triangles[k]->getBoundingPoint( p ).y > sampleHeight*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < 0.0001 )
+						if (triangles[k]->getBoundingPoint( p ).y > sampleHeight*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < 0.0001 )
 						{
 							e_xx_0 = std::min(e_xx_0,x[triangles[k]->getBoundingPoint( p ).id * 2 + 1]) ;
 						}
@@ -558,7 +562,7 @@ void step()
 
 		if ( go_on )
 		{
-			displacements.push_back( 1000.*e_xx_0 );
+			displacements.push_back( 1000.*(load->getData()+0.05e-3) );
 			loads.push_back( avg_s_yy/1000. );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
@@ -571,7 +575,7 @@ void step()
 			std::cout << "load :" << avg_s_yy/1000. << std::endl ;
 			std::cout << "load check :" << .4*forceCheck / 1000 << std::endl ;
 			std::cout << "delta :" << delta*1000./deltacount << std::endl ;
-			std::cout << "displacement :" << 1000.*e_xx_0  << std::endl ;
+			std::cout << "displacement :" << 1000.*e_xx_0  << " ; " << 1000.*(load->getData()) << std::endl ;
 			std::cout << "max value :" << x_max << std::endl ;
 			std::cout << "min value :" << x_min << std::endl ;
 			std::cout << "max sigma11 :" << sigma11.max() / 1000000. << std::endl ;
@@ -601,7 +605,7 @@ void step()
 		}
 		else
 		{
-			std::cout << " ( " << avg_s_yy/1000. << "  ,  " <<  1000.*e_xx_0  << " ) "<< std::endl ;
+			std::cout << " ( " << avg_s_yy/1000. << "  ,  " <<  1000.*(load->getData())  << " ) "<< std::endl ;
 		}
 
 
@@ -615,7 +619,7 @@ void step()
 			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
 			
 		}
-		ldfile <<  1000.*e_xx_0 << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
+		ldfile <<  1000.*(load->getData()) << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
 		ldfile.close();
 		if ( true )
 		{
@@ -1715,6 +1719,7 @@ int main( int argc, char *argv[] )
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 // 		
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	m0_steel[2][2] = 0 ;
 
 	Sample box( nullptr, sampleLength*.5, sampleHeight + plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
 	box.setBehaviour( new VoidForm() ) ;
@@ -1766,20 +1771,21 @@ int main( int argc, char *argv[] )
 	rightbottomvoidbulk.setBehaviour( new VoidForm() ) ;
 	
 	
-	
-	Sample rebar0(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 ) ;
+	double rebarcenter = (sampleLength*.5 - rebarEndCover)*.5 ;
+	double rebarlength = (sampleLength - rebarEndCover*2.)*.5 ;
+	Sample rebar0(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
 	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-	Sample rebar1(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+	Sample rebar1(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
 	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
-	Sample rebar2(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 ) ;
+	Sample rebar2(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
 	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-	Sample rebar3(&sample, sampleLength*.5 - rebarEndCover, rebarDiametre, (sampleLength*.5 - rebarEndCover)*.5,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+	Sample rebar3(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
 	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
@@ -1920,6 +1926,7 @@ int main( int argc, char *argv[] )
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.02, -sampleHeight*.5 ) ) ;
 	F.addPoint( new Point( supportLever, -sampleHeight*.5 ) ) ;
+	F.addPoint( new Point( platewidth, sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep( 3200 );
 	

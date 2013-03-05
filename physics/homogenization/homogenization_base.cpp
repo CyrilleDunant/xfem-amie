@@ -628,14 +628,14 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 			{
 			cg[0][0] = 1. ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1. ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)*.25 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)*.5 ;
 			cg *= E/(1.-nu*nu) ;
 			}
 			else
 			{
 			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.25 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.5 ;
 			cg *= E/((1.+nu)*(1.-2.*nu)) ;
 			}
 			return cg ;
@@ -646,9 +646,9 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 			cgg[0][0] = 1. - nu ; cgg[0][1] = nu ; cgg[0][2] = nu ;
 			cgg[1][0] = nu ; cgg[1][1] = 1. - nu ; cgg[1][2] = nu ;
 			cgg[2][0] = nu ; cgg[2][1] = nu ; cgg[2][2] = 1. - nu ;
-			cgg[3][3] = (0.5 - nu)*.25 ;
-			cgg[4][4] = (0.5 - nu)*.25 ;
-			cgg[5][5] = (0.5 - nu)*.25 ;
+			cgg[3][3] = (0.5 - nu)*.5 ;
+			cgg[4][4] = (0.5 - nu)*.5 ;
+			cgg[5][5] = (0.5 - nu)*.5 ;
 			cgg *= E/((1.+nu)*(1.-2.*nu)) ;
 			return cgg ;
 		}
@@ -677,14 +677,14 @@ Matrix Material::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionali
 			{
 			cg[0][0] = 1. ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1. ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)*.5 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu) ;
 			cg *= E/(1.-nu*nu) ;
 			}
 			else
 			{
 			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.5 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu) ;
 			cg *= E/((1.+nu)*(1.-2.*nu)) ;
 			}
 			return cg ;
@@ -714,39 +714,37 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 	{
 		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
 		{
-			Matrix A(2,2) ;
-			A[0][0] = E_1/std::max(E_1, E_2) ; A[0][1] = -E_2/std::max(E_1, E_2) ;
-			A[1][0] = 0 ; A[1][1] = 1. ;
-			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
-			b = inverse2x2Matrix(A)*b ;
-			double nu_12 = b[1];
-			double nu_21 = b[0] ;
+// 			Matrix A(2,2) ;
+// 			A[0][0] = E_1/std::max(E_1, E_2) ; A[0][1] = -E_2/std::max(E_1, E_2) ;
+// 			A[1][0] = 0 ; A[1][1] = 1. ;
+// 			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
+// 			b = inverse2x2Matrix(A)*b ;
+// 			double nu_12 = b[1];
+// 			double nu_21 = b[0] ;
+			
+			//nu_12*nu_21 = nu*nu ;
+			double nu_21 = (nu/E_1)*sqrt(E_1*E_2) ;
+			double nu_12 = (nu/E_2)*sqrt(E_1*E_2) ;
 
 			double gamma = 1./(1.-nu_12*nu_21) ;
-			if(gamma < 0)
-			{
-				nu_21 = 0 ;
-				nu_12 = 0 ;
-				gamma = 0. ;
-			}
 
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
 			
 // 			G = E_1*E_2/(E_1*(1.-nu_12*nu_12)+E_2*(1.-nu_21*nu_21)) ;
 			
-			cg[2][2] = G*0.5 ;
+			cg[2][2] = G ;
 		}
 		else if(E_1 > POINT_TOLERANCE_2D)
 		{
 			cg[0][0] = E_1 ;
-			cg[2][2] = G*0.5 ;
+			cg[2][2] = G ;
 
 		}
 		else if(E_2 > POINT_TOLERANCE_2D)
 		{
 			cg[1][1] = E_2 ;
-			cg[2][2] = G*0.5 ;
+			cg[2][2] = G ;
 		}
 		else
 			cg.array() = 0 ;
@@ -770,12 +768,12 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 
 			cg[0][0] = E_1*(1.-nu32*nu23)/nupe ; cg[0][1] = (nu21-nu23*nu31)*E_1/nupe;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
-			cg[2][2] =  G*0.5 ; //E_1*E_2/(E_1*(1.+nu12)+E_2*(1.+nu21)) ;
+			cg[2][2] =  G ; //E_1*E_2/(E_1*(1.+nu12)+E_2*(1.+nu21)) ;
 		}
 		else if(E_1 > POINT_TOLERANCE_2D)
 		{
 			cg[0][0] = E_1 ;
-			cg[2][2] = G*0.5 ;
+			cg[2][2] = G ;
 		}
 		 else if(E_2 > POINT_TOLERANCE_2D)
 		{

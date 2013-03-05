@@ -228,7 +228,7 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()-6e-5) ;
+			loadt->setData(loadt->getData()+6e-6) ;
 // 			loadr->setData(loadr->getData()-2e-6) ;
 
 // 			loadt->setData(0) ;

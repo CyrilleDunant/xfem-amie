@@ -88,7 +88,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double G,  
 // 		transform /= transform.froebeniusNorm() ;
 // 		double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform) ;
+		param = transform*param*transform.transpose() ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}
@@ -115,7 +115,7 @@ nu((nu_12+nu_21)*.5)
 			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
-		param = (inverse3x3Matrix(transform)*transform)*param ;
+		param = param = (transform*param)*transform.transpose() ;
 
 	}
 	else
@@ -140,7 +140,7 @@ nu((nu_12+nu_21)*.5)
 // 		transform /= transform.froebeniusNorm() ;
 // 				double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform.transpose()) ;
+		param = (transform*param)*transform.transpose() ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}
@@ -167,7 +167,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 			transform[0][0] =  c*c ;  transform[0][1] = s*s ; transform[0][2] =  2.*s*c ;
 			transform[1][0] =  s*s ;  transform[1][1] = c*c ; transform[1][2] = -2.*s*c ;
 			transform[2][0] = -s*c ;  transform[2][1] = s*c ; transform[2][2] =     c*c - s*s ; 
-		param = (inverse3x3Matrix(transform)*transform)*param ;
+		param = (transform*param)*transform.transpose() ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}
@@ -193,7 +193,7 @@ OrthothropicStiffness::OrthothropicStiffness(double E_1, double E_2, double E_3,
 // 		transform /= transform.froebeniusNorm() ;
 // 				double pnorm = param.froebeniusNorm() ;
 		
-		param = transform*(param*transform.transpose()) ;
+		param = (transform*param)*transform.transpose() ;
 		
 // 		param *= pnorm/param.froebeniusNorm() ;
 	}
