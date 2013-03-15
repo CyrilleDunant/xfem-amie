@@ -69,6 +69,63 @@ size_t Tensor::index( std::vector<int> indexes ) const
 	return i ;
 }
 
+size_t Tensor::index( int i ) const 
+{
+	std::vector<int> idx ; idx.push_back(i) ;
+	return index(idx) ;
+}
+
+size_t Tensor::index( int i, int j ) const 
+{
+	std::vector<int> idx ; 
+	idx.push_back(i) ;
+	idx.push_back(j) ;
+	return index(idx) ;
+}
+
+size_t Tensor::index( int i, int j, int k ) const 
+{
+	std::vector<int> idx ; 
+	idx.push_back(i) ;
+	idx.push_back(j) ;
+	idx.push_back(k) ;
+	return index(idx) ;
+}
+
+size_t Tensor::index( int i, int j, int k, int l ) const 
+{
+	std::vector<int> idx ; 
+	idx.push_back(i) ;
+	idx.push_back(j) ;
+	idx.push_back(k) ;
+	idx.push_back(l) ;	
+	return index(idx) ;
+}
+
+size_t Tensor::index( int i, int j, int k, int l, int m ) const 
+{
+	std::vector<int> idx ; 
+	idx.push_back(i) ;
+	idx.push_back(j) ;
+	idx.push_back(k) ;
+	idx.push_back(l) ;
+	idx.push_back(m) ;
+	return index(idx) ;
+}
+
+size_t Tensor::index( int i, int j, int k, int l, int m, int n ) const 
+{
+	std::vector<int> idx ; 
+	idx.push_back(i) ;
+	idx.push_back(j) ;
+	idx.push_back(k) ;
+	idx.push_back(l) ;
+	idx.push_back(m) ;
+	idx.push_back(n) ;
+	return index(idx) ;
+}
+
+
 void Tensor::print() const
 {
 	for(size_t i = 0 ; i < components.size() ; i++)
