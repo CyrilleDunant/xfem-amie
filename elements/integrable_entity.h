@@ -379,6 +379,8 @@ public:
 	
 	IntegrableEntity() ;
 	virtual void getInverseJacobianMatrix(const Point &p, Matrix & ret) const = 0 ;
+	virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2) const { std::cout << "not implemented..." << std::endl ; exit(0) ; } ;
+	virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) const { std::cout << "not implemented..." << std::endl ; exit(0) ; } ;
 	virtual ~IntegrableEntity() ;
 	virtual const Point & getPoint(size_t i) const = 0 ;
 	virtual Point & getPoint(size_t i)  = 0 ;
