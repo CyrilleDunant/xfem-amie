@@ -633,6 +633,8 @@ bool Assembly::make_final()
 		{
 			
 			std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
+			size_t instants = element2d[0]->timePlanes() ;
+			size_t dofsperplane = element2d[0]->getBoundingPoints().size() / instants ;
 			
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
@@ -648,8 +650,11 @@ bool Assembly::make_final()
 	
 					for(size_t k = j+1 ; k< ids.size() ;k++)
 					{
-						map->insert(std::make_pair(ids[j], ids[k])) ;
-						map->insert(std::make_pair(ids[k], ids[j])) ;
+						if(k >= dofsperplane*(instants-1))
+						{
+							map->insert(std::make_pair(ids[j], ids[k])) ;
+							map->insert(std::make_pair(ids[k], ids[j])) ;
+						}
 					}
 				}
 			}

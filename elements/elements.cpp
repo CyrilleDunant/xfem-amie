@@ -8,6 +8,7 @@
 
 #include "elements.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../utilities/tensor.h"
 
 using namespace Mu ;
 
@@ -1263,6 +1264,711 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 	}
 	
 }
+
+int getSubIndexInT2Matrix(int a, int b)
+{
+	// case dX2 dY2 or dT2
+	if(a == b)
+		return a ;
+	// case dXdY or dYdX
+	if(a+b == 1)
+		return 3 ;
+	// case dYdT or dTdY
+	if(a+b == 3)
+		return 4 ;
+	// case dTdX or dXdT
+	if(a+b == 2)
+		return 5 ;
+	// should not happen
+	return 0 ;
+}
+
+int getSubIndexInT3Matrix(int a, int b, int c)
+{
+	// case dX3 or dY3 or dZ3
+	if((a == b) && (a == c))
+		return a ;
+	if((a == b) || (a ==c) || (b == c))
+	{
+		int k = 3*a+c ;
+		if( a == c)
+			k = 3*a+b ;
+		if(b == c)
+			k = 3*b+a ;
+		// case dX2dY
+		if(k == 1)
+			return 3 ;
+		// case dY2dX
+		if(k == 3)
+			return 4 ;
+		// case dY2dT
+		if(k == 5)
+			return 5 ;
+		// case dT2dY
+		if(k == 7)
+			return 6 ;
+		// case dT2dX
+		if(k == 6)
+			return 7 ;
+		// case dX2dT
+		if(k == 2)
+			return 8 ;
+	}
+	// case dXdYdT
+	return 9 ;
+}
+
+double coeffDeriv2(int X, int Y)
+{
+	if(X != Y)
+		return 0.5 ;
+	return 1. ;
+}
+
+double coeffDeriv3(int X, int Y, int T)
+{
+	if(X == Y && X != T)
+		return 0.333333333333333 ;
+	if(X == T && X != Y)
+		return 0.333333333333333 ;		
+	if(Y == T && X != Y)
+		return 0.333333333333333 ;
+	if(X == Y && Y == T)
+		return 0.166666666666666 ;
+	return 1. ;
+}
+
+
+	
+void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2) const 
+{
+	#warning second jacobian matrices not implemented for spatial-only elements
+
+	if(order >= CONSTANT_TIME_LINEAR)
+	{
+		Matrix Jinv ;
+		this->getInverseJacobianMatrix(p, Jinv) ;
+		
+		t2.resize(6,6) ;
+		t1.resize(6,3) ;
+		
+		Tensor tn1(1,3) ;
+		Tensor tn2(2,3) ;
+		Tensor tj1(2,3) ;
+		Tensor tjinv(Jinv, true) ;
+		Tensor tj2(3,3) ;
+		
+		std::vector<Variable> var ;
+		var.push_back(XI) ;
+		var.push_back(ETA) ;
+		var.push_back(TIME_VARIABLE) ;
+
+		VirtualMachine vm ;
+		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+		{
+			for(int a = 0 ; a < 3 ; a++)
+			{
+				tn1(a) = vm.deval( getShapeFunction(i), var[a], p ) ;
+				// tensor of point ;
+				Tensor tp(getBoundingPoint(i), var) ;
+				for(int b = 0 ; b < 3 ; b++)
+				{
+					tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 10*default_derivation_delta) ;
+					tj1(a,b) += tn1(a) * tp(b) ;
+					for(int c = 0 ; c < 3 ; c++)
+					{
+						tj2(a,b,c) += tn2(a,b)*tp(c)   ;
+					}
+				}
+			}
+		}
+		
+		Tensor dXXdxx(4,3) ;
+		for(int x = 0 ; x < 3 ; x++)
+		{
+			for(int y = 0 ; y < 3 ; y++)
+			{
+				for(int X = 0 ; X < 3 ; X++)
+				{
+					for(int Y = 0 ; Y < 3 ; Y++)
+					{
+						dXXdxx(X,Y,x,y) = tjinv(X,x)*tjinv(Y,y) ;
+// 						for(int z = 0 ; z < 3 ; z++)
+// 						{
+// 							dxxdX(x,y,X) += tj1(y,Y)*tjinv(Y,z)*tj2(x,z,X) ;
+// 						}
+					}
+				}
+			}
+		}
+		dXXdxx.threshold( POINT_TOLERANCE_3D ) ;
+		tj2.threshold( POINT_TOLERANCE_3D ) ;
+		
+		Matrix c1(6,3) ;
+		for(int X = 0 ; X < 3 ; X++)
+		{
+			for(int Y = 0 ; Y < 3 ; Y++)
+			{
+				int i = getSubIndexInT2Matrix(X,Y) ;
+				for(int x = 0 ; x < 3 ; x++)
+				{
+					int j = x ;
+					c1[i][j] = tj2(X,Y,x) ;
+					for(int y = 0 ; y < 3 ; y++)
+					{
+						j = getSubIndexInT2Matrix(x,y) ;
+						t2[ j][ i] = dXXdxx(X,Y,x,y) ;
+					}
+				}
+			}
+		}
+		
+		
+		c1 *= -1. ;
+		
+		t1 = t2 * ((Matrix) (c1 * Jinv)) ;
+		
+	}
+}
+
+void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) const 
+{
+	#warning third jacobian matrices not implemented for spatial-only elements
+
+	if(order >= CONSTANT_TIME_LINEAR)
+	{
+		Matrix Jinv ;
+		this->getInverseJacobianMatrix(p, Jinv) ;
+		
+		t3.resize(10,10) ;
+		t2.resize(10,6) ;
+		t1.resize(10,3) ;
+		
+		return ;
+		
+		Matrix j3(10,3) ;
+		Matrix j2(6,3) ;
+		Matrix j1(3,3) ;
+		
+		
+		j1 = Jinv ;
+		invert3x3Matrix(j1) ;
+		
+		std::vector<Variable> var ;
+		var.push_back(XI) ;
+		var.push_back(ETA) ;
+		var.push_back(TIME_VARIABLE) ;
+
+		// tensors of derivative
+		Tensor tn1(1,3) ;
+		Tensor tn2(2,3) ;
+		Tensor tn3(3,3) ;
+
+		// tensor of jacobians
+		Tensor tj1(2,3) ;
+		Tensor tjinv(Jinv, false) ;
+		Tensor tj2(3,3) ;
+		Tensor tj3(4,3) ;
+		
+		
+		
+		VirtualMachine vm ;
+		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+		{
+			for(int a = 0 ; a < 3 ; a++)
+			{
+				tn1(a) = vm.deval( getShapeFunction(i), var[a], p ) ;
+				// tensor of point ;
+				Tensor tp(getBoundingPoint(i), var) ;
+				for(int b = 0 ; b < 3 ; b++)
+				{
+					tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 100*default_derivation_delta) ;
+					tj1(a,b) += tn1(a) * tp(b) ;
+					for(int c = 0 ; c < 3 ; c++)
+					{
+						tn3(a,b,c) = vm.dddeval( getShapeFunction(i), var[a], var[b], var[c],p.x,p.y,p.z,p.t) ;
+						tn3.threshold(POINT_TOLERANCE_3D) ;
+						tj2(a,b,c) += tn2(a,b)*tp(c)  ;
+						for(int d = 0 ; d < 3 ; d++)
+							tj3(a,b,c,d) += tn3(a,b,c)*tp(d) ;
+					}
+				}
+			}
+		}
+		
+		tjinv.threshold( POINT_TOLERANCE_3D ) ;
+		tj1.threshold(POINT_TOLERANCE_3D) ;
+		tj2.threshold(POINT_TOLERANCE_3D) ;
+		tj3.threshold(POINT_TOLERANCE_3D) ;
+		
+		Matrix T1 ;
+		Matrix T2 ;
+		this->getSecondJacobianMatrix(p, T1, T2) ;		
+		Tensor dXXdx(3,3) ;
+		Tensor dXXdxx(4,3) ;
+
+		for(int X = 0 ; X < 3 ; X++)
+		{
+			for(int Y = 0 ; Y < 3 ; Y++)
+			{
+				for(int x = 0 ; x < 3 ; x++)
+				{
+					dXXdx(X,Y,x) = T1[ getSubIndexInT2Matrix(X,Y) ][x] ;
+					for(int y = 0 ; y < 3 ; y++)
+						dXXdxx(X,Y,x,y) = T2[ getSubIndexInT2Matrix(X,Y) ][ getSubIndexInT2Matrix(x,y) ] ;
+				}
+			}
+		}
+		
+		Tensor dxxdX(3,3) ;
+		Tensor dxxdXX(4,3) ;
+		for(int x = 0 ; x < 3 ; x++)
+		{
+			for(int y = 0 ; y < 3 ; y++)
+			{
+				for(int X = 0 ; X < 3 ; X++)
+				{
+					for(int Y = 0 ; Y < 3 ; Y++)
+					{
+						dxxdXX(x,y,X,Y) = tj1(x,X)*tj1(y,Y) ;
+						for(int u = 0 ; u < 3 ; u++)
+							dxxdX(x,y,X) += tj1(y,Y)*tjinv(Y,u)*tj2(x,u,X) ;
+					}
+				}
+			}
+		}
+		
+		Tensor dxxxdX(4,3) ;
+		Tensor dxxxdXX(5,3) ;
+		Tensor dxxxdXXX(6,3) ;
+		Tensor dXXXdxxx(6,3) ;
+		for(int x = 0 ; x < 3 ; x++)
+		{
+			for(int y = 0 ; y < 3 ; y++)
+			{
+				for(int t = 0 ; t < 3 ; t++)
+				{
+					for(int X = 0 ; X < 3 ; X++)
+					{
+						for(int Y = 0 ; Y < 3 ; Y++)
+						{
+							for(int T = 0 ; T < 3 ; T++)
+							{
+								dxxxdXXX(x,y,t,X,Y,T) = tj1(x,X)*tj1(y,Y)*tj1(t,T) ;
+								dXXXdxxx(X,Y,T,x,y,t) = tjinv(X,x)*tjinv(Y,y)*tjinv(T,t) ;
+								for(int u = 0 ; u < 3 ; u++)
+								{
+									dxxxdXX(x,y,t,X,Y) += tj1(t,T)*tjinv(T,u)*tj2(y,u,Y)*tj1(x,X) ; 
+									dxxxdXX(x,y,t,X,Y) += tj1(t,T)*tjinv(T,u)*tj2(x,u,X)*tj1(y,Y) ; 
+									dxxxdXX(x,y,t,X,T) += tj1(t,T)*tjinv(Y,u)*tj2(x,u,X)*tj1(y,Y) ;
+									dxxxdX(x,y,t,X) += tj1(t,T)*tj1(y,Y)*dXXdx(Y,T,u)*tj2(x,u,X) ;
+									for(int v = 0 ; v < 3 ; v++)
+									{
+dxxxdX(x,y,t,X) += tj1(t,T)*tjinv(Y,u)*tj2(x,u,X)*tjinv(T,v)*tj2(y,v,Y) ;
+dxxxdX(x,y,t,X) += tj1(t,T)*tj1(y,Y)*dXXdxx(Y,T,u,v)*tj3(x,u,v,X) ;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		Tensor dxxxdx(4,3) ;
+		Tensor dxxxdxx(5,3) ;
+		for(int x = 0 ; x < 3 ; x++)
+		{
+			for(int y = 0 ; y < 3 ; y++)
+			{
+				for(int t = 0 ; t < 3 ; t++)
+				{
+					for(int X = 0 ; X < 3 ; X++)
+					{
+						for(int u = 0 ; u < 3 ; u++)
+						{
+							dxxxdx(x,y,t,u) += dxxxdX(x,y,t,X) * tjinv(X,u) ;
+							for(int Y = 0 ; Y < 3 ; Y++)
+							{
+								dxxxdx(x,y,t,u) += dxxxdXX(x,y,t,X,Y) * dXXdx(X,Y,u) ;
+								for(int v = 0 ; v < 3 ; v++)
+								{
+									dxxxdxx(x,y,t,u,v) += dxxxdXX(x,y,t,X,Y) * dXXdxx(X,Y,u,v) ;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		Tensor dXXXdx(4,3) ;
+		Tensor dXXXdxx(5,3) ;
+		for(int X = 0 ; X < 3 ; X++)
+		{
+			for(int Y = 0 ; Y < 3 ; Y++)
+			{
+				for(int T = 0 ; T < 3 ; T++)
+				{
+					for(int u = 0 ; u < 3 ; u++)
+					{
+						for(int x = 0 ; x < 3 ; x++)
+						{
+							for(int y = 0 ; y < 3 ; y++)
+							{
+								for(int t = 0 ; t < 3 ; t++)
+								{
+									dXXXdx(X,Y,T,u) += dXXXdxxx(X,Y,T,x,y,t) * dxxxdx(x,y,t,u) ;
+								}
+							}
+						}
+						
+						for(int v = 0 ; v < 3 ; v++)
+						{
+							for(int x = 0 ; x < 3 ; x++)
+							{
+								for(int y = 0 ; y < 3 ; y++)
+								{
+									for(int t = 0 ; t < 3 ; t++)
+									{
+											dXXXdxx(X,Y,T,u,v) += dXXXdxxx(X,Y,T,x,y,t) * dxxxdxx(x,y,t,u,v) ;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		dXXXdx.threshold( POINT_TOLERANCE_3D ) ;
+		dXXXdxx.threshold( POINT_TOLERANCE_3D ) ;
+		dXXXdxxx.threshold( POINT_TOLERANCE_3D ) ;
+		
+		Matrix m1 = dXXXdx.toMatrix(3,1) ;
+		Matrix m2 = dXXXdxx.toMatrix(3,2) ;
+		Matrix m3inv = dXXXdxxx.toMatrix(3,3) ;
+		
+// 		m1.print() ;
+// 		m2.print() ;
+// 		m3inv.print() ;
+//		exit(0) ;
+		
+		t1 = Matrix(10,3) ;
+		t2 = Matrix(10,6) ;
+		t3 = Matrix(10,10) ;
+		
+		t1[6][0] = dXXXdx(1,2,2,0) ;
+		t1[6][1] = dXXXdx(1,2,2,1) ; 
+		t1[6][2] = dXXXdx(1,2,2,2) ;
+		t1[7][0] = dXXXdx(0,2,2,0) ;
+		t1[7][1] = dXXXdx(0,2,2,1) ; 
+		t1[7][2] = dXXXdx(0,2,2,2) ;
+		
+		t2[6][0] = dXXXdxx(1,2,2,0,0) ;
+		t2[6][1] = dXXXdxx(1,2,2,1,1) ;
+		t2[6][2] = dXXXdxx(1,2,2,2,2) ;
+		t2[6][3] = (dXXXdxx(1,2,2,0,1) + dXXXdxx(1,2,2,1,0)) ;
+		t2[6][4] = (dXXXdxx(1,2,2,1,2) + dXXXdxx(1,2,2,2,1)) ;
+		t2[6][5] = (dXXXdxx(1,2,2,2,0) + dXXXdxx(1,2,2,0,2)) ;
+		t2[7][0] = dXXXdxx(0,2,2,0,0) ;
+		t2[7][1] = dXXXdxx(0,2,2,1,1) ;
+		t2[7][2] = dXXXdxx(0,2,2,2,2) ;
+		t2[7][3] = (dXXXdxx(0,2,2,0,1) + dXXXdxx(0,2,2,1,0)) ;
+		t2[7][4] = (dXXXdxx(0,2,2,1,2) + dXXXdxx(0,2,2,2,1)) ;
+		t2[7][5] = (dXXXdxx(0,2,2,2,0) + dXXXdxx(0,2,2,0,2)) ;
+
+// 		t3[6][0] = dXXXdxxx(1,2,2,0,0,0) ;
+// 		t3[6][1] = dXXXdxxx(1,2,2,1,1,1) ;
+// 		t3[6][2] = dXXXdxxx(1,2,2,2,2,2) ;
+// 		t3[6][3] = dXXXdxxx(1,2,2,0,0,1) + dXXXdxxx(1,2,2,0,1,0) + dXXXdxxx(1,2,2,1,0,0) ;
+// 		t3[6][4] = dXXXdxxx(1,2,2,1,1,0) + dXXXdxxx(1,2,2,0,1,1) + dXXXdxxx(1,2,2,1,0,1)  ;
+// 		t3[6][5] = dXXXdxxx(1,2,2,1,1,2) + dXXXdxxx(1,2,2,1,2,1) + dXXXdxxx(1,2,2,2,1,1)  ;
+// 		t3[6][6] = dXXXdxxx(1,2,2,2,2,1) + dXXXdxxx(1,2,2,2,1,2) + dXXXdxxx(1,2,2,1,2,2)  ;
+// 		t3[6][7] = dXXXdxxx(1,2,2,2,2,0) + dXXXdxxx(1,2,2,0,2,2) + dXXXdxxx(1,2,2,2,0,2)  ;
+// 		t3[6][8] = dXXXdxxx(1,2,2,0,0,2) + dXXXdxxx(1,2,2,0,2,0) + dXXXdxxx(1,2,2,2,0,0)  ;
+// 		t3[6][9] = dXXXdxxx(1,2,2,0,1,2) + dXXXdxxx(1,2,2,0,2,1) + dXXXdxxx(1,2,2,1,2,0) ;
+// 		t3[6][9] += dXXXdxxx(1,2,2,1,0,2) + dXXXdxxx(1,2,2,2,0,1) + dXXXdxxx(1,2,2,2,1,0) ;
+// 		t3[7][0] = dXXXdxxx(0,2,2,0,0,0) ;
+// 		t3[7][1] = dXXXdxxx(0,2,2,1,1,1) ;
+// 		t3[7][2] = dXXXdxxx(0,2,2,2,2,2) ;
+// 		t3[7][3] = dXXXdxxx(0,2,2,0,0,1) + dXXXdxxx(0,2,2,0,1,0) + dXXXdxxx(0,2,2,1,0,0) ;
+// 		t3[7][4] = dXXXdxxx(0,2,2,1,1,0) + dXXXdxxx(0,2,2,0,1,1) + dXXXdxxx(0,2,2,1,0,1);
+// 		t3[7][5] = dXXXdxxx(0,2,2,1,1,2) + dXXXdxxx(0,2,2,1,2,1) + dXXXdxxx(0,2,2,2,1,1) ;
+// 		t3[7][6] = dXXXdxxx(0,2,2,2,2,1) + dXXXdxxx(0,2,2,2,1,2) + dXXXdxxx(0,2,2,1,2,2) ;
+// 		t3[7][7] = dXXXdxxx(0,2,2,2,2,0) + dXXXdxxx(0,2,2,0,2,2) + dXXXdxxx(0,2,2,2,0,2)  ;
+// 		t3[7][8] = dXXXdxxx(0,2,2,0,0,2) + dXXXdxxx(0,2,2,0,2,0) + dXXXdxxx(0,2,2,2,0,0);
+// 		t3[7][9] = dXXXdxxx(0,2,2,0,1,2) + dXXXdxxx(0,2,2,0,2,1) + dXXXdxxx(0,2,2,1,2,0) ;
+// 		t3[7][9] += dXXXdxxx(0,2,2,1,0,2) + dXXXdxxx(0,2,2,2,0,1) + dXXXdxxx(0,2,2,2,1,0) ;
+		
+		t1 *= 0. ;
+		t2 *= 0. ;
+// 		for(int i = 0 ; i < 10 ; i++)
+// 		{
+// 			if(i < 3)
+// 			{
+// 				t1[6][i] = -m1[8][i] ;
+// 				t1[7][i] = -m1[17][i] ;
+// // 				//dXXX
+// // 				t1[0][i] = d1[0][i] ;
+// // 				t1[1][i] = d1[13][i] ;
+// // 				t1[2][i] = d1[26][i] ;
+// // 				//dXXY
+// // 				t1[3][i] = (d1[1][i] + d1[3][i] + d1[9][i])/3. ;
+// // 				t1[4][i] = (d1[4][i] + d1[10][i] + d1[12][i])/3. ;
+// // 				t1[5][i] = (d1[14][i] + d1[16][i] + d1[22][i])/3. ;
+// // 				t1[6][i] = (d1[17][i] + d1[23][i] + d1[25][i])/3. ;
+// // 				t1[7][i] = (d1[8][i] + d1[20][i] + d1[24][i])/3. ;
+// // 				t1[8][i] = (d1[2][i] + d1[6][i] + d1[18][i])/3. ;
+// // 				//dXYT
+// // 				t1[9][i] = (d1[5][i] + d1[7][i] + d1[11][i] + d1[15][i] + d1[19][i] + d1[21][i])/6. ;
+// 			}
+// 			if(i < 6)
+// 			{
+// 				t2[6][i] = -m2[8][i] ;
+// 				t2[7][i] = -m2[17][i] ;
+// // 				t2[0][i] = d2[0][i] ;
+// // 				t2[1][i] = d2[13][i] ;
+// // 				t2[2][i] = d2[26][i] ;
+// // 
+// // 				t2[3][i] = (d2[1][i] + d2[3][i] + d2[9][i])/3. ;
+// // 				t2[4][i] = (d2[4][i] + d2[10][i] + d2[12][i])/3. ;
+// // 				t2[5][i] = (d2[14][i] + d2[16][i] + d2[22][i])/3. ;
+// // 				t2[6][i] = (d2[17][i] + d2[23][i] + d2[25][i])/3. ;
+// // 				t2[7][i] = (d2[8][i] + d2[20][i] + d2[24][i])/3. ;
+// // 				t2[8][i] = (d2[2][i] + d2[6][i] + d2[18][i])/3. ;
+// // 			  
+// // 				t2[9][i] = (d2[5][i] + d2[7][i] + d2[11][i] + d2[15][i] + d2[19][i] + d2[21][i])/6. ;
+// 			}
+// 			t3[6][i] = m3inv[8][i] ;
+// 			t3[7][i] = m3inv[17][i] ;
+// // 			t3[0][i] = m3inv[0][i] ;
+// // 			t3[1][i] = m3inv[13][i] ;
+// // 			t3[2][i] = m3inv[26][i] ;
+// // 
+// // 			t3[3][i] = (m3inv[1][i] + m3inv[3][i] + m3inv[9][i])/1. ;
+// // 			t3[4][i] = (m3inv[4][i] + m3inv[10][i] + m3inv[12][i])/1. ;
+// // 			t3[5][i] = (m3inv[14][i] + m3inv[16][i] + m3inv[22][i])/1. ;
+// // 			t3[6][i] = (m3inv[17][i] + m3inv[23][i] + m3inv[25][i])/1. ;
+// // 			t3[7][i] = (m3inv[8][i] + m3inv[20][i] + m3inv[24][i])/1. ;
+// // 			t3[8][i] = (m3inv[2][i] + m3inv[6][i] + m3inv[18][i])/1. ;
+// // 
+// // 			t3[9][i] = (m3inv[5][i] + m3inv[7][i] + m3inv[11][i] + m3inv[15][i] + m3inv[19][i] + m3inv[21][i])/6. ;
+// // 		  
+// 		}
+		
+		
+		
+// 		t1 = (Matrix) (t3 * d1) ;//( (Matrix) ( d1*Jinv ) + (Matrix) ( d2*T1 ) ) );
+// 		t2 = (Matrix) (t3 * d2) ;//( (Matrix) ( d2*T2) )  );
+
+//  		t1.print() ;
+// 		std::cout << std::endl ;
+// 		t2.print() ;
+// 		std::cout << std::endl ;
+// 		t3.print() ;
+// 		std::cout << std::endl ;
+//		exit(0) ;
+		
+
+		
+		
+/*			double dxidxi = vm.ddeval( getShapeFunction(i), XI, XI, p, 100*default_derivation_delta ) ;
+			double dxideta = vm.ddeval( getShapeFunction(i), XI, ETA, p, 100*default_derivation_delta ) ;
+			double dxidtau = vm.ddeval( getShapeFunction(i), XI, TIME_VARIABLE, p, 100*default_derivation_delta ) ;
+			double detadxi = vm.ddeval( getShapeFunction(i), ETA, XI, p, 100*default_derivation_delta ) ;
+			double detadeta = vm.ddeval( getShapeFunction(i), ETA, ETA, p, 100*default_derivation_delta ) ;
+			double detadtau = vm.ddeval( getShapeFunction(i), ETA, TIME_VARIABLE, p, 100*default_derivation_delta ) ;
+			double dtaudxi = vm.ddeval( getShapeFunction(i), TIME_VARIABLE, XI, p, 100*default_derivation_delta ) ;
+			double dtaudeta = vm.ddeval( getShapeFunction(i), TIME_VARIABLE, ETA, p, 100*default_derivation_delta ) ;
+			double dtaudtau = vm.ddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, p, 100*default_derivation_delta ) ;
+			
+			double dxidxidxi = vm.dddeval( getShapeFunction(i), XI, XI, XI, p.x,p.y,p.z,p.t) ;
+			double detadetadeta = vm.dddeval( getShapeFunction(i), ETA, ETA, ETA, p.x,p.y,p.z,p.t) ;
+			double dtaudtaudtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			
+			double dxidxideta = vm.dddeval( getShapeFunction(i), XI, XI, ETA, p.x,p.y,p.z,p.t) ;
+			double dxidetadxi = vm.dddeval( getShapeFunction(i), XI, ETA, XI, p.x,p.y,p.z,p.t) ;
+			double detadxidxi = vm.dddeval( getShapeFunction(i), ETA, XI, XI, p.x,p.y,p.z,p.t) ;
+			double dxidxidtau = vm.dddeval( getShapeFunction(i), XI, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dxidtaudxi = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
+			double dtaudxidxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, XI, p.x,p.y,p.z,p.t) ;
+
+			double detadetadxi = vm.dddeval( getShapeFunction(i), ETA, ETA, XI, p.x,p.y,p.z,p.t) ;
+			double detadxideta = vm.dddeval( getShapeFunction(i), ETA, XI, ETA, p.x,p.y,p.z,p.t) ;
+			double dxidetadeta = vm.dddeval( getShapeFunction(i), XI, ETA, ETA, p.x,p.y,p.z,p.t) ;
+			double detadetadtau = vm.dddeval( getShapeFunction(i), ETA, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double detadtaudeta = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
+			double dtaudetadeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, ETA, p.x,p.y,p.z,p.t) ;
+
+			double dtaudtaudxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
+			double dtaudxidtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dxidtaudtau = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dtaudtaudeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
+			double dtaudetadtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double detadtaudtau = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			
+			double dxidetadtau = vm.dddeval( getShapeFunction(i), XI, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dxidtaudeta = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
+			double detadxidtau = vm.dddeval( getShapeFunction(i), ETA, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double detadtaudxi = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
+			double dtaudxideta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, ETA, p.x,p.y,p.z,p.t) ;
+			double dtaudetadxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, XI, p.x,p.y,p.z,p.t) ;
+
+			
+			j2[0][0] += dxidxi * getBoundingPoint(i).x ;
+			j2[0][1] += dxidxi * getBoundingPoint(i).y ;
+			j2[0][2] += dxidxi * getBoundingPoint(i).t ;
+			
+			j2[1][0] += detadeta * getBoundingPoint(i).x ;
+			j2[1][1] += detadeta * getBoundingPoint(i).y ;
+			j2[1][2] += detadeta * getBoundingPoint(i).t ;
+			
+			j2[2][0] += dtaudtau * getBoundingPoint(i).x ;
+			j2[2][1] += dtaudtau * getBoundingPoint(i).y ;
+			j2[2][2] += dtaudtau * getBoundingPoint(i).t ;
+			
+			j2[3][0] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).x ;
+			j2[3][1] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).y ;
+			j2[3][2] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).t ;
+
+			j2[4][0] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).x ;
+			j2[4][1] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).y ;
+			j2[4][2] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).t ;
+			
+			j2[5][0] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).x ;
+			j2[5][1] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).y ;
+			j2[5][2] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).t ;
+			
+			
+			
+			
+			
+			
+			j3[0][0] += dxidxidxi * getBoundingPoint(i).x ;
+			j3[0][1] += dxidxidxi * getBoundingPoint(i).y ;
+			j3[0][2] += dxidxidxi * getBoundingPoint(i).t ;
+			
+			j3[1][0] += detadetadeta * getBoundingPoint(i).x ;
+			j3[1][1] += detadetadeta * getBoundingPoint(i).y ;
+			j3[1][2] += detadetadeta * getBoundingPoint(i).t ;
+
+			j3[2][0] += dtaudtaudtau * getBoundingPoint(i).x ;
+			j3[2][1] += dtaudtaudtau * getBoundingPoint(i).y ;
+			j3[2][2] += dtaudtaudtau * getBoundingPoint(i).t ;
+			
+			j3[3][0] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).x ;
+			j3[3][1] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).y ;
+			j3[3][2] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).t ;
+			
+			j3[4][0] += (detadetadxi + detadxideta + dxidetadeta) /3. * getBoundingPoint(i).x ;
+			j3[4][1] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).y ;
+			j3[4][2] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).t ;
+			
+			j3[5][0] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).x ;
+			j3[5][1] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).y ;
+			j3[5][2] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).t ;
+			
+			j3[6][0] += (dtaudtaudeta + dtaudetadtau + detadtaudtau) /3. * getBoundingPoint(i).x ;
+			j3[6][1] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).y ;
+			j3[6][2] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).t ;
+			
+			j3[7][0] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).x ;
+			j3[7][1] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).y ;
+			j3[7][2] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).t ;
+			
+			j3[8][0] += (dxidxidtau + dxidtaudxi + dtaudxidxi) /3. * getBoundingPoint(i).x ;
+			j3[8][1] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).y ;
+			j3[8][2] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).t ;
+			
+			j3[9][0] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).x ;
+			j3[9][1] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).y ;
+			j3[9][2] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).t ;*/
+			
+			
+		
+/*		for(size_t i = 0 ; i < j2.numRows() ; i++)
+		{
+			for(size_t j = 0 ; j < j2.numCols() ; j++)
+			{
+				if( std::abs(j2[i][j]) < POINT_TOLERANCE_3D)
+					j2[i][j] = 0 ;
+			}
+		}
+
+		for(size_t i = 0 ; i < j3.numRows() ; i++)
+		{
+			for(size_t j = 0 ; j < j3.numCols() ; j++)
+			{
+				if( std::abs(j3[i][j]) < POINT_TOLERANCE_3D)
+					j3[i][j] = 0 ;
+			}
+		}*/
+
+/*		Matrix d2(10,6) ;
+		for(size_t i = 0 ; i < 3 ; i++)
+		{
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				d2[i][j] = 3. * j2[i][j]*j1[i][j] ;		
+				d2[i][j+3] = 3. * (j2[i][j]*j1[i][(j+1)%3]+j2[i][(j+1)%3]*j1[i][j]) ;
+				
+				d2[3+i*2][j] = 3. * (j2[i][j]*j1[(i+1)%3][j] + 2*(j2[3+i][j]*j1[i][j])) ;
+				d2[3+i*2][j+3] = 3. * (j2[i][j]*j1[(i+1)%3][(j+1)%3] + 2*(j2[3+i][j]*j1[i][(j+1)%3]) + j2[i][(j+1)%3]*j1[(i+1)%3][j] + 2*(j2[3+i][(j+1)%3]*j1[i][j])) ;
+				
+				d2[3+i*2+1][j] = 3. * (j2[(i+1)%3][j]*j1[i][j] + 2*(j2[3+i][j]*j1[(i+1)%3][j])) ;
+				d2[3+i*2+1][j+3] = 3. * ( j2[(i+1)%3][j]*j1[i][(j+1)%3] + 2*(j2[3+i][j]*j1[(i+1)%3][(j+1)%3]) + j2[(i+1)%3][(j+1)%3]*j1[i][j] + 2*(j2[3+i][j]*j1[(i+1)%3][j])) ;
+				
+				d2[9][j] += 2*( 2*j2[3+i][j]*j1[(i+2)%3][j] + j2[(i+2)%3+3][j]*j1[(i+1)%3][j] ) ;
+				d2[9][j+3] += 2*( 2*j2[3+i][(j+1)%3]*j1[(i+2)%3][j] + 2*j2[3+i][j]*j1[(i+2)%3][(j+1)%3] + j2[(i+2)%3+3][(j+1)%3]*j1[(i+1)%3][j] + j2[(i+2)%3+3][j]*j1[(i+1)%3][(j+1)%3] ) ;
+			}
+		}
+
+// 		j1.print() ;
+// 		std::cout << std::endl ;
+// 		j2.print() ;
+// 		std::cout << std::endl ;
+// 		d2.print() ;
+// 		std::cout << std::endl ;
+
+		
+		Matrix c1 ;
+		Matrix c2 ;		
+		this->getSecondJacobianMatrix( p, c1, c2) ;
+		
+		Matrix d3(10,10) ;
+		for(size_t i = 0 ; i < 3 ; i++)
+		{
+			for(size_t j = 0 ; j < 3 ; j++)
+			{
+				d3[i][j] = Jinv[i][j]*c2[i][j] ;
+				d3[i][3+j*2] = Jinv[i][(j+1)%3]*c2[i][j] + Jinv[i][j]*c2[i][j+3] ;
+				d3[i][3+j*2+1] = Jinv[i][j]*c2[i][(j+1)%3] + Jinv[i][(j+1)%3]*c2[i][j+3] ;
+				d3[i][9] += Jinv[i][(j+2)%3]*c2[i][j+3] ;
+				
+				d3[3+i*2][j] = Jinv[(i+1)%3][j]*c2[i][j] + Jinv[i][j]*c2[i+3][j] ;
+				d3[3+i*2][3+j*2] = Jinv[(i+1)%3][(j+1)%3]*c2[i][j] + Jinv[(i+1)%3][j]*c2[i][j+3] + Jinv[i][(j+1)%3]*c2[i+3][j] + Jinv[i][j] * c2[i+3][j+3] ;
+				d3[3+i*2][3+j*2+1] = Jinv[(i+1)%3][j]*c2[i][(j+1)%3] + Jinv[(i+1)%3][(j+1)%3]*c2[i][j+3] + Jinv[i][j]*c2[i+3][(j+1)%3] + Jinv[i][(j+1)%3] * c2[i+3][j+3] ;
+				d3[3+i*2][9] += Jinv[(i+1)%3][(j+2)%3]*c2[i][j+3] + Jinv[i][(j+2)%3]*c2[i+3][j+3] ;
+ 			  
+				d3[3+i*2+1][j] = Jinv[i][j]*c2[(i+1)%3][j] + Jinv[(i+1)%3][j]*c2[i+3][j] ;
+				d3[3+i*2+1][3+j*2] = Jinv[i][(j+1)%3]*c2[(i+1)%3][j] + Jinv[i][j]*c2[(i+1)%3][j+3] + Jinv[(i+1)%3][(j+1)%3]*c2[i+3][j] + Jinv[(i+1)%3][j] * c2[i+3][j+3] ;
+				d3[3+i*2+1][3+j*2+1] = Jinv[i][j]*c2[(i+1)%3][(j+1)%3] + Jinv[i][(j+1)%3]*c2[(i+1)%3][j+3] + Jinv[(i+1)%3][j]*c2[i+3][(j+1)%3] + Jinv[(i+1)%3][(j+1)%3] * c2[i+3][j+3] ;
+				d3[3+i*2+1][9] += Jinv[i][(j+2)%3]*c2[(i+1)%3][j+3] + Jinv[(i+1)%3][(j+2)%3]*c2[i+3][j+3] ;
+				
+				d3[9][j] += Jinv[i][j]*c2[(i+1)%3+3][j] ;
+				d3[9][3+j*2] += Jinv[i][(j+1)%3]*c2[(i+1)%3+3][j] + Jinv[i][j]*c2[(i+1)%3+3][j+3] ;
+				d3[9][3+j*2+1] += Jinv[i][j]*c2[(i+1)%3+3][(j+1)%3] + Jinv[i][(j+1)%3]*c2[(i+1)%3+3][j+3] ;
+				d3[9][9] += Jinv[(i+2)%3][j]*c2[i+3][3+(j+1)%3] ;
+			}
+		} 
+		
+		Matrix d1 = j3 ;
+		
+	*/	
+	}
+}
+
 	
 void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 {

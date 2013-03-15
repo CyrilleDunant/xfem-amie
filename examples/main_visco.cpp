@@ -87,76 +87,151 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 1., 1.,0.5,0.5) ;
+Sample box(nullptr, 1., 1.,0.,0.) ;
+double decrease = 1. ;
 
-double s2d(double s)
+double fr(Point p, double t)
 {
-	return s/(24*60*60) ;
+	double r = std::sqrt(p.x*p.x+p.y*p.y) ;
+	if(r < 0.24 || std::abs(p.x) >= 0.5 || std::abs(p.y) >= 0.5 || decrease <= 0)
+		return 0. ;
+	double rmax = 0.5 ;
+	if(p.y > 0 && p.y > std::abs(p.x))
+	{
+		double xtmp = std::abs(p.x)*0.5/p.y ;
+		rmax = std::sqrt(xtmp*xtmp+0.5*0.5) ;
+	}
+	else if(p.y < 0 && p.y < -std::abs(p.x))
+	{
+		double xtmp = std::abs(p.x)*0.5/p.y ;
+		rmax = std::sqrt(xtmp*xtmp+0.5*0.5) ;
+	}
+	else if(p.x > 0 && p.x > std::abs(p.y))
+	{
+		double ytmp = std::abs(p.y)*0.5/p.x ;
+		rmax = std::sqrt(ytmp*ytmp+0.5*0.5) ;
+	}
+	else if(p.x < 0 && p.x < -std::abs(p.y))
+	{
+		double ytmp = std::abs(p.y)*0.5/p.x ;
+		rmax = std::sqrt(ytmp*ytmp+0.5*0.5) ;
+	}
+	double x = (rmax-r)/(rmax-0.25) ;
+	if(decrease <= 0)
+	{
+		return 0. ;
+	}
+	return x*(1.-exp(-t/decrease))*(0.3-0.25)/0.25 ;
+	
 }
 
-double getMinDisplacement(const Vector & x)
+double fx(Point p, double t)
 {
-	double ret = x[0] ;
-	for(size_t i = 0 ; i < x.size()/6 ; i++)
-	{
-		if(x[i*6] < ret)
-			ret = x[i*6] ;
-		if(x[i*6+1] < ret)
-			ret = x[i*6+1] ;
-	}
-	return ret ;
+	if(std::abs(p.y) == 0.5)
+		return p.x ;
+	if(decrease == 0)
+		return p.x ;
+	if(decrease == -1)
+		return p.x*0.75 ;
+	return p.x*(1.+fr(p,t)) ;
+}
+
+double fy(Point p, double t)
+{
+	if(std::abs(p.y) == 0.5)
+		return p.y ;
+	if(decrease == 0)
+		return p.y ;
+	if(decrease == -1)
+		return p.y*0.75 ;
+	return p.y*(1.+fr(p,t)) ;
 }
 
 int main(int argc, char *argv[])
 {
-	double tau = 3 ;
-
+	double timestep = atof(argv[1]) ;
+	decrease = atof(argv[2]) ;
+	int sampling = (int) atof(argv[3]) ;
+  
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(1) ;
+	F.setSamplingNumber(sampling) ;
 	
-	Matrix e = (new ElasticOnlyPasteBehaviour())->param ;
-// 	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e)) ;
-// 	box.setBehaviour(new Viscoelasticity(PURE_VISCOSITY, e)) ;
-// 	box.setBehaviour(new Viscoelasticity(KELVIN_VOIGT, e, e*100)) ;
-	box.setBehaviour(new ViscoelasticityAndFracture(MAXWELL, e, e*100, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage())) ;
-// 	box.setBehaviour(new Viscoelasticity(BURGER, e, e*200, e, e*10)) ;
+	Matrix e = (new ElasticOnlyPasteBehaviour(1e9, 0.3))->param ;
+  	box.setBehaviour(new Viscoelasticity(BURGER, e*30, e*30*300, e*14, e*14*5000)) ;
 
+	Inclusion * hole = new Inclusion(0.25, 0.,0.) ;
+	if(decrease < 0)
+		hole = new Inclusion(0.3,0.,0.) ;
+	hole->setBehaviour( new VoidForm() ) ;
+	F.addFeature( &box, hole) ;
+	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setDeltaTime(tau) ;
+	F.setDeltaTime(timestep) ;
 
-	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
-	srand(0) ;
 	F.step() ;
+	std::cout << "hip" << 0. << "\t" << 0.25+(1.-exp(-0./decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
 
-	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.0001, 1)  ;
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6) ;
+	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.0005, 1) ;
 	F.addBoundaryCondition(disp) ;
-//	F.addBoundaryCondition(stress) ;
 
 	F.step() ;
 
-	double time = tau ;
+	double time = timestep ;	
+	std::cout << "hap" << time << "\t" << 0.25+(1.-exp(-time/decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
+	
+	disp->setData(-0.001) ;
+	
+	F.step() ;
+	time += timestep ;	
+	std::cout << "hop" << time << "\t" << 0.25+(1.-exp(-time/decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
 
-	std::cout << time << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1] << std::endl ;
-
-	while(time < 150)
+	std::vector<Point> nodes = F.getNodes() ;
+	
+	while(time < 1500)
 	{
-// 		if(time > 5)
-// 			disp->setData((1+time/tau)*(-0.0001)) ;
 		F.step() ;
 
-		std::cout << time << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
-		time += tau ;
+		
+		time += timestep ;
+		std::cout << time << "\t" << 0.25*(1.+fr(Point(0.25,0.), time))  << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,0)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,0)[1]  << std::endl ;
 
+		
+		std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
+		std::valarray<bool> done(F.getDisplacements().size()) ;
+		done = (decrease <= 0) ;
+		
+		if(!done[0])
+		{
+			for(size_t i = 0 ; i < tri.size() ; i++)
+			{
+				for(size_t j = 0 ; j < 3 ; j++)
+				{
+					if(!done[tri[i]->getBoundingPoint(j).id])
+					{
+						done[tri[i]->getBoundingPoint(j).id] = true ;
+						tri[i]->getBoundingPoint(j).x = tri[i]->getBoundingPoint(j+3).x ;
+						tri[i]->getBoundingPoint(j).y = tri[i]->getBoundingPoint(j+3).y ;
+						tri[i]->getBoundingPoint(j+3).x = fx(nodes[tri[i]->getBoundingPoint(j).id], time-timestep) ;
+						tri[i]->getBoundingPoint(j+3).y = fy(nodes[tri[i]->getBoundingPoint(j).id], time-timestep);
+					}
+				}
+				tri[i]->clearElementaryMatrix() ;
+				tri[i]->moved = true ;
+			}
+		}
 	}
-	
+
+	TriangleWriter writer("yop", &F, 1) ;
+	writer.getField(TWFT_STIFFNESS) ;
+	writer.write() ;
+
 		
 	return 0 ;
 }

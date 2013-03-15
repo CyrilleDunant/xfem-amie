@@ -32,13 +32,15 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;
-		p_.t = t ;
+//		p_.t = t ;
 		Vector tmp = ret ;
 		getField(f, p_, tmp, true, dummy) ;
-		ret += tmp*gp.gaussPoints[i].second ;
+		ret += tmp *gp.gaussPoints[i].second ;
 		total += gp.gaussPoints[i].second ;
 	}
-	ret /= total ;
+	Triangle tprev(parent->getBoundingPoint(0), parent->getBoundingPoint(1), parent->getBoundingPoint(2)) ;
+	Triangle tnext(parent->getBoundingPoint(3), parent->getBoundingPoint(4), parent->getBoundingPoint(5)) ;
+	ret /=  total ;//tprev.area() + (t+1)/2*(tnext.area() - tprev.area())  ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
@@ -140,17 +142,22 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			{			  
 				double x_xi = 0;
 				double x_eta = 0;
+				double x_tau = 0 ;
 				double y_xi = 0;
 				double y_eta = 0;
+				double y_tau = 0 ;
 				
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
 					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+					double f_tau = vm.deval( parent->getShapeFunction( j ), TIME_VARIABLE, p_ ) ;
 					x_xi += f_xi * displacements[j * totaldof] ;
 					x_eta += f_eta * displacements[j * totaldof] ;
+					x_tau += f_tau * displacements[j * totaldof] ;
 					y_xi += f_xi * displacements[j * totaldof + 1] ;
 					y_eta += f_eta * displacements[j * totaldof + 1] ;
+					y_tau += f_tau * displacements[j * totaldof + 1] ;
 				}
 
 				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
@@ -166,9 +173,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 
 				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
-				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] + x_tau * Jinv[0][2] ;
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] + y_tau * Jinv[1][2] ;
+				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1]  + x_tau * Jinv[1][2]  + y_tau * Jinv[0][2] );
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 			{
@@ -255,20 +262,25 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			{			 
 				Vector dx(0., totaldof) ;
 				Vector dy(0., totaldof) ;
+				Vector dt(0., totaldof) ;
 			  
 				double x_xi = 0;
 				double x_eta = 0;
+				double x_tau = 0;
 				double y_xi = 0;
 				double y_eta = 0;
+				double y_tau = 0;
 				
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
 					double f_xi = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
 					double f_eta = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+					double f_tau = vm.deval( parent->getShapeFunction( j ), TIME_VARIABLE, p_ ) ;
 					for(size_t i = 0 ; i < totaldof ; i++)
 					{
 						dx[i] += f_xi  * displacements[j * totaldof + i] ;
 						dy[i] += f_eta * displacements[j * totaldof + i] ;
+						dt[i] += f_tau * displacements[j * totaldof + i] ;
 					}
 					
 /*					x_xi += f_xi * displacements[j * totaldof] ;
@@ -281,10 +293,12 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				{
 					double f_xi = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
 					double f_eta = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+					double f_tau = vm.deval( parent->getEnrichmentFunction( j ), TIME_VARIABLE, p_ ) ;
 					for(size_t i = 0 ; i < totaldof ; i++)
 					{
 						dx[i] += f_xi  * enrichedDisplacements[j * totaldof + i] ;
 						dy[i] += f_eta * enrichedDisplacements[j * totaldof + i] ;
+						dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
 					}
 
 /*					x_xi += f_xi * enrichedDisplacements[j * totaldof] ;
@@ -299,11 +313,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				{
 					x_xi  = dx[ i * realdof + 0 ] ;
 					x_eta = dy[ i * realdof + 0 ] ;
+					x_tau = dt[ i * realdof + 0 ] ;
 					y_xi  = dx[ i * realdof + 1 ] ;
 					y_eta = dy[ i * realdof + 1 ] ;
-					ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-					ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+					y_tau = dt[ i * realdof + 1 ] ;
+					ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] + x_tau * Jinv[0][2];
+					ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] + y_tau * Jinv[1][2] ;
+					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] + x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
 //					std::cout << ret.size() << std::endl ;
 				}
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
@@ -664,17 +680,45 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			{			  
 				double x_xi = 0;
 				double x_eta = 0;
+				
 				double y_xi = 0;
 				double y_eta = 0;
+
+				Vector Xdx(3) ; Xdx = 0 ;
+				Vector Xdxx(6) ; Xdxx = 0 ;
+				Vector Ydx(3) ; Ydx = 0 ;
+				Vector Ydxx(6) ; Ydxx = 0 ;
+				
+				Vector xdx(3) ;
+				Vector xdxx(6) ;
 				
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
-					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ , 1e-5) ;
-					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ , 1e-5) ;
-					x_xi += f_xi * displacements[j * totaldof] ;
-					x_eta += f_eta * displacements[j * totaldof] ;
-					y_xi += f_xi * displacements[j * totaldof + 1] ;
-					y_eta += f_eta * displacements[j * totaldof + 1] ;
+					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ ) ;
+					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_) ;
+
+					xdx[0] = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+					xdx[1] = vm.deval( parent->getShapeFunction( j ), ETA, p_) ;
+					xdx[2] = vm.deval( parent->getShapeFunction( j ), TIME_VARIABLE, p_ ) ;
+					
+					xdxx[0] = vm.ddeval( parent->getShapeFunction( j ), XI, XI, p_ , 1e-5) ;
+					xdxx[1] = vm.ddeval( parent->getShapeFunction( j ), ETA, ETA, p_ , 1e-5) ;
+					xdxx[2] = vm.ddeval( parent->getShapeFunction( j ), TIME_VARIABLE, TIME_VARIABLE, p_ , 1e-5) ;
+					xdxx[3] = vm.ddeval( parent->getShapeFunction( j ), XI, ETA, p_ , 1e-5) ;
+					xdxx[4] = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ , 1e-5) ;
+					xdxx[5] = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ , 1e-5) ;
+					
+					for(int x = 0 ; x < 3 ; x++)
+					{
+						Xdx[x] += xdx[x] * displacements[j * totaldof] ;
+						Xdxx[x] += xdxx[x] * displacements[j * totaldof] ;
+						Xdxx[x+3] += xdxx[x+3] * displacements[j * totaldof] ;
+
+					  
+						Ydx[x] += xdx[x] * displacements[j * totaldof + 1] ;
+						Ydxx[x] += xdxx[x] * displacements[j * totaldof + 1] ;
+						Ydxx[x+3] += xdxx[x+3] * displacements[j * totaldof + 1] ;
+					}
 				}
 
 				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
@@ -689,12 +733,21 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 
 				Matrix Jinv ;
-				parent->getInverseJacobianMatrix( p_, Jinv ) ;
-				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+				Matrix T1, T2 ;
+				parent->getSecondJacobianMatrix( p_, T1, T2 ) ;
 				
-				ret *= Jinv[2][2] ;
+				Vector dXX = (Vector) (T1 * Xdx) + (Vector) (T2 * Xdxx) ;
+				Vector dYY = (Vector) (T1 * Ydx) + (Vector) (T2 * Ydxx) ;
+				
+				ret[0] = dXX[5] ;
+				ret[1] = dYY[4] ;
+				ret[2] = 0.5 * (dXX[4] + dYY[5]) ;
+				
+// 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
+// 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
+// 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+// 				
+// 				ret *= Jinv[2][2] ;
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 			{
@@ -781,8 +834,19 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 		case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			{			 
+// 				if(totaldof == 2)
+// 				{
+// 					this->getField( STRAIN_RATE_FIELD, p_, ret, true) ;
+// 					return ;
+// 				}
+			  
+			  
 				Vector dx(0., totaldof) ;
 				Vector dy(0., totaldof) ;
+				
+				std::vector<Vector> Xdxx(9) ;
+				for(size_t i = 0 ; i < 9 ; i++)
+					  Xdxx[i].resize(totaldof) ;
 			  
 				double x_xi = 0;
 				double x_eta = 0;
@@ -791,49 +855,70 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				
 				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
 				{
-					double f_xi = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ , 1e-5) ;
-					double f_eta = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ , 1e-5) ;
+					Vector f(9) ;
+					f[0] = vm.deval( parent->getShapeFunction( j ), XI, p_ ) ;
+					f[1] = vm.deval( parent->getShapeFunction( j ), ETA, p_ ) ;
+					f[2] = vm.deval( parent->getShapeFunction( j ), TIME_VARIABLE, p_ ) ;
+					f[3] = vm.ddeval( parent->getShapeFunction( j ), XI, XI, p_ , 10*default_derivation_delta) ;
+					f[4] = vm.ddeval( parent->getShapeFunction( j ), ETA, ETA, p_ , 10*default_derivation_delta) ;
+					f[5] = vm.ddeval( parent->getShapeFunction( j ), TIME_VARIABLE, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					f[6] = vm.ddeval( parent->getShapeFunction( j ), XI, ETA, p_ , 10*default_derivation_delta) ;
+					f[7] = vm.ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					f[8] = vm.ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					
 					for(size_t i = 0 ; i < totaldof ; i++)
 					{
-						dx[i] += f_xi  * displacements[j * totaldof + i] ;
-						dy[i] += f_eta * displacements[j * totaldof + i] ;
+						for(size_t k = 0 ; k < 9 ; k++)
+							Xdxx[k][i] += f[k] * displacements[j * totaldof + i] ;
 					}
-					
-/*					x_xi += f_xi * displacements[j * totaldof] ;
-					x_eta += f_eta * displacements[j * totaldof] ;
-					y_xi += f_xi * displacements[j * totaldof + 1] ;
-					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
 				}
 
 				for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
 				{
-					double f_xi = vm.ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, p_ , 1e-5) ;
-					double f_eta = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE,  p_ , 1e-5 ) ;
+					Vector f(9) ;
+					f[0] = vm.deval( parent->getEnrichmentFunction( j ), XI, p_ ) ;
+					f[1] = vm.deval( parent->getEnrichmentFunction( j ), ETA, p_ ) ;
+					f[2] = vm.deval( parent->getEnrichmentFunction( j ), TIME_VARIABLE, p_ ) ;
+					f[3] = vm.ddeval( parent->getEnrichmentFunction( j ), XI, XI, p_ , 10*default_derivation_delta) ;
+					f[4] = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, ETA, p_, 10*default_derivation_delta ) ;
+					f[5] = vm.ddeval( parent->getEnrichmentFunction( j ), TIME_VARIABLE, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					f[6] = vm.ddeval( parent->getEnrichmentFunction( j ), XI, ETA, p_ , 10*default_derivation_delta) ;
+					f[7] = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					f[8] = vm.ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
+					
 					for(size_t i = 0 ; i < totaldof ; i++)
 					{
-						dx[i] += f_xi  * enrichedDisplacements[j * totaldof + i] ;
-						dy[i] += f_eta * enrichedDisplacements[j * totaldof + i] ;
+						for(size_t k = 0 ; k < 9 ; k++)
+							Xdxx[k][i] += f[k] * enrichedDisplacements[j * totaldof + i] ;
 					}
-
-/*					x_xi += f_xi * enrichedDisplacements[j * totaldof] ;
-					x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
-					y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
-					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv ;
-				parent->getInverseJacobianMatrix( p_, Jinv ) ;
+				Matrix T1, T2 ;
+				parent->getSecondJacobianMatrix( p_, T1, T2 ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{
-					x_xi  = dx[ i * realdof + 0 ] ;
-					x_eta = dy[ i * realdof + 0 ] ;
-					y_xi  = dx[ i * realdof + 1 ] ;
-					y_eta = dy[ i * realdof + 1 ] ;
-					ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-					ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+					Vector dx(3) ;
+					Vector dxx(6) ;
+					Vector dy(3) ;
+					Vector dyy(6) ;
+					for(int j = 0 ; j < 3 ; j++)
+					{
+//						std::cout << i << "\t" << j << "\t" << dx.size() << "\t" << dxx.size() << "\t" << Xdxx.size() << "\t" << Xdxx[j].size() << std::endl ;
+						dx[j] = Xdxx[j][ i*realdof + 0] ;
+						dxx[j] = Xdxx[j+3][ i*realdof + 0] ;
+						dxx[j+3] = Xdxx[j+6][ i*realdof + 0] ;
+						dy[j] = Xdxx[j][ i*realdof + 1] ;
+						dyy[j] = Xdxx[j+3][ i*realdof + 1] ;
+						dyy[j+3] = Xdxx[j+6][ i*realdof + 1] ;
+					}
+
+					Vector dX = ((Vector) (T1*dx) + (Vector) (T2*dxx)) ;
+					Vector dY = ((Vector) (T1*dy) + (Vector) (T2*dyy)) ;
+					
+					ret[i*3+0] = dX[5] ;
+					ret[i*3+1] = dY[4] ;//( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
+					ret[i*3+2] = 0.5 * ( dX[4] * dY[5] );
 				}
-				ret *= Jinv[2][2] ;
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 // 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 // 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );

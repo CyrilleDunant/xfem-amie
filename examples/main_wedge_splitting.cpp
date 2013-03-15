@@ -111,11 +111,11 @@ int main(int argc, char *argv[])
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-	box.setBehaviour( new ViscoelasticityAndFracture(MAXWELL, c, c*1e6, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(PURE_ELASTICITY, c, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
-	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.0001);	
+	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.01);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
@@ -123,18 +123,17 @@ int main(int argc, char *argv[])
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
 	
- 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
- 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
- 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER, Point(0., -length*0.5)) ) ;
- 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
- 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
-// 	BoundingBoxDefinedBoundaryCondition * fix = new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ;
-// 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, RIGHT, length*0.4, length*0.6, length*0.4, length*0.6, 0. ) ;
-// 	F.addBoundaryCondition( new BoundingBoxAndRestrictionDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, -length*0.1, length*0.1, -10,10 ) ) ;
-	F.addBoundaryCondition(fix) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
+ 
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 1 ) ) ;
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
+
+	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
 	F.addBoundaryCondition(disp) ;
 
+ 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+	
 	F.step() ;
 // 	Vector x = F.getAverageField(STRAIN_FIELD) ;
 // 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
@@ -145,7 +144,7 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	out.open("wedge.txt", std::ios::out) ;
 	
-	while(i < 20)
+	while(i < 30)
 	{
 		i++ ;
 		disp->setData( 0.00005*i ) ;

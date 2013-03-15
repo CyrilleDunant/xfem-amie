@@ -2443,6 +2443,18 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
+	
+	if(behaviour->isViscous())
+	{
+		size_t gp = getGaussPoints().gaussPoints.size() ;
+		Jinv.resize( gp*3 ) ;
+		
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
+		{
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
+		}
+	}
 
 	VirtualMachine vm ;
 	if(behaviour->isSymmetric())
@@ -2545,6 +2557,19 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
+	
+	if(behaviour->isViscous())
+	{
+		size_t gp = getGaussPoints().gaussPoints.size() ;
+		Jinv.resize( gp*6 ) ;
+		
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
+		{
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
+			getThirdJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp*3+i], Jinv[gp*4+i], Jinv[gp*5+i]) ;
+		}
+	}	
 
 	VirtualMachine vm ;
 	if(behaviour->isSymmetric())

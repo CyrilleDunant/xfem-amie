@@ -151,6 +151,7 @@ utilities/grid.cpp
 utilities/optimizer.cpp
 utilities/granulo.cpp
 utilities/matrixops.cpp
+utilities/tensor.cpp
 utilities/parser.cpp
 utilities/pid.cpp
 utilities/itoa.cpp

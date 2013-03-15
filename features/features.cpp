@@ -5380,8 +5380,19 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				elements[i]->getState().getAverageField( f, buffer, 0, t) ;
-				avg += buffer * elements[i]->area() ;
-				volume += elements[i]->area() ;
+// 				if(elements[i]->getOrder() < LINEAR_TIME_LINEAR)
+// 				{
+					avg += buffer * elements[i]->area() ;
+					volume += elements[i]->area() ;
+// 				}
+// 				else
+// 				{
+// 					Triangle tprev(elements[i]->getBoundingPoint(0), elements[i]->getBoundingPoint(1), elements[i]->getBoundingPoint(2)) ;
+// 					Triangle tnext(elements[i]->getBoundingPoint(3), elements[i]->getBoundingPoint(4), elements[i]->getBoundingPoint(5)) ;
+// 					double area = tprev.area() + (t+1)/2*(tnext.area() - tprev.area())  ; 
+// 					avg += buffer * area ;
+// 					volume += area ;
+// 				}
 			}
 		}
 	}
