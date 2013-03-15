@@ -5317,6 +5317,52 @@ bool FeatureTree::stepToCheckPoint()
 	return solverConverged();
 }
 
+bool orderPointsByID( Point p1, Point p2)
+{
+	return p1.id < p2.id ;
+}
+
+std::vector<Point> FeatureTree::getNodes(int grid) 
+{
+	std::vector<Point> pts ;
+	if(is2D())
+	{
+		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
+		std::valarray<bool> done(elements.size()*elements[0]->getBoundingPoints().size()) ;
+		done = false ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+			{
+				if(!done[ elements[i]->getBoundingPoint(j).id])
+				{
+					done[ elements[i]->getBoundingPoint(j).id] = true ;
+					pts.push_back(elements[i]->getBoundingPoint(j)) ;
+				}
+			} 
+		}
+	}
+	if(is3D())
+	{
+		std::vector<DelaunayTetrahedron *> elements = this->getElements3D( grid ) ;
+		std::valarray<bool> done(elements.size()*elements[0]->getBoundingPoints().size()) ;
+		done = false ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+			{
+				if(!done[ elements[i]->getBoundingPoint(j).id])
+				{
+					done[ elements[i]->getBoundingPoint(j).id] = true ;
+					pts.push_back(elements[i]->getBoundingPoint(j)) ;
+				}
+			} 
+		}
+	}
+	std::sort( pts.begin(), pts.end(), orderPointsByID) ;
+	return pts ;
+}
+
 
 Vector FeatureTree::getAverageField( FieldType f, int grid , double t) 
 {
@@ -5331,9 +5377,12 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			elements[i]->getState().getAverageField( f, buffer, 0, t) ;
-			avg += buffer * elements[i]->area() ;
-			volume += elements[i]->area() ;
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				elements[i]->getState().getAverageField( f, buffer, 0, t) ;
+				avg += buffer * elements[i]->area() ;
+				volume += elements[i]->area() ;
+			}
 		}
 	}
 	else

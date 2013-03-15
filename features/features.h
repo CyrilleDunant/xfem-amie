@@ -541,6 +541,8 @@ public:
 	Vector getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri) ;
 	Vector getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet) ;
 	
+	std::vector<Point> getNodes(int g = -1) ;
+	
 	size_t numPoints() const ;
 	
 /** \brief Step in time
