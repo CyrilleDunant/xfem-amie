@@ -2904,3 +2904,10 @@ Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, si
 	return vm.ieval( Gradient( shape ) * g, gp, Jinv, v) ;
 }
 
+void IntegrableEntity::setCachedGaussPoints(GaussPointArray * gp)
+{
+	if(cachedGps && cachedGps != gp)
+		delete cachedGps ;
+	cachedGps = gp ;
+}
+

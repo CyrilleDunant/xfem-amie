@@ -372,7 +372,7 @@ protected:
 	std::vector<BoundaryCondition *> * boundaryConditionCache ;
 	GaussPointArray * cachedGps ;
 	const GaussPointArray * getCachedGaussPoints() const { return cachedGps ;};
-	void setCachedGaussPoints(GaussPointArray * gp) { cachedGps = gp ;};
+	void setCachedGaussPoints(GaussPointArray * gp) ;
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;
