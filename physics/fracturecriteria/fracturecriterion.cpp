@@ -114,11 +114,11 @@ double FractureCriterion::smoothedPrincipalStressAngle( ElementState &s, StressC
 	std::pair<Vector, Vector> ss = smoothedStressAndStrain(s, m) ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		return 0.5 * atan2( ss.first[2], ss.first[0] - ss.first[1] ) ;
+		return 0.5 * atan2( 0.5*ss.first[2], ss.first[0] - ss.first[1] ) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		return  0.5 * atan2(ss.first[3] , ss.first[0] - ss.first[1] ) ;
+		return  0.5 * atan2(0.5*ss.first[3] , ss.first[0] - ss.first[1] ) ;
 	}
 	
 	return angle ;

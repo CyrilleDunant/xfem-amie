@@ -628,14 +628,14 @@ Matrix Material::cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDim
 			{
 			cg[0][0] = 1. ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1. ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu)*.5 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1.-nu) ;
 			cg *= E/(1.-nu*nu) ;
 			}
 			else
 			{
 			cg[0][0] = 1.-nu ; cg[0][1] = nu ; cg[0][2] = 0 ;
 			cg[1][0] = nu ; cg[1][1] = 1.-nu ; cg[1][2] = 0 ;
-			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu)*.5 ;
+			cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = (1-2.*nu) ;
 			cg *= E/((1.+nu)*(1.-2.*nu)) ;
 			}
 			return cg ;
@@ -731,7 +731,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
 			
-// 			G = E_1*E_2/(E_1*(1.-nu_12*nu_12)+E_2*(1.-nu_21*nu_21)) ;
+			G = E_1*E_2/(E_1*(1.-nu_12*nu_12)+E_2*(1.-nu_21*nu_21)) ;
 			
 			cg[2][2] = G ;
 		}
@@ -754,21 +754,18 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
 		{
 			Matrix A(2,2) ;
-			A[0][0] = E_1/std::max(E_1, E_2) ; A[0][1] = -E_2/std::max(E_1, E_2) ;
-			A[1][0] = 0 ; A[1][1] = 1. ;
-			Vector b(2) ; b[0] = 0 ; b[1] = nu ;
-			b = inverse2x2Matrix(A)*b ;
-			double nu12 = b[1];
-			double nu21 = b[0] ;
+
+			double nu21 = (nu/E_1)*sqrt(E_1*E_2) ;
+			double nu12 = (nu/E_2)*sqrt(E_1*E_2) ;
 			double nu23 = nu ;
 			double nu32 = nu ;
 			double nu13 = nu ;
 			double nu31 = nu ;
-			double nupe = 1-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
+			double nupe = 1.-nu21*nu12-nu23*nu32-nu13*nu31-nu12*nu23*nu31-nu21*nu32*nu13 ;
 
 			cg[0][0] = E_1*(1.-nu32*nu23)/nupe ; cg[0][1] = (nu21-nu23*nu31)*E_1/nupe;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
-			cg[2][2] =  G ; //E_1*E_2/(E_1*(1.+nu12)+E_2*(1.+nu21)) ;
+			cg[2][2] = E_1*E_2/(E_2*(1+nu12)*(1-2.*nu12)+E_1*(1+nu21)*(1-2.*nu21)) ;
 		}
 		else if(E_1 > POINT_TOLERANCE_2D)
 		{

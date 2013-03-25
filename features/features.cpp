@@ -356,21 +356,7 @@ void FeatureTree::twineFeature( CompositeFeature *father, CompositeFeature *f )
 
 void FeatureTree::addPoint( Point *p )
 {
-	if( state.behaviourSet )
-		state.behaviourUpdated = false ;
-
-	state.setStateTo( MESHED, false );
-
-	if( dtree )
-	{
-		for(auto j = layer2d.begin() ; j!=layer2d.end() ; ++j)
-		{
-			j->second->insert(p) ;
-		}
-	}
-	else if( dtree3D )
-		dtree3D->insert( p );
-
+	extraPoints.push_back(p);
 }
 
 void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fraction )
@@ -444,6 +430,8 @@ FeatureTree::~FeatureTree()
 
 	for( size_t i = 0 ; i < boundaryCondition.size() ; ++i )
 		delete boundaryCondition[i] ;
+	for(size_t i = 0 ; i < extraPoints.size() ; ++i)
+		delete extraPoints[i] ;
 	
 }
 
@@ -490,7 +478,6 @@ void FeatureTree::setOrder( Order ord )
 
 void FeatureTree::renumber()
 {
-//	return ;
 	if( is2D() )
 	{
 
@@ -6362,11 +6349,15 @@ void FeatureTree::generateElements()
 		additionalPoints.push_back( new Point( bbox[2] ) ) ;
 		additionalPoints.push_back( new Point( bbox[4] ) ) ;
 		additionalPoints.push_back( new Point( bbox[6] ) ) ;
-
+		for(auto i = extraPoints.begin() ; i!= extraPoints.end() ; ++i)
+		{
+			meshPoints.push_front( std::make_pair( *i, tree[0] ) ) ;
+		}
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 4], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 3], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 2], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 1], tree[0] ) ) ;
+
 
 		Mesh<DelaunayTriangle, DelaunayTreeItem> * oldDtree = dtree ;
 
@@ -6480,7 +6471,10 @@ void FeatureTree::generateElements()
 		additionalPoints.push_back( new Point( bbox[4] ) ) ;
 		additionalPoints.push_back( new Point( bbox[5] ) ) ;
 		additionalPoints.push_back( new Point( bbox[6] ) ) ;
-
+		for(auto i = extraPoints.begin() ; i!= extraPoints.end() ; ++i)
+		{
+			meshPoints.push_front( std::make_pair( *i, tree[0] ) ) ;
+		}
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 8], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 7], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 6], tree[0] ) ) ;
@@ -6489,6 +6483,7 @@ void FeatureTree::generateElements()
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 3], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 2], tree[0] ) ) ;
 		meshPoints.push_front( std::make_pair( additionalPoints[additionalPoints.size() - 1], tree[0] ) ) ;
+
 
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * oldDtree = dtree3D ;
 

@@ -103,6 +103,8 @@ protected:
 	ElementState * elementState ;
 	
 	ConvergenceType ctype ;
+	bool alternating ;
+	bool alternate ;
 
 public:
 	

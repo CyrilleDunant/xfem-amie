@@ -197,81 +197,10 @@ double aggregateArea = 0;
 
 GelBehaviour * gel = new GelBehaviour() ;
 
-void computeDisplacement()
-{
-	x.resize( featureTree->getDisplacements().size() ) ;
-	x = featureTree->getDisplacements() ;
-	Circle C( .01, 0, 0.05 ) ;
-	std::vector<DelaunayTriangle *> t = featureTree->getElements2D( &C ) ;
-	std::vector<int> indices ;
-
-	for ( size_t i = 0 ; i < t.size() ; i++ )
-	{
-		for ( size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-		{
-			if ( C.in( t[i]->getBoundingPoint( c ) ) )
-				indices.push_back( t[i]->getBoundingPoint( c ).id ) ;
-		}
-	}
-
-	std::sort( indices.begin(), indices.end() ) ;
-
-	auto e = std::unique( indices.begin(), indices.end() ) ;
-	displacement = 0 ;
-
-	for ( auto i = indices.begin() ; i != e ; i++ )
-	{
-		displacement += x[( *i )*2+1] / ( e - indices.begin() ) ;
-	}
-
-
-// 	Circle C(.000001, -0.0025, -0.05) ;
-// 	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&C) ;
-// 	std::vector<int> indices ;
-// 	for(size_t i = 0 ; i < t.size() ; i++)
-// 	{
-// 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
-// 		{
-// 		if(C.in(t[i]->getBoundingPoint(c)))
-// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
-// 		}
-// 	}
-//
-// 	std::sort(indices.begin(), indices.end()) ;
-// 	std::vector<int>::iterator e = std::unique(indices.begin(), indices.end()) ;
-// 	displacement = 0 ;
-// 	for(std::vector<int>::iterator i = indices.begin() ; i != e ; i++)
-// 	{
-// 		displacement+=x[(*i)*2.]/(e-indices.begin()) ;
-// 	}
-//
-// 	Circle C0(.000001, 0.0025, -0.05) ;
-// 	std::vector<DelaunayTriangle *> t0 = featureTree->get2DMesh()->getConflictingElements(&C) ;
-// 	std::vector<int> indices0 ;
-// 	for(size_t i = 0 ; i < t0.size() ; i++)
-// 	{
-// 		for(size_t c = 0 ;  c < t0[i]->getBoundingPoints().size() ; c++ )
-// 		{
-// 		if(C0.in(t0[i]->getBoundingPoint(c)))
-// 			indices0.push_back(t0[i]->getBoundingPoint(c).id) ;
-// 		}
-// 	}
-//
-// 	std::sort(indices0.begin(), indices0.end()) ;
-// 	std::vector<int>::iterator e0 = std::unique(indices0.begin(), indices0.end()) ;
-// 	double displacement0 = 0 ;
-// 	for(std::vector<int>::iterator i = indices0.begin() ; i != e0 ; i++)
-// 	{
-// 		displacement0+=x[(*i)*2.]/(e0-indices0.begin()) ;
-// 	}
-//
-// displacement = displacement-displacement0 ;
-}
-
 void step()
 {
 	
-	size_t nsteps = 200 ; //16*10;
+	size_t nsteps = 300 ; //16*10;
 	size_t nit = 2 ;
 	size_t tries = 0 ;
 	int totit = 0 ;
@@ -289,7 +218,7 @@ void step()
 		go_on = featureTree->step() ;
 		if ( go_on)
 		{
-			load->setData( load->getData()-0.05e-3 ) ;
+			load->setData( load->getData()-0.1e-3 ) ;
 		}
 // 		if ( go_on  && v > 0)
 // 		{
@@ -1698,7 +1627,7 @@ int main( int argc, char *argv[] )
 
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
-	double compressionCrit = -37.0e6*softeningFactor ;
+	double compressionCrit = -34.2e6*softeningFactor ;
 	phi =  3.*rebarDiametre/.4  ;
 	
 	psi = 2.*0.0084261498/.4  ;
@@ -1709,24 +1638,21 @@ int main( int argc, char *argv[] )
 	double E_steel = 200e9 ; 
 	double nu_steel = 0.2 ;
 	double nu = 0.3 ;
-	double E_paste = 37e9*softeningFactor ;
+	double E_paste = 32.4e9*softeningFactor ;
 
 	double halfSampleOffset = sampleLength*.25 ;
 	
-	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
 	
 // 	//redimensionned so that we get in shear the right moment of inertia
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 // 		
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true,SPACE_TWO_DIMENSIONAL,PLANE_STRAIN) ;
+	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
 	m0_steel[2][2] = 0 ;
 
-	Sample box( nullptr, sampleLength*.5, sampleHeight + plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-	box.setBehaviour( new VoidForm() ) ;
-
-	Sample sample( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
-	Sample samplebulk( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
-	Sample samplestirrupbulk( nullptr, sampleLength*.5, sampleHeight, halfSampleOffset, 0 ) ;
+	Sample sample( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+	Sample samplebulk( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+	Sample samplestirrupbulk( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
 	
 // 	Sample topsupport( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	topsupport.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
@@ -1746,14 +1672,14 @@ int main( int argc, char *argv[] )
 // 	toprightvoidbulk.setBehaviour( new VoidForm() ) ;
 	
 	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baseright.setBehaviour( new Stiffness( m0_steel )) ;
-	baseright.isVirtualFeature = true ;
+	baseright.setBehaviour(  new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
+// 	baseright.isVirtualFeature = true ;
 	
 	Sample baserightbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightbulk.setBehaviour( new Stiffness( m0_steel )) ;
+	baserightbulk.setBehaviour(  new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
 	
 	Sample baserightstirrupbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightstirrupbulk.setBehaviour(new Stiffness( m0_steel )) ;
+	baserightstirrupbulk.setBehaviour( new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
 
 	Sample bottomcentervoid( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
 	bottomcentervoid.setBehaviour( new VoidForm() ) ;
@@ -1774,20 +1700,20 @@ int main( int argc, char *argv[] )
 	double rebarcenter = (sampleLength*.5 - rebarEndCover)*.5 ;
 	double rebarlength = (sampleLength - rebarEndCover*2.)*.5 ;
 	Sample rebar0(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
-	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
+	rebar0.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+// 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar1(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
+	rebar1.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+// 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 	Sample rebar2(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
-	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
+	rebar2.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+// 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar3(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
+	rebar3.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+// 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 
 	std::vector<Sample*> stirrups ;
@@ -1814,6 +1740,7 @@ int main( int argc, char *argv[] )
 // 	samplebulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
+	
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064,rebarDiametre));
@@ -1839,29 +1766,21 @@ int main( int argc, char *argv[] )
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
 
 
-	F.addBoundaryCondition( load ) ;
-//	F.addBoundaryCondition(selfload) ;
-//	F.addBoundaryCondition(shrinkagex) ;
-//	F.addBoundaryCondition(shrinkagey) ;
-// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( -supportLever, -sampleHeight*.5 - plateHeight) ) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight) ) ) ;
-
 	int stirruplayer = 1 ;
 	int rebarlayer = 0 ;
 
 	F.addFeature( nullptr, &sample, rebarlayer, phi ) ;
 	F.addFeature( &samplebulk,&baserightbulk);
 	F.addFeature( &sample,&baseright, rebarlayer, phi ) ;
-// 	F.addFeature( nullptr,&bottomcentervoid, rebarlayer, phi);
-// 	F.addFeature( nullptr,&rightbottomvoid, rebarlayer, phi) ;
+	F.addFeature( &baseright,&bottomcentervoid, rebarlayer, phi);
+	F.addFeature( &baseright,&rightbottomvoid, rebarlayer, phi) ;
 	
 // 	F.addFeature( nullptr, &topsupportbulk ) ;
 // 	F.addFeature( nullptr, &toprightvoid ) ;
 	
 
-// 	F.addFeature( nullptr,&bottomcentervoidbulk);
-// 	F.addFeature( nullptr,&rightbottomvoidbulk) ;
+	F.addFeature( &baserightbulk,&bottomcentervoidbulk);
+	F.addFeature( &baserightbulk,&rightbottomvoidbulk) ;
 
 
 	if ( atoi( argv[2] ) )
@@ -1908,7 +1827,6 @@ int main( int argc, char *argv[] )
 
 // 	F.setSamplingFactor( &samplebulk, 3 ) ;
 	F.setSamplingFactor( &rebar0, 3 ) ;
-	F.setSamplingFactor( &box, 3 ) ;
 	F.setSamplingFactor( &rebar1, 3 ) ;
 	
 	F.setSamplingFactor( &bottomcentervoid, 1./3 ) ;
@@ -1925,14 +1843,33 @@ int main( int argc, char *argv[] )
 	
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.02, -sampleHeight*.5 ) ) ;
-	F.addPoint( new Point( supportLever, -sampleHeight*.5 ) ) ;
-	F.addPoint( new Point( platewidth, sampleHeight*.5 ) ) ;
+
+
+	
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
 	F.setMaxIterationsPerStep( 3200 );
 	
+	
+	F.addPoint( new Point( supportLever,                -sampleHeight*.5-plateHeight ) ) ;
+// 	F.addPoint( new Point( supportLever-platewidth*.5,  -sampleHeight*.5-plateHeight ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.5,  -sampleHeight*.5-plateHeight ) ) ;
+// 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5-plateHeight ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5-plateHeight ) ) ;
+// 	
+// 	F.addPoint( new Point( supportLever,                -sampleHeight*.5-plateHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever-platewidth*.5,  -sampleHeight*.5-plateHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.5,  -sampleHeight*.5-plateHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5-plateHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5-plateHeight*.5 ) ) ;
+// 	
+// 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5 ) ) ;
+// 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5 ) ) ;
+	F.addPoint( new Point( platewidth, sampleHeight*.5 ) ) ;
+	F.addBoundaryCondition( load ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
 	triangles = F.getElements2D() ;
 	step() ;
-
 	glutInit( &argc,argv ) ;
 	glutInitDisplayMode( GLUT_RGBA ) ;
 	glutInitWindowSize( 600, 600 ) ;

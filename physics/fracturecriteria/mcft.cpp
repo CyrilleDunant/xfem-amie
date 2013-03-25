@@ -22,10 +22,10 @@ namespace Mu
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( /*0.65*1e6*pow(std::abs(down*1e-6),.33)*/.33*1e6*sqrt(-down*1e-6) ), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( 0.66*1e6*pow(std::abs(down*1e-6),.33)/*.33*1e6*sqrt(-down*1e-6) */), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
-	critStrain = -0.0015 ;//-0.0015;
+	critStrain = -0.00163 ;//-0.0015;
 	tensionCritStrain = upVal / youngModulus ;
 	firstCompression = false ;
 	secondCompression = false ;
@@ -98,18 +98,18 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	double strainc = -1 ;
 		
 	
-	if(criterion >= 1)
-	{
-		strainc = 1.-1./criterion ;
-	}
-	else if(criterion >= 0)
-	{
+// 	if(criterion >= 1)
+// 	{
+// 		strainc = 1.-1./criterion ;
+// 	}
+// 	else if(criterion >= 0)
+// 	{
 		strainc = -1.+criterion ;
-	}
-	else if(criterion > -1)
-	{
-		strainc = criterion ;
-	}
+// 	}
+// 	else if(criterion > -1)
+// 	{
+// 		strainc = criterion ;
+// 	}
 	
 	criterion = 0 ;
   if(maxTensionStrain > POINT_TOLERANCE_2D)
@@ -211,18 +211,18 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 	double stressc = -1 ;
 		
 	
-	if(criterion >= 1)
-	{
-		stressc = 1.-1./criterion ;
-	}
-	else if(criterion >= 0)
-	{
+// 	if(criterion >= 1)
+// 	{
+// 		stressc = 1.-1./criterion ;
+// 	}
+// 	else if(criterion >= 0)
+// 	{
 		stressc = -1.+criterion ;
-	}
-	else if(criterion > -1)
-	{
-		stressc = criterion ;
-	}
+// 	}
+// 	else if(criterion > -1)
+// 	{
+// 		stressc = criterion ;
+// 	}
 	return stressc ; //strainc ;
 	
 	return POINT_TOLERANCE_2D ;
@@ -245,17 +245,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*1.5;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*1.5 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*1.5 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*1.5 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -270,8 +270,9 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 		return barecrit ;
 
  	double rebcrit = getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
-// 	return rebcrit ;
-
+	
+// 	if(distanceToRebar <= 0.5*effectiveInfluenceDistance)
+// 		return rebcrit ;
 
 // 	if (!radiusInitialised)
 // 	{
@@ -388,57 +389,59 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 	double stressc = -1 ;
 		
 	
-	if(criterion >= 1)
-	{
-		stressc = 1.-1./criterion ;
-	}
-	else if(criterion >= 0)
-	{
+// 	if(criterion >= 1)
+// 	{
+// 		stressc = 1.-1./criterion ;
+// 	}
+// 	else if(criterion >= 0)
+// 	{
 		stressc = -1.+criterion ;
-	}
-	else if(criterion > -1)
-	{
-		stressc = criterion ;
-	}
+// 	}
+// 	else if(criterion > -1)
+// 	{
+// 		stressc = criterion ;
+// 	}
 	return stressc ;
 	return POINT_TOLERANCE_2D ;
 }
 
+double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, double strain_te, double eps)
+{
+	if(eps < strain_ch)
+		return upVal/(1.+sqrt(k0*(eps-eps_0))) ;
+	else if(eps < strain_te)
+		return (upVal/(1.+sqrt(k0*(eps-eps_0))))*((strain_te-eps)/(strain_te-strain_ch)) ;
+	
+	return 0 ;
+}
+
 void NonLocalMCFT::initialise( ElementState &s)
 {
-	double energy = 75 ; //N/m 32000 prev
-	strain_ch = 3.*tensionCritStrain;//2.*energy/(getMaterialCharacteristicRadius()*upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	double energy = 75./.4 ; //N/m 32000 prev
+	strain_ch = 4.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	if(factors.size()==0)
 		initialiseFactors(s) ;
-	double nlcorrection = factors[0]/std::accumulate(&factors[0], &factors[factors.size()], double(0)) ;
 // 	energy *= nlcorrection ;
 	if(strain_ch < tensionCritStrain)
 	{
 		std::cout << strain_ch << " vs " << tensionCritStrain <<std::endl ;
-		exit(0) ;
+// 		exit(0) ;
+		strain_ch = tensionCritStrain ;
 	}
-	strain_te = 10.*strain_ch;
-	double del_0 = (strain_ch-tensionCritStrain) ;
-	double del_1 = (strain_te-strain_ch) ;
-	double del = (strain_te-tensionCritStrain) ;
+	strain_te = 5.*strain_ch;
 	
 	double k0 = 1 ;
-	double elastic_energy = tensionCritStrain*upVal*.5*nlcorrection ;
-	double integral = elastic_energy ;
+	double integral(0) ;
+	
+	double de = 1e-5 ;
 	do
 	{
 		integral = 0 ;
 		k0 *= 10;
 		      
-		for(double i = 0 ; i < 1e4 ; i++)
+		for(double i = tensionCritStrain ; i < strain_te ; i+= de*(strain_te-tensionCritStrain))
 		{
-// 			integral+= 0.5*(upVal/(1.+sqrt(k*(i)*1e-4*del_0)) + upVal/(1.+sqrt(k*(i+1.)*1e-4*del_0)))*del_0*1e-4 ;
-			integral+= 0.5*(upVal/(1.+sqrt(k0)*sqrt((i)*1e-4*del)) + upVal/(1.+sqrt(k0)*sqrt((i+1.)*1e-4*del)))*del*1e-4 ;
-		}
-		      
-		for(double i = 0 ; i < 10000 ; i++)
-		{  
-			integral+= 0.5*((del_1-(i)*1e-4*del_1)/del_1)*(upVal/(1.+sqrt(k0)*sqrt((i)*1e-4*del_1+del_0))+upVal/(1.+sqrt(k0)*sqrt((i+1.)*1e-4*del_1+del_0)))*del_1*1e-4 ;
+			integral+= 0.5*(sqrtdecrease(k0, upVal, tensionCritStrain, strain_ch, strain_te, i)+sqrtdecrease(k0, upVal, tensionCritStrain, strain_ch, strain_te, i+de*(strain_te-tensionCritStrain)))*de*(strain_te-tensionCritStrain) ;
 		}
 	}
 	while(integral > energy) ;
@@ -454,32 +457,30 @@ void NonLocalMCFT::initialise( ElementState &s)
 		integral = 0 ;
 		k = 0.5*(k_low+k_high) ;
 		      
-		for(double i = 0 ; i < 1e4 ; i++)
+		for(double i = tensionCritStrain ; i < strain_te ; i+= de*(strain_te-tensionCritStrain))
 		{
-// 			integral+= 0.5*(upVal/(1.+sqrt(k*(i)*1e-4*del_0)) + upVal/(1.+sqrt(k*(i+1.)*1e-4*del_0)))*del_0*1e-4 ;
-			integral+= 0.5*(upVal/(1.+sqrt(k)*sqrt((i)*1e-4*del)) + upVal/(1.+sqrt(k)*sqrt((i+1.)*1e-4*del)))*del*1e-4 ;
+			integral+= 0.5*(sqrtdecrease(k, upVal, tensionCritStrain, strain_ch, strain_te, i)+sqrtdecrease(k, upVal, tensionCritStrain, strain_ch, strain_te, i+de*(strain_te-tensionCritStrain)))*de*(strain_te-tensionCritStrain) ;
 		}
 		      
-		for(double i = 0 ; i < 10000 ; i++)
-		{  
-			integral+= 0.5*((del_1-(i)*1e-4*del_1)/del_1)*(upVal/(1.+sqrt(k)*sqrt((i)*1e-4*del_1+del_0))+upVal/(1.+sqrt(k)*sqrt((i+1.)*1e-4*del_1+del_0)))*del_1*1e-4 ;
-		}
 		if(integral < energy)
 			k_high = k ;
 		else
 			k_low = k ;
 		count++ ;
 		
-	} while(std::abs(integral-energy) > 1e-4*energy && count < 32) ;
+	} while(std::abs(integral-energy) > 1e-6*energy && count < 64) ;
+	
+	
 	
 // 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
 // 		k/=1e5 ;
 		
-	if(std::abs(integral-energy) > 1e-4*energy)
-	{
-	  std::cout << "wrong energy! " << integral << " vs "<< energy  << " k = "<< k << std::endl ;
-	  exit(0) ;
-	}
+// 	if(std::abs(integral-energy) > 1e-4*energy)
+// 	{
+// 	  std::cout << "wrong energy! " << integral << " vs "<< energy  << " k = "<< k << std::endl ;
+// 	  exit(0) ;
+// 	}
+// 	k = 1000 ;
 	initialised = true ;
 }
 

@@ -113,6 +113,7 @@ protected:
 	void duplicate2DMeshPoints() ;
 	void duplicate3DMeshPoints() ;
 	std::vector<double> cachedVolumes ;
+	std::vector<Point *> extraPoints ; 
 	
 	std::vector< BoundaryCondition * > boundaryCondition ;
 	/** \brief Contains all the features. */

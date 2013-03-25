@@ -65,6 +65,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 	}
 	
 	std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ; 
+	
 	if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
 	{
 		error = score ;
@@ -91,6 +92,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		else
 		{
 			converged = true ;
+			alternate = true ;
 		}
 
 	}
@@ -101,22 +103,31 @@ void DamageModel::step( ElementState &s , double maxscore)
 		int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
 		change = true ;
 		
-		states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
+		if(alternating && !alternate)
+		{
+			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
+			alternate = !alternate ;
+		}
+		else if(alternating && alternate)
+		{
+			alternate = !alternate ;
+			return ;
+		}
+		else
+		{
+			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
+		}
 		
-		double n = 5. ;
+		double n = 2. ;
 		if(states.size() <= n)
 		{
 			if(states.size() == 1)
 			{
-				if(score < 0)
-				{
 					getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-3*effectiveDeltaFraction ;
-					converged = true ;
 					trialRatio = 0 ;
 					return ;
-				}
 			}
-			trialRatio = (double)states.size()/n ;
+			trialRatio = (double)(states.size()-1)/n ;
 			getState( true ) = downState + ( upState - downState ) * trialRatio * effectiveDeltaFraction ;
 			for(size_t i = 0 ; i < upState.size() ; i++)
 					getState( true )[i] = std::min(getState( true )[i], thresholdDamageDensity-damageDensityTolerance) ;
@@ -237,7 +248,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction ;
 			}
 			converged = true ;
-			
+			alternate = true ;
 			
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
@@ -293,6 +304,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 				state[i] = std::min(state[i], 1.) ;
 // 			
 			converged = true ;
+			alternate = true ;
 			trialRatio = 0 ;
 			
 
@@ -325,6 +337,8 @@ DamageModel::DamageModel(): state(0)
 	converged = true ;
 	delta = 1 ;
 	effectiveDeltaFraction = 1 ;
+	alternating = false ;
+	alternate = false ;
 	// The exploration increment is crucial for finding
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
