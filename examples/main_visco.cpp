@@ -88,7 +88,7 @@
 using namespace Mu ;
 
 Sample box(nullptr, 1., 1.,0.,0.) ;
-double decrease = 1. ;
+double decrease = 300. ;
 
 double fr(Point p, double t)
 {
@@ -133,7 +133,7 @@ double fx(Point p, double t)
 		return p.x ;
 	if(decrease == -1)
 		return p.x*0.75 ;
-	return p.x*(1.+fr(p,t)) ;
+	return p.x*(0.8+0.2*exp(-t/300)) ;
 }
 
 double fy(Point p, double t)
@@ -150,8 +150,9 @@ double fy(Point p, double t)
 int main(int argc, char *argv[])
 {
 	double timestep = atof(argv[1]) ;
-	decrease = atof(argv[2]) ;
-	int sampling = (int) atof(argv[3]) ;
+	int cas = (int) atof(argv[2]) ;
+	int order = (int) atof(argv[3]) ;
+	int sampling = 16 + 48*(cas == 3);
   
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
@@ -159,78 +160,121 @@ int main(int argc, char *argv[])
 	Matrix e = (new ElasticOnlyPasteBehaviour(1e9, 0.3))->param ;
   	box.setBehaviour(new Viscoelasticity(BURGER, e*30, e*30*300, e*14, e*14*5000)) ;
 
-	Inclusion * hole = new Inclusion(0.25, 0.,0.) ;
-	if(decrease < 0)
-		hole = new Inclusion(0.3,0.,0.) ;
-	hole->setBehaviour( new VoidForm() ) ;
-	F.addFeature( &box, hole) ;
+	if(cas == 3)
+	{
+		Inclusion * hole = new Inclusion(0.25, 0.,0.) ;
+		hole->setBehaviour( new VoidForm() ) ;
+		F.addFeature( &box, hole) ;
+	}
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
+	if(order == 2)
+	{
+		F.setOrder(LINEAR_TIME_QUADRATIC) ;
+		F.setDeltaTime(timestep*2) ;
+	}
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
-	std::cout << "hip" << 0. << "\t" << 0.25+(1.-exp(-0./decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
 
-	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.0005, 1) ;
-	F.addBoundaryCondition(disp) ;
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6, 1)) ;
 	F.step() ;
+	
+	std::fstream out ;
+	std::string name ;
+	if(cas == 1)
+		name = "ref_" ;
+	if(cas == 2)
+		name = "shrink_" ;
+	if(cas == 3)
+		name = "hole_" ;
+	name.append(argv[1]) ;
+	name.append("_") ;
+	name.append(argv[3]) ;
+	
+	out.open(name.c_str(), std::ios::out) ;
 
 	double time = timestep ;	
-	std::cout << "hap" << time << "\t" << 0.25+(1.-exp(-time/decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
-	
-	disp->setData(-0.001) ;
-	
-	F.step() ;
-	time += timestep ;	
-	std::cout << "hop" << time << "\t" << 0.25+(1.-exp(-time/decrease))*(0.3-0.25) << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,1)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,1)[1]  << std::endl ;
+	Vector stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
+	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
+	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
+	Vector disp = F.getDisplacements() ;
+	out << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
+		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 
-	std::vector<Point> nodes = F.getNodes() ;
+	if(true)
+	{
+		std::string nametrg = name ;
+		nametrg.append("_trg_0") ;
+		TriangleWriter writer(nametrg, &F, 1) ;
+		writer.getField(TWFT_STRAIN) ;
+		writer.getField(TWFT_STRESS) ;
+		writer.write() ;
+	}
 	
-	while(time < 1500)
+		
+	std::vector<Point> nodes = F.getNodes() ;
+	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
+	std::valarray<bool> done(nodes.size()) ;
+	
+	while(time < 3500)
 	{
 		F.step() ;
-
-		
 		time += timestep ;
-		std::cout << time << "\t" << 0.25*(1.+fr(Point(0.25,0.), time))  << "\t" << F.getAverageField(REAL_STRESS_FIELD,-1,0)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1,0)[1]  << std::endl ;
+		stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
+		strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
+		rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
+		disp = F.getDisplacements() ;
+		out << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
+			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
+		
+		if(time == 300 || time == 600 || time == 1200 || time == 2400)
+		{
+			std::string nametrg = name ;
+			nametrg.append("_trg_") ;
+			nametrg.append(std::to_string((int) time)) ;
+			TriangleWriter writer(nametrg, &F, 1) ;
+			writer.getField(TWFT_STRAIN) ;
+			writer.getField(TWFT_STRESS) ;
+			writer.write() ;
+		}
 
-		
-		std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
-		std::valarray<bool> done(F.getDisplacements().size()) ;
-		done = (decrease <= 0) ;
-		
+		done = (cas != 2) ;
 		if(!done[0])
 		{
-			for(size_t i = 0 ; i < tri.size() ; i++)
+			for(size_t i = 0 ; i < trg.size() ; i++)
 			{
 				for(size_t j = 0 ; j < 3 ; j++)
-				{
-					if(!done[tri[i]->getBoundingPoint(j).id])
+				{	
+					size_t id = trg[i]->getBoundingPoint(j).id ;
+					if( !done[ id ] )
 					{
-						done[tri[i]->getBoundingPoint(j).id] = true ;
-						tri[i]->getBoundingPoint(j).x = tri[i]->getBoundingPoint(j+3).x ;
-						tri[i]->getBoundingPoint(j).y = tri[i]->getBoundingPoint(j+3).y ;
-						tri[i]->getBoundingPoint(j+3).x = fx(nodes[tri[i]->getBoundingPoint(j).id], time-timestep) ;
-						tri[i]->getBoundingPoint(j+3).y = fy(nodes[tri[i]->getBoundingPoint(j).id], time-timestep);
+						done[ id ] = true ;
+						trg[i]->getBoundingPoint(j).x = trg[i]->getBoundingPoint(j+3).x ;
+						if(order == 1)
+							trg[i]->getBoundingPoint(j+3).x = fx(nodes[id],time)  ;
+						if(order == 2)
+						{
+							trg[i]->getBoundingPoint(j+3).x = trg[i]->getBoundingPoint(j+6).x ;
+							trg[i]->getBoundingPoint(j+6).x = fx(nodes[id],time)  ;
+						}
 					}
 				}
-				tri[i]->clearElementaryMatrix() ;
-				tri[i]->moved = true ;
+				trg[i]->clearElementaryMatrix() ;
+				trg[i]->moved = true ;
 			}
 		}
+		
+		
 	}
-
-	TriangleWriter writer("yop", &F, 1) ;
-	writer.getField(TWFT_STIFFNESS) ;
-	writer.write() ;
 
 		
 	return 0 ;

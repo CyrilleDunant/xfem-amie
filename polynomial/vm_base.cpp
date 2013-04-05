@@ -2009,11 +2009,11 @@ std::valarray<Matrix> VirtualMachine::gddeval(const Function &f, const std::vala
 					if(std::abs(dXdXdX[6]) < POINT_TOLERANCE_3D)
 						dXdXdX[6] = 0 ;
 				  
-					ret[i][0][0] = dXdXdX[7] ;// dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] + dtau[i]*m[i][0][2] ;
-					ret[i][1][1] = dXdXdX[6] ;//dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] + dtau[i]*m[i][1][2]  ;
+					ret[i][0][0] = dXdXdX[7] ;//*/ dtaudtaudxi[i]*m[i][0][0] + dtaudtaudeta[i]*m[i][0][1] + dtaudtaudtau[i]*m[i][0][2] ;
+					ret[i][1][1] = dXdXdX[6] ;//*/dtaudtaudxi[i]*m[i][1][0] + dtaudtaudeta[i]*m[i][1][1] + dtaudtaudtau[i]*m[i][1][2]  ;
 					ret[i][0][2] = ret[i][1][1] ;
 					ret[i][1][2] = ret[i][0][0] ;
-//					ret[i] *= m[i][2][2] ;
+// 					ret[i] *= m[i][2][2]*m[i][2][2] ;
 				}
 				
 				return ret ;

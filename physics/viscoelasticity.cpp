@@ -455,7 +455,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 	Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-
+	
 	switch(model)
 	{
 		case GENERALIZED_KELVIN_VOIGT:
@@ -492,15 +492,17 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 			// viscosity Maxwell
 			getBlockInMatrix(eta, 1,1, buffer) ;
 			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			a += b ;
+// 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+// 			a += b ;
 			placeMatrixInBlock( a, 1,1, ret ) ;
 			// viscosity KV
 			getBlockInMatrix(eta, 2,2, buffer) ;
 			vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
-			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
-			a += b ;
+// 			vm->ieval(GradientDotDot(p_i) * buffer   * Gradient(p_j, true),    gp, Jinv,v,b);
+// 			a += b ;
 			placeMatrixInBlock( a, 2,2, ret ) ;
+			
+			
 			return ;
 		}
 		
