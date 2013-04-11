@@ -338,9 +338,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						Vector strain1(3) ;
 						Vector strain2(3) ;
 						
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor*2), strain2, false);
 						
 						// epsilon11
 						ret[8][iterator]   = strain0[0];
@@ -355,25 +355,10 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						// epsilon22
 						ret[2][iterator]   = strain0[2];
 						ret[1][iterator]   = strain1[2];
-						ret[0][iterator++] = strain2[2];
+						ret[0][iterator++]   = strain2[2];
+					  
 					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-					{
-						// epsilon11
-						ret[8][iterator] = 0 ;
-						ret[7][iterator] = 0 ;
-						ret[6][iterator] = 0 ;
 
-						// epsilon12
-						ret[5][iterator] = 0 ;
-						ret[4][iterator] = 0 ;
-						ret[3][iterator] = 0 ;
-
-						// epsilon22
-						ret[2][iterator] = 0 ;
-						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;
-					}
 				}
 
 				break ;
@@ -425,38 +410,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator]   = strain1[2];
 						ret[0][iterator++] = strain2[2];
 					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-					{
-						// epsilon11
-						ret[17][iterator] = 0 ;
-						ret[16][iterator] = 0 ;
-						ret[15][iterator] = 0 ;
-
-						// epsilon12
-						ret[14][iterator] = 0 ;
-						ret[13][iterator] = 0 ;
-						ret[12][iterator] = 0 ;
-
-						// epsilon22
-						ret[11][iterator] = 0 ;
-						ret[10][iterator] = 0 ;
-						ret[9][iterator] = 0 ;
-
-						// sigma11
-						ret[8][iterator] = 0 ;
-						ret[7][iterator] = 0 ;
-						ret[6][iterator] = 0 ;
-
-						// sigma12
-						ret[5][iterator] = 0 ;
-						ret[4][iterator] = 0 ;
-						ret[3][iterator] = 0 ;
-
-						// sigma22
-						ret[2][iterator] = 0 ;
-						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;
-					}
 				}
 				break ;
 
@@ -488,23 +441,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[2][iterator]   = strain0[2];
 						ret[1][iterator]   = strain1[2];
 						ret[0][iterator++] = strain2[2];
-					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-					{
-						// sigma11
-						ret[8][iterator] = 0 ;
-						ret[7][iterator] = 0 ;
-						ret[6][iterator] = 0 ;
-
-						// sigma12
-						ret[5][iterator] = 0 ;
-						ret[4][iterator] = 0 ;
-						ret[3][iterator] = 0 ;
-
-						// sigma22
-						ret[2][iterator] = 0 ;
-						ret[1][iterator] = 0 ;
-						ret[0][iterator++] = 0 ;
 					}
 				}
 
@@ -538,18 +474,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 						}
-						else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						{
-							// j11
-							ret[5][iterator] = 0 ;
-							ret[4][iterator] = 0 ;
-							ret[3][iterator++] = 0 ;
-
-							// j22
-							ret[2][iterator] = 0 ;
-							ret[1][iterator] = 0 ;
-							ret[0][iterator++] = 0 ;
-						}
 					}
 
 					break ;
@@ -580,28 +504,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 						}
-						else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						{
-							// d11
-							ret[11][iterator] = 0 ;
-							ret[10][iterator] = 0 ;
-							ret[9][iterator] = 0 ;
-
-							// d22
-							ret[8][iterator] = 0 ;
-							ret[7][iterator] = 0 ;
-							ret[6][iterator] = 0 ;
-
-							// j11
-							ret[5][iterator] = 0 ;
-							ret[4][iterator] = 0 ;
-							ret[3][iterator] = 0 ;
-
-							// j22
-							ret[2][iterator] = 0 ;
-							ret[1][iterator] = 0 ;
-							ret[0][iterator++] = 0 ;
-						}
 					}
 
 					break ;
@@ -622,18 +524,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 							ret[2][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
 							ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
 							ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
-						}
-						else  if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-						{
-							// d11
-							ret[5][iterator] = 0 ;
-							ret[4][iterator] = 0 ;
-							ret[3][iterator] = 0 ;
-
-							// d22
-							ret[2][iterator] = 0 ;
-							ret[1][iterator] = 0 ;
-							ret[0][iterator++] = 0 ;
 						}
 					}
 
