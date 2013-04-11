@@ -429,19 +429,19 @@ struct CompositeSparseMatrixTimesVecMinusVecMinusVec
  @param ret Vector to store the result
  @param c CoordinateIndexedSparseMatrixTimesVecPlusVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c) ;
+void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, int rowstart = 0, int colstart = 0) ;
 
 /** \brief parrallel compute matrix*vector - vector and assign.
 	@param ret Vector to store the result
 	@param c CoordinateIndexedSparseMatrixTimesVecMinusVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c) ;
+void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, int rowstart = 0, int colstart = 0) ;
 
 /** \brief parrallel compute matrix*vector and assign.
 	@param ret Vector to store the result
 @param c CoordinateIndexedSparseMatrixTimesVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c) ;
+void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, int rowstart = 0, int colstart = 0) ;
 
 } ;
 

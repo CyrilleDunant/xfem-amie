@@ -15,6 +15,7 @@
 #define __TRIANGLE_WRITER_H__
 
 #include "../../features/features.h"
+#include "../../elements/integrable_entity.h"
 #include "../itoa.h"
 
 namespace Mu
@@ -74,10 +75,16 @@ public:
 
 	/** \brief store the values of the field in the writer*/
 	virtual void getField(TWFieldType field, bool extra = true) ;
+	
+	/** \brief store the values of the field in the writer*/
+	virtual void getField(FieldType field, bool extra = true) ;
 
 	/** \brief get the raw values of the specified field from the source*/
 	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, int layer) ;
 
+	/** \brief get the raw values of the specified field from the source*/
+	virtual std::vector<std::valarray<double> > getDoubleValues(FieldType field, int layer) ;
+	
 	/** \brief get the raw values of the specific field from a single DelaunayTriangle */
 	virtual std::pair<bool, std::vector<double> > getDoubleValue(DelaunayTriangle * tri, TWFieldType field) ;
 

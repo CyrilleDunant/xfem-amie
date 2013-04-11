@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
 {	
 	// scale factor (to be adjusted for the meshing)
 	double scale = 1. ;
-	if(argc > 1)
-		scale = atof(argv[1]) ;
+	if(argc > 2)
+		scale = atof(argv[2]) ;
   
 	// creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
 	// (length are in meters)
@@ -169,13 +169,15 @@ int main(int argc, char *argv[])
 		  F.addFeature( &box, incs[i] ) ;
 	}
 	
-	// sampling criteria
-	F.setSamplingNumber( 100 ) ;
+	// sampling criteria (to be adjusted for the number of points you need)
+	F.setSamplingNumber( atof(argv[1]) ) ;
 	
 	// generate elements and get list of tetrahedrons
 	std::vector<DelaunayTetrahedron *> tets = F.getElements3D() ;
 	// get nodes
 	std::vector<Point> nodes = F.getNodes() ;
+	
+	F.step() ;
 	
 	return 0 ;
 }

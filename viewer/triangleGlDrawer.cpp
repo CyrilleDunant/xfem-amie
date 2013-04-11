@@ -297,18 +297,18 @@ void TriangleGLDrawer::initializeGL()
 	displayList = glGenLists( numberOfExtraFields+1 ) ;
 	currentDisplayList = currentSet + 1 ;
 	glViewport( 0, 0, 600, 600 ) ;
-	glEnable( GL_BLEND );
+//	glEnable( GL_BLEND );
 	glShadeModel( GL_SMOOTH ); // Enables Smooth Shading
-	glEnable( GL_LINE_SMOOTH ) ;
+	//glEnable( GL_LINE_SMOOTH ) ;
 	glEnable( GL_POLYGON_SMOOTH );
 	glDisable( GL_DEPTH_TEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST ) ;
 
 // 	glPointSize(std::max(0.4*(float)width()/(float)columns, 1.));
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );                                 // Black Background
+	glClearColor( 1.0f, 1.0f, 1.0f, 0.0f );                                 // Black Background
 	glClearDepth( 1.0f );                                                   // Depth Buffer Setup
 	glDisable( GL_DEPTH_TEST );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+//	glBlendFunc( GL_SRC_ALPHA, GL_ONE );
 
 	computeDisplayList() ;
 }
@@ -462,6 +462,26 @@ void TriangleGLDrawer::computeDisplayList()
 			glEnd() ;
 		}
 
+		glLineWidth(1) ;
+		for( size_t i = 0 ; i < numberOfTriangles ; i++ )
+		{
+			glBegin( GL_LINE_LOOP ) ;
+
+			for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
+			{
+
+	//			HSVtoRGB( &r, &g, &b, 180., 0., 0. ) ;
+
+				glColor4ub( 0, 0, 0, 0 ) ;
+
+				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+				glVertex2f( ( ( *valuesAtPoint )[j * 2][i] - min_x ) / maxdelta - 0.5 * cx + dx - 0.2, ( ( *valuesAtPoint )[j * 2 + 1][i] - min_y ) / maxdelta - 0.5 * cy + dy ) ;
+			}
+
+			glEnd() ;
+		}
+			
 		glEndList() ;
 	}
 	
@@ -480,6 +500,7 @@ void TriangleGLDrawer::computeDisplayList()
 
 	size_t r, g, b ;
 
+	glLineWidth(1) ;
 	for( size_t i = 0 ; i < numberOfTriangles ; i++ )
 	{
 		glBegin( GL_LINE_LOOP ) ;
@@ -487,9 +508,9 @@ void TriangleGLDrawer::computeDisplayList()
 		for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
 		{
 
-			HSVtoRGB( &r, &g, &b, 180., 0., 0.5 ) ;
+//			HSVtoRGB( &r, &g, &b, 180., 0., 0. ) ;
 
-			glColor4ub( r, g, b, 25 ) ;
+			glColor4ub( 0, 0, 0, 0 ) ;
 
 			double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
 			double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;

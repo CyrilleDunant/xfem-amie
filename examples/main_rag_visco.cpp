@@ -197,8 +197,8 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR) ;
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new PasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 6000, BOLOME_A) ;
+	box.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000, BOLOME_A) ;
 	
 	double aggregate_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
@@ -216,6 +216,15 @@ int main(int argc, char *argv[])
 	std::vector<std::pair<ExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, inclusions, new GelBehaviour(), 0.00001, nzones*5, nzones) ;
 	F.getAssembly()->setEpsilon(1e-15) ;
 	F.step() ;
+
+		TriangleWriter writer("hey", &F) ;
+		writer.getField(TWFT_STRAIN) ;
+		writer.getField(TWFT_STRESS) ;
+		writer.getField(TWFT_DAMAGE) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.write() ;
+	
+	
 	Vector x = F.getAverageField(STRAIN_FIELD) ;
 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
 	Vector z = F.getAverageField(REAL_STRESS_FIELD) ;

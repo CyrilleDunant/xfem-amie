@@ -300,6 +300,17 @@ void TriangleWriter::getField( TWFieldType field, bool extra )
 
 }
 
+void TriangleWriter::getField( FieldType field, bool extra )
+{
+	for( size_t j = 0 ; j < layers.size() ; j++ )
+	{
+		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
+		std::reverse( val.begin(), val.end() );
+		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
+	}
+
+}
+
 std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, int layer )
 {
 	std::vector<std::valarray<double> > ret ;
@@ -667,6 +678,57 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					}
 				}
 			}
+		}
+	}
+
+	return ret ;
+}
+
+std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType field, int layer )
+{
+	std::vector<std::valarray<double> > ret ;
+	int iterator = 0 ;
+	
+	std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+	int blocks = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() / 2 ;
+	int size = fieldTypeElementarySize( field, SPACE_TWO_DIMENSIONAL, blocks) ;
+	int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+	int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
+	int factor = 1 ;
+
+	if( pointsPerPlane % 6 == 0 )
+		factor = 2 ;
+
+	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+
+	for( int i = 0 ; i < size*3 ; i++ )
+	{
+		std::valarray<double> reti( nTriangles[layerTranslator[layer]] ) ;
+		ret.push_back( reti ) ;
+	}
+	
+
+	for( size_t i = 0 ; i < triangles.size() ; i++ )
+	{
+		if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+		{
+			Vector first(size) ;
+			Vector second(size) ;
+			Vector third(size) ;
+		  
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + 0), first, false);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor), second, false);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor*2), third, false);
+			
+			for(size_t j = 0 ; j < size ; j++)
+			{
+				ret[j*3+0][iterator] = first[j] ;
+				ret[j*3+1][iterator] = second[j] ;
+				ret[j*3+2][iterator] = third[j] ;
+			}
+			
+			iterator++ ;
+			
 		}
 	}
 

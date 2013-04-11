@@ -793,6 +793,8 @@ void Triangle::project(Point * p) const
 
 bool Triangle::in(const Point &p) const
 {
+  
+// 	p.print() ;
 // 	bool isAPoint = false ;
 // 	for (int i = 0; i <  getBoundingPoints().size(); i++)
 // 	{
@@ -841,7 +843,7 @@ bool Triangle::in(const Point &p) const
 // 		bool isAPoint = false ;
 	for (int i = 0; i <  getBoundingPoints().size(); i++)
 	{
-		if(p == getBoundingPoint(i)/*squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D*/)
+		if(p == getBoundingPoint(i) || squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
 		{
 			return true ;
 		}
@@ -852,6 +854,7 @@ bool Triangle::in(const Point &p) const
 	if(isOnSurface)
 		return true ;
 	
+
 	proj = p ;
 	proj.t = getBoundingPoint(0).t ;
 	
@@ -875,7 +878,8 @@ bool Triangle::in(const Point &p) const
 // 		pts.push_back(i->second);
 // 
  	size_t npts = getBoundingPoints().size()/timePlanes() ;
-	
+// 	std::cout << npts << std::endl ;
+// 
 // 	proj.print() ;
 // 	c.print() ;
 // 	
@@ -886,9 +890,11 @@ bool Triangle::in(const Point &p) const
 // 	if(s.on(getBoundingPoint(0)))
 // 		std::cout << "x" <<
 	
+	
+	
 	if(s.on(getBoundingPoint(0)) || s.on(getBoundingPoint(npts/3)) || s.on(getBoundingPoint(npts*2/3)))
 		return false ;
-
+	
 	Segment sa(getBoundingPoint(0),getBoundingPoint(npts/3)) ;
 	Segment sb(getBoundingPoint(npts/3),getBoundingPoint(npts*2/3)) ;
 	Segment sc(getBoundingPoint(npts*2/3),getBoundingPoint(0)) ;

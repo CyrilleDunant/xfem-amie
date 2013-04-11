@@ -652,7 +652,8 @@ bool Assembly::make_final()
 					{
 						if(k >= dofsperplane*(instants-1))
 						{
-							map->insert(std::make_pair(ids[j], ids[k])) ;
+							if(j >= dofsperplane*(instants-1))
+								map->insert(std::make_pair(ids[j], ids[k])) ;
 							map->insert(std::make_pair(ids[k], ids[j])) ;
 						}
 					}

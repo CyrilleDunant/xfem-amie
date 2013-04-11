@@ -127,12 +127,12 @@ double fr(Point p, double t)
 
 double fx(Point p, double t)
 {
-	if(std::abs(p.y) == 0.5)
-		return p.x ;
-	if(decrease == 0)
-		return p.x ;
-	if(decrease == -1)
-		return p.x*0.75 ;
+// 	if(std::abs(p.y) == 0.5)
+// 		return p.x ;
+// 	if(decrease == 0)
+// 		return p.x ;
+// 	if(decrease == -1)
+// 		return p.x*0.75 ;
 	return p.x*(0.8+0.2*exp(-t/300)) ;
 }
 
@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(timestep) ;
 	if(order == 2)
 	{
+		std::cout << "using quadratic elements" << std::endl ;
 		F.setOrder(LINEAR_TIME_QUADRATIC) ;
 		F.setDeltaTime(timestep*2) ;
 	}
@@ -205,7 +206,7 @@ int main(int argc, char *argv[])
 	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
 	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
 	Vector disp = F.getDisplacements() ;
-	out << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 
@@ -232,7 +233,7 @@ int main(int argc, char *argv[])
 		strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
 		rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
 		disp = F.getDisplacements() ;
-		out << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+		out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 		
@@ -242,7 +243,7 @@ int main(int argc, char *argv[])
 			nametrg.append("_trg_") ;
 			nametrg.append(std::to_string((int) time)) ;
 			TriangleWriter writer(nametrg, &F, 1) ;
-			writer.getField(TWFT_STRAIN) ;
+			writer.getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD) ;
 			writer.getField(TWFT_STRESS) ;
 			writer.write() ;
 		}

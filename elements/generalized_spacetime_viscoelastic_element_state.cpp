@@ -886,6 +886,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					f[7] = vm.ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
 					f[8] = vm.ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, p_ , 10*default_derivation_delta) ;
 					
+					
 					for(size_t i = 0 ; i < totaldof ; i++)
 					{
 						for(size_t k = 0 ; k < 9 ; k++)

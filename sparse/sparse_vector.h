@@ -64,7 +64,7 @@ public:
 	 */
 	Vector operator *(const Vector&) const ;
 	
-	void inner_product(const Vector &v, double *dest) const
+	void inner_product(const Vector &v, double *dest, size_t rowstart = 0, size_t colstart = 0) const
 	{
 		if(stride == 2)
 		{
@@ -239,7 +239,7 @@ public:
 	
 		/** \brief simultaneously compute a number of dot products equal to the block size and assign.
 	 */
-	void inner_product(const Vector &v, double *dest) const
+	void inner_product(const Vector &v, double *dest, size_t rowstart = 0, size_t colstart = 0) const
 	{
 
 		switch(stride)
