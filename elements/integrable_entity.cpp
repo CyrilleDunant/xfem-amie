@@ -2886,7 +2886,7 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, co
 
 Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
 {
-	return VirtualMachine().ieval(Gradient( shape ) * ( data ), gp, Jinv, v) ;
+	return data * VirtualMachine().ieval(shape, gp) ;
 }
 
 Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 

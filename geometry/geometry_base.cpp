@@ -3418,14 +3418,24 @@ double Segment::norm() const
 	return vec.norm() ;
 }
 
-std::valarray<std::pair<Point, double> > Segment::getGaussPoints() const
+std::valarray<std::pair<Point, double> > Segment::getGaussPoints(bool timeDependent) const
 {
-	std::valarray< std::pair<Point, double> > gp(2) ;
+	std::valarray< std::pair<Point, double> > gp(2+2*timeDependent) ;
 	Point a = f*0.788675134594813+ s*(1.-0.788675134594813) ;
 	Point b = s*0.788675134594813+ f*(1.-0.788675134594813) ;
-	double n = norm() ;
-	gp[0] = std::pair<Point, double>(a, 1) ;
-	gp[1] = std::pair<Point, double>(b, 1) ;
+//	double n = norm() ;
+	if(!timeDependent)
+	{
+		gp[0] = std::pair<Point, double>(a, 1) ;
+		gp[1] = std::pair<Point, double>(b, 1) ;
+	}
+	else
+	{
+		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 1) ;
+		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 1) ;
+		gp[2] = std::pair<Point, double>(Point(a.x, a.y, a.z, 0.577350269189626), 1) ;
+		gp[3] = std::pair<Point, double>(Point(b.x, b.y, b.z, 0.577350269189626), 1) ;
+	}
 	return gp ;
 }
 
@@ -4129,6 +4139,41 @@ bool TriPoint::in(const Point & p) const
 	
 	return true;
 }
+
+std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDependent) const
+{
+	std::valarray< std::pair<Point, double> > gp(4+4*timeDependent) ;
+	Point origin(*point[1]) ;
+	Point y(*point[0]) ;
+	Point x(*point[2]) ;
+	y -= origin ;
+	x -= origin ;
+	Point a = origin + x*0.2 + y*0.2 ;
+	Point b = origin + x*0.6 + y*0.2 ;
+	Point c = origin + x*0.2 + y*0.6 ;
+	Point d = origin + x/3.0 + y/3.0 ;
+//	double n = norm() ;
+	if(!timeDependent)
+	{
+		gp[0] = std::pair<Point, double>(a,  0.260416666666667) ;
+		gp[1] = std::pair<Point, double>(b,  0.260416666666667) ;
+		gp[2] = std::pair<Point, double>(c,  0.260416666666667) ;
+		gp[3] = std::pair<Point, double>(d, -0.28125) ;
+	}
+	else
+	{
+		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.) ;
+		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.) ;
+		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.) ;
+	}
+	return gp ;
+}
+
 
 bool Segment::intersects(const TriPoint &g) const
 {

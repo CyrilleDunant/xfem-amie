@@ -687,6 +687,10 @@ struct TriPoint
 	bool in(const Point & p) const ;
 	
 	Point projection(const Point & p) const ;
+	
+	/** \brief Return two Gauss points*/
+	std::valarray<std::pair<Point, double> > getGaussPoints(bool timeDependent = false) const ;
+	
 
 };
 
@@ -1070,7 +1074,7 @@ public:
 	std::vector<Point> intersection(const TriPoint & a) const ;
 
 	/** \brief Return two Gauss points*/
-	std::valarray<std::pair<Point, double> > getGaussPoints() const ;
+	std::valarray<std::pair<Point, double> > getGaussPoints(bool timeDependent = false) const ;
 } ;
 
 /** \brief basic container for Geometry: the Pointset. it contains an algorithm to compute the convex hull.*/
