@@ -722,9 +722,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{
-				ret[j*3+0][iterator] = first[j] ;
-				ret[j*3+1][iterator] = second[j] ;
-				ret[j*3+2][iterator] = third[j] ;
+				ret[(size-1-j)*3+0][iterator] = first[j] ;
+				ret[(size-1-j)*3+1][iterator] = second[j] ;
+				ret[(size-1-j)*3+2][iterator] = third[j] ;
 			}
 			
 			iterator++ ;
