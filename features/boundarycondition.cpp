@@ -580,9 +580,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if(id[j] == e->getBoundingPoint( i ).id)
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ).id && (
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
+						)
+						)
 						{
-							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
 							else
@@ -599,7 +606,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
-					
 				}
 				
 				if(!last)
@@ -614,7 +620,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					gpe.gaussPoints[i].first.print() ;
 					gpe.gaussPoints[i].second *= edge.area() ;
 					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
@@ -664,9 +669,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if(id[j] == e->getBoundingPoint( i ).id)
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ).id && (
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
+						)
+						)
 						{
-							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
 							else
@@ -683,7 +695,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
-					
 				}
 				
 				if(!last)
@@ -698,7 +709,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					gpe.gaussPoints[i].first.print() ;
 					gpe.gaussPoints[i].second *= edge.area() ;
 					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
@@ -749,9 +759,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if(id[j] == e->getBoundingPoint( i ).id)
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ).id && (
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
+						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
+						)
+						)
 						{
-							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
 							else
@@ -768,7 +785,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
-					
 				}
 				
 				if(!last)
@@ -783,7 +799,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					gpe.gaussPoints[i].first.print() ;
 					gpe.gaussPoints[i].second *= edge.area() ;
 					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}

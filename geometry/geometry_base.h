@@ -688,7 +688,7 @@ struct TriPoint
 	
 	Point projection(const Point & p) const ;
 	
-	/** \brief Return two Gauss points*/
+	/** \brief Return Gauss points*/
 	std::valarray<std::pair<Point, double> > getGaussPoints(bool timeDependent = false) const ;
 	
 

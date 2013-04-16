@@ -200,7 +200,7 @@ GelBehaviour * gel = new GelBehaviour() ;
 void step()
 {
 	
-	size_t nsteps = 300 ; //16*10;
+	size_t nsteps = 600 ; //16*10;
 	size_t nit = 2 ;
 	size_t tries = 0 ;
 	int totit = 0 ;
@@ -491,7 +491,7 @@ void step()
 
 		if ( go_on )
 		{
-			displacements.push_back( 1000.*(load->getData()+0.05e-3) );
+			displacements.push_back( 1000.*(load->getData())+0.05);
 			loads.push_back( avg_s_yy/1000. );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
@@ -543,12 +543,14 @@ void step()
 
 		std::fstream ldfile( "ldn", std::ios::out )  ;
 
+
 		for ( int j = 0 ; j < loads.size() ; j++ )
 		{
 			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
 			
 		}
-		ldfile <<  1000.*(load->getData()) << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
+		if(!go_on)
+		  ldfile <<  1000.*(load->getData())+0.05 << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
 		ldfile.close();
 		if ( true )
 		{
