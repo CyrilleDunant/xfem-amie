@@ -615,8 +615,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				TriPoint edge( first, middle, last) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
-				first->print() ;
-				last->print() ;
+
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
@@ -704,8 +703,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				TriPoint edge( first, middle, last) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
-				first->print() ;
-				last->print() ;
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
@@ -794,8 +791,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				TriPoint edge( first, middle, last) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
-				first->print() ;
-				last->print() ;
+
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
