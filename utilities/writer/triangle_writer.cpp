@@ -745,14 +745,19 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 		switch( field )
 		{
 			case TWFT_COORDINATE:
+			{
+				size_t n = tri->getBoundingPoints().size()/3 ;
+				if(tri->timePlanes() > 1)
+					n /= tri->timePlanes() ;
 				ret[5] = tri->getBoundingPoint(0).x ;
 				ret[4] = tri->getBoundingPoint(0).y ;
-				ret[3] = tri->getBoundingPoint(1).x ;
-				ret[2] = tri->getBoundingPoint(1).y ;
-				ret[1] = tri->getBoundingPoint(2).x ;
-				ret[0] = tri->getBoundingPoint(2).y ;
+				ret[3] = tri->getBoundingPoint(n).x ;
+				ret[2] = tri->getBoundingPoint(n).y ;
+				ret[1] = tri->getBoundingPoint(2*n).x ;
+				ret[0] = tri->getBoundingPoint(2*n).y ;
 				found = true ;
 				break ;
+			}
 
 			case TWFT_PRINCIPAL_ANGLE:
 			{

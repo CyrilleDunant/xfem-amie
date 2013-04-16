@@ -145,7 +145,17 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
 							else
-								last = new Point(e->getBoundingPoint( i ) ) ;
+							{
+								if(!last)
+								{
+									  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+							}
 						}
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -216,7 +226,17 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
 							else
-								last = new Point(e->getBoundingPoint( i ) ) ;
+							{
+								if(!last)
+								{
+									  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+							}
 						}
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
