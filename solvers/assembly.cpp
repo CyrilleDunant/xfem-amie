@@ -793,7 +793,7 @@ bool Assembly::make_final()
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 		setBoundaryConditions() ;
 		checkZeroLines() ;
-		
+
 	}
 	if(dim == SPACE_THREE_DIMENSIONAL)
 	{			
