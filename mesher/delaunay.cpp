@@ -2452,18 +2452,23 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
-			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
+//			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
 		}
 	}
 
 	VirtualMachine vm ;
+	size_t start = 0 ;
+	if(timePlanes() > 1)
+	{
+		start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
+	}
 	if(behaviour->isSymmetric())
 	{
-		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{	
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 
-			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
+			for(size_t j = 0 ; j < i ; j++)
 			{
 				behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
 				cachedElementaryMatrix[j][i] = cachedElementaryMatrix[i][j].transpose() ;
@@ -2566,19 +2571,24 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
 		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
-			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
-			getThirdJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp*3+i], Jinv[gp*4+i], Jinv[gp*5+i]) ;
+//			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
+//			getThirdJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp*3+i], Jinv[gp*4+i], Jinv[gp*5+i]) ;
 		}
 	}	
 
 	VirtualMachine vm ;
+	size_t start = 0 ;
+	if(timePlanes() > 1)
+	{
+		start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
+	}
 	if(behaviour->isSymmetric())
 	{
-		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{	
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
 
-			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
+			for(size_t j = 0 ; j < i ; j++)
 			{
 				behaviour->applyViscous(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j], &vm) ;
 				cachedViscousElementaryMatrix[j][i] = cachedViscousElementaryMatrix[i][j].transpose() ;
