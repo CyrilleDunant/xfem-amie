@@ -14,6 +14,7 @@
 #include "../physics/parallel_behaviour.h"
 #include "../physics/viscoelasticity.h"
 #include "../physics/viscoelasticity_and_fracture.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
@@ -87,38 +88,43 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.08, 0.08,0.,0.) ;
+Sample box(nullptr, 1, 1,0.,0.) ;
 
 
 int main(int argc, char *argv[])
 {
 	double timestep = atof(argv[1]) ;
 	int sampling = (int) atof(argv[2]) ;
-	int ninc = (int) atof(argv[3]) ;
+//	int ninc = (int) atof(argv[3]) ;
   
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
 	
 	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
-	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(BURGER, e*2, e*2*300, e, e*5000)) ;
-	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a) ;
+	Vector imp(3) ;
+	imp[0] = 0.1 ;
+	imp[1] = 0.1 ;
+//	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
+  	box.setBehaviour(new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY, e, imp)) ;
+	box.getBehaviour()->param.print() ;
+//	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a) ;
 
-	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
+//	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
 	
-	F.setOrder(LINEAR) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
+	F.getAssembly()->setEpsilon( 1e-20 ) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
 	F.step() ;
 	
 	std::fstream out ;
@@ -132,7 +138,7 @@ int main(int argc, char *argv[])
 	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
 	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
 	Vector disp = F.getDisplacements() ;
-	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+	std::cout << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 
@@ -147,17 +153,16 @@ int main(int argc, char *argv[])
 		writer.write() ;
 	}
 	
-	return 0 ;
 		
 	while(time < 401)
 	{
 		F.step() ;
 		time += timestep ;
 		stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
-		strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
-		rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
+		strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1,1) ;
+		rate = F.getAverageField(STRAIN_FIELD,-1,1) ;
 		disp = F.getDisplacements() ;
-		out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+		std::cout << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 		
@@ -171,6 +176,7 @@ int main(int argc, char *argv[])
 			writer.getField(REAL_STRESS_FIELD) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.write() ;
+			exit(0) ;
 		}
 	}
 

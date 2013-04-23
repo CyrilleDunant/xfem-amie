@@ -135,7 +135,12 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
 		}
 
-		for( size_t i = 0 ; i < getBoundingPoints().size() ; i++ )
+		size_t start = 0 ;
+		if(timePlanes() > 1)
+		{
+			start = getBoundingPoints().size() - getBoundingPoints().size()/timePlanes() ;
+		}
+		for( size_t i = start ; i < getBoundingPoints().size() ; i++ )
 		{
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getBoundingPoint( i ).id,  getShapeFunction( i ), getGaussPoints(), Jinv ) ;
 			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
@@ -2884,12 +2889,14 @@ void KelvinVoightSpaceTimeElementState::getField( FieldType f1, FieldType f2, co
 // 	ElementState::getFieldAtNodes(f2, ret2, j) ;  
 // }
 
-Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Form::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic ) 
 {
+	if(isVolumic)
+		return VirtualMachine().ieval( Gradient(shape)*data, gp, Jinv, v) ;
 	return data * VirtualMachine().ieval(shape, gp) ;
 }
 
-Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic ) 
 {
 	VirtualMachine vm ;
 	

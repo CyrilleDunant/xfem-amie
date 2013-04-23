@@ -18,6 +18,7 @@ class GrowingExpansiveZone :  public ExpansiveZone
 	bool changed ;
 	double time_pos ;
 	Function growth ;
+
 public:
 
 	GrowingExpansiveZone(Feature *father, double r_init, double x, double y, const Matrix & cgTensor, Vector deformation, Function r) ;

@@ -185,7 +185,7 @@ public:
 	 * 
 	 * @param f string to parse to instanciate function.
 	 */
-	Function(const std::string &f) ;
+	Function(const std::string &f, int n = 0) ;
 
 	/** \brief Polynomial in x, y, z, t given a 4D tensor of coefficents
 	 * 
@@ -293,13 +293,18 @@ public:
 	 */
 	std::valarray<Function *> & getDerivatives();
 
+	void setNumberOfDerivatives(int n) ;
+	void setDerivative( const Variable v, Function & f) ;
+	
 
 	/** \brief return true if the differentiable has been computed
 	 * 
 	 * @return true if the differentiable has been computed
 	 */
 	bool isDifferentiable() const ;
-	
+
+	bool isDifferentiable(const Variable v) const ;
+
 	/** \brief Return the set of points to use for sub-tesselation for integration
 	 * 
 	 * @return the set of points to use for sub-tesselation for integration

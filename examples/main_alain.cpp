@@ -12,13 +12,14 @@
 #include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
 #include "../physics/parallel_behaviour.h"
-#include "../physics/generalized_spacetime_viscoelasticity.h"
+#include "../physics/viscoelasticity.h"
+#include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
+#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../utilities/writer/triangle_writer.h"
-#include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/homogenization/homogenization_base.h"
@@ -86,63 +87,93 @@
 
 using namespace Mu ;
 
-double sampleLength = 0.08 ; //5.5 ;
-double sampleHeight = 0.04 ;
-double supportLever = 0.05 ;//2.5 ;
-double platewidth = 0.005 ;
-double plateHeight = 0.0025 ;
-Sample box(nullptr, sampleLength, sampleHeight,0.0,0.0) ;
+Sample box(nullptr, 0.08, 0.08,0.,0.) ;
+
 
 int main(int argc, char *argv[])
 {
+	double timestep = atof(argv[1]) ;
+	int sampling = (int) atof(argv[2]) ;
+	int ninc = (int) atof(argv[3]) ;
+  
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(30) ;
-//	F.setMaxIterationsPerStep(50000) ;
-	F.setOrder(LINEAR) ;
+	F.setSamplingNumber(sampling) ;
 	
-	box.setBehaviour( new AggregateBehaviour() ) ;
+	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
+	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
+  	box.setBehaviour(new Viscoelasticity(BURGER, e*2, e*2*300, e, e*5000)) ;
+	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a) ;
 
-//	ParticleSizeDistribution::get2DMortar(&F, new AggregateBehaviour(), 0.0025, 500) ;
+	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
+	
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setDeltaTime(timestep) ;
 
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -sampleLength*0.5, platewidth-sampleLength*0.5, -10, 10, 0. ) ;
-	F.addBoundaryCondition(load) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point(supportLever-sampleLength*0.5,-sampleHeight*0.5) ) ) ;
-
-
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
+	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
-	Vector x = F.getAverageField(STRAIN_FIELD) ;
-	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
-	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
-	size_t i = 0 ;
-
-	std::fstream out ;
-	out.open("tripoint_curve", std::ios::out) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+	F.step() ;
 	
-	while(i < 100)
-	{
-		i++ ;
-		load->setData(- 0.000001*i ) ;
+	std::fstream out ;
+	std::string name = "visco_" ;
+	name.append(argv[1]) ;
+	
+	out.open(name.c_str(), std::ios::out) ;
 
-		F.step() ;
-		
-		std::string tati = "tripoint" ;
-		tati.append("_") ;
-		tati.append(itoa(i)) ;
-		std::cout << tati << std::endl ;
-		TriangleWriter writer(tati, &F) ;
-		writer.getField(TWFT_STRAIN) ;
-		writer.getField(TWFT_STRESS) ;
-		writer.getField(TWFT_DAMAGE) ;
+	double time = timestep ;	
+	Vector stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
+	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
+	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
+	Vector disp = F.getDisplacements() ;
+	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
+		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
+
+	if(true)
+	{
+		std::string nametrg = name ;
+		nametrg.append("_trg_0") ;
+		TriangleWriter writer(nametrg, &F, 1) ;
+		writer.getField(STRAIN_FIELD) ;
+		writer.getField(REAL_STRESS_FIELD) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
-			
-		x = F.getAverageField(STRAIN_FIELD) ;
-		y = F.getAverageField(REAL_STRESS_FIELD) ;
-		out << 0.000001*i << "\t" << x[1] << "\t" << y[1]*sampleLength*sampleHeight << "\t" << F.averageDamage << std::endl ;
-
 	}
+	
+	return 0 ;
+		
+	while(time < 401)
+	{
+		F.step() ;
+		time += timestep ;
+		stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
+		strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1,1) ;
+		rate = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,-1,1) ;
+		disp = F.getDisplacements() ;
+		out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
+			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
+		
+		if(time == 25 || time == 50 || time == 100 || time == 200 || time == 400)
+		{
+			std::string nametrg = name ;
+			nametrg.append("_trg_") ;
+			nametrg.append(std::to_string((int) time)) ;
+			TriangleWriter writer(nametrg, &F, 1) ;
+			writer.getField(STRAIN_FIELD) ;
+			writer.getField(REAL_STRESS_FIELD) ;
+			writer.getField(TWFT_STIFFNESS) ;
+			writer.write() ;
+		}
+	}
+
 		
 	return 0 ;
 }

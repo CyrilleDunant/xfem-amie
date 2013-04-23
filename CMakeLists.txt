@@ -76,6 +76,7 @@ physics/laplacian.cpp
 physics/dual_behaviour.cpp 
 physics/viscoelasticity.cpp 
 physics/viscoelasticity_and_fracture.cpp 
+physics/viscoelasticity_and_imposed_deformation.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
 physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp

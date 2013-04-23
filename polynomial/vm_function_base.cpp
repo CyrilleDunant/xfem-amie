@@ -1301,7 +1301,7 @@ Function::Function(const char *f)
 	initialiseAdresses();
 }
 
-Function::Function(const std::string &f) 
+Function::Function(const std::string &f, int n) 
 {
 	defaultInitialise() ;
 	size_t init = 0 ;
@@ -2000,12 +2000,15 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 
 Function::Function(const Function &f)
 {
-	if(f.derivative && false)
+	if(f.derivative/* && false*/)
 	{
 		derivative = new std::valarray<Function *>((Function *)nullptr, f.derivative->size()) ;
 		e_diff = true ;
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)
-			(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+		{
+			if((*f.derivative)[i])
+				(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+		}
 	}
 	else
 	{
@@ -2081,6 +2084,15 @@ Function::~Function()
 bool Function::isDifferentiable() const 
 {
 	return e_diff ;
+}
+
+bool Function::isDifferentiable(const Variable v) const 
+{
+	if(derivative && derivative->size() > v) 
+	{
+		return (*derivative)[v] != nullptr ;
+	}
+	return false ;
 }
 
 
@@ -2624,6 +2636,24 @@ void Function::operator-=(const double a)
 	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
+}
+
+void Function::setNumberOfDerivatives(int n) 
+{
+	if(!derivative)
+		derivative = new std::valarray<Function *>((Function *)nullptr, n) ;
+	else
+		(*derivative).resize(n) ;
+	e_diff = true ;
+}
+
+void Function::setDerivative( const Variable v, Function & f) 
+{
+	if(derivative)
+	{
+		delete (*derivative)[v] ;
+		(*derivative)[v] = new Function(f) ;
+	}
 }
 
 const Function & Function::d(const Variable v) const

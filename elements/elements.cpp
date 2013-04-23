@@ -999,18 +999,64 @@ TriElement::TriElement(Order order_ ): moved(false)
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
 
+			Function empty("0") ;
+			
+			Function zero("0") ;
+			zero.setNumberOfDerivatives(4) ;
+			zero.setDerivative( XI, empty) ;
+			zero.setDerivative( ETA, empty) ;
+			zero.setDerivative( TIME_VARIABLE, empty) ;
+			
+			Function half("0.5") ;
+			Function halfm = half * -1 ;
+			
+			Function t0("0.5 0.5 t * -") ;
+			t0.setNumberOfDerivatives(4) ;
+			t0.setDerivative( TIME_VARIABLE, halfm) ;
+
+			Function t0m = t0 * -1. ;
+			t0m.setNumberOfDerivatives(4) ;
+			t0m.setDerivative( TIME_VARIABLE, half) ;
+			
+			Function t1("0.5 0.5 t * +") ;
+			t1.setNumberOfDerivatives(4) ;
+			t1.setDerivative( TIME_VARIABLE, half) ;
+			
+			Function t1m = t1 * -1. ;
+			t1m.setNumberOfDerivatives(4) ;
+			t1m.setDerivative( TIME_VARIABLE, halfm) ;
 		//0			
 			(*shapefunc)[0] = Function("y 0.5 0.5 t * - *") ;
+			(*shapefunc)[0].setNumberOfDerivatives(4) ;
+			(*shapefunc)[0].setDerivative( XI, zero) ;
+			(*shapefunc)[0].setDerivative( ETA, t0) ;
 		//1
 			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;
+			(*shapefunc)[1].setNumberOfDerivatives(4) ;
+			(*shapefunc)[1].setDerivative( XI, t0m) ;
+			(*shapefunc)[1].setDerivative( ETA, t0m) ;
 			//2
 			(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
+			(*shapefunc)[2].setNumberOfDerivatives(4) ;
+			(*shapefunc)[2].setDerivative( XI, t0) ;
+			(*shapefunc)[2].setDerivative( ETA, zero) ;
 			//3
 			(*shapefunc)[3] = Function("y 0.5 0.5 t * + *") ;
+			(*shapefunc)[3].setNumberOfDerivatives(4) ;
+			(*shapefunc)[3].setDerivative( XI, zero) ;
+			(*shapefunc)[3].setDerivative( ETA, t1) ;
 		//4
 			(*shapefunc)[4] = Function("1 x - y - 0.5 0.5 t * + *") ;
+			(*shapefunc)[4].setNumberOfDerivatives(4) ;
+			(*shapefunc)[4].setDerivative( XI, t1m) ;
+			(*shapefunc)[4].setDerivative( ETA, t1m) ;
 		//5
 			(*shapefunc)[5] = Function("x 0.5 0.5 t * + *") ;
+			(*shapefunc)[5].setNumberOfDerivatives(4) ;
+			(*shapefunc)[5].setDerivative( XI, t1) ;
+			(*shapefunc)[5].setDerivative( ETA, zero) ;
+			
+			
 			break ;
 		}
 	case LINEAR_TIME_QUADRATIC :
