@@ -124,6 +124,7 @@ public:
 
 protected:
     virtual void writeHeader(int layer, bool firstlayer, bool append = true) ;
+		virtual void writeIndexFile() ;
 };
 
 

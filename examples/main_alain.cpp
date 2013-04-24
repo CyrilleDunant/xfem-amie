@@ -127,6 +127,10 @@ int main(int argc, char *argv[])
 	Function ttt1 = mone *2 ;
 	Function ttt2 = one ;
 	
+	Function test = s0/tt1 ;
+	
+	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;
+	
 	s0.setNumberOfDerivatives(4) ;
 	s0.setDerivative( XI, zero) ;
 	s0.setDerivative( ETA, one) ;
@@ -175,13 +179,14 @@ int main(int argc, char *argv[])
 	t2.setDerivative( ZETA, zero) ;
 	t2.setDerivative( TIME_VARIABLE, tt2 ) ;
 	
-	Function test = s0/tt1 ;
+	Function test0 = s0/tt1 ;
 	
-	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;
-	std::cout << VirtualMachine().eval( test.d(ETA), Point(0,1,0,-1) ) << std::endl ;
-	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
-	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
-
+	std::cout << VirtualMachine().eval( test0, Point(0,1,0,-1) ) << std::endl ;
+	
+	std::cout << VirtualMachine().eval( test0.d(ETA), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test0.d(ETA).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test0.d(ETA).d(TIME_VARIABLE).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+exit(0) ;
 /*	test = s0-t0 ;
 	
 	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;

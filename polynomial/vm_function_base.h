@@ -69,23 +69,25 @@ g = g(f) ;            // x-> sin(2x)
  */
 class Function
 {
+	friend class function ;
 	std::valarray<Function *> * derivative ; 
 	std::vector< Point > iPoint ;
 	
-	void defaultInitialise()
+	/*void defaultInitialise()
 	{
-		derivative = nullptr ;
-		e_diff = false ;
-		byteCodeSize = 0 ;
-		constNumber = 0 ;
-		byteCode.resize(FUNCTION_LENGTH, TOKEN_OPERATION_CONSTANT); 
-		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation *)nullptr); 
-		use_temp.resize(FUNCTION_LENGTH, NO_TEMPORARY);
-		values.resize(FUNCTION_LENGTH, 0.) ;
-		adress_a.resize(FUNCTION_LENGTH*4, 0) ;
+		derivative(nullptr),
+		e_diff(false) ;
+		byteCodeSize(0) ;
+		constNumber(0) ;
+		byteCode.resize(TOKEN_OPERATION_CONSTANT,FUNCTION_LENGTH, ); 
+		geo_op.resize((GeometryOperation *)nullptr,FUNCTION_LENGTH); 
+		use_temp.resize(NO_TEMPORARY,FUNCTION_LENGTH);
+		values.resize(0.,FUNCTION_LENGTH) ;
+		adress_a.resize(0,FUNCTION_LENGTH*4) ;
 		dofID =-1 ;
 		ptID = nullptr ;
-	}
+		hasGeoOp = false ;
+	}*/
 	
 protected:
 	boost::tuple<TokenOperationType, double, std::string> toToken(const std::string & str) const ;
@@ -115,6 +117,7 @@ protected:
 	std::map<int, std::map<Variable, Vector *> > dprecalc ;
 	
 public:
+	bool hasGeoOp ;
 	void initialiseAdresses(size_t offset = 0) ;
 	std::valarray<TokenOperationType> byteCode ;
 	std::valarray<GeometryOperation *> geo_op ;
@@ -253,11 +256,6 @@ public:
 // 	void setTransform(const ElementaryVolume * s) ;
 // 	void setTransform(const Function & x, const Function & y) ;
 // 	void setTransform(const Function & x, const Function & y, const Function & z) ;
-	
-	/** \brief Check wether the function is nil
-	 * @return true if function is identically 0
-	 */
-	bool isNull() const ;
 		
 	/** \brief return the size of the ByteCode
 	 * 

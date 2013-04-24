@@ -286,6 +286,8 @@ void MultiTriangleWriter::append()
 
 		outfile.close();
 	}
+	
+	writeIndexFile();
 }
 
 
@@ -349,9 +351,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						Vector strain1(3) ;
 						Vector strain2(3) ;
 						
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor*2), strain2, false);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + 0), strain0, false,  0, true);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor), strain1, false,  0, true);
+						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor*2), strain2, false,  0, true);
 						
 						// epsilon11
 						ret[8][iterator]   = strain0[0];
@@ -383,9 +385,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						Vector strain0(3) ;
 						Vector strain1(3) ;
 						Vector strain2(3) ;
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0, true);
+						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0, true);
+						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0, true);
 						
 						// epsilon11
 						ret[17][iterator]   = strain0[0];
@@ -403,9 +405,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[9][iterator]    = strain2[2];
 						// epsilon11
 
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0, true);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0, true);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0, true);
 						// sigma11
 						ret[8][iterator]   = strain0[0];
 						ret[7][iterator]   = strain1[0];
@@ -434,9 +436,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						Vector strain0(3) ;
 						Vector strain1(3) ;
 						Vector strain2(3) ;
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0, true);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0, true);
+						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0, true);
 
 						// epsilon11
 						ret[8][iterator]   = strain0[0];
@@ -716,9 +718,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			Vector second(size) ;
 			Vector third(size) ;
 		  
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + 0), first, false);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor), second, false);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor*2), third, false);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + 0), first, false, 0, true);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor), second, false, 0, true);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor*2), third, false, 0, true);
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{
@@ -762,11 +764,11 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_PRINCIPAL_ANGLE:
 			{
 				Vector v(0., 1) ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false ) ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false , 0, true) ;
 				ret[2] = 180.*v[0]/M_PI ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false ) ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false, 0, true ) ;
 				ret[1] = 180.*v[0]/M_PI ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
+				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false , 0, true) ;
 				ret[0] = 180.*v[0]/M_PI ;
 
 				found = true ;
@@ -862,13 +864,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_PRINCIPAL_STRESS:
 			{
 				Vector v(0., 2) ;
-				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->first, v, false) ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->first, v, false, 0, true) ;
 				ret[5] = v[1] ;
 				ret[2] = v[0] ;
-				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->second, v, false) ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->second, v, false, 0, true) ;
 				ret[4] = v[1] ;
 				ret[1] = v[0] ;
-				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->third, v, false) ;
+				tri->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, *tri->third, v, false, 0, true) ;
 				ret[3] = v[1] ;
 				ret[0] = v[0] ;
 				found = true ;
@@ -877,13 +879,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_PRINCIPAL_STRAIN:
 			{
 				Vector v(0., 2) ;
-				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->first, v, false) ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->first, v, false, 0, true) ;
 				ret[5] = v[1] ;
 				ret[2] = v[0] ;
-				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->second, v, false) ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->second, v, false, 0, true) ;
 				ret[4] = v[1] ;
 				ret[1] = v[0] ;
-				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->third, v, false) ;
+				tri->getState().getField( PRINCIPAL_STRAIN_FIELD, *tri->third, v, false, 0, true) ;
 				ret[3] = v[1] ;
 				ret[0] = v[0] ;
 				found = true ;
@@ -964,7 +966,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_VON_MISES:
 			{
 				Vector v(0., 1) ;
-				tri->getState().getField( VON_MISES_REAL_STRESS_FIELD, *tri->first, v, false ) ;
+				tri->getState().getField( VON_MISES_REAL_STRESS_FIELD, *tri->first, v, false , 0, true) ;
 				ret[2] = ret[1] = ret[0] = v[0] ;
 				found = true ;
 				break ;
@@ -1009,16 +1011,20 @@ void BinaryTriangleWriter::writeHeader(int layer, bool append )
 	outstream.close() ;
 }
 
-void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
+void MultiTriangleWriter::writeIndexFile()
 {
-	if(firstlayer)
-	{
-		nextCounter() ;
 		std::fstream headstream ;
 
 		headstream.open( head.c_str(), std::ios::out | std::ios::app ) ;
 		headstream << filename << std::endl ;
 		headstream.close();
+}
+
+void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
+{
+	if(firstlayer)
+	{
+		nextCounter() ;
 	}
 
 	std::fstream outstream ;
