@@ -19,8 +19,8 @@ using namespace Mu ;
 
 void concatenateFunctions(const Function & src0_, const Function & src1_, Function & dst)
 {
-	Function src0(src0_) ;
-	Function src1(src1_) ;
+ 	Function src0(src0_) ;
+ 	Function src1(src1_) ;
 	dst.byteCodeSize = src0.byteCodeSize+src1.byteCodeSize ;
 	dst.adress_a = src0.adress_a ;
 	dst.use_temp = src0.use_temp ;
@@ -1998,7 +1998,7 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 	initialiseAdresses();
 }
 
-Function::Function(const Function &f)
+Function::Function(const Function &f) : byteCode(f.byteCode), values(f.values), byteCodeSize(f.byteCodeSize), use_temp(f.use_temp), adress_a(f.adress_a), constNumber(f.constNumber), iPoint(f.iPoint), ptID(f.ptID), dofID(f.dofID), geo_op( (GeometryOperation *)nullptr, FUNCTION_LENGTH)
 {
 	if(f.derivative/* && false*/)
 	{
@@ -2016,25 +2016,8 @@ Function::Function(const Function &f)
 		e_diff = false ;
 	}
 
-	byteCode.resize(FUNCTION_LENGTH, TOKEN_OPERATION_CONSTANT); 
-	geo_op.resize(FUNCTION_LENGTH, (GeometryOperation *)nullptr); 
-	use_temp.resize(FUNCTION_LENGTH, NO_TEMPORARY);
-	values.resize(FUNCTION_LENGTH, 0.) ;
-	adress_a.resize(FUNCTION_LENGTH*4, 0) ;
-	ptID = f.ptID ;
-	dofID = f.dofID ;
-	
-	byteCode = f.byteCode ;
-	values = f.values ;
-	byteCodeSize = f.byteCodeSize ;
-	use_temp = f.use_temp ;
-	adress_a = f.adress_a ;
-	constNumber = f.constNumber ;
-	iPoint = f.iPoint ;
-
 	for(size_t i = 0 ; i < f.byteCodeSize ; i++)
 	{
-		delete geo_op[i] ;
 		if(f.geo_op[i])
 			geo_op[i] = f.geo_op[i]->getCopy() ;
 	}
@@ -2095,6 +2078,22 @@ bool Function::isDifferentiable(const Variable v) const
 	return false ;
 }
 
+bool Function::isDifferentiable(size_t v) const 
+{
+	if(derivative && derivative->size() > v) 
+	{
+		return (*derivative)[v] != nullptr ;
+	}
+	return false ;
+}
+
+int Function::getNumberOfDerivatives() const 
+{
+	if(derivative)
+		return derivative->size() ;
+	return 0 ;
+}
+
 
 Function Function::operator*(const Function &f) const
 {
@@ -2109,6 +2108,22 @@ Function Function::operator*(const Function &f) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
+	
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff = (*this) * f.d((const Variable) i) + d((const Variable) i)*f ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
+	
 	return ret ;
 }
 	
@@ -2128,6 +2143,21 @@ Function Function::operator/(const Function &f) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  (d((const Variable) i)*f - (*this) * f.d((const Variable) i))/(f*f) ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+
+	
 	return ret ;
 }
 	
@@ -2142,6 +2172,19 @@ Function Function::operator+(const Function &f) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  d((const Variable) i) + f.d((const Variable) i);
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
 	return ret ;
 }
 	
@@ -2193,6 +2236,21 @@ Function operator-(const double & a, const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
+	
+	int n = f.getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( f.isDifferentiable(i) )
+			{
+				Function diff =  f.d((const Variable) i) * -1;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 	
 }
@@ -2241,6 +2299,21 @@ Function operator*(const double & a, const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
+	
+	int n = f.getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if(  f.isDifferentiable(i) )
+			{
+				Function diff =  f.d((const Variable) i) * a;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 }
 
@@ -2288,6 +2361,21 @@ Function operator+(const double & a, const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
+	
+	int n = f.getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if(  f.isDifferentiable(i) )
+			{
+				Function diff =  f.d((const Variable) i);
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 }
 
@@ -2335,6 +2423,21 @@ Function operator/(const double & a, const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = FUNCTION_LENGTH-1 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
+	
+	int n = f.getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if(  f.isDifferentiable(i) )
+			{
+				Function diff =  (-a) * f.d((const Variable) i) / (f*f) ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 	
 }
@@ -2350,6 +2453,19 @@ Function Function::operator-(const Function &f) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
+	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  d((const Variable) i) - f.d((const Variable) i);
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
 	return ret ;
 
 }
@@ -2384,6 +2500,20 @@ Function Function::operator*(const double a) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
+	int n =  getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i)  )
+			{
+				Function diff =  d((const Variable) i) *a ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 }
 
@@ -2421,6 +2551,20 @@ Function Function::operator/(const double a) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
+	int n =  getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i)  )
+			{
+				Function diff =  d((const Variable) i) /a ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 	return ret ;
 }
 
@@ -2450,6 +2594,19 @@ Function Function::operator+(const double a) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
+	int n =  getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i)  )
+			{
+				Function diff =  d((const Variable) i)  ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
 	return ret ;
 }
 
@@ -2479,6 +2636,19 @@ Function Function::operator-(const double a) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
+	int n =  getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i)  )
+			{
+				Function diff =  d((const Variable) i)  ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
 	return ret ;
 }
 
@@ -2504,7 +2674,19 @@ Function  Function::operator^(const int a) const
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_POWER ;
-	return ret ;
+	int n =  getNumberOfDerivatives() ;
+	if(n > 0)
+	{
+		ret.setNumberOfDerivatives(n) ;
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i)  && a > 0)
+			{
+				Function diff =  a* d((const Variable) i) * ((*this) ^ (a-1) ) ;
+				ret.setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
 	return ret ;
 }
 
@@ -2526,6 +2708,20 @@ void Function::operator*=(const Function &f)
 	adress_a[(byteCodeSize-1)*4+1] = 9 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
+
+	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff = (*this) * f.d((const Variable) i) + d((const Variable) i)*f ;
+				setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 }
 
 
@@ -2543,6 +2739,19 @@ void Function::operator/=(const Function &f)
 	adress_a[(byteCodeSize-1)*4+1] = 9 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  (d((const Variable) i)*f - (*this) * f.d((const Variable) i))/(f*f) ;
+				setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 }
 
 void Function::operator+=(const Function &f) 
@@ -2561,6 +2770,20 @@ void Function::operator+=(const Function &f)
 	adress_a[(byteCodeSize-1)*4+1] = 9 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_PLUS ;
+
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  (d((const Variable) i) + f.d((const Variable) i)) ;
+				setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+  
 }
 
 void Function::operator-=(const Function &f)  
@@ -2576,6 +2799,19 @@ void Function::operator-=(const Function &f)
 	adress_a[(byteCodeSize-1)*4+1] = 9 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_MINUS ;
+	int n = std::max( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
+	if(n > 0)
+	{
+		for(size_t i = 0 ; i < n ; i++)
+		{
+			if( isDifferentiable(i) && f.isDifferentiable(i) )
+			{
+				Function diff =  (d((const Variable) i) - f.d((const Variable) i)) ;
+				setDerivative( (const Variable) i, diff ) ;
+			}
+		}
+	}
+	
 }
 
 void Function::operator*=(const double a) 
@@ -2592,6 +2828,17 @@ void Function::operator*=(const double a)
 	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_TIMES ;
+	
+	if(derivative)
+	{
+		for(size_t i = 0 ; i < derivative->size() ; i++)
+		{
+			if(isDifferentiable(i))
+			{
+				*(*derivative) [(const Variable) i] *= a ;
+			}
+		}
+	}
 }
 
 void Function::operator/=(const double a)  
@@ -2610,6 +2857,18 @@ void Function::operator/=(const double a)
 	adress_a[(byteCodeSize-1)*4+1] = FUNCTION_LENGTH-1-constNumber+1 ;
 	adress_a[(byteCodeSize-1)*4] = 8 ;
 	byteCode[byteCodeSize-1] = TOKEN_OPERATION_DIVIDES ;
+	
+	if(derivative)
+	{
+		for(size_t i = 0 ; i < derivative->size() ; i++)
+		{
+			if(isDifferentiable(i))
+			{
+				*(*derivative) [(const Variable) i] /= a ;
+			}
+		}
+	}
+	
 }
 
 void Function::operator+=(const double a) 
@@ -2643,7 +2902,7 @@ void Function::setNumberOfDerivatives(int n)
 	if(!derivative)
 		derivative = new std::valarray<Function *>((Function *)nullptr, n) ;
 	else
-		(*derivative).resize(n) ;
+		derivative->resize(n) ;
 	e_diff = true ;
 }
 
@@ -2658,19 +2917,12 @@ void Function::setDerivative( const Variable v, Function & f)
 
 const Function & Function::d(const Variable v) const
 {
-	if(derivative &&  derivative->size() >= v)
-	{
-		return *(*derivative)[v] ;
-	}
+	return *(*derivative)[v] ;
 }
 
 Function & Function::d(const Variable v) 
 {
-	if(derivative &&  derivative->size() >= v)
-	{
-		return *(*derivative)[v] ;
-	}
-	
+	return *(*derivative)[v] ;
 }
 
 std::valarray<Function *> & Function::getDerivatives() const

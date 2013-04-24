@@ -14,6 +14,7 @@
 #include "../physics/parallel_behaviour.h"
 #include "../physics/viscoelasticity.h"
 #include "../physics/viscoelasticity_and_fracture.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
@@ -87,94 +88,118 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.08, 0.08,0.,0.) ;
+Sample box(nullptr, 1, 1,0.,0.) ;
 
 
 int main(int argc, char *argv[])
 {
-	double timestep = atof(argv[1]) ;
-	int sampling = (int) atof(argv[2]) ;
-	int ninc = (int) atof(argv[3]) ;
+	Function z2("0") ;
+
+	Function z1("0") ;
+	z1.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
+	{
+		z1.setDerivative( (const Variable) i, z2) ;
+	}
   
-	FeatureTree F(&box) ;
-	F.setSamplingNumber(sampling) ;
-	
-	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
-	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(BURGER, e*2, e*2*300, e, e*5000)) ;
-	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a) ;
-
-	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
-	
-	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setDeltaTime(timestep) ;
-
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
-	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
-	F.step() ;
-
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
-	F.step() ;
-	
-	std::fstream out ;
-	std::string name = "visco_" ;
-	name.append(argv[1]) ;
-	
-	out.open(name.c_str(), std::ios::out) ;
-
-	double time = timestep ;	
-	Vector stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
-	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
-	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
-	Vector disp = F.getDisplacements() ;
-	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
-		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
-		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
-
-	if(true)
+	Function zero("0") ;
+	zero.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
 	{
-		std::string nametrg = name ;
-		nametrg.append("_trg_0") ;
-		TriangleWriter writer(nametrg, &F, 1) ;
-		writer.getField(STRAIN_FIELD) ;
-		writer.getField(REAL_STRESS_FIELD) ;
-		writer.getField(TWFT_STIFFNESS) ;
-		writer.write() ;
-	}
+		zero.setDerivative( (const Variable) i, z1) ;
+	}	
+	Function one = zero +1 ;
+	Function mone = zero-1 ;
+  
+	Function s0("y") ;
+	Function s1("1 x - y -") ;
+	Function s2("x") ;
+	
+	Function t0("t 2 ^ t - 0.5 *") ;			
+	Function t1("1 t 2 ^ -") ;
+	Function t2("t 2 ^ t + 0.5 *") ;
+
+	Function tt0("t 0.5 -") ;
+	Function tt1("t 2 *") ; tt1 *= -1 ;
+	Function tt2("t 0.5 +") ;
+	
+	Function ttt0 = one ;
+	Function ttt1 = mone *2 ;
+	Function ttt2 = one ;
+	
+	s0.setNumberOfDerivatives(4) ;
+	s0.setDerivative( XI, zero) ;
+	s0.setDerivative( ETA, one) ;
+	s0.setDerivative( ZETA, zero) ;
+	s0.setDerivative( TIME_VARIABLE, zero) ;
+	s1.setNumberOfDerivatives(4) ;
+	s1.setDerivative( XI, mone) ;
+	s1.setDerivative( ETA, mone) ;
+	s1.setDerivative( ZETA, zero) ;
+	s1.setDerivative( TIME_VARIABLE, zero) ;
+	s2.setNumberOfDerivatives(4) ;
+	s2.setDerivative( XI, one) ;
+	s2.setDerivative( ETA, zero) ;
+	s2.setDerivative( ZETA, zero) ;
+	s2.setDerivative( TIME_VARIABLE, zero) ;
+
+	tt0.setNumberOfDerivatives(4) ;
+	tt0.setDerivative( XI, zero) ;
+	tt0.setDerivative( ETA, zero) ;
+	tt0.setDerivative( ZETA, zero) ;
+	tt0.setDerivative( TIME_VARIABLE, ttt0 ) ;
+	tt1.setNumberOfDerivatives(4) ;
+	tt1.setDerivative( XI, zero) ;
+	tt1.setDerivative( ETA, zero) ;
+	tt1.setDerivative( ZETA, zero) ;
+	tt1.setDerivative( TIME_VARIABLE, ttt1 ) ;
+	tt2.setNumberOfDerivatives(4) ;
+	tt2.setDerivative( XI, zero) ;
+	tt2.setDerivative( ETA, zero) ;
+	tt2.setDerivative( ZETA, zero) ;
+	tt2.setDerivative( TIME_VARIABLE, ttt2 ) ;
+	
+	t0.setNumberOfDerivatives(4) ;
+	t0.setDerivative( XI, zero) ;
+	t0.setDerivative( ETA, zero) ;
+	t0.setDerivative( ZETA, zero) ;
+	t0.setDerivative( TIME_VARIABLE, tt0 ) ;
+	t1.setNumberOfDerivatives(4) ;
+	t1.setDerivative( XI, zero) ;
+	t1.setDerivative( ETA, zero) ;
+	t1.setDerivative( ZETA, zero) ;
+	t1.setDerivative( TIME_VARIABLE, tt1 ) ;
+	t2.setNumberOfDerivatives(4) ;
+	t2.setDerivative( XI, zero) ;
+	t2.setDerivative( ETA, zero) ;
+	t2.setDerivative( ZETA, zero) ;
+	t2.setDerivative( TIME_VARIABLE, tt2 ) ;
+	
+	Function test = s0/tt1 ;
+	
+	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+
+/*	test = s0-t0 ;
+	
+	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+
+	test = s0/t0 ;
+	
+	std::cout << VirtualMachine().eval( test, Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
+	std::cout << VirtualMachine().eval( test.d(ETA).d(TIME_VARIABLE).d(TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;*/
+	
 	
 	return 0 ;
-		
-	while(time < 401)
-	{
-		F.step() ;
-		time += timestep ;
-		stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
-		strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1,1) ;
-		rate = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,-1,1) ;
-		disp = F.getDisplacements() ;
-		out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
-			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
-			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
-		
-		if(time == 25 || time == 50 || time == 100 || time == 200 || time == 400)
-		{
-			std::string nametrg = name ;
-			nametrg.append("_trg_") ;
-			nametrg.append(std::to_string((int) time)) ;
-			TriangleWriter writer(nametrg, &F, 1) ;
-			writer.getField(STRAIN_FIELD) ;
-			writer.getField(REAL_STRESS_FIELD) ;
-			writer.getField(TWFT_STIFFNESS) ;
-			writer.write() ;
-		}
-	}
-
-		
-	return 0 ;
-}
+	
+  
+  
+  }
 

@@ -7,6 +7,7 @@
 #include "vm_base.h"
 #include "../mesher/delaunay.h"
 #include <limits>
+#include <iomanip>
 
 
 using namespace Mu ;
@@ -834,11 +835,18 @@ Vector VirtualMachine::deval(const Function&f, const Variable v_, const GaussPoi
 {
 	if(f.precalculated(gp, v_))
 		return f.getPrecalculatedValue(gp, v_) ;
+
+	if(f.isDifferentiable(v_))
+	{
+		return eval( f.d(v_), gp) ;
+	}
 	
 	Point poffset ;
 	Point noffset ;
 	
 	Vector ret(double(0), gp.gaussPoints.size()) ;
+	
+	
 	double h = sqrt(std::numeric_limits<double>::epsilon()) ;
 	switch(v_)
 	{
@@ -905,7 +913,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 {
 	if(f.isDifferentiable(v_0) && f.d(v_0).isDifferentiable(v_1))
 	{
-//		std::cout << "balalalala\n" << std::endl ;
+		
 		return eval(f.d(v_0).d(v_1), x, y, z, t, u, v, w) ;
 	}
 	switch(v_0)
@@ -1101,6 +1109,7 @@ tmp += (-eval(f, x, y-eps*2, z, t+eps*2, u,v,w) + 8.*eval(f, x, y-eps*2, z, t+ep
 				}
 			case TIME_VARIABLE : 
 				{
+					std::cout << std::setprecision(16) << ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(4.*eps*eps) << std::endl ;
 					return ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
 
 				}
@@ -1257,6 +1266,11 @@ Vector VirtualMachine::dddeval(const Function&f, const Variable v_0, const Varia
 double VirtualMachine::dddeval(const Function &f, const Variable v_0, const Variable v_1,  const Variable v_2, const double x, const double y , const double z, const double t, const double u, const double v, const double w, const double eps) 
 {
 	#warning dddeval not fully implemented
+	
+	if(f.isDifferentiable(v_0) && f.d(v_0).isDifferentiable(v_1) && f.d(v_0).d(v_1).isDifferentiable(v_2) )
+	{
+		return eval( f.d(v_0).d(v_1).d(v_2), x,y,z,t,u,v,w) ;
+	}
 	
 	double h = 1e-3 ;
 	if(v_1 == v_2 && v_1 == TIME_VARIABLE)

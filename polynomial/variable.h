@@ -19,14 +19,15 @@ const double default_derivation_delta= 1e-6 ;
 enum Variable
 {
 	ONE = -1,
-	XI,
-	ETA,
-	ZETA,
-	TIME_VARIABLE,
+	XI = 0,
+	ETA = 1,
+	ZETA = 2,
+	TIME_VARIABLE = 3,
 	U_VARIABLE,
 	V_VARIABLE,
 	W_VARIABLE
 } ;
+
 } ;
 
 #endif

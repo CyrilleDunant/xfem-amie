@@ -48,7 +48,7 @@ typedef enum
 	GET_TEMPORARY_B,
 } TemporayUsageType ;
 
-const size_t FUNCTION_LENGTH = 1024 ;
+const size_t FUNCTION_LENGTH = 2048 ;
 /** \brief Function object used for runtime generation of functions, or symbolic manipulation of mathematical expressions.
  * Function can be defined using helper functions an a variety of constructors, or by writing them in RPN as a string:
  * \code 
@@ -294,6 +294,7 @@ public:
 	std::valarray<Function *> & getDerivatives();
 
 	void setNumberOfDerivatives(int n) ;
+	int getNumberOfDerivatives() const ; 
 	void setDerivative( const Variable v, Function & f) ;
 	
 
@@ -304,6 +305,7 @@ public:
 	bool isDifferentiable() const ;
 
 	bool isDifferentiable(const Variable v) const ;
+	bool isDifferentiable(size_t i) const ;
 
 	/** \brief Return the set of points to use for sub-tesselation for integration
 	 * 
