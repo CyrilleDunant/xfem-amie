@@ -924,15 +924,27 @@ TriElement::TriElement(Order order_ ): moved(false)
 	case LINEAR :
 		{
 			shapefunc = new std::valarray<Function>(Function(),3) ;
-			Matrix xi(2,2) ; xi[1][0] = 1 ;
-			Matrix eta(2,2) ; eta[0][1] = 1 ;
-			Matrix one(2,2) ; one[0][0] = 1 ;
+// 			Matrix xi(2,2) ; xi[1][0] = 1 ;
+// 			Matrix eta(2,2) ; eta[0][1] = 1 ;
+// 			Matrix one(2,2) ; one[0][0] = 1 ;
+			Function zero("0") ;
+			Function one("1") ;
+			Function mone("-1") ;
 		//0
-			(*shapefunc)[0] = Function(eta) ;
+			(*shapefunc)[0] = Function("y") ;
+			(*shapefunc)[0].setNumberOfDerivatives(2) ;
+			(*shapefunc)[0].setDerivative( XI, zero) ;
+			(*shapefunc)[0].setDerivative( ETA, one) ;
 		//1
-			(*shapefunc)[1] = Function(one-xi-eta) ;
+			(*shapefunc)[1] = Function("1 x - y -") ;
+			(*shapefunc)[1].setNumberOfDerivatives(2) ;
+			(*shapefunc)[1].setDerivative( XI, mone) ;
+			(*shapefunc)[1].setDerivative( ETA, mone) ;
 		//2
-			(*shapefunc)[2] = Function(xi) ;
+			(*shapefunc)[2] = Function("x") ;
+			(*shapefunc)[2].setNumberOfDerivatives(2) ;
+			(*shapefunc)[2].setDerivative( ETA, zero) ;
+			(*shapefunc)[2].setDerivative( XI, one) ;
 			break ;
 		}
 	case QUADRATIC :
@@ -1062,16 +1074,92 @@ TriElement::TriElement(Order order_ ): moved(false)
 	case LINEAR_TIME_QUADRATIC :
 		{
 			shapefunc = new std::valarray<Function>(Function(),9) ;
-			Function s0("y") ;
-			Function s1("1 x - y -") ;
-			Function s2("x") ;
-			
-			Function t0("t 2 ^ t - 0.5 *") ;			
-			Function t1("1 t 2 ^ -") ;
-			Function t2("t 2 ^ t + 0.5 *") ;
+
+	Function z2("0") ;
+
+	Function z1("0") ;
+	z1.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
+	{
+		z1.setDerivative( (const Variable) i, z2) ;
+	}
+  
+	Function zero("0") ;
+	zero.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
+	{
+		zero.setDerivative( (const Variable) i, z1) ;
+	}	
+	Function one = zero +1 ;
+	Function mone = zero-1 ;
+  
+	Function s0("y") ;
+	Function s1("1 x - y -") ;
+	Function s2("x") ;
+	
+	Function t0("t 2 ^ t - 0.5 *") ;			
+	Function t1("1 t 2 ^ -") ;
+	Function t2("t 2 ^ t + 0.5 *") ;
+
+	Function tt0("t 0.5 -") ;
+	Function tt1("t 2 *") ; tt1 *= -1 ;
+	Function tt2("t 0.5 +") ;
+	
+	Function ttt0 = one ;
+	Function ttt1 = mone *2 ;
+	Function ttt2 = one ;
+	
+	s0.setNumberOfDerivatives(4) ;
+	s0.setDerivative( XI, zero) ;
+	s0.setDerivative( ETA, one) ;
+	s0.setDerivative( ZETA, zero) ;
+	s0.setDerivative( TIME_VARIABLE, zero) ;
+	s1.setNumberOfDerivatives(4) ;
+	s1.setDerivative( XI, mone) ;
+	s1.setDerivative( ETA, mone) ;
+	s1.setDerivative( ZETA, zero) ;
+	s1.setDerivative( TIME_VARIABLE, zero) ;
+	s2.setNumberOfDerivatives(4) ;
+	s2.setDerivative( XI, one) ;
+	s2.setDerivative( ETA, zero) ;
+	s2.setDerivative( ZETA, zero) ;
+	s2.setDerivative( TIME_VARIABLE, zero) ;
+
+	tt0.setNumberOfDerivatives(4) ;
+	tt0.setDerivative( XI, zero) ;
+	tt0.setDerivative( ETA, zero) ;
+	tt0.setDerivative( ZETA, zero) ;
+	tt0.setDerivative( TIME_VARIABLE, ttt0 ) ;
+	tt1.setNumberOfDerivatives(4) ;
+	tt1.setDerivative( XI, zero) ;
+	tt1.setDerivative( ETA, zero) ;
+	tt1.setDerivative( ZETA, zero) ;
+	tt1.setDerivative( TIME_VARIABLE, ttt1 ) ;
+	tt2.setNumberOfDerivatives(4) ;
+	tt2.setDerivative( XI, zero) ;
+	tt2.setDerivative( ETA, zero) ;
+	tt2.setDerivative( ZETA, zero) ;
+	tt2.setDerivative( TIME_VARIABLE, ttt2 ) ;
+	
+	t0.setNumberOfDerivatives(4) ;
+	t0.setDerivative( XI, zero) ;
+	t0.setDerivative( ETA, zero) ;
+	t0.setDerivative( ZETA, zero) ;
+	t0.setDerivative( TIME_VARIABLE, tt0 ) ;
+	t1.setNumberOfDerivatives(4) ;
+	t1.setDerivative( XI, zero) ;
+	t1.setDerivative( ETA, zero) ;
+	t1.setDerivative( ZETA, zero) ;
+	t1.setDerivative( TIME_VARIABLE, tt1 ) ;
+	t2.setNumberOfDerivatives(4) ;
+	t2.setDerivative( XI, zero) ;
+	t2.setDerivative( ETA, zero) ;
+	t2.setDerivative( ZETA, zero) ;
+	t2.setDerivative( TIME_VARIABLE, tt2 ) ;	
 			
 		//0
 			(*shapefunc)[0] = s0*t0 ;
+// 			std::cout << VirtualMachine().eval( (*shapefunc)[0].d( TIME_VARIABLE), Point(0,1,0,-1) ) << std::endl ;
 //			(*shapefunc)[0].d(TIME_VARIABLE) = Function("y t 0.5 - *") ;
 		//1
 			(*shapefunc)[1] = s1*t0 ;

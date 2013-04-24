@@ -444,8 +444,10 @@ void Function::operator*=(const Geometry *f)
 
 Function & Function::operator=(const Function &f)
 {
-	if(f.derivative && false)
+	if(f.derivative)
 	{
+		if(derivative)
+			delete derivative ;
 		derivative = new std::valarray<Function *>((Function *)nullptr, f.derivative->size()) ;
 		e_diff = true ;
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)

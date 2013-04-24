@@ -913,7 +913,7 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 {
 	if(f.isDifferentiable(v_0) && f.d(v_0).isDifferentiable(v_1))
 	{
-		
+//		std::cout << (int) v_0 << "," << (int) v_1 << "\n" << std::endl ;
 		return eval(f.d(v_0).d(v_1), x, y, z, t, u, v, w) ;
 	}
 	switch(v_0)
@@ -1109,7 +1109,7 @@ tmp += (-eval(f, x, y-eps*2, z, t+eps*2, u,v,w) + 8.*eval(f, x, y-eps*2, z, t+ep
 				}
 			case TIME_VARIABLE : 
 				{
-					std::cout << std::setprecision(16) << ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(4.*eps*eps) << std::endl ;
+//					std::cout << std::setprecision(16) << ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(4.*eps*eps) << std::endl ;
 					return ( eval(f, x, y, z, t+eps, u, v, w) - 2.*eval(f, x, y, z, t, u, v, w) + eval(f, x, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
 
 				}
