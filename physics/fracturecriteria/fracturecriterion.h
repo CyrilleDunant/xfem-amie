@@ -58,7 +58,7 @@ typedef enum{
 	protected:
 
 		std::valarray<unsigned int> physicalcache ;
-		void initialiseFactors(const ElementState & s) ;
+		void initialiseFactors(const Mu::ElementState& s) ;
 		std::valarray<double> factors ;
 		
 		std::vector<unsigned int> damagingSet ;
@@ -134,7 +134,8 @@ typedef enum{
 		double getMaxScoreInNeighbourhood() const ;
 		
 		FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-		virtual void initialiseCache(const ElementState & s) ;
+		virtual void initialiseCache(const Mu::ElementState& s)
+ ;
 	
 		virtual ~FractureCriterion();
 		
@@ -193,7 +194,6 @@ typedef enum{
 		 */
 		void setEnergyIndexed(bool t) {energyIndexed = t ;};
 		
-		virtual void scale(double d) = 0;
 		const std::valarray<double> & getFactors() const {return factors ;}
 		
 		virtual double getTensileLimit(const ElementState & s) const = 0 ;

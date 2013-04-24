@@ -55,7 +55,6 @@ public:
 	double strain_te ;
 	
 
-	double scaleFactor ;
 	virtual bool directionInTension(size_t direction) 
 	{
 		if(direction == 0)
@@ -100,17 +99,6 @@ public:
 	virtual double grade(ElementState &s)  ;
 
 	virtual Material toMaterial() ;
-	
-	virtual void scale(double d) 
-	{
-		scaleFactor = d ;
-// 		upVal *= d ; 
-// 		downVal *= d ;
-// 		youngModulus *=d ;
-		initialised = false ;
-// 		tensionCritStrain /= d ;
-// 		critStrain /= d ;
-	};
 	
 	virtual double getTensileLimit(const ElementState & s) const ;
 };

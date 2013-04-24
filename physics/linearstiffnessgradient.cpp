@@ -81,6 +81,19 @@ void LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, 
 
 Form * LinearStiffnessGradient::getCopy() const 
 {
-	return new LinearStiffnessGradient(*this) ;
+	
+	LinearStiffnessGradient * copy =  new LinearStiffnessGradient(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 

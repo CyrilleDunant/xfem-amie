@@ -52,10 +52,10 @@ void ExpansiveZone::addMeshPointsInFather()
 }
 
 
-void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
+void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 // 	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
-	EnrichmentInclusion::enrich( lastId, dtree ) ;
+	EnrichmentInclusion::enrich( lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> & disc = EnrichmentInclusion::cache ;//dtree->getConflictingElements(getPrimitive()) ;
 
@@ -121,7 +121,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 		{
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
 			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( bi ) ;
+			inDisc[i]->setBehaviour( bi) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 
@@ -143,7 +143,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 				                       dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;
-				disc[0]->setBehaviour( bi ) ;
+				disc[0]->setBehaviour( bi) ;
 			}
 			else
 			{
@@ -152,7 +152,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 				                       disc[0]->getBehaviour()->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;
-				disc[0]->setBehaviour( bi ) ;
+				disc[0]->setBehaviour( bi) ;
 			}
 
 			disc[0]->getBehaviour()->transform( disc[0]) ;
@@ -197,9 +197,9 @@ void MaterialInclusion::reset()
 	updated = true ;
 }
 
-void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree )
+void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-	EnrichmentInclusion::enrich( counter, dtree ) ;
+	EnrichmentInclusion::enrich( counter, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTriangle *> disc = cache ;
 
@@ -229,7 +229,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       inclusionBehaviour->getCopy(),
 			                       ring[i]->getBehaviour()->getCopy()) ;
 			delete ring[i]->getBehaviour() ;
-			ring[i]->setBehaviour( bi ) ;
+			ring[i]->setBehaviour( bi) ;
 			bi->transform( ring[i]) ;
 			bi->setSource( getPrimitive() );
 		}
@@ -244,7 +244,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 		if( internal.find( inDisc[i] ) == internal.end() )
 		{
 			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( inclusionBehaviour->getCopy() ) ;
+			inDisc[i]->setBehaviour( inclusionBehaviour->getCopy()) ;
 		}
 
 		newExpansive.insert( inDisc[i] ) ;
@@ -261,7 +261,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       disc[0]->getBehaviour()->getCopy()
 			                                              ) ;
 			delete disc[0]->getBehaviour() ;
-			disc[0]->setBehaviour( bi ) ;
+			disc[0]->setBehaviour( bi) ;
 			disc[0]->getBehaviour()->transform( disc[0]) ;
 		}
 

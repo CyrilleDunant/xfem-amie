@@ -42,9 +42,7 @@ namespace Mu {
 	 * @param s ElementState to consider
 	*/
 		virtual double grade(ElementState &s)  ;
-		
-		virtual void scale(double d) {threshold *= d ;}
-		
+
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 
 		virtual Material toMaterial() ;
@@ -77,8 +75,6 @@ namespace Mu {
 	 * @param s ElementState to consider
 	*/
 		virtual double grade(ElementState &s)  ;
-		
-		virtual void scale(double d) {threshold *= d ;}
 
 		virtual double getTensileLimit(const ElementState & s) const {return 20e9*threshold ;};
 		

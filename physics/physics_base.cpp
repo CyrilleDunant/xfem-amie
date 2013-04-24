@@ -46,7 +46,7 @@ void LinearForm::updateElementState(double timestep, ElementState & s) const
 	size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	if(s.getParent()->getBoundingPoints().size()*ndofs != s.getDisplacements().size())
 	{
-		s.initialize() ;
+		s.initialize(false) ;
 		std::cout << "uninitialized element" << std::endl ;
 	}
 	

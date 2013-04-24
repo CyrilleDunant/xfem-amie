@@ -94,7 +94,20 @@ Form * RadialDistributedStiffness::getCopy() const
 	size_t i = 0 ;
 	while(angle < stiff[i].first && i < stiff.size())
 		i++ ;
-	return new Stiffness(stiff[i].second) ;
+	
+	Stiffness* copy = new Stiffness( stiff[i].second ) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 RadialInclusion::RadialInclusion(Feature * f, double r, Point c) : Circle(r,c), Inclusion(f,r,c)

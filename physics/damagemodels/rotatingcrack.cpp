@@ -36,7 +36,7 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 	firstMet = false ;
 	secondMet = false ;
 	ctype = CONSERVATIVE_CENTER ;
-	alternating = false ;
+	alternating = true ;
 	alternate = true ;
 	
 }

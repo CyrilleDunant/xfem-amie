@@ -381,7 +381,6 @@ Form * ITZFeature::getBehaviour( const Point & p)
 	}
 	
 	Form * ret = this->getFather()->getBehaviour(p)->getCopy() ;
-	ret->scale(min+(max-min)*d/length) ;
 	
 //	static_cast<SpatiallyDistributedStiffness *>(behaviour)->setDistance(dist(p,proj)) ;
 	

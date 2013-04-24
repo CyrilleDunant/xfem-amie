@@ -216,13 +216,34 @@ Form * OrthothropicStiffness::getCopy() const
 {
 	if(v.size() == 2)
 	{
-		OrthothropicStiffness * ret = new OrthothropicStiffness(E_1, E_2, G_1,  nu, 0) ;
-		ret->param = param ;
-		return ret ; 
+		OrthothropicStiffness * copy = new OrthothropicStiffness(E_1, E_2, G_1,  nu, 0) ;
+		copy->param = param ;
+			
+		if(getExtra2dMeshes())
+		{
+			for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+				copy->addMesh((*getExtra2dMeshes())[i]);
+		}
+		if(getExtra3dMeshes())
+		{
+			for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+				copy->addMesh((*getExtra3dMeshes())[i]);
+		}
+		return copy ; 
 	}
-	OrthothropicStiffness * ret =  new OrthothropicStiffness(E_1, E_2, E_3, G_1, G_2, G_3,  nu, 0) ;
-		ret->param = param ;
-		return ret ; 
+	OrthothropicStiffness * copy =  new OrthothropicStiffness(E_1, E_2, E_3, G_1, G_2, G_3,  nu, 0) ;
+		copy->param = param ;
+		if(getExtra2dMeshes())
+		{
+			for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+				copy->addMesh((*getExtra2dMeshes())[i]);
+		}
+		if(getExtra3dMeshes())
+		{
+			for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+				copy->addMesh((*getExtra3dMeshes())[i]);
+		}
+		return copy ; 
 }
 
 

@@ -71,7 +71,20 @@ bool StiffnessWithImposedStress::fractured() const
 
 Form * StiffnessWithImposedStress::getCopy() const 
 {
-	return new StiffnessWithImposedStress(*this) ;
+	
+	StiffnessWithImposedStress * copy = new StiffnessWithImposedStress(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 void StiffnessWithImposedStress::step(double timestep, ElementState & currentState, double maxscore)

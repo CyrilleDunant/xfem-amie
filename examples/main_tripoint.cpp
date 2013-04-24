@@ -142,8 +142,8 @@ double platewidth = 0.15 ;
 double plateHeight = 0.051 ;
 double rebarDiametre = sqrt(506e-6);//sqrt( 4.*0.000506/M_PI ) ;
 double rebarEndCover = 0.047 ;
-double phi = 0. ;
-double psi = 0. ;
+double phi = 3.*rebarDiametre/.4  ;
+double psi = 2.*0.0084261498/.4  ;
 bool haveStirrups = false ;
 
 std::vector<DelaunayTriangle *> tris__ ;
@@ -184,9 +184,9 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRes
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
-GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
-GeometryDefinedBoundaryCondition * shrinkagey = new GeometryDefinedBoundaryCondition( SET_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
-GeometryDefinedBoundaryCondition * shrinkagex = new GeometryDefinedBoundaryCondition( SET_STRESS_XI, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
+GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
+GeometryDefinedBoundaryCondition * shrinkagey = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
+GeometryDefinedBoundaryCondition * shrinkagex = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri( M_PI / 6. ) ;
@@ -204,6 +204,7 @@ void step()
 	size_t nit = 2 ;
 	size_t tries = 0 ;
 	int totit = 0 ;
+	double delta_d = 0.05e-3 ;
 
 	for ( size_t v = 0 ; v < nsteps ; v++ )
 	{
@@ -211,14 +212,13 @@ void step()
 		x_max = 0 ;
 		y_min = 0 ;
 		x_min = 0 ;
-		double appliedForce = 2.*.4*load->getData()*platewidth / 1000. ;
 		
 		bool go_on = true ;
 
 		go_on = featureTree->step() ;
-		if ( go_on)
+		if ( go_on )
 		{
-			load->setData( load->getData()-0.1e-3 ) ;
+			load->setData( load->getData()-delta_d ) ;
 		}
 // 		if ( go_on  && v > 0)
 // 		{
@@ -443,28 +443,28 @@ void step()
 // 			std::cout << "VM end" << std::endl ;
 			double ar = triangles[k]->area() ;
 
-// 			if(!haveStirrups)
-// 			{
-// 				if(k < triangles.size()/2)
-// 						ar *= 1.-phi ;
-// 				else
-// 					ar *= phi ;
-// 			}
-// 			else
-// 			{
-// 				if(k < triangles.size()/3)
-// 						ar *= 1.-phi-psi ;
-// 				else if( k < 2*triangles.size()/3)
-// 					ar *= phi ;
-// 				else
-// 					ar *= psi ;
-// 			}
+			if(!haveStirrups)
+			{
+				if(k < triangles.size()/2)
+					ar *= 1.-phi ;
+				else
+					ar *= phi ;
+			}
+			else
+			{
+				if(k < triangles.size()/3)
+						ar *= 1.-phi-psi ;
+				else if( k < 2*triangles.size()/3)
+					ar *= phi ;
+				else
+					ar *= psi ;
+			}
 				
 			Vector avgsig(3) ;
 			Vector avgeps(3) ;
-			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig);
-			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps);
-
+			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig,0,0,true);
+			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps,0,0,true);
+			
 			avg_e_xx += avgeps[0] * ar;
 			avg_e_yy += avgeps[1] * ar;
 			avg_e_xy += avgeps[2] * ar;
@@ -491,7 +491,7 @@ void step()
 
 		if ( go_on )
 		{
-			displacements.push_back( 1000.*(load->getData())+0.05);
+			displacements.push_back( 1000.*(load->getData()+delta_d));
 			loads.push_back( avg_s_yy/1000. );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
@@ -537,21 +537,21 @@ void step()
 			std::cout << " ( " << avg_s_yy/1000. << "  ,  " <<  1000.*(load->getData())  << " ) "<< std::endl ;
 		}
 
-
 		if ( go_on )
-			std::cout << appliedForce << "  " << displacements.back() << "  " << damages.back() << std::endl ;
+			std::cout << avg_s_yy/1000. << "  " << displacements.back() << "  " << damages.back() << std::endl ;
 
+		
 		std::fstream ldfile( "ldn", std::ios::out )  ;
-
-
 		for ( int j = 0 ; j < loads.size() ; j++ )
 		{
 			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
 			
 		}
 		if(!go_on)
-		  ldfile <<  1000.*(load->getData())+0.05 << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
+		  ldfile <<  1000.*(load->getData()) << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
 		ldfile.close();
+		
+		
 		if ( true )
 		{
 			writer.reset( featureTree ) ;
@@ -565,6 +565,7 @@ void step()
 			writer.getField( TWFT_DAMAGE ) ;
 			writer.append() ;
 		}
+		
 		if(go_on)
 		{
 			writerc.reset( featureTree ) ;
@@ -1630,9 +1631,7 @@ int main( int argc, char *argv[] )
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
 	double compressionCrit = -34.2e6*softeningFactor ;
-	phi =  3.*rebarDiametre/.4  ;
-	
-	psi = 2.*0.0084261498/.4  ;
+
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
 // 	double mradius = 0.1; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
@@ -1749,6 +1748,7 @@ int main( int argc, char *argv[] )
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
+	samplebulk.getBehaviour()->setSource(sample.getPrimitive());
 	
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
 	sample.isVirtualFeature = true ;
@@ -1766,7 +1766,7 @@ int main( int argc, char *argv[] )
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(-0.6+0.064+0.085,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064,rebarDiametre));
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(0.6-0.064-0.085,rebarDiametre));
-
+	samplestirrupbulk.getBehaviour()->setSource(sample.getPrimitive());
 
 	int stirruplayer = 1 ;
 	int rebarlayer = 0 ;

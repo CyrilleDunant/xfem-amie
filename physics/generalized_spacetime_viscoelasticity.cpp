@@ -601,7 +601,18 @@ bool GeneralizedSpaceTimeViscoelasticity::changed() const
 
 Form * GeneralizedSpaceTimeViscoelasticity::getCopy() const 
 {
-	return new GeneralizedSpaceTimeViscoelasticity(*this) ;
+	GeneralizedSpaceTimeViscoelasticity * copy = new GeneralizedSpaceTimeViscoelasticity(*this) ;
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh(*getExtra2dMeshes()[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh(*getExtra3dMeshes()[i]);
+	}
+	return copy ; 
 }
 
 Vector GeneralizedSpaceTimeViscoelasticity::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 

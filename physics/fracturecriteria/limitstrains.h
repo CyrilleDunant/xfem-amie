@@ -52,8 +52,6 @@ public:
 
 	virtual Material toMaterial() ;
 	
-	virtual void scale(double d) {maxDownVal *= d ; maxUpVal *= d ;};
-	
 	virtual double getTensileLimit(const ElementState & s) const {return maxUpVal*20e9 ; } ;
 
 };

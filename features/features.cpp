@@ -805,50 +805,13 @@ void FeatureTree::projectTetrahedronsOnBoundaries( size_t edge, size_t time )
 	size_t third = ( edge + 1 ) * 2  ;
 	size_t fourth = ( edge + 1 ) * 3  ;
 
-	std::valarray<size_t> indexes( edge * ( time + 1 ) * 6 ) ;
-	int l = 0 ;
+	std::vector<size_t> indexes( edge * ( time + 1 ) * 6 ) ;
 
-	for( size_t j = 0 ; j < 4 ; j++ )
-	{
-		for( size_t e = 0 ; e < edge ; e++ )
-		{
-			indexes[6 * e + j] = j * ( edge + 1 ) + e + 1 ;
 
-			for( size_t t = 0 ; t < time ; t++ )
-			{
-				indexes[6 * ( edge * ( t + 1 ) + e ) + j] = j * ( edge + 1 ) + e + 1 + ( 4 + 6 * ( edge ) ) * ( t + 1 ) ;
-			}
-		}
-	}
-
-	for( size_t j = 0 ; j < 2 ; j++ )
-	{
-		for( size_t e = 0 ; e < edge ; e++ )
-		{
-			indexes[6 * e + j + 4] = ( 4 * edge + 1 ) + j * edge + e + 3 ;
-
-			for( size_t t = 0 ; t < time ; t++ )
-			{
-				indexes[6 * ( edge * ( t + 1 ) + e ) + j + 4] = ( 4 * edge + 1 ) + j * edge + e + 3 + ( 4 + 6 * ( edge ) ) * ( t + 1 ) ;
-			}
-		}
-	}
-
-	/* debug to make sure indexes are in good order
-		for(size_t i = 0 ; i < indexes.size()/6 ; i++)
-		{
-			for(size_t j = 0 ; j < 6 ; j++)
-				std::cout << indexes[i*6+j] << "\t" ;
-			std::cout << std::endl ;
-		}*/
 
 	size_t count = 0 ;
-	size_t pd = 0 ;
-	size_t k = 0 ;
-	size_t n = indexes.size() / 6 ;
 
-	std::valarray<Point> originalPoints( n ) ;
-
+	
 	Point a( 0.25, 0.25, 0.25 ) ;
 	Point b( 0.166666666666667, 0.166666666666667, 0.166666666666667 ) ;
 	Point c( 0.5, 0.166666666666667, 0.166666666666667 ) ;
@@ -860,304 +823,354 @@ void FeatureTree::projectTetrahedronsOnBoundaries( size_t edge, size_t time )
 		if( !tree[j]->isEnrichmentFeature )
 		{
 			//In two pass
-			std::vector<DelaunayTetrahedron *> tets = this->tree[j]->getElements3D( this ) ;
+		  std::vector<DelaunayTetrahedron *> tets = this->tree[j]->getElements3D( this ) ;
+		  std::valarray<Point> originalPoints( tets[0]->getBoundingPoints().size() ) ;
 
-			for( size_t i = 0 ; i < tets.size() ; i++ )
+		 for( size_t i = 0 ; i < tets.size() ; i++ )
+		 {
+
+			Point proj_0( *tets[i]->first ) ;
+			tree[j]->project( &proj_0 ) ;
+			Point proj_1( *tets[i]->second ) ;
+			tree[j]->project( &proj_1 ) ;
+			Point proj_2( *tets[i]->third ) ;
+			tree[j]->project( &proj_2 ) ;
+			Point proj_3( *tets[i]->fourth ) ;
+			tree[j]->project( &proj_3 ) ;
+
+			if(
+			    squareDist3D( proj_0 , *tets[i]->first  ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			    squareDist3D( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			)
 			{
+				  count++;
+				  indexes.clear() ;
+				  for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
+				  {
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->first->x+tets[i]->second->x),0.5*(tets[i]->first->y+tets[i]->second->y),0.5*(tets[i]->first->z+tets[i]->second->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				  }
+				  Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				  tree[j]->project( &test ) ;
 
-				Point proj_0( tets[i]->getBoundingPoint( first ) ) ;
-				tree[j]->project( &proj_0 ) ;
-				Point proj_1( tets[i]->getBoundingPoint( second ) ) ;
-				tree[j]->project( &proj_1 ) ;
-				Point proj_2( tets[i]->getBoundingPoint( third ) ) ;
-				tree[j]->project( &proj_2 ) ;
-				Point proj_3( tets[i]->getBoundingPoint( fourth ) ) ;
-				tree[j]->project( &proj_3 ) ;
-				pd += 6 ;
+				  if( inRoot( test ) )
+				  {
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
 
-				if(
-				    squareDist3D( proj_0 , tets[i]->getBoundingPoint( first ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_1 , tets[i]->getBoundingPoint( second ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
+
+						  for( size_t j = 0 ; j < 4 ; j++ )
+						  {
+							  if( tets[i]->getNeighbour( j )->isTetrahedron() )
+							  {
+								  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
+							  }
+						  }
+					  }
+					  else
+					  {
+						  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+						  {
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
+						  }
+					  }
+				  }
+			  }
+
+			  if(
+			      squareDist3D( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			      squareDist3D( proj_2 , *tets[i]->third  ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			  )
+			  {
+				count++;
+				indexes.clear() ;
+				for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
 				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
-					tree[j]->project( &test ) ;
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->third->x+tets[i]->second->x),0.5*(tets[i]->third->y+tets[i]->second->y),0.5*(tets[i]->third->z+tets[i]->second->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				}
+				Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				tree[j]->project( &test ) ;
 
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
+				if( inRoot( test ) )
+				{
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
+
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
+
+						  for( size_t j = 0 ; j < 4 ; j++ )
+						  {
+							  if( tets[i]->getNeighbour( j )->isTetrahedron() )
+							  {
+								  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
+							  }
+						  }
+					  }
+					  else
+					  {
+						  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+						  {
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
+						  }
+					  }
+				  }
+			  }
+
+			  if(
+			      squareDist3D( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			      squareDist3D( proj_2 , *tets[i]->third  ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			  )
+			  {
+				count++;
+				indexes.clear() ;
+				for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
+				{
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->third->x+tets[i]->fourth->x),0.5*(tets[i]->third->y+tets[i]->fourth->y),0.5*(tets[i]->third->z+tets[i]->fourth->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				}
+				Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				tree[j]->project( &test ) ;
+
+				if( inRoot( test ) )
+				{
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
+
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
+
+						for( size_t j = 0 ; j < 4 ; j++ )
 						{
-							k = indexes[6 * ni + 0] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
-
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
-
-							for( size_t j = 0 ; j < 4 ; j++ )
+							if( tets[i]->getNeighbour( j )->isTetrahedron() )
 							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
+							  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
 							}
 						}
-						else
+					  }
+					  else
+					  {
+						for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
 						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
 						}
 					}
 				}
+			  }
 
-				if(
-				    squareDist3D( proj_1 , tets[i]->getBoundingPoint( second ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_2 , tets[i]->getBoundingPoint( third ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
-				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[1] ) ;
-					tree[j]->project( &test ) ;
+			  if(
+			      squareDist3D( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			      squareDist3D( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			  )
+			  {
+				  count++;
+				  indexes.clear() ;
+				  for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
+				  {
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->first->x+tets[i]->fourth->x),0.5*(tets[i]->first->y+tets[i]->fourth->y),0.5*(tets[i]->first->z+tets[i]->fourth->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				  }
+				  Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				  tree[j]->project( &test ) ;
 
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
-						{
-							k = indexes[6 * ni + 1] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
+				  if( inRoot( test ) )
+				  {
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
 
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
 
-							for( size_t j = 0 ; j < 4 ; j++ )
-							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
-							}
-						}
-						else
-						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
-						}
-					}
-				}
+						  for( size_t j = 0 ; j < 4 ; j++ )
+						  {
+							  if( tets[i]->getNeighbour( j )->isTetrahedron() )
+							  {
+								  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
+							  }
+						  }
+					  }
+					  else
+					  {
+						  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+						  {
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
+						  }
+					  }
+				  }
+			  }
 
-				if(
-				    squareDist3D( proj_3 , tets[i]->getBoundingPoint( fourth ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_2 , tets[i]->getBoundingPoint( third ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
-				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[2] ) ;
-					tree[j]->project( &test ) ;
+			  if(
+			      squareDist3D( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			      squareDist3D( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			  )
+			  {
+				  count++;
+				  indexes.clear() ;
+				  for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
+				  {
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->second->x+tets[i]->fourth->x),0.5*(tets[i]->second->y+tets[i]->fourth->y),0.5*(tets[i]->second->z+tets[i]->fourth->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				  }
+				  Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				  tree[j]->project( &test ) ;
 
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
-						{
-							k = indexes[6 * ni + 2] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
+				  if( inRoot( test ) )
+				  {
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
 
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
 
-							for( size_t j = 0 ; j < 4 ; j++ )
-							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
-							}
-						}
-						else
-						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
-						}
-					}
-				}
+						  for( size_t j = 0 ; j < 4 ; j++ )
+						  {
+							  if( tets[i]->getNeighbour( j )->isTetrahedron() )
+							  {
+								  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
+							  }
+						  }
+					  }
+					  else
+					  {
+						  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+						  {
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
+						  }
+					  }
+				  }
+			  }
 
-				if(
-				    squareDist3D( proj_0 , tets[i]->getBoundingPoint( first ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_3 , tets[i]->getBoundingPoint( fourth ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
-				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[3] ) ;
-					tree[j]->project( &test ) ;
+			  if(
+			      squareDist3D( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
+			      squareDist3D( proj_2 , *tets[i]->third ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+			  )
+			  {
+				  count++;
+				  indexes.clear() ;
+				  for(size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++)
+				  {
+					  if(tets[i]->getBoundingPoint(k) == Point(0.5*(tets[i]->first->x+tets[i]->third->x),0.5*(tets[i]->first->y+tets[i]->third->y),0.5*(tets[i]->first->z+tets[i]->third->z),tets[i]->getBoundingPoint(k).t))
+					  {
+					    indexes.push_back(k) ;
+					  }
+				  }
+				  Point test = tets[i]->getBoundingPoint( indexes[0] ) ;
+				  tree[j]->project( &test ) ;
 
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
-						{
-							k = indexes[6 * ni + 3] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
+				  if( inRoot( test ) )
+				  {
+					  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+					  {
+						  size_t k = indexes[ni] ;
+						  originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
+						  tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
+					  }
 
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
+					  if( tets[i]->jacobianAtPoint( a ) > 0 &&
+						  tets[i]->jacobianAtPoint( b ) > 0 &&
+						  tets[i]->jacobianAtPoint( c ) > 0 &&
+						  tets[i]->jacobianAtPoint( d ) > 0 &&
+						  tets[i]->jacobianAtPoint( e ) > 0
+					    )
+					  {
+						  tets[i]->moved = true ;
 
-							for( size_t j = 0 ; j < 4 ; j++ )
-							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
-							}
-						}
-						else
-						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
-						}
-					}
-				}
+						  for( size_t j = 0 ; j < 4 ; j++ )
+						  {
+							  if( tets[i]->getNeighbour( j )->isTetrahedron() )
+							  {
+								  dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
+							  }
+						  }
+					  }
+					  else
+					  {
+						  for( size_t ni = 0 ; ni < indexes.size() ; ni++ )
+						  {
+							  size_t k = indexes[ni] ;
+							  tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
+						  }
+					  }
+				  }
+			  }
 
-				if(
-				    squareDist3D( proj_1 , tets[i]->getBoundingPoint( second ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_3 , tets[i]->getBoundingPoint( fourth ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
-				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[4] ) ;
-					tree[j]->project( &test ) ;
-
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
-						{
-							k = indexes[6 * ni + 4] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
-
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
-
-							for( size_t j = 0 ; j < 4 ; j++ )
-							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
-							}
-						}
-						else
-						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
-						}
-					}
-				}
-
-				if(
-				    squareDist3D( proj_0 , tets[i]->getBoundingPoint( first ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-				    squareDist3D( proj_2 , tets[i]->getBoundingPoint( third ) ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-				)
-				{
-					count++;
-					Point test = tets[i]->getBoundingPoint( indexes[5] ) ;
-					tree[j]->project( &test ) ;
-
-					if( inRoot( test ) )
-					{
-						for( size_t ni = 0 ; ni < n ; ni++ )
-						{
-							k = indexes[6 * ni + 5] ;
-							originalPoints[ni] = tets[i]->getBoundingPoint( k ) ;
-							tree[j]->project( &tets[i]->getBoundingPoint( k ) ) ;
-						}
-
-						if( tets[i]->jacobianAtPoint( a ) > 0 &&
-						        tets[i]->jacobianAtPoint( b ) > 0 &&
-						        tets[i]->jacobianAtPoint( c ) > 0 &&
-						        tets[i]->jacobianAtPoint( d ) > 0 &&
-						        tets[i]->jacobianAtPoint( e ) > 0
-						  )
-						{
-							tets[i]->moved = true ;
-
-							for( size_t j = 0 ; j < 4 ; j++ )
-							{
-								if( tets[i]->getNeighbour( j )->isTetrahedron() )
-								{
-									dynamic_cast<DelaunayTetrahedron *>( tets[i]->getNeighbour( j ) )->moved = true ;
-								}
-							}
-						}
-						else
-						{
-							for( size_t ni = 0 ; ni < n ; ni++ )
-							{
-								k = indexes[6 * ni + 0] ;
-								tets[i]->getBoundingPoint( k ) = originalPoints[ni] ;
-							}
-						}
-					}
-				}
-
-				if( count % 1000 == 0 )
-					std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " feature " << j << std::flush ;
-			}
+			  if( count % 1000 == 0 )
+				  std::cerr << "\r projecting points on boundaries... point " << count << "/xx" << " feature " << j << std::flush ;
+		  }
+	    
+		  
 		}
 	}
 
-	std::cerr << "\r projecting points on boundaries... point " << count << "/" << pd << " ...done." << std::endl ;
+	std::cerr << "\r projecting points on boundaries... point " << count << "/xx" << " ...done." << std::endl ;
 
 }
 
@@ -1435,7 +1448,6 @@ void FeatureTree::stitch()
 			for(auto i = layer3d.begin() ; i != layer3d.end() ; i++)
 				i->second->setElementOrder( elemOrder, realDeltaTime ) ;
 
-			return ;
 			if( projectOnBoundaries )
 			{
 				switch( elemOrder )
@@ -2837,9 +2849,21 @@ void FeatureTree::setElementBehaviours()
 		layer2d[-1] = dtree ;
 
 		
-		
+
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
+			std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
+			if(layer2d.size() > 1)
+			{
+				for(auto j = ++layer2d.begin() ; j != layer2d.end() ; j++)
+				{
+					if(i != j)
+					{
+						extra2dMeshes.push_back(j->second) ;
+					}
+				}
+			}
+			
 			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
 			std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
@@ -2851,13 +2875,20 @@ void FeatureTree::setElementBehaviours()
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
 				
-				tris[j]->setBehaviour( bf ) ;
+				tris[j]->setBehaviour(bf) ;
+
 				if(bf)
-					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
+				{
+// 					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
+					for(size_t k = 0 ; k < extra2dMeshes.size() ; k++)
+					{
+						tris[j]->getBehaviour()->addMesh(extra2dMeshes[k]) ;
+					}
+				}
 				
 				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
 				{
-					tris[j]->setBehaviour( new VoidForm() ) ;
+					tris[j]->setBehaviour( new VoidForm()) ;
 // 					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
 // 					exit(0) ;
 				}
@@ -2888,14 +2919,15 @@ void FeatureTree::setElementBehaviours()
 					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *triangles[j]->first ) && coocuring[0]->in( *triangles[j]->second ) && coocuring[0]->in( *triangles[j]->third ) )
-							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy() ) ;
+							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 						else
-							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] ) ) ;
+							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
+						
 					}
 					else if( tree.size() == 1 && !tree[0]->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
-						triangles[j]->setBehaviour( tree[0]->getBehaviour( triangles[j]->getCenter() )->getCopy() ) ;
+						triangles[j]->setBehaviour( tree[0]->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 					else
-						triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] ) ) ;
+						triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -2922,6 +2954,12 @@ void FeatureTree::setElementBehaviours()
 // 			}
 		}
 
+		std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
+		if(layer3d.size() > 1)
+		{
+			for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
+				extra3dMeshes.push_back(i->second) ;
+		}
 		
 		
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
@@ -2932,11 +2970,19 @@ void FeatureTree::setElementBehaviours()
 			tetrahedrons[i]->refresh( father3D ) ;
 			Form * bf =  getElementBehaviour( tetrahedrons[i]);
 			
-			tetrahedrons[i]->setBehaviour( bf ) ;
+			tetrahedrons[i]->setBehaviour( bf) ;
+			if(bf)
+			{
+					for(size_t k = 0 ; k < extra3dMeshes.size() ; k++)
+					{
+						tetrahedrons[i]->getBehaviour()->addMesh(extra3dMeshes[k]) ;
+					}
+			}
+			
 			
 			if(!tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 			{
-				tetrahedrons[i]->setBehaviour( new VoidForm() ) ;
+				tetrahedrons[i]->setBehaviour( new VoidForm()) ;
 			}
 			setcount++ ;
 		}
@@ -2965,14 +3011,14 @@ void FeatureTree::setElementBehaviours()
 					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *tetrahedrons[j]->first ) && coocuring[0]->in( *tetrahedrons[j]->second ) && coocuring[0]->in( *tetrahedrons[j]->third ) && coocuring[0]->in( *tetrahedrons[j]->fourth ) )
-							tetrahedrons[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy() ) ;
+							tetrahedrons[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy()) ;
 						else
-							tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] ) ) ;
+							tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] )) ;
 					}
 					else if( tree.size() == 1 && !tree[0]->getBehaviour( tetrahedrons[j]->getCenter() )->spaceDependent() )
-						tetrahedrons[j]->setBehaviour( tree[0]->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy() ) ;
+						tetrahedrons[j]->setBehaviour( tree[0]->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy()) ;
 					else
-						tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] ) ) ;
+						tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] )) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -2997,10 +3043,25 @@ void FeatureTree::updateElementBehaviours()
 		scalingFactors[-1] = 1.-remainder ;
 		layer2d[-1] = dtree ;
 
-		
+	
+
 		
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
+			std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
+			std::vector<double> scales ;
+			if(layer2d.size() > 1)
+			{
+				for(auto j = ++layer2d.begin() ; j != layer2d.end() ; j++)
+				{
+					if(i != j)
+					{
+						extra2dMeshes.push_back(j->second) ;
+						scales.push_back(scalingFactors[j->first]/scalingFactors[i->first]);
+					}
+				}
+			}
+			
 			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
 			std::cerr << "\r updating behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << tris.size() << "    " << std::flush ;
@@ -3016,7 +3077,7 @@ void FeatureTree::updateElementBehaviours()
 				if(bf && bf->type != VOID_BEHAVIOUR)
 				{
 					tris[j]->setBehaviour( bf ) ;
-					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
+// 					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
 				}
 				
 				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
@@ -3050,14 +3111,14 @@ void FeatureTree::updateElementBehaviours()
 					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *triangles[j]->first ) && coocuring[0]->in( *triangles[j]->second ) && coocuring[0]->in( *triangles[j]->third ) )
-							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy() ) ;
+							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 						else
-							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] ) ) ;
+							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
 					}
 					else if( tree.size() == 1 && !tree[0]->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
-						triangles[j]->setBehaviour( tree[0]->getBehaviour( triangles[j]->getCenter() )->getCopy() ) ;
+						triangles[j]->setBehaviour( tree[0]->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 					else
-						triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] ) ) ;
+						triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -3076,6 +3137,13 @@ void FeatureTree::updateElementBehaviours()
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 			tetrahedrons[i]->refresh( father3D ) ;
 
+	std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
+	if(layer3d.size() > 1)
+	{
+	  for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
+	    extra3dMeshes.push_back(i->second) ;
+	}
+		
 		#pragma omp parallel for schedule(auto)
 
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
@@ -3086,10 +3154,10 @@ void FeatureTree::updateElementBehaviours()
 			Form *b = getElementBehaviour( tetrahedrons[i], true ) ;
 
 			if( b )
-				tetrahedrons[i]->setBehaviour( b ) ;
+				tetrahedrons[i]->setBehaviour( b) ;
 
 			if( !tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] ) ) ;
+				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] )) ;
 
 			n_void++ ;
 			setcount++ ;
@@ -3109,7 +3177,7 @@ void FeatureTree::updateElementBehaviours()
 					if( j % 1000 == 0 )
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << tetrahedrons.size() << std::flush ;
 
-					tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] ) ) ;
+					tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] )) ;
 				}
 
 				std::cerr << " ...done" << std::endl ;
@@ -3145,12 +3213,18 @@ void FeatureTree::enrich()
 	{
 		if( is3D() )
 		{
+			std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
+			if(layer3d.size() > 1)
+			{
+			  for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
+			    extra3dMeshes.push_back(i->second) ;
+			}
 			if( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() || !state.enriched ) )
 			{
 				if( !state.enriched )
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->update( dtree3D ) ;
 
-				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree3D ) ;
+				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree3D) ;
 
 				enrichmentChange = true ;
 				reuseDisplacements = false ;
@@ -3159,7 +3233,7 @@ void FeatureTree::enrich()
 				{
 					for( size_t j =  0 ; j < coarseTrees.size() ; j++ )
 					{
-						dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j] ) ;
+						dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j]) ;
 					}
 				}
 			}
@@ -3169,13 +3243,19 @@ void FeatureTree::enrich()
 		}
 		else
 		{
-
+			std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
+			if(layer2d.size() > 1)
+			{
+			  for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
+			    extra2dMeshes.push_back(i->second) ;
+			}
+			
 			if( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() || !state.enriched ) )
 			{
 				if( !state.enriched )
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->update( dtree ) ;
 
-				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree ) ;
+				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree) ;
 
 				enrichmentChange = true ;
 				reuseDisplacements = false ;
@@ -3184,7 +3264,7 @@ void FeatureTree::enrich()
 				{
 					for( size_t j =  0 ; j < coarseTrees.size() ; j++ )
 					{
-						dynamic_cast<EnrichmentFeature *>( this->tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j] ) ;
+						dynamic_cast<EnrichmentFeature *>( this->tree[i] )->enrich( coarseLastEnrichmentId[j], coarseTrees[j]) ;
 					}
 				}
 			}
@@ -3296,12 +3376,18 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 	std::vector<DelaunayTriangle> copy ;
 
 	std::vector<DelaunayTriangle *> tris = dtree->getElements() ;
-
+	std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
+	if(layer2d.size() > 1)
+	{
+	  for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
+	    extra2dMeshes.push_back(i->second) ;
+	}
+	
 	for( size_t i = 0 ; i < tris.size() ; i++ )
 	{
 		copy.push_back( *tris[i] ) ;
-		copy.back().setBehaviour( tris[i]->getBehaviour()->getCopy() ) ;
-		copy.back().getState().initialize() ;
+		copy.back().setBehaviour( tris[i]->getBehaviour()->getCopy()) ;
+		copy.back().getState().initialize(false) ;
 	}
 
 	return copy ;
@@ -5631,8 +5717,15 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 	timeval time0, time1 ;
 	gettimeofday( &time0, nullptr );
 
+
 	if( is2D() )
 	{
+		std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
+		if(layer2d.size() > 1)
+		{
+		  for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
+		    extra2dMeshes.push_back(i->second) ;
+		}
 
 		std::cerr << " initialising..." << std::flush;
 		
@@ -5649,7 +5742,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 					continue ;
 				}
 				tris[i]->refresh( father2D );
-				tris[i]->getState().initialize( initialiseFractureCache ) ;
+				tris[i]->getState().initialize( initialiseFractureCache) ;
 				if(i % 100 == 0)
 					std::cerr << "\r initialising... element " << i << "/" << tris.size() << std::flush ;
 			}
@@ -5673,7 +5766,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 					if(!triangles[j]->getBehaviour())
 						continue ;
 					triangles[j]->refresh( father2D );
-					  triangles[j]->getState().initialize( initialiseFractureCache ) ;
+					  triangles[j]->getState().initialize( initialiseFractureCache) ;
 				}
 			}
 		}
@@ -5681,6 +5774,13 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 	if( is3D() )
 	{
+	  
+		std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
+		if(layer3d.size() > 1)
+		{
+		  for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
+		    extra3dMeshes.push_back(i->second) ;
+		}
 		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		std::cout << " initialising..." ;
 
@@ -5690,7 +5790,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			if(!tets[i]->getBehaviour())
 				continue ;
 			tets[i]->refresh( father3D );
-			tets[i]->getState().initialize( initialiseFractureCache ) ;
+			tets[i]->getState().initialize( initialiseFractureCache) ;
 		}
 
 		gettimeofday( &time1, nullptr );
@@ -5708,7 +5808,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 				if(!tetras[i]->getBehaviour())
 					continue ;
 				tetras[i]->refresh( father3D );
-				tetras[i]->getState().initialize( initialiseFractureCache ) ;
+				tetras[i]->getState().initialize( initialiseFractureCache) ;
 	// 						count++ ;
 			}
 		}
@@ -5726,7 +5826,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 					if(!tets[j]->getBehaviour())
 						continue ;
 					tets[j]->refresh( father3D );
-					tets[j]->getState().initialize( initialiseFractureCache ) ;
+					tets[j]->getState().initialize( initialiseFractureCache) ;
 				}
 			}
 		}

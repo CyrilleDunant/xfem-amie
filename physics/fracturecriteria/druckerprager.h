@@ -69,8 +69,6 @@ namespace Mu {
 
 		virtual Material toMaterial() ;
 		
-		virtual void scale(double d ) { upthreshold *= d ; downthreshold *= d ; }
-		
 		virtual double getTensileLimit(const ElementState & s) const {return upthreshold ; } ;
 	};
 

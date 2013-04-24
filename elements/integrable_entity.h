@@ -154,25 +154,25 @@ public:
 
 	virtual void getExternalFieldAtGaussPoints( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret) const ;
 	
-	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0, bool recompute = false) const ;
 		
-	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0) const  ;
+	virtual void getField( FieldType f, const PointArray & p, Vector & ret, bool local, int i = 0, bool recompute = false) const  ;
 
-	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0) const  ;
+	virtual void getField( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, int i = 0, bool recompute = false) const  ;
 	
-	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0, bool recompute = false) ;
 
-	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0) ;
+	virtual void getFieldAtGaussPoint( FieldType f, size_t g, Vector & ret, int i = 0, bool recompute = false) ;
 	
-	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0, bool recompute = false) const  ;
 		
-	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0, bool recompute = false) const  ;
 
-	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0, bool recompute = false) const  ;
 
-	virtual void getAverageField( FieldType f, Vector & ret, int i= 0, double t = 0) ;
+	virtual void getAverageField( FieldType f, Vector & ret, int i= 0, double t = 0, bool recompute = false) ;
 	
-	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0, double t = 0)  ;
+	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0, double t = 0, bool recompute = false)  ;
 	
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;
@@ -238,7 +238,7 @@ public:
 		return parent ;
 	}
 	
-	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void initialize(bool initializeFractureCache) ;
 	
 	const Vector & getBuffer() const ;
 	Vector & getBuffer()  ;
@@ -284,7 +284,7 @@ public:
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
-	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void initialize(bool initializeFractureCache) ;
 	
 	virtual void setInternalVariableAtGaussPoint(Vector & v, size_t g, int i) ;
 	
@@ -304,7 +304,7 @@ public:
 	const ElementState & getState(size_t i) const ;
 	size_t getNumberOfStates() const { return states.size() ; }
 
-	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void initialize(bool initializeFractureCache) ;
 	virtual void step(double dt, const Vector* d ) ;
 	
 } ;
@@ -323,7 +323,7 @@ public:
 	const ElementState & getState(size_t i) const ;
 	size_t getNumberOfStates() const { return states.size() ; }
 
-	virtual void initialize(bool initializeFractureCache =true) ;
+	virtual void initialize(bool initializeFractureCache) ;
 	virtual void step(double dt, const Vector* d ) ;
 	
 } ;
@@ -442,8 +442,10 @@ protected:
 	size_t num_dof ;
 	
 	Geometry * source ;
-	
+	std::vector< Mesh<DelaunayTriangle, DelaunayTreeItem >* > extra2dMeshes ;
+	std::vector< Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* > extra3dMeshes ;
 public:
+	
 	/** A form has at least a parameter, which takes the shape of a Matrix*/
 	Matrix param ;
 	/** The type helps to know the available parameters and methods of the subclasses*/
@@ -464,6 +466,23 @@ public:
 
 	virtual bool isSymmetric() const { return symmetric ; }
 	virtual void setSymmetric(bool s) { symmetric = s ; } 
+	virtual void addMesh( Mesh<DelaunayTriangle, DelaunayTreeItem >* newMesh)
+	{
+		extra2dMeshes.push_back(newMesh);
+	}
+	virtual void addMesh( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* newMesh)
+	{
+		extra3dMeshes.push_back(newMesh);
+	}
+	
+	const std::vector< Mesh<DelaunayTriangle, DelaunayTreeItem >* > * getExtra2dMeshes() const
+	{
+		return &extra2dMeshes ;
+	}
+	const std::vector< Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* > * getExtra3dMeshes() const
+	{
+		return &extra3dMeshes ;
+	}
 	
 	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
 	
@@ -488,8 +507,6 @@ public:
 	virtual void setSource( Geometry * const src ) {source = src ;}
 	 
 	virtual bool hasInducedForces() const ;
-	
-	virtual void scale(double d) ;
 	
 	virtual bool isViscous() const { return false ; }
 

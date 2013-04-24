@@ -169,7 +169,20 @@ bool TrimaterialInterface::fractured() const
 
 Form * TrimaterialInterface::getCopy() const 
 {
-	return new TrimaterialInterface(*this) ;
+	
+	TrimaterialInterface * copy = new TrimaterialInterface(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 std::vector<BoundaryCondition * > TrimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

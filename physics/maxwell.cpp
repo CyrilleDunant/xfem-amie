@@ -33,7 +33,19 @@ void IterativeMaxwell::apply(const Function & p_i, const Function & p_j, const G
 
 Form * IterativeMaxwell::getCopy() const 
 {
-	return new IterativeMaxwell(param, chartime) ;
+	IterativeMaxwell * copy =  new IterativeMaxwell(param, chartime) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 Vector IterativeMaxwell::getImposedStress(const Point & p, IntegrableEntity * e, int g) const 
@@ -230,7 +242,19 @@ Form * GeneralizedIterativeMaxwell::getCopy() const
 		rig.push_back(branches[i]->param) ;
 		eta.push_back(branches[i]->chartime) ;
 	}
-	return new GeneralizedIterativeMaxwell(r0, rig, eta) ;
+	GeneralizedIterativeMaxwell * copy =  new GeneralizedIterativeMaxwell(r0, rig, eta) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 Vector GeneralizedIterativeMaxwell::getImposedStress(const Point & p, IntegrableEntity * e, int g) const 
@@ -500,7 +524,19 @@ bool Maxwell::changed() const
 
 Form * Maxwell::getCopy() const 
 {
-	return new Maxwell(*this) ;
+	Maxwell * copy =  new Maxwell(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 Vector Maxwell::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
@@ -607,7 +643,19 @@ bool StandardLinearSolid::changed() const
 
 Form * StandardLinearSolid::getCopy() const 
 {
-	return new StandardLinearSolid(*this) ;
+	StandardLinearSolid * copy =  new StandardLinearSolid(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 Vector StandardLinearSolid::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 

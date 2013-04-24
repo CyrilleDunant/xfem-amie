@@ -52,7 +52,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1 - variability + variability*weib ;
-	StiffnessAndFracture * ret = new StiffnessAndFracture(
+	StiffnessAndFracture * copy = new StiffnessAndFracture(
 								Material::cauchyGreen(std::make_pair(E,nu), true,dim)*factor, 
 								new NonLocalMCFT(
 										down*factor ,
@@ -62,13 +62,24 @@ Form * WeibullDistributedStiffness::getCopy() const
 									 ) ;
 	if(damageModel)
 	{
-		delete ret->dfunc ;
-		ret->dfunc = damageModel->getCopy() ;
+		delete copy->dfunc ;
+		copy->dfunc = damageModel->getCopy() ;
 	}
-	ret->criterion->setMaterialCharacteristicRadius(materialRadius);
-	ret->dfunc->setThresholdDamageDensity(.99);
-	ret->dfunc->setSecondaryThresholdDamageDensity(.99);
-	return ret ;
+	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
+	copy->dfunc->setThresholdDamageDensity(.99);
+	copy->dfunc->setSecondaryThresholdDamageDensity(.99);
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 void WeibullDistributedStiffness::setDamageModel(DamageModel * newmodel)

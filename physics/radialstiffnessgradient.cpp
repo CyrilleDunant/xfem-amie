@@ -135,5 +135,17 @@ void RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, 
 
 Form * RadialStiffnessGradient::getCopy() const 
 {
-	return new RadialStiffnessGradient(*this) ;
+	RadialStiffnessGradient* copy = new RadialStiffnessGradient( *this ) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }

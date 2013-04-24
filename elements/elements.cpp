@@ -180,7 +180,7 @@ void ElementarySurface::setBehaviour(Form * f)
 		{
 			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
 		}
-		state->initialize( needCacheInit ) ;
+		state->initialize( needCacheInit) ;
 	}
 //	delete old ;
 }
@@ -3711,7 +3711,7 @@ void ElementaryVolume::setBehaviour(Form * f)
 		{
 			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
 		}
-		state->initialize( needCacheInit ) ;
+		state->initialize( needCacheInit) ;
 	}
 }
 

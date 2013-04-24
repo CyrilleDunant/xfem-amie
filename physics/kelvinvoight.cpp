@@ -61,7 +61,19 @@ bool KelvinVoight::changed() const
 
 Form * KelvinVoight::getCopy() const 
 {
-	return new KelvinVoight(*this) ;
+	KelvinVoight *copy =  new KelvinVoight(*this) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 Vector KelvinVoight::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 

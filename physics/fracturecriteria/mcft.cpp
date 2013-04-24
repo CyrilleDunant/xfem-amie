@@ -22,7 +22,7 @@ namespace Mu
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( 0.66*1e6*pow(std::abs(down*1e-6),.33)/*.33*1e6*sqrt(-down*1e-6) */), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/.33*1e6*sqrt(-down*1e-6) ), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
@@ -35,7 +35,6 @@ NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, R
 	secondMet = false ;
 	initialised = false ;
 	radiusInitialised = false ;
-	scaleFactor = 1 ;
 	crackInitiated = false ;
 	inRebarInfluence = false ;
 	distanceToRebar = -1 ;
@@ -50,7 +49,7 @@ NonLocalMCFT::~NonLocalMCFT()
 
 double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress)
 {
-	double maxTension = upVal*scaleFactor;
+	double maxTension = upVal;
 	double maxTensionStrain = tensionCritStrain;	
 	
 	if(tstrain > tensionCritStrain)
@@ -85,7 +84,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 		}
 
 		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
-		maxTension = maxTensionStrain*pseudoYoung*scaleFactor ;
+		maxTension = maxTensionStrain*pseudoYoung ;
 		if(factor < POINT_TOLERANCE_2D)
 			return POINT_TOLERANCE_2D ;
 
@@ -139,7 +138,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 {
 
 	
- 	double maxTension = upVal*scaleFactor;
+ 	double maxTension = upVal;
  	double maxTensionStrain = tensionCritStrain;
 
  	if(tstrain > tensionCritStrain )
@@ -175,7 +174,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 		}
 
  	
- 		maxTension = (upTestVal+downTestVal)*.5*scaleFactor*pseudoYoung ;
+ 		maxTension = (upTestVal+downTestVal)*.5*pseudoYoung ;
  		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
  
  		if(factor < POINT_TOLERANCE_2D)
@@ -245,17 +244,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*4;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*4 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*4 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*4 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -299,7 +298,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 // 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->compressionFailure)
 // 			return POINT_TOLERANCE_2D ;
 // 	}
-	double maxCompression = downVal*scaleFactor  ;
+	double maxCompression = downVal  ;
 	
 
 	
@@ -333,7 +332,6 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 		}
 		maxCompression = std::max(f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)), downVal) ;
 		maxCompressionStrain = maxCompression/pseudoYoung ;
-		maxCompression *= scaleFactor ;
 
 // 		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. > 0)
 // 		{
@@ -417,8 +415,8 @@ double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, dou
 
 void NonLocalMCFT::initialise( ElementState &s)
 {
-	double energy = 75./.4 ; //N/m 32000 prev
-	strain_ch = 4.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
+	double energy = 75. ; //N/m 32000 prev
+	strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	if(factors.size()==0)
 		initialiseFactors(s) ;
 // 	energy *= nlcorrection ;

@@ -53,10 +53,23 @@ bool SerialBehaviour::fractured() const
 
 Form * SerialBehaviour::getCopy() const 
 {
-	std::vector<Form *> copy ;
+	std::vector<Form *> cop ;
 	for(size_t i = 0 ; i < branches.size() ; i++)
-		copy.push_back( branches[i]->getCopy() ) ;
-	return new SerialBehaviour( copy ) ;
+		cop.push_back( branches[i]->getCopy() ) ;
+	
+	SerialBehaviour* copy = new SerialBehaviour( cop ) ;
+	
+	if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+	}
+	return copy ; 
 }
 
 bool SerialBehaviour::hasInducedForces() const 

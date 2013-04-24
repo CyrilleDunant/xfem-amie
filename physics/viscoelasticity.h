@@ -78,12 +78,6 @@ struct Viscoelasticity : public LinearForm
 	virtual Form * getCopy() const ;
 
 	virtual bool changed() const ;
-
-	virtual void scale( double d )
-	{
-		param *= d ;
-		eta *= d ;
-	}
 	
 	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return param ; }	
 	
