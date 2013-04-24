@@ -14,7 +14,6 @@
 #include "../physics/parallel_behaviour.h"
 #include "../physics/viscoelasticity.h"
 #include "../physics/viscoelasticity_and_fracture.h"
-#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
@@ -88,48 +87,117 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 1, 1,0.,0.) ;
+Sample box(nullptr, 1., 1.,0.,0.) ;
+double decrease = 300. ;
 
+double fr(Point p, double t)
+{
+	double r = std::sqrt(p.x*p.x+p.y*p.y) ;
+	if(r < 0.24 || std::abs(p.x) >= 0.5 || std::abs(p.y) >= 0.5 || decrease <= 0)
+		return 0. ;
+	double rmax = 0.5 ;
+	if(p.y > 0 && p.y > std::abs(p.x))
+	{
+		double xtmp = std::abs(p.x)*0.5/p.y ;
+		rmax = std::sqrt(xtmp*xtmp+0.5*0.5) ;
+	}
+	else if(p.y < 0 && p.y < -std::abs(p.x))
+	{
+		double xtmp = std::abs(p.x)*0.5/p.y ;
+		rmax = std::sqrt(xtmp*xtmp+0.5*0.5) ;
+	}
+	else if(p.x > 0 && p.x > std::abs(p.y))
+	{
+		double ytmp = std::abs(p.y)*0.5/p.x ;
+		rmax = std::sqrt(ytmp*ytmp+0.5*0.5) ;
+	}
+	else if(p.x < 0 && p.x < -std::abs(p.y))
+	{
+		double ytmp = std::abs(p.y)*0.5/p.x ;
+		rmax = std::sqrt(ytmp*ytmp+0.5*0.5) ;
+	}
+	double x = (rmax-r)/(rmax-0.25) ;
+	if(decrease <= 0)
+	{
+		return 0. ;
+	}
+	return x*(1.-exp(-t/decrease))*(0.3-0.25)/0.25 ;
+	
+}
+
+double fx(Point p, double t)
+{
+// 	if(std::abs(p.y) == 0.5)
+// 		return p.x ;
+// 	if(decrease == 0)
+// 		return p.x ;
+// 	if(decrease == -1)
+// 		return p.x*0.75 ;
+	return p.x*(0.8+0.2*exp(-t/300)) ;
+}
+
+double fy(Point p, double t)
+{
+	if(std::abs(p.y) == 0.5)
+		return p.y ;
+	if(decrease == 0)
+		return p.y ;
+	if(decrease == -1)
+		return p.y*0.75 ;
+	return p.y*(1.+fr(p,t)) ;
+}
 
 int main(int argc, char *argv[])
 {
 	double timestep = atof(argv[1]) ;
-	int sampling = (int) atof(argv[2]) ;
-//	int ninc = (int) atof(argv[3]) ;
+	int cas = (int) atof(argv[2]) ;
+	int order = (int) atof(argv[3]) ;
+	int sampling = 16 + 48*(cas == 3);
   
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
 	
-	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
-	Vector imp(3) ;
-	imp[0] = 0.1 ;
-	imp[1] = 0.1 ;
-//	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
-  	box.setBehaviour(new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY, e, imp)) ;
-	box.getBehaviour()->param.print() ;
-//	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a) ;
+	Matrix e = (new ElasticOnlyPasteBehaviour(1e9, 0.3))->param ;
+  	box.setBehaviour(new Viscoelasticity(BURGER, e*30, e*30*300, e*14, e*14*5000)) ;
 
-//	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
+	if(cas == 3)
+	{
+		Inclusion * hole = new Inclusion(0.25, 0.,0.) ;
+		hole->setBehaviour( new VoidForm() ) ;
+		F.addFeature( &box, hole) ;
+	}
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
+	if(order == 2)
+	{
+		std::cout << "using quadratic elements" << std::endl ;
+		F.setOrder(LINEAR_TIME_QUADRATIC) ;
+		F.setDeltaTime(timestep*2) ;
+	}
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
-	F.getAssembly()->setEpsilon( 1e-20 ) ;
 
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -1e6, 1)) ;
 	F.step() ;
 	
 	std::fstream out ;
-	std::string name = "visco_" ;
+	std::string name ;
+	if(cas == 1)
+		name = "ref_" ;
+	if(cas == 2)
+		name = "shrink_" ;
+	if(cas == 3)
+		name = "hole_" ;
 	name.append(argv[1]) ;
+	name.append("_") ;
+	name.append(argv[3]) ;
 	
 	out.open(name.c_str(), std::ios::out) ;
 
@@ -138,7 +206,7 @@ int main(int argc, char *argv[])
 	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
 	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
 	Vector disp = F.getDisplacements() ;
-	std::cout << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 
@@ -147,40 +215,68 @@ int main(int argc, char *argv[])
 		std::string nametrg = name ;
 		nametrg.append("_trg_0") ;
 		TriangleWriter writer(nametrg, &F, 1) ;
-		writer.getField(STRAIN_FIELD) ;
-		writer.getField(REAL_STRESS_FIELD) ;
-		writer.getField(TWFT_STIFFNESS) ;
+		writer.getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD) ;
+		writer.getField(TWFT_STRESS) ;
 		writer.write() ;
 	}
 	
 		
-	while(time < 401)
+	std::vector<Point> nodes = F.getNodes() ;
+	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
+	std::valarray<bool> done(nodes.size()) ;
+	
+	while(time < 3500)
 	{
 		F.step() ;
 		time += timestep ;
 		stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
-		strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD,-1,1) ;
-		rate = F.getAverageField(STRAIN_FIELD,-1,1) ;
+		strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
+		rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
 		disp = F.getDisplacements() ;
-		std::cout << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+		out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 		
-		if(time == 25 || time == 50 || time == 100 || time == 200 || time == 400)
+		if(time == 300 || time == 600 || time == 1200 || time == 2400)
 		{
 			std::string nametrg = name ;
 			nametrg.append("_trg_") ;
 			nametrg.append(std::to_string((int) time)) ;
 			TriangleWriter writer(nametrg, &F, 1) ;
-			writer.getField(STRAIN_FIELD) ;
-			writer.getField(REAL_STRESS_FIELD) ;
-			writer.getField(TWFT_STIFFNESS) ;
+			writer.getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD) ;
+			writer.getField(TWFT_STRESS) ;
 			writer.write() ;
-			exit(0) ;
 		}
+
+		done = (cas != 2) ;
+		if(!done[0])
+		{
+			for(size_t i = 0 ; i < trg.size() ; i++)
+			{
+				for(size_t j = 0 ; j < 3 ; j++)
+				{	
+					size_t id = trg[i]->getBoundingPoint(j).id ;
+					if( !done[ id ] )
+					{
+						done[ id ] = true ;
+						trg[i]->getBoundingPoint(j).x = trg[i]->getBoundingPoint(j+3).x ;
+						if(order == 1)
+							trg[i]->getBoundingPoint(j+3).x = fx(nodes[id],time)  ;
+						if(order == 2)
+						{
+							trg[i]->getBoundingPoint(j+3).x = trg[i]->getBoundingPoint(j+6).x ;
+							trg[i]->getBoundingPoint(j+6).x = fx(nodes[id],time)  ;
+						}
+					}
+				}
+				trg[i]->clearElementaryMatrix() ;
+				trg[i]->moved = true ;
+			}
+		}
+		
+		
 	}
 
 		
 	return 0 ;
 }
-
