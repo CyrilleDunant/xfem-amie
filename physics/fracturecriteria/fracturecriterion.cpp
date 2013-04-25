@@ -520,7 +520,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			GaussPointArray gp(fintmp, QUINTIC) ;
 		
 			weight = vm.ieval(smooth, gp) ;
-			std::cout << weight << "  " << vm.eval(smooth, 1./3., 1./3.) <<  "  " << vm.eval(x, 1./3., 1./3.) << "  " << vm.eval(y, 1./3., 1./3.) << std::endl ;
 			if(weight < POINT_TOLERANCE_2D)
 				continue ;
 			
@@ -583,9 +582,6 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		std::copy(tmpfactors.begin(), tmpfactors.end(), &factors[0]) ;
 		std::copy(tmpphysicalcache.begin(), tmpphysicalcache.end(), &physicalcache[0]) ;
 		
-		for(size_t i = 0 ; i < factors.size() ; i++)
-			std::cout << factors[i] << std::endl ;
-		exit(0) ;
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
