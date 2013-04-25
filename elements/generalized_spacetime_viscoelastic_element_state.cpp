@@ -24,7 +24,7 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t, bool recompute) 
 {
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
@@ -43,13 +43,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 	ret /=  total ;//tprev.area() + (t+1)/2*(tnext.area() - tprev.area())  ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
+void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t, bool recompute) 
 {	
 	this->getAverageField(f1, r1, dummy, t) ;
 	this->getAverageField(f2, r2, dummy, t) ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
+void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int , bool recompute)  const 
 {
 	ret = 0. ; 
 	
@@ -1603,7 +1603,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 	}
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f, Vector & ret, int ) 
+void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f, Vector & ret, int , bool recompute) 
 {
 	int totaldof = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	int realdof = parent->spaceDimensions() ;
@@ -1662,13 +1662,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f,
 	ElementState::getField(f, parent->getBoundingPoints(), ret, false) ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int , int)  const 
+void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int , int, bool recompute)  const 
 {
 	this->getField(f1, p, ret1, local) ;
 	this->getField(f2, p, ret2, local) ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int)   
+void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int , int, bool recompute)   
 {
 	this->getFieldAtNodes(f1, ret1) ;
 	this->getFieldAtNodes(f2, ret2) ;
