@@ -1621,7 +1621,7 @@ void Display( void )
 
 int main( int argc, char *argv[] )
 {
-	
+
 	double softeningFactor = 1 ; .85 ;
 	
 	sampleLength = atof( argv[3] ) ;

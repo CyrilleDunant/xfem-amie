@@ -3949,7 +3949,7 @@ Order ElementaryVolume::getOrder() const
 
 Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
-	Function ret ;
+	Function ret("0") ;
 
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
@@ -3975,7 +3975,7 @@ double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 
 Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
-	Function ret ;
+	Function ret("0") ;
 
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
@@ -4001,7 +4001,7 @@ double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 
 Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
-	Function ret ;
+	Function ret("0") ;
 
 	assert(points.size() == basis.size()) ;
 
@@ -4028,7 +4028,7 @@ double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 
 Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
-	Function ret ;
+	Function ret("0") ;
 	
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)

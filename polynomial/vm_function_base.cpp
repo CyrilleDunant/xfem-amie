@@ -24,6 +24,7 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 		tmpdst = new Function( src0) ;
 	if(&src1== &dst)
 		tmpdst = new Function( src1) ;
+	
 	tmpdst->hasGeoOp = src0.hasGeoOp || src1.hasGeoOp ;
 
 	tmpdst->byteCodeSize = src0.byteCodeSize+src1.byteCodeSize ;
@@ -406,7 +407,7 @@ VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const
 
 Function::Function() : derivative(nullptr),
 		e_diff(false),
-		byteCodeSize(0),
+		byteCodeSize(1),
 		constNumber(0),
 		byteCode(TOKEN_OPERATION_CONSTANT,FUNCTION_LENGTH ),
 		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
@@ -418,6 +419,7 @@ Function::Function() : derivative(nullptr),
 		hasGeoOp(false)
 {
 	adress_a = 0;
+	initialiseAdresses();
 }
 
 	
@@ -455,10 +457,25 @@ Function & Function::operator=(const Function &f)
 	}
 	else
 	{
+		if(derivative)
+			for(size_t i = 0 ; i < derivative->size() ; i++)
+				delete (*derivative)[i] ;
+			
+		delete derivative ;
+			
 		derivative = nullptr ;
 		e_diff = false ;
 	}
 	
+	if(hasGeoOp || f.hasGeoOp)
+	{
+		for(size_t i = 0 ; i < f.byteCodeSize ; i++)
+		{
+			delete geo_op[i] ;
+			if(f.geo_op[i])
+				geo_op[i] = f.geo_op[i]->getCopy() ;
+		}
+	}
 	ptID = f.ptID ;
 	dofID = f.dofID ;
 	iPoint = f.iPoint ;
@@ -470,15 +487,6 @@ Function & Function::operator=(const Function &f)
 	hasGeoOp = f.hasGeoOp ;
 	constNumber = f.constNumber ;
 
-	if(hasGeoOp || f.hasGeoOp)
-	{
-		for(size_t i = 0 ; i < f.byteCodeSize ; i++)
-		{
-			delete geo_op[i] ;
-			if(f.geo_op[i])
-				geo_op[i] = f.geo_op[i]->getCopy() ;
-		}
-	}
 // 	initialiseAdresses();
 
 	for(auto i = f.precalc.begin() ; i != f.precalc.end() ; ++i)
@@ -2610,14 +2618,7 @@ Function Function::operator-(const Function &f) const
 
 Function Function::operator*(const double a) const
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
-	{
-		return Function();
-	}
-	if(std::abs(a-1) < POINT_TOLERANCE_2D)
-	{
-		return *this;
-	}
+
 	Function ret ;
 	ret.byteCodeSize = byteCodeSize+1 ;
 	ret.adress_a = adress_a ;
@@ -2657,16 +2658,6 @@ Function Function::operator*(const double a) const
 
 Function Function::operator/(const double a) const 
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
-	{
-		std::cout << "Divide By Zero!" << std::endl ;
-		exit(0) ;
-		return Function() ;
-	}
-	if(std::abs(a-1) < POINT_TOLERANCE_2D)
-	{
-		return *this;
-	}
 	
 	Function ret ;
 	ret.byteCodeSize = byteCodeSize+1 ;
@@ -2708,10 +2699,6 @@ Function Function::operator/(const double a) const
 
 Function Function::operator+(const double a) const
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
-	{
-		return *this ;
-	}
 	Function ret ;
 	ret.byteCodeSize = byteCodeSize+1 ;
 	ret.adress_a = adress_a ;
@@ -2751,11 +2738,6 @@ Function Function::operator+(const double a) const
 
 Function Function::operator-(const double a) const 
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
-	{
-		return *this;
-	}
-	
 	Function ret ;
 	ret.byteCodeSize = byteCodeSize+1 ;
 	ret.adress_a = adress_a ;

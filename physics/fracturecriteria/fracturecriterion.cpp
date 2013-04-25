@@ -431,6 +431,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		Function rr = x*x+y*y ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Function smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+		
+// 		for(double i = -2.*physicalCharacteristicRadius ; i < 2.*physicalCharacteristicRadius ; i += 0.01*physicalCharacteristicRadius)
+// 			std::cout << vm.eval(smooth, i, s.getParent()->getCenter().y) << "  " <<   vm.eval(x, i, s.getParent()->getCenter().y) << "  " <<   vm.eval(y, i, s.getParent()->getCenter().y)<< "  " <<   vm.eval(rrn, i, s.getParent()->getCenter().y)<< std::endl ;
+// 		
+// 		exit(0) ;
 		double weight = vm.ieval(smooth, gp) ;
 		double fact = weight ;
 
@@ -515,7 +520,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			GaussPointArray gp(fintmp, QUINTIC) ;
 		
 			weight = vm.ieval(smooth, gp) ;
-			
+			std::cout << weight << "  " << vm.eval(smooth, 1./3., 1./3.) <<  "  " << vm.eval(x, 1./3., 1./3.) << "  " << vm.eval(y, 1./3., 1./3.) << std::endl ;
 			if(weight < POINT_TOLERANCE_2D)
 				continue ;
 			
@@ -577,6 +582,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		physicalcache.resize(tmpphysicalcache.size());
 		std::copy(tmpfactors.begin(), tmpfactors.end(), &factors[0]) ;
 		std::copy(tmpphysicalcache.begin(), tmpphysicalcache.end(), &physicalcache[0]) ;
+		
+		for(size_t i = 0 ; i < factors.size() ; i++)
+			std::cout << factors[i] << std::endl ;
+		exit(0) ;
 		return ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
