@@ -958,17 +958,54 @@ TriElement::TriElement(Order order_ ): moved(false)
 			Matrix xi_xi(3,3) ; xi_xi[2][0] = 1 ;
 			Matrix eta_eta(3,3) ; eta_eta[0][2] = 1 ;
 		//0
-			(*shapefunc)[0] = Function(eta_eta*2 - eta) ;
+			(*shapefunc)[0] = Function("y 2 ^ 2 * y -") ;
+			(*shapefunc)[0].setNumberOfDerivatives(2) ;
+			Function d("4 y * 1 -") ;
+                        (*shapefunc)[0].setDerivative( ETA, d) ;
+			d = Function("0") ;
+                        (*shapefunc)[0].setDerivative( XI, d) ;
+
+
 		//1
-			(*shapefunc)[1] = Function(eta*4 - xi_eta*4 - eta_eta*4) ;
+			(*shapefunc)[1] = Function("y 4 * y x 4 * * - y y 4 * * -") ;
+			(*shapefunc)[1].setNumberOfDerivatives(2) ;
+			d = Function("4 x 4 * - y 8 * -") ;
+			(*shapefunc)[1].setDerivative( ETA, d) ;
+			d = Function("y 4 *") ;
+                        (*shapefunc)[1].setDerivative( XI, d) ;
+
 		//2
-			(*shapefunc)[2] = Function(one - xi*3 - eta*3 + xi_eta*4 + xi_xi*2 + eta_eta*2) ;
+			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
+												(*shapefunc)[2].setNumberOfDerivatives(2) ;
+												d = Function("3 x 4 * + y 4 * +") ;
+												(*shapefunc)[2].setDerivative( ETA, d ) ;
+												d = Function("3 y 4 * + x 4 * +") ;
+												(*shapefunc)[2].setDerivative( XI, d) ;
+
 		//3
-			(*shapefunc)[3] = Function(xi*4 - xi_xi*4 - xi_eta*4) ;
+			(*shapefunc)[3] = Function("x 4 * x x 4 * * - x y 4 * * -") ;
+												(*shapefunc)[3].setNumberOfDerivatives(2) ;
+												d = Function("x 4 *") ;
+												(*shapefunc)[3].setDerivative( ETA, d) ;
+												d = Function("4 8 x * - y 4 * -") ;
+												(*shapefunc)[3].setDerivative( XI, d) ;
+
 		//4
-			(*shapefunc)[4] = Function(xi_xi*2 - xi) ;
+			(*shapefunc)[4] = Function("x x 2 * * x -") ;
+												(*shapefunc)[4].setNumberOfDerivatives(2) ;
+												d = Function("0") ;
+												(*shapefunc)[4].setDerivative( ETA, d) ;
+												d = Function("4 x * 1 -") ;
+												(*shapefunc)[4].setDerivative( XI, d) ;
+
 		//5
-			(*shapefunc)[5] = Function(xi_eta*4) ;
+			(*shapefunc)[5] = Function("x y 4 * *") ;
+												(*shapefunc)[5].setNumberOfDerivatives(2) ;
+												d = Function("4 x *") ;
+												(*shapefunc)[5].setDerivative( ETA, d) ;
+												d = Function("4 y *") ;
+												(*shapefunc)[5].setDerivative( XI, d) ;
+
 			break ;
 		}
 	case CONSTANT_TIME_LINEAR :

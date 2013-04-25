@@ -462,8 +462,8 @@ void step()
 				
 			Vector avgsig(3) ;
 			Vector avgeps(3) ;
-			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig,0,0,true);
-			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps,0,0,true);
+			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig,0,0);
+			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps,0,0);
 			
 			avg_e_xx += avgeps[0] * ar;
 			avg_e_yy += avgeps[1] * ar;

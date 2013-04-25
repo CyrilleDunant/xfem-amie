@@ -4,7 +4,7 @@
 // Description: 
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2013
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -470,11 +470,14 @@ Function & Function::operator=(const Function &f)
 	hasGeoOp = f.hasGeoOp ;
 	constNumber = f.constNumber ;
 
-	for(size_t i = 0 ; i < f.byteCodeSize ; i++)
+	if(hasGeoOp || f.hasGeoOp)
 	{
-		delete geo_op[i] ;
-		if(f.geo_op[i])
-			geo_op[i] = f.geo_op[i]->getCopy() ;
+		for(size_t i = 0 ; i < f.byteCodeSize ; i++)
+		{
+			delete geo_op[i] ;
+			if(f.geo_op[i])
+				geo_op[i] = f.geo_op[i]->getCopy() ;
+		}
 	}
 // 	initialiseAdresses();
 
@@ -1356,7 +1359,7 @@ Function::Function(const std::string &f, int n) : derivative(nullptr),
 }
 
 Function::Function(const std::valarray<Matrix> & coeffs, bool diff): derivative(nullptr),
-		e_diff(false),
+		e_diff(diff),
 		byteCodeSize(0),
 		constNumber(0),
 		byteCode(TOKEN_OPERATION_CONSTANT,FUNCTION_LENGTH ),
@@ -1368,8 +1371,6 @@ Function::Function(const std::valarray<Matrix> & coeffs, bool diff): derivative(
 		ptID (nullptr),
 		hasGeoOp(false)
 {
-	e_diff = diff ;
-	
 	
 	bool first = true ;
 	
@@ -2261,6 +2262,7 @@ Function Function::operator*(const Function &f) const
 			}
 		}
 	}
+	ret.hasGeoOp = f.hasGeoOp ;
 	
 	
 	return ret ;
@@ -2289,7 +2291,7 @@ Function Function::operator/(const Function &f) const
 			}
 		}
 	}
-
+	ret.hasGeoOp = f.hasGeoOp ;
 	
 	return ret ;
 }
@@ -2317,6 +2319,7 @@ Function Function::operator+(const Function &f) const
 			}
 		}
 	}
+	ret.hasGeoOp = f.hasGeoOp ;
 	return ret ;
 }
 	
@@ -2382,7 +2385,7 @@ Function operator-(const double & a, const Function &f)
 			}
 		}
 	}
-	
+	ret.hasGeoOp = f.hasGeoOp ;
 	return ret ;
 	
 }
@@ -2395,6 +2398,7 @@ Function operator*(const double & a, const Function &f)
 	ret.values[0] = a ;
 	ret.use_temp = f.use_temp ;
 	ret.byteCode = f.byteCode ;
+	ret.hasGeoOp = f.hasGeoOp ;
 	for(size_t i = 0 ; i < f.constNumber ; i++)
 		ret.values[i+1] = f.values[i] ;
 	
@@ -2452,6 +2456,7 @@ Function operator*(const double & a, const Function &f)
 Function operator+(const double & a, const Function &f)
 {
 	Function ret ;
+	ret.hasGeoOp = f.hasGeoOp ;
 	ret.byteCodeSize = f.byteCodeSize+1 ;
 	ret.constNumber = 1+f.constNumber ;
 	ret.values[0] = a ;
@@ -2514,6 +2519,7 @@ Function operator+(const double & a, const Function &f)
 Function operator/(const double & a, const Function &f)
 {
 	Function ret ;
+	ret.hasGeoOp = f.hasGeoOp ;
 	ret.byteCodeSize = f.byteCodeSize+1 ;
 	ret.constNumber = 1+f.constNumber ;
 	ret.values[0] = a ;
@@ -2597,6 +2603,7 @@ Function Function::operator-(const Function &f) const
 			}
 		}
 	}
+	ret.hasGeoOp = f.hasGeoOp ;
 	return ret ;
 
 }
@@ -2644,7 +2651,7 @@ Function Function::operator*(const double a) const
 			}
 		}
 	}
-	
+	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2695,7 +2702,7 @@ Function Function::operator/(const double a) const
 			}
 		}
 	}
-	
+	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2738,6 +2745,7 @@ Function Function::operator+(const double a) const
 			}
 		}
 	}
+	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2780,6 +2788,7 @@ Function Function::operator-(const double a) const
 			}
 		}
 	}
+	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2818,6 +2827,7 @@ Function  Function::operator^(const int a) const
 			}
 		}
 	}
+	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2843,7 +2853,7 @@ void Function::operator*=(const Function &f)
 			}
 		}
 	}
-	
+	hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 
@@ -2867,7 +2877,7 @@ void Function::operator/=(const Function &f)
 			}
 		}
 	}
-	
+	hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator+=(const Function &f) 
@@ -2892,7 +2902,7 @@ void Function::operator+=(const Function &f)
 			}
 		}
 	}
-  
+  hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator-=(const Function &f)  
@@ -2916,7 +2926,7 @@ void Function::operator-=(const Function &f)
 			}
 		}
 	}
-	
+	hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator*=(const double a) 
