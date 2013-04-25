@@ -48,7 +48,6 @@ typedef enum
 	GET_TEMPORARY_B,
 } TemporayUsageType ;
 
-const size_t FUNCTION_LENGTH = 4096 ;
 /** \brief Function object used for runtime generation of functions, or symbolic manipulation of mathematical expressions.
  * Function can be defined using helper functions an a variety of constructors, or by writing them in RPN as a string:
  * \code 

@@ -2502,28 +2502,65 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	
 	if(order == LINEAR)
 	{
+		
+		
 		shapefunc = new std::valarray<Function>(4) ;
-		Matrix zero(2,2) ;
-		std::valarray<Matrix> xi(zero, 2) ;
-		xi[1][0][0] = 1 ;
-		std::valarray<Matrix> eta(zero,2) ;
-		eta[0][1][0] = 1 ;
-		std::valarray<Matrix> zeta(zero,2) ;
-		zeta[0][0][1] = 1 ;
-		std::valarray<Matrix> f(zero,2) ;
-		f[0][0][0] = 1 ;
-		f[1][0][0] = -1 ;
-		f[0][1][0] = -1 ;
-		f[0][0][1] = -1 ;
+// 		Matrix zero(2,2) ;
+// 		std::valarray<Matrix> xi(zero, 2) ;
+// 		xi[1][0][0] = 1 ;
+// 		std::valarray<Matrix> eta(zero,2) ;
+// 		eta[0][1][0] = 1 ;
+// 		std::valarray<Matrix> zeta(zero,2) ;
+// 		zeta[0][0][1] = 1 ;
+// 		std::valarray<Matrix> f(zero,2) ;
+// 		f[0][0][0] = 1 ;
+// 		f[1][0][0] = -1 ;
+// 		f[0][1][0] = -1 ;
+// 		f[0][0][1] = -1 ;
 			
+			Function zero("0") ;
+			Function one("1") ;
+			Function mone("-1") ;
+// 		//0
+// 			(*shapefunc)[0] = Function("y") ;
+// 			(*shapefunc)[0].setNumberOfDerivatives(2) ;
+// 			(*shapefunc)[0].setDerivative( XI, zero) ;
+// 			(*shapefunc)[0].setDerivative( ETA, one) ;
+// 		//1
+// 			(*shapefunc)[1] = Function("1 x - y -") ;
+// 			(*shapefunc)[1].setNumberOfDerivatives(2) ;
+// 			(*shapefunc)[1].setDerivative( XI, mone) ;
+// 			(*shapefunc)[1].setDerivative( ETA, mone) ;
+// 		//2
+// 			(*shapefunc)[2] = Function("x") ;
+// 			(*shapefunc)[2].setNumberOfDerivatives(2) ;
+// 			(*shapefunc)[2].setDerivative( ETA, zero) ;
+// 			(*shapefunc)[2].setDerivative( XI, one) ;
+		
 			//0
 		(*shapefunc)[0] = Function("z") ;
+		(*shapefunc)[0].setNumberOfDerivatives(3) ;
+		(*shapefunc)[0].setDerivative( XI, zero) ;
+		(*shapefunc)[0].setDerivative( ETA, zero) ;
+		(*shapefunc)[0].setDerivative( ZETA, one) ;
 			//1
 		(*shapefunc)[1] = Function("1 x - y - z -") ;
+		(*shapefunc)[1].setNumberOfDerivatives(3) ;
+		(*shapefunc)[1].setDerivative( XI, mone) ;
+		(*shapefunc)[1].setDerivative( ETA, mone) ;
+		(*shapefunc)[1].setDerivative( ZETA, mone) ;
 			//2
 		(*shapefunc)[2] = Function("x") ;
+		(*shapefunc)[2].setNumberOfDerivatives(3) ;
+		(*shapefunc)[2].setDerivative( XI, one) ;
+		(*shapefunc)[2].setDerivative( ETA, zero) ;
+		(*shapefunc)[2].setDerivative( ZETA, zero) ;
 			//3
 		(*shapefunc)[3] = Function("y") ;
+		(*shapefunc)[3].setNumberOfDerivatives(3) ;
+		(*shapefunc)[3].setDerivative( XI, zero) ;
+		(*shapefunc)[3].setDerivative( ETA, one) ;
+		(*shapefunc)[3].setDerivative( ZETA, zero) ;
 	}
 	else if(order == QUADRATIC)
 	{

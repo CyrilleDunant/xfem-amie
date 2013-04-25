@@ -42,14 +42,15 @@ typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 
 // typedef std::vector<double> Memory ;
-
+const size_t HEAP_SIZE = 2048 ;
+const size_t FUNCTION_LENGTH = HEAP_SIZE ;
 
 /** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
 */
 struct Memory
 {
-	double stack[2048];
-	double heap[2048] ;
+	double stack[HEAP_SIZE];
+	double heap[HEAP_SIZE] ;
 
 	/** \brief Constructor. Initialises stack and heap to 0.
 	 * 

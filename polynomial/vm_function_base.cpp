@@ -224,6 +224,7 @@ void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> 
 		if(val.find(var[i]) == val.end())
 			val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
 	}
+
 	if(dprecalc.find(gp.id) != dprecalc.end())
 	{
 		for(auto i = dprecalc[gp.id].begin() ;  i != dprecalc[gp.id].end() ; ++i)
