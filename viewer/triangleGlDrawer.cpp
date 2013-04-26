@@ -170,7 +170,7 @@ void TriangleGLDrawer::paintGL()
 		for( double i = ( double )fracup / 10000. ; i > ( double )fracdown / 10000. ; i -= 0.001 )
 		{
 			double where = ( 1. - ( ( double )fracup / 10000. - i ) / ( ( double )fracup / 10000. - ( double )fracdown / 10000. ) ) ;
-			HSVtoRGB( &r, &g, &b, 180., 0., 0.05 + 0.95 * ( /*1. - */where ) ) ;
+			HSVtoRGB( &r, &g, &b, 180., 0., ( 1. - where ) ) ;
 			if(std::abs(rel-where) < .5e-2 )
 			{
 				r = 255 ;
@@ -450,7 +450,7 @@ void TriangleGLDrawer::computeDisplayList()
 				else
 					v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
 
-				HSVtoRGB( &r, &g, &b, 180., 0., 0.05 + v * 0.95 ) ;
+				HSVtoRGB( &r, &g, &b, 180., 0., 1. - v ) ;
 
 				glColor4ub( r, g, b, 255 ) ;
 

@@ -1397,16 +1397,16 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.push_back(testedTri->index);
 		
 		size_t cachesize = cache.size() ;
-		if(testedTri->getBehaviour()->getExtra2dMeshes())
-		{
-			for(size_t i = 0 ; i < testedTri->getBehaviour()->getExtra2dMeshes()->size() ; i++)
-			{
-				for(size_t j = 0 ; j < cachesize ; j++)
-				{
-					cache.push_back(cache[j]+meshsize*(i+1));
-				}
-			}
-		}
+// 		if(testedTri->getBehaviour()->getExtra2dMeshes())
+// 		{
+// 			for(size_t i = 0 ; i < testedTri->getBehaviour()->getExtra2dMeshes()->size() ; i++)
+// 			{
+// 				for(size_t j = 0 ; j < cachesize ; j++)
+// 				{
+// 					cache.push_back(cache[j]+meshsize*(i+1));
+// 				}
+// 			}
+// 		}
 	}
 	else if(testedTet)
 	{
