@@ -447,25 +447,20 @@ void Function::operator*=(const Geometry *f)
 
 Function & Function::operator=(const Function &f)
 {
+	if(derivative)
+		for(size_t i = 0 ; i < derivative->size() ; i++)
+			delete (*derivative)[i] ;
+		
+	delete derivative ;
+		
+	derivative = nullptr ;
+	e_diff = false ;
 	if(f.derivative)
 	{
-		if(derivative)
-			delete derivative ;
 		derivative = new std::valarray<Function *>((Function *)nullptr, f.derivative->size()) ;
 		e_diff = true ;
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)
 			(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
-	}
-	else
-	{
-		if(derivative)
-			for(size_t i = 0 ; i < derivative->size() ; i++)
-				delete (*derivative)[i] ;
-			
-		delete derivative ;
-			
-		derivative = nullptr ;
-		e_diff = false ;
 	}
 	
 	if(hasGeoOp || f.hasGeoOp)
@@ -2151,8 +2146,9 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 	initialiseAdresses();
 }
 
-Function::Function(const Function &f) : byteCode(f.byteCode), values(f.values), byteCodeSize(f.byteCodeSize),e_diff(f.e_diff), derivative(nullptr), use_temp(f.use_temp), adress_a(f.adress_a), constNumber(f.constNumber), iPoint(f.iPoint), ptID(f.ptID), dofID(f.dofID), geo_op( (GeometryOperation *)nullptr, FUNCTION_LENGTH),hasGeoOp(f.hasGeoOp)
+Function::Function(const Function &f) : derivative(nullptr), e_diff(false) ,byteCodeSize(f.byteCodeSize) , constNumber(f.constNumber) ,byteCode(f.byteCode), geo_op(f.geo_op), use_temp(f.use_temp),values(f.values),adress_a(f.adress_a),dofID(-1),ptID(f.ptID),hasGeoOp(f.hasGeoOp)
 {
+	ptID = f.ptID ;
 	if(f.derivative)
 	{
 		derivative = new std::valarray<Function *>(f.derivative->size()) ;
@@ -3002,13 +2998,27 @@ void Function::setNumberOfDerivatives(int n)
 	else
 		derivative->resize(n,(Function *)nullptr) ;
 	
-	e_diff = true ;
+	e_diff = n > 0 ;
+	if (!n)
+		delete derivative ;
 }
 
 void Function::setDerivative( const Variable v, Function & f) 
 {
 	if(derivative)
 	{
+		if(derivative->size() < v+1)
+		{
+			std::vector<Function *> oldfuncts ;
+			for(size_t i = 0 ; i < getNumberOfDerivatives() ; i++)
+				oldfuncts.push_back((*derivative)[i]);
+			
+			derivative->resize(v+1,nullptr);
+			for(size_t i = 0 ; i < oldfuncts.size() ; i++)
+				(*derivative)[i] = oldfuncts[i] ;
+			for(size_t i = oldfuncts.size() ; i < derivative->size() ; i++)
+				(*derivative)[i] = new Function("0") ;
+		}
 		delete (*derivative)[v] ;
 		(*derivative)[v] = new Function(f) ;
 	}
@@ -3054,12 +3064,21 @@ Function f_abs(const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_ABS ;
+	if(f.isDifferentiable())
+	{
+		ret.setNumberOfDerivatives(f.getNumberOfDerivatives());
+		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
+		{
+			Function d = f_abs(*f.getDerivatives()[i]) ;
+			ret.getDerivatives()[i] =  new Function(d) ;
+		}
+	}
 	return ret ;
 }
 
 Function f_log(const Function &f)
 {
-	Function ret = f ;
+	Function ret(f) ;
 	ret.byteCodeSize++ ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
@@ -3070,12 +3089,22 @@ Function f_log(const Function &f)
 
 Function f_sqrt(const Function &f)
 {
-	Function ret = f ;
+	Function ret(f) ;
 	ret.byteCodeSize++ ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_SQRT ;
+	if(f.isDifferentiable())
+	{
+		ret.setNumberOfDerivatives(f.getNumberOfDerivatives());
+		
+		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
+		{
+			Function d = 0.5/f_sqrt(*f.getDerivatives()[i]) ;
+			ret.getDerivatives()[i] = new Function(d) ;
+		}
+	}
 	return ret ;
 }
 
