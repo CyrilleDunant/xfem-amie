@@ -4153,24 +4153,29 @@ std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDepen
 	Point c = origin + x*0.2 + y*0.6 ;
 	Point d = origin + x/3.0 + y/3.0 ;
 //	double n = norm() ;
+	
+	double ar = area()*2 ;
+	
 	if(!timeDependent)
 	{
-		gp[0] = std::pair<Point, double>(a,  0.260416666666667) ;
-		gp[1] = std::pair<Point, double>(b,  0.260416666666667) ;
-		gp[2] = std::pair<Point, double>(c,  0.260416666666667) ;
-		gp[3] = std::pair<Point, double>(d, -0.28125) ;
+		gp[0] = std::pair<Point, double>(a,  0.260416666666667*ar) ;
+		gp[1] = std::pair<Point, double>(b,  0.260416666666667*ar) ;
+		gp[2] = std::pair<Point, double>(c,  0.260416666666667*ar) ;
+		gp[3] = std::pair<Point, double>(d, -0.28125*ar) ;
 	}
 	else
 	{
-		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.) ;
-		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.) ;
-		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.) ;
+		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.*ar) ;
+		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
+		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.*ar) ;
 	}
+	
+	
 	return gp ;
 }
 
