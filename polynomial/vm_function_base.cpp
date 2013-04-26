@@ -3069,7 +3069,7 @@ Function f_abs(const Function &f)
 		ret.setNumberOfDerivatives(f.getNumberOfDerivatives());
 		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
 		{
-			Function d = *f.getDerivatives()[i]*f_positivity(f)-*f.getDerivatives()[i]*f_negativity(f) ;
+			Function d = (*f.getDerivatives()[i])*f_positivity(f)-(*f.getDerivatives()[i])*f_negativity(f) ;
 			ret.getDerivatives()[i] =  new Function(d) ;
 		}
 	}
