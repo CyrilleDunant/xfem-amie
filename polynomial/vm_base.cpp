@@ -913,7 +913,6 @@ double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Varia
 {
 	if(f.isDifferentiable(v_0) && f.d(v_0).isDifferentiable(v_1))
 	{
-//		std::cout << (int) v_0 << "," << (int) v_1 << "\n" << std::endl ;
 		return eval(f.d(v_0).d(v_1), x, y, z, t, u, v, w) ;
 	}
 	switch(v_0)
@@ -2888,9 +2887,9 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 		{
 			if(transpose)
 			{
-				double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z,t, default_derivation_delta*100.) ;
-				double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z,t, default_derivation_delta*100.) ;
-				double dtau = ddeval(f, var[2], TIME_VARIABLE, x,y,z,t, default_derivation_delta*100.) ;
+				double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z,t,0,0,0, default_derivation_delta*100.) ;
+				double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z,t,0,0,0, default_derivation_delta*100.) ;
+				double dtau = ddeval(f, var[2], TIME_VARIABLE, x,y,z,t,0,0,0, default_derivation_delta*100.) ;
 				
 				if(ret.isNull() || ret.numRows() !=3 ||ret.numCols() != 2)
 					ret.resize(3,2) ;
@@ -2905,9 +2904,9 @@ void VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vect
 			}
 			else
 			{
-				double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z, default_derivation_delta*100.) ;
-				double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z, default_derivation_delta*100.) ;
-				double dtau = ddeval(f, var[2], TIME_VARIABLE, x,y,z,t, default_derivation_delta*100.) ;
+				double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z,0,0,0, default_derivation_delta*100.) ;
+				double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z,0,0,0, default_derivation_delta*100.) ;
+				double dtau = ddeval(f, var[2], TIME_VARIABLE, x,y,z,t,0,0,0, default_derivation_delta*100.) ;
 				if(ret.isNull() || ret.numRows() !=2 ||ret.numCols() != 3)
 					ret.resize(2,3) ;
 				
@@ -4230,12 +4229,13 @@ Vector VirtualMachine::ieval(const GDtV &f, const GaussPointArray &gp, const std
 	Vector ret = r_ * gp.gaussPoints[0].second;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
+		  M *= 0 ;
 		  gdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose, M) ;
 		
-		for(size_t j = 0 ; j < temp.size() ; j++)
-		{
-			temp[j] = f.second[j] ;
-		}
+// 		for(size_t j = 0 ; j < temp.size() ; j++)
+// 		{
+// 			temp[j] = f.second[j] ;
+// 		}
 		r_  = M*temp ;
 		ret += r_ * gp.gaussPoints[i].second ;
 	}

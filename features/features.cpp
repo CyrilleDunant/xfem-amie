@@ -235,7 +235,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 	return std::vector<DelaunayTetrahedron *>() ;
 }
 
-FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( nullptr ), grid3d( nullptr ), state( this )
+FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( nullptr ), grid3d( nullptr ), state( this ), nodes(0) 
 {
 	deltaTime = 0 ;
 	minDeltaTime = 0.001 ; 
@@ -474,6 +474,12 @@ void FeatureTree::setOrder( Order ord )
 
 	father2D = new TriElement( elemOrder ) ;
 	father2D->compileAndPrecalculate() ;
+	
+	if(ord >= CONSTANT_TIME_LINEAR)
+	{
+		addBoundaryCondition( new TimeContinuityBoundaryCondition() ) ;
+	}
+	
 }
 
 void FeatureTree::renumber()
@@ -556,6 +562,18 @@ void FeatureTree::renumber()
 			}
 			
 			lastNodeId = count ;
+			
+			nodes.resize(count) ;
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			{
+				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
+				
+				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				{
+					nodes[ tri->getBoundingPoint( j ).id ] = &( tri->getBoundingPoint( j ) ) ;
+				}
+
+			}
 
 			std::cerr << count * 2 << " ...done " << std::endl ;
 
@@ -5225,14 +5243,17 @@ void FeatureTree::resetBoundaryConditions()
 		K->clear() ;
 } ;
 
-
 bool FeatureTree::step()
 {
 
 	double realdt = deltaTime ;
 	
 	if( solverConverged() && !behaviourChanged())
+	{
 		now += deltaTime ;
+// 		for(size_t i = 0 ; i < nodes.size() ; i++)
+// 			nodes[i]->t += deltaTime ;
+	}
 	else
 		deltaTime = 0 ;
 
@@ -5390,14 +5411,17 @@ bool FeatureTree::stepToCheckPoint()
 	return solverConverged();
 }
 
-bool orderPointsByID( Point p1, Point p2)
+bool orderPointsByID( Point * p1, Point * p2)
 {
-	return p1.id < p2.id ;
+	return p1->id < p2->id ;
 }
 
-std::vector<Point> FeatureTree::getNodes(int grid) 
+std::vector<Point *> FeatureTree::getNodes(int grid) 
 {
-	std::vector<Point> pts ;
+	if(nodes.size() > 0)
+		return nodes ;
+  
+	std::vector<Point *> pts ;
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
@@ -5410,7 +5434,7 @@ std::vector<Point> FeatureTree::getNodes(int grid)
 				if(!done[ elements[i]->getBoundingPoint(j).id])
 				{
 					done[ elements[i]->getBoundingPoint(j).id] = true ;
-					pts.push_back(elements[i]->getBoundingPoint(j)) ;
+					pts.push_back(&elements[i]->getBoundingPoint(j)) ;
 				}
 			} 
 		}
@@ -5427,7 +5451,7 @@ std::vector<Point> FeatureTree::getNodes(int grid)
 				if(!done[ elements[i]->getBoundingPoint(j).id])
 				{
 					done[ elements[i]->getBoundingPoint(j).id] = true ;
-					pts.push_back(elements[i]->getBoundingPoint(j)) ;
+					pts.push_back(&elements[i]->getBoundingPoint(j)) ;
 				}
 			} 
 		}

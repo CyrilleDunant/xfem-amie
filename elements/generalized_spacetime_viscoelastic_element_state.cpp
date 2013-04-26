@@ -170,9 +170,10 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 
 				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
-				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] + x_tau * Jinv[0][2] ;
-				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] + y_tau * Jinv[1][2] ;
-				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1]  + x_tau * Jinv[1][2]  + y_tau * Jinv[0][2] );
+				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2] ;
+				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
+				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] ) ;// + x_tau * Jinv[1][2]  + y_tau * Jinv[0][2] );
+								
 			}
 			else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 			{

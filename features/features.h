@@ -114,6 +114,7 @@ protected:
 	void duplicate3DMeshPoints() ;
 	std::vector<double> cachedVolumes ;
 	std::vector<Point *> extraPoints ; 
+	std::vector<Point *> nodes ;
 	
 	std::vector< BoundaryCondition * > boundaryCondition ;
 	/** \brief Contains all the features. */
@@ -456,6 +457,8 @@ public:
 	void refine(size_t nit, SamplingCriterion *cri) ;
 	
 	
+	double getCurrentTime() const { return now ; }
+	
 	const Vector & getDisplacements(int g = -1, bool stepTree = true)  ;
 	
 	
@@ -542,7 +545,7 @@ public:
 	Vector getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri) ;
 	Vector getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet) ;
 	
-	std::vector<Point> getNodes(int g = -1) ;
+	std::vector<Point *> getNodes(int g = -1) ;
 	
 	size_t numPoints() const ;
 	

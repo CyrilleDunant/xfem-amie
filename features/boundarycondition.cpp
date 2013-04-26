@@ -170,7 +170,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 
-				break ;
+				return ;
 			}
 
 			case SET_VOLUMIC_STRESS_ETA:
@@ -218,7 +218,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
 				
-				break ;
+				return ;
 			}				
 			case SET_STRESS_XI:
 			{

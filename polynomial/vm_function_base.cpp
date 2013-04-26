@@ -2644,7 +2644,7 @@ Function Function::operator*(const double a) const
 		{
 			if( isDifferentiable(i)  )
 			{
-				Function diff =  d((const Variable) i) *a ;
+				Function diff =  d((const Variable) i) ; diff *= a ;
 				ret.setDerivative( (const Variable) i, diff ) ;
 			}
 		}

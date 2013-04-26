@@ -75,6 +75,7 @@ std::vector<BoundaryCondition * > ViscoelasticityAndImposedDeformation::getBound
 	{
 // 		Vector tmp = imposedStress ;
 // 		tmp[17] = imposedStrain[24] ;
+
 		ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposedStress[0]));
 		ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposedStress[1]));
 	}

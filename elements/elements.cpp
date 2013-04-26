@@ -976,35 +976,35 @@ TriElement::TriElement(Order order_ ): moved(false)
 
 		//2
 			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
-												(*shapefunc)[2].setNumberOfDerivatives(2) ;
-												d = Function("3 x 4 * + y 4 * +") ;
-												(*shapefunc)[2].setDerivative( ETA, d ) ;
-												d = Function("3 y 4 * + x 4 * +") ;
-												(*shapefunc)[2].setDerivative( XI, d) ;
+			(*shapefunc)[2].setNumberOfDerivatives(2) ;
+			d = Function("3 x 4 * + y 4 * +") ;
+			(*shapefunc)[2].setDerivative( ETA, d ) ;
+			d = Function("3 y 4 * + x 4 * +") ;
+			(*shapefunc)[2].setDerivative( XI, d) ;
 
 		//3
 			(*shapefunc)[3] = Function("x 4 * x x 4 * * - x y 4 * * -") ;
-												(*shapefunc)[3].setNumberOfDerivatives(2) ;
-												d = Function("x 4 *") ;
-												(*shapefunc)[3].setDerivative( ETA, d) ;
-												d = Function("4 8 x * - y 4 * -") ;
-												(*shapefunc)[3].setDerivative( XI, d) ;
+			(*shapefunc)[3].setNumberOfDerivatives(2) ;
+			d = Function("x 4 *") ;
+			(*shapefunc)[3].setDerivative( ETA, d) ;
+			d = Function("4 8 x * - y 4 * -") ;
+			(*shapefunc)[3].setDerivative( XI, d) ;
 
 		//4
 			(*shapefunc)[4] = Function("x x 2 * * x -") ;
-												(*shapefunc)[4].setNumberOfDerivatives(2) ;
-												d = Function("0") ;
-												(*shapefunc)[4].setDerivative( ETA, d) ;
-												d = Function("4 x * 1 -") ;
-												(*shapefunc)[4].setDerivative( XI, d) ;
+			(*shapefunc)[4].setNumberOfDerivatives(2) ;
+			d = Function("0") ;
+			(*shapefunc)[4].setDerivative( ETA, d) ;
+			d = Function("4 x * 1 -") ;
+			(*shapefunc)[4].setDerivative( XI, d) ;
 
 		//5
 			(*shapefunc)[5] = Function("x y 4 * *") ;
-												(*shapefunc)[5].setNumberOfDerivatives(2) ;
-												d = Function("4 x *") ;
-												(*shapefunc)[5].setDerivative( ETA, d) ;
-												d = Function("4 y *") ;
-												(*shapefunc)[5].setDerivative( XI, d) ;
+			(*shapefunc)[5].setNumberOfDerivatives(2) ;
+			d = Function("4 x *") ;
+			(*shapefunc)[5].setDerivative( ETA, d) ;
+			d = Function("4 y *") ;
+			(*shapefunc)[5].setDerivative( XI, d) ;
 
 			break ;
 		}
@@ -1048,62 +1048,118 @@ TriElement::TriElement(Order order_ ): moved(false)
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
 
-			Function empty("0") ;
+	Function z2("0") ;
+
+	Function z1("0") ;
+	z1.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
+	{
+		z1.setDerivative( (const Variable) i, z2) ;
+	}
+  
+	Function zero("0") ;
+	zero.setNumberOfDerivatives(4) ;
+	for(int i = 0 ; i < 4 ; i++)
+	{
+		zero.setDerivative( (const Variable) i, z1) ;
+	}	
+	Function one = zero +1 ;
+	Function mone = zero-1 ;
 			
-			Function zero("0") ;
-			zero.setNumberOfDerivatives(4) ;
-			zero.setDerivative( XI, empty) ;
-			zero.setDerivative( ETA, empty) ;
-			zero.setDerivative( TIME_VARIABLE, empty) ;
+			Function half = zero + 0.5 ;
+			Function halfm = zero - 0.5 ;
 			
-			Function half("0.5") ;
-			Function halfm = half * -1 ;
-			
-			Function t0("0.5 0.5 t * -") ;
+			Function t0("1 t -") ;
+			t0 *= 0.5 ;
 			t0.setNumberOfDerivatives(4) ;
+			t0.setDerivative( XI, zero) ;
+			t0.setDerivative( ETA, zero) ;
+			t0.setDerivative( ZETA, zero) ;
 			t0.setDerivative( TIME_VARIABLE, halfm) ;
 
 			Function t0m = t0 * -1. ;
 			t0m.setNumberOfDerivatives(4) ;
+			t0m.setDerivative( XI, zero) ;
+			t0m.setDerivative( ETA, zero) ;
+			t0m.setDerivative( ZETA, zero) ;
 			t0m.setDerivative( TIME_VARIABLE, half) ;
 			
-			Function t1("0.5 0.5 t * +") ;
+			Function t1("1 t +") ;
+			t1 *= 0.5 ;
 			t1.setNumberOfDerivatives(4) ;
+			t1.setDerivative( XI, zero) ;
+			t1.setDerivative( ETA, zero) ;
+			t1.setDerivative( ZETA, zero) ;
 			t1.setDerivative( TIME_VARIABLE, half) ;
 			
 			Function t1m = t1 * -1. ;
 			t1m.setNumberOfDerivatives(4) ;
+			t1m.setDerivative( XI, zero) ;
+			t1m.setDerivative( ETA, zero) ;
+			t1m.setDerivative( ZETA, zero) ;
 			t1m.setDerivative( TIME_VARIABLE, halfm) ;
+			
+	Function s0("y") ;
+	Function s1("1 x - y -") ;
+	Function s2("x") ;
+	s0.setNumberOfDerivatives(4) ;
+	s0.setDerivative( XI, zero) ;
+	s0.setDerivative( ETA, one) ;
+	s0.setDerivative( ZETA, zero) ;
+	s0.setDerivative( TIME_VARIABLE, zero) ;
+	s1.setNumberOfDerivatives(4) ;
+	s1.setDerivative( XI, mone) ;
+	s1.setDerivative( ETA, mone) ;
+	s1.setDerivative( ZETA, zero) ;
+	s1.setDerivative( TIME_VARIABLE, zero) ;
+	s2.setNumberOfDerivatives(4) ;
+	s2.setDerivative( XI, one) ;
+	s2.setDerivative( ETA, zero) ;
+	s2.setDerivative( ZETA, zero) ;
+	s2.setDerivative( TIME_VARIABLE, zero) ;
+			
 		//0			
-			(*shapefunc)[0] = Function("y 0.5 0.5 t * - *") ;
-			(*shapefunc)[0].setNumberOfDerivatives(4) ;
-			(*shapefunc)[0].setDerivative( XI, zero) ;
-			(*shapefunc)[0].setDerivative( ETA, t0) ;
+			(*shapefunc)[0] = s0*t0 ;
+			(*shapefunc)[1] = s1*t0 ;
+			(*shapefunc)[2] = s2*t0 ;
+			(*shapefunc)[3] = s0*t1 ;
+			(*shapefunc)[4] = s1*t1 ;
+			(*shapefunc)[5] = s2*t1 ;
+			
+// 			std::cout << VirtualMachine().eval((*shapefunc)[3], Point(0,1,0,1) ) << std::endl ;
+// 			std::cout << VirtualMachine().deval((*shapefunc)[3], XI, Point(0,1,0,1) ) << std::endl  ;
+// 			std::cout << VirtualMachine().deval((*shapefunc)[3], ETA, Point(0,1,0,1) ) << std::endl  ;
+// 			std::cout << VirtualMachine().deval((*shapefunc)[3], TIME_VARIABLE, Point(0,1,0,1) ) << std::endl  ;
+// 			exit(0) ;
+			
+// 			(*shapefunc)[0].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[0].setDerivative( XI, zero) ;
+// 			(*shapefunc)[0].setDerivative( ETA, t0) ;
 		//1
-			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;
-			(*shapefunc)[1].setNumberOfDerivatives(4) ;
-			(*shapefunc)[1].setDerivative( XI, t0m) ;
-			(*shapefunc)[1].setDerivative( ETA, t0m) ;
-			//2
-			(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
-			(*shapefunc)[2].setNumberOfDerivatives(4) ;
-			(*shapefunc)[2].setDerivative( XI, t0) ;
-			(*shapefunc)[2].setDerivative( ETA, zero) ;
-			//3
-			(*shapefunc)[3] = Function("y 0.5 0.5 t * + *") ;
-			(*shapefunc)[3].setNumberOfDerivatives(4) ;
-			(*shapefunc)[3].setDerivative( XI, zero) ;
-			(*shapefunc)[3].setDerivative( ETA, t1) ;
-		//4
-			(*shapefunc)[4] = Function("1 x - y - 0.5 0.5 t * + *") ;
-			(*shapefunc)[4].setNumberOfDerivatives(4) ;
-			(*shapefunc)[4].setDerivative( XI, t1m) ;
-			(*shapefunc)[4].setDerivative( ETA, t1m) ;
-		//5
-			(*shapefunc)[5] = Function("x 0.5 0.5 t * + *") ;
-			(*shapefunc)[5].setNumberOfDerivatives(4) ;
-			(*shapefunc)[5].setDerivative( XI, t1) ;
-			(*shapefunc)[5].setDerivative( ETA, zero) ;
+// 			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;
+// 			(*shapefunc)[1].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[1].setDerivative( XI, t0m) ;
+// 			(*shapefunc)[1].setDerivative( ETA, t0m) ;
+// 			//2
+// 			(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
+// 			(*shapefunc)[2].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[2].setDerivative( XI, t0) ;
+// 			(*shapefunc)[2].setDerivative( ETA, zero) ;
+// 			//3
+// 			(*shapefunc)[3] = Function("y 0.5 0.5 t * + *") ;
+// 			(*shapefunc)[3].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[3].setDerivative( XI, zero) ;
+// 			(*shapefunc)[3].setDerivative( ETA, t1) ;
+// 		//4
+// 			(*shapefunc)[4] = Function("1 x - y - 0.5 0.5 t * + *") ;
+// 			(*shapefunc)[4].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[4].setDerivative( XI, t1m) ;
+// 			(*shapefunc)[4].setDerivative( ETA, t1m) ;
+// 		//5
+// 			(*shapefunc)[5] = Function("x 0.5 0.5 t * + *") ;
+// 			(*shapefunc)[5].setNumberOfDerivatives(4) ;
+// 			(*shapefunc)[5].setDerivative( XI, t1) ;
+// 			(*shapefunc)[5].setDerivative( ETA, zero) ;
 			
 			
 			break ;
@@ -1139,7 +1195,7 @@ TriElement::TriElement(Order order_ ): moved(false)
 	Function t2("t 2 ^ t + 0.5 *") ;
 
 	Function tt0("t 0.5 -") ;
-	Function tt1("t 2 *") ; tt1 *= -1 ;
+	Function tt1("t -2 *") ; 
 	Function tt2("t 0.5 +") ;
 	
 	Function ttt0 = one ;
@@ -2217,8 +2273,8 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ;
 		invert2x2Matrix(ret) ;
 		delete father ;
-//		ret.print() ;
-//		exit(0) ;
+// 		ret.print() ;
+// 		exit(0) ;
 	}
 	else
 	{
@@ -2264,6 +2320,9 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = tdeta ;
 		ret[2][0] = xdtau ;  ret[2][1] = ydtau ; ret[2][2] = tdtau;
 		invert3x3Matrix(ret) ;
+		
+// 		ret.print() ;
+// 		exit(0) ;
 		
 	}
 }
