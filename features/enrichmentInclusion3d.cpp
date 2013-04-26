@@ -324,7 +324,6 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			bool hinted = false ;
 			Function position(getCenter(), t) ;
 			Function hat = getRadius()-f_abs(position-getRadius()) ;
-
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
