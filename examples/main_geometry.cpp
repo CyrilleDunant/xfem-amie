@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 	// generate elements and get list of tetrahedrons
 	std::vector<DelaunayTetrahedron *> tets = F.getElements3D() ;
 	// get nodes
-	std::vector<Point> nodes = F.getNodes() ;
+	std::vector<Point *> nodes = F.getNodes() ;
 	
 	F.step() ;
 	
