@@ -133,7 +133,7 @@ public:
 
 	virtual void print() const = 0 ;
 
-	virtual bool in( const Point & p) const  = 0;
+	virtual bool normalisedIn( const Point & p) const  = 0;
 	
 	size_t numberOfCommonVertices(const DelaunayTreeItem3D * s) const;
 	
@@ -180,6 +180,7 @@ public:
 	std::vector<Point *> getIntegrationHints() const ;
 
 	virtual void print() const;
+	virtual bool normalisedIn(const Point & p) const ;
 
 	void refresh(const TetrahedralElement *) ;
 	
@@ -234,9 +235,9 @@ public:
 	
 	void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) ;
 	
-	virtual bool in( const Point & p) const
+	virtual bool normalisedIn( const Point & p) const
 	{
-		return isOnTheSameSide( &p, third, first, second, fourth) ;
+		return isOnTheSameSide( &p, third, first, second, fourth, tree->getInternalScale()) ;
 	}
 
 
@@ -268,7 +269,7 @@ public:
 	
 	virtual void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) { };
 	
-	virtual bool in( const Point & p) const;
+	virtual bool normalisedIn( const Point & p) const;
 
 	void print() const;
 
@@ -299,7 +300,7 @@ public:
 
 	virtual void print() const ;
 
-	virtual bool in( const Point & p) const
+	virtual bool normalisedIn( const Point & p) const
 	{
 		return true ;
 	}
@@ -338,14 +339,17 @@ friend class FeatureTree ;
 friend class Geometry ;
 	
 protected:
+	double internalScale ;
 	size_t global_counter ;
 	bool neighbourhood ;
+	bool fixedScale ;
 	std::vector<Point *> additionalPoints ;
 	
-	public:
+public:
+	virtual double getInternalScale() const {return internalScale ;} ;
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ; };
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
-		
+
 	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
 	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p) 
 	{
@@ -382,7 +386,7 @@ public:
 	 * @param p Point to check.
 	 * @return the list of triangles in conflict with p. A triangle is in conflict if the point is tricly in the circumcircle.
 	 */
-	std::vector<DelaunayTreeItem3D *> conflicts( const Point *p) const ;
+	std::vector<DelaunayTreeItem3D *> conflicts( const Point *p) ;
 
 	virtual void extrude(double dt) ;
 	
@@ -391,7 +395,7 @@ public:
 	 * @param g test geometry.
 	 * @return all the triangles for which at least one node is in the geometry.
 	 */
-	std::vector<DelaunayTetrahedron *> conflicts( const Geometry *g) const ;
+	std::vector<DelaunayTetrahedron *> conflicts( const Geometry *g) ;
 	
 	/** \brief Find the boundaries of the triangulation
 	 * 

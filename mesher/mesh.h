@@ -41,7 +41,7 @@ namespace Mu
 			virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
 			virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
 			virtual void extrude(double dt) { } ;
-		
+			virtual double getInternalScale() const { return 1. ;} ;
 		public:
 			Mesh() {} ;
 			virtual ~Mesh() {} ;
@@ -53,7 +53,7 @@ namespace Mu
 			{
 				if(!start)
 					std::cout << "nullptr" << std::endl ;
-			  
+
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;
 				found.insert(start) ;

@@ -4290,66 +4290,64 @@ bool isInTriangle(const Point & test, const Point&  p0, const Point & p1, const 
 	return isOnTheSameSide( test, p0, p1, p2) && isOnTheSameSide(test, p1, p0, p2) && isOnTheSameSide(test, p2, p1, p2) ;
 }
 
-bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1) 
+bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, double norm) 
 {
-	Point frontier(f1-f0) ;
-	Point yes(witness-f0) ;
-	Point perhaps(test-f0) ;
+	Point frontier(f1*norm-f0*norm) ;
+	Point yes(witness*norm-f0*norm) ;
+	Point perhaps(test*norm-f0*norm) ;
 	return (frontier^yes).z*(frontier^perhaps).z > -POINT_TOLERANCE_2D ;
 }
 
-bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, const Point *f1) 
+bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, const Point *f1, double norm) 
 {
-	Point frontier(*f1-*f0) ;
-	Point yes(*witness-*f0) ;
-	Point perhaps(*test-*f0) ;
-	return (frontier^yes).z*(frontier^perhaps).z > -POINT_TOLERANCE_2D ;
+	return isOnTheSameSide(*test, *witness, *f0, *f1, norm) ;
+
 }
 
-bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2) 
+bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2, double renorm) 
 {
-	Point f2test(f2-test) ;
-	Point f1test(f1-test) ;
-	Point f0test(f0-test) ;
-	Point f2witness(f2-witness) ;
-	Point f1witness(f1-witness) ;
-	Point f0witness(f0-witness) ;
+	Point f2test((f2-test)*renorm) ;
+	Point f1test((f1-test)*renorm) ;
+	Point f0test((f0-test)*renorm) ;
+	Point f2witness((f2-witness)*renorm) ;
+	Point f1witness((f1-witness)*renorm) ;
+	Point f0witness((f0-witness)*renorm) ;
 	return ((f2test.x*(f1test.y*f0test.z - f0test.y*f1test.z)-f2test.y*(f1test.x*f0test.z - f0test.x*f1test.z)+f2test.z*(f1test.x*f0test.y - f0test.x*f1test.y))*(f2witness.x*(f1witness.y*f0witness.z - f0witness.y*f1witness.z)-f2witness.y*(f1witness.x*f0witness.z - f0witness.x*f1witness.z)+f2witness.z*(f1witness.x*f0witness.y - f0witness.x*f1witness.y)) > 0) ;
 }
 
-bool isOnTheSameSide(const Point * test, const Point * witness, const Point * f0, const Point * f1, const Point * f2) 
-{
-	
-	return (((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)))*((f2->x-witness->x)*((f1->y-witness->y)*(f0->z-witness->z) - (f0->y-witness->y)*(f1->z-witness->z))-(f2->y-witness->y)*((f1->x-witness->x)*(f0->z-witness->z) - (f0->x-witness->x)*(f1->z-witness->z))+(f2->z-witness->z)*((f1->x-witness->x)*(f0->y-witness->y) - (f0->x-witness->x)*(f1->y-witness->y))) > 0) ;
+bool isOnTheSameSide(const Point * test, const Point * witness, const Point * f0, const Point * f1, const Point * f2, double renorm) 
+{ 
+	return isOnTheSameSide(*test, *witness, *f0, *f1, *f2, renorm) ;
+// 	return (((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)))*((f2->x-witness->x)*((f1->y-witness->y)*(f0->z-witness->z) - (f0->y-witness->y)*(f1->z-witness->z))-(f2->y-witness->y)*((f1->x-witness->x)*(f0->z-witness->z) - (f0->x-witness->x)*(f1->z-witness->z))+(f2->z-witness->z)*((f1->x-witness->x)*(f0->y-witness->y) - (f0->x-witness->x)*(f1->y-witness->y))) > 0) ;
 }
 
 double dist(const Point & v1, const Point & v2)
 {
-#ifdef HAVE_SSE4
-		__m128d temp ;
-	vecdouble r ;
-//	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r.vec = _mm_dp_pd(temp, temp, 61) ;
-//	r.vec += _mm_dp_pd(temp, temp, 62) ;
-	double z = vi.veczt.z - v2.veczt.z ;
-	return sqrt(r.val[0]+ r.val[1] + z*z);
-#elif defined HAVE_SSE3
-//	vecdouble rzt ;
-	vecdouble rxy ;
-// 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-// 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-	double z = vi.veczt.z - v2.veczt.z ;
-	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
-#else 
+// #ifdef HAVE_SSE4
+// 		__m128d temp ;
+// 	vecdouble r ;
+// //	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
+// 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+// 	r.vec = _mm_dp_pd(temp, temp, 61) ;
+// //	r.vec += _mm_dp_pd(temp, temp, 62) ;
+// 	double z = vi.veczt.z - v2.veczt.z ;
+// 	return sqrt(r.val[0]+ r.val[1] + z*z);
+// #elif defined HAVE_SSE3
+// //	vecdouble rzt ;
+// 	vecdouble rxy ;
+// // 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+// // 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+// 	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+// 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+// 	double z = vi.veczt.z - v2.veczt.z ;
+// 	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
+// #else 
 	double x = v1.x-v2.x ;
 	double y = v1.y-v2.y ;
 	double z = v1.z-v2.z ;
 //	double t = v1.t-v2.t ;
 	return sqrt(x*x+y*y+z*z) ;
-#endif
+// #endif
 }
 
 double dist(const Point * v1, const Point * v2)
@@ -4879,9 +4877,9 @@ double OrientableCircle::getRadius() const
 	return radius ;
 }
 
-bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2, double renorm)  
 {
-	return isCoplanar(*test, *f0, *f1, *f2) ;
+	return isCoplanar(*test, *f0, *f1, *f2, renorm) ;
 } ;
 
 double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
@@ -4949,33 +4947,22 @@ bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)
 } ;
 
 
-int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double tolerance)
+int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm)
 {
 	int count = 0 ;
 	Point centre = (**(pts)+f0+f1+f2)*.25 ;
 	Mu::Point A(f1-f0) ;
 	Mu::Point B(f2-f0) ;
-	Point normal = A^B ;
+	Point normal = (A^B)*renorm ;
 	
-	Point f0_(f0-centre) ;
-	Point f1_(f1-centre) ;
-	Point f2_(f2-centre) ;
+	Point f0_(f0*renorm-centre*renorm) ;
+	Point f1_(f1*renorm-centre*renorm) ;
+	Point f2_(f2*renorm-centre*renorm) ;
 	
-	double scale = f0_.sqNorm() ;
-	if(f1_.sqNorm() > scale) 
-		scale = f1_.sqNorm() ; 
-	if(f2_.sqNorm() > scale) 
-		scale = f2_.sqNorm() ; 
-	
-	scale = 1./sqrt(scale) ;		
-	f0_ *= scale ;
-	f1_ *= scale ;
-	f2_ *= scale ;
 	Point AB = (f0_-f1_)^(f2_-f1_) ;
 	for(size_t i = 0 ; i < numpoints ; i++)
 	{
-		Point test_(**(pts+i)-centre) ;
-		test_ *= scale ;
+		Point test_(**(pts+i)*renorm-centre*renorm) ;
 		
 		if(test_ == f1_ || test_ == f0_ || test_ == f2_)
 		{
@@ -4984,7 +4971,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 		}
 
 		double c0 = AB*(f2_-test_) ;
-		if(c0*c0 > tolerance)
+		if(c0*c0 > POINT_TOLERANCE_3D)
 			continue ;
 		
 		Point a(test_) ; a += normal ;
@@ -5002,24 +4989,14 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 	return count ;
 }
 
-bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm)  
 {
 
-	Point centre = (test+f0+f1+f2)*.25 ;
-	Point f0_(f0-centre) ;
-	Point f1_(f1-centre) ;
-	Point f2_(f2-centre) ;
-	Point test_(test-centre) ;
-	
-	double scale = f0_.sqNorm() ;
-	if(f1_.sqNorm() > scale) { scale = f1_.sqNorm() ; }
-	if(f2_.sqNorm() > scale) { scale = f2_.sqNorm() ; }
-	if(test_.sqNorm() > scale) { scale = test_.sqNorm() ; }
-	scale = 1./sqrt(scale) ;
-	f0_ *= scale ;
-	f1_ *= scale ;
-	f2_ *= scale ;
-	test_ *= scale ;
+	Point centre = (test+f0+f1+f2)*.25*renorm ;
+	Point f0_(f0*renorm-centre) ;
+	Point f1_(f1*renorm-centre) ;
+	Point f2_(f2*renorm-centre) ;
+	Point test_(test*renorm-centre) ;
 	
 	if(test_ == f1_)
 		return true ;

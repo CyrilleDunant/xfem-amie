@@ -1295,7 +1295,7 @@ Mu::Function operator/(const double & a, const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_sqrt(const Mu::Function &f) ;
+Mu::Function f_sqrt(const Mu::Function &f, bool differentiate = true ) ;
 
 /** \brief Helper function to create a Function which is the exponential of the argument
  * 
@@ -1309,7 +1309,7 @@ Mu::Function f_exp(const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_abs(const Mu::Function &f) ;
+Mu::Function f_abs(const Mu::Function &f, bool differentiate = true) ;
 
 /**  \brief Helper function to create a Function which is the log of the argument
  * 
@@ -1352,14 +1352,14 @@ Mu::Function f_sign(const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_positivity(const Mu::Function &f) ;
+Mu::Function f_positivity(const Mu::Function& f, bool differentiate = true) ;
 
 /** \brief Helper function to create a Function which is 1 if the argument is negative, 0 otherwise
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_negativity(const Mu::Function &f) ;
+Mu::Function f_negativity(const Mu::Function& f, bool differentiate = true) ;
 
 /** \brief  Helper function to create a Function which is the interpolated value between two functions. 0 as an argument will yield the value of the first function and 1 the second, intermediate values will yield the weighted average at that point.
  * 

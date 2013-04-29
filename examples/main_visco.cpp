@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 	}
 	
 		
-	std::vector<Point> nodes = F.getNodes() ;
+	std::vector<Point *> nodes = F.getNodes() ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 	std::valarray<bool> done(nodes.size()) ;
 	
@@ -261,11 +261,11 @@ int main(int argc, char *argv[])
 						done[ id ] = true ;
 						trg[i]->getBoundingPoint(j).x = trg[i]->getBoundingPoint(j+3).x ;
 						if(order == 1)
-							trg[i]->getBoundingPoint(j+3).x = fx(nodes[id],time)  ;
+							trg[i]->getBoundingPoint(j+3).x = fx(*nodes[id],time)  ;
 						if(order == 2)
 						{
 							trg[i]->getBoundingPoint(j+3).x = trg[i]->getBoundingPoint(j+6).x ;
-							trg[i]->getBoundingPoint(j+6).x = fx(nodes[id],time)  ;
+							trg[i]->getBoundingPoint(j+6).x = fx(*nodes[id],time)  ;
 						}
 					}
 				}

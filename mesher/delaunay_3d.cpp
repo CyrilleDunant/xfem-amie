@@ -133,17 +133,17 @@ size_t DelaunayTreeItem3D::numberOfCommonVertices( const DelaunayTreeItem3D *s )
 
 	if( this->isTetrahedron() && s->isSpace() )
 	{
-		return coplanarCount( &first, 4, *s->first, *s->second, *s->third, POINT_TOLERANCE_3D  ) ;
+		return coplanarCount( &first, 4, *s->first, *s->second, *s->third, tree->getInternalScale()  ) ;
 	}
 
 	if( this->isSpace() && s->isSpace() )
 	{
-		return coplanarCount( &s->first, 3, *first, *second, *third, POINT_TOLERANCE_3D  ) ;
+		return coplanarCount( &s->first, 3, *first, *second, *third, tree->getInternalScale()  ) ;
 	}
 
 	if( this->isSpace() && s->isTetrahedron() )
 	{
-		return coplanarCount( &s->first, 4, *first, *second, *third, POINT_TOLERANCE_3D  ) ;
+		return coplanarCount( &s->first, 4, *first, *second, *third, tree->getInternalScale()  ) ;
 	}
 
 	return 0 ;
@@ -1197,40 +1197,40 @@ std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D
 	}
 	else
 	{
-		Point A( *first - *second ) ;
-		Point B( *third - *second ) ;
-		Point C( *third - *t->first ) ;
-		Point D( *third - *t->second ) ;
-		Point E( *third - *t->third ) ;
+		Point A( *first*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		Point B( *third*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		Point C( *third*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		Point D( *third*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		Point E( *third*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 		double fst = std::abs( triProduct( A, B, C ) ) ;
 		fst = std::max( fst, std::abs( triProduct( A, B, D ) ) ) ;
 		fst = std::max( fst, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *first - *third ) ;
-		B = ( *fourth - *third ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *first*tree->getInternalScale() - *third*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *third*tree->getInternalScale() ) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double ftf = std::abs( triProduct( A, B, C ) ) ;
 		ftf = std::max( ftf, std::abs( triProduct( A, B, D ) ) ) ;
 		ftf = std::max( ftf, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *first - *second ) ;
-		B = ( *fourth - *second ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *first*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double fsf = std::abs( triProduct( A, B, C ) ) ;
 		fsf = std::max( fsf, std::abs( triProduct( A, B, D ) ) ) ;
 		fsf = std::max( fsf, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *third - *second ) ;
-		B = ( *fourth - *second ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *third*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double tsf = std::abs( triProduct( A, B, C ) ) ;
 		tsf = std::max( tsf, std::abs( triProduct( A, B, D ) ) ) ;
@@ -1278,6 +1278,7 @@ std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D
 
 bool DelaunayDeadTetrahedron::inCircumSphere( const Point &p ) const
 {
+	
 	if( p.x > x + 1.001 * radius )
 		return false ;
 
@@ -1296,9 +1297,12 @@ bool DelaunayDeadTetrahedron::inCircumSphere( const Point &p ) const
 	if( p.z < z - 1.001 * radius )
 		return false ;
 
-
-	double d = sqrt( ( x - p.x ) * ( x - p.x ) + ( y - p.y ) * ( y - p.y ) + ( z - p.z ) * ( z - p.z ) ) ;
-	return  d - radius < POINT_TOLERANCE_3D * radius ;
+	Point pr = p*tree->getInternalScale()  ;
+	double d = sqrt( 
+	( x*tree->getInternalScale()  - pr.x ) * ( x*tree->getInternalScale() - pr.x ) + 
+	( y*tree->getInternalScale()  - pr.y ) * ( y*tree->getInternalScale() - pr.y ) + 
+	( z*tree->getInternalScale()  - pr.z ) * ( z*tree->getInternalScale() - pr.z ) ) ;
+	return  d - radius*tree->getInternalScale()  < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere( const Point &p ) const
@@ -1321,8 +1325,12 @@ bool DelaunayDeadTetrahedron::onCircumSphere( const Point &p ) const
 	if( p.z < z - 1.001 * radius )
 		return false ;
 
-	double d =  sqrt( ( x - p.x ) * ( x - p.x ) + ( y - p.y ) * ( y - p.y ) + ( z - p.z ) * ( z - p.z ) ) ;
-	return  std::abs( d - radius ) < POINT_TOLERANCE_3D * radius ;
+	Point pr = p*tree->getInternalScale()  ;
+	double d = sqrt( 
+	( x*tree->getInternalScale()  - pr.x ) * ( x*tree->getInternalScale() - pr.x ) + 
+	( y*tree->getInternalScale()  - pr.y ) * ( y*tree->getInternalScale() - pr.y ) + 
+	( z*tree->getInternalScale()  - pr.z ) * ( z*tree->getInternalScale() - pr.z ) ) ;
+	return  std::abs( d - radius*tree->getInternalScale()  ) < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
 bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D *t ) const
@@ -1335,10 +1343,11 @@ bool DelaunayDeadTetrahedron::isNeighbour( const DelaunayTreeItem3D *t ) const
 
 bool DelaunayDeadTetrahedron::isVertex( const Point *p ) const
 {
-	return squareDist3D( *p, *first ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-	       || squareDist3D( *p, *second ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-	       || squareDist3D( *p, *third ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
-	       || squareDist3D( *p, *fourth ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D ;
+	double sc = tree->getInternalScale() ; 
+	return squareDist3D( *p*sc, *first*sc ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D*sc*sc
+	       || squareDist3D( *p*sc, *second*sc ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D*sc*sc
+	       || squareDist3D( *p*sc, *third*sc ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D*sc*sc
+	       || squareDist3D( *p*sc, *fourth*sc ) < 128.*POINT_TOLERANCE_3D * POINT_TOLERANCE_3D*sc*sc ;
 }
 
 bool DelaunayDeadTetrahedron::isVertexByID( const Point *p )
@@ -1346,9 +1355,24 @@ bool DelaunayDeadTetrahedron::isVertexByID( const Point *p )
 	return p == first || p == second || p == third || p == fourth ;
 }
 
-bool DelaunayDeadTetrahedron::in( const Point &p ) const
+bool DelaunayDeadTetrahedron::normalisedIn( const Point &p ) const
 {
-	return Tetrahedron( third, first, second, fourth ).in( p ) ;
+	double internalScale = tree->getInternalScale() ;
+	Point pf = *first  * internalScale ;
+	Point ps = *second * internalScale ;
+	Point pt = *third  * internalScale ;
+	Point po = *fourth * internalScale ;
+	return Tetrahedron( pf, ps, pt, po ).in( p*internalScale ) ;
+}
+
+bool DelaunayTetrahedron::normalisedIn( const Point &p ) const
+{
+	double internalScale = tree->getInternalScale() ;
+	Point pf = *first  * internalScale ;
+	Point ps = *second * internalScale ;
+	Point pt = *third  * internalScale ;
+	Point po = *fourth * internalScale ;
+	return Tetrahedron( pf, ps, pt, po ).in( p*internalScale ) ;
 }
 
 void DelaunayDeadTetrahedron::print() const
@@ -1382,40 +1406,40 @@ std::vector<Point *> DelaunayTetrahedron::commonSurface( DelaunayTreeItem3D *t )
 	}
 	else
 	{
-		Point A( *first - *second ) ;
-		Point B( *third - *second ) ;
-		Point C( *third - *t->first ) ;
-		Point D( *third - *t->second ) ;
-		Point E( *third - *t->third ) ;
+		Point A( *first*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		Point B( *third*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		Point C( *third*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		Point D( *third*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		Point E( *third*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 		double fst = std::abs( triProduct( A, B, C ) ) ;
 		fst = std::max( fst, std::abs( triProduct( A, B, D ) ) ) ;
 		fst = std::max( fst, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *first - *third ) ;
-		B = ( *fourth - *third ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *first*tree->getInternalScale()  - *third*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *third*tree->getInternalScale() ) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double ftf = std::abs( triProduct( A, B, C ) ) ;
 		ftf = std::max( ftf, std::abs( triProduct( A, B, D ) ) ) ;
 		ftf = std::max( ftf, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *first - *second ) ;
-		B = ( *fourth - *second ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *first*tree->getInternalScale()  - *second*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *second*tree->getInternalScale()) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double fsf = std::abs( triProduct( A, B, C ) ) ;
 		fsf = std::max( fsf, std::abs( triProduct( A, B, D ) ) ) ;
 		fsf = std::max( fsf, std::abs( triProduct( A, B, E ) ) ) ;
 
-		A = ( *third - *second ) ;
-		B = ( *fourth - *second ) ;
-		C = ( *fourth - *t->first ) ;
-		D = ( *fourth - *t->second ) ;
-		E = ( *fourth - *t->third ) ;
+		A = ( *third*tree->getInternalScale()  - *second*tree->getInternalScale() ) ;
+		B = ( *fourth*tree->getInternalScale() - *second*tree->getInternalScale() ) ;
+		C = ( *fourth*tree->getInternalScale() - *t->first*tree->getInternalScale() ) ;
+		D = ( *fourth*tree->getInternalScale() - *t->second*tree->getInternalScale() ) ;
+		E = ( *fourth*tree->getInternalScale() - *t->third*tree->getInternalScale() ) ;
 
 		double tsf = std::abs( triProduct( A, B, C ) ) ;
 		tsf = std::max( tsf, std::abs( triProduct( A, B, D ) ) ) ;
@@ -1513,9 +1537,9 @@ void DelaunayDemiSpace::merge( DelaunayDemiSpace *p )
 			return ;
 		}
 
-		if( isCoplanar( p->first, first, second, third ) &&
-		        isCoplanar( p->second, first, second, third ) &&
-		        isCoplanar( p->third, first, second, third ) )
+		if( isCoplanar( p->first, first, second, third, tree->getInternalScale() ) &&
+		        isCoplanar( p->second, first, second, third, tree->getInternalScale() ) &&
+		        isCoplanar( p->third, first, second, third, tree->getInternalScale() ) )
 		{
 			for( size_t i = 0 ; i <  p->neighbour.size() ; i++ )
 			{
@@ -1572,8 +1596,8 @@ bool DelaunayTetrahedron::inCircumSphere( const Point &p ) const
 	if( p.z < circumCenter.z - 1.001 * radius )
 		return false ;
 
-	double d = dist( circumCenter, p ) ;
-	return  d - radius < POINT_TOLERANCE_3D * radius ;
+	double d = dist( circumCenter*tree->getInternalScale(), p*tree->getInternalScale() ) ;
+	return  d - radius*tree->getInternalScale() < POINT_TOLERANCE_3D * radius*tree->getInternalScale() ;
 }
 
 bool DelaunayTetrahedron::onCircumSphere( const Point &p ) const
@@ -1596,8 +1620,8 @@ bool DelaunayTetrahedron::onCircumSphere( const Point &p ) const
 	if( p.z < circumCenter.z - 1.001 * radius )
 		return false ;
 
-	double d = dist( circumCenter, p ) ;
-	return  std::abs( d - radius ) < POINT_TOLERANCE_3D * radius ;
+	double d = dist( circumCenter*tree->getInternalScale(), p*tree->getInternalScale() ) ;
+	return  std::abs( d - radius*tree->getInternalScale() ) < POINT_TOLERANCE_3D * radius*tree->getInternalScale() ;
 }
 
 
@@ -1629,10 +1653,12 @@ bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D *t ) const
 	if( !t->isTetrahedron() || t->isDeadTetrahedron() )
 		return false ;
 
-	if( squareDist3D( static_cast<const DelaunayTetrahedron *>( t )->getCenter(), static_cast<const DelaunayTetrahedron *>( this )->getCenter() ) > POINT_TOLERANCE_3D )
+	if( squareDist3D( static_cast<const DelaunayTetrahedron *>( t )->getCenter()*tree->getInternalScale(), 
+		static_cast<const DelaunayTetrahedron *>( this )->getCenter()*tree->getInternalScale() ) > POINT_TOLERANCE_3D*tree->getInternalScale() )
 		return false ;
 
-	if( squareDist3D( static_cast<const DelaunayTetrahedron *>( t )->getCircumCenter() , static_cast<const DelaunayTetrahedron *>( this )->getCircumCenter() )  > POINT_TOLERANCE_3D )
+	if( squareDist3D( static_cast<const DelaunayTetrahedron *>( t )->getCircumCenter()*tree->getInternalScale() , 
+		static_cast<const DelaunayTetrahedron *>( this )->getCircumCenter()*tree->getInternalScale() )  > POINT_TOLERANCE_3D*tree->getInternalScale() )
 		return false ;
 
 	if( !std::binary_search( &first, &first + 4, t->first ) )
@@ -1675,7 +1701,10 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point
 
 			std::vector< Point *> pp = this->commonSurface( getNeighbour( i ) ) ;
 
-			if( Tetrahedron( *p, *pp[0], *pp[1], *pp[2] ).volume() > POINT_TOLERANCE_3D )
+			if( Tetrahedron( *p*tree->getInternalScale(), 
+				*pp[0]*tree->getInternalScale(), 
+											 *pp[1]*tree->getInternalScale(), 
+											 *pp[2]*tree->getInternalScale() ).volume() > POINT_TOLERANCE_3D*tree->getInternalScale() )
 			{
 				DelaunayTetrahedron *ss = new DelaunayTetrahedron( this->tree, this, p, pp[0], pp[1], pp[2], p ) ;
 
@@ -1716,7 +1745,7 @@ DelaunayDemiSpace::DelaunayDemiSpace( Mesh<DelaunayTetrahedron, DelaunayTreeItem
 	std::sort( &first, &first + 3 ) ;
 	fourth = p ;
 	dead() = false ;
-	pseudonormal = ( ( *second ) - ( *first ) ) ^( ( *third ) - ( *first ) );
+	pseudonormal = ( ( *second*tree->getInternalScale() ) - ( *first*tree->getInternalScale() ) ) ^( ( *third*tree->getInternalScale() ) - ( *first*tree->getInternalScale() ) );
 	pseudonormal /= pseudonormal.norm() ;
 // 	if(pseudonormal*(*first-*p) < 0)
 // 	{
@@ -1733,19 +1762,31 @@ DelaunayDemiSpace::DelaunayDemiSpace( Mesh<DelaunayTetrahedron, DelaunayTreeItem
 
 bool DelaunayDemiSpace::inCircumSphere( const Point &p ) const
 {
-	double planeConst = first->x * pseudonormal.x + first->y * pseudonormal.y + first->z * pseudonormal.z ;
-	double signedDistP = p.x * pseudonormal.x + p.y * pseudonormal.y + p.z * pseudonormal.z - planeConst;
-	double signedDistF = fourth->x * pseudonormal.x + fourth->y * pseudonormal.y + fourth->z * pseudonormal.z - planeConst;
-	return signedDistF * signedDistP < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D || isCoplanar( &p, first, second, third );
+	double planeConst = first->x * tree->getInternalScale() * pseudonormal.x + 
+	                    first->y * tree->getInternalScale() * pseudonormal.y + 
+	                    first->z * tree->getInternalScale() * pseudonormal.z ;
+	double signedDistP = p.x * tree->getInternalScale() * pseudonormal.x + 
+	                     p.y * tree->getInternalScale() * pseudonormal.y + 
+	                     p.z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	double signedDistF = fourth->x * tree->getInternalScale() * pseudonormal.x + 
+	                     fourth->y * tree->getInternalScale()* pseudonormal.y + 
+	                     fourth->z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	return signedDistF * signedDistP < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D || isCoplanar( &p, first, second, third,tree->getInternalScale() );
 
 }
 
 bool DelaunayDemiSpace::onCircumSphere( const Point &p ) const
 {
-	double planeConst = first->x * pseudonormal.x + first->y * pseudonormal.y + first->z * pseudonormal.z ;
-	double signedDistP = p.x * pseudonormal.x + p.y * pseudonormal.y + p.z * pseudonormal.z - planeConst;
-	double signedDistF = fourth->x * pseudonormal.x + fourth->y * pseudonormal.y + fourth->z * pseudonormal.z - planeConst;
-	return std::abs( signedDistP ) < POINT_TOLERANCE_3D ;
+	double planeConst = first->x*tree->getInternalScale() * pseudonormal.x + 
+	                    first->y*tree->getInternalScale() * pseudonormal.y + 
+	                    first->z*tree->getInternalScale() * pseudonormal.z ;
+	double signedDistP = p.x * pseudonormal.x * tree->getInternalScale() + 
+	                     p.y * tree->getInternalScale() * pseudonormal.y + 
+	                     p.z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	double signedDistF = fourth->x * tree->getInternalScale() * pseudonormal.x + 
+	                     fourth->y * tree->getInternalScale() * pseudonormal.y + 
+	                     fourth->z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	return std::abs( signedDistP ) < POINT_TOLERANCE_3D*tree->getInternalScale() ;
 
 }
 
@@ -1786,7 +1827,7 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *
 
 		if( !getNeighbour( i )->visited() && ( !getNeighbour( i )->inCircumSphere( *p ) || getNeighbour( i )->onCircumSphere( *p ) ) )
 		{
-			if( !isCoplanar( p, pp[0], pp[1] , pp[2] ) )
+			if( !isCoplanar( p, pp[0], pp[1] , pp[2],tree->getInternalScale() ) )
 			{
 
 				DelaunayTetrahedron *ss = new DelaunayTetrahedron( tree, this, p, pp[0], pp[1] , pp[2], p ) ;
@@ -2056,17 +2097,33 @@ const Point *Star3D::getEdge( size_t i ) const
 DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 {
 	neighbourhood = false ;
-	global_counter = 4;
+	fixedScale = false ;
+	global_counter = 4;	
+	double maxDist = std::min(dist(*p0, *p1),dist(*p0, *p2)) ;
+	maxDist = std::min(maxDist,dist(*p0, *p3)) ;
+	maxDist = std::min(maxDist,dist(*p1, *p2)) ;
+	maxDist = std::min(maxDist,dist(*p1, *p3)) ;
+	maxDist = std::min(maxDist,dist(*p2, *p3)) ;
+	
+	internalScale = 10./maxDist ;
+	
 	p0->id = 0 ;
 	p1->id = 1 ;
 	p2->id = 2 ;
 	p3->id = 3;
+	
+// 	*p0 *= internalScale ;
+// 	*p1 *= internalScale ;
+// 	*p2 *= internalScale ;
+// 	*p3 *= internalScale ;
+	
 	DelaunayRoot3D *root = new DelaunayRoot3D( this, p0, p1, p2, p3 ) ;
 
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 1 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 2 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 3 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 4 ) ) ) ;
+	
 
 }
 
@@ -2097,9 +2154,9 @@ DelaunayTree3D::~DelaunayTree3D()
 
 }
 
-
 void DelaunayTree3D::insert( Point *p )
 {
+
 	std::vector<DelaunayTreeItem3D *> cons = this->conflicts( p ) ;
 	neighbourhood = false ;
 
@@ -2253,8 +2310,9 @@ Star3D::~Star3D()
 		cleanup[i]->visited() = false ;
 }
 
-std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p ) const
+std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p)
 {
+
 	std::vector<DelaunayTreeItem3D *> ret  ;
 
 	std::pair< std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > cons;
@@ -2369,14 +2427,14 @@ void DelaunayTetrahedron::refresh( const TetrahedralElement *father )
 // 	this->computeCenter() ;
 }
 
-std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g ) const
+std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g )
 {
 	std::vector<DelaunayTreeItem3D *> cons = conflicts( &g->getCenter() ) ;
 	DelaunayTetrahedron *origin = nullptr ;
 
 	for( size_t i = 0 ; i < cons.size() ; i++ )
 	{
-		if( cons[i]->isTetrahedron() && static_cast<DelaunayTetrahedron *>( cons[i] )->in( g->getCenter() ) )
+		if( cons[i]->isTetrahedron() && static_cast<DelaunayTetrahedron *>( cons[i] )->normalisedIn( g->getCenter() ) )
 		{
 			origin = static_cast<DelaunayTetrahedron *>( cons[i] ) ;
 			break ;
@@ -2385,7 +2443,7 @@ std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g 
 
 	if(origin)
 		return getNeighbouringElementsInGeometry( origin, g ) ;
-	
+
 	return std::vector<DelaunayTetrahedron *>() ;
 
 	/*
@@ -2442,8 +2500,7 @@ std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()
 std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood )
 {
 	std::vector<DelaunayTetrahedron *> ret;
-
-	//std::cout<<tree.size();
+	
 	for( size_t i = 0 ; i < tree.size() ; i++ )
 	{
 		if( tree[i]->isAlive() && tree[i]->isTetrahedron() )
@@ -2451,6 +2508,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
 			ret.push_back( ( DelaunayTetrahedron * )( tree[i] ) ) ;
 		}
 	}
+	
 
 	if( !neighbourhood && buildNeighbourhood )
 	{
@@ -2691,7 +2749,6 @@ void DelaunayTree3D::extrude(double dt)
 			{			
 				next = &tet[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
 				increment = false ;
-				next->print() ;
 			}
 			if(increment && !points.find(&tet[i]->getBoundingPoint(j))->second)
 			{
@@ -2993,7 +3050,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 3;
+	size_t numberOfRefinements = 1;
 
 	VirtualMachine vm ;
 
@@ -3004,7 +3061,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 		std::vector<std::pair<Point, double> > gp_alternative ;
 
-		if( false )
+		if( true )
 		{
 			TetrahedralElement father(LINEAR) ;
 			double npoints = 256 ;

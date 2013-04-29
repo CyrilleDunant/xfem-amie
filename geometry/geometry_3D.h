@@ -21,8 +21,7 @@ protected:
 	double radius ;
 	double sqradius ;
 	Point circumCenter ;
-	void computeCircumCenter() ;
-	
+	virtual void computeCircumCenter() ;
 	
 public:
 	
@@ -76,6 +75,12 @@ public:
 	virtual bool inCircumSphere(const Point *p) const ;
 	
 	virtual void computeCenter() ;
+	void scale(double s) 
+	{
+		circumCenter *= s ;
+		radius *= s ;
+		sqradius *= s*s ;
+	} ;
 	
 /** \brief return pointer to the circumcenter of the tetrahedron*/
 	virtual const Point & getCircumCenter() const;

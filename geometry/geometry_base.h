@@ -1439,12 +1439,12 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
 bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  ;
 
 /** \brief return true if the four points are coplanar*/
-bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2, double renorm = 1.) ;
 
 /** \brief return true if the four points are coplanar*/
-bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.) ;
 
-int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double tol = Mu::POINT_TOLERANCE_3D) ;
+int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.) ;
 
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
 double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
@@ -1476,7 +1476,7 @@ bool isInTriangle(const Mu::Point &test, const Mu::Point &p0, const Mu::Point &p
  * @param f1 second point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1)  ;
+bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, double norm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-plane.
  * 
@@ -1486,7 +1486,7 @@ bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::
  * @param f1 second point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::Point *f0, const Mu::Point *f1)  ;
+bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::Point *f0, const Mu::Point *f1, double norm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-space.
  * 
@@ -1497,7 +1497,7 @@ bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::
   * @param f1 third point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  ;
+bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-space.
  * 
@@ -1508,7 +1508,7 @@ bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::
  * @param f1 third point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu::Point * f0, const Mu::Point * f1, const Mu::Point * f2)  ;
+bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu::Point * f0, const Mu::Point * f1, const Mu::Point * f2, double renorm = 1.)  ;
 //bool isAligned(const Point test, const Point f0, const Point f1)  ;
 
 /** \brief Return the distance between two points

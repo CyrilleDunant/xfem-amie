@@ -49,7 +49,6 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		cache[i]->enrichmentUpdated = true ;
-
 	}
 	
 	if(cache.empty())
@@ -288,11 +287,29 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function position = f_sqrt((ring[i]->getXTransform()-getCenter().x)*(ring[i]->getXTransform()-getCenter().x) +
 		                           (ring[i]->getYTransform()-getCenter().y)*(ring[i]->getYTransform()-getCenter().y) +
 															 (ring[i]->getZTransform()-getCenter().z)*(ring[i]->getZTransform()-getCenter().z)
-			
 		) ;
 		
 		Function hat =  getRadius()-f_abs(position-getRadius());
 		
+// 		for(double j = 0 ; j < 1 ; j+=.01)
+// 		{
+// 			for(double k = 0 ; k < 1 ; k+=.01)
+// 			{
+// 				std::cout << vm.deval(hat,XI, j,k) << "  " << std::flush ;
+// // 				std::cout << vm.eval(hat, j,k) << "  " << std::flush ;
+// 			}
+// 			std::cout << std::endl ;
+// 		}
+// 		for(double j = 0 ; j < 1 ; j+=.01)
+// 		{
+// 			for(double k = 0 ; k < 1 ; k+=.01)
+// 			{
+// 				
+// 				std::cout << vm.eval(hat, j,k) << "  " << std::flush ;
+// 			}
+// 			std::cout << std::endl ;
+// 		}
+// 		exit(0) ;
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
 			std::pair<DelaunayTetrahedron *, Point *> that(ring[i], &ring[i]->getBoundingPoint(j) ) ;
