@@ -2146,9 +2146,8 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 	initialiseAdresses();
 }
 
-Function::Function(const Function &f) : derivative(nullptr), e_diff(false) ,byteCodeSize(f.byteCodeSize) , constNumber(f.constNumber) ,byteCode(f.byteCode), geo_op(f.geo_op), use_temp(f.use_temp),values(f.values),adress_a(f.adress_a),dofID(-1),ptID(f.ptID),hasGeoOp(f.hasGeoOp)
+Function::Function(const Function &f) : derivative(nullptr), e_diff(false) ,byteCodeSize(f.byteCodeSize) , constNumber(f.constNumber) ,byteCode(f.byteCode), geo_op(f.geo_op), use_temp(f.use_temp),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
 {
-	ptID = f.ptID ;
 	if(f.derivative)
 	{
 		derivative = new std::valarray<Function *>(f.derivative->size()) ;
@@ -3056,7 +3055,7 @@ Function f_exp(const Function &f)
 	return ret ;
 }
 
-Function f_abs(const Function &f)
+Function f_abs(const Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCodeSize++ ;
@@ -3064,7 +3063,7 @@ Function f_abs(const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_ABS ;
-	if(f.isDifferentiable())
+	if(differentiate && f.isDifferentiable())
 	{
 		ret.setNumberOfDerivatives(f.getNumberOfDerivatives());
 		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
@@ -3087,7 +3086,7 @@ Function f_log(const Function &f)
 	return ret ;
 }
 
-Function f_sqrt(const Function &f)
+Function f_sqrt(const Function &f, bool differentiate)
 {
 	Function ret(f) ;
 	ret.byteCodeSize++ ;
@@ -3095,13 +3094,14 @@ Function f_sqrt(const Function &f)
 	ret.adress_a[(ret.byteCodeSize-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCodeSize-1)*4] = 8 ;
 	ret.byteCode[ret.byteCodeSize-1] = TOKEN_OPERATION_SQRT ;
-	if(f.isDifferentiable())
+
+	if(differentiate && f.isDifferentiable())
 	{
 		ret.setNumberOfDerivatives(f.getNumberOfDerivatives());
 		
 		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
 		{
-			Function d = 0.5/f_sqrt(*f.getDerivatives()[i]) ;
+			Function d = *f.getDerivatives()[i]*0.5/f_sqrt(f,f.getDerivatives()[i]->isDifferentiable()) ;
 			ret.getDerivatives()[i] = new Function(d) ;
 		}
 	}
@@ -3145,7 +3145,7 @@ Mu::Function f_sign(const Mu::Function &f)
 
 
 
-Mu::Function f_positivity(const Mu::Function &f)
+Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCodeSize++ ;
@@ -3157,7 +3157,7 @@ Mu::Function f_positivity(const Mu::Function &f)
 }
 
 
-Mu::Function f_negativity(const Mu::Function &f)
+Mu::Function f_negativity(const Mu::Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCodeSize++ ;
