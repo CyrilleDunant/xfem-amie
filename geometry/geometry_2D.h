@@ -338,6 +338,7 @@ public:
 	
 } ;
 
+
 /** \brief Set of concentric circles, from a center and a set of radii*/
 class LayeredCircle : public Circle
 {

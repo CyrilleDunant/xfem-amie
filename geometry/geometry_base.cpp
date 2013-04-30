@@ -11,6 +11,7 @@
 #include <iomanip>
 
 #include "../mesher/delaunay.h"
+#include "space_time_geometry_2D.h"
 #include "../polynomial/vm_function_base.h"
 
 using namespace Mu ;
@@ -1301,7 +1302,6 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case CIRCLE:
 		{
-			
 			if(g->getGeometryType() == CIRCLE)
 			{
 				double birad = getRadius()+g->getRadius() ;
@@ -1351,6 +1351,34 @@ bool Geometry::intersects(const Geometry *g) const
 			
 			return intersects ;
 		}
+	case TIME_DEPENDENT_CIRCLE:
+	{
+		if(g->timePlanes() < 2)
+			return false ;
+		if(g->getGeometryType() == TRIANGLE)
+		{
+			size_t pointsPerPlane = g->getBoundingPoints().size() / g->timePlanes();
+			size_t pointsPerEdge = pointsPerPlane/3 ;
+			
+			for(size_t i = 0 ; i < g->timePlanes() ; i++)
+			{
+			  
+				Segment s0( g->getBoundingPoint(i*pointsPerPlane), g->getBoundingPoint(i*pointsPerPlane+ pointsPerEdge)) ;
+				Segment s1( g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge), g->getBoundingPoint(i*pointsPerPlane+ pointsPerEdge*2)) ;
+				Segment s2( g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge*2), g->getBoundingPoint(i*pointsPerPlane)) ;
+				if(s0.intersects(this) || s1.intersects(this) || s2.intersects(this))
+				{
+//					std::cout << current.getRadius() << std::endl ;
+// 					g->getBoundingPoint(i*pointsPerPlane).print() ;
+// 					g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge).print() ;
+// 					g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge*2).print() ;
+					return true ;
+				}
+			}
+		}
+	  
+		return false ;
+	}
 	case ELLIPSE:
 		{
 			if(g->getRadius() < this->getRadius())
@@ -3486,6 +3514,21 @@ bool Segment::intersects(const Geometry *g) const
 {
 	switch(g->getGeometryType())
 	{
+	case TIME_DEPENDENT_CIRCLE:
+		{
+// 			s.print() ;
+// 			f.print() ;
+		  
+			if(g->in(s) && g->in(f))
+				return false ;
+			if(g->in(s) || g->in(f))
+				return true ;
+			
+			Point center(g->getCenter()) ;
+			center.t = s.t ;
+			Point proj = project(center) ;
+			return g->in(proj) ;
+		}  
 	case CIRCLE:
 		{
 			if(g->in(s) && g->in(f))

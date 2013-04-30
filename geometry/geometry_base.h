@@ -322,7 +322,8 @@ typedef enum
 	LAYERED_SPHERE = 19,
 	REGULAR_OCTAHEDRON,
 	ELLIPSE,
-	LEVEL_SET
+	LEVEL_SET,
+	TIME_DEPENDENT_CIRCLE,
 } GeometryType ;
 
 /** \brief defines the possible vertices, axes and faces of a bounding box */
@@ -833,7 +834,7 @@ public:
 	
 	/** \brief return the fraction of the area of the current geometry also lying in the target geometry. */
 	virtual double overlapFraction(const Geometry * target) const ;
-
+	
 } ;
 
 /** \brief Line used for intersection computation. It also provides a projection method*/

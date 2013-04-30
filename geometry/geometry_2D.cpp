@@ -100,7 +100,6 @@ XMLTree * Triangle::toXML()
 	return tri ;
 }
 
-
 OrientedRectangle::OrientedRectangle() : ConvexGeometry(4)
 {
 	gType =PARALLELOGRAMME;
@@ -2448,5 +2447,4 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	return bbox ;
 
 }
-
 

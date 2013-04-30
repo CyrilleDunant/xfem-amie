@@ -64,7 +64,7 @@ public:
 	virtual std::vector<DelaunayTetrahedron *> getElements3D(FeatureTree * dt) {return std::vector<DelaunayTetrahedron *>(0) ;} 
 	
 /** \brief return list of elements cut by the feature*/
-	std::vector<DelaunayTriangle *> getIntersectingTriangles( FeatureTree * dt) ;
+	virtual std::vector<DelaunayTriangle *> getIntersectingTriangles( FeatureTree * dt) ;
 	
 /** \brief do nothing*/
 	virtual void setInfluenceRadius(double r) ;
@@ -119,6 +119,9 @@ protected:
 	
 	bool changed ;
 } ;
+
+  
+  
 
 }
 

@@ -5257,8 +5257,8 @@ bool FeatureTree::step()
 	if( solverConverged() && !behaviourChanged())
 	{
 		now += deltaTime ;
-// 		for(size_t i = 0 ; i < nodes.size() ; i++)
-// 			nodes[i]->t += deltaTime ;
+ 		for(size_t i = 0 ; i < nodes.size() ; i++)
+ 			nodes[i]->t += deltaTime ;
 	}
 	else
 		deltaTime = 0 ;

@@ -321,7 +321,8 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		//this function returns the distance to the centre
-		Function position(getCenter(), ring[i]) ;
+		Function position = f_sqrt((ring[i]->getXTransform()-getCenter().x)*(ring[i]->getXTransform()-getCenter().x) +
+		                           (ring[i]->getYTransform()-getCenter().y)*(ring[i]->getYTransform()-getCenter().y)) ;
 		Function hat = 1.-f_abs(position-getRadius());
 			
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)

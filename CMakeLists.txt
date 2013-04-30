@@ -24,6 +24,7 @@ features/crackinitiation.cpp
 features/enrichmentbehaviour.cpp 
 features/enrichmentInclusion3d.cpp 
 features/enrichmentInclusion.cpp 
+features/timeDependentEnrichmentInclusion.cpp 
 features/enrichmentRing.cpp 
 features/expansiveRing.cpp 
 features/expansiveZone3d.cpp 
@@ -131,6 +132,7 @@ polynomial/vm_function_matrix.cpp
 polynomial/vm_refcount_token.cpp 
 polynomial/vm_token.cpp 
 solvers/assembly.cpp 
+geometry/space_time_geometry_2D.cpp 
 solvers/biconjugategradientstabilized.cpp 
 solvers/choleskidecomposed.cpp 
 solvers/conjugategradient.cpp

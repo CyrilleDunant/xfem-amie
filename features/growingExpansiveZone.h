@@ -9,6 +9,7 @@
 
 #include "expansiveZone.h"
 #include "../polynomial/vm_function_base.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 
 namespace Mu
 {
@@ -16,12 +17,12 @@ namespace Mu
 class GrowingExpansiveZone :  public ExpansiveZone
 {
 	bool changed ;
-	double time_pos ;
 	Function growth ;
+	ViscoelasticityAndImposedDeformation * imp ;
 
 public:
 
-	GrowingExpansiveZone(Feature *father, double r_init, double x, double y, const Matrix & cgTensor, Vector deformation, Function r) ;
+	GrowingExpansiveZone(Feature *father, Function & g, double x, double y, const ViscoelasticityAndImposedDeformation * i) ;
 	virtual ~GrowingExpansiveZone() ;
 	
 	virtual void print() const

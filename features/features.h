@@ -317,7 +317,8 @@ protected:
 		std::cout << " ...done."<< std::endl ;
 	} ;
 	
-/** \brief return the 2D mesh*/
+public:
+	/** \brief return the 2D mesh*/
 	Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh(int grid = -1) ;
 
 /** \brief return the 3D mesh*/

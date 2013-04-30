@@ -59,7 +59,24 @@ namespace Mu
 				found.insert(start) ;
 				for(size_t i = 0 ; i < start->neighbourhood.size() ; i++)
 				{
-					if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
+					if(start->getNeighbourhood(i)->timePlanes() > 1)
+					{
+						if(start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
+						{
+							to_test.insert(start->getNeighbourhood(i)) ;
+						}
+						
+						for(size_t j = 0 ; j < start->getNeighbourhood(i)->timePlanes() ; j++)
+						{
+							Point c = start->getNeighbourhood(i)->getCenter() ;
+							c.t = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() ).t ;
+							if(g->in(c))
+							{
+								to_test.insert(start->getNeighbourhood(i)) ;
+							}
+						}
+					}
+					else if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
 					{
 						to_test.insert(start->getNeighbourhood(i)) ;
 					}
@@ -74,13 +91,31 @@ namespace Mu
 						for(size_t i = 0 ; i < (*j)->neighbourhood.size() ; i++)
 						{
 							if(to_test.find((*j)->getNeighbourhood(i)) == to_test.end() 
-								&& found.find((*j)->getNeighbourhood(i)) == found.end() 
-								&& ( g->in((*j)->getNeighbourhood(i)->getCenter()) 
-								|| (*j)->getNeighbourhood(i)->in(g->getCenter()) 
-								|| g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) ))
+								&& found.find((*j)->getNeighbourhood(i)) == found.end())
 							{
-								  
+
+					if((*j)->getNeighbourhood(i)->timePlanes() > 1)
+					{
+						if((*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
+						{
+							to_test.insert((*j)->getNeighbourhood(i)) ;
+						}
+						
+						for(size_t k = 0 ; k < (*j)->getNeighbourhood(i)->timePlanes() ; k++)
+						{
+							Point c = (*j)->getNeighbourhood(i)->getCenter() ;
+							c.t = (*j)->getNeighbourhood(i)->getBoundingPoint( (*j)->getNeighbourhood(i)->getBoundingPoints().size() * k / (*j)->getNeighbourhood(i)->timePlanes() ).t ;
+							if(g->in(c))
+							{
 								new_test.insert((*j)->getNeighbourhood(i)) ;
+							}
+						}
+					}
+					else if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
+					{
+						new_test.insert(start->getNeighbourhood(i)) ;
+					}
+							  
 							}
 						}
 					}
