@@ -25,7 +25,7 @@ ExpansiveZone3D::ExpansiveZone3D(Feature *father, double radius, double x, doubl
 }
 
 
-ExpansiveZone3D::~ExpansiveZone3D() {}
+ExpansiveZone3D::~ExpansiveZone3D() { delete behaviour ;}
 	
 void ExpansiveZone3D::reset() 
 {
@@ -35,7 +35,7 @@ void ExpansiveZone3D::reset()
 
 void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* dtree)
 {
-	this->setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
+	setBehaviour( new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ) ;
 	EnrichmentInclusion3D::enrich(lastId, dtree) ;
 	//first we get All the triangles affected
 	std::vector<DelaunayTetrahedron *> & disc = EnrichmentInclusion3D::cache ;

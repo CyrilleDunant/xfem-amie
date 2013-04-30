@@ -172,7 +172,13 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 			return father.getShapeFunction(0) + father.getShapeFunction(1) ;
 		}
 
-	return Function("1") ;
+		Function one("1") ;
+		Function zero("0") ;
+		one.setNumberOfDerivatives(3);
+		one.setDerivative(XI, zero);
+		one.setDerivative(ETA, zero);
+		one.setDerivative(ZETA, zero);
+	return one ;
 }
 
 void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree)
@@ -226,8 +232,10 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	
 	//then we iterate on every element
 	
+	std::cout <<"\n  -> "<< std::flush ;
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
+		std::cout <<"\r  -> "<< i+1<< "/" << ring.size() << std::flush ;
 		std::vector<Point> tetSphereIntersectionPoints = getPrimitive()->intersection(ring[i]->getPrimitive()) ;
 
 		std::vector<Point> hint ;
@@ -283,11 +291,10 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 // 		Function position(getCenter(),ring[i]) ;
-
-		Function position = f_sqrt((ring[i]->getXTransform()-getCenter().x)*(ring[i]->getXTransform()-getCenter().x) +
-		                           (ring[i]->getYTransform()-getCenter().y)*(ring[i]->getYTransform()-getCenter().y) +
-															 (ring[i]->getZTransform()-getCenter().z)*(ring[i]->getZTransform()-getCenter().z)
-		) ;
+		Function dx = ring[i]->getXTransform()-getCenter().x ; dx *= dx ;
+		Function dy = ring[i]->getYTransform()-getCenter().y ; dy *= dy ;
+		Function dz = ring[i]->getZTransform()-getCenter().z ; dz *= dz ;
+		Function position = f_sqrt(dx + dy + dz) ;
 		
 		Function hat =  getRadius()-f_abs(position-getRadius());
 		
@@ -318,6 +325,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
 				Function f =  ring[i]->getShapeFunction(j)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
+
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
 				f.setDofID(dofId[&ring[i]->getBoundingPoint(j)]) ;
@@ -339,7 +347,10 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position(getCenter(), t) ;
+			Function dx = t->getXTransform()-getCenter().x ; dx *= dx ;
+			Function dy = t->getYTransform()-getCenter().y ; dy *= dy ;
+			Function dz = t->getZTransform()-getCenter().z ; dz *= dz ;
+			Function position = f_sqrt(dx + dy + dz) ;
 			Function hat = getRadius()-f_abs(position-getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
@@ -352,7 +363,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -360,13 +371,14 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 						}
 						f.setPoint(&t->getBoundingPoint(k)) ;
 						f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
+						
 						t->setEnrichment(f, getPrimitive()) ;
 					}
 					else 
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat*blend - VirtualMachine().eval(hat*blend, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y, p.z))*blend ;
 
 						if(!hinted)
 						{
@@ -385,6 +397,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		}
 	}
 
+	std::cout << ":"<< std::endl ;
 }
 	
 bool EnrichmentInclusion3D::interacts(Feature * f, double d) const { return false ;}

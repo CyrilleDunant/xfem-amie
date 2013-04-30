@@ -244,14 +244,14 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	foundCheckPoint = true ;
 	averageDamage = 0 ;
 	stateConverged = false ;
-	this->dtree = nullptr ;
-	this->dtree3D = nullptr ;
+	dtree = nullptr ;
+	dtree3D = nullptr ;
 	
 	samplingRestriction = SAMPLE_RESTRICT_8 ;
 
 	if( first )
 	{
-		this->addFeature( nullptr, first, layer, fraction ) ;
+		addFeature( nullptr, first, layer, fraction ) ;
 	}
 
 	if( is2D() )
@@ -486,7 +486,6 @@ void FeatureTree::renumber()
 {
 	if( is2D() )
 	{
-
 			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 			size_t count = 0 ;
 			std::cerr << " renumbering... " << std::flush ;
@@ -506,7 +505,7 @@ void FeatureTree::renumber()
 			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 				tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 
-			std::vector<Geometry *> sortedElements ;
+			std::vector<DelaunayTriangle *> sortedElements ;
 			std::set<Geometry *> placedElements ;
 
 			for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
@@ -518,23 +517,22 @@ void FeatureTree::renumber()
 						if( placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k] ) == placedElements.end() )
 						{
 							placedElements.insert( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
-							sortedElements.push_back( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
+							sortedElements.push_back( dynamic_cast<DelaunayTriangle *> (tmpgrid.pixels[i][j]->getFeatures()[k]) ) ;
 						}
 					}
-
 				}
 			}
+			
+			sortedElements = triangles ;
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
-
-				if( tri && tri->getBehaviour())
+				if( *i && (*i)->getBehaviour())
 				{
-					for( size_t j = 0 ; j < tri->getBoundingPoints().size()/tri->timePlanes() ; j++ )
+					for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 					{
-						if( tri->getBoundingPoint( j ).id == -1 )
-							tri->getBoundingPoint( j ).id = count++ ;
+						if( (*i)->getBoundingPoint( j ).id == -1 )
+							(*i)->getBoundingPoint( j ).id = count++ ;
 					}
 				}
 			}
@@ -543,21 +541,23 @@ void FeatureTree::renumber()
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
-
-				if( tri && tri->getBehaviour())
+				if( *i && (*i)->getBehaviour())
 				{
-					for(size_t k = 1 ; k < tri->timePlanes() ; k++)
+					for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
 					{
-						for( size_t j = 0 ; j < tri->getBoundingPoints().size()/tri->timePlanes() ; j++ )
+						for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 						{
-							if( tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes() ).id == -1 )
+							if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
 							{
-								tri->getBoundingPoint( j + k*tri->getBoundingPoints().size()/tri->timePlanes()).id = tri->getBoundingPoint( j).id + lastNodeId*k ;
+								(*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
 								count++ ;
 							}
 						}
 					}
+				}
+				else if (!*i)
+				{
+					std::cerr << "nullTri" << std::endl ;
 				}
 			}
 			
@@ -566,11 +566,17 @@ void FeatureTree::renumber()
 			nodes.resize(count) ;
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
 				
-				for(size_t j = 0 ; j < tri->getBoundingPoints().size() ; j++)
+				if(*i)
 				{
-					nodes[ tri->getBoundingPoint( j ).id ] = &( tri->getBoundingPoint( j ) ) ;
+					for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
+					{
+						nodes[ (*i)->getBoundingPoint( j ).id ] = &( (*i)->getBoundingPoint( j ) ) ;
+					}
+				}
+				else
+				{
+					std::cerr << "nullTri" << std::endl ;
 				}
 
 			}
@@ -600,7 +606,7 @@ void FeatureTree::renumber()
 			tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 		}
 
-		std::vector<Geometry *> sortedElements ;
+		std::vector<DelaunayTetrahedron *> sortedElements ;
 		std::set<Geometry *> placedElements ;
 
 		for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
@@ -615,15 +621,15 @@ void FeatureTree::renumber()
 						if( placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l] ) == placedElements.end() )
 						{
 							placedElements.insert( tmpgrid.pixels[i][j][k]->getFeatures()[l] ) ;
-							sortedElements.push_back( tmpgrid.pixels[i][j][k]->getFeatures()[l] ) ;
+							sortedElements.push_back( dynamic_cast<DelaunayTetrahedron *> (tmpgrid.pixels[i][j][k]->getFeatures()[l]) ) ;
 						}
 					}
 				}
 			}
 		}
+		sortedElements = tets ;
 
-
-		for( std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 		{
 			DelaunayTetrahedron *tet = dynamic_cast<DelaunayTetrahedron *>( *i ) ;
 
@@ -3315,11 +3321,11 @@ void FeatureTree::assemble()
 				if( j % 1000 == 0 )
 					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
 						
-				if(tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if(tris[j] && tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					tris[j]->refresh( father2D ) ;
 					tris[j]->getBehaviour()->preProcess( deltaTime, tris[j]->getState() ) ;
-					K->add( tris[j] ) ;
+					K->add( tris[j], scalingFactors[i->first] ) ;
 				}
 			}
 			std::cerr << " ...done." << std::endl ;
@@ -4597,7 +4603,7 @@ bool FeatureTree::stepElements()
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					
-					if( i % 1000 == 0 )
+// 					if( i % 1000 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )

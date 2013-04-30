@@ -4047,18 +4047,17 @@ Order ElementaryVolume::getOrder() const
 Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
+	Function zero("0") ;
 	ret.setNumberOfDerivatives(4);
-	ret.setDerivative(XI, ret);
-	ret.setDerivative(ETA, ret);
-	ret.setDerivative(ZETA, ret);
-	ret.setDerivative(TIME_VARIABLE, ret);
+	ret.setDerivative(XI, zero);
+	ret.setDerivative(ETA, zero);
+	ret.setDerivative(ZETA, zero);
+	ret.setDerivative(TIME_VARIABLE, zero);
 
-	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		ret += basis[i]*points[i]->x ;
 	}
-	
 	return ret ;
 }
 
@@ -4078,11 +4077,12 @@ double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
+	Function zero("0") ;
 	ret.setNumberOfDerivatives(4);
-	ret.setDerivative(XI, ret);
-	ret.setDerivative(ETA, ret);
-	ret.setDerivative(ZETA, ret);
-	ret.setDerivative(TIME_VARIABLE, ret);
+	ret.setDerivative(XI, zero);
+	ret.setDerivative(ETA, zero);
+	ret.setDerivative(ZETA, zero);
+	ret.setDerivative(TIME_VARIABLE, zero);
 	
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
@@ -4109,11 +4109,12 @@ double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
+	Function zero("0") ;
 	ret.setNumberOfDerivatives(4);
-	ret.setDerivative(XI, ret);
-	ret.setDerivative(ETA, ret);
-	ret.setDerivative(ZETA, ret);
-	ret.setDerivative(TIME_VARIABLE, ret);
+	ret.setDerivative(XI, zero);
+	ret.setDerivative(ETA, zero);
+	ret.setDerivative(ZETA, zero);
+	ret.setDerivative(TIME_VARIABLE, zero);
 
 	assert(points.size() == basis.size()) ;
 
@@ -4141,11 +4142,12 @@ double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
+	Function zero("0") ;
 	ret.setNumberOfDerivatives(4);
-	ret.setDerivative(XI, ret);
-	ret.setDerivative(ETA, ret);
-	ret.setDerivative(ZETA, ret);
-	ret.setDerivative(TIME_VARIABLE, ret);
+	ret.setDerivative(XI, zero);
+	ret.setDerivative(ETA, zero);
+	ret.setDerivative(ZETA, zero);
+	ret.setDerivative(TIME_VARIABLE, zero);
 	
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)

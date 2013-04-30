@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
   
   // creates 3D inclusions with rmax = 0.002, covering a volume of 0.000252, using BOLOME type B particle sizs distribution
   // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000252, BOLOME_B, PSDEndCriteria(0.00025, -1, 1000)) ;
+  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 1000)) ;
   
   // attributes mechanical behaviour to the box and the aggregates
   box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     }
 	
   // sampling criteria
-  F.setSamplingNumber( 512 ) ;
+  F.setSamplingNumber( 512*16 ) ;
 
   std::ofstream inclusions;
   inclusions.open("inclusions.csv");

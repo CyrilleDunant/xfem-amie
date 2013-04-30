@@ -1009,6 +1009,7 @@ void Grid::forceAdd(Geometry * inc)
 	double endY =  startY+2.*inc->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
 
+	bool done = false ;
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -1016,10 +1017,13 @@ void Grid::forceAdd(Geometry * inc)
 			if(pixels[i][j]->coOccur(inc))
 			{
 				pixels[i][j]->forceAdd(inc) ;
+				done = true ;
 			}
 		}
-		
 	}
+	
+	if(!done)
+		pixels[0][0]->forceAdd(inc) ;
 }
 
 bool Grid::remove(Geometry * inc)

@@ -4323,31 +4323,31 @@ bool isOnTheSameSide(const Point * test, const Point * witness, const Point * f0
 
 double dist(const Point & v1, const Point & v2)
 {
-// #ifdef HAVE_SSE4
-// 		__m128d temp ;
-// 	vecdouble r ;
-// //	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
-// 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-// 	r.vec = _mm_dp_pd(temp, temp, 61) ;
-// //	r.vec += _mm_dp_pd(temp, temp, 62) ;
-// 	double z = vi.veczt.z - v2.veczt.z ;
-// 	return sqrt(r.val[0]+ r.val[1] + z*z);
-// #elif defined HAVE_SSE3
-// //	vecdouble rzt ;
-// 	vecdouble rxy ;
-// // 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
-// // 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
-// 	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-// 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-// 	double z = vi.veczt.z - v2.veczt.z ;
-// 	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
-// #else 
+#ifdef HAVE_SSE4
+		__m128d temp ;
+	vecdouble r ;
+//	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
+	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+	r.vec = _mm_dp_pd(temp, temp, 61) ;
+//	r.vec += _mm_dp_pd(temp, temp, 62) ;
+	double z = vi.veczt.z - v2.veczt.z ;
+	return sqrt(r.val[0]+ r.val[1] + z*z);
+#elif defined HAVE_SSE3
+//	vecdouble rzt ;
+	vecdouble rxy ;
+// 	rzt.vec = _mm_sub_pd(v1.veczt, v2.veczt) ;
+// 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
+	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
+	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
+	double z = vi.veczt.z - v2.veczt.z ;
+	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
+#else 
 	double x = v1.x-v2.x ;
 	double y = v1.y-v2.y ;
 	double z = v1.z-v2.z ;
 //	double t = v1.t-v2.t ;
 	return sqrt(x*x+y*y+z*z) ;
-// #endif
+#endif
 }
 
 double dist(const Point * v1, const Point * v2)
@@ -4684,8 +4684,6 @@ XMLTree * OrientableCircle::toXML()
 	circle->addChild(new XMLTree("radius",radius)) ;
 	return circle ;
 }
-
-
 
 std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points) const
 {

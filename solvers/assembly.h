@@ -186,6 +186,7 @@ protected:
 		
 	std::vector<ElementarySurface *> element2d ;
 	std::vector<ElementaryVolume *> element3d ;
+	std::vector<double> scales ;
 	std::vector<LagrangeMultiplier> multipliers ;
 	size_t ndof ;
 	SpaceDimensionality dim ;
@@ -213,16 +214,10 @@ public:
 	size_t getMaxDofID() const ; 
 
 /** \brief add element to assembly*/
-	void operator +=(ElementarySurface * e) ;
+	void add(ElementarySurface * e, double scale = 1.) ;
 
 /** \brief add element to assembly*/
-	void operator +=(ElementaryVolume * e) ;
-
-/** \brief add element to assembly*/
-	void add(ElementarySurface * e) ;
-
-/** \brief add element to assembly*/
-	void add(ElementaryVolume * e) ;
+	void add(ElementaryVolume * e, double scale = 1.) ;
 
 /** \brief chek if a line is equal to 0 or not*/
 	void checkZeroLines() ;

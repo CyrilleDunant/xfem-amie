@@ -68,10 +68,9 @@ g = g(f) ;            // x-> sin(2x)
  */
 class Function
 {
-	friend class function ;
-	std::valarray<Function *> * derivative ; 
+protected :
 	std::vector< Point > iPoint ;
-	
+	std::valarray<Function *> * derivative ; 
 	/*void defaultInitialise()
 	{
 		derivative(nullptr),
@@ -116,6 +115,7 @@ protected:
 	std::map<int, std::map<Variable, Vector *> > dprecalc ;
 	
 public:
+	
 	bool hasGeoOp ;
 	void initialiseAdresses(size_t offset = 0) ;
 	std::valarray<TokenOperationType> byteCode ;
