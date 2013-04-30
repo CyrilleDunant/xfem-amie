@@ -1513,8 +1513,8 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE_3D*POINT_TOLERANCE_3D*points.size()*points.size() && (count == 0); i++)
 	{
 		derr = std::abs(error-last_error) ;
-		if(iter && i%iter == 0)
-			std::cout << derr << std::endl ;
+	//	if(iter && i%iter == 0)
+	//		std::cout << derr << std::endl ;
 		last_error = error ;
 		error = 0. ;
 		for(size_t j = 0 ; j < points.size() ; j++)

@@ -2105,7 +2105,7 @@ DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 	maxDist = std::min(maxDist,dist(*p1, *p3)) ;
 	maxDist = std::min(maxDist,dist(*p2, *p3)) ;
 	
-	internalScale = 10./maxDist ;
+	internalScale = 400./maxDist ;
 	
 	p0->id = 0 ;
 	p1->id = 1 ;
@@ -3050,7 +3050,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	GaussPointArray gp = getGaussPoints() ;
 
-	size_t numberOfRefinements = 1;
+	size_t numberOfRefinements = 2;
 
 	VirtualMachine vm ;
 
