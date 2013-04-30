@@ -111,9 +111,9 @@ namespace Mu
 							}
 						}
 					}
-					else if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
+					else if(g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
 					{
-						new_test.insert(start->getNeighbourhood(i)) ;
+						new_test.insert((*j)->getNeighbourhood(i)) ;
 					}
 							  
 							}
