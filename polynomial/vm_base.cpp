@@ -26,11 +26,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	stack.memory.heap[6] = v ;
 	stack.memory.heap[7] = w ;
 	
-	std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ;
-// 	for(size_t i = 0 ; i < f.constNumber  ; ++i)
-// 	{
-// 		stack.memory.heap[511-i] = f.values[i] ;
-// 	}
+	std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
 	  
 	for(size_t i = 0 ; i < size  ; ++i)
 	{
@@ -233,6 +229,10 @@ double VirtualMachine::eval(const Function &f, const Point *p, const Point * p_)
 void VirtualMachine::print(const Function &f) const
 {
 	std::cout << f.size() << " instructions:\n" << std::endl ;
+	for(size_t i = 0 ; i < f.values.size()  ; ++i)
+	{
+		std::cout << "constant : "<< f.values[i] << std::endl;
+	}
 	for(size_t i = 0 ; i < f.size()  ; i++)
 	{
 		bool done = false ;
@@ -277,154 +277,64 @@ void VirtualMachine::print(const Function &f) const
 		{
 			case TOKEN_OPERATION_PLUS:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "add " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "add " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "add " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_MINUS:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "sub " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "sub " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4]+100 <<" @tmp" << "    : @tmp" << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_TIMES:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "mul " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"     @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "mul " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_DIVIDES:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "div " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "div " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "div " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_POWER:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "pow " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"     @tmp" << "    : @" << f.adress_a[i*4+2]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "pow " << "@tmp" <<"    @" << f.adress_a[i*4+1]+100 << "    : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "pow " << "@" << f.adress_a[i*4]+100 <<"    @tmp" << "    : @tmp" << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_INPLACE_PLUS:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "add " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "add " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "add " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_INPLACE_MINUS:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "sub " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "sub " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "sub " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_INPLACE_TIMES:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "mul " << " " << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "mul " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "mul " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "mul " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}
 			case TOKEN_OPERATION_INPLACE_DIVIDES:
 			{
-// 				if(f.use_temp[i] == NO_TEMPORARY)
 					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_TEMPORARY)
-// 					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp" << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_A)
-// 					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == GET_TEMPORARY_B)
-// 					std::cout << "div " << "@tmp" <<"            : @" << f.adress_a[i*4]+100 << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_A)
-// 					std::cout << "div " << "@" << f.adress_a[i*4+1]+100 <<"     : @tmp"  << "  "<< std::endl ;
-// 				if(f.use_temp[i] == SET_GET_TEMPORARY_B)
-// 					std::cout << "div " << "@tmp" <<"     : @tmp"  << "  "<< std::endl ;
+
 				done = true ;
 				break ;
 			}

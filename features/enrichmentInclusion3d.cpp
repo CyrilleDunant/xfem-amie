@@ -295,24 +295,21 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function dy = ring[i]->getYTransform()-getCenter().y ; dy *= dy ;
 		Function dz = ring[i]->getZTransform()-getCenter().z ; dz *= dz ;
 		Function position = f_sqrt(dx + dy + dz) ;
-		
 		Function hat =  getRadius()-f_abs(position-getRadius());
-		
-// 		for(double j = 0 ; j < 1 ; j+=.01)
+// // 		exit(0) ;
+// 		for(double j = -1 ; j < 1 ; j+=.01)
 // 		{
-// 			for(double k = 0 ; k < 1 ; k+=.01)
+// 			for(double k = -1 ; k < 1 ; k+=.01)
 // 			{
-// 				std::cout << vm.deval(hat,XI, j,k) << "  " << std::flush ;
-// // 				std::cout << vm.eval(hat, j,k) << "  " << std::flush ;
+// 				std::cout << vm.eval(position, j,k) << "  " << std::flush ;
 // 			}
 // 			std::cout << std::endl ;
 // 		}
-// 		for(double j = 0 ; j < 1 ; j+=.01)
+// 		for(double j = -1 ; j < 1 ; j+=.01)
 // 		{
-// 			for(double k = 0 ; k < 1 ; k+=.01)
+// 			for(double k = -1 ; k < 1 ; k+=.01)
 // 			{
-// 				
-// 				std::cout << vm.eval(hat, j,k) << "  " << std::flush ;
+// 				std::cout << vm.eval(hat, j,k)<< "  " << std::flush ;
 // 			}
 // 			std::cout << std::endl ;
 // 		}
