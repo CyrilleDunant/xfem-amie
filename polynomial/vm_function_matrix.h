@@ -287,6 +287,13 @@ public:
 	 * @return self
 	 */
 	FunctionMatrix& operator *=(const double a);
+	
+	/** \brief Multiply by a double and assign
+	 * 
+	 * @param a scalar multiplicator
+	 * @return self
+	 */
+	FunctionMatrix& operator *=(const Matrix & a);
 
 	/** \brief Multiply by a double
 	 * 

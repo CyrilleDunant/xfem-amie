@@ -364,7 +364,6 @@ void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fra
 	f->setLayer(layer) ;
 	f->setFraction(fraction) ;
 	scalingFactors[layer] = fraction ;
-	
 	if( !f->isEnrichmentFeature )
 		needMeshing = true ;
 

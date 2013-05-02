@@ -915,10 +915,12 @@ TriElement::TriElement(Order order_ ): moved(false)
 	{
 	case CONSTANT :
 		{
-			shapefunc = new std::valarray<Function>(Function(), 1) ;
-			Matrix m(1, 1) ;
-			m[0][0] = 1 ;
-			(*shapefunc)[0] = Function(m) ;
+			std::cout << "element order not implemented" << std::endl ;
+			exit(0) ;
+// 			shapefunc = new std::valarray<Function>(Function(), 1) ;
+// 			Matrix m(1, 1) ;
+// 			m[0][0] = 1 ;
+// 			(*shapefunc)[0] = Function(m) ;
 			break ;
 		}
 	case LINEAR :
@@ -950,14 +952,7 @@ TriElement::TriElement(Order order_ ): moved(false)
 	case QUADRATIC :
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
-			
-			Matrix xi(3,3) ; xi[1][0] = 1 ;
-			Matrix eta(3,3) ; eta[0][1] = 1 ;
-			Matrix one(3,3) ; one[0][0] = 1 ;
-			Matrix xi_eta(3,3) ; xi_eta[1][1] = 1 ;
-			Matrix xi_xi(3,3) ; xi_xi[2][0] = 1 ;
-			Matrix eta_eta(3,3) ; eta_eta[0][2] = 1 ;
-		//0
+
 			(*shapefunc)[0] = Function("y 2 ^ 2 * y -") ;
 			(*shapefunc)[0].setNumberOfDerivatives(2) ;
 			Function d("4 y * 1 -") ;
@@ -1010,61 +1005,65 @@ TriElement::TriElement(Order order_ ): moved(false)
 		}
 	case CONSTANT_TIME_LINEAR :
 		{
-			shapefunc = new std::valarray<Function>(Function(),2) ;
-			Matrix m(1, 2) ;
-			std::valarray<Matrix> v(m,1) ; v[0] = m ;
-			std::valarray<std::valarray<Matrix> > vv(v,1) ;
-			vv[0] = v ;
-			
-			vv[0][0][0][1] = 1 ;
-			(*shapefunc)[0] = Function(m) ;
-			vv[0][0][0][0] = 1 ;
-			vv[0][0][0][1] = -1 ;
-			(*shapefunc)[1] = Function(m) ;
+			std::cout << "element order not implemented" << std::endl ;
+			exit(0) ;
+// 			shapefunc = new std::valarray<Function>(Function(),2) ;
+// 			Matrix m(1, 2) ;
+// 			std::valarray<Matrix> v(m,1) ; v[0] = m ;
+// 			std::valarray<std::valarray<Matrix> > vv(v,1) ;
+// 			vv[0] = v ;
+// 			
+// 			vv[0][0][0][1] = 1 ;
+// 			(*shapefunc)[0] = Function(m) ;
+// 			vv[0][0][0][0] = 1 ;
+// 			vv[0][0][0][1] = -1 ;
+// 			(*shapefunc)[1] = Function(m) ;
 			break ;
 		}
 	case CONSTANT_TIME_QUADRATIC :
 		{
-			shapefunc = new std::valarray<Function>(Function(),3) ;
-			Matrix m(1, 3) ;
-			std::valarray<Matrix> v(m,1) ; v[0] = m ;
-			std::valarray<std::valarray<Matrix> > vv(v,1) ;
-			vv[0] = v ;
-			
-			vv[0][0][0][2] = .5 ;
-			vv[0][0][0][1] = -.5 ;
-			(*shapefunc)[0] = Function(m) ;
-			vv[0][0][0][0] = 1 ;
-			vv[0][0][0][1] = 0 ;
-			vv[0][0][0][2] = -1 ;
-			(*shapefunc)[1] = Function(m) ;
-			vv[0][0][0][0] = 0.5 ;
-			vv[0][0][0][1] = 0 ;
-			vv[0][0][0][2] = 0.5 ;
-			(*shapefunc)[1] = Function(m) ;
+			std::cout << "element order not implemented" << std::endl ;
+			exit(0) ;
+// 			shapefunc = new std::valarray<Function>(Function(),3) ;
+// 			Matrix m(1, 3) ;
+// 			std::valarray<Matrix> v(m,1) ; v[0] = m ;
+// 			std::valarray<std::valarray<Matrix> > vv(v,1) ;
+// 			vv[0] = v ;
+// 			
+// 			vv[0][0][0][2] = .5 ;
+// 			vv[0][0][0][1] = -.5 ;
+// 			(*shapefunc)[0] = Function(m) ;
+// 			vv[0][0][0][0] = 1 ;
+// 			vv[0][0][0][1] = 0 ;
+// 			vv[0][0][0][2] = -1 ;
+// 			(*shapefunc)[1] = Function(m) ;
+// 			vv[0][0][0][0] = 0.5 ;
+// 			vv[0][0][0][1] = 0 ;
+// 			vv[0][0][0][2] = 0.5 ;
+// 			(*shapefunc)[1] = Function(m) ;
 			break ;
 		}
 	case LINEAR_TIME_LINEAR :
 		{
 			shapefunc = new std::valarray<Function>(Function(),6) ;
 
-	Function z2("0") ;
+			Function z2("0") ;
 
-	Function z1("0") ;
-	z1.setNumberOfDerivatives(4) ;
-	for(int i = 0 ; i < 4 ; i++)
-	{
-		z1.setDerivative( (const Variable) i, z2) ;
-	}
-  
-	Function zero("0") ;
-	zero.setNumberOfDerivatives(4) ;
-	for(int i = 0 ; i < 4 ; i++)
-	{
-		zero.setDerivative( (const Variable) i, z1) ;
-	}	
-	Function one = zero +1 ;
-	Function mone = zero-1 ;
+			Function z1("0") ;
+			z1.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				z1.setDerivative( (const Variable) i, z2) ;
+			}
+			
+			Function zero("0") ;
+			zero.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				zero.setDerivative( (const Variable) i, z1) ;
+			}	
+			Function one = zero +1 ;
+			Function mone = zero-1 ;
 			
 			Function half = zero + 0.5 ;
 			Function halfm = zero - 0.5 ;
@@ -1285,27 +1284,60 @@ TriElement::TriElement(Order order_ ): moved(false)
 		{
 			shapefunc = new std::valarray<Function>(Function(),12) ;
 			
-			Matrix xi(3,3) ; xi[1][0] = 1 ;
-			Matrix eta(3,3) ; eta[0][1] = 1 ;
-			Matrix one(3,3) ; one[0][0] = 1 ;
-			Matrix xi_eta(3,3) ; xi_eta[1][1] = 1 ;
-			Matrix xi_xi(3,3) ; xi_xi[2][0] = 1 ;
-			Matrix eta_eta(3,3) ; eta_eta[0][2] = 1 ;
-			
 			Function prev("0.5 0.5 t * -") ;
 			Function next("0.5 0.5 t * +") ;
-		//0
-			Function s1(eta_eta*2 - eta) ;
+
+			
+			shapefunc = new std::valarray<Function>(Function(),6) ;
+
+			Function s1("y 2 ^ 2 * y -") ;
+			s1.setNumberOfDerivatives(2) ;
+			Function d("4 y * 1 -") ;
+      s1.setDerivative( ETA, d) ;
+			d = Function("0") ;
+      s1.setDerivative( XI, d) ;
+
 		//1
-			Function s2(eta*4 - xi_eta*4 - eta_eta*4) ;
+			Function s2("y 4 * y x 4 * * - y y 4 * * -") ;
+			s2.setNumberOfDerivatives(2) ;
+			d = Function("4 x 4 * - y 8 * -") ;
+			s2.setDerivative( ETA, d) ;
+			d = Function("y 4 *") ;
+      s2.setDerivative( XI, d) ;
+
 		//2
-			Function s3(one - xi*3 - eta*3 + xi_eta*4 + xi_xi*2 + eta_eta*2) ;
+			Function s3("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
+			s3.setNumberOfDerivatives(2) ;
+			d = Function("3 x 4 * + y 4 * +") ;
+			s3.setDerivative( ETA, d ) ;
+			d = Function("3 y 4 * + x 4 * +") ;
+			s3.setDerivative( XI, d) ;
+
 		//3
-			Function s4(xi*4 - xi_xi*4 - xi_eta*4) ;
+			Function s4("x 4 * x x 4 * * - x y 4 * * -") ;
+			s4.setNumberOfDerivatives(2) ;
+			d = Function("x 4 *") ;
+			s4.setDerivative( ETA, d) ;
+			d = Function("4 8 x * - y 4 * -") ;
+			s4.setDerivative( XI, d) ;
+
 		//4
-			Function s5(xi_xi*2 - xi) ;
+			Function s5("x x 2 * * x -") ;
+			s5.setNumberOfDerivatives(2) ;
+			d = Function("0") ;
+			s5.setDerivative( ETA, d) ;
+			d = Function("4 x * 1 -") ;
+			s5.setDerivative( XI, d) ;
+
 		//5
-			Function s6(xi_eta*4) ;
+			Function s6("x y 4 * *") ;
+			s6.setNumberOfDerivatives(2) ;
+			d = Function("4 x *") ;
+			s6.setDerivative( ETA, d) ;
+			d = Function("4 y *") ;
+			s6.setDerivative( XI, d) ;
+
+			
 			
 			(*shapefunc)[0] = s1*prev ;
 			(*shapefunc)[1] = s2*prev ;
@@ -1352,19 +1384,52 @@ TriElement::TriElement(Order order_ ): moved(false)
 			Function t0("t 2 ^ t - 0.5 *") ;
 			Function t1("1 t 2 ^ -") ;
 			Function t2("t 2 ^ t + 0.5 *") ;
-			Matrix xi(3,3) ; xi[1][0] = 1 ;
-			Matrix eta(3,3) ; eta[0][1] = 1 ;
-			Matrix one(3,3) ; one[0][0] = 1 ;
-			Matrix xi_eta(3,3) ; xi_eta[1][1] = 1 ;
-			Matrix xi_xi(3,3) ; xi_xi[2][0] = 1 ;
-			Matrix eta_eta(3,3) ; eta_eta[0][2] = 1 ;
+			Function x0("y 2 ^ 2 * y -") ;
+			x0.setNumberOfDerivatives(2) ;
+			Function d("4 y * 1 -") ;
+      x0.setDerivative( ETA, d) ;
+			d = Function("0") ;
+      x0.setDerivative( XI, d) ;
 
-			Function x0(eta_eta*2 - eta) ;
-			Function x1(eta*4 - xi_eta*4 - eta_eta*4) ;
-			Function x2(one - xi*3 - eta*3 + xi_eta*4 + xi_xi*2 + eta_eta*2) ;
-			Function x3(xi*4 - xi_xi*4 - xi_eta*4) ;
-			Function x4(xi_xi*2 - xi) ;
-			Function x5(xi_eta*4) ;
+		//1
+			Function x1("y 4 * y x 4 * * - y y 4 * * -") ;
+			x1.setNumberOfDerivatives(2) ;
+			d = Function("4 x 4 * - y 8 * -") ;
+			x1.setDerivative( ETA, d) ;
+			d = Function("y 4 *") ;
+      x1.setDerivative( XI, d) ;
+
+		//2
+			Function x2("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
+			x2.setNumberOfDerivatives(2) ;
+			d = Function("3 x 4 * + y 4 * +") ;
+			x2.setDerivative( ETA, d ) ;
+			d = Function("3 y 4 * + x 4 * +") ;
+			x2.setDerivative( XI, d) ;
+
+		//3
+			Function x3("x 4 * x x 4 * * - x y 4 * * -") ;
+			x3.setNumberOfDerivatives(2) ;
+			d = Function("x 4 *") ;
+			x3.setDerivative( ETA, d) ;
+			d = Function("4 8 x * - y 4 * -") ;
+			x3.setDerivative( XI, d) ;
+
+		//4
+			Function x4("x x 2 * * x -") ;
+			x4.setNumberOfDerivatives(2) ;
+			d = Function("0") ;
+			x4.setDerivative( ETA, d) ;
+			d = Function("4 x * 1 -") ;
+			x4.setDerivative( XI, d) ;
+
+		//5
+			Function x5("x y 4 * *") ;
+			x5.setNumberOfDerivatives(2) ;
+			d = Function("4 x *") ;
+			x5.setDerivative( ETA, d) ;
+			d = Function("4 y *") ;
+			x5.setDerivative( XI, d) ;
 
 			(*shapefunc)[0] = x0*t0;
 			(*shapefunc)[1] = x1*t0;
@@ -4724,108 +4789,108 @@ HexahedralElement::HexahedralElement(Order order, bool f ) : ElementaryVolume( f
 
 	if(order == LINEAR)
 	{
-		
-		this->Hexahedron::sampleSurface(8) ;
-		shapefunc = new std::valarray<Function>(8) ;
-		Matrix zero ;
-		std::valarray<Matrix> f1(zero, 2) ;
-		f1[1][0][0] = -0.125 ;
-		f1[0][1][0] = -0.125 ;
-		f1[0][0][1] = -0.125 ;
-		f1[0][0][0] = 0.125 ;
-		f1[1][1][0] = 0.125 ;
-		f1[0][1][1] = 0.125 ;
-		f1[1][0][1] = 0.125 ;
-		f1[1][1][1] =-0.125 ;
-		
-		std::valarray<Matrix> f2(zero,2) ;
-		f2[1][0][0] = 0.125 ;
-		f2[0][1][0] = -0.125 ;
-		f2[0][0][1] = -0.125 ;
-		f2[0][0][0] = 0.125 ;
-		f2[1][1][0] = -0.125 ;
-		f2[0][1][1] = 0.125 ;
-		f2[1][0][1] = -0.125 ;
-		f2[1][1][1] = 0.125 ;
-	
-		std::valarray<Matrix> f3(zero,2) ;
-		f3[1][0][0] = 0.125 ;
-		f3[0][1][0] = 0.125 ;
-		f3[0][0][1] = -0.125 ;
-		f3[0][0][0] = 0.125 ;
-		f3[1][1][0] = 0.125 ;
-		f3[0][1][1] = -0.125 ;
-		f3[1][0][1] = -0.125 ;
-		f3[1][1][1] = -0.125 ;
-		
-		std::valarray<Matrix> f4(zero,2) ;
-		f4[1][0][0] = -0.125 ;
-		f4[0][1][0] = 0.125 ;
-		f4[0][0][1] = -0.125 ;
-		f4[0][0][0] = 0.125 ;
-		f4[1][1][0] = -0.125 ;
-		f4[0][1][1] = -0.125 ;
-		f4[1][0][1] = 0.125 ;
-		f4[1][1][1] = 0.125 ;
-			
-		std::valarray<Matrix> f5(zero,2) ;
-		f5[1][0][0] = -0.125 ;
-		f5[0][1][0] = -0.125 ;
-		f5[0][0][1] = 0.125 ;
-		f5[0][0][0] = 0.125 ;
-		f5[1][1][0] = 0.125 ;
-		f5[0][1][1] = -0.125 ;
-		f5[1][0][1] = -0.125 ;
-		f5[1][1][1] = 0.125 ;
-		
-		std::valarray<Matrix> f6(zero,2) ;
-		f6[1][0][0] = 0.125 ;
-		f6[0][1][0] = -0.125 ;
-		f6[0][0][1] = 0.125 ;
-		f6[0][0][0] = 0.125 ;
-		f6[1][1][0] = -0.125 ;
-		f6[0][1][1] = -0.125 ;
-		f6[1][0][1] = 0.125 ;
-		f6[1][1][1] = -0.125 ;
-			
-		std::valarray<Matrix> f7(zero,2) ;
-		f7[1][0][0] = 0.125 ;
-		f7[0][1][0] = 0.125 ;
-		f7[0][0][1] = 0.125 ;
-		f7[0][0][0] = 0.125 ;
-		f7[1][1][0] = 0.125 ;
-		f7[0][1][1] = 0.125 ;
-		f7[1][0][1] = 0.125 ;
-		f7[1][1][1] = 0.125 ;
-		
-		std::valarray<Matrix> f8(zero,2) ;
-		f8[1][0][0] = -0.125 ;
-		f8[0][1][0] = 0.125 ;
-		f8[0][0][1] = 0.125 ;
-		f8[0][0][0] = 0.125 ;
-		f8[1][1][0] = -0.125 ;
-		f8[0][1][1] = 0.125 ;
-		f8[1][0][1] = -0.125 ;
-		f8[1][1][1] = -0.125 ;
-			
-			//0
-		(*shapefunc)[0] = Function(f1) ;
-			//1
-		(*shapefunc)[1] = Function(f5) ;
-			//2
-		(*shapefunc)[2] = Function(f4) ;
-			//3
-		(*shapefunc)[3] = Function(f8) ;
-			
-			//4
-		(*shapefunc)[4] = Function(f2) ;
-			//5
-		(*shapefunc)[5] = Function(f6) ;
-			//6
-		(*shapefunc)[6] = Function(f3) ;
-			//7
-		(*shapefunc)[7] = Function(f7) ;
-		
+		assert(false) ;
+// 		this->Hexahedron::sampleSurface(8) ;
+// 		shapefunc = new std::valarray<Function>(8) ;
+// 		Matrix zero ;
+// 		std::valarray<Matrix> f1(zero, 2) ;
+// 		f1[1][0][0] = -0.125 ;
+// 		f1[0][1][0] = -0.125 ;
+// 		f1[0][0][1] = -0.125 ;
+// 		f1[0][0][0] = 0.125 ;
+// 		f1[1][1][0] = 0.125 ;
+// 		f1[0][1][1] = 0.125 ;
+// 		f1[1][0][1] = 0.125 ;
+// 		f1[1][1][1] =-0.125 ;
+// 		
+// 		std::valarray<Matrix> f2(zero,2) ;
+// 		f2[1][0][0] = 0.125 ;
+// 		f2[0][1][0] = -0.125 ;
+// 		f2[0][0][1] = -0.125 ;
+// 		f2[0][0][0] = 0.125 ;
+// 		f2[1][1][0] = -0.125 ;
+// 		f2[0][1][1] = 0.125 ;
+// 		f2[1][0][1] = -0.125 ;
+// 		f2[1][1][1] = 0.125 ;
+// 	
+// 		std::valarray<Matrix> f3(zero,2) ;
+// 		f3[1][0][0] = 0.125 ;
+// 		f3[0][1][0] = 0.125 ;
+// 		f3[0][0][1] = -0.125 ;
+// 		f3[0][0][0] = 0.125 ;
+// 		f3[1][1][0] = 0.125 ;
+// 		f3[0][1][1] = -0.125 ;
+// 		f3[1][0][1] = -0.125 ;
+// 		f3[1][1][1] = -0.125 ;
+// 		
+// 		std::valarray<Matrix> f4(zero,2) ;
+// 		f4[1][0][0] = -0.125 ;
+// 		f4[0][1][0] = 0.125 ;
+// 		f4[0][0][1] = -0.125 ;
+// 		f4[0][0][0] = 0.125 ;
+// 		f4[1][1][0] = -0.125 ;
+// 		f4[0][1][1] = -0.125 ;
+// 		f4[1][0][1] = 0.125 ;
+// 		f4[1][1][1] = 0.125 ;
+// 			
+// 		std::valarray<Matrix> f5(zero,2) ;
+// 		f5[1][0][0] = -0.125 ;
+// 		f5[0][1][0] = -0.125 ;
+// 		f5[0][0][1] = 0.125 ;
+// 		f5[0][0][0] = 0.125 ;
+// 		f5[1][1][0] = 0.125 ;
+// 		f5[0][1][1] = -0.125 ;
+// 		f5[1][0][1] = -0.125 ;
+// 		f5[1][1][1] = 0.125 ;
+// 		
+// 		std::valarray<Matrix> f6(zero,2) ;
+// 		f6[1][0][0] = 0.125 ;
+// 		f6[0][1][0] = -0.125 ;
+// 		f6[0][0][1] = 0.125 ;
+// 		f6[0][0][0] = 0.125 ;
+// 		f6[1][1][0] = -0.125 ;
+// 		f6[0][1][1] = -0.125 ;
+// 		f6[1][0][1] = 0.125 ;
+// 		f6[1][1][1] = -0.125 ;
+// 			
+// 		std::valarray<Matrix> f7(zero,2) ;
+// 		f7[1][0][0] = 0.125 ;
+// 		f7[0][1][0] = 0.125 ;
+// 		f7[0][0][1] = 0.125 ;
+// 		f7[0][0][0] = 0.125 ;
+// 		f7[1][1][0] = 0.125 ;
+// 		f7[0][1][1] = 0.125 ;
+// 		f7[1][0][1] = 0.125 ;
+// 		f7[1][1][1] = 0.125 ;
+// 		
+// 		std::valarray<Matrix> f8(zero,2) ;
+// 		f8[1][0][0] = -0.125 ;
+// 		f8[0][1][0] = 0.125 ;
+// 		f8[0][0][1] = 0.125 ;
+// 		f8[0][0][0] = 0.125 ;
+// 		f8[1][1][0] = -0.125 ;
+// 		f8[0][1][1] = 0.125 ;
+// 		f8[1][0][1] = -0.125 ;
+// 		f8[1][1][1] = -0.125 ;
+// 			
+// 			//0
+// 		(*shapefunc)[0] = Function(f1) ;
+// 			//1
+// 		(*shapefunc)[1] = Function(f5) ;
+// 			//2
+// 		(*shapefunc)[2] = Function(f4) ;
+// 			//3
+// 		(*shapefunc)[3] = Function(f8) ;
+// 			
+// 			//4
+// 		(*shapefunc)[4] = Function(f2) ;
+// 			//5
+// 		(*shapefunc)[5] = Function(f6) ;
+// 			//6
+// 		(*shapefunc)[6] = Function(f3) ;
+// 			//7
+// 		(*shapefunc)[7] = Function(f7) ;
+// 		
 		
 	}
 	else if(order == QUADRATIC)

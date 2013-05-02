@@ -2557,6 +2557,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
 					{
 						if(
 						    tocheck[k]->getNeighbour( j )->isTetrahedron()
+								&& tocheck[k]->getNeighbour( j )->isAlive()
 						    && !tocheck[k]->getNeighbour( j )->visited()
 						    && tocheck[k]->getNeighbour( j ) != ret[i]
 						    && static_cast<DelaunayTetrahedron *>( tocheck[k]->getNeighbour( j ) )->numberOfCommonVertices( ret[i] ) > 0
@@ -2671,6 +2672,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 
 	for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
 	{
+
 		behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
 
 		for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
@@ -3096,7 +3098,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
 			}
 
-			delete getCachedGaussPoints() ;
+// 			delete getCachedGaussPoints() ;
 			setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 			return *getCachedGaussPoints() ;
 		}
@@ -3258,7 +3260,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		}
 	}
 //	std::cout << "." << std::flush ;
-	delete getCachedGaussPoints() ;
+// 	delete getCachedGaussPoints() ;
 	setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 	return *getCachedGaussPoints();
 }

@@ -42,8 +42,8 @@ typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 
 // typedef std::vector<double> Memory ;
-const size_t HEAP_SIZE = 8192 ;
-const size_t FUNCTION_LENGTH = HEAP_SIZE ;
+const size_t HEAP_SIZE = 4096 ;
+const size_t FUNCTION_LENGTH = 6000 ;
 
 /** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
 */
@@ -229,9 +229,9 @@ struct Context
 } ;
 
 
-typedef enum 
+typedef enum : unsigned char
 {
-	TOKEN_OPERATION_CONSTANT,
+	TOKEN_OPERATION_CONSTANT = 0,
 	TOKEN_OPERATION_X,
 	TOKEN_OPERATION_Y,
 	TOKEN_OPERATION_Z,

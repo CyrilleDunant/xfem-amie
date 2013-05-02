@@ -38,7 +38,7 @@ typedef enum
 	PROJECTION_TOKEN
 } PositionTokenType ;
 
-typedef enum
+typedef enum : unsigned char
 {
 	NO_TEMPORARY,
 	SET_TEMPORARY,
@@ -118,13 +118,10 @@ public:
 	
 	bool hasGeoOp ;
 	void initialiseAdresses(size_t offset = 0) ;
-	std::valarray<TokenOperationType> byteCode ;
+	std::vector<TokenOperationType> byteCode ;
 	std::valarray<GeometryOperation *> geo_op ;
-	std::valarray<double> values ;
+	std::vector<double> values ;
 	std::valarray<unsigned short int> adress_a ;
-	std::valarray<TemporayUsageType> use_temp ;
-	size_t byteCodeSize ;
-	size_t constNumber ;
 // 	Function * xtransform ;
 // 	Function * ytransform ;
 // 	Function * ztransform ;
@@ -189,35 +186,6 @@ public:
 	 */
 	Function(const std::string &f, int n = 0) ;
 
-	/** \brief Polynomial in x, y, z, t given a 4D tensor of coefficents
-	 * 
-	 * @param coeffs coefficients of the polynomial
-	 * @param diff compute the differentials
-	 */
-	Function(const std::valarray< std::valarray<Matrix> > & coeffs, bool diff = true) ;
-
-	/** \brief Polynomial in x, y, z given a 3D tensor of coefficents
-	 * 
-	 * @param coeffs coefficients of the polynomial
-	 * @param diff compute the differentials
-	 */
-	Function(const std::valarray<Matrix> & coeffs, bool diff = true) ;
-
-	/** \brief Polynomial in x, y given a Matrix of coefficents
-	 * 
-	 * @param coeffs coefficients of the polynomial
-	 * @param diff compute the differentials
-	 */
-	Function(const Matrix & coeffs, bool diff = true) ;
-
-	/** \brief Polynomial in x given a array of coefficents
-	 * 
-	 * @param coeffs coefficients of the polynomial
-	 * @param diff compute the differentials
-	 */
-	Function(const std::valarray<double> & coeffs, bool diff = true) ;
-
-
 	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a segment, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface.  or the distance to the projection to the segment
 	 * 
 	 * @param s_ Segment defining a boundary
@@ -260,7 +228,7 @@ public:
 	 * 
 	 * @return the size of the ByteCode
 	 */
-	size_t size() const { return byteCodeSize ; }
+	size_t size() const { return byteCode.size() ; }
 	
 	/** \brief return the symbolic differential of this function if it has been computed, or a nil function otherwise
 	 * 

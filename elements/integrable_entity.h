@@ -24,7 +24,7 @@ class DelaunayTreeItem;
 class Assembly ;
 class FractureCriterion ;
 
-typedef enum
+typedef enum : char
 {
 	CONSTANT,
 	LINEAR,
@@ -48,7 +48,7 @@ typedef enum
 	REGULAR_GRID
 } Order ;
 
-typedef enum
+typedef enum : char
 {
 	PURE_LINEAR,
 	LINEAR_AND_CONSTANT,
@@ -56,12 +56,12 @@ typedef enum
 	VOID_BEHAVIOUR
 } ParametersType ;
 
-typedef enum{
+typedef enum : char{
 	REAL_STRESS,
 	EFFECTIVE_STRESS
 } StressCalculationMethod ; 
 
-typedef enum {
+typedef enum : char{
 	DISPLACEMENT_FIELD,
 	ENRICHED_DISPLACEMENT_FIELD,
 	SPEED_FIELD,

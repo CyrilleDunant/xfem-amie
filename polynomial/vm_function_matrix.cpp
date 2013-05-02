@@ -116,6 +116,19 @@ FunctionMatrix &FunctionMatrix::operator*=(const FunctionMatrix &m)
 	return *this ;
 }
 
+FunctionMatrix &FunctionMatrix::operator*=(const Matrix &m)
+{
+	assert(m.numRows() == this->numCols()) ;
+	
+	FunctionMatrix ret =fm_matrix_multiply((*this), m) ;
+	
+	(*v) = ret.array() ;
+	r = ret.numRows() ;
+	c = ret.numCols() ;
+	
+	return *this ;
+}
+
 
 FunctionMatrix &FunctionMatrix::operator +=(const FunctionMatrix &m)
 {
@@ -221,7 +234,7 @@ FMtMtFM::operator const FunctionMatrix() const
 Mu::FunctionMatrix inverse2x2FunctionMatrix(const Mu::FunctionMatrix s)
 {
 	
-	if(s[0][0].byteCodeSize == 0 || s[1][1].byteCodeSize == 0)
+	if(s[0][0].byteCode.size() == 0 || s[1][1].byteCode.size() == 0)
 	{
 		Mu::Matrix swap(2,2) ; swap[0][0] = 0 ; swap[0][1] = 1 ; swap[1][0] = 1 ; swap[1][1] = 0 ;
 		Mu::FunctionMatrix s_ ( s*swap );
@@ -266,16 +279,16 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 // 	std::cout << m[1][0] << "   " << m[1][1] << "   " << m[1][2] << std::endl ;
 // 	std::cout << m[2][0] << "   " << m[2][1] << "   " << m[2][2] << std::endl ;
 	
-	while(m_[0][0].byteCodeSize == 0 || m_[1][1].byteCodeSize == 0 || m_[2][2].byteCodeSize == 0)
+	while(m_[0][0].byteCode.size() == 0 || m_[1][1].byteCode.size() == 0 || m_[2][2].byteCode.size() == 0)
 	{
 		
 		for(size_t i = 0 ; i < 3 ; i++)
 		{
-			if(m_[i][i].byteCodeSize == 0)
+			if(m_[i][i].byteCode.size() == 0)
 			{
 				for(size_t j = 0 ; j < 3 ; j++)
 				{
-					if(!m_[j][i].byteCodeSize == 0 )
+					if(!m_[j][i].byteCode.size() == 0 )
 					{
 						Mu::Matrix temp(swapMatrix(i,j, 3)) ;
 						swap.push_back(temp) ;

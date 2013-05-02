@@ -36,7 +36,7 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		* @param imposedDef Imposed deformation
 		*/
-		StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) ;
+		StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) ;
 
 		StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) ;
 		

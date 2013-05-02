@@ -16,19 +16,19 @@
 
 using namespace Mu ;
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, Vector imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
 {
-	v.push_back(XI);
-	v.push_back(ETA);
+	v.push_back(XI) ; 
+	v.push_back(ETA) ;
 	if(param.size() == 36)
 		v.push_back(ZETA);
 	this->time_d = false ;
 } ;
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim)
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim),v(2)
 {
-	v.push_back(XI);
-	v.push_back(ETA);
+	v.push_back(XI) ;
+	v.push_back(ETA) ;
 	if(param.size() == 36)
 		v.push_back(ZETA);
 		
