@@ -19,6 +19,13 @@ namespace Mu
 		
 	} ;
 	
+	struct ViscoElasticOnlyGelBehaviour : public GelBehaviour
+	{
+		ViscoElasticOnlyGelBehaviour(double E=22e9, double nu=0.28, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		Form * getCopy() const ;
+	} ;
+	
 } ;
 
 #endif // GEL_BEHAVIOUR

@@ -8,6 +8,7 @@
 #include "aggregate_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
+#include "../viscoelasticity.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../damagemodels/rotatingcrack.h"
@@ -66,4 +67,14 @@ Form * ElasticOnlyAggregateBehaviour::getCopy() const
 }
 
 
+ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,dim)
+{
 
+}
+
+Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. - variability + variability*weib ;
+	return new Viscoelasticity( PURE_ELASTICITY, param*factor )  ;
+}

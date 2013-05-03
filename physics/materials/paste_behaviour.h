@@ -32,16 +32,15 @@ namespace Mu
 		virtual Form * getCopy() const ;	
 	} ;
 	
+	// parameters got for ./alain 1 500 500 0.29 10 200 at revision 2512
 	struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
 	{
-		double Kinf ;
-		double Ginf ;
-		std::vector<std::pair<std::pair< double, double>, double> > branches ;
+		double tau_kv ;
+		double e_kv ;
+		double tau_mx ;
 		
-		ViscoElasticOnlyPasteBehaviour(SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double tmx = 200, double ekv = 0.29, double tkv = 10, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
-		void addBranch(double k, double g, double eta) ;
-		void clearBranches() ;
 		virtual Form * getCopy() const ;
 	} ;
 	
