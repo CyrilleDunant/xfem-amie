@@ -23,7 +23,7 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 
 	tmpdst.hasGeoOp = src0.hasGeoOp || src1.hasGeoOp || dst.hasGeoOp;
 	if(tmpdst.hasGeoOp )
-		tmpdst.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		tmpdst.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 
 	tmpdst.adress_a = src0.adress_a ;
 	tmpdst.byteCode = src0.byteCode ;
@@ -44,6 +44,10 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 	for(size_t i = 0 ; i < src1.byteCode.size() ; i++)
 	{
 		tmpdst.byteCode.push_back(src1.byteCode[i])  ;
+		tmpdst.adress_a.push_back(0);
+		tmpdst.adress_a.push_back(0);
+		tmpdst.adress_a.push_back(0);
+		tmpdst.adress_a.push_back(0);
 		
 		if(src1.hasGeoOp)
 			if(src1.geo_op[i])
@@ -91,7 +95,7 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 	dst.byteCode = src0.byteCode ;
 	dst.hasGeoOp = src0.hasGeoOp || src1.hasGeoOp || src2.hasGeoOp  || dst.hasGeoOp;
 	if(dst.hasGeoOp )
-		dst.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		dst.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	
 	for(size_t i = 0 ; i < src0.values.size() ; i++)
 		dst.values.push_back(src0.values[i]) ;
@@ -110,6 +114,10 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 	for(size_t i = 0 ; i < src1.byteCode.size() ; i++)
 	{
 		dst.byteCode.push_back(src1.byteCode[i]) ;
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
 		
 		if(src1.hasGeoOp)
 			if(src1.geo_op[i])
@@ -152,6 +160,10 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 	for(size_t i = 0 ; i < src2.byteCode.size() ; i++)
 	{
 		dst.byteCode.push_back(src2.byteCode[i]) ;
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
+		dst.adress_a.push_back(0);
 		
 		if(src2.hasGeoOp)
 			if(src2.geo_op[i])
@@ -391,37 +403,17 @@ VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const
 Function::Function() : derivative(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
-		adress_a((unsigned short int)0, FUNCTION_LENGTH*4),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(false)
 {
 	byteCode.push_back(TOKEN_OPERATION_CONSTANT),
 	values.push_back(0) ;
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
 	initialiseAdresses();
-}
-
-	
-Function Function::operator*(const Geometry *f) const
-{
-	Function f_(*this) ;
-	f_.byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
-	if(!hasGeoOp)
-		f_.geo_op.resize(FUNCTION_LENGTH,(GeometryOperation *)nullptr);
-	f_.geo_op[byteCode.size()-1] = new DomainOperation(f) ;
-	f_.byteCode.push_back(TOKEN_OPERATION_TIMES); 
-	f_.hasGeoOp = true ;
-	return f_ ;
-}
-
-void Function::operator*=(const Geometry *f) 
-{
-	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION) ;
-	geo_op[byteCode.size()-1] = new DomainOperation(f) ;
-		if(!hasGeoOp)
-		geo_op.resize(FUNCTION_LENGTH,(GeometryOperation *)nullptr);
-	hasGeoOp = true ;
-	byteCode.push_back(TOKEN_OPERATION_TIMES);
 }
 
 Function & Function::operator=(const Function &f)
@@ -463,7 +455,7 @@ Function & Function::operator=(const Function &f)
 	if(f.hasGeoOp)
 	{
 		if(!hasGeoOp)
-			geo_op.resize(FUNCTION_LENGTH,(GeometryOperation *)nullptr);
+			geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr);
 		for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 		{
 			if(f.geo_op[i])
@@ -963,7 +955,7 @@ void Function::initialiseAdresses(size_t offset)
 	std::vector<TokenOperationType> newbyteCode ;
 	std::valarray<GeometryOperation *> newgeo_op(geo_op) ;
 	std::vector<double> newvalues ;
-	std::valarray<short unsigned int> newadress_a(adress_a) ;
+	std::vector<short unsigned int> newadress_a(adress_a) ;
 	
 	size_t constIterator = 0 ;
 	for(size_t i = offset ; i < byteCode.size() ; i++)
@@ -1251,6 +1243,7 @@ void Function::initialiseAdresses(size_t offset)
 			}
 
 			newbyteCode.push_back(byteCode[i]); 
+			newadress_a.push_back(0);newadress_a.push_back(0);newadress_a.push_back(0);newadress_a.push_back(0);
 			if(hasGeoOp)
 				newgeo_op[counter]=geo_op[i]; 
 			newadress_a[counter*4]= adress_a[i*4];
@@ -1265,10 +1258,10 @@ void Function::initialiseAdresses(size_t offset)
 		adress_a= newadress_a;
 	}
 }
+
 Function::Function(const char *f): derivative(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
-		adress_a(FUNCTION_LENGTH*4),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(false)
@@ -1279,6 +1272,10 @@ Function::Function(const char *f): derivative(nullptr),
 	{
 		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f) ;
 		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
 			values.push_back(boost::get<1>(temp.second));
 
@@ -1290,7 +1287,6 @@ Function::Function(const char *f): derivative(nullptr),
 Function::Function(const std::string &f, int n) : derivative(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
-		adress_a(FUNCTION_LENGTH*4),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(false)
@@ -1301,6 +1297,10 @@ Function::Function(const std::string &f, int n) : derivative(nullptr),
 	{
 		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f) ;
 		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
 			values.push_back(boost::get<1>(temp.second));
 	}
@@ -1309,8 +1309,7 @@ Function::Function(const std::string &f, int n) : derivative(nullptr),
 
 Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(true)
@@ -1320,6 +1319,10 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 	concatenateFunctions(g, f, *this);
 	hasGeoOp = true ;
 	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -1329,8 +1332,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 
 Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr)
 {
@@ -1338,6 +1340,10 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 	Function f = s->getYTransform() ;
 	concatenateFunctions(g, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -1347,8 +1353,7 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 
 Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr)
 {
@@ -1358,6 +1363,10 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 	concatenateFunctions(g, f, h,  *this);
 	hasGeoOp = true ;
 	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
+	adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 10 ;
@@ -1367,8 +1376,8 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 
 Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
+		adress_a(HEAP_SIZE*4),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(true)
@@ -1376,14 +1385,16 @@ Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
 	byteCode.push_back(TOKEN_OPERATION_X) ;
 	byteCode.push_back(TOKEN_OPERATION_Y) ;
 	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION) ;
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	geo_op[byteCode.size()-1] = new RotationBinaryOperation(a) ;
 }
 
 
 Function::Function(double a,const Point & p,   ElementarySurface * s): derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(true)
@@ -1391,7 +1402,8 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
 	concatenateFunctions(g, f, *this);
-	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);  ;
+	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION); 
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -1401,8 +1413,7 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
 
 Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(true)
@@ -1411,6 +1422,7 @@ Function::Function( const Geometry * geo, const ElementarySurface * s) : derivat
 	Function f = s->getYTransform() ;
 	concatenateFunctions(g, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -1422,19 +1434,15 @@ Function f_project(const Geometry *g, const Function &x, const Function &y)
 {
 	Function ret ;
 	if(x.hasGeoOp || y.hasGeoOp)
-		ret.geo_op.resize(FUNCTION_LENGTH,(GeometryOperation *)nullptr);		
+		ret.geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr);		
 	ret.byteCode = y.byteCode;
 	ret.values = y.values;
-	for(size_t i = 0 ; i < y.byteCode.size() ; i++)
-	{
-
-		if(y.hasGeoOp)
+	if(y.hasGeoOp)
+		for(size_t i = 0 ; i < y.byteCode.size() ; i++)
 		{
 			if(y.geo_op[i])
 				ret.geo_op[i] = y.geo_op[i]->getCopy() ;
 		}
-		
-	}
 	for(size_t i = 0 ; i < x.values.size() ; i++)
 		ret.values.push_back( x.values[i]);
 	
@@ -1449,6 +1457,7 @@ Function f_project(const Geometry *g, const Function &x, const Function &y)
 		}
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION); 
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.geo_op[ret.byteCode.size()-1] = new ProjectionBinaryOperation(g) ;
 	ret.hasGeoOp = true ;
 	ret.initialiseAdresses();
@@ -1457,8 +1466,7 @@ Function f_project(const Geometry *g, const Function &x, const Function &y)
 
 Function::Function(const std::vector<Segment> s , ElementarySurface * u, PositionTokenType t) : derivative(nullptr),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,FUNCTION_LENGTH),
-		adress_a(FUNCTION_LENGTH*4),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr),
 		hasGeoOp(true)
@@ -1471,6 +1479,9 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 			byteCode.push_back(TOKEN_OPERATION_X); 
 			byteCode.push_back(TOKEN_OPERATION_Y) ;
 			byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION) ;
+			adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
+			adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
+			adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 			geo_op[byteCode.size()-1] = new PositionOperation(s) ;
 
 			
@@ -1482,8 +1493,10 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 			for(size_t i = 0 ; i < s.size() ; i++)
 			{
 				byteCode.push_back(TOKEN_OPERATION_GEO_OPERATION) ;
+				adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 				geo_op[byteCode.size()-1] = new ProjectionOperation2D(s[i]) ;
 				byteCode.push_back(TOKEN_OPERATION_PLUS)  ;
+				adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 			}
 				
 			
@@ -1602,6 +1615,7 @@ Function Function::operator*(const Function &f) const
 	Function ret ;
 	concatenateFunctions(*this, f, ret);
 	ret.byteCode.push_back(TOKEN_OPERATION_TIMES)  ;
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -1632,6 +1646,7 @@ Function Function::operator/(const Function &f) const
 	Function ret ;
 	concatenateFunctions(*this, f, ret);
 	ret.byteCode.push_back(TOKEN_OPERATION_DIVIDES)  ;
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -1669,6 +1684,7 @@ Function Function::operator+(const Function &f) const
 	Function ret ;
 	concatenateFunctions(*this, f, ret);
 	ret.byteCode.push_back(TOKEN_OPERATION_PLUS);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -1726,6 +1742,7 @@ Function operator-(const double & a, const Function &f)
 
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_MINUS);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = HEAP_SIZE-1 ;
@@ -1788,6 +1805,7 @@ Function operator*(const double & a, const Function &f)
 
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_TIMES);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = HEAP_SIZE-1 ;
@@ -1849,6 +1867,7 @@ Function operator+(const double & a, const Function &f)
 
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_PLUS);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = HEAP_SIZE-1 ;
@@ -1909,6 +1928,7 @@ Function operator/(const double & a, const Function &f)
 
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_DIVIDES); 
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = HEAP_SIZE-1 ;
@@ -1947,6 +1967,7 @@ Function Function::operator-(const Function &f) const
 	Function ret ;
 	concatenateFunctions(*this, f, ret);
 	ret.byteCode.push_back(TOKEN_OPERATION_MINUS);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -1970,7 +1991,7 @@ Function Function::operator*(const double a) const
 
 	if(hasGeoOp)
 	{
-		ret.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
 		{
 			if(geo_op[i])
@@ -1980,6 +2001,7 @@ Function Function::operator*(const double a) const
 	
 	ret.values.push_back(a) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_TIMES);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2006,7 +2028,7 @@ Function Function::operator/(const double a) const
 	if(hasGeoOp)
 	{
 		if(hasGeoOp)
-			ret.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+			ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
 		{
 			if(geo_op[i])
@@ -2014,6 +2036,7 @@ Function Function::operator/(const double a) const
 		}
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_DIVIDES);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2036,7 +2059,7 @@ Function Function::operator+(const double a) const
 	Function ret(*this) ;
 	ret.values.push_back(a) ;
 	if(hasGeoOp)
-		ret.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	if(hasGeoOp)
 	{
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
@@ -2046,6 +2069,7 @@ Function Function::operator+(const double a) const
 		}
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_PLUS);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2062,7 +2086,7 @@ Function Function::operator-(const double a) const
 
 	if(hasGeoOp)
 	{
-		ret.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
 		{
 			if(geo_op[i])
@@ -2070,6 +2094,7 @@ Function Function::operator-(const double a) const
 		}
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_MINUS); 
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2086,7 +2111,7 @@ Function  Function::operator^(const int a) const
 
 	if(hasGeoOp)
 	{
-		ret.geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
 		{
 			if(geo_op[i])
@@ -2094,6 +2119,7 @@ Function  Function::operator^(const int a) const
 		}
 	}
 	ret.byteCode.push_back(TOKEN_OPERATION_POWER);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2117,7 +2143,7 @@ Function  Function::operator^(const int a) const
 void Function::operator*=(const Function &f) 
 {
 	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	std::vector<Function *> newderivatives ;
 	if(n > 0)
@@ -2133,6 +2159,7 @@ void Function::operator*=(const Function &f)
 
 	concatenateFunctions(*this, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_TIMES);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -2148,7 +2175,7 @@ void Function::operator*=(const Function &f)
 void Function::operator/=(const Function &f)  
 {
 	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2164,6 +2191,7 @@ void Function::operator/=(const Function &f)
 	
 	concatenateFunctions(*this, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_DIVIDES)  ;
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -2177,7 +2205,7 @@ void Function::operator/=(const Function &f)
 void Function::operator+=(const Function &f) 
 {
 	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2193,6 +2221,7 @@ void Function::operator+=(const Function &f)
 	
 	concatenateFunctions(*this, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_PLUS) ;
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -2208,7 +2237,7 @@ void Function::operator+=(const Function &f)
 void Function::operator-=(const Function &f)  
 {
 	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(FUNCTION_LENGTH, (GeometryOperation*)nullptr);
+		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2224,6 +2253,7 @@ void Function::operator-=(const Function &f)
 	
 	concatenateFunctions(*this, f, *this);
 	byteCode.push_back(TOKEN_OPERATION_MINUS) ;
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
@@ -2239,6 +2269,7 @@ void Function::operator*=(const double a)
 {
 
 	byteCode.push_back(TOKEN_OPERATION_TIMES) ;
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	values.push_back(a) ;
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = HEAP_SIZE-values.size() ;
@@ -2263,6 +2294,7 @@ void Function::operator/=(const double a)
 		exit(0) ;
 	}
 	byteCode.push_back(TOKEN_OPERATION_DIVIDES);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	values.push_back(a) ;
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = HEAP_SIZE-values.size() ;
@@ -2287,6 +2319,7 @@ void Function::operator+=(const double a)
 	if(std::abs(a) < POINT_TOLERANCE_2D)
 		return ;
 	byteCode.push_back(TOKEN_OPERATION_PLUS);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	values.push_back(a) ;
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = HEAP_SIZE-values.size() ;
@@ -2299,6 +2332,7 @@ void Function::operator-=(const double a)
 	if(std::abs(a) < POINT_TOLERANCE_2D)
 		return ;
 	byteCode.push_back(TOKEN_OPERATION_MINUS);
+	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
 	values.push_back(a) ;
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = HEAP_SIZE-values.size() ;
@@ -2375,6 +2409,7 @@ Function f_exp(const Function &f)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_EXP);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2386,6 +2421,7 @@ Function f_abs(const Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_ABS); 
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2409,6 +2445,7 @@ Function f_log(const Function &f)
 {
 	Function ret(f) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_LOG);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2420,6 +2457,7 @@ Function f_sqrt(const Function &f, bool differentiate)
 {
 	Function ret(f) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_SQRT);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2443,6 +2481,7 @@ Function f_atan2(const Function &f0, const Function &f1)
 	Function ret ;
 	concatenateFunctions(f0, f1, ret);
 	ret.byteCode.push_back(TOKEN_OPERATION_ATAN2);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2453,6 +2492,7 @@ Function f_sin(const Function &f)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_SIN);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2465,6 +2505,7 @@ Mu::Function f_sign(const Mu::Function &f)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_SIGN);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2478,6 +2519,7 @@ Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
 {
 	Function ret(f) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_POSITIVITY);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2501,6 +2543,7 @@ Mu::Function f_negativity(const Mu::Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_NEGATIVITY);
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
@@ -2523,6 +2566,7 @@ Function f_cos(const Function &f)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_COS) ;
+	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4+1] = 9 ;
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;

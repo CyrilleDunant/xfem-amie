@@ -43,7 +43,6 @@ typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 
 // typedef std::vector<double> Memory ;
 const size_t HEAP_SIZE = 8192 ;
-const size_t FUNCTION_LENGTH = 8192 ;
 
 /** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
 */

@@ -121,7 +121,7 @@ public:
 	std::vector<TokenOperationType> byteCode ;
 	std::valarray<GeometryOperation *> geo_op ;
 	std::vector<double> values ;
-	std::valarray<unsigned short int> adress_a ;
+	std::vector<unsigned short int> adress_a ;
 // 	Function * xtransform ;
 // 	Function * ytransform ;
 // 	Function * ztransform ;
@@ -342,12 +342,6 @@ public:
 	 */
 	Function operator*(const Function &f) const ;
 	
-	/** \brief Modify the function such that the result is multiplied by -1 if the point defined by the arguments is not in the Geometry
-	 * 
-	 * @param f Geometry defining the domain
-	 * @return a new Function
-	 */
-	Function operator*(const Geometry *f) const ;
 	
 	/** \brief Divide with a Function
 	 * 
@@ -410,12 +404,6 @@ public:
 	 * @param f factor
 	 */
 	void operator*=(const Function &f)  ;
-	
-	/** \brief Multiply with a Function returning -1 if the point defined by the arguments is outside the Geometry.
-	 * 
-	 * @param f Geometry defining the domain
-	 */
-	void operator*=(const Geometry *f)  ;
 	
 	/** \brief Divide by a Function and assign
 	 * 

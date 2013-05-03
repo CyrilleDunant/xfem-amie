@@ -22,7 +22,7 @@ namespace Mu
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/.33e6*sqrt(-down*1e-6) ), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal(0.66*1e6*pow(std::abs(down*1e-6),.33) /*.33e6*sqrt(-down*1e-6)*/ ), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
