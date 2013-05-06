@@ -157,7 +157,7 @@ void TriangularInclusion::sample(size_t n)
 {
 // 	delete this->boundary ;
 // 	this->boundary = new Circle(radius + radius/(0.25*n), this->Circle::getCenter()) ;
-	this->sampleSurface(n*3/5) ;
+	this->sampleSurface(n*5/4) ;
 }
 
 std::vector<Geometry *> TriangularInclusion::getRefinementZones(size_t level) const
@@ -324,7 +324,7 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree
 
 void EllipsoidalInclusion::sample(size_t n)
 {
-	this->sampleSurface(n*3/2) ;
+	this->sampleSurface(n*7/4) ;
 
 }
 

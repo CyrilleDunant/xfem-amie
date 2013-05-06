@@ -53,6 +53,10 @@ virtual void setBoundingPoint(size_t i, Point * p)         \
 {                                                          \
 	this->__geo_type__::setBoundingPoint(i,p) ;            \
 }                                                          \
+virtual void transform(GeometricTransformationType g, const Point & p)         \
+{                                                          \
+	this->__geo_type__::transform(g,p) ;            \
+}                                                          \
 virtual void setBoundingPoints(const PointArray & nb)\
 {                                                          \
 	this->__geo_type__::setBoundingPoints(nb) ;            \
@@ -325,6 +329,14 @@ typedef enum
 	LEVEL_SET,
 	TIME_DEPENDENT_CIRCLE,
 } GeometryType ;
+
+/** \brief defines the possible geometrical transformations  */
+typedef enum
+{
+	ROTATE,
+	SCALE,
+	TRANSLATE,
+} GeometricTransformationType ;
 
 /** \brief defines the possible vertices, axes and faces of a bounding box */
 typedef enum
@@ -701,6 +713,8 @@ typedef  std::valarray<Point *> PointArray;
 /** \brief Basic interface for a geometrical object.
 * 
 * A geometrical object is defined by a set of points, in and out discrimination and intersection and projection operators
+* 
+* New method for the Geometry class must be added to the GEO_DERIVED_OBJECT defined above, otherwise AMIE will not compile!
 */
 class Geometry 
 {
@@ -769,6 +783,9 @@ public:
 	/** \brief Acessor get the center of the geometry*/
 	virtual Point & getCenter() ;
 	
+	/** \brief Transforms the geometry*/
+	virtual void transform( GeometricTransformationType transformation, const Point & p) ;
+	
 	/** \brief Project the argument on the geometry*/
 	virtual void project(Point *) const = 0;
 	
@@ -834,6 +851,10 @@ public:
 	
 	/** \brief return the fraction of the area of the current geometry also lying in the target geometry. */
 	virtual double overlapFraction(const Geometry * target) const ;
+	
+// 	template<class GeoType> const GeoType * getPrimitive() const { return dynamic_cast<const GeoType *>(this) ; }
+// 	template<class GeoType> GeoType * getPrimitive() { return dynamic_cast<GeoType *>(this) ; }
+	
 	
 } ;
 
@@ -1622,6 +1643,7 @@ struct PointLess_Than_y
 		return p1.y < p2.y ;
 	}
 } ;
+
 
 
 #endif

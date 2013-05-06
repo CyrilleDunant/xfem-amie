@@ -610,6 +610,119 @@ std::vector<Point> Geometry::getBoundingBox() const
 	return std::vector<Point>() ;
 }
 
+Matrix rotationMatrix(double theta, size_t i)
+{
+	Matrix ret(4,4) ;
+	ret[i][i] = 1 ;
+	ret[3][3] = 1 ;
+	
+	int j = 0 ; int k = 1 ;
+	if(i == 0)
+	{
+		j = 1 ;
+		k = 2 ;
+	}
+	if(i == 1)
+	{
+		j = 2 ;
+		k = 0 ;
+	}
+	
+	ret[j][j] = cos(theta) ;
+	ret[k][k] = cos(theta) ;
+	ret[j][k] = -sin(theta) ;
+	ret[k][j] = sin(theta) ;
+	
+	return ret ;
+}
+
+void Geometry::transform(GeometricTransformationType transformation, const Point& p)
+{
+	switch(transformation)
+	{
+		case SCALE:
+			if( p.x < POINT_TOLERANCE_2D || p.y < POINT_TOLERANCE_2D || ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.z < POINT_TOLERANCE_2D) )
+			{
+				std::cout << "try to scale geometry with factor = 0... do nothing instead" << std::endl ;
+				return ;
+			}
+			if(this->gType == CIRCLE)
+			{
+				dynamic_cast<Circle *>(this)->setRadius( getRadius()*p.x );
+				return ;
+			}
+			
+			for(size_t i = 0 ; i < inPoints.size() ; i++)
+			{
+				(*inPoints[i]).x = center.x + ((*inPoints[i]).x - center.x) * p.x ;
+				(*inPoints[i]).y = center.y + ((*inPoints[i]).y - center.y) * p.y ;
+				(*inPoints[i]).z = center.z + ((*inPoints[i]).z - center.z) * p.z ;
+			}
+			for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+			{
+				getBoundingPoint(i).x = center.x + (getBoundingPoint(i).x - center.x) * p.x ;
+				getBoundingPoint(i).y = center.y + (getBoundingPoint(i).y - center.y) * p.y ;
+				getBoundingPoint(i).z = center.z + (getBoundingPoint(i).z - center.z) * p.z ;
+			}
+			
+			if(gType == ELLIPSE)
+			{
+				Point A = dynamic_cast<Ellipse *>(this)->getMajorAxis() ;
+				Point B = dynamic_cast<Ellipse *>(this)->getMinorAxis() ;
+				A.x *= p.x ; A.y *= p.y ;
+				B.x *= p.x ; B.y *= p.y ;
+				dynamic_cast<Ellipse *>(this)->setMajorAxis(A) ;
+				dynamic_cast<Ellipse *>(this)->setMinorAxis(B) ;
+			}
+			
+			break ;
+		case ROTATE:
+		{
+			if(this->gType == CIRCLE)
+			{
+				return ;
+			}
+		  
+			Matrix rotation = rotationMatrix( p.x, 0) ;
+			rotation *= rotationMatrix( p.y, 1 ) ;
+			rotation *= rotationMatrix( p.z, 2 ) ;
+
+			Point c = center ;
+			c *= -1 ;
+			this->transform(TRANSLATE, c);
+						
+			for(size_t i = 0 ; i < inPoints.size() ; i++)
+				(*inPoints[i]) *= rotation ;
+			for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+				getBoundingPoint(i) *= rotation ;
+			
+			c *= -1 ;
+			this->transform(TRANSLATE, c);
+
+			if(gType == ELLIPSE)
+			{
+				Point A = dynamic_cast<Ellipse *>(this)->getMajorAxis() ;
+				Point B = dynamic_cast<Ellipse *>(this)->getMinorAxis() ;
+				A *= rotation ;
+				B *= rotation;
+				dynamic_cast<Ellipse *>(this)->setMajorAxis(A) ;
+				dynamic_cast<Ellipse *>(this)->setMinorAxis(B) ;
+			}
+			break ;
+		}
+		case TRANSLATE:
+			this->setCenter( center + p ) ;
+			
+// 			center += p ;
+// 			for(size_t i = 0 ; i < inPoints.size() ; i++)
+// 				(*inPoints[i]) += p ;
+// 			for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+// 				getBoundingPoint(i) += p ;
+// 						
+			break ;
+	}
+}
+
 const std::valarray<Point *> & ConvexGeometry::getBoundingPoints() const
 { 
 	return boundingPoints ; 
@@ -1931,6 +2044,32 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			}
 			return ret ;
 		}
+	case TIME_DEPENDENT_CIRCLE:
+	{
+		if(g->getGeometryType() == TRIANGLE && g->timePlanes() > 1)
+		{
+			size_t pointsPerPlane = g->getBoundingPoints().size() / g->timePlanes() ;
+			size_t pointsPerEdge = pointsPerPlane / 3 ;
+			std::vector<Point> inter ;
+			for(size_t i = 0 ; i < g->timePlanes() ; i++)
+			{
+				Segment s0(g->getBoundingPoint(pointsPerPlane*i), g->getBoundingPoint(pointsPerPlane*i+pointsPerEdge)) ;
+				inter.clear() ;
+				inter = s0.intersection(this) ;
+				ret.insert(ret.end(), inter.begin(), inter.end() ) ;
+				Segment s1(g->getBoundingPoint(pointsPerPlane*i+pointsPerEdge), g->getBoundingPoint(pointsPerPlane*i+pointsPerEdge*2)) ;
+				inter.clear() ;
+				inter = s1.intersection(this) ;
+				ret.insert(ret.end(), inter.begin(), inter.end() ) ;
+				Segment s2(g->getBoundingPoint(pointsPerPlane*i+pointsPerEdge*2), g->getBoundingPoint(pointsPerPlane*i)) ;
+				inter.clear() ;
+				inter = s2.intersection(this) ;
+				ret.insert(ret.end(), inter.begin(), inter.end() ) ;
+			}
+		  
+		}
+		return ret ;
+	}	  
 	case ELLIPSE:
 		{
 
@@ -3857,6 +3996,14 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 				}
 			}
 			return ret ;
+		}
+	case TIME_DEPENDENT_CIRCLE:
+		{
+			Circle c( dynamic_cast<const TimeDependentCircle *>(g)->radiusAtTime(s), g->getCenter().x, g->getCenter().y) ;
+			std::vector<Point> tmp = this->intersection(&c) ;
+			for(size_t i = 0 ; i < tmp.size() ; i++)
+				tmp[i].t = s.t ;
+			return tmp ;
 		}
 	case CIRCLE:
 		{

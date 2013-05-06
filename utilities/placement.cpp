@@ -8,6 +8,7 @@
 
 #include "placement.h"
 #include "random.h"
+#include "../geometry/geometry_base.h"
 
 
 using namespace Mu ;
@@ -33,6 +34,85 @@ bool bord(double r, double longueurX, double longueurY, double x, double y)//fon
 	}
 	return false;
 }
+
+void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution, RandomDistribution & rDistribution)
+{
+	Point c( xDistribution.draw(), yDistribution.draw() ) ;
+	Point theta( 0,0, rDistribution.draw() ) ;
+	inc->setCenter( c ) ;
+	inc->transform(ROTATE, theta) ;
+}
+
+std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation) 
+{
+	std::vector<Feature *> ret ;
+	int tries = 0 ;
+	
+	std::vector<Point> boundingBox = box->getBoundingBox() ;
+	UniformDistribution xDistribution( boundingBox[0].x, boundingBox[2].x ) ;
+	UniformDistribution yDistribution( boundingBox[0].y, boundingBox[2].y ) ;
+	UniformDistribution rDistribution( -orientation, orientation ) ;
+	Grid grid(boundingBox[2].x-boundingBox[0].x, boundingBox[0].y-boundingBox[2].y, 10, box->getCenter()) ;
+
+	for(size_t i = 0 ; i < placedAggregates ; i++)
+	{
+		ret.push_back(inclusions[i]);
+		grid.add(inclusions[i]) ;
+	}
+
+	for(size_t i = placedAggregates ; i < inclusions.size() && tries < triesMax ; i++)
+	{
+		tries++ ;
+		
+		double scale = 1. ;
+		if(minDist > POINT_TOLERANCE_2D)
+		{
+			scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
+			Point s( scale, scale ) ;
+			inclusions[i]->transform(SCALE, s) ;
+		}
+		
+		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
+		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+		{
+			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+			bbox = inclusions[i]->getBoundingBox() ;
+		}
+		
+		while(!grid.add(inclusions[i]) && tries < triesMax)
+		{
+			tries++ ;
+			
+			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+			{
+				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+				bbox = inclusions[i]->getBoundingBox() ;
+			}
+			
+		}
+		
+		if(tries < triesMax)
+		{
+			if(i%100 == 0)
+				std::cout << "\rplaced " << i << " particles (tries " << tries << "/" << triesMax << ")" << std::flush ;
+			if(scale > 1.)
+			{
+				Point s(1./scale, 1./scale) ;
+				inclusions[i]->transform( SCALE , s) ;
+			}
+			ret.push_back(inclusions[i]);
+		}
+		  
+	}
+	
+	std::cout << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;
+	
+	return ret ;
+}
+
 
 std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, bool verbose)
 {

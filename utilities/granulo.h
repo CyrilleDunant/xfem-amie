@@ -146,7 +146,7 @@ public:
 	 * @param seed seed for random generator
 	 * @return vector of Inclusion*
 	 */
-	static std::vector<Inclusion *> get2DConcrete(FeatureTree * F, Form * behaviour, double rmax = 0.008, size_t n = 6000, PSDType type = BOLOME_A, size_t tries = 10000, size_t seed = 0) ;
+	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, PSDType type = BOLOME_A, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 10000, size_t seed = 0) ;
 
 		/**
 	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample

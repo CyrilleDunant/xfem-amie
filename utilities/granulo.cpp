@@ -21,6 +21,7 @@
 #include "placement.h"
 #include "../geometry/geometry_base.h"
 #include "../features/sample.h"
+#include "../features/microstructuregenerator.h"
 
 using namespace Mu ;
 
@@ -127,29 +128,39 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, do
 	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.8, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, double rmax, size_t n, PSDType type, size_t tries, size_t seed) 
+std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries, size_t seed) 
 {
 	Feature * box = F->getFeature(0) ;
 	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, sqrt(box->area()), n, type) ;
 	std::vector<Feature *> feats ;
-	for(size_t i = 0 ; i < inc.size() ; i++)
+	if(geo == ELLIPSE || geo == TRIANGLE)
 	{
-		feats.push_back(inc[i]) ;
+		InclusionConverter converter(geo) ;
+		converter.setAspectRatio(aspectRatio) ;
+//		converter.setOrientation(orientation) ;
+		feats = converter.convert(inc) ;
+	}
+	else 
+	{
+		if(geo != CIRCLE)
+			std::cout << "unknown geometry inclusion - fall back on circles" << std::endl ;
+		for(size_t i = 0 ; i < inc.size() ; i++)
+		{
+			feats.push_back(inc[i]) ;
+		}
 	}
 	inc.clear() ;
-	int nAgg = 1 ;
 	srand(seed) ;
-	feats = placement( dynamic_cast<Rectangle *>(box), feats, &nAgg, 0, tries ) ;
+	feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation ) ;
+	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
-		inc.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
+		area += feats[i]->area() ;
+		feats[i]->setBehaviour(behaviour) ;
+		F->addFeature(box, feats[i]) ;
 	}
-	for(size_t i = 0 ; i < inc.size() ; i++)
-	{
-		inc[i]->setBehaviour(behaviour) ;
-		F->addFeature(box, inc[i]) ;
-	}
-	return inc ;
+	std::cout << area << std::endl ;
+	return feats ;
 }
 
 std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(FeatureTree * F, Form * behaviour, double rmax, size_t n, PSDType type, size_t tries, size_t seed) 

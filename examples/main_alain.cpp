@@ -103,60 +103,62 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
 	
-	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
-	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(BURGER, e*ekv, e*ekv*tkv, e, e*tmx)) ;
-	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a,2) ;
+// 	Matrix e = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
+// 	Matrix a = (new ElasticOnlyAggregateBehaviour(70e9, 0.3))->param ;
+	box.setBehaviour(new ElasticOnlyPasteBehaviour());
+//   	box.setBehaviour(new Viscoelasticity(BURGER, e*ekv, e*ekv*tkv, e, e*tmx)) ;
+// 	Viscoelasticity * agg = new Viscoelasticity(PURE_ELASTICITY, a,2) ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
 
-	ParticleSizeDistribution::get2DConcrete(&F, agg, 0.008, ninc) ;
+	ParticleSizeDistribution::get2DConcrete(&F, agg, ninc, 0.008, 0.001, BOLOME_A, TRIANGLE, 0.25) ;
 	
-	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setOrder(LINEAR) ;
 	F.setDeltaTime(timestep) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
-	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
+// 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
 
-	F.getAssembly()->setEpsilon(1e-14) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
-	F.step() ;
-	
-	std::fstream out ;
-	std::string name = "visco_" ;
-	name.append(argv[1]) ;
-	name.append("_") ;
-	name.append(argv[2]) ;
-	name.append("_") ;
-	name.append(argv[3]) ;
-	
-	out.open(name.c_str(), std::ios::out) ;
-
-	double time = timestep ;	
-	Vector stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
-	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
-	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
-	Vector disp = F.getDisplacements() ;
-	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
-		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
-		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
+// 	F.getAssembly()->setEpsilon(1e-14) ;
+// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+// 	F.step() ;
+// 	
+// 	std::fstream out ;
+// 	std::string name = "visco_" ;
+// 	name.append(argv[1]) ;
+// 	name.append("_") ;
+// 	name.append(argv[2]) ;
+// 	name.append("_") ;
+// 	name.append(argv[3]) ;
+// 	
+// 	out.open(name.c_str(), std::ios::out) ;
+// 
+// 	double time = timestep ;	
+// 	Vector stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
+// 	Vector strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
+// 	Vector rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
+// 	Vector disp = F.getDisplacements() ;
+// 	out << std::setprecision(16) << time << "\t" << disp.max() << "\t" << disp.min() << "\t" <<  stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
+// 		"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
+// 		"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 
 	if(true)
 	{
-		std::string nametrg = name ;
-		nametrg.append("_trg_0") ;
+		std::string nametrg = "test" ;
+		nametrg.append("_trg_1") ;
 		TriangleWriter writer(nametrg, &F, 1) ;
-		writer.getField(STRAIN_FIELD) ;
-		writer.getField(REAL_STRESS_FIELD) ;
+// 		writer.getField(STRAIN_FIELD) ;
+// 		writer.getField(REAL_STRESS_FIELD) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 	}
 	
-	while(time < 401)
+/*	while(time < 401)
 	{
 		F.step() ;
 
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.write() ;
 		}
-	}
+	}*/
 
 		
 	return 0 ;

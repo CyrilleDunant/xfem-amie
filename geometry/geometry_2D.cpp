@@ -90,6 +90,12 @@ Triangle::Triangle(XMLTree * xml)
 	
 }
 
+void Triangle::setCenter(const Point & newCenter) 
+{
+	Geometry::setCenter(newCenter);
+	computeCircumCenter();
+}
+
 
 XMLTree * Triangle::toXML()
 {
@@ -581,6 +587,8 @@ const Point & Triangle::getCircumCenter() const
 {
 	return this->circumCenter ;
 }
+
+
 
 std::vector<Point> Triangle::getBoundingBox() const
 {
@@ -2173,8 +2181,8 @@ Function Ellipse::getEllipseFormFunction() const
     double alpha = majorAxis.angle() ;
     Function x("x") ;
     Function y("y") ;
-    Function x_((x-center.x)*cos(-alpha)-(y-center.y)*sin(-alpha)) ;
-    Function y_((x-center.x)*sin(-alpha)+(y-center.y)*cos(-alpha)) ;
+    Function x_((x-center.x)*cos(alpha)-(y-center.y)*sin(-alpha)) ;
+    Function y_((x-center.x)*sin(-alpha)+(y-center.y)*cos(alpha)) ;
     Function ellipse(x_*x_/(getMajorRadius()*getMajorRadius()) + y_*y_/(getMinorRadius()*getMinorRadius()) - 1) ;
 
     return ellipse ;
@@ -2307,7 +2315,10 @@ void Ellipse::sampleSurface (size_t num_points)
 
 				bool alone = this->in(pn[j]) ;
 				if(!alone)
+				{
+						pn[j].print() ;
 						std::cout << "not inside" << std::endl ;
+				}
 				
 				size_t k = 0 ;
 				while(alone && k < getBoundingPoints().size()) 

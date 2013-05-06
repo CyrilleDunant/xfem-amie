@@ -919,7 +919,7 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	}
 	
 	psize = std::max(std::abs(x/lengthX), std::abs(y/lengthY));
-	
+
 	for(size_t i = 0 ; i < lengthX ; i++)
 	{
 		for(size_t j = 0 ; j < lengthY ; j++)
@@ -944,6 +944,9 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 		
 	double endY =  startY+2.*geo->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
+	
+	
+	
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -1009,6 +1012,8 @@ void Grid::forceAdd(Geometry * inc)
 	double endY =  startY+2.*inc->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
 
+//	std::cout << "grid force add: " << psize << "\" << startI << "," << endI << "\t" << startJ << "," << endJ << std::endl ;
+	
 	bool done = false ;
 	for(int i = startI ; i < endI ; i++)
 	{
@@ -1021,6 +1026,7 @@ void Grid::forceAdd(Geometry * inc)
 			}
 		}
 	}
+	
 	
 	if(!done)
 		pixels[0][0]->forceAdd(inc) ;

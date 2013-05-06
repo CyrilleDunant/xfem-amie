@@ -18,6 +18,9 @@ namespace Mu
 {
 	std::vector<Feature *> placement(const Mu::Geometry* box, std::vector< Mu::Feature* > inclusions, int* nombreGranulatsPlaces, int nombreGranulatsDejaPlaces = 0, int triesMax = 6400, bool verbose = true) ;
 	std::vector<Mu::EllipsoidalInclusion *> placement_with_rotation(const Mu::Geometry* box, std::vector< Mu::EllipsoidalInclusion* > inclusions, int* nombreGranulatsPlaces, int triesMax, bool verbose = true) ;
+	
+	std::vector<Feature *> placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI) ;
+	
 // 	double masseInitiale;
 // 	double densite;
 

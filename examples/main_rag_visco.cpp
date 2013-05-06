@@ -198,7 +198,10 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(tau) ;
 	
 	box.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 0.008, 6000, BOLOME_A) ;
+	std::vector<Feature *> incs = ParticleSizeDistribution::get2DConcrete( &F, new ElasticOnlyAggregateBehaviour(), 6000, 0.008, 0., BOLOME_A) ;
+	std::vector<Inclusion *> inclusions ;
+	for(size_t i = 0 ; i < incs.size() ; i++)
+		inclusions.push_back(dynamic_cast<Inclusion *>(incs[i]));
 	
 	double aggregate_area = 0 ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)

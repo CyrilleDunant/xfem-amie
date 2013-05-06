@@ -7,6 +7,7 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
+#include "../features/timeDependentEnrichmentInclusion.h"
 #include "../physics/physics_base.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/maxwell.h"
@@ -92,11 +93,86 @@ Sample box(nullptr, 1.,1.,0.,0.) ;
 
 
 int main(int argc, char *argv[])
-{
+{	
+	Function x("x") ;
+	Function y("y") ;
+	Function one("1") ;
+	Function zero("0") ;
+	Function mone("-1") ;
+	x.setNumberOfDerivatives(2);
+	y.setNumberOfDerivatives(2);
+	x.setDerivative(XI,one) ;
+	y.setDerivative(ETA,one) ;
+	y.setDerivative(XI,zero) ;
+	x.setDerivative(ETA,zero) ;
+	Function z = x+y ;
+	z.setVariableTransform(XI,y);
+	VirtualMachine().print(z.d(XI)) ;
+	VirtualMachine().print(z.d(ETA)) ;
+	z.setVariableTransform(ETA,x);
+	VirtualMachine().print(z.d(XI)) ;
+	VirtualMachine().print(z.d(ETA)) ;
+ 	std::cout << VirtualMachine().eval( z, 1,5) << std::endl ;
+ 	std::cout << VirtualMachine().deval( z, XI, 1,5) << std::endl ;
+// 	std::cout << VirtualMachine().deval( x,XI, 1,2) << std::endl ;
+// 	std::cout << VirtualMachine().deval( x,ETA, 1,2) << std::endl ;
+	exit(0) ;
+/*
+  
+  
+	Vector toto ;
+	std::cout << toto.size() << std::endl ;
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(100) ;
-	
+	F.setSamplingNumber(2) ;
 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+  	box.setBehaviour(new Stiffness(e)) ;
+	F.setOrder(LINEAR) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+	F.step() ;
+	
+	toto = F.getDisplacements() ;
+	std::cout << toto.size() << std::endl ;
+	std::cout << toto[19] << std::endl ;
+	exit(0) ;
+	
+	DelaunayTriangle* tri = F.getElements2D()[0] ;
+	Point c(0.27,0.35) ;
+	double radius = 0.2 ;
+	Circle inc(radius, c) ;
+	if(inc.intersects(dynamic_cast<Triangle *>(tri)))
+		std::cout << "intersects" << std::endl ;
+	Function position = f_sqrt((tri->getXTransform()-c.x)*(tri->getXTransform()-c.x) +
+		                           (tri->getYTransform()-c.y)*(tri->getYTransform()-c.y)) ;
+	Function hat = 1.-f_abs(position-radius);
+	
+	Function otherPosition = f_sqrt( (y - c.y)*(y - c.y) + (x - c.x)*(x - c.x) ) ;
+	Function otherHat = 1.-f_abs( otherPosition - radius ) ;
+// 	otherHat.setNumberOfVariableTransforms(2);
+	Function dx = tri->getXTransform() ;
+	Function dy = tri->getYTransform() ;
+// 	otherHat.setVariableTransform(XI, dx);
+// 	otherHat.setVariableTransform(ETA, dy);
+	
+	tri->getBoundingPoint(0).print() ;
+	tri->getBoundingPoint(1).print() ;
+	tri->getBoundingPoint(2).print() ;
+	
+	Point p(0,1) ;
+	Point dummy ;
+	
+	std::cout << VirtualMachine().deval( hat, XI, p ) << std::endl ;
+	std::cout << VirtualMachine().deval( otherHat, XI, p ) << std::endl ;
+	
+	
+	
+	
+  
+	return 0 ;
+  
+  
+	
+// 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
   	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e)) ;
 
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -116,28 +192,29 @@ int main(int argc, char *argv[])
 	instants[0] = 0.5 ;
 	instants[1] = 1.5 ;
 	
-	TimeDependentCircle tarata( 0.01, 0.03, Point(0,0,0,0.1)) ;
-	tarata.setTimeCircles(instants);
+	Function r("t 0.03 *") ;
+	TimeDependentEnrichmentInclusion tarata( r,0,0) ;
+	F.addFeature(&box, &tarata);
 	Mesh<DelaunayTriangle, DelaunayTreeItem> * mesh = F.get2DMesh() ;
 	
 	for(size_t i = 0 ; i < 10 ; i++)
 	{
 	  F.step() ;
-	  instants += 1 ;
-//	  tarata.setTimeCircles(instants);
-	  std::vector<DelaunayTriangle *> hop = mesh->getConflictingElements(&tarata) ;
-	  std::cout << tarata.radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" <<  hop.size() << std::endl ;
-	  for(size_t j = 0 ; j < hop.size() ; j++)
-	  {
-		  hop[j]->getBehaviour()->param += e ;
-	  }
-	  std::string name = "hop_" ;
-	  name.append( itoa(i) ) ;
-	  TriangleWriter wrt(name, &F, 1) ;
-	  wrt.getField( TWFT_STIFFNESS) ;
-	  wrt.write() ;
+// 	  instants += 1 ;
+// //	  tarata.setTimeCircles(instants);
+// 	  std::vector<DelaunayTriangle *> hop = mesh->getConflictingElements(&tarata) ;
+// 	  std::cout << tarata.radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" <<  hop.size() << std::endl ;
+// 	  for(size_t j = 0 ; j < hop.size() ; j++)
+// 	  {
+// 		  hop[j]->getBehaviour()->param += e ;
+// 	  }
+// 	  std::string name = "hop_" ;
+// 	  name.append( itoa(i) ) ;
+// 	  TriangleWriter wrt(name, &F, 1) ;
+// 	  wrt.getField( TWFT_STIFFNESS) ;
+// 	  wrt.write() ;
 	  
-	}
+	}*/
 	 
 	
 	return 0 ;

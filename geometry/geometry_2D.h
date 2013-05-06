@@ -73,6 +73,8 @@ public:
 	/** \brief return area*/
 	virtual double area() const ;
 	
+	virtual void setCenter(const Point & newCenter) ;
+	
 	/** \brief return 0*/
 	virtual double volume() const { return 0 ;} 
 	
@@ -492,6 +494,10 @@ public:
 
 	/** \brief Get the norm of the minor radius */
 	double getMinorRadius() const {return minorAxis.norm() ; } ;
+	
+	void setMajorAxis(const Point & p) { majorAxis = p ; }
+	
+	void setMinorAxis(const Point & p) { minorAxis = p ; }
 
 	/** \brief Computes the ellipse excentricity as sqrt(1-b^2/a^2)
 	 * @return the excentricty
