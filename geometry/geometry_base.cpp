@@ -272,9 +272,9 @@ bool Point::operator!=(const Point & p) const
 {
 	double pnorm = p.norm() ;
 	double tnorm = norm() ;
-	if(pnorm <= POINT_TOLERANCE_2D && tnorm <= POINT_TOLERANCE_2D)
+	if(pnorm <= 4.*POINT_TOLERANCE_2D && tnorm <= 4.*POINT_TOLERANCE_2D)
 		return false ;
-	return dist(p, *this) >= POINT_TOLERANCE_2D ;
+	return dist(p, *this) >= 4.*POINT_TOLERANCE_2D ;
 }
 
 Point Point::operator-(const Point &p) const

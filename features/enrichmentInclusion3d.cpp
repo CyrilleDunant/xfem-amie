@@ -65,19 +65,19 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 	size_t idxThird = 0 ;
 	size_t idxFourth = 0 ;
 	
-	while(t->inLocalCoordinates(t->getBoundingPoint(idxFirst)) != father.getBoundingPoint(0))
+	while(idxFirst < t->getBoundingPoints().size()&&t->inLocalCoordinates(t->getBoundingPoint(idxFirst)) != father.getBoundingPoint(0)  )
 	{
 		idxFirst++ ;
 	}
-	while(t->inLocalCoordinates(t->getBoundingPoint(idxSecond)) != father.getBoundingPoint(1))
+	while(idxSecond < t->getBoundingPoints().size()&&t->inLocalCoordinates(t->getBoundingPoint(idxSecond)) != father.getBoundingPoint(1) )
 	{
 		idxSecond++ ;
 	}
-	while(t->inLocalCoordinates(t->getBoundingPoint(idxThird)) != father.getBoundingPoint(2))
+	while(idxThird < t->getBoundingPoints().size()&&t->inLocalCoordinates(t->getBoundingPoint(idxThird)) != father.getBoundingPoint(2) )
 	{
 		idxThird++ ;
 	}
-	while(t->inLocalCoordinates(t->getBoundingPoint(idxFourth)) != father.getBoundingPoint(3))
+	while(idxFourth < t->getBoundingPoints().size()&&t->inLocalCoordinates(t->getBoundingPoint(idxFourth)) != father.getBoundingPoint(3) )
 	{
 		idxFourth++ ;
 	}
