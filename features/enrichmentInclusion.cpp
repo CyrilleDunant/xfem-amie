@@ -356,7 +356,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
 			Function position(getCenter(), t) ;
-			Function hat = f_abs(position-getRadius());
+			Function hat = (getRadius()-f_abs(position-getRadius()))*blend;
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
@@ -368,7 +368,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y)) ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -378,23 +378,23 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 						f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
 						t->setEnrichment(f, getPrimitive()) ;
 					}
-					else
-					{
-						enriched.insert(that) ;
-						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
-						
-						if(!hinted)
-						{
-							f.setIntegrationHint(hint) ;
-							hinted = true ;
-						}
-						f.setPoint(&t->getBoundingPoint(k)) ;
-						if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
-							extradofs[&t->getBoundingPoint(k)] = lastId++ ;
-						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
-						t->setEnrichment(f, getPrimitive()) ;
-					}
+// 					else
+// 					{
+// 						enriched.insert(that) ;
+// 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+// 						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
+// 						
+// 						if(!hinted)
+// 						{
+// 							f.setIntegrationHint(hint) ;
+// 							hinted = true ;
+// 						}
+// 						f.setPoint(&t->getBoundingPoint(k)) ;
+// 						if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
+// 							extradofs[&t->getBoundingPoint(k)] = lastId++ ;
+// 						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
+// 						t->setEnrichment(f, getPrimitive()) ;
+// 					}
 				}
 			}
 		}

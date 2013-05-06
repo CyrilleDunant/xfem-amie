@@ -2971,7 +2971,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
 	}
 	
-	delete getCachedGaussPoints() ;
+// 	delete getCachedGaussPoints() ;
 	setCachedGaussPoints(new GaussPointArray(gp));
 	return *getCachedGaussPoints();
 }

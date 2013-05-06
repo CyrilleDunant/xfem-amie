@@ -2393,12 +2393,6 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 							b->setSource(targets[i]);
 						found = b ;
 					}
-					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-					if(targets[i]->getBehaviourSource())
-						b->setSource(targets[i]->getBehaviourSource());
-					else
-						b->setSource(targets[i]);
-					found = b ;
 				}
 			}
 		}
@@ -2574,12 +2568,6 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 
 						return b ;
 					}
-					Form *b = targets[i]->getBehaviour( t->getCenter() )->getCopy() ;
-					if(targets[i]->getBehaviourSource())
-						b->setSource(targets[i]->getBehaviourSource());
-					else
-						b->setSource(targets[i]);
-					return b ;
 				}
 			}
 		}
