@@ -1094,6 +1094,7 @@ void Assembly::clear()
 // 	element2d.clear() ;
 // 	element3d.clear() ;
 	multipliers.clear();
+	scales.clear();
 	delete coordinateIndexedMatrix ;
 	coordinateIndexedMatrix = nullptr ;
 	delete nonLinearPartialMatrix ;
