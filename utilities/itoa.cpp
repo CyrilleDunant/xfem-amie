@@ -13,7 +13,7 @@ std::string itoa(int value, int base) {
 
 	enum { kMaxDigits = 35 };
 	std::string buf;
-	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
+// 	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
 
 	// check that the base if valid
 	if (base < 2 || base > 16) return buf;
@@ -28,7 +28,7 @@ std::string itoa(int value, int base) {
 	} while ( quotient );
 	
 	// Append the negative sign for base 10
-	if ( value < 0 && base == 10) buf += '-';
+	if ( value < 0 && base == 10) buf += std::string("-");
 	
 	std::reverse( buf.begin(), buf.end() );
 	

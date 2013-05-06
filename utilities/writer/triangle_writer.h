@@ -119,7 +119,11 @@ public:
 
     virtual void append() ;
     int getCounter() { return counter ; }
-    void nextCounter() { counter++ ; filename = base + "_" + itoa(counter) ; }
+    void nextCounter() 
+		{
+			counter++ ; 
+			filename = base + std::string("_") + itoa(counter) ; 
+		}
     void resetCounter() { counter = 0 ; }
 
 protected:

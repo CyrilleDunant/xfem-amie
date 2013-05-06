@@ -184,9 +184,11 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRes
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
-GeometryDefinedBoundaryCondition * selfload = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -9025.2 ) ;
-GeometryDefinedBoundaryCondition * shrinkagey = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
-GeometryDefinedBoundaryCondition * shrinkagex = new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_ETA, new Rectangle( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) , -2e-3 ) ;
+
+Rectangle bcbox(sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5) ;
+GeometryDefinedBoundaryCondition selfload( SET_VOLUMIC_STRESS_ETA, &bcbox , -9025.2 ) ;
+GeometryDefinedBoundaryCondition shrinkagey( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
+GeometryDefinedBoundaryCondition shrinkagex( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
 size_t current_list = DISPLAY_LIST_STRAIN_XX ;
 double factor = 25 ;
 MinimumAngle cri( M_PI / 6. ) ;

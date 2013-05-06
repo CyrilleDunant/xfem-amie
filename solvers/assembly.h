@@ -303,10 +303,16 @@ public:
 // 	const Vector & getForces() const;
 	
 /** \brief return list of elements*/
-	std::vector<ElementarySurface *> getElements2d() const ;
+	const std::vector<ElementarySurface *> & getElements2d() const ;
 
 /** \brief return list of elements*/
 	std::vector<ElementarySurface *> & getElements2d()  ;
+	
+/** \brief return list of elements*/
+	const std::vector<double> & getScales() const ;
+
+/** \brief return list of elements*/
+	std::vector<double> & getScales()  ;
 
 /** \brief return ith element*/
 	ElementarySurface * getElement2d(const size_t ) const ;
@@ -315,7 +321,7 @@ public:
 	ElementarySurface * getElement2d(const size_t )  ;
 	
 /** \brief return list of elements*/
-	std::vector<ElementaryVolume *> getElements3d() const ;
+	const std::vector<ElementaryVolume *> & getElements3d() const ;
 
 /** \brief return list of elements*/
 	std::vector<ElementaryVolume *> & getElements3d()  ;

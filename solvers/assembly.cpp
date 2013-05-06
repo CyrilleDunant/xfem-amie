@@ -112,7 +112,7 @@ Vector & Assembly::getNonLinearForces()
 	return this->nonLinearExternalForces ;
 }
 
-std::vector<ElementarySurface *> Assembly::getElements2d() const
+const std::vector<ElementarySurface *> & Assembly::getElements2d() const
 {
 	return element2d ;
 }
@@ -133,7 +133,7 @@ ElementarySurface * Assembly::getElement2d(const size_t i)
 	return element2d[i] ;
 }
 
-std::vector<ElementaryVolume *> Assembly::getElements3d() const
+const std::vector<ElementaryVolume *> & Assembly::getElements3d() const
 {
 	return element3d ;
 }
@@ -153,6 +153,12 @@ ElementaryVolume * Assembly::getElement3d(const size_t i)
 	return element3d[i] ;
 }
 
+
+
+const std::vector<double> & Assembly::getScales() const { return scales ; }
+
+
+std::vector<double> & Assembly::getScales()   { return scales ; }
 
 void Assembly::add(ElementarySurface * e, double scale)
 {

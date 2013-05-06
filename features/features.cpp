@@ -2897,7 +2897,7 @@ void FeatureTree::setElementBehaviours()
 					}
 				}
 				
-				if(!tris[j]->getBehaviour() || tris[j]->getBehaviour()->type == VOID_BEHAVIOUR)
+				if(!tris[j]->getBehaviour())
 				{
 					tris[j]->setBehaviour( new VoidForm()) ;
 // 					std::cout << "null behaviour element (setBehaviour)" << std::endl ;
@@ -2991,7 +2991,7 @@ void FeatureTree::setElementBehaviours()
 			}
 			
 			
-			if(!tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+			if(!tetrahedrons[i]->getBehaviour())
 			{
 				tetrahedrons[i]->setBehaviour( new VoidForm()) ;
 			}
@@ -3292,6 +3292,7 @@ void FeatureTree::assemble()
 {
 	K->getElements2d().clear();
 	K->getElements3d().clear();
+	K->getScales().clear();
 	std::vector<DelaunayTriangle *> triangles ;
 	std::vector<DelaunayTetrahedron *> tetrahedrons ;
 

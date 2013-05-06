@@ -3066,30 +3066,36 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		if( true )
 		{
 			TetrahedralElement father(LINEAR) ;
-			double npoints = 256 ;
+			double npoints = 6 ;
 			
-			while( gp_alternative.size() < npoints )
+			
+			for(double i = 0 ; i <= 1 ; i += (1.-POINT_TOLERANCE_2D)/(npoints+1))
 			{
-				double x = ( double )rand() / ( double )RAND_MAX ;
-				double y = ( double )rand() / ( double )RAND_MAX ;
-				double z = ( double )rand() / ( double )RAND_MAX ;
-
-				if( father.in( Point( x, y, z ) ) )
-					gp_alternative.push_back( std::make_pair( Point( x, y, z ), 0.1666666666666667 / npoints ) ) ;
+				for(double j = 0 ; j <= 1 ; j += (1.-POINT_TOLERANCE_2D)/(npoints+1))
+				{
+					for(double k = 0 ; k <= 1 ; k += (1.-POINT_TOLERANCE_2D)/(npoints+1))
+					{
+						if( father.in( Point( i, j, k ) ) )
+							gp_alternative.push_back( std::make_pair( Point( i, j, k ), 1. / 6. ) ) ;
+					}
+				}
 			}
-
-			double j = volume() *6. ;
+			
+			
+// 			while( gp_alternative.size() < npoints )
+// 			{
+// 				double x = ( double )rand() / ( double )RAND_MAX ;
+// 				double y = ( double )rand() / ( double )RAND_MAX ;
+// 				double z = ( double )rand() / ( double )RAND_MAX ;
+// 
+// 				if( father.in( Point( x, y, z ) ) )
+// 					gp_alternative.push_back( std::make_pair( Point( x, y, z ), 1. / (npoints*6) ) ) ;
+// 			}
 
 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
 			{
-				if( !moved )
-				{
-					gp_alternative[i].second *= j ;
-				}
-				else
-				{
-					gp_alternative[i].second *= jacobianAtPoint( gp_alternative[i].first ) ;
-				}
+				double j = jacobianAtPoint( gp_alternative[i].first ) ;
+				gp_alternative[i].second *= j/gp_alternative.size() ;
 			}
 
 			if( gp.gaussPoints.size() < gp_alternative.size() )
@@ -3098,7 +3104,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
 			}
 
-// 			delete getCachedGaussPoints() ;
+			gp.id = REGULAR_GRID ;
 			setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 			return *getCachedGaussPoints() ;
 		}
@@ -3236,7 +3242,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 					gp_temp.gaussPoints[j].first.set( vm.eval( x, gp_temp.gaussPoints[j].first ), vm.eval( y, gp_temp.gaussPoints[j].first ), vm.eval( z, gp_temp.gaussPoints[j].first ) ) ;
 					if( !isFather && isMoved() )
-						gp_temp.gaussPoints[j].second *= std::abs(jacobianAtPoint( gp_temp.gaussPoints[j].first )) ;
+						gp_temp.gaussPoints[j].second *= jacobianAtPoint( gp_temp.gaussPoints[j].first ) ;
 					else
 						gp_temp.gaussPoints[j].second *= jac ;
 					

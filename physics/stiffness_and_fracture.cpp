@@ -124,7 +124,7 @@ void StiffnessAndFracture::setFractureCriterion(FractureCriterion * frac)
 {
 	if(frac)
 	{
-// //		delete criterion ;
+		delete criterion ;
 		criterion = frac ;
 	}
 	

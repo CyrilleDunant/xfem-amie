@@ -172,6 +172,8 @@ void ElementarySurface::setBehaviour(Form * f)
 	}
 	state = f->createElementState( this ) ;
 //	Form * old = behaviour ;
+	
+	delete behaviour ;
 	behaviour = f ;
 	if(init)
 	{
@@ -3496,39 +3498,39 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 	if(order < CONSTANT_TIME_LINEAR)
 	{
 
-		double xdxi = 0 ;//this->getdXTransform(XI,p) ;
-		double ydxi = 0 ;//this->getdYTransform(XI,p) ;
-		double zdxi = 0 ;//this->getdZTransform(XI,p) ;
+		double xdxi = this->getdXTransform(XI,p) ;
+		double ydxi = this->getdYTransform(XI,p) ;
+		double zdxi = this->getdZTransform(XI,p) ;
 		
-		double xdeta = 0 ;//this->getdXTransform(ETA,p) ;
-		double ydeta = 0 ;//this->getdYTransform(ETA,p) ;
-		double zdeta = 0 ;//this->getdZTransform(ETA,p) ;
+		double xdeta = this->getdXTransform(ETA,p) ;
+		double ydeta = this->getdYTransform(ETA,p) ;
+		double zdeta = this->getdZTransform(ETA,p) ;
 		
-		double xdzeta = 0 ;//this->getdXTransform(ZETA,p) ;
-		double ydzeta = 0 ;//this->getdYTransform(ZETA,p) ;
-		double zdzeta = 0 ;//this->getdZTransform(ZETA,p) ;
-		VirtualMachine vm ;
-		TetrahedralElement father(order) ;
-		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-		{
-			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
-			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
-			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p) ;
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
-			zdxi += dxi*getBoundingPoint(i).z ;
-
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
-			zdeta += deta*getBoundingPoint(i).z ;
-
-			xdzeta += dzeta*getBoundingPoint(i).x ;
-			ydzeta += dzeta*getBoundingPoint(i).y ;
-			zdzeta += dzeta*getBoundingPoint(i).z ;
-		}
+		double xdzeta = this->getdXTransform(ZETA,p) ;
+		double ydzeta = this->getdYTransform(ZETA,p) ;
+		double zdzeta = this->getdZTransform(ZETA,p) ;
+// 		VirtualMachine vm ;
+// 		TetrahedralElement father(order) ;
+// 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+// 		{
+// 			double dxi = vm.deval(father.getShapeFunction(i), XI, p.x, p.y. p.z) ;
+// 			double deta = vm.deval(father.getShapeFunction(i), ETA, p.x, p.y. p.z) ;
+// 			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p.x, p.y. p.z) ;
+// 			xdxi += dxi*getBoundingPoint(i).x ;
+// 			ydxi += dxi*getBoundingPoint(i).y ;
+// 			zdxi += dxi*getBoundingPoint(i).z ;
+// 
+// 			xdeta += deta*getBoundingPoint(i).x ;
+// 			ydeta += deta*getBoundingPoint(i).y ;
+// 			zdeta += deta*getBoundingPoint(i).z ;
+// 
+// 			xdzeta += dzeta*getBoundingPoint(i).x ;
+// 			ydzeta += dzeta*getBoundingPoint(i).y ;
+// 			zdzeta += dzeta*getBoundingPoint(i).z ;
+// 		}
 		
-		return -xdxi*ydeta*zdzeta - zdeta*xdzeta*ydxi - ydzeta*zdxi*xdeta  +
-			xdxi*ydzeta*zdeta + xdeta*ydxi*zdzeta + xdzeta*ydeta*zdxi ;
+		return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
+			xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
 	}
 	else
 	{
