@@ -1057,7 +1057,7 @@ void Triangle::sampleSurface(size_t num_points)
 	
 	size_t end_i = 3*boundingPoints.size()/3 ;
 	
-	for(int i = 0 ; i < (int)num_points-1 ; i++)
+	for(int i = 0 ; i < ((int)num_points-1)*2/3 ; i++)
 	{
 		for(int j = 0 ; j < i+1 ; j++)
 		{
@@ -2307,7 +2307,10 @@ void Ellipse::sampleSurface (size_t num_points)
 		for(size_t i = 0 ; i < newa.size() ; i++) 
 		{
 			Ellipse elln(center,getMajorAxis()*newa[i]/getMajorRadius(),getMinorAxis()*newb[i]/getMinorRadius()) ;
-			std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]) ;
+			
+			int factor = 2 + i/2 ;
+			
+			std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]*2/factor) ;
 
 			for(size_t j = 0 ; j < pn.size() ; j++)
 			{
