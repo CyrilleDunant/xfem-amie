@@ -76,5 +76,5 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
-	return new Viscoelasticity( PURE_ELASTICITY, param*factor )  ;
+	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2 )  ;
 }
