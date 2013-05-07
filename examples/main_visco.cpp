@@ -94,7 +94,7 @@ Sample box(nullptr, 1.,1.,0.,0.) ;
 
 int main(int argc, char *argv[])
 {	
-	Function x("x") ;
+/*	Function x("x") ;
 	Function y("y") ;
 	Function one("1") ;
 	Function zero("0") ;
@@ -116,15 +116,15 @@ int main(int argc, char *argv[])
  	std::cout << VirtualMachine().deval( z, XI, 1,5) << std::endl ;
 // 	std::cout << VirtualMachine().deval( x,XI, 1,2) << std::endl ;
 // 	std::cout << VirtualMachine().deval( x,ETA, 1,2) << std::endl ;
-	exit(0) ;
+	exit(0) ;*/
 /*
   
   
 	Vector toto ;
-	std::cout << toto.size() << std::endl ;
+	std::cout << toto.size() << std::endl ;*/
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(2) ;
-	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+/*	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
   	box.setBehaviour(new Stiffness(e)) ;
 	F.setOrder(LINEAR) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
@@ -171,8 +171,8 @@ int main(int argc, char *argv[])
 	return 0 ;
   
   
-	
-// 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+	*/
+ 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
   	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e)) ;
 
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 // 	  wrt.getField( TWFT_STIFFNESS) ;
 // 	  wrt.write() ;
 	  
-	}*/
+	}
 	 
 	
 	return 0 ;
