@@ -32,6 +32,8 @@ struct GaussPointArray ;
 struct ElementarySurface ;
 struct ElementaryVolume ;
 
+const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 4096 ;
+
 typedef enum
 {
 	POSITION_TOKEN,
@@ -71,6 +73,9 @@ class Function
 protected :
 	std::vector< Point > iPoint ;
 	std::valarray<Function *> * derivative ; 
+	std::vector<Function *> * transforms ;
+	bool derivativeTransformed = false ;
+	
 	/*void defaultInitialise()
 	{
 		derivative(nullptr),
@@ -115,13 +120,14 @@ protected:
 	std::map<int, std::map<Variable, Vector *> > dprecalc ;
 	
 public:
-	
+	std::vector<Variable> transformed ;	
 	bool hasGeoOp ;
 	void initialiseAdresses(size_t offset = 0) ;
 	std::vector<TokenOperationType> byteCode ;
 	std::valarray<GeometryOperation *> geo_op ;
 	std::vector<double> values ;
 	std::vector<unsigned short int> adress_a ;
+	std::vector<unsigned short int> adress_t ;
 // 	Function * xtransform ;
 // 	Function * ytransform ;
 // 	Function * ztransform ;
@@ -271,7 +277,16 @@ public:
 
 	bool isDifferentiable(const Variable v) const ;
 	bool isDifferentiable(size_t i) const ;
-
+	
+	bool hasVariableTransform() const { return transforms ; }
+	
+	void setVariableTransform( const Variable v, Function & f, bool replacetoken = true) ;
+	
+	void makeVariableTransformDerivative() ;
+	bool hasVariableTransformedDerivatives() const { return derivativeTransformed ; }
+	Function & transform(size_t i) ;
+	const Function & transform(size_t i) const ;
+	
 	/** \brief Return the set of points to use for sub-tesselation for integration
 	 * 
 	 * @return the set of points to use for sub-tesselation for integration

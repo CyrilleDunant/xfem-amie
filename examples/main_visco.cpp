@@ -94,47 +94,39 @@ Sample box(nullptr, 1.,1.,0.,0.) ;
 
 int main(int argc, char *argv[])
 {	
-/*	Function x("x") ;
+	Function x("x") ;
 	Function y("y") ;
+	Function t("t") ;
 	Function one("1") ;
 	Function zero("0") ;
-	Function mone("-1") ;
-	x.setNumberOfDerivatives(2);
-	y.setNumberOfDerivatives(2);
+	x.setNumberOfDerivatives(4);
+	y.setNumberOfDerivatives(4);
+	t.setNumberOfDerivatives(4);
 	x.setDerivative(XI,one) ;
 	y.setDerivative(ETA,one) ;
+	t.setDerivative(TIME_VARIABLE,one) ;
 	y.setDerivative(XI,zero) ;
 	x.setDerivative(ETA,zero) ;
-	Function z = x+y ;
-	z.setVariableTransform(XI,y);
-	VirtualMachine().print(z.d(XI)) ;
-	VirtualMachine().print(z.d(ETA)) ;
-	z.setVariableTransform(ETA,x);
-	VirtualMachine().print(z.d(XI)) ;
-	VirtualMachine().print(z.d(ETA)) ;
- 	std::cout << VirtualMachine().eval( z, 1,5) << std::endl ;
- 	std::cout << VirtualMachine().deval( z, XI, 1,5) << std::endl ;
-// 	std::cout << VirtualMachine().deval( x,XI, 1,2) << std::endl ;
-// 	std::cout << VirtualMachine().deval( x,ETA, 1,2) << std::endl ;
-	exit(0) ;*/
-/*
+	y.setDerivative(ZETA,zero) ;
+	x.setDerivative(ZETA,zero) ;
+	y.setDerivative(TIME_VARIABLE,zero) ;
+	x.setDerivative(TIME_VARIABLE,zero) ;
+	t.setDerivative(XI,zero) ;
+	t.setDerivative(ETA,zero) ;
+	t.setDerivative(ZETA,zero) ;
   
   
 	Vector toto ;
-	std::cout << toto.size() << std::endl ;*/
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(2) ;
-/*	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
   	box.setBehaviour(new Stiffness(e)) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
 	F.step() ;
 	
 	toto = F.getDisplacements() ;
-	std::cout << toto.size() << std::endl ;
-	std::cout << toto[19] << std::endl ;
-	exit(0) ;
 	
 	DelaunayTriangle* tri = F.getElements2D()[0] ;
 	Point c(0.27,0.35) ;
@@ -145,34 +137,42 @@ int main(int argc, char *argv[])
 	Function position = f_sqrt((tri->getXTransform()-c.x)*(tri->getXTransform()-c.x) +
 		                           (tri->getYTransform()-c.y)*(tri->getYTransform()-c.y)) ;
 	Function hat = 1.-f_abs(position-radius);
+	hat *= (t+1) ;
 	
 	Function otherPosition = f_sqrt( (y - c.y)*(y - c.y) + (x - c.x)*(x - c.x) ) ;
 	Function otherHat = 1.-f_abs( otherPosition - radius ) ;
+	otherHat *= t ;
 // 	otherHat.setNumberOfVariableTransforms(2);
 	Function dx = tri->getXTransform() ;
 	Function dy = tri->getYTransform() ;
-// 	otherHat.setVariableTransform(XI, dx);
-// 	otherHat.setVariableTransform(ETA, dy);
+ 	otherHat.setVariableTransform(XI, dx);
+ 	otherHat.setVariableTransform(ETA, dy);
+	
+	Function dt = t+1 ;
+ 	otherHat.setVariableTransform(TIME_VARIABLE, dt);
+	
+	otherHat.makeVariableTransformDerivative() ;
 	
 	tri->getBoundingPoint(0).print() ;
 	tri->getBoundingPoint(1).print() ;
 	tri->getBoundingPoint(2).print() ;
 	
-	Point p(0,1) ;
+	Point p(0,1,0,1) ;
 	Point dummy ;
 	
-	std::cout << VirtualMachine().deval( hat, XI, p ) << std::endl ;
-	std::cout << VirtualMachine().deval( otherHat, XI, p ) << std::endl ;
+	std::cout << otherHat.getNumberOfDerivatives() << std::endl ;
+	std::cout << hat.getNumberOfDerivatives() << std::endl ;
 	
-	
+	std::cout << VirtualMachine().ddeval( hat, XI, TIME_VARIABLE, p ) << std::endl ;
+	std::cout << VirtualMachine().ddeval( otherHat, XI, TIME_VARIABLE, p ) << std::endl ;	
 	
 	
   
 	return 0 ;
   
   
-	*/
- 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+	
+// 	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
   	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e)) ;
 
 	F.setOrder(LINEAR_TIME_LINEAR) ;

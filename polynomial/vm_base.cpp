@@ -26,6 +26,11 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	stack.memory.heap[6] = v ;
 	stack.memory.heap[7] = w ;
 	
+	for(size_t i = 0 ; i < f.adress_t.size() ; i++)
+	{
+		stack.memory.heap[f.adress_t[i] ] = eval( f.transform(i),x,y,z,t,u,v,w) ;
+	}
+	
 	std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
 	  
 	for(size_t i = 0 ; i < size  ; ++i)
@@ -1021,6 +1026,13 @@ double VirtualMachine::deval(const Function &f, const Variable v_,  const double
 {
 	if(f.isDifferentiable(v_))
 	{
+// 		if(f.adress_t.size() > 0)
+// 		{
+// 			double df = 0 ;
+// 			for(size_t i = 0 ; i < f.adress_t.size() ; i++)
+// 				df += deval( f.transform(i), v_, x,y,z,t,u,v ) ;
+// 			return df * eval(f.d(v_), x, y, z, t, u, v, w) ;
+// 		}
 		return eval(f.d(v_), x, y, z, t, u, v, w) ;
 	}
 	else

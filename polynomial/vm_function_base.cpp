@@ -41,6 +41,28 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 		}
 	}
 	
+ 	tmpdst.adress_t.resize( src0.adress_t.size() + src1.adress_t.size(), 0) ;
+ 	for(size_t i = 0 ; i < tmpdst.adress_t.size() ; i++)
+ 		tmpdst.adress_t[i] = HEAP_VARIABLE_TRANSFORM_OFFSET + i ;
+
+	if(src0.adress_t.size() != src0.transformed.size() )
+	{
+		std::cout << "la???" << std::endl ;
+//		VirtualMachine().print(src0) ;
+	}
+	
+	for(size_t i = 0 ; i < src0.adress_t.size() ; i++)
+	{
+		Function f = src0.transform(i) ;
+		tmpdst.setVariableTransform( src0.transformed[i], f, false);
+	}
+
+	for(size_t i = 0 ; i < src1.adress_t.size() ; i++)
+	{
+		Function f = src1.transform(i) ;
+		tmpdst.setVariableTransform( src1.transformed[i], f , false);
+	}
+	
 	for(size_t i = 0 ; i < src1.byteCode.size() ; i++)
 	{
 		tmpdst.byteCode.push_back(src1.byteCode[i])  ;
@@ -68,12 +90,26 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
 			tmpdst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]-src0.values.size() ;
 		}
 		
+
 		if(src1.adress_a[i*4] >= 8 && src1.adress_a[i*4] < HEAP_SIZE-src1.values.size())
 			tmpdst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4]+1 ;
 		if(src1.adress_a[i*4+1] >= 8 && src1.adress_a[i*4+1] < HEAP_SIZE-src1.values.size())
 			tmpdst.adress_a[(i+src0.byteCode.size())*4+1] = src1.adress_a[i*4+1]+1 ;
 		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < HEAP_SIZE-src1.values.size())
 			tmpdst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]+1 ;
+		
+		if(src1.adress_a[i*4] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4] < HEAP_SIZE - src1.values.size()-1)
+		{
+			tmpdst.adress_a[ (i+src0.byteCode.size())*4 ] = src1.adress_a[i*4]+src0.adress_t.size() ;
+		}
+		if(src1.adress_a[i*4+1] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+1] < HEAP_SIZE - src1.values.size()-1)
+		{
+			tmpdst.adress_a[ (i+src0.byteCode.size())*4+1 ] = src1.adress_a[i*4+1]+src0.adress_t.size() ;
+		}
+		if(src1.adress_a[i*4+2] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+2] < HEAP_SIZE - src1.values.size()-1)
+		{
+			tmpdst.adress_a[ (i+src0.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size() ;
+		}
 		
 		if(src1.adress_a[i*4] < 8 )
 			tmpdst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4] ;
@@ -110,7 +146,29 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 			if(src0.geo_op[i])
 				dst.geo_op[i] = src0.geo_op[i]->getCopy() ;
 		}
-	
+
+ 	dst.adress_t.resize( src0.adress_t.size() + src1.adress_t.size() + src2.adress_t.size(), 0) ;
+ 	for(size_t i = 0 ; i < dst.adress_t.size() ; i++)
+ 		dst.adress_t[i] = HEAP_VARIABLE_TRANSFORM_OFFSET + i ;
+
+	for(size_t i = 0 ; i < src0.adress_t.size() ; i++)
+	{
+		Function f = src0.transform(i) ;
+		dst.setVariableTransform( src0.transformed[0], f, false);
+	}
+
+	for(size_t i = 0 ; i < src1.adress_t.size() ; i++)
+	{
+		Function f = src1.transform(i) ;
+		dst.setVariableTransform( src1.transformed[i], f , false);
+	}
+		
+	for(size_t i = 0 ; i < src2.adress_t.size() ; i++)
+	{
+		Function f = src2.transform(i) ;
+		dst.setVariableTransform( src2.transformed[i], f , false);
+	}
+		
 	for(size_t i = 0 ; i < src1.byteCode.size() ; i++)
 	{
 		dst.byteCode.push_back(src1.byteCode[i]) ;
@@ -146,6 +204,19 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 		
 		if(src1.adress_a[i*4+2] >= 8 && src1.adress_a[i*4+2] < HEAP_SIZE-src1.values.size())
 			dst.adress_a[(i+src0.byteCode.size())*4+2] = src1.adress_a[i*4+2]+1 ;
+
+		if(src1.adress_a[i*4] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4] < HEAP_SIZE - src1.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size())*4 ] = src1.adress_a[i*4]+src0.adress_t.size() ;
+		}
+		if(src1.adress_a[i*4+1] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+1] < HEAP_SIZE - src1.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size())*4+1 ] = src1.adress_a[i*4+1]+src0.adress_t.size() ;
+		}
+		if(src1.adress_a[i*4+2] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src1.adress_a[i*4+2] < HEAP_SIZE - src1.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size() ;
+		}
 		
 		if(src1.adress_a[i*4] < 8 )
 			dst.adress_a[(i+src0.byteCode.size())*4] = src1.adress_a[i*4] ;
@@ -192,6 +263,19 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 		
 		if(src2.adress_a[i*4+2] >= 8 && src2.adress_a[i*4+2] < HEAP_SIZE-src2.values.size())
 			dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2]+2 ;
+
+		if(src2.adress_a[i*4] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4] < HEAP_SIZE - src2.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4 ] = src2.adress_a[i*4]+src0.adress_t.size()+src1.adress_t.size() ;
+		}
+		if(src2.adress_a[i*4+1] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4+1] < HEAP_SIZE - src2.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+1 ] = src2.adress_a[i*4+1]+src0.adress_t.size()+src1.adress_t.size() ;
+		}
+		if(src2.adress_a[i*4+2] >= HEAP_VARIABLE_TRANSFORM_OFFSET && src2.adress_a[i*4+2] < HEAP_SIZE - src2.values.size()-1)
+		{
+			dst.adress_a[ (i+src0.byteCode.size()+src1.byteCode.size())*4+2 ] = src1.adress_a[i*4+2]+src0.adress_t.size()+src1.adress_t.size() ;
+		}
 		
 		if(src2.adress_a[i*4] < 8 )
 			dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4] = src2.adress_a[i*4] ;
@@ -202,6 +286,8 @@ void concatenateFunctions(const Function & src0_, const Function & src1_, const 
 		if(src2.adress_a[i*4+2] < 8 )
 			dst.adress_a[(i+src0.byteCode.size()+src1.byteCode.size())*4+2] = src2.adress_a[i*4+2] ;
 	}
+
+  
 }
 
 
@@ -401,6 +487,7 @@ VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const
 
 
 Function::Function() : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
 		dofID(-1),
@@ -423,6 +510,14 @@ Function & Function::operator=(const Function &f)
 			delete (*derivative)[i] ;
 		
 	delete derivative ;
+
+	if(transforms)
+		for(size_t i = 0 ; i < transforms->size() ; i++)
+			delete (*transforms)[i] ;
+		
+	delete transforms ;
+	adress_t.clear() ;
+	transformed.clear() ;
 	
 	for(auto i = precalc.begin() ; i != precalc.end() ; ++i)
 		delete i->second ;
@@ -443,7 +538,19 @@ Function & Function::operator=(const Function &f)
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)
 			(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
 	}
-	
+
+	transforms = nullptr ;
+	if(f.transforms)
+	{
+		transforms = new std::vector<Function *>() ;
+		for(size_t i = 0 ; i < f.transforms->size() ; i++)
+		{
+			transforms->push_back(new Function(*(*f.transforms)[i])) ;
+			transformed.push_back(f.transformed[i]);
+			adress_t.push_back(f.adress_t[i]);
+		}
+	}
+
 	if(hasGeoOp)
 	{
 		for(size_t i = 0 ; i < byteCode.size() ; i++)
@@ -1260,6 +1367,7 @@ void Function::initialiseAdresses(size_t offset)
 }
 
 Function::Function(const char *f): derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
 		dofID(-1),
@@ -1285,6 +1393,7 @@ Function::Function(const char *f): derivative(nullptr),
 }
 
 Function::Function(const std::string &f, int n) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
 		dofID(-1),
@@ -1308,6 +1417,7 @@ Function::Function(const std::string &f, int n) : derivative(nullptr),
 }
 
 Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1331,6 +1441,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 }
 
 Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1352,6 +1463,7 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 }
 
 Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1375,6 +1487,7 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 }
 
 Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		adress_a(HEAP_SIZE*4),
@@ -1393,6 +1506,7 @@ Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
 
 
 Function::Function(double a,const Point & p,   ElementarySurface * s): derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1412,6 +1526,7 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
 }
 
 Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1465,6 +1580,7 @@ Function f_project(const Geometry *g, const Function &x, const Function &y)
 }
 
 Function::Function(const std::vector<Segment> s , ElementarySurface * u, PositionTokenType t) : derivative(nullptr),
+		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
@@ -1506,7 +1622,8 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 	initialiseAdresses();
 }
 
-Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode), geo_op((GeometryOperation*)nullptr,f.geo_op.size()),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
+Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode),transforms(nullptr),
+ geo_op((GeometryOperation*)nullptr,f.geo_op.size()),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
 {
 	if(f.derivative)
 	{
@@ -1520,6 +1637,17 @@ Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode), 
 	else
 	{
 		derivative = nullptr ;
+	}
+	
+	if(f.transforms)
+	{
+		transforms = new std::vector<Function *>() ;
+		for(size_t i = 0 ; i < f.transforms->size() ; i++)
+		{
+			transforms->push_back(new Function(*(*f.transforms)[i]));
+			adress_t.push_back(f.adress_t[i]);
+			transformed.push_back(f.transformed[i]);
+		}
 	}
 		
 
@@ -1604,9 +1732,136 @@ bool Function::isDifferentiable(size_t v) const
 int Function::getNumberOfDerivatives() const 
 {
 	if(derivative)
+	{
 		return derivative->size() ;
+	}
 	return 0 ;
 }
+
+void Function::setVariableTransform( const Variable v, Function & f, bool replaceToken) 
+{
+	if( derivativeTransformed )
+	{
+		  std::cout << "try to add variable transform to derived function - do nothing instead" << std::endl ;
+		  return ;
+	}
+    
+	if(!transforms)
+		transforms = new std::vector<Function *>() ;
+	
+	transforms->push_back(new Function(f));
+	transformed.push_back(v) ;
+	
+	if(replaceToken)
+	{
+		adress_t.push_back( HEAP_VARIABLE_TRANSFORM_OFFSET+adress_t.size() );
+		size_t last = adress_t.size()-1 ;
+		for(size_t i = 0 ; i < byteCode.size() ; i++)
+		{
+//			std::cout << adress_a[i*4] << "\t" << adress_a[i*4+1] << "\t" << adress_a[i*4+2] << "\t" << adress_a[i*4+3] << "\n" ;
+			if(adress_a[ i*4 ] == (size_t) v+1)
+				  adress_a[ i*4 ] = adress_t[last] ;
+			if(adress_a[ i*4 +1 ] == (size_t) v+1)
+				  adress_a[ i*4 +1 ] = adress_t[last] ;
+			if(adress_a[ i*4 +2 ] == (size_t) v+1)
+				  adress_a[ i*4 +2 ] = adress_t[last] ;
+			if(adress_a[ i*4 +3 ] == (size_t) v+1)
+				  adress_a[ i*4 +3 ] = adress_t[last] ;
+		}
+	}
+}
+
+void Function::makeVariableTransformDerivative() 
+{
+	derivativeTransformed = true ;
+  
+	if(!derivative)
+	{
+		return ;
+	}
+	
+	for(size_t j = 0 ; j <derivative->size() ; j++)
+	{
+		for(size_t i = 0 ; i < transforms->size() ; i++)
+		{
+			if(! (*transforms)[i]->isDifferentiable(j) )
+			{
+				for(size_t k = 0 ; k < derivative->size() ; k++)
+					delete (*derivative)[k] ;
+				delete derivative ;
+				derivative = nullptr ;
+				e_diff = false ;
+//				std::cout << "no replacement derivative - out" << std::endl ;
+				return ;
+			}
+		}
+	}
+	
+	std::vector<Function *> original ;
+	for(size_t i = 0 ; i < derivative->size() ; i++)
+		original.push_back((*derivative)[i]);
+  
+	std::vector<Function *> replacements ;
+	for(size_t i = 0 ; i < original.size() ; i++)
+		replacements.push_back( nullptr );
+	
+	for(size_t i = 0 ; i < transforms->size() ; i++)
+	{
+		if( !replacements[ transformed[i] ] )
+			replacements[ transformed[i] ] = (*transforms)[i] ;
+	}
+	
+	for(size_t i = 0 ; i < derivative->size() ; i++)
+	{
+// 		std::cout << "  << " << i << " >>" << std::endl ;
+		Function newderivative ;
+		bool initialized = false ;
+		for(size_t j = 0 ; j < replacements.size() ; j++)
+		{
+// 			std::cout << "  [[ " << j << " ]]" << std::endl ;
+			if(replacements[j] ) 
+			{
+				Function oldderivative = *(original[j]) ;
+				for(size_t k = 0 ; k < replacements.size() ; k++)
+				{
+					if(replacements[k])
+						oldderivative.setVariableTransform( (const Variable) k, *(replacements[k]) );
+				}
+				oldderivative.makeVariableTransformDerivative() ;
+				oldderivative *= replacements[j]->d( (const Variable) i ) ;
+				if(! initialized )
+				{
+					newderivative = oldderivative ;
+					initialized = true ;
+				}
+				else
+				{
+// 					std::cout << newderivative.adress_t.size() << " --- " << newderivative.transformed.size() << std::endl ;
+					newderivative += oldderivative ;
+				}
+			}
+			else if( i == j )
+			{
+				if(! initialized )
+				{
+					newderivative = *(original[i]) ;
+					initialized = true ;
+				}
+				else
+					newderivative += *(original[i]) ;
+			}
+		}
+		
+		(*derivative)[i] = new Function(newderivative) ;
+
+	  
+	}
+	
+	for(size_t i = 0 ; i < original.size() ; i++)
+		delete original[i] ;
+  
+}
+
 
 
 Function Function::operator*(const Function &f) const
@@ -2392,6 +2647,16 @@ const Function & Function::d(const Variable v) const
 Function & Function::d(const Variable v) 
 {
 	return *(*derivative)[v] ;
+}
+
+const Function & Function::transform(size_t i) const
+{
+	return *(*transforms)[i] ;
+}
+
+Function & Function::transform(size_t i) 
+{
+	return *(*transforms)[i] ;
 }
 
 std::valarray<Function *> & Function::getDerivatives() const
