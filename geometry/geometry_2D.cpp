@@ -1057,12 +1057,12 @@ void Triangle::sampleSurface(size_t num_points)
 	
 	size_t end_i = 3*boundingPoints.size()/3 ;
 	
-	for(int i = 0 ; i < ((int)num_points-1)*2/3 ; i++)
+	for(int i = 0 ; i < ((int)num_points-1) ; i+=2)
 	{
-		for(int j = 0 ; j < i+1 ; j++)
+		for(int j = 0 ; j < i+1 ; j+=2)
 		{
 			double fact = (double)(j+1)/(double)(i+1) ;
-			double d = dist(getBoundingPoint(i+1), getBoundingPoint(end_i-1-i))*0.17/(i+1.) ;
+			double d = dist(getBoundingPoint(i+1), getBoundingPoint(end_i-1-i))*0.17/num_points ;
 			double xrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
 			double yrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
 			if(this->in(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)))
@@ -2292,25 +2292,28 @@ void Ellipse::sampleSurface (size_t num_points)
 		std::vector<double> newb ;
 		std::vector<size_t> newn ;
 
-		double minn = (double) num_points * std::pow(0.7,(double) ring) ;
+		double minn = (double) num_points * std::pow(0.5,(double) ring) ;
+		size_t inc = 1 ;
+		if(ring > 4)
+			inc++ ;
 
 		for(size_t i = 0 ; i < ring ; i++) 
 		{
-			newa.push_back(getMinorRadius() * (ring - i) / (ring + 1) + (getMajorRadius() - getMinorRadius()) * (ring - i - 1) / (ring)) ;
+			newa.push_back(getMajorRadius() * (ring - i) / (ring + 1) ) ;
 			newb.push_back(getMinorRadius() * (ring - i) / (ring + 1) ) ;
-			newn.push_back(num_points - (size_t) ((double) num_points - minn)*(double) (i+1) / (double) (ring+1)) ;
+			newn.push_back(  (size_t) ((double) num_points) * ((double) (ring-i)*(ring-i) / (double) ((ring+1)*(ring+1)))) ;
 		}
 
 		std::vector<Point> toadd ;
 		int rm = 0 ;
 
-		for(size_t i = 0 ; i < newa.size() ; i++) 
+		for(size_t i = 0 ; i < newa.size() ; i+=inc) 
 		{
 			Ellipse elln(center,getMajorAxis()*newa[i]/getMajorRadius(),getMinorAxis()*newb[i]/getMinorRadius()) ;
 			
-			int factor = 2 + i/2 ;
+//			int factor = 2 + i/2 ;
 			
-			std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]*2/factor) ;
+			std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]) ;
 
 			for(size_t j = 0 ; j < pn.size() ; j++)
 			{
@@ -2461,4 +2464,5 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	return bbox ;
 
 }
+
 
