@@ -25,6 +25,8 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 {
 	filename = f ;
 	source = F ;
+	counter = 0 ;
+	values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
 
 	if( source != nullptr )
 	{
@@ -50,7 +52,7 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 				timePlane.back() = tri[0]->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
-			values.push_back( std::vector<std::valarray<double> >( 0 ) );
+			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
 
 		}
 
@@ -77,7 +79,9 @@ MultiTriangleWriter::MultiTriangleWriter(std::string h, std::string b, FeatureTr
 
 void TriangleWriter::reset( FeatureTree *F, int t )
 {
-	values.clear() ;
+	if(counter > values.size()-1)
+		values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
+	values.back().clear() ;
 	nTriangles.clear();
 	layers.clear();
 	timePlane.clear() ;
@@ -109,7 +113,7 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 				timePlane.back() = tri[0]->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
-			values.push_back( std::vector<std::valarray<double> >( 0 ) );
+			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
 
 		}
 		getField( TWFT_COORDINATE, false ) ;
@@ -180,63 +184,88 @@ void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
 
 void TriangleWriter::writeSvg(double factor)
 {
-		double maxx = 0 ;
-		double maxy = 0 ;
-		double minx = 0 ;
-		double miny = 0 ;
+	double maxx = 0 ;
+	double maxy = 0 ;
+	double minx = 0 ;
+	double miny = 0 ;
+	
+	for(size_t j = 0 ; j < counter ; j++)
+	{
 		for( int i = 0 ; i < nTriangles[0] ; i++ )
 		{
-				maxx = std::max(std::max(std::max(maxx,values[0][0][i]+values[0][6][i]*factor) ,values[0][2][i]+values[0][8][i]*factor),values[0][4][i]+values[0][10][i]*factor) ;
-				maxy = std::max(std::max(std::max(maxy,-values[0][1][i]-values[0][7][i]*factor) ,-values[0][3][i]-values[0][9][i]*factor),-values[0][5][i]-values[0][11][i]*factor) ;
-				minx = std::min(std::min(std::min(minx,values[0][0][i]+values[0][6][i]*factor) ,values[0][2][i]+values[0][8][i]*factor),values[0][4][i]+values[0][10][i]*factor) ;
-				miny = std::min(std::min(std::min(miny,-values[0][1][i]-values[0][7][i]*factor) ,-values[0][3][i]-values[0][9][i]*factor),-values[0][5][i]-values[0][11][i]*factor) ;
+				maxx = std::max(std::max(std::max(maxx,values[j][0][0][i]+values[j][0][6][i]*factor) ,values[j][0][2][i]+values[j][0][7][i]*factor),values[j][0][4][i]+values[j][0][8][i]*factor) ;
+				maxy = std::max(std::max(std::max(maxy,-values[j][0][1][i]-values[j][0][9][i]*factor) ,-values[j][0][3][i]-values[j][0][10][i]*factor),-values[j][0][5][i]-values[j][0][11][i]*factor) ;
+				minx = std::min(std::min(std::min(minx,values[j][0][0][i]+values[j][0][6][i]*factor) ,values[j][0][2][i]+values[j][0][7][i]*factor),values[j][0][4][i]+values[j][0][8][i]*factor) ;
+				miny = std::min(std::min(std::min(miny,-values[j][0][1][i]-values[j][0][9][i]*factor) ,-values[j][0][3][i]-values[j][0][10][i]*factor),-values[j][0][5][i]-values[j][0][11][i]*factor) ;
 		}
-		// assume that we want the total height to be 400 px
-		double gfactor = 400./(maxy-miny) ;
-		std::fstream outfile ;
-		outfile.open((filename+".svg").c_str(), std::ios::out | std::ios::app);
-		outfile << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
-		
-	for( size_t k = 0 ; k < layers.size() ; k++ )
+	}
+	// assume that we want the total height to be 400 px
+	double gfactor = 400./(maxy-miny) ;
+	std::vector<std::fstream> outfile(counter) ;
+	for(size_t m = 0 ; m < counter ; m++)
 	{
-		outfile << "\t<g>" << std::endl ;
-		for(size_t j = 6 ; j < values[0].size() ; j+=3)
+		outfile[m].open((base + std::string("_") + itoa(m)+".svg").c_str(), std::ios::out | std::ios_base::trunc);
+		outfile[m] << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values.back()[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
+	}
+	
+	std::vector<double> minval ;
+	std::vector<double> maxval ;
+
+	for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
+	{
+		minval.push_back(values.back()[0][j][0]) ;
+		maxval.push_back(values.back()[0][j][0]) ;
+		for(size_t m = 0 ; m < counter ; m++)
 		{
-			double maxval = values[0][j][0] ;
-			double minval = values[0][j][0] ;
 			for( size_t l = 0 ; l < layers.size() ; l++ )
 			{
 				for( int i = 0 ; i < nTriangles[0] ; i++ )
 				{
-					maxval = std::max(values[l][j][i], maxval) ;
-					minval = std::min(values[l][j][i], minval) ;
+					maxval.back() = std::max(values[m][l][j][i], maxval.back()) ;
+					minval.back() = std::min(values[m][l][j][i], minval.back()) ;
 				}
 			}
-			if (std::abs(maxval-minval) < POINT_TOLERANCE_2D)
-			{
-				minval = 0 ;
-				maxval = 1 ;
-			}
-			outfile << "\t\t<g>" << std::endl ;
-			for( int i = 0 ; i < nTriangles[0] ; i++ )
-			{
-				double val = (values[k][j][i]+values[k][j+1][i]+values[k][j+2][i])/3. ;
-				double r,g,b ;
-				HSVtoRGB(&r,&g,&b,360.-300.*(maxval-val)/(maxval-minval), 1., 1.);
-				
-				outfile << "\t\t\t<polygon points =\"" <<  gfactor*(minx+values[k][0][i]+values[k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][1][i]-values[k][7][i]*factor) << " "
-																				<<  gfactor*(minx+values[k][2][i]+values[k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][3][i]-values[k][9][i]*factor) << " "
-																				<<  gfactor*(minx+values[k][4][i]+values[k][10][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][5][i]-values[k][11][i]*factor)<< " " 
-																				<< "\" style=\"stroke-width:1;stroke:black;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
-
-				outfile << " />" << std::endl ;
-			}
-			outfile << "\t\t</g>" << std::endl ;
 		}
-		outfile << "\t</g>" << std::endl ;
+		if (std::abs(maxval.back()-minval.back()) < POINT_TOLERANCE_2D)
+		{
+			minval.back() = 0 ;
+			maxval.back() = 1 ;
+		}
 	}
-	outfile << "</svg>"<< std::endl ;
-	outfile.close();
+
+	
+	for(size_t m = 0 ; m < counter ; m++)
+	{
+		for( size_t k = 0 ; k < layers.size() ; k++ )
+		{
+			outfile[m] << "\t<g>" << std::endl ;
+			int jit = 0 ;
+			for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
+			{
+				outfile[m] << "\t\t<!-- maxval = " <<  maxval[jit] << ", minval = " << minval[jit] << "-->" << std::endl ;
+				outfile[m] << "\t\t<g>" << std::endl ;
+				for( int i = 0 ; i < nTriangles[0] ; i++ )
+				{
+					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
+					double r,g,b ;
+					HSVtoRGB(&r,&g,&b,360.-300.*(maxval[jit]-val)/(maxval[jit]-minval[jit]), 1., 1.);
+					
+					outfile[m] << "\t\t\t<polygon points =\"" 
+					           <<  gfactor*(minx+values[m][k][0][i]+values[m][k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][1][i]-values[m][k][9][i]*factor) << " "
+										 <<  gfactor*(minx+values[m][k][2][i]+values[m][k][7][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][3][i]-values[m][k][10][i]*factor) << " "
+										 <<  gfactor*(minx+values[m][k][4][i]+values[m][k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][5][i]-values[m][k][11][i]*factor)<< " " 
+										 << "\" style=\"stroke-width:1;stroke:black;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
+
+					outfile[m] << " />" << std::endl ;
+				}
+				outfile[m] << "\t\t</g>" << std::endl ;
+				jit++ ;
+			}
+			outfile[m] << "\t</g>" << std::endl ;
+		}
+		outfile[m] << "</svg>"<< std::endl ;
+		outfile[m].close();
+	}
 	
 }
 
@@ -249,9 +278,9 @@ void TriangleWriter::write()
 
 	for( int i = 0 ; i < nTriangles[0] ; i++ )
 	{
-		for( size_t j = 0 ; j < values[0].size() ; j++ )
+		for( size_t j = 0 ; j < values.back()[0].size() ; j++ )
 		{
-			outfile << values[0][j][i] << " " ;
+			outfile << values.back()[0][j][i] << " " ;
 		}
 
 		outfile << std::endl ;
@@ -268,9 +297,9 @@ void TriangleWriter::write()
 
 		for( int i = 0 ; i < nTriangles[k] ; i++ )
 		{
-			for( size_t j = 0 ; j < values[k].size() ; j++ )
+			for( size_t j = 0 ; j < values.back()[k].size() ; j++ )
 			{
-				outfile << values[k][j][i] << " " ;
+				outfile << values.back()[k][j][i] << " " ;
 			}
 
 			outfile << std::endl ;
@@ -285,11 +314,11 @@ void BinaryTriangleWriter::write()
 	writeHeader( false ) ;
 
 	std::vector<std::valarray<unsigned char> > norm ;
-	std::valarray<bool> voids( false, values[0][0].size() ) ;
+	std::valarray<bool> voids( false, values.back()[0][0].size() ) ;
 
-	for( size_t i = 6 ; i < values[0].size() ; i++ )
+	for( size_t i = 6 ; i < values.back()[0].size() ; i++ )
 	{
-		std::valarray<unsigned char> n = normalizeArray( values[0][i], voids ) ;
+		std::valarray<unsigned char> n = normalizeArray( values.back()[0][i], voids ) ;
 		norm.push_back( n ) ;
 	}
 
@@ -299,9 +328,9 @@ void BinaryTriangleWriter::write()
 	for( int i = 0 ; i < nTriangles[0] ; i++ )
 	{
 		for( size_t j = 0 ; j < 6 ; j++ )
-			outbin << values[0][j][i] << " " ;
+			outbin << values.back()[0][j][i] << " " ;
 
-		for( size_t j = 6 ; j < values[0].size() ; j++ )
+		for( size_t j = 6 ; j < values.back()[0].size() ; j++ )
 		{
 			unsigned char val = norm[j - 6][i] ;
 			outbin << ( unsigned short int ) val << " " ;
@@ -325,9 +354,9 @@ void TriangleWriter::append()
 
 		for( int i = 0 ; i < nTriangles[k] ; i++ )
 		{
-			for( size_t j = 0 ; j < values[k].size() ; j++ )
+			for( size_t j = 0 ; j < values.back()[k].size() ; j++ )
 			{
-				outfile << values[k][j][i] << " " ;
+				outfile << values.back()[k][j][i] << " " ;
 			}
 
 			outfile << std::endl ;
@@ -345,9 +374,9 @@ void BinaryTriangleWriter::append()
 	std::vector<std::valarray<unsigned char> > norm ;
 	std::valarray<bool> voids( false, values[0].size() ) ;
 
-	for( size_t i = 6 ; i < values.size() ; i++ )
+	for( size_t i = 6 ; i < values.back().size() ; i++ )
 	{
-		std::valarray<unsigned char> n = normalizeArray( values[0][i], voids ) ;
+		std::valarray<unsigned char> n = normalizeArray( values.back()[0][i], voids ) ;
 		norm.push_back( n ) ;
 	}
 
@@ -357,9 +386,9 @@ void BinaryTriangleWriter::append()
 	for( int i = 0 ; i < nTriangles[0] ; i++ )
 	{
 		for( size_t j = 0 ; j < 6 ; j++ )
-			outbin << values[0][j][i] << " " ;
+			outbin << values.back()[0][j][i] << " " ;
 
-		for( size_t j = 6 ; j < values[0].size() ; j++ )
+		for( size_t j = 6 ; j < values.back()[0].size() ; j++ )
 		{
 			unsigned char val = norm[j - 6][i] ;
 			outbin << ( unsigned short int ) val << " " ;
@@ -373,21 +402,19 @@ void BinaryTriangleWriter::append()
 
 void MultiTriangleWriter::append()
 {
-
 	writeHeader( layers[0], true ,true ) ;
 	std::fstream outfile  ;
 	outfile.open( filename.c_str(), std::ios::out | std::ios::app ) ;
 
 	for( int i = 0 ; i < nTriangles[0] ; i++ )
 	{
-		for( size_t j = 0 ; j < values[0].size() ; j++ )
+		for( size_t j = 0 ; j < values.back()[0].size() ; j++ )
 		{
-			outfile << values[0][j][i] << " " ;
+			outfile << values.back()[0][j][i] << " " ;
 		}
 
 		outfile << std::endl ;
 	}
-
 	outfile.close();
 
 	std::string filename_orig = filename;
@@ -399,9 +426,9 @@ void MultiTriangleWriter::append()
 
 		for( int i = 0 ; i < nTriangles[k] ; i++ )
 		{
-			for( size_t j = 0 ; j < values[k].size() ; j++ )
+			for( size_t j = 0 ; j < values.back()[k].size() ; j++ )
 			{
-				outfile << values[k][j][i] << " " ;
+				outfile << values.back()[k][j][i] << " " ;
 			}
 
 			outfile << std::endl ;
@@ -409,7 +436,6 @@ void MultiTriangleWriter::append()
 
 		outfile.close();
 	}
-	
 	writeIndexFile();
 }
 
@@ -420,7 +446,7 @@ void TriangleWriter::getField( TWFieldType field, bool extra )
 	{
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
 		std::reverse( val.begin(), val.end() );
-		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
+		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
 
 }
@@ -431,7 +457,7 @@ void TriangleWriter::getField( FieldType field, bool extra )
 	{
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
 		std::reverse( val.begin(), val.end() );
-		values[layerTranslator[layers[j]]].insert( values[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
+		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
 
 }
@@ -1114,7 +1140,7 @@ void TriangleWriter::writeHeader( int layer, bool append )
 	outstream << "TRIANGLES" << std::endl ;
 	outstream << ( int ) nTriangles[layerTranslator[layer]] << std::endl ;
 	outstream << 3 << std::endl ;
-	outstream << ( ( int ) values[layerTranslator[layer]].size() - 6 ) / 3 << std::endl ;
+	outstream << ( ( int ) values.back()[layerTranslator[layer]].size() - 6 ) / 3 << std::endl ;
 	outstream.close() ;
 }
 
@@ -1128,9 +1154,9 @@ void BinaryTriangleWriter::writeHeader(int layer, bool append )
 		outstream.open( filename.c_str(), std::ios::out ) ;
 
 	outstream << "BIN_TRIANGLES" << std::endl ;
-	outstream << ( int ) values[0].size() << std::endl ;
+	outstream << ( int ) values.back()[0].size() << std::endl ;
 	outstream << 3 << std::endl ;
-	outstream << ( ( int ) values.size() - 6 ) / 3 << std::endl ;
+	outstream << ( ( int ) values.back().size() - 6 ) / 3 << std::endl ;
 	outstream.close() ;
 }
 
@@ -1158,7 +1184,7 @@ void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
 	outstream << "TRIANGLES" << std::endl ;
 	outstream << ( int ) nTriangles[layerTranslator[layer]] << std::endl ;
 	outstream << 3 << std::endl ;
-	outstream << ( ( int ) values[layerTranslator[layer]].size() - 6 ) / 3 << std::endl ;
+	outstream << ( ( int ) values.back()[layerTranslator[layer]].size() - 6 ) / 3 << std::endl ;
 	outstream.close() ;
 }
 

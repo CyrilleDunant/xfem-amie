@@ -52,15 +52,25 @@ class TriangleWriter
 {
 protected:
 	std::string filename ;
+	std::string head ;
+  std::string base ;
 	FeatureTree * source ;
-	std::vector< std::vector<std::valarray<double> > > values ;
+	std::vector<std::vector< std::vector<std::valarray<double> > > > values ;
 	std::vector<int> nTriangles ;
 	std::vector<int> timePlane ;
 	std::vector<int> layers ;
 	std::vector<TWFieldType> extraFields ;
 	std::map<int, size_t> layerTranslator ;
+	int counter ;
 
 public:
+	
+	 int getCounter() { return counter ; }
+   void nextCounter() 
+	{
+		counter++ ; 
+		filename = base + std::string("_") + itoa(counter) ; 
+	}
 	/** \brief simple constructor, get immediately the coordinates of the triangles contained in F */
 	TriangleWriter(std::string f, FeatureTree * F = nullptr, int t = 0) ;
 
@@ -111,20 +121,12 @@ protected:
 class MultiTriangleWriter : public TriangleWriter
 {
 protected:
-    int counter ;
-    std::string head ;
-    std::string base ;
 
 public:
     MultiTriangleWriter(std::string head, std::string base, FeatureTree * F, int t = 0) ;
 
     virtual void append() ;
-    int getCounter() { return counter ; }
-    void nextCounter() 
-		{
-			counter++ ; 
-			filename = base + std::string("_") + itoa(counter) ; 
-		}
+
     void resetCounter() { counter = 0 ; }
 
 protected:
