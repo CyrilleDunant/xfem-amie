@@ -117,6 +117,129 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 	}
 }
 
+void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
+{
+	int i;
+	double f, p, q, t;
+
+	if ( s == 0 )
+	{
+		// achromatic (grey)
+		*r = *g = *b = v;
+		return;
+	}
+
+	h /= 60.;                        // sector 0 to 5
+
+	i = ( int )floor( h );
+	f = h - i;                      // factorial part of h
+	p = v * ( 1. - s );
+	q = v * ( 1. - s * f );
+	t = v * ( 1. - s * ( 1. - f ) );
+
+	switch ( i )
+	{
+
+		case 0:
+			*r = v;
+			*g = t;
+			*b = p;
+			break;
+
+		case 1:
+			*r = q;
+			*g = v;
+			*b = p;
+			break;
+
+		case 2:
+			*r = p;
+			*g = v;
+			*b = t;
+			break;
+
+		case 3:
+			*r = p;
+			*g = q;
+			*b = v;
+			break;
+
+		case 4:
+			*r = t;
+			*g = p;
+			*b = v;
+			break;
+
+		default:                // case 5:
+			*r = v;
+			*g = p;
+			*b = q;
+			break;
+	}
+}
+
+void TriangleWriter::writeSvg(double factor)
+{
+		double maxx = 0 ;
+		double maxy = 0 ;
+		double minx = 0 ;
+		double miny = 0 ;
+		for( int i = 0 ; i < nTriangles[0] ; i++ )
+		{
+				maxx = std::max(std::max(std::max(maxx,values[0][0][i]+values[0][6][i]*factor) ,values[0][2][i]+values[0][8][i]*factor),values[0][4][i]+values[0][10][i]*factor) ;
+				maxy = std::max(std::max(std::max(maxy,-values[0][1][i]-values[0][7][i]*factor) ,-values[0][3][i]-values[0][9][i]*factor),-values[0][5][i]-values[0][11][i]*factor) ;
+				minx = std::min(std::min(std::min(minx,values[0][0][i]+values[0][6][i]*factor) ,values[0][2][i]+values[0][8][i]*factor),values[0][4][i]+values[0][10][i]*factor) ;
+				miny = std::min(std::min(std::min(miny,-values[0][1][i]-values[0][7][i]*factor) ,-values[0][3][i]-values[0][9][i]*factor),-values[0][5][i]-values[0][11][i]*factor) ;
+		}
+		// assume that we want the total height to be 400 px
+		double gfactor = 400./(maxy-miny) ;
+		std::fstream outfile ;
+		outfile.open((filename+".svg").c_str(), std::ios::out | std::ios::app);
+		outfile << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
+		
+	for( size_t k = 0 ; k < layers.size() ; k++ )
+	{
+		outfile << "\t<g>" << std::endl ;
+		for(size_t j = 6 ; j < values[0].size() ; j+=3)
+		{
+			double maxval = values[0][j][0] ;
+			double minval = values[0][j][0] ;
+			for( size_t l = 0 ; l < layers.size() ; l++ )
+			{
+				for( int i = 0 ; i < nTriangles[0] ; i++ )
+				{
+					maxval = std::max(values[l][j][i], maxval) ;
+					minval = std::min(values[l][j][i], minval) ;
+				}
+			}
+			if (std::abs(maxval-minval) < POINT_TOLERANCE_2D)
+			{
+				minval = 0 ;
+				maxval = 1 ;
+			}
+			outfile << "\t\t<g>" << std::endl ;
+			for( int i = 0 ; i < nTriangles[0] ; i++ )
+			{
+				double val = (values[k][j][i]+values[k][j+1][i]+values[k][j+2][i])/3. ;
+				double r,g,b ;
+				HSVtoRGB(&r,&g,&b,360.-300.*(maxval-val)/(maxval-minval), 1., 1.);
+				
+				outfile << "\t\t\t<polygon points =\"" <<  gfactor*(minx+values[k][0][i]+values[k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][1][i]-values[k][7][i]*factor) << " "
+																				<<  gfactor*(minx+values[k][2][i]+values[k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][3][i]-values[k][9][i]*factor) << " "
+																				<<  gfactor*(minx+values[k][4][i]+values[k][10][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[k][5][i]-values[k][11][i]*factor)<< " " 
+																				<< "\" style=\"stroke-width:1;stroke:black;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
+
+				outfile << " />" << std::endl ;
+			}
+			outfile << "\t\t</g>" << std::endl ;
+		}
+		outfile << "\t</g>" << std::endl ;
+	}
+	outfile << "</svg>"<< std::endl ;
+	outfile.close();
+	
+}
+
 void TriangleWriter::write()
 {
 

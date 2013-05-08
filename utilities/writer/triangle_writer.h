@@ -69,6 +69,7 @@ public:
 
 	/** \brief write the data stored in the writer in a simple txt file, overwriting the file*/
 	virtual void write() ;
+	virtual void writeSvg(double factor = 1.) ;
 
 	/** \brief write the data stored in the writer in a simple txt file*/
 	virtual void append() ;
