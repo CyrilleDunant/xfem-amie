@@ -60,6 +60,7 @@ protected:
 	std::vector<int> timePlane ;
 	std::vector<int> layers ;
 	std::vector<TWFieldType> extraFields ;
+	std::vector<TWFieldType> fields ;
 	std::map<int, size_t> layerTranslator ;
 	int counter ;
 
@@ -79,7 +80,7 @@ public:
 
 	/** \brief write the data stored in the writer in a simple txt file, overwriting the file*/
 	virtual void write() ;
-	virtual void writeSvg(double factor = 1.) ;
+	virtual void writeSvg(double factor = 1., bool incolor = false ) ;
 
 	/** \brief write the data stored in the writer in a simple txt file*/
 	virtual void append() ;
@@ -137,6 +138,8 @@ protected:
 
 /** \brief indicates the number of "columns" needed by a specific field type*/
 int numberOfFields(TWFieldType field) ;
+
+std::string nameOfField(TWFieldType field) ;
 
 
 

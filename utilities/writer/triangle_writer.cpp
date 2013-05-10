@@ -16,6 +16,7 @@
 #include "../../physics/stiffness.h"
 #include <iostream>
 #include <fstream>
+#include <iomanip> 
 
 
 namespace Mu
@@ -58,6 +59,8 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 
 		getField( TWFT_COORDINATE, false ) ;
 		getField( TWFT_DISPLACEMENTS, false ) ;
+		fields.push_back(TWFT_COORDINATE);
+		fields.push_back(TWFT_DISPLACEMENTS);
 	}
 }
 
@@ -79,6 +82,7 @@ MultiTriangleWriter::MultiTriangleWriter(std::string h, std::string b, FeatureTr
 
 void TriangleWriter::reset( FeatureTree *F, int t )
 {
+	fields.clear();
 	if(counter > values.size()-1)
 		values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
 	values.back().clear() ;
@@ -182,7 +186,7 @@ void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
 	}
 }
 
-void TriangleWriter::writeSvg(double factor)
+void TriangleWriter::writeSvg(double factor, bool incolor)
 {
 	double maxx = 0 ;
 	double maxy = 0 ;
@@ -205,7 +209,33 @@ void TriangleWriter::writeSvg(double factor)
 	for(size_t m = 0 ; m < counter ; m++)
 	{
 		outfile[m].open((base + std::string("_") + itoa(m)+".svg").c_str(), std::ios::out | std::ios_base::trunc);
-		outfile[m] << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values.back()[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
+		outfile[m] << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1+330<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values.back()[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
+	}
+	if(incolor)
+	{
+		//define a linear hue gradient_flux
+		for(size_t m = 0 ; m < counter ; m++)
+		{
+			outfile[m] <<"\t<linearGradient id=\"hue\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"0%\" stop-color=\"#ff0000\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"20.7%\" stop-color=\"#ffff00\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"41.46%\" stop-color=\"#00ff00\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"61%\" stop-color=\"#00ffff\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"80.49%\" stop-color=\"#0000ff\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"100%\" stop-color=\"#ff00ff\"/>"<< std::endl ;
+				outfile[m] <<"\t\t<stop offset=\"122%\" stop-color=\"#ff0000\"/>"<< std::endl ;
+			outfile[m] <<"\t</linearGradient>"<< std::endl ;
+		}
+	}
+	else
+	{
+		for(size_t m = 0 ; m < counter ; m++)
+		{
+			outfile[m] <<"\t<linearGradient id=\"hue\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">"<< std::endl ;
+			outfile[m] <<"\t\t<stop offset=\"0%\" stop-color=\"#000000\"/>"<< std::endl ;
+			outfile[m] <<"\t\t<stop offset=\"100%\" stop-color=\"#ffffff\"/>"<< std::endl ;
+			outfile[m] <<"\t</linearGradient>"<< std::endl ;
+		}
 	}
 	
 	std::vector<double> minval ;
@@ -232,7 +262,6 @@ void TriangleWriter::writeSvg(double factor)
 			maxval.back() = 1 ;
 		}
 	}
-
 	
 	for(size_t m = 0 ; m < counter ; m++)
 	{
@@ -240,21 +269,38 @@ void TriangleWriter::writeSvg(double factor)
 		{
 			outfile[m] << "\t<g>" << std::endl ;
 			int jit = 0 ;
+			int fieldCounter = 1;
+			int localFieldCounter = 3 ;
+			
 			for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
 			{
+				std::string currentField = nameOfField(fields[fieldCounter]) ;
+				if(localFieldCounter < numberOfFields(fields[fieldCounter]))
+				{
+					localFieldCounter +=3 ;
+				}
+				else
+				{
+					localFieldCounter = 3 ;
+					fieldCounter++ ;
+				}
 				outfile[m] << "\t\t<!-- maxval = " <<  maxval[jit] << ", minval = " << minval[jit] << "-->" << std::endl ;
 				outfile[m] << "\t\t<g>" << std::endl ;
+				outfile[m] << "\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(k+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
 				for( int i = 0 ; i < nTriangles[0] ; i++ )
 				{
 					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
 					double r,g,b ;
-					HSVtoRGB(&r,&g,&b,360.-300.*(maxval[jit]-val)/(maxval[jit]-minval[jit]), 1., 1.);
+					if(incolor)
+						HSVtoRGB(&r,&g,&b,295.2*(maxval[jit]-val)/(maxval[jit]-minval[jit]), 1., 1.);
+					else
+						HSVtoRGB(&r,&g,&b,180., 0., (maxval[jit]-val)/(maxval[jit]-minval[jit]));
 					
 					outfile[m] << "\t\t\t<polygon points =\"" 
 					           <<  gfactor*(minx+values[m][k][0][i]+values[m][k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][1][i]-values[m][k][9][i]*factor) << " "
 										 <<  gfactor*(minx+values[m][k][2][i]+values[m][k][7][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][3][i]-values[m][k][10][i]*factor) << " "
 										 <<  gfactor*(minx+values[m][k][4][i]+values[m][k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][5][i]-values[m][k][11][i]*factor)<< " " 
-										 << "\" style=\"stroke-width:1;stroke:black;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
+										 << "\" style=\"stroke-width:1;stroke:darkgray;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
 
 					outfile[m] << " />" << std::endl ;
 				}
@@ -263,10 +309,33 @@ void TriangleWriter::writeSvg(double factor)
 			}
 			outfile[m] << "\t</g>" << std::endl ;
 		}
+		int jit = 0 ;
+		for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
+		{
+			outfile[m] << "\t\t<g>" << std::endl ;
+			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
+			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+12 << "\">" << maxval[jit]*1000. << "</text>" << std::endl ;
+			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
+			                                     << "\" y=\"" <<  (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+0.5*(maxy-miny)*gfactor*.35+12 << "\">" << std::setprecision(4) <<  minval[jit]*0.25+maxval[jit]*0.75 << "</text>" << std::endl ;
+			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
+			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << (minval[jit]+maxval[jit])*.5 << "</text>" << std::endl ;
+			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
+			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+1.5*(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << minval[jit]*0.75+maxval[jit]*0.25 << "</text>" << std::endl ;
+			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
+			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+2.*(maxy-miny)*gfactor*.35+12   << "\">"<< std::setprecision(4) << minval[jit] << "</text>" << std::endl ;
+
+			
+			outfile[m] << "\t\t\t<rect width=\"30\" height=\"" <<  (maxy-miny)*gfactor*.7 
+								 << "\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+20 
+								 << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)
+								 << "\"  style=\"fill-opacity:1\" fill=\"url(#hue)\"/>" << std::endl ;
+			outfile[m] << "\t\t</g>" << std::endl ;
+			jit++ ;
+		}
+
 		outfile[m] << "</svg>"<< std::endl ;
 		outfile[m].close();
 	}
-	
 }
 
 void TriangleWriter::write()
@@ -442,6 +511,7 @@ void MultiTriangleWriter::append()
 
 void TriangleWriter::getField( TWFieldType field, bool extra )
 {
+	fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
@@ -1243,6 +1313,58 @@ int numberOfFields( TWFieldType field )
 	return 3 ;
 }
 
+std::string nameOfField(TWFieldType field)
+{
+		switch( field )
+	{
+		case TWFT_COORDINATE:
+			return std::string("Coordinates") ;
+		case TWFT_DISPLACEMENTS:
+			return std::string("Displacements") ;
+		case TWFT_PRINCIPAL_ANGLE:
+			return std::string("Angle of Principal Stresses") ;
+		case TWFT_TRIANGLE_ANGLE:
+			return std::string("Triangle angle") ;
+		case TWFT_CRACK_ANGLE:
+			return std::string("Cracking Angle") ;
+		case TWFT_STIFFNESS:
+			return std::string("Stiffness") ;
+		case TWFT_STIFFNESS_X:
+			return std::string("Stiffness X") ;
+		case TWFT_STIFFNESS_Y:
+			return std::string("Stiffness Y") ;
+		case TWFT_STIFFNESS_Z:
+			return std::string("Stiffness Z") ;
+		case TWFT_STRAIN:
+			return std::string("Strain") ;
+		case TWFT_PRINCIPAL_STRAIN:
+			return std::string("Principal Strain") ;
+		case TWFT_PRINCIPAL_STRESS:
+			return std::string("Principal Stress") ;
+		case TWFT_STRAIN_AND_STRESS:
+			return std::string("Strains and Stress") ;
+		case TWFT_STRESS:
+			return std::string("Stress") ;
+		case TWFT_GRADIENT:
+			return std::string("Gradient") ;
+		case TWFT_GRADIENT_AND_FLUX:
+			return std::string("Gradient and Flux") ;
+		case TWFT_FLUX:
+			return std::string("Flux") ;
+		case TWFT_VON_MISES:
+			return std::string("Von Mises Stress") ;
+		case TWFT_CRITERION:
+			return std::string("Criterion") ;
+		case TWFT_DAMAGE:
+			return std::string("Damage") ;
+		case TWFT_IMPOSED_STRESS_NORM:
+			return std::string("Imposed Stress") ;
+		case TWFT_CRACKS:
+			return std::string("Crack Opening") ;
+	}
+
+	return std::string("Not a Field") ;
+}
 
 }
 
