@@ -94,30 +94,55 @@ int main(int argc, char *argv[])
 {
 	double timestep = atof(argv[1]) ;
 	int sampling = (int) atof(argv[2]) ;
-	int ninc = (int) atof(argv[3]) ;
-	int micro = (int) atof(argv[4]) ;
-	double itz = atof(argv[5]) ;
+	bool fullkv = (bool) atof(argv[3]) ;
+	int axis = (int) atof(argv[4]) ;
+	int ninc = (int) atof(argv[5]) ;
+	int micro = (int) atof(argv[6]) ;
+	double itz = atof(argv[7]) ;
 	double aspect = 1. ;
-	if(argc > 6)
-		aspect = atof(argv[6]) ;
+	if(argc > 8)
+		aspect = atof(argv[8]) ;
 	double orientation = M_PI ;
-	if(argc > 7)
-		orientation = atof(argv[7]) ;
+	if(argc > 9)
+		orientation = atof(argv[9]) ;
 	
-	if(micro > 0 && argc < 8)
+	if(micro > 0 && argc < 10)
 		exit(0) ;
 	
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
-	
-	box.setBehaviour(new ViscoElasticOnlyPasteBehaviour());
+
+	Matrix e = (new ElasticOnlyPasteBehaviour())->param ;
+
+	Matrix e1 = Material::cauchyGreen( 12e9, 0., true, SPACE_TWO_DIMENSIONAL) ;
+
+	Matrix kv1e = e1*0.29 ;
+	Matrix kv1t = kv1e * 10 ;
+
+	Matrix kv2e = e1*4 ;
+	Matrix kv2t = kv2e * 1000 ;
+
+	Matrix mxt = e1 * 200. ;
+
+	std::vector<std::pair<Matrix, Matrix> > branches ;
+	branches.push_back(std::make_pair(kv1e, kv1t)) ;
+	branches.push_back(std::make_pair(kv2e, kv2t)) ;
+
+	Viscoelasticity * pasteKV = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, e, branches ) ;
+	Viscoelasticity * pasteBurgers = new Viscoelasticity( BURGER, kv1e, kv1t, e, mxt)  ;
+
+	if(fullkv)
+		box.setBehaviour(pasteKV);
+	else
+		box.setBehaviour(pasteBurgers);
+
 	GeometryType inclusions = CIRCLE ;
 	if(micro == 1)
 		inclusions = ELLIPSE ;
 	if(micro == 2)
 		inclusions = TRIANGLE ;
 
-	ParticleSizeDistribution::get2DConcrete(&F, new ViscoElasticOnlyAggregateBehaviour(), ninc, 0.008, itz, BOLOME_A, inclusions, aspect, orientation, ninc*100) ;
+	ParticleSizeDistribution::get2DConcrete(&F, new ViscoElasticOnlyAggregateBehaviour(), ninc, 0.008, itz, BOLOME_A, inclusions, aspect, orientation, ninc*10000) ;
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
@@ -128,15 +153,23 @@ int main(int argc, char *argv[])
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
- 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	F.step() ;
 
 	F.getAssembly()->setEpsilon(1e-14) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+	if(axis == 1)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
+	else if(axis == 0)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, -10e6, 1)) ;
 	F.step() ;
  	
 	std::fstream out ;
 	std::string name = "visco_" ;
+	if(fullkv)
+		name.append("kv_") ;
+	if(axis == 0)
+		name.append("xi_") ;
+	if(axis == 1)
+		name.append("eta_") ;
 	if(micro == 0)
 		name.append("circle_") ;
 	if(micro == 1)
@@ -159,7 +192,7 @@ int main(int argc, char *argv[])
 	name.append("_") ;
 	name.append(argv[2]) ;
 	name.append("_") ;
-	name.append(argv[3]) ;
+	name.append(argv[4]) ;
 	
 	out.open(name.c_str(), std::ios::out) ;
 
@@ -180,7 +213,7 @@ int main(int argc, char *argv[])
 		writer.getField(STRAIN_FIELD) ;
 		writer.getField(REAL_STRESS_FIELD) ;
 		writer.getField(TWFT_STIFFNESS) ;
-		writer.write() ;
+		writer.writeSvg(100., false) ;
 	}
 	
 	while(time < 401)
@@ -202,7 +235,7 @@ int main(int argc, char *argv[])
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
 		
-		if(time == 25 || time == 50 || time == 100 || time == 200 || time == 400)
+		if(time == 25 || time == 55 || time == 101 || time == 200 || time == 388)
 		{
 			std::string nametrg = name ;
 			nametrg.append("_trg_") ;
@@ -211,7 +244,7 @@ int main(int argc, char *argv[])
 			writer.getField(STRAIN_FIELD) ;
 			writer.getField(REAL_STRESS_FIELD) ;
 			writer.getField(TWFT_STIFFNESS) ;
-			writer.write() ;
+			writer.writeSvg(100., false) ;
 		}
 	}
 
