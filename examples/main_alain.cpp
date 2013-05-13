@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	Matrix kv1e = e1*0.29 ;
 	Matrix kv1t = kv1e * 10 ;
 
-	Matrix kv2e = e1*4 ;
+	Matrix kv2e = e1*0.25 ;
 	Matrix kv2t = kv2e * 1000 ;
 
 	Matrix mxt = e1 * 200. ;
@@ -183,9 +183,9 @@ int main(int argc, char *argv[])
 	if(micro == 2)
 	{
 		name.append("triangle(") ;
-		name.append(argv[6]) ;
+		name.append(argv[8]) ;
 		name.append(",") ;
-		name.append(argv[7]) ;
+		name.append(argv[9]) ;
 		name.append(")_") ;
 	}
 	name.append(argv[1]) ;
