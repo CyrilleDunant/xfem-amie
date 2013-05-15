@@ -116,11 +116,11 @@ int main(int argc, char *argv[])
 
 	Matrix e1 = Material::cauchyGreen( 12e9, 0., true, SPACE_TWO_DIMENSIONAL) ;
 
-	Matrix kv1e = e1*0.29 ;
+	Matrix kv1e = e1*0.27 ;
 	Matrix kv1t = kv1e * 10 ;
 
-	Matrix kv2e = e1*0.25 ;
-	Matrix kv2t = kv2e * 1000 ;
+	Matrix kv2e = e1*0.23 ;
+	Matrix kv2t = kv2e * 500 ;
 
 	Matrix mxt = e1 * 200. ;
 
