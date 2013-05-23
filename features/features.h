@@ -563,7 +563,7 @@ public:
 	void elasticStep() ;
 	
 /** \brief Return the Assembly*/
-	Assembly * getAssembly() ;
+	Assembly * getAssembly(bool forceReassembly = true) ;
 
 /** \brief return the triangles of the mesh*/
 // 	std::vector<DelaunayTriangle *> getTriangles(int grid = -1);

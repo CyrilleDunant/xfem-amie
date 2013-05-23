@@ -279,7 +279,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
 	}
 } ;
 
-Viscoelasticity::~Viscoelasticity() { } ;
+Viscoelasticity::~Viscoelasticity() {} ;
 
 ElementState * Viscoelasticity::createElementState( IntegrableEntity * e) 
 {
@@ -583,8 +583,10 @@ bool Viscoelasticity::changed() const
 
 Form * Viscoelasticity::getCopy() const 
 {
-	
-	Viscoelasticity * copy = new Viscoelasticity(*this) ;
+	Matrix rig = param ;
+	Matrix e = eta ;
+	Viscoelasticity * copy = new Viscoelasticity(rig, e, blocks) ;
+	copy->model = model ;
 	
 	if(getExtra2dMeshes())
 	{
@@ -631,5 +633,37 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_
 	f += vm.ieval( Gradient( shape ) * g, e, v) ;
 	
 	return f ;
+}
+
+void Viscoelasticity::print() const
+{
+	std::cout << "I am a viscoelastic model" ;
+	switch(model)
+	{
+	  case PURE_ELASTICITY:
+	    std::cout << " (elastic only)" << std::endl ;
+	    return ;
+	  case PURE_VISCOSITY:
+	    std::cout << " (viscous only)" << std::endl ;
+	    return ;
+	  case KELVIN_VOIGT:
+	    std::cout << " (kelvin-voigt)" << std::endl ;
+	    return ;
+	  case GENERALIZED_KELVIN_VOIGT:
+	    std::cout << " ( generalized kelvin-voigt)" << std::endl ;
+	    return ;
+	  case MAXWELL:
+	    std::cout << " (maxwell)" << std::endl ;
+	    return ;
+	  case GENERALIZED_MAXWELL:
+	    std::cout << " ( generalized maxwell)" << std::endl ;
+	    return ;
+	  case BURGER:
+	    std::cout << " (burger)" << std::endl ;
+	    return ;
+	  case GENERAL_VISCOELASTICITY:
+	    std::cout << " (general)" << std::endl ;
+	    return ;
+	}
 }
 

@@ -32,7 +32,7 @@ struct GaussPointArray ;
 struct ElementarySurface ;
 struct ElementaryVolume ;
 
-const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 4096 ;
+const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 6144 ;
 
 typedef enum
 {
@@ -93,7 +93,7 @@ protected :
 	}*/
 	
 protected:
-	boost::tuple<TokenOperationType, double, std::string> toToken(const std::string & str) const ;
+	boost::tuple<TokenOperationType, double, std::string> toToken(const std::string & str, int iter, std::vector<double> & v) const ;
 
 	bool isOperator(const char c) const ;
 	
@@ -101,8 +101,8 @@ protected:
 	
 	bool isSeparator(const char c) const ;
 	
-	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const char * form) ; 
-	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const std::string & form) ;
+	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const char * form, int iter, std::vector<double> & val) ; 
+	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const std::string & form, int iter, std::vector<double> & val) ;
 	
 	Point * ptID;
 	int dofID;
@@ -149,6 +149,20 @@ public:
 	 */
 	Function(const char *f) ;
 
+	/** \brief Create function from RPN expression
+	 * 
+	 * @param f string to parse to instanciate function.
+	 * @param val double value for "constant" token
+	 */
+	Function(const char *f, double val) ;
+
+	/** \brief Create function from RPN expression
+	 * 
+	 * @param f string to parse to instanciate function.
+	 * @param val double values for "constant" tokens
+	 */
+	Function(const char *f, std::vector<double> & val) ;
+
 	/** \brief Create testing for the side of a line, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface
 	 * 
 	 * @param l Line defining the boundary
@@ -190,8 +204,12 @@ public:
 	 * 
 	 * @param f string to parse to instanciate function.
 	 */
-	Function(const std::string &f, int n = 0) ;
+	Function(const std::string &f) ;
 
+	Function(const std::string &f, double v) ;
+
+	Function(const std::string &f, std::vector<double> & v) ;
+	
 	/** \brief Function returning 0 or 1 depending on the position of a point with repect to a segment, given a space transform (x, y) -> x(x, y), y(x, y) deduced from an ElementarySurface.  or the distance to the projection to the segment
 	 * 
 	 * @param s_ Segment defining a boundary
@@ -268,6 +286,7 @@ public:
 	int getNumberOfDerivatives() const ; 
 	void setDerivative( const Variable v, Function & f) ;
 	
+	size_t derivationDepth() const ;
 
 	/** \brief return true if the differentiable has been computed
 	 * 

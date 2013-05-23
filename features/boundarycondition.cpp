@@ -165,7 +165,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v, true) ;
-				  					
+
 					a->addForceOn( XI, forces[0], id[idit] ) ;
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 				}
@@ -2964,7 +2964,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 
 	previousDisp.resize( a->getDisplacements().size()) ;
 	previousDisp = a->getDisplacements() ;
-
+	
 	if( previousDisp.size() == 0 )
 	{
 		for(size_t i = 0 ; i < timePlanes-1 ; i++)
@@ -2981,6 +2981,9 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	}
 	else
 	{
+		size_t extradof = previousDisp.size() - ndofmax*dof ;
+		size_t extradofPerPlane = extradof / timePlanes ;
+
 		for(size_t i = 0 ; i < timePlanes-1 ; i++)
 		{
 			for(size_t j = 0 ; j < dofPerPlane ; j++)
@@ -2991,6 +2994,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;
 				}
 			}
+			
 		}
 	}
 	return ;

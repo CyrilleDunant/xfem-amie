@@ -1470,6 +1470,22 @@ bool Geometry::intersects(const Geometry *g) const
 			return false ;
 		if(g->getGeometryType() == TRIANGLE)
 		{
+		  
+			bool in = false ;
+			bool out = false ;
+			
+			for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+			{
+				if(this->in(g->getBoundingPoint(i)))
+					in = true ;
+				else
+					out = false ;
+				
+				if(in && out)
+					return true ;
+			}
+			
+		  
 			size_t pointsPerPlane = g->getBoundingPoints().size() / g->timePlanes();
 			size_t pointsPerEdge = pointsPerPlane/3 ;
 			

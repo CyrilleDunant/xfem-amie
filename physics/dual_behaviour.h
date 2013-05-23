@@ -24,6 +24,7 @@ public:
 	Function xtransform ;
 	Function ytransform ;
 	Function ztransform ;
+	Function ttransform ;
 	
 	/** \brief Constructor, set the Behaviour s and the delimiting Geometry
 	 * 
@@ -78,6 +79,8 @@ public:
 	*/
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	
+	virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+	
 	/** \brief Check for fracture state
 	 *
 	 * @return true if the element is fractured
@@ -115,6 +118,10 @@ public:
 	/** \brief Acessor, return the highest fracture citerion*/
 	virtual FractureCriterion * getFractureCriterion() const ;
 	virtual DamageModel * getDamageModel() const ;
+
+	virtual Vector getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false) ;
+
+	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false) ;
 	
 } ;
 

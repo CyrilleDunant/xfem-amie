@@ -389,9 +389,13 @@ public:
 	virtual double area() const { return 0 ; } 
 	virtual double volume() const { return 0 ; } 
 	
+	virtual void addBoundaryCondition( BoundaryCondition * bc) ;
+	virtual void clearBoundaryConditions() ;
+	
 	virtual Function getXTransform() const = 0;
 	virtual Function getYTransform() const = 0;
 	virtual Function getZTransform() const ;
+	virtual Function getTTransform() const ;
 
 	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
 	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;

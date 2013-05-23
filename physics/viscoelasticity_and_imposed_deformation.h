@@ -37,7 +37,11 @@ struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
 	ViscoelasticityAndImposedDeformation( const Matrix & rig, const Matrix & eta, int blocks, Vector & imp, int additionnalBlocksAfter = 0, double r = 0) ; 
 
 	virtual ~ViscoelasticityAndImposedDeformation() ;
-
+	
+	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+	
+	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+	
 	virtual bool isViscous() const { return true ; }
 
 	virtual Form * getCopy() const ;

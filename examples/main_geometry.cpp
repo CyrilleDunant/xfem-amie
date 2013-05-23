@@ -135,122 +135,24 @@ Vector angle(0) ;
 
 int main(int argc, char *argv[])
 {	
-  // scale factor (to be adjusted for the meshing)
-  double scale = 1. ;
-  if(argc > 1)
-    scale = atof(argv[1]) ;
-  
-  // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
-  // (length are in meters)
-  Sample3D box( nullptr, 0.04, 0.04, 0.04, 0.,0.,0.) ;
-  
-  // creates 3D inclusions with rmax = 0.002, covering a volume of 0.000252, using BOLOME type B particle sizs distribution
-  // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 1000)) ;
-  
-  // attributes mechanical behaviour to the box and the aggregates
-  box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
-  for(size_t i = 0 ; i < incs.size() ; i++)
-    incs[i]->setBehaviour( new ElasticOnlyAggregateBehaviour( 60e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
-
-  // creates main object
-  FeatureTree F(&box) ;
-  F.setOrder(LINEAR) ;
-
-  // place the inclusions in the box
-  std::vector<Feature *> feats ;
-  for(size_t i = 0 ; i < incs.size() ; i++)
-    feats.push_back(incs[i]) ;
-  int n = 0 ;
-  feats = placement(box.getPrimitive(), feats, &n) ;
-  incs.clear() ;
-  for(size_t i = 0 ; i < feats.size() ; i++)
-    {
-      incs.push_back( dynamic_cast<Inclusion3D *>( feats[i] ) ) ;
-      F.addFeature( &box, incs[i] ) ;
-    }
+	Sample box(nullptr,1,1,0,0) ;
+	box.setBehaviour(new ElasticOnlyPasteBehaviour());
 	
-  // sampling criteria
-  F.setSamplingNumber( 512*16 ) ;
-
-  std::ofstream inclusions;
-  inclusions.open("inclusions.csv");
-  auto inc_it = incs.begin();
-  auto inc_end = incs.end();
-  inclusions  <<  "#radius,x,y,z" << std::endl;
-  for (; inc_it != inc_end; ++inc_it) {
-    Point & center = (*inc_it)->getCenter();
-    inclusions  << (*inc_it)->getRadius()/scale << "," << center.x/scale << "," << center.y/scale << "," << center.z  << std::endl;
-  }
-  inclusions.close();
+	EllipsoidalInclusion* inc = new EllipsoidalInclusion( Point(0,0), Point(0,0.4), Point(0.3,0) ) ;
+	inc->setBehaviour(new ElasticOnlyAggregateBehaviour()); 
+	inc->getCenter().print() ;
+// 	dynamic_cast<Ellipse *>(inc)->transform(SCALE, Point(1.2,0.25));
+// 	inc->getCenter().print() ;
 	
-  // generate elements and get list of tetrahedrons
-  std::vector<DelaunayTetrahedron *> tets = F.getElements3D() ;
+	FeatureTree F(&box) ;
+	F.addFeature(&box, inc); 
+	F.setSamplingNumber(30);
+	F.step() ;
   
-  unsigned int node_counter = 1;
-  typedef std::map<Point *, unsigned int> nodes_map;
-  nodes_map node_index_mapping;
-  std::vector<Point *> nodes;
-
-  std::vector<DelaunayTetrahedron *>::iterator it = tets.begin();
-  std::vector<DelaunayTetrahedron *>::iterator end = tets.end();
-
-  std::ofstream mesh_file; mesh_file.open("mesh.msh");
-  mesh_file << "$MeshFormat" << std::endl
-	    << "2.2 0 " << sizeof(double) << std::endl
-	    << "$EndMeshFormat" << std::endl;
-
-  // tets[i]->getBoundingPoints().size();
-  //   tets[i]->getBoundingPoints(j).id;
-  // tets[i]->getBoundingPoints().size()
-
-  for (;it != end; ++it) {
-    DelaunayTetrahedron & tetra = **it;
-    for (unsigned int n = 0; n < tetra.size(); ++n) {
-      nodes_map::iterator pid = node_index_mapping.find(tetra[n]);
-      if(pid == node_index_mapping.end()) {
-	nodes.push_back(tetra[n]);
-	node_index_mapping[tetra[n]] = node_counter;
-	node_counter++;
-      }
-    }
-  }
-
-  std::vector<Point *>::iterator point_it  = nodes.begin();
-  std::vector<Point *>::iterator point_end = nodes.end();
-
-  mesh_file << "$Nodes" << std::endl
-	    << nodes.size() << std::endl;
-  for (unsigned int n = 1; point_it != point_end; ++point_it, ++n) {
-    Point & p = **point_it;
-    mesh_file << n << " " << p.x << " " << p.y << " " << p.z << std::endl;
-  }
-  mesh_file << "$EndNodes" << std::endl;
-
-  mesh_file << "$Elements" << std::endl
-	    << tets.size() << std::endl;
-
-  it = tets.begin();
-  for (unsigned int t = 1; it != end; ++it, ++t) {
-    DelaunayTetrahedron & tetra = **it;
-    unsigned int msh_type = 0;
-    if(tetra.size() == 4) msh_type = 4;
-    else if(tetra.size() == 10) msh_type = 11;
-    assert(msh_type != 0);
-
-    mesh_file << t << " " << msh_type << " 2 0 0";
-    for (unsigned int n = 0; n < tetra.size(); ++n) {
-      nodes_map::iterator pid = node_index_mapping.find(tetra[n]);
-      mesh_file << " " << pid->second;
-    }
-    mesh_file << std::endl;
-  }
+	TriangleWriter writer("test", &F) ;
+	writer.getField(TWFT_STIFFNESS) ;
+	writer.write() ;
   
-
-  mesh_file << "$EndElements" << std::endl;
-
-  mesh_file.close();
-
   // get nodes
   //std::vector<Point> nodes = F.getNodes() ;
 	

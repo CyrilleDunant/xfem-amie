@@ -24,8 +24,23 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
+void normalizeSpaceTimeFieldAtPoint( Vector & values, const IntegrableEntity* f, const Point & p)
+{
+	if(f->getEnrichmentFunctions().size() > 0)
+	{
+		double base = 0. ;
+		for(size_t i = 0 ; i < f->getShapeFunctions().size() ; i++)
+			base += VirtualMachine().eval( f->getShapeFunction(i), p) ;
+		double enriched = base ;
+		for(size_t i = 0 ; i < f->getEnrichmentFunctions().size() ; i++)
+			enriched += VirtualMachine().eval( f->getEnrichmentFunction(i), p) ;
+		values *= base/enriched ;
+	}
+}
+
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
+  
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
@@ -36,8 +51,10 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		getField(f, p_, tmp, true, dummy) ;
 		ret += tmp *gp.gaussPoints[i].second ;
 		total += gp.gaussPoints[i].second ;
-	}
-	ret /=  total ;
+	}	
+	
+//	std::cout << gp.gaussPoints.size() << "\t" << total << "\t" << getParent()->area() << std::endl ;
+	ret /=  (total) ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
@@ -75,6 +92,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < realdof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
@@ -89,6 +107,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < totaldof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case ENRICHED_DISPLACEMENT_FIELD:
 			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
@@ -97,6 +116,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < realdof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD:
 			for(size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++)
@@ -105,6 +125,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < totaldof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case SPEED_FIELD:
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
@@ -119,6 +140,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < realdof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_SPEED_FIELD:
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
@@ -133,6 +155,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				for(size_t k = 0 ; k < totaldof ; k++)
 					ret[k] += f * enrichedDisplacements[j*totaldof+k] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case STRAIN_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -254,6 +277,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 						    ( x_eta )  * Jinv[1][1] +
 						    ( x_zeta ) * Jinv[1][2] );
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -428,6 +452,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case PRINCIPAL_STRAIN_FIELD:
 		{
@@ -535,6 +560,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 						    ( x_eta )  * Jinv[1][1] +
 						    ( x_zeta ) * Jinv[1][2] );
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -660,6 +686,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case VON_MISES_STRAIN_FIELD:
 		{
@@ -828,6 +855,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				
 				ret *= Jinv[3][3] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -1011,6 +1039,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				ret *= Jinv[3][3] ;
 				
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case NON_ENRICHED_STRAIN_RATE_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -1099,6 +1128,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				
 				ret *= Jinv[3][3] ;
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -1225,6 +1255,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				ret *= Jinv[3][3] ;
 				
 			}
+			normalizeSpaceTimeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case REAL_STRESS_FIELD:
 		{

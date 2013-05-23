@@ -104,7 +104,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 			}
 
 			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
-			delete ring[i]->getBehaviour() ;
+//			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour( bi ) ;
 			bi->transform( ring[i]) ;
 			bi->setSource( src );
@@ -120,7 +120,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 		if( expansive.find( inDisc[i] ) == expansive.end() )
 		{
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
-			delete inDisc[i]->getBehaviour() ;
+//			delete inDisc[i]->getBehaviour() ;
 			inDisc[i]->setBehaviour( bi) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}

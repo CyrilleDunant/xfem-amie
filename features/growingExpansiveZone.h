@@ -7,22 +7,23 @@
 #ifndef __GROWING_EXPANSIVE_ZONE_H__
 #define __GROWING_EXPANSIVE_ZONE_H__
 
-#include "expansiveZone.h"
+#include "timeDependentEnrichmentInclusion.h"
 #include "../polynomial/vm_function_base.h"
 #include "../physics/viscoelasticity_and_imposed_deformation.h"
 
 namespace Mu
 {
 
-class GrowingExpansiveZone :  public ExpansiveZone
+class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
 {
+	std::set<DelaunayTriangle *> bimateralInterfaced ;
+	std::set<DelaunayTriangle *> expansive ;
 	bool changed ;
-	Function growth ;
 	ViscoelasticityAndImposedDeformation * imp ;
 
 public:
 
-	GrowingExpansiveZone(Feature *father, Function & g, double x, double y, const ViscoelasticityAndImposedDeformation * i) ;
+	GrowingExpansiveZone(Feature *father, Function & g, double x, double y, ViscoelasticityAndImposedDeformation * i) ;
 	virtual ~GrowingExpansiveZone() ;
 	
 	virtual void print() const
@@ -32,12 +33,10 @@ public:
 	
 	virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
-	virtual void step(double dt, Vector *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
-
 	virtual bool moved() const { return changed ; } ;
 	
 public:
-	GEO_DERIVED_OBJECT(Circle) ;
+	GEO_DERIVED_OBJECT(TimeDependentCircle) ;
 	
 } ;
 

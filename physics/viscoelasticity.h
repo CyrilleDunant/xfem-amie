@@ -87,6 +87,8 @@ struct Viscoelasticity : public LinearForm
 
 	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false) ;
 	
+	virtual void print() const ;
+	
   
 } ;
 

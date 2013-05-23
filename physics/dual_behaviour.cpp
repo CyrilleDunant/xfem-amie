@@ -5,6 +5,7 @@
 
 #include "dual_behaviour.h"
 #include "homogeneised_behaviour.h"
+#include "viscoelasticity.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include <typeinfo>
 
@@ -18,6 +19,10 @@ void BimaterialInterface::transform(ElementarySurface * e)
 {
 	xtransform = e->getXTransform() ;
 	ytransform = e->getYTransform() ;
+	if(inGeometry->timePlanes() > 1)
+	{
+		ttransform = e->getTTransform() ;
+	}
 }
 
 void BimaterialInterface::transform(ElementaryVolume * e)
@@ -25,12 +30,14 @@ void BimaterialInterface::transform(ElementaryVolume * e)
 	xtransform = e->getXTransform() ;
 	ytransform = e->getYTransform() ;
 	ztransform = e->getZTransform() ;
+	if(inGeometry->timePlanes() > 1)
+		ttransform = e->getTTransform() ;
 }
 
 Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
-	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 
 	if(inGeometry->in(test))
 		return inBehaviour->getTensor(p, e, g) ;
@@ -41,7 +48,7 @@ Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
-	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 	if(inGeometry->in(test))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
@@ -53,7 +60,7 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
-	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z), vm.eval(ytransform,  p.x, p.y, p.z), vm.eval(ztransform,  p.x, p.y, p.z)) ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 	if(inGeometry->in(test))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
@@ -69,11 +76,13 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	Vector x = vm->eval(xtransform,gp) ;
 	Vector y = vm->eval(ytransform,gp) ;
 	Vector z = vm->eval(ztransform,gp) ;
+	Vector t = vm->eval(ttransform,gp) ;
+//	std::cout << sqrt(x[0]*x[0] + y[0]*y[0]) << "," << t[0] << " || " ;
 	std::valarray<bool> inIn(false, x.size()) ;
 	int inCount = 0;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
-		if(inGeometry->in(Point(x[i],y[i],z[i])))
+		if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))
 		{
 			allout = false ;
 			inIn[i] = true ;
@@ -85,7 +94,8 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 		}
 			
 	}
-
+//		std::cout << t[0] << "\t" << inCount << "\t" << gp.gaussPoints.size() << std::endl ;
+	
 	if(allin)
 	{
 		inBehaviour->apply(p_i, p_j, gp, Jinv,ret,vm) ;
@@ -93,6 +103,7 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	}
 	else if(allout)
 	{
+//		std::cout << "all aout !" << std::endl ;
 		outBehaviour->apply(p_i, p_j, gp, Jinv,ret,vm) ;
 		return ;
 	}
@@ -126,6 +137,74 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	ret += retIn ;
 }
 
+void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+	bool allin = true ;
+	bool allout = true ;
+	Vector x = vm->eval(xtransform,gp) ;
+	Vector y = vm->eval(ytransform,gp) ;
+	Vector z = vm->eval(ztransform,gp) ;
+	Vector t = vm->eval(ttransform,gp) ;
+//	std::cout << sqrt(x[0]*x[0] + y[0]*y[0]) << "," << t[0] << " || " ;
+	std::valarray<bool> inIn(false, x.size()) ;
+	int inCount = 0;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))
+		{
+			allout = false ;
+			inIn[i] = true ;
+			inCount++ ;
+		}
+		else
+		{
+			allin = false ;
+		}
+			
+	}
+//		std::cout << t[0] << "\t" << inCount << "\t" << gp.gaussPoints.size() << std::endl ;
+	
+	if(allin)
+	{
+		inBehaviour->applyViscous(p_i, p_j, gp, Jinv,ret,vm) ;
+		return ;
+	}
+	else if(allout)
+	{
+//		std::cout << "all aout !" << std::endl ;
+		outBehaviour->applyViscous(p_i, p_j, gp, Jinv,ret,vm) ;
+		return ;
+	}
+	
+	std::valarray<std::pair<Point, double> > inArray(inCount) ;
+	std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()), inCount) ;
+	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
+	std::valarray<Matrix> outMatrixArray(Matrix(Jinv[0].numRows(), Jinv[0].numCols()) , gp.gaussPoints.size()-inCount) ;
+	GaussPointArray gpIn(inArray, -1) ;
+	GaussPointArray gpOut(outArray, -1) ;
+
+	int outIterator = 0;
+	int inIterator = 0 ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		if(inIn[i])
+		{
+			inMatrixArray[inIterator] = Jinv[i] ;
+			gpIn.gaussPoints[inIterator++] = gp.gaussPoints[i] ;
+		}
+		else
+		{
+			outMatrixArray[outIterator] = Jinv[i] ;
+			gpOut.gaussPoints[outIterator++] = gp.gaussPoints[i] ;
+		}
+	}
+	Matrix retIn(ret) ;
+	inBehaviour->applyViscous(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
+	outBehaviour->applyViscous(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
+	
+	ret += retIn ;
+}
+
 bool BimaterialInterface::fractured() const
 {
 	return inBehaviour->fractured() && outBehaviour->fractured();
@@ -148,17 +227,21 @@ Form * BimaterialInterface::getCopy() const
 }
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
-{
+{	  
 	std::vector<BoundaryCondition * > ret ;
+	
+	if(Jinv.size() == 0)
+		return ret ;
 
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
 	Vector z = VirtualMachine().eval(ztransform,gp) ;
+	Vector t = VirtualMachine().eval(ttransform,gp) ;
 	std::valarray<bool> inIn(false, x.size()) ;
 	int inCount = 0;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
-		if(inGeometry->in(Point(x[i],y[i],z[i])))
+		if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))
 		{
 			inIn[i] = true ;
 			inCount++ ;
@@ -195,6 +278,10 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
+// 	std::vector<BoundaryCondition * > dummy = inBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
+// 	std::cout << dummy[0]->getData() << "\t" << dummy[1]->getData() << std::endl  ;
+// 	
+// 	
 	return ret ;
 }
 
@@ -203,6 +290,7 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 {
 	inBehaviour->step(timestep, currentState,maxScore) ;
 	outBehaviour->step(timestep, currentState,maxScore) ;
+	
 }
 
 DamageModel * BimaterialInterface::getDamageModel() const
@@ -274,6 +362,27 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 }
 
 
+Vector BimaterialInterface::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic) 
+{
+	Vector x = VirtualMachine().eval(xtransform,gp) ;
+	Vector y = VirtualMachine().eval(ytransform,gp) ;
+	Vector z = VirtualMachine().eval(ztransform,gp) ;
+	Vector t = VirtualMachine().eval(ttransform,gp) ;
+	if(inGeometry->in( Point(x[0],y[0],z[0],t[0]) ))
+		return inBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;
+	return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;
+}
+
+Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic) 
+{
+	Vector x = VirtualMachine().eval(xtransform,gp) ;
+	Vector y = VirtualMachine().eval(ytransform,gp) ;
+	Vector z = VirtualMachine().eval(ztransform,gp) ;
+	Vector t = VirtualMachine().eval(ttransform,gp) ;
+	if(inGeometry->in( Point(x[0],y[0],z[0],t[0]) ))
+		return inBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic) ;
+	return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic) ;
+}
 
 
 

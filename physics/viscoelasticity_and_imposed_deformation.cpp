@@ -50,11 +50,27 @@ void ViscoelasticityAndImposedDeformation::makeImposedStress()
 	
 }
 
-ViscoelasticityAndImposedDeformation::~ViscoelasticityAndImposedDeformation() { } ;
+ViscoelasticityAndImposedDeformation::~ViscoelasticityAndImposedDeformation() {} ;
+
+void ViscoelasticityAndImposedDeformation::apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
+{
+	Viscoelasticity::apply(p_i, p_j, gp, Jinv, ret, vm) ;
+}
+
+void ViscoelasticityAndImposedDeformation::applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const 
+{
+	Viscoelasticity::applyViscous(p_i, p_j, gp, Jinv, ret, vm) ;
+}
 
 
 Form * ViscoelasticityAndImposedDeformation::getCopy() const 
 {
+	if(model == PURE_ELASTICITY)
+	{
+		Matrix rig = param ;
+		Vector imp = imposedStrain ;
+		return new ViscoelasticityAndImposedDeformation( model, rig, imp, 0, rho) ;
+	}
 	return new ViscoelasticityAndImposedDeformation(*this) ;
 }
 

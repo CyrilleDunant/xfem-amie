@@ -355,8 +355,9 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position(getCenter(), t) ;
-			Function hat = (getRadius()-f_abs(position-getRadius()))*blend;
+			Function position = f_sqrt((t->getXTransform()-getCenter().x)*(t->getXTransform()-getCenter().x) +
+		                           (t->getYTransform()-getCenter().y)*(t->getYTransform()-getCenter().y)) ; ;
+			Function hat = (getRadius()-f_abs(position-getRadius()))/**blend*/;
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)

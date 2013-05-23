@@ -9,15 +9,18 @@
 
 #include "features.h"
 #include "enrichmentInclusion.h"
+#include "../geometry/space_time_geometry_2D.h"
 
 namespace Mu
 {
 
-class TimeDependentEnrichmentInclusion : public EnrichmentInclusion
+class TimeDependentEnrichmentInclusion : public EnrichmentInclusion, public TimeDependentCircle
 {
-protected:
-	Function radius_t ;
-	
+protected:  
+	std::map<const Point *, int> dofIdPrev ;
+	std::map<const Point *, int> dofIdCurrent ;
+	std::set<DelaunayTriangle *> enrichedElem;
+  
 public:
 	TimeDependentEnrichmentInclusion(Feature * father, Function & r, double x, double y) ;
 	TimeDependentEnrichmentInclusion( Function & r, double x, double y) ;
@@ -34,6 +37,9 @@ public:
 
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
+public:
+	GEO_DERIVED_OBJECT(TimeDependentCircle) ;
+	
 } ;
 
 

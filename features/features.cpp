@@ -399,6 +399,7 @@ void FeatureTree::addFeature( Feature *father, Feature *f, int layer, double fra
 		father->addChild( f ) ;
 
 	this->tree.push_back( f ) ;
+	
 
 }
 
@@ -4050,9 +4051,12 @@ Vector FeatureTree::strainFromDisplacements()
 
 }
 
-Assembly *FeatureTree::getAssembly()
+Assembly *FeatureTree::getAssembly(bool forceReassembly)
 {
-	state.setStateTo( ASSEMBLED, false ) ;
+	if(forceReassembly)
+	{
+		state.setStateTo( ASSEMBLED, false ) ;
+	}
 	return K ;
 }
 

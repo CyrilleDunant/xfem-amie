@@ -19,7 +19,7 @@ protected:
 	std::vector< std::pair<double, double> > circles ;
 	
 public:
-	TimeDependentCircle(Function r, const Point & center);
+	TimeDependentCircle(Function r = Function(), const Point & center = Point());
 	TimeDependentCircle(Function r, Point* center);
 	TimeDependentCircle(double r0, double rate, const Point & center);
 	TimeDependentCircle(double r0, double rate, Point * center);
@@ -36,6 +36,9 @@ public:
 	virtual void setRadius(double ) { };
 
 	virtual void project(Point * p) const;
+	
+	Function getRadiusFunction() const { return radius_t ; }
+	Function getRadiusFunction(Function & time) const ;
 
 } ;
 

@@ -73,6 +73,7 @@ IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cached
 
 Function IntegrableEntity::getZTransform() const { return Function("1") ;};
 
+Function IntegrableEntity::getTTransform() const { return Function("1") ;};
 
 Vector Form::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
@@ -120,8 +121,22 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 	std::vector<BoundaryCondition *> bcCache ;
 	if( getBehaviour()->type != VOID_BEHAVIOUR )
 	{
+		if(boundaryConditionCache)
+		{
+			for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
+			{
+				if ((*boundaryConditionCache)[i])
+				{
+					if( get2DMesh() )
+						(*boundaryConditionCache)[i]->apply( a, get2DMesh() ) ;
+					else
+						(*boundaryConditionCache)[i]->apply( a, get3DMesh() ) ;			  
+				}
+			}
+		}
+		
 		std::valarray<Matrix> Jinv( getGaussPoints().gaussPoints.size() ) ;
-
+		
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
 		{
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
@@ -145,8 +160,14 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 			}
 		}
 
-		for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
+		start = 0 ;
+		if(timePlanes() > 1)
 		{
+			start = getEnrichmentFunctions().size() - getEnrichmentFunctions().size()/timePlanes() ;
+		}
+		for( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
+		{
+//			std::cout << getGaussPoints().gaussPoints.size() << std::endl ;
 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
 			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
 			{
@@ -157,6 +178,7 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 				delete boundaryConditionCachetmp[j] ;
 			}
 		}
+		
 	}
 }
 
@@ -171,6 +193,28 @@ IntegrableEntity::~IntegrableEntity()
 	delete boundaryConditionCache ;
 	delete cachedGps ;
 }
+
+
+void IntegrableEntity::addBoundaryCondition( BoundaryCondition * bc) 
+{
+	if( !boundaryConditionCache )
+	{
+		boundaryConditionCache = new std::vector<BoundaryCondition *>(0, nullptr) ;
+	}
+	boundaryConditionCache->push_back(bc);
+}
+
+void IntegrableEntity::clearBoundaryConditions() 
+{
+	if(boundaryConditionCache)
+	{
+		for( size_t i = 0 ; i < boundaryConditionCache->size() ; i++ )
+			delete( *boundaryConditionCache )[i] ;
+		delete boundaryConditionCache ;
+	}
+	boundaryConditionCache = nullptr ;
+}
+
 
 void IntegrableEntity::setState( ElementState * s)
 {
@@ -428,6 +472,20 @@ void ElementState::getExternalFieldAtGaussPoints( Vector & nodalValues, int exte
 	}
 }
 
+void normalizeFieldAtPoint( Vector & values, const IntegrableEntity* f, const Point & p)
+{
+	if(f->getEnrichmentFunctions().size() > 0)
+	{
+		double base = 0. ;
+		for(size_t i = 0 ; i < f->getShapeFunctions().size() ; i++)
+			base += VirtualMachine().eval( f->getShapeFunction(i), p) ;
+		double enriched = base ;
+		for(size_t i = 0 ; i < f->getEnrichmentFunctions().size() ; i++)
+			enriched += VirtualMachine().eval( f->getEnrichmentFunction(i), p) ;
+		values *= base/enriched ;
+	}
+}
+
 void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 
 {
 	VirtualMachine vm ;
@@ -452,6 +510,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				for(size_t k = 0 ; k < n ; k++)
 					ret[k] += f * enrichedDisplacements[j*n+k] ;
 			}
+			normalizeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case ENRICHED_DISPLACEMENT_FIELD:
 			n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -461,6 +520,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				for(size_t k = 0 ; k < n ; k++)
 					ret[k] += f * enrichedDisplacements[j*n+k] ;
 			}
+			normalizeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case STRAIN_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -580,6 +640,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 						    ( x_eta )  * Jinv[1][1] +
 						    ( x_zeta ) * Jinv[1][2] );
 			}
+			normalizeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case PRINCIPAL_STRAIN_FIELD:
 		{
@@ -679,6 +740,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 						    ( x_eta )  * Jinv[1][1] +
 						    ( x_zeta ) * Jinv[1][2] );
 			}
+			normalizeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case VON_MISES_STRAIN_FIELD:
 		{
@@ -947,6 +1009,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
 				ret[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
 			}
+				normalizeFieldAtPoint( ret, this->getParent(), p_) ;
 			return ;
 		case FLUX_FIELD:
 			getField(GRADIENT_FIELD, p_, ret, true) ;

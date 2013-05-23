@@ -536,7 +536,12 @@ Function & Function::operator=(const Function &f)
 		derivative = new std::valarray<Function *>((Function *)nullptr, f.derivative->size()) ;
 		e_diff = true ;
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)
-			(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+		{
+			if((*f.derivative)[i])
+				(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+			else
+				(*derivative)[i] = nullptr ;
+		}
 	}
 
 	transforms = nullptr ;
@@ -614,11 +619,17 @@ void Function::setPoint(Point * id)
 	this->ptID = id ;
 }
 
-boost::tuple<TokenOperationType, double, std::string> Function::toToken(const std::string & str) const
+boost::tuple<TokenOperationType, double, std::string> Function::toToken(const std::string & str, int iter, std::vector<double> & val) const
 {
 	if(isNumeral(str[0]) || (str[0] == '-' && isNumeral(str[1])))
 	{
 		return boost::make_tuple(TOKEN_OPERATION_CONSTANT, atof(str.c_str()), "") ;
+	}
+	else if(str == std::string("cst"))
+	{
+		if(iter < val.size())
+			return boost::make_tuple(TOKEN_OPERATION_CONSTANT, val[iter], "cst") ; 
+		return boost::make_tuple(TOKEN_OPERATION_CONSTANT, val[val.size()-1], "cst") ;		
 	}
 	else if(str == std::string("sin"))
 	{
@@ -771,12 +782,12 @@ bool Function::isSeparator(const char c) const
 	return false ;
 } ;
 
-std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> Function::getNext(size_t init, const std::string & form)
+std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> Function::getNext(size_t init, const std::string & form,  int cstIterator, std::vector<double> & val)
 {
-	return getNext(init, form.c_str()) ;
+	return getNext(init, form.c_str(), cstIterator, val) ;
 }
 
-std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Function::getNext(size_t init, const char * form)
+std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Function::getNext(size_t init, const char * form, int cstIterator, std::vector<double> & val)
 {
 	std::string cur_token("") ;
 	char cur_char  = form[init] ;
@@ -792,7 +803,7 @@ std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Functio
 		{
 			cur_token+=cur_char ;
 			init++ ;
-			return std::make_pair(init, toToken(cur_token)) ;
+			return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
 		}
 		else if (isNumeral(form[init+1]))
 		{
@@ -810,13 +821,13 @@ std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Functio
 				else
 					break ;
 			}
-			return std::make_pair(init, toToken(cur_token)) ;
+			return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
 		}
 		else
 		{
 			cur_token+=cur_char ;
 			init++ ;
-			return std::make_pair(init, toToken(cur_token)) ;
+			return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
 		}
 	}
 	while(!isSeparator(cur_char))
@@ -830,7 +841,7 @@ std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Functio
 		else
 			break ;
 	}
-	return std::make_pair(init, toToken(cur_token)) ;
+	return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
 }
 
 void Function::initialiseAdresses(size_t offset)
@@ -1376,9 +1387,41 @@ Function::Function(const char *f): derivative(nullptr),
 {
 
 	size_t init = 0 ;
+	std::vector<double> val ;
+	int iter = 0 ;
 	while(init < strlen(f))
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f) ;
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, iter, val) ;
+		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
+			values.push_back(boost::get<1>(temp.second));
+		
+		
+
+		init = temp.first ;
+	}
+	initialiseAdresses();
+}
+
+Function::Function(const char *f, double v): derivative(nullptr),
+		transforms(nullptr),
+		e_diff(false),
+		geo_op((GeometryOperation *)nullptr,0),
+		dofID(-1),
+		ptID (nullptr),
+		hasGeoOp(false)
+{
+
+	size_t init = 0 ;
+	std::vector<double> val ;
+	val.push_back(v);
+	while(init < strlen(f))
+	{
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, 0, val) ;
 		byteCode.push_back(boost::get<0>(temp.second)) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
@@ -1392,7 +1435,33 @@ Function::Function(const char *f): derivative(nullptr),
 	initialiseAdresses();
 }
 
-Function::Function(const std::string &f, int n) : derivative(nullptr),
+Function::Function(const char *f, std::vector<double> & val): derivative(nullptr),
+		transforms(nullptr),
+		e_diff(false),
+		geo_op((GeometryOperation *)nullptr,0),
+		dofID(-1),
+		ptID (nullptr),
+		hasGeoOp(false)
+{
+
+	size_t init = 0 ;
+	while(init < strlen(f))
+	{
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, 0, val) ;
+		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
+			values.push_back(boost::get<1>(temp.second));
+
+		init = temp.first ;
+	}
+	initialiseAdresses();
+}
+
+Function::Function(const std::string &f) : derivative(nullptr),
 		transforms(nullptr),
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,0),
@@ -1401,10 +1470,58 @@ Function::Function(const std::string &f, int n) : derivative(nullptr),
 		hasGeoOp(false)
 {
 	size_t init = 0 ;
-	std::vector<double> wbvalues ;
+	std::vector<double> val ;
 	while(init < f.length())
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f) ;
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
+		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
+			values.push_back(boost::get<1>(temp.second));
+	}
+	initialiseAdresses();
+}
+
+Function::Function(const std::string &f, double v) : derivative(nullptr),
+		transforms(nullptr),
+		e_diff(false),
+		geo_op((GeometryOperation *)nullptr,0),
+		dofID(-1),
+		ptID (nullptr),
+		hasGeoOp(false)
+{
+	size_t init = 0 ;
+	std::vector<double> val ;
+	val.push_back(v);
+	while(init < f.length())
+	{
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
+		byteCode.push_back(boost::get<0>(temp.second)) ;
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		adress_a.push_back(0);
+		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
+			values.push_back(boost::get<1>(temp.second));
+	}
+	initialiseAdresses();
+}
+
+Function::Function(const std::string &f, std::vector<double> & val) : derivative(nullptr),
+		transforms(nullptr),
+		e_diff(false),
+		geo_op((GeometryOperation *)nullptr,0),
+		dofID(-1),
+		ptID (nullptr),
+		hasGeoOp(false)
+{
+	size_t init = 0 ;
+	while(init < f.length())
+	{
+		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
 		byteCode.push_back(boost::get<0>(temp.second)) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
@@ -1630,7 +1747,10 @@ Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode),t
 		derivative = new std::valarray<Function *>((Function *)nullptr,f.derivative->size()) ;
 		for(size_t i = 0 ; i < f.derivative->size() ; i++)
 		{
-			(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+			if((*f.derivative)[i])
+				(*derivative)[i] = new Function(*(*f.derivative)[i]) ;
+			else
+				(*derivative)[i] = nullptr ;
 		}
 		e_diff = true ;
 	}
@@ -1740,6 +1860,8 @@ int Function::getNumberOfDerivatives() const
 
 void Function::setVariableTransform( const Variable v, Function & f, bool replaceToken) 
 {
+#warning you have to manually call makeVariableTransformDerivative() once all variable transforms have been set
+  
 	if( derivativeTransformed )
 	{
 		  std::cout << "try to add variable transform to derived function - do nothing instead" << std::endl ;
@@ -1828,6 +1950,8 @@ void Function::makeVariableTransformDerivative()
 						oldderivative.setVariableTransform( (const Variable) k, *(replacements[k]) );
 				}
 				oldderivative.makeVariableTransformDerivative() ;
+				if(oldderivative.isDifferentiable(TIME_VARIABLE))
+					  std::cout << "b" ;
 				oldderivative *= replacements[j]->d( (const Variable) i ) ;
 				if(! initialized )
 				{
@@ -1862,7 +1986,27 @@ void Function::makeVariableTransformDerivative()
   
 }
 
-
+size_t Function::derivationDepth() const
+{
+	size_t depth = 0 ;
+	if(isDifferentiable())
+	{
+		bool init = false ;
+		for(size_t i = 0 ; i < derivative->size() ; i++)
+		{
+			if(init)
+				depth = std::min( depth, (*derivative)[i]->derivationDepth() ) ;			
+			else
+			{
+				depth = (*derivative)[i]->derivationDepth() ;
+				init = true ;
+			}
+		}
+		depth++ ;
+	}
+	return depth ;
+	
+}
 
 Function Function::operator*(const Function &f) const
 {
@@ -2696,10 +2840,18 @@ Function f_abs(const Function &f, bool differentiate)
 	
 	if(differentiate && f.isDifferentiable())
 	{
-		
 		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
 		{
 			Function d = f.d((const Variable)i)*f_positivity(f,false)-f.d((const Variable)i)*f_negativity(f,false) ;
+			if(f.d((const Variable) i).isDifferentiable())
+			{
+				d.setNumberOfDerivatives( f.d((const Variable) i).getNumberOfDerivatives() );
+				for(size_t k = 0 ; k < d.getNumberOfDerivatives() ; k++)
+				{
+					Function g = f.d((const Variable)i).d((const Variable) k)*f_positivity(f,false)-f.d((const Variable)i).d((const Variable) k)*f_negativity(f,false) ;
+					d.setDerivative((const Variable) k, g);
+				}
+			}
 			ret.getDerivatives()[i] =  new Function(d) ;
 		}
 	}
@@ -2728,16 +2880,16 @@ Function f_sqrt(const Function &f, bool differentiate)
 	ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
 	
 
-	ret.setNumberOfDerivatives(f.getNumberOfDerivatives()*differentiate) ;
-	
-	if(differentiate && f.isDifferentiable())
-	{
-		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
-		{
-			Function d = f.d((const Variable)i)*0.5/f_sqrt(f,f.isDifferentiable() && f.d((const Variable)i).isDifferentiable()) ;
-			ret.getDerivatives()[i] = new Function(d) ;
-		}
-	}
+ 	ret.setNumberOfDerivatives(0);//f.getNumberOfDerivatives()*differentiate) ;
+// 	
+// 	if(differentiate && f.isDifferentiable())
+// 	{
+// 		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
+// 		{
+// 			Function d = f.d((const Variable)i)*0.5/f_sqrt(f,f.isDifferentiable() && f.d((const Variable)i).isDifferentiable()) ;
+// 			ret.getDerivatives()[i] = new Function(d) ;
+// 		}
+// 	}
 	return ret ;
 }
 
@@ -2797,6 +2949,23 @@ Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
 	else
 	{
 		Function zero("0") ;
+		
+		size_t  j = 0 ;
+		while(j < ret.getDerivatives().size())
+		{
+			if( f.isDifferentiable((const Variable) j) )
+			{
+				Function z("0") ;
+				zero.setNumberOfDerivatives( ret.getNumberOfDerivatives() );
+				for(size_t k = 0 ; k < ret.getDerivatives().size() ; k++)
+				{
+					zero.setDerivative((const Variable) k, z);
+				}
+				j = ret.getDerivatives().size() ;
+			}
+		}
+		
+		
 		for(size_t i = 0 ; i < ret.getDerivatives().size() ; i++)
 			ret.setDerivative((const Variable)i,  zero) ;
 	}
@@ -2820,6 +2989,22 @@ Mu::Function f_negativity(const Mu::Function &f, bool differentiate)
 	else
 	{
 		Function zero("0") ;
+
+		size_t  j = 0 ;
+		while(j < ret.getDerivatives().size())
+		{
+			if( f.isDifferentiable((const Variable) j) )
+			{
+				Function z("0") ;
+				zero.setNumberOfDerivatives( ret.getNumberOfDerivatives() );
+				for(size_t k = 0 ; k < ret.getDerivatives().size() ; k++)
+				{
+					zero.setDerivative((const Variable) k, z);
+				}
+				j = ret.getDerivatives().size() ;
+			}
+		}
+		
 		for(size_t i = 0 ; i < ret.getDerivatives().size() ; i++)
 			ret.setDerivative((const Variable)i,  zero) ;
 	}
