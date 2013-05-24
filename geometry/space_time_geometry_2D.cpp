@@ -40,12 +40,16 @@ TimeDependentCircle::TimeDependentCircle(double r0, double rate, Point * c): Cir
 
 double TimeDependentCircle::radiusAtTime(const Point& p) const
 {
+// 	if(VirtualMachine().eval( radius_t, p) == 0)
+// 		p.print() ;
 	return VirtualMachine().eval( radius_t, p) ;
 }
 
 Circle TimeDependentCircle::circleAtTime(const Point& p) const
 {
-	return Circle( radiusAtTime(p), center) ;
+	Point c = center ;
+	c.t = p.t ;
+	return Circle( radiusAtTime(p), c) ;
 }
 
 double TimeDependentCircle::radiusAtTime(Point * p) const
@@ -55,6 +59,8 @@ double TimeDependentCircle::radiusAtTime(Point * p) const
 
 Circle TimeDependentCircle::circleAtTime( Point * p) const
 {
+	Point c = center ;
+	c.t = p->t ;
 	return Circle( radiusAtTime(p), center) ;
 }
 
@@ -68,6 +74,13 @@ bool TimeDependentCircle::in(const Point& v) const
 
 void TimeDependentCircle::project(Point* p) const
 {
+	if(p->t < center.t) 
+	{
+		p->x = center.x ;
+		p->y = center.y ;
+		return ;
+	}
+
 	return circleAtTime(p).project(p) ;
 }
 

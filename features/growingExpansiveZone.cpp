@@ -71,7 +71,10 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 		newInterface.insert( ring[i] ) ;
 	}
-
+	
+// 	std::cout << "\n" << ring.size() << std::endl ;
+// 	std::cout << inDisc.size() <<"\n" <<  std::endl ;
+// 
 	std::set<DelaunayTriangle *> newExpansive ;
 
 	for( size_t i = 0 ; i < inDisc.size() ; i++ )

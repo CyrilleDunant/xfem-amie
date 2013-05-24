@@ -1502,6 +1502,7 @@ void Circle::project(Point * p) const
 		return ;
 	}
 	
+	
 	Line l(*p, *p-getCenter()) ;
 	
 	std::vector<Point> inter = l.intersection(this) ;

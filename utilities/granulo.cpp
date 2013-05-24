@@ -260,7 +260,76 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 	
 }
 
+std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg) 
+{
+  	Feature * box = F->getFeature(0) ;
+	Sample * sample = dynamic_cast<Sample *>(box) ;
+	RandomNumber gen ;
+  	std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > ret ;
+	double aggregateArea = 0 ;
+	
+	std::vector<GrowingExpansiveZone *> zonesToPlace ;
+	
+	for(size_t i = 0 ; i < n ; i++)
+	{
+		double w = sample->width()*0.5 - 2*rmax ;
+		double h = sample->height()*0.5 - 2*rmax ;
+		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
+		pos += sample->getCenter() ;
+		bool alone  = true ;
+		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
+		{
+			if (squareDist(pos, zonesToPlace[j]->getCenter()) < (rmax*rmax*9))
+			{
+				alone = false ;
+				break ;
+			}
+		}
+		if (alone)
+			zonesToPlace.push_back(new GrowingExpansiveZone(nullptr, radius, pos.x, pos.y, behaviour)) ;
+	}
 
+	std::map<Inclusion *, int> zonesPerIncs ; 
+	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
+	{
+		bool placed = false ;
+		if(ret.size() < max)
+		{
+			  for(int j = 0 ; j < incs.size() ; j++)
+			  {
+				  Circle circle(incs[j]->getRadius() - rmax , incs[j]->getCenter()) ;
+				  if(circle.in(zonesToPlace[i]->getCenter()))
+				  {
+					if((maxPerAgg < 0 || zonesPerIncs[incs[j]] < maxPerAgg) )
+					{
+					  zonesPerIncs[incs[j]]++ ; 
+					  F->addFeature(incs[j],zonesToPlace[i]) ;
+					  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+					  placed = true ;
+					  break ;
+					}
+				  }
+			  }
+		}
+		if(!placed)
+			delete zonesToPlace[i] ;
+		
+	}
+	
+// 	exit(0) ;
+	int count = 0 ;
+	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
+	{
+		aggregateArea+= i->first->area() ;
+		count+= i->second ;
+	}
+	
+	std::cout << ret.size() << " zones placed on reactive aggregate area of " << aggregateArea << std::endl ;
+// 	std::cout << "initial Reacted Area = " << M_PI *radius *radius *ret.size() << " in " << ret.size() << " zones" << std::endl ;
+// 	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
+	return ret ;	
+	
+}
 
 double ParticleSizeDistribution::getNext2DDiameter(double diameter, double, double) 
 {

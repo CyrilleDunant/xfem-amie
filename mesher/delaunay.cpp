@@ -2703,7 +2703,8 @@ void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double ne
 	else
 	{
 		clearElementaryMatrix() ;
-		behaviourUpdated = true ;
+// 		getElementaryMatrix() ;
+// 		getViscousElementaryMatrix() ;
 	}
 }
 

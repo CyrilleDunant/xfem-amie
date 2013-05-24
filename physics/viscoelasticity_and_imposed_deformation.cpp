@@ -67,9 +67,14 @@ Form * ViscoelasticityAndImposedDeformation::getCopy() const
 {
 	if(model == PURE_ELASTICITY)
 	{
-		Matrix rig = param ;
+		Matrix rig( param.numCols()/blocks, param.numRows()/blocks) ;
+		for(size_t i = 0 ; i < rig.numCols() ; i++)
+		{
+			for(size_t j = 0 ; j < rig.numRows() ; j++)
+				rig[i][j] = param[i][j] ;
+		}
 		Vector imp = imposedStrain ;
-		return new ViscoelasticityAndImposedDeformation( model, rig, imp, 0, rho) ;
+		return new ViscoelasticityAndImposedDeformation( model, rig, imp, blocks-1, rho) ;
 	}
 	return new ViscoelasticityAndImposedDeformation(*this) ;
 }

@@ -35,11 +35,10 @@ namespace Mu
 	// parameters got for ./alain 1 500 500 0.29 10 200 at revision 2512
 	struct ViscoElasticOnlyPasteBehaviour : public PasteBehaviour
 	{
-		double tau_kv ;
-		double e_kv ;
-		double tau_mx ;
+		double e_1 ;
+		double e_2 ;
 		
-		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double tmx = 200, double ekv = 0.29, double tkv = 10, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 	} ;

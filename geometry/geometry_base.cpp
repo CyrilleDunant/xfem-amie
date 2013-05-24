@@ -135,34 +135,34 @@ void Point::print() const
 
 double Point::norm() const
 {
-#ifdef HAVE_SSE4
-	vecdouble r0 ;
-	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
-	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;
-	return sqrt(r0.val[0]+ r0.val[1]);
-#elif defined HAVE_SSE3
-	vecdouble rzt ;
-	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
-	return sqrt(rzt.val[0]+ rzt.val[1]);
-#else 
-	return sqrt(x*x+y*y+z*z+t*t) ;
-#endif
+// #ifdef HAVE_SSE4
+// 	vecdouble r0 ;
+// 	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
+// 	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;
+// 	return sqrt(r0.val[0]+ r0.val[1]);
+// #elif defined HAVE_SSE3
+// 	vecdouble rzt ;
+// 	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
+// 	return sqrt(rzt.val[0]+ rzt.val[1]);
+// #else 
+	return sqrt(x*x+y*y+z*z/*+t*t*/) ;
+// #endif
 }
 
 double Point::sqNorm() const
 {
-#ifdef HAVE_SSE4
-	vecdouble r0 ;
-	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
-	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;	
-	return r0.val[0]+ r0.val[1];
-#elif HAVE_SSE3
-	vecdouble rzt ;
-	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
-	return rzt.val[0]+ rzt.val[1];
-#else 
-	return x*x+y*y+z*z+t*t ;
-#endif
+// #ifdef HAVE_SSE4
+// 	vecdouble r0 ;
+// 	r0.vec = _mm_dp_pd(vecxy, vecxy, 61) ;
+// 	r0.vec += _mm_dp_pd(veczt, veczt, 62) ;	
+// 	return r0.val[0]+ r0.val[1];
+// #elif HAVE_SSE3
+// 	vecdouble rzt ;
+// 	rzt.vec = _mm_add_pd(_mm_mul_pd(veczt, veczt), _mm_mul_pd(vecxy, vecxy)) ;
+// 	return rzt.val[0]+ rzt.val[1];
+// #else 
+	return x*x+y*y+z*z/*+t*t*/ ;
+// #endif
 }
 
 void Point::setX(double v) 
@@ -3381,10 +3381,14 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			}
 			else if (delta == 0)
 			{
+			std::cout << delta << std::endl ;
+			
 				std::vector<Point> ret ;
 				ret.push_back(p+v*(-b/(2.*a))) ;
 				return ret ;
 			}
+			std::cout << delta << std::endl ;
+			
 
 			return std::vector<Point>(0) ;
 

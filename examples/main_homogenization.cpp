@@ -15,7 +15,7 @@
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/stiffness.h"
 #include "../physics/parallel_behaviour.h"
-#include "../physics/generalized_spacetime_viscoelasticity.h"
+//#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"

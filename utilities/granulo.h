@@ -15,6 +15,7 @@
 #include <vector>
 #include "../features/inclusion.h"
 #include "../features/expansiveZone.h"
+#include "../features/growingExpansiveZone.h"
 #include "../features/inclusion3d.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../geometry/geometry_base.h"
@@ -146,7 +147,7 @@ public:
 	 * @param seed seed for random generator
 	 * @return vector of Inclusion*
 	 */
-	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, PSDType type = BOLOME_A, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 10000, size_t seed = 0) ;
+	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, PSDType type = BOLOME_A, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 100000, size_t seed = 0) ;
 
 		/**
 	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample
@@ -170,6 +171,8 @@ public:
 	 * @param max maximum number of kept zones
 	 */
 	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg = -1) ;
+
+	static std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg = -1) ;
 	
 	/**
 	 * \brief Returns appropriate ParticleSizeDistribution* object corresponding to the given type

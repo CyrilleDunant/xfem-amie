@@ -272,7 +272,6 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 		}
 	}
 
-
 	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;

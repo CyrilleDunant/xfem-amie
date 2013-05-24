@@ -31,7 +31,7 @@ std::vector<DelaunayTriangle *> Inclusion::getElements2D( FeatureTree* dt)
 		bool inChild = false ;
 		for(size_t j = 0 ;  j< this->getChildren().size() ;  j++)
 		{
-			if(this->getChild(j)->in(temp[i]->getCenter()))
+			if(this->getChild(j)->in(temp[i]->getCenter()) && !(this->getChild(j)->isVirtualFeature))
 			{
 				inChild = true ; 
 				break ;

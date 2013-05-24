@@ -55,7 +55,7 @@ Form * ElasticOnlyPasteBehaviour::getCopy() const
 	return new Stiffness(param*factor) ;
 }
 
-ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double tmx, double ekv, double tkv, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0, dim), tau_mx(tmx), e_kv(ekv), tau_kv(tkv)
+ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0, dim), e_1(e1), e_2(e2)
 {
 
 }
@@ -65,7 +65,15 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 
-	Matrix e = param*factor ;
+	Matrix C0 = param*factor ;
+	Matrix C1 = C0*e_1 ;
+	Matrix C2 = C0*e_2 ;
+	Matrix E1 = C1*10. ;
+	Matrix E2 = C2*300. ;
 	
-	return new Viscoelasticity(BURGER, e*e_kv, e*e_kv*tau_kv, e, e*tau_mx) ;
+	std::vector<std::pair<Matrix, Matrix> > branches ;
+	branches.push_back(std::make_pair(C1,E1));
+	branches.push_back(std::make_pair(C2,E2));
+	
+	return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches) ;
 }
