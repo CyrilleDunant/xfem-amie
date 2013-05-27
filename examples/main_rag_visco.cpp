@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 {
 	double timeScale = atof(argv[1]) ;
 	double tau = timeScale * 0.01 ;
+	double timestep = tau ;
 	double appliedLoadEta = atof(argv[2])*(-1e6) ;
 	double appliedLoadXi = atof(argv[3])*(-1e6) ;
 	
@@ -159,16 +160,13 @@ int main(int argc, char *argv[])
 	
  	std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, dynamic_cast<ViscoelasticityAndImposedDeformation *>( gelBehaviour.getCopy() ), radius, maxGelRadius, nzones*50, nzones) ;
 	
-	std::string name = "asr_creep_no_damage_" ;
+	std::string name = "asr_creep/asr_creep_no_damage_" ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
 	name.append("_") ;
 	name.append(argv[3]) ;
 
-	std::ofstream out ;
-	out.open( name.c_str(), std::ios::out ) ;
-	
 	std::string nameshort = name ;
 	nameshort.append("_summary") ;
 	
@@ -176,6 +174,7 @@ int main(int argc, char *argv[])
 	summary.open(nameshort.c_str(), std::ios::out) ;
 	
 	std::vector<DelaunayTriangle *> triangles ;
+	std::map<DelaunayTriangle *, int> map ;
 	for(size_t i = 0 ; i < 15 ; i++)
 	{
 		F.setDeltaTime(tau) ;
@@ -184,20 +183,27 @@ int main(int argc, char *argv[])
 		if(triangles.size() == 0)
 		{
 			triangles = F.getElements2D() ;
+			for(size_t k = 0 ; k < aggregates.size() ; k++)
+			{
+				std::vector<DelaunayTriangle *> trgAggregates = aggregates[k]->getElements2D( &F ) ;
+				for(size_t j = 0 ; j < trgAggregates.size() ; j++)
+				{
+					map[ trgAggregates[j] ] = k+1 ;
+				}
+			}
+			
+			std::string namemap = name ;
+			namemap.append("_map") ;
+			
+			std::ofstream mapstream ;
+			mapstream.open(namemap.c_str(), std::ios::out ) ;
+					
 			for(size_t k = 0 ; k < triangles.size() ; k++)
 			{
-				int j =  findIndexOfAggregate(triangles[k],aggregates,&F);
-				out << j << "\t" << j << "\t" << j << "\t" ;
-				out << j << "\t" << j << "\t" << j << "\t" ;
+				mapstream << k << "\t" << map[ triangles[k] ] << "\t" << triangles[k]->area() << std::endl ;
 			}
-			out << std::endl ;
-			for(size_t k = 0 ; k < triangles.size() ; k++)
-			{
-				double a = triangles[k]->area() ;
-				out << a << "\t" << a << "\t" << a << "\t" ;
-				out << a << "\t" << a << "\t" << a << "\t" ;
-			}
-			out << std::endl ;
+			mapstream.close() ;
+			
 		}
 		
 		summary << F.getCurrentTime() << "\t" ;
@@ -209,16 +215,23 @@ int main(int argc, char *argv[])
 		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
 		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 		
+		std::string namei = name ;
+		namei.append("_") ;
+		namei.append( itoa(i) ) ;
+		
+		std::ofstream out ;
+		out.open(namei.c_str(), std::ios::out ) ;
+		
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			triangles[k]->getState().getAverageField( STRAIN_FIELD, strain ) ;
 			triangles[k]->getState().getAverageField( REAL_STRESS_FIELD, stress ) ;
-			out << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
-			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
+			out << k << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
+			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 		}
-		out << std::endl ;
+		out.close() ;
 		
-		tau += tau*i ;
+		tau += timestep*i ;
 	}
 	
 	
