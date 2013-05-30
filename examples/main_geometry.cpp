@@ -32,6 +32,7 @@
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 
+
 #include <fstream>
 
 #include <cmath>
@@ -146,7 +147,8 @@ int main(int argc, char *argv[])
   
   // creates 3D inclusions with rmax = 0.002, covering a volume of 0.000252, using BOLOME type B particle sizs distribution
   // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 1000)) ;
+  // covering volume 0.000042
+  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 100)) ;
   
   // attributes mechanical behaviour to the box and the aggregates
   box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
@@ -177,6 +179,7 @@ int main(int argc, char *argv[])
   inclusions.open("inclusions.csv");
   auto inc_it = incs.begin();
   auto inc_end = incs.end();
+  inclusions << incs.size() << std::endl;
   inclusions  <<  "#radius,x,y,z" << std::endl;
   for (; inc_it != inc_end; ++inc_it) {
     Point & center = (*inc_it)->getCenter();
@@ -253,6 +256,42 @@ int main(int argc, char *argv[])
 
   // get nodes
   //std::vector<Point> nodes = F.getNodes() ;
-	
+
+  // add boundary conditions
+  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM));
+  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0.0001));
+  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT));
+  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, FRONT));
+
+  // assemble and solve problem
+  F.step();
+
+  // calculate averaged stress and strain
+  Vector strain = F.getAverageField(STRAIN_FIELD);
+  Vector stress = F.getAverageField(REAL_STRESS_FIELD);
+
+  // write results in textfile
+  
+  std::ofstream strain_file; strain_file.open("strain.txt");
+  strain_file << "STRAIN_FIELD: " << std::endl;
+
+  for (size_t i=0; i<strain.size(); ++i){
+    strain_file << strain[i];
+    strain_file << std::endl;
+  } 
+
+  strain_file.close();
+
+  std::ofstream stress_file; stress_file.open("stress.txt");
+  stress_file << "REAL_STRESS_FIELD: " << std::endl;
+
+  for (size_t i=0; i<stress.size(); ++i){
+    stress_file << stress[i];
+    stress_file << std::endl;
+  } 
+
+  stress_file.close();
+
+
   return 0 ;
 }
