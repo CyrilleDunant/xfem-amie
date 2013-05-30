@@ -43,7 +43,7 @@ Form * PasteBehaviour::getCopy() const
 	return copy ;
 }
 
-ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,dim)
+ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,0.,0.,dim)
 {
 
 }
