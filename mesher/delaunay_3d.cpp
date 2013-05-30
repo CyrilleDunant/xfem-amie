@@ -3010,10 +3010,6 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
 	to_add.push_back( new Point( 0, 0, 0 ) ) ;
 	to_add.push_back( new Point( 1, 0.0 ) ) ;
 	to_add.push_back( new Point( 0, 0, 1 ) ) ;
-	to_add.push_back( new Point( 1, 1, 1 ) ) ;
-	to_add.push_back( new Point( 1, 1, 0 ) ) ;
-	to_add.push_back( new Point( 1, 0, 1 ) ) ;
-	to_add.push_back( new Point( 0, 1, 1 ) ) ;
 
 	TetrahedralElement f( LINEAR ) ;
 
@@ -3066,7 +3062,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		if( true )
 		{
 			TetrahedralElement father(LINEAR) ;
-			double npoints = 6 ;
+			double npoints = 16 ;
 			
 			
 			for(double i = 0 ; i <= 1 ; i += (1.-POINT_TOLERANCE_2D)/(npoints+1))
@@ -3092,10 +3088,28 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 // 					gp_alternative.push_back( std::make_pair( Point( x, y, z ), 1. / (npoints*6) ) ) ;
 // 			}
 
+// 			double gbase = 0 ;
+// 			double genriched= 0 ;
+// 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+// 			{
+// 
+// 				double base = 0. ;
+// 				for(size_t l = 0 ; l < getShapeFunctions().size() ; l++)
+// 					base += vm.eval( getShapeFunction(l), gp_alternative[i].first) ;
+// 				
+// 				double enriched = base ;
+// 				for(size_t l = 0 ; l < getEnrichmentFunctions().size() ; l++)
+// 					enriched += vm.eval( getEnrichmentFunction(l), gp_alternative[i].first) ;
+// 				
+// 				gbase += base ;
+// 				genriched += enriched ;
+// 			}
+
 			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
 			{
 				double j = jacobianAtPoint( gp_alternative[i].first ) ;
 				gp_alternative[i].second *= j/gp_alternative.size() ;
+// 				gp_alternative[i].second *= gbase/genriched ;
 			}
 
 			if( gp.gaussPoints.size() < gp_alternative.size() )

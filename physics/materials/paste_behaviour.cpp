@@ -55,7 +55,7 @@ Form * ElasticOnlyPasteBehaviour::getCopy() const
 	return new Stiffness(param*factor) ;
 }
 
-ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0, dim), e_1(e1), e_2(e2)
+ViscoElasticOnlyPasteBehaviour::ViscoElasticOnlyPasteBehaviour(double E, double nu, double e1, double e2, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0.,0.,0., dim), e_1(e1), e_2(e2)
 {
 
 }

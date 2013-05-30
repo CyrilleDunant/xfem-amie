@@ -31,6 +31,7 @@
 #include "../utilities/placement.h"
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
+#include "../utilities/writer/voxel_writer.h"
 
 
 #include <fstream>
@@ -40,98 +41,8 @@
 #include <limits>
 #include <GL/glut.h>
 #include <time.h> 
-#define DEBUG 
-
-#define ID_QUIT 1
-#define ID_ZOOM 5
-#define ID_UNZOOM 6
-#define ID_NEXT10 7
-#define ID_NEXT100 3
-#define ID_NEXT1000 4
-#define ID_NEXT 2
-#define ID_NEXT_TIME 0
-#define ID_REFINE 8
-#define ID_AMPLIFY 9
-#define ID_DEAMPLIFY 10
-
-#define ID_DISP 11
-#define ID_STRAIN_XX 12
-#define ID_STRAIN_XY 13
-#define ID_STRAIN_YY 14
-#define ID_STRESS_XX 15
-#define ID_STRESS_XY 16
-#define ID_STRESS_YY 17
-#define ID_STIFNESS 18
-#define ID_ELEM 19
-#define ID_VON_MISES 20
-#define ID_ANGLE 22
-#define ID_ENRICHMENT 21
-
-#define DISPLAY_LIST_DISPLACEMENT 1
-#define DISPLAY_LIST_ELEMENTS 2
-#define DISPLAY_LIST_STRAIN_XX 3
-#define DISPLAY_LIST_STRAIN_YY 4
-#define DISPLAY_LIST_STRAIN_XY 5
-#define DISPLAY_LIST_STRESS_XX 6
-#define DISPLAY_LIST_STRESS_YY 7
-#define DISPLAY_LIST_STRESS_XY 8
-#define DISPLAY_LIST_CRACK 9
-#define DISPLAY_LIST_STIFFNESS 10
-#define DISPLAY_LIST_VON_MISES 11
-#define DISPLAY_LIST_ANGLE 23
-#define DISPLAY_LIST_ENRICHMENT 12
-#define DISPLAY_LIST_STIFFNESS_DARK 24
 
 using namespace Mu ;
-
-FeatureTree * featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
-std::vector<bool> cracked ;
-
-double E_min = 10;
-double E_max = 0;
-
-double x_max = 0 ;
-double y_max = 0 ;
-
-double x_min = 0 ;
-double y_min = 0 ;
-
-double timepos = 0.00 ;
-double percent = 0.10 ;
-double placed_area = 0 ;
-
-double stress = 15e6 ;
-
-Sample sample(nullptr, 0.004, 0.004, 0.0, 0.0) ;
-
-bool firstRun = true ;
-
-std::vector<DelaunayTriangle *> tris__ ;
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
-
-std::vector<std::pair<ExpansiveZone *, EllipsoidalInclusion *> > zones ;
-
-std::vector<std::pair<double, double> > expansion_reaction ;
-std::vector<std::pair<double, double> > expansion_stress_xx ;
-std::vector<std::pair<double, double> > expansion_stress_yy ;
-std::vector<std::pair<double, double> > apparent_extension ;
-std::vector<double> cracked_volume ;
-std::vector<double> damaged_volume ;
-
-Vector b(0) ;
-Vector x(0) ;
-Vector sigma(0) ; 
-Vector sigma11(0) ; 
-Vector sigma22(0) ; 
-Vector sigma12(0) ; 
-Vector epsilon(0) ; 
-Vector epsilon11(0) ; 
-Vector epsilon22(0) ; 
-Vector epsilon12(0) ; 
-Vector vonMises(0) ; 
-Vector angle(0) ; 
 
 
 int main(int argc, char *argv[])
@@ -141,6 +52,17 @@ int main(int argc, char *argv[])
   if(argc > 1)
     scale = atof(argv[1]) ;
   
+	double nu = 0.2 ;
+	double E = 1 ;
+	Matrix m0(6,6) ;
+	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
+	m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
+	m0[2][0] = nu ; m0[2][1] = nu ; m0[2][2] = 1. - nu ;
+	m0[3][3] = 0.5 - nu ;
+	m0[4][4] = 0.5 - nu ;
+	m0[5][5] = 0.5 - nu ;
+	m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+	
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
   Sample3D box( nullptr, 0.04, 0.04, 0.04, 0.,0.,0.) ;
@@ -148,7 +70,7 @@ int main(int argc, char *argv[])
   // creates 3D inclusions with rmax = 0.002, covering a volume of 0.000252, using BOLOME type B particle sizs distribution
   // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
   // covering volume 0.000042
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 100)) ;
+  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 300)) ;
   
   // attributes mechanical behaviour to the box and the aggregates
   box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
@@ -265,8 +187,15 @@ int main(int argc, char *argv[])
 
   // assemble and solve problem
   F.step();
-
+	VoxelWriter vw("sphere_stiffness", 100) ;
+	vw.getField(&F, VWFT_STIFFNESS) ;
+	vw.write();
   // calculate averaged stress and strain
+	Vector x = F.
+	
+	
+	
+	getDisplacements() ;
   Vector strain = F.getAverageField(STRAIN_FIELD);
   Vector stress = F.getAverageField(REAL_STRESS_FIELD);
 

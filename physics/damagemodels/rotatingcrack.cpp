@@ -35,10 +35,10 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 	secondCompressionFailure = false ;
 	firstMet = false ;
 	secondMet = false ;
-	ctype = CONSERVATIVE_CENTER ;
-	alternating = true ;
+	alternating = false ;
 	alternate = true ;
-	
+	ctype = DISSIPATIVE_CENTER ;
+	stiff = new OrthotropicStiffness(E,E,E/(1.-nu*nu),nu, 0.) ;
 }
 
 
@@ -88,25 +88,18 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	Vector range( 1., 4 ) ;
 // 	std::cout << s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << std::endl ;
 	
-// 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
-// 		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+//  	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+//  		currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
 		es = &s ;
-// 		if(getState().max() < POINT_TOLERANCE_2D)
-			
-// 		if(!fractured() &&  s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) && state.max() < .01)
-// 		{
-// 			double prevAngle = currentAngle ;
- 			if(state.max() < .999)
-				currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
-				
-// 				std::cout << currentAngle << std::endl ;
-// 			else
-// 				currentAngle = currentAngle*(state.max()) + s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()*(1.-state.max()) ;
-// 			
-// 			change = std::abs(currentAngle-prevAngle) > M_PI*.03  && state.max() > POINT_TOLERANCE_2D;
-// 		}
+
+		if(state.max() < .9999)
+			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+		
+		stiff->setAngle(currentAngle) ;
+// 		std::cout << "----- "<< currentAngle << std::endl ;
+
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{
 			firstTension = true ;
@@ -193,87 +186,43 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
 
-	if ( getState().max() < POINT_TOLERANCE_2D)
-		return m ;
 	
-	if(fractured())
-		return m *0 ;
+// 	if ( getState().max() < POINT_TOLERANCE_2D)
+// 		return m ;
+// 	
+// 	if(fractured())
+// 		return m *0 ;
 	
 	double E_0 = E ;
 	double E_1 = E ;
 	double fs = getState()[0] ;
 	double ss = getState()[2] ;
-		if(!firstTension)
+	if(!firstTension)
 	{
 		fs = getState()[1] ;
-// 		E_0 *= 0.5 ;
 	}
 	if(!secondTension)
 	{
 		ss = getState()[3] ;
-// 		E_1 *= 0.5 ;
 	}
 	
-// 	if(std::abs(currentAngle- M_PI*.5) < M_PI*.25)
-// 	{
-// 		E_0 *= ( 1. - ss ) ;
-// 		E_1 *= ( 1. - fs ) ;
-// 	}
-// 	else
-// 	{
-		E_0 *= ( 1. - fs ) ;
-		E_1 *= ( 1. - ss ) ;
-// 	}
-// 	else
-// 	{
 
-// 	}
-	
-// 	for(double i = 0 ; i < M_PI ; i += .2)
-// 	{
-// 		OrthothropicStiffness( E_0, 
-// 													 E_1, 
-// 													 factor * E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
-// 													 nu * ( 1. -  getState().max()), 
-// 													 i ).getTensor( Point() ).print() ;
-// 	}
-// 																
-// 	exit(0) ;
-	
+		E_0 *= ( 1. - fs ) ;
+		E_1 *=  ( 1. - ss ) ;
+
 	double nunu = nu ;
-		if(getState().max() > POINT_TOLERANCE_2D)
-		nunu = 0 ;
-	
-// 	std::pair<double, double> dispandop = es->getParent()->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(*es) ;
-// 	double f = (0.016-dispandop.first)/0.016 ;
-// 	double df = f ;3.*f*f-2.*f*f*f ;
-// 	if(df < 0)
-// 		df = 0 ;
-// 	if(df > 1)
-// 		df = 1 ;
-// 	
-// 	double dg =  df ; std::abs(1./(1./(1.-fs)+1./(1.-ss))) ;std::min(1.-fs,1.-ss) ;0.5*((1.-fs)+(1.-ss));
-// 	double G = E/(2.*(1.+nu)) ;
-	
+	if(getState().max() > POINT_TOLERANCE_2D)
+		nunu = 0. ;
+
 	
 	double nu21 = 0 ; //(nu/std::max(E_0, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
 	double nu12 = 0 ; //(nu/std::max(E_1, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
 	double G = E_0*E_1/(E_0+E_1) ;
 	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
 		G = 0 ;
-	
-// 	if(ss > 1-POINT_TOLERANCE_2D || fs > 1.-POINT_TOLERANCE_2D)
-// 		nunu = 0 ;
-		
-// 	if(getState().max() > POINT_TOLERANCE_2D)
-// 		nunu = 0 ;
-		
-	return OrthothropicStiffness( E_0, 
-																E_1, 
-																G, 
-																nunu, 
-																currentAngle).getTensor( Point() )*factor ;
 
+	stiff->setStiffness(E_0, E_1, G, nunu) ;
+	return stiff->getTensor(Point())*factor ;
 
 }
 
@@ -384,6 +333,7 @@ void RotatingCrack::postProcess()
 
 RotatingCrack::~RotatingCrack()
 {
+	delete stiff ;
 }
 
 
@@ -570,7 +520,7 @@ Matrix FixedCrack::apply(const Matrix & m, const Point & p, const IntegrableEnti
 // 		E_1 = std::max(E_1, E_0*1e-4) ;
 	
 	
-	return OrthothropicStiffness( E_0, 
+	return OrthotropicStiffness( E_0, 
 																E_1, 
 																E * (1.-std::max(fs, ss)) * ( 1. - nu ) * .5, 
 																nu, 

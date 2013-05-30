@@ -202,11 +202,11 @@ GelBehaviour * gel = new GelBehaviour() ;
 void step()
 {
 	
-	size_t nsteps = 600 ; //16*10;
+	size_t nsteps = 600*4 ; //16*10;
 	size_t nit = 2 ;
 	size_t tries = 0 ;
 	int totit = 0 ;
-	double delta_d = 0.05e-3 ;
+	double delta_d = 0.0175e-3 ;
 
 	for ( size_t v = 0 ; v < nsteps ; v++ )
 	{
@@ -560,26 +560,18 @@ void step()
 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
 			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
 			writer.getField( TWFT_STIFFNESS_X ) ;
 			writer.getField( TWFT_STIFFNESS_Y ) ;
-			writer.getField( TWFT_CRACKS ) ;
 			writer.getField( TWFT_DAMAGE ) ;
 			writer.append() ;
 		}
 		
-		if(go_on)
+		if ( go_on )
 		{
 			writerc.reset( featureTree ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writerc.getField( TWFT_CRITERION ) ;
-			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
-			writerc.getField( TWFT_STIFFNESS_X ) ;
-			writerc.getField( TWFT_STIFFNESS_Y ) ;
-			writerc.getField( TWFT_CRACKS ) ;
 			writerc.getField( TWFT_DAMAGE ) ;
 			writerc.append() ;
+			writerc.writeSvg(0.) ;
 		}
 // 		if ( !go_on )
 // 			break ;

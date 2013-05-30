@@ -731,7 +731,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			cg[0][0] = E_1*gamma ; cg[0][1] = nu_21*E_1*gamma ;
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*gamma ;
 			
-			G = E_1*E_2/(E_1*(1.-nu_12*nu_12)+E_2*(1.-nu_21*nu_21)) ;
+			G = E_1*E_2/(E_1*(1.-nu_12*nu_21)+E_2*(1.-nu_21*nu_12)) ;
 			
 			cg[2][2] = G ;
 		}

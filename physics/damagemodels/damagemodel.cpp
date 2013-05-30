@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 {
 	elementState = &s ;
 	
-	double iterationNumber = 32 ;
+	double iterationNumber = 24 ;
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -86,7 +86,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << "0'   "<< score << std::endl ;
 // 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
 			trialRatio = 0. ;
-			getState( true ) = downState + ( upState - downState ) * trialRatio*effectiveDeltaFraction  ;
+			getState( true ) = downState ;
 			
 		}
 		else
@@ -118,12 +118,12 @@ void DamageModel::step( ElementState &s , double maxscore)
 			states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
 		}
 		
-		double n = 2. ;
+		double n = 3. ;
 		if(states.size() <= n)
 		{
 			if(states.size() == 1)
 			{
-					getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-3*effectiveDeltaFraction ;
+					getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction - damageDensityTolerance/*+ 1e-4*effectiveDeltaFraction*/ ;
 					trialRatio = 0 ;
 					return ;
 			}
@@ -221,31 +221,31 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction ; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-3*effectiveDeltaFraction;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
 			}
 			else if(ctype == DISSIPATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1.*damageDensityTolerance;
 			}
 			else if(ctype == DISSIPATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1e-2*effectiveDeltaFraction; //+ 2.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 1.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction ;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
 			}
 			converged = true ;
 			alternate = true ;
@@ -344,8 +344,8 @@ DamageModel::DamageModel(): state(0)
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
 	damageDensityTolerance =  1e-5 ; //1e-8 ;//1. / pow( 2., 14 );
-	thresholdDamageDensity = 1.-2e-5 ;
-	secondaryThresholdDamageDensity = 1.-1e-5 ;
+	thresholdDamageDensity = 1.-2.*damageDensityTolerance ;
+	secondaryThresholdDamageDensity = 1.-2.*damageDensityTolerance ;
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

@@ -25,7 +25,9 @@ Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.num
 	v.push_back(XI);
 	v.push_back(ETA);
 	if(param.size() > 9)
+	{
 		v.push_back(ZETA);
+	}
 } ;
 
 Stiffness::~Stiffness() { } ;

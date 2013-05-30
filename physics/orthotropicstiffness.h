@@ -25,17 +25,16 @@ namespace Mu
 	/** \brief A linear Elastic Law
 	* The field param is the Cauchy-Green Strain Tensor
 	*/
-	struct OrthothropicStiffness : public LinearForm
+	struct OrthotropicStiffness : public LinearForm
 	{
-		double E_1; 
-		double E_2; 
-		double E_3; 
-		double G_1; 
-		double G_2; 
-		double G_3;  
-		double nu;
+	protected:
+		Matrix transform ;
+		Matrix transformt ;
+		Matrix paramBase ;
+		bool transformset ;
 		std::vector<Variable> v ;
-		
+		OrthotropicStiffness(int s):transform(s,s), transformt(s,s), paramBase(s,s)  {};
+	public:
 		/** \brief Constructor
 		 * 
 		 * @param E_1 stifness in the first principal direction
@@ -45,8 +44,11 @@ namespace Mu
 		 * @param angle angle of the fibres
 		 * @param poissondefined dummy parameter
 		 */
-		OrthothropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
+		OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
 		
+		void setAngle(double) ;
+		void setStiffness(double E_1, double E_2, double G, double nu) ;
+		void setStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3, double nu) ;
 		/** \brief Constructor
 		* 
 		* @param E_1 stifness in the first principal direction
@@ -55,7 +57,7 @@ namespace Mu
 		* @param nu 12 Poisson ratio
 		* @param angle angle of the fibres
 		*/
-		OrthothropicStiffness(double E_1, double E_2, double G,  double nu, double angle) ;
+		OrthotropicStiffness(double E_1, double E_2, double G,  double nu, double angle) ;
 		/** \brief Constructor
 		* 
 		* @param E_1 stifness in the first principal direction
@@ -67,9 +69,9 @@ namespace Mu
 		* @param nu 12 Poisson ratio
 		* @param angle angle of the fibres
 		*/
-		OrthothropicStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu, double angle) ;
+		OrthotropicStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu, double angle) ;
 		
-		virtual ~OrthothropicStiffness() ;
+		virtual ~OrthotropicStiffness() ;
 
 		virtual XMLTree * toXML() { return new XMLTree("orthostiffness",param) ; } ;
 		

@@ -256,11 +256,6 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 				}
 			}
 		}
-		if (std::abs(maxval.back()-minval.back()) < POINT_TOLERANCE_2D)
-		{
-			minval.back() = 0 ;
-			maxval.back() = 1 ;
-		}
 	}
 	
 	for(size_t m = 0 ; m < counter ; m++)
@@ -284,6 +279,9 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					localFieldCounter = 3 ;
 					fieldCounter++ ;
 				}
+				double dval = (maxval[jit]-minval[jit]) ;
+				if (dval < 1e-14)
+					dval = 1 ;
 				outfile[m] << "\t\t<!-- maxval = " <<  maxval[jit] << ", minval = " << minval[jit] << "-->" << std::endl ;
 				outfile[m] << "\t\t<g>" << std::endl ;
 				outfile[m] << "\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(k+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
@@ -292,15 +290,15 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
 					double r,g,b ;
 					if(incolor)
-						HSVtoRGB(&r,&g,&b,295.2*(maxval[jit]-val)/(maxval[jit]-minval[jit]), 1., 1.);
+						HSVtoRGB(&r,&g,&b,295.2*(maxval[jit]-val)/dval, 1., 1.);
 					else
-						HSVtoRGB(&r,&g,&b,180., 0., (maxval[jit]-val)/(maxval[jit]-minval[jit]));
+						HSVtoRGB(&r,&g,&b,180., 0., (maxval[jit]-val)/dval);
 					
 					outfile[m] << "\t\t\t<polygon points =\"" 
 					           <<  gfactor*(minx+values[m][k][0][i]+values[m][k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][1][i]-values[m][k][9][i]*factor) << " "
 										 <<  gfactor*(minx+values[m][k][2][i]+values[m][k][7][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][3][i]-values[m][k][10][i]*factor) << " "
 										 <<  gfactor*(minx+values[m][k][4][i]+values[m][k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][5][i]-values[m][k][11][i]*factor)<< " " 
-										 << "\" style=\"stroke-width:1;stroke:darkgray;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
+										 << "\" style=\"stroke-width:0.5;stroke:darkgray;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
 
 					outfile[m] << " />" << std::endl ;
 				}
@@ -314,7 +312,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 		{
 			outfile[m] << "\t\t<g>" << std::endl ;
 			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+12 << "\">" << maxval[jit]*1000. << "</text>" << std::endl ;
+			                                     << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+12 << "\">" << std::setprecision(4) << maxval[jit] << "</text>" << std::endl ;
 			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
 			                                     << "\" y=\"" <<  (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+0.5*(maxy-miny)*gfactor*.35+12 << "\">" << std::setprecision(4) <<  minval[jit]*0.25+maxval[jit]*0.75 << "</text>" << std::endl ;
 			outfile[m] << "\t\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  

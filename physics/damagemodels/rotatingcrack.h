@@ -20,6 +20,7 @@ namespace Mu {
 /** \brief Rotating crack damage model. The stifness of an affected element is scaled by a factor between 1 and 0
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
+class OrthotropicStiffness ;
 class RotatingCrack : public DamageModel
 {
 protected:
@@ -41,6 +42,8 @@ protected:
 	bool firstCompressionFailure ;
 	bool secondCompressionFailure ;
 	ElementState * es ;
+	
+	OrthotropicStiffness * stiff ;
 	
 public:
 

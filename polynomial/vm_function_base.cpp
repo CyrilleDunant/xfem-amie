@@ -1828,7 +1828,7 @@ Function::~Function()
 
 bool Function::isDifferentiable() const 
 {
-	return e_diff ;
+	return e_diff && derivative;
 }
 
 bool Function::isDifferentiable(const Variable v) const 
@@ -2946,7 +2946,7 @@ Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
 	{
 		ret.setNumberOfDerivatives(0);
 	}
-	else
+	else if(ret.isDifferentiable())
 	{
 		Function zero("0") ;
 		

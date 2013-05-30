@@ -1467,7 +1467,7 @@ void Display(void)
 
 int main(int argc, char *argv[])
 {
-	OrthothropicStiffness orth(1, 2, 1,  .2, 0) ;
+	OrthotropicStiffness orth(1, 2, 1,  .2, 0) ;
 // 	std::vector<std::pair<std::string, double> >  vars ;
 // 	vars.push_back(std::make_pair("L", 300)); Function L("L") ;
 // 	vars.push_back(std::make_pair("f", 1.)); Function f("f") ;
@@ -1517,7 +1517,7 @@ int main(int argc, char *argv[])
 // 	Sample samplef(length, effectiveRadius, 1.300*.25, (effectiveRadius)*0.5) ;
 // 	Sample samplef(.1200, .1200, 0., 0.) ;
 // 	Sample samplef(0.3048, .0672, 0., 0.) ;
-	Sample samplef(1.2, 0.6, 0., 0.) ;
+	Sample samplef(0.6, 0.6, 0., 0.) ;
 	Sample notch(.005, .03, 0., -.1*.5+.03*.5) ;
 	
 	Sample toprightvoid(0.225, effectiveRadius-rebarDiametre*.5, 1.300*.5+0.225*0.5, rebarDiametre*.5+(effectiveRadius-rebarDiametre*.5)*0.5) ;     
@@ -1674,7 +1674,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(+0.04445, .0672*.5))) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition(FIX_ALONG_XI, TOP, Point(-0.04445, .0672*.5))) ;
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI,LEFT)) ;
 
