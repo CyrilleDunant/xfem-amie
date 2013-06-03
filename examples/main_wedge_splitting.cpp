@@ -106,37 +106,40 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(atof(argv[1])) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setDeltaTime(1.) ;
+	F.setDeltaTime(atof(argv[2])) ;
 //	F.setOrder(LINEAR) ;
+	
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-	box.setBehaviour( new ViscoelasticityAndFracture(PURE_ELASTICITY, c, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
-	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.01);	
+	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.003);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
-//	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete( &F, new AggregateBehaviour(), 0.008, 1000) ;
+	ElasticOnlyAggregateBehaviour hop ;
+	Viscoelasticity * agg = new Viscoelasticity( PURE_ELASTICITY, hop.param, 1 ) ;
+	
+	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 400, 0.008, 0.000001) ;
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
  
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 1 ) ) ;
-// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
 
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_XI, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
 	F.addBoundaryCondition(disp) ;
 
- 	F.addBoundaryCondition(new TimeContinuityBoundaryCondition()) ;
 	
 	F.step() ;
-// 	Vector x = F.getAverageField(STRAIN_FIELD) ;
-// 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
+ 	Vector x = F.getAverageField(STRAIN_FIELD) ;
+ 	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
 //	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
 	size_t i = 0 ;
@@ -147,7 +150,7 @@ int main(int argc, char *argv[])
 	while(i < 30)
 	{
 		i++ ;
-		disp->setData( 0.00005*i ) ;
+		disp->setData( 0.0005*i ) ;
 
 //		F.setDeltaTime(1.) ;
 		F.step() ;
@@ -163,9 +166,9 @@ int main(int argc, char *argv[])
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 			
-// 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-// 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-//		std::cout << 0.00005*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
+ 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+ 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+		out << 0.0005*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
 
 	}
 	

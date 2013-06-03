@@ -1713,12 +1713,12 @@ void FeatureTree::sample()
 
 		if( is2D() )
 		{
-			std::cerr << "2D features" << std::endl ;
+			std::cerr << "2D features " << tree.size() << std::endl ;
 			double total_area = tree[0]->area() ;
 
 			tree[0]->sample( samplingNumber * 4) ;
 			int count = 0 ; 
-			#pragma omp parallel for schedule(auto)
+//			#pragma omp parallel for schedule(auto)
 
 			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
 			{
@@ -1744,7 +1744,6 @@ void FeatureTree::sample()
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
-						tree[i]->isUpdated = false ;
 					}
 				}
 				else if(samplingRestriction == SAMPLE_RESTRICT_4)
@@ -1753,7 +1752,6 @@ void FeatureTree::sample()
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
-						tree[i]->isUpdated = false ;
 					}
 				}
 				else if(samplingRestriction == SAMPLE_RESTRICT_16)
@@ -1762,7 +1760,6 @@ void FeatureTree::sample()
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
-						tree[i]->isUpdated = false ;
 					}
 				}
 				else
@@ -1771,13 +1768,14 @@ void FeatureTree::sample()
 					{
 						count++ ;
 						tree[i]->sample( npoints ) ;
-						tree[i]->isUpdated = false ;
 					}
 				}
+				if(!tree[i]->isVirtualFeature)
+					tree[i]->isUpdated = false ;
 
-				tree[i]->addMeshPointsInFather() ;
+//				tree[i]->addMeshPointsInFather() ;
 			}
-//			std::cout << count << " particles meshed" << std::endl ;
+			std::cout << count << " particles meshed" << std::endl ;
 		}
 		else if( is3D() )
 		{
@@ -5243,10 +5241,9 @@ void FeatureTree::resetBoundaryConditions()
 
 bool FeatureTree::step()
 {
-
 	double realdt = deltaTime ;
 	
-	if( solverConverged() && !behaviourChanged())
+	if( state.meshed && solverConverged() && !behaviourChanged())
 	{
 		now += deltaTime ;
  		for(size_t i = 0 ; i < nodes.size() ; i++)
@@ -5934,6 +5931,8 @@ void FeatureTree::moveFirstTimePlanes(double d)
   
 }
 
+int myrandom (int i) { return std::rand()%i;}
+
 void FeatureTree::generateElements()
 {
 	for( size_t i = 0 ; i < boundaryCondition.size() ; i++ )
@@ -6458,7 +6457,7 @@ void FeatureTree::generateElements()
 // 	std::srand(1000) ;
 
 	//shuffle for efficiency
-	shuffleMeshPoints() ;
+//	shuffleMeshPoints() ;
 
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;
@@ -6498,22 +6497,29 @@ void FeatureTree::generateElements()
 				}
 			}
 		}
-		for( auto i = meshPoints.begin() + 4 ; i != meshPoints.end(); ++i )
+		
+		std::vector<size_t> iterators(meshPoints.size()-4) ;
+		for(size_t i = 0 ;i < iterators.size() ; i++)
+		  iterators[i] = i+4 ;
+//		std::random_shuffle(iterators.begin(), iterators.end(), myrandom);
+		
+		
+		for( size_t i = 0 ; i < iterators.size() ; i++ )
 		{
-			if( ( i - meshPoints.begin() ) % 1000 == 0 )
+			if( ( i ) % 1000 == 0 )
 				std::cerr << "\r generating triangles... point " << count << "/" << meshPoints.size() << std::flush ;
 
 			++count ;
 
-			if( *i->first != bbox[0] &&
-			        *i->first != bbox[2] &&
-			        *i->first != bbox[4] &&
-			        *i->first != bbox[6] && ( inRoot( *i->first ) || i->second->getFather() == nullptr )
+			if( *meshPoints[iterators[i]].first != bbox[0] &&
+			        *meshPoints[iterators[i]].first != bbox[2] &&
+			        *meshPoints[iterators[i]].first != bbox[4] &&
+			        *meshPoints[iterators[i]].first != bbox[6] && ( inRoot( *meshPoints[iterators[i]].first ) || meshPoints[iterators[i]].second->getFather() == nullptr )
 			  )
 			{
 				for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
 				{
-					j->second->insert(i->first) ;
+					j->second->insert(meshPoints[iterators[i]].first) ;
 				}
 			}
 // 			std::vector< DelaunayTriangle * > tritmp = dtree->getElements();
@@ -6745,7 +6751,7 @@ void FeatureTree::generateElements()
 
 void FeatureTree::shuffleMeshPoints()
 {
-	std::random_shuffle( meshPoints.begin(), meshPoints.end() ) ;
+//	std::random_shuffle( meshPoints.begin(), meshPoints.end() ) ;
 	return ;
 	std::cout << "shuffling mesh points... " ;
 
