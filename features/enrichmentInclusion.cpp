@@ -211,10 +211,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		{
 //			return ;
 			std::cout << "first" << std::endl ;
-			std::vector<Feature *> brother ;
+			std::vector< Feature *> brother ;
 			if(getFather())
 				brother = getFather()->getChildren() ;
-			std::vector<Feature *> feat ;
+			std::vector< Feature *> feat ;
 			for(size_t i = 0 ; i < brother.size() ; i++)
 			{
 				if(disc[0]->in(brother[i]->getCenter()))

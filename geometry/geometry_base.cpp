@@ -111,7 +111,7 @@ Point::Point(XMLTree * xml)
 	}
 }
 
-XMLTree * Point::toXML()
+XMLTree * Point::toXML() const
 {
 	Vector coord(4) ;
 	coord[0] = x; 
@@ -509,7 +509,7 @@ PointSet::PointSet() : boundingPoints(0)
 	this->chullEndPos = 0;
 }
 
-XMLTree * Geometry::toXML()
+XMLTree * Geometry::toXML() const
 {
 	XMLTree * geom = new XMLTree("geometry") ;
 	switch(gType)
@@ -521,22 +521,22 @@ XMLTree * Geometry::toXML()
 		}
 		case CIRCLE:
 		{
-			geom->addChild(static_cast<Circle *>(this)->toXML()) ;
+			geom->addChild(toXML()) ;
 			break;
 		}
 		case LAYERED_CIRCLE:
 		{
-			geom->addChild(static_cast<LayeredCircle *>(this)->toXML()) ;
+			geom->addChild(static_cast<const LayeredCircle *>(this)->toXML()) ;
 			break;
 		}
 		case TRIANGLE: //done
 		{
-			geom->addChild(static_cast<Triangle *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Triangle *>(this)->toXML()) ;
 			break;
 		}
 		case RECTANGLE: //done
 		{
-			geom->addChild(static_cast<Rectangle *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Rectangle *>(this)->toXML()) ;
 			break;
 		}
 		case PARALLELOGRAMME:
@@ -551,12 +551,12 @@ XMLTree * Geometry::toXML()
 		}
 		case SEGMENTED_LINE:
 		{
-			geom->addChild(static_cast<SegmentedLine *>(this)->toXML()) ;
+			geom->addChild(static_cast<const SegmentedLine *>(this)->toXML()) ;
 			break;
 		}
 		case ORIENTABLE_CIRCLE: //done
 		{
-			geom->addChild(static_cast<OrientableCircle *>(this)->toXML()) ;
+			geom->addChild(static_cast<const OrientableCircle *>(this)->toXML()) ;
 			break;
 		}
 		case CLOSED_NURB: //done
@@ -566,17 +566,17 @@ XMLTree * Geometry::toXML()
 		}
 		case TETRAHEDRON:
 		{
-			geom->addChild(static_cast<Tetrahedron *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Tetrahedron *>(this)->toXML()) ;
 			break;
 		}
 		case HEXAHEDRON:
 		{
-			geom->addChild(static_cast<Hexahedron *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Hexahedron *>(this)->toXML()) ;
 			break;
 		}
 		case SPHERE:
 		{
-			geom->addChild(static_cast<Sphere *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Sphere *>(this)->toXML()) ;
 			break;
 		}
 		case LAYERED_SPHERE:
@@ -586,12 +586,12 @@ XMLTree * Geometry::toXML()
 		}
 		case REGULAR_OCTAHEDRON:
 		{
-			geom->addChild(static_cast<RegularOctahedron *>(this)->toXML()) ;
+			geom->addChild(static_cast<const RegularOctahedron *>(this)->toXML()) ;
 			break;
 		}
 		case ELLIPSE:
 		{
-			geom->addChild(static_cast<Ellipse *>(this)->toXML()) ;
+			geom->addChild(static_cast<const Ellipse *>(this)->toXML()) ;
 			break;
 		}
 		case LEVEL_SET:
@@ -4882,7 +4882,7 @@ OrientableCircle::OrientableCircle()
 	this->radius = 1 ;
 }
 
-XMLTree * OrientableCircle::toXML()
+XMLTree * OrientableCircle::toXML() const
 {
 	XMLTree * circle = new XMLTree("circle") ;
 	XMLTree * c = new XMLTree("center") ;

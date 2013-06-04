@@ -71,21 +71,22 @@ public:
 	 * 
 	 * @param father sets the father.
 	 */
-	Feature(Feature *father = nullptr) ;
+	Feature(Feature * const father = nullptr) ;
 
 	/** \brief Feature constructor.
 	 * 
 	 * @param father sets the father.
 	 * @param b      sets the boundary.
 	 */
-	Feature(Feature *father, Geometry * b) ;
+	Feature(Feature * const father, Geometry * const b) ;
 	
 	virtual ~Feature() ;
 	
-	Feature * getBehaviourSource() const ;
-	void setBehaviourSource(Feature * f) ;
+	Feature * getBehaviourSource() ;
+	const Feature * getBehaviourSource() const ;
+	void setBehaviourSource( Feature * const f) ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	 
 	bool inBoundary(const Point &p, double d) const ;
 	bool onBoundary(const Point &p, double d) const ;
@@ -99,27 +100,27 @@ public:
 	 * 
 	 * @param b Behaviour of the feature. getCopy() from this behaviour will be called to generate the behaviour of elements depending from this feature.
 	 */
-	virtual void setBehaviour(Form * b) ;
+	virtual void setBehaviour(Form * const b) ;
 	
 	/** \brief Get the Behaviour
 	 * 
 	 * @return the Behaviour
 	 */
-	virtual Form * getBehaviour( const Point & p ) ;
+	virtual Form * getBehaviour( const Point & p ) const ;
 	
-	virtual Form * getBehaviour() ;
+	virtual Form * getBehaviour() const ;
 	
 	/** \brief Add a child to the feature.
 	 * 
 	 * @param f Children to add.
 	 */
-	virtual void addChild(Feature *f) ;
+	virtual void addChild(Feature * const f) ;
 
 	/** \brief Remove a child of the feature.
 	 * 
 	 * @param f Children to add.
 	 */
-	virtual void removeChild(Feature *f) ;
+	virtual void removeChild(Feature * const f) ;
 	
 	
 	/** \brief Return i<sup>th</sup> child.
@@ -134,20 +135,21 @@ public:
 	 * 
 	 * @return thefather Feature. It can be nullptr !
 	 */
-	virtual Feature * getFather() const;
+	virtual const Feature * getFather() const;
+	virtual  Feature * getFather() ;
 	
 	
 	/** \brief Return the children
 	 * 
 	 * @return a pointer to the m_c member. This is a vector containing the pointers to the children.
 	 */
-	virtual const std::vector<Feature *> & getChildren() const;
+	virtual const std::vector< Feature *> & getChildren() const;
 
 	/** \brief Return the children
 	 * 
 	 * @return a pointer to the m_c member. This is a vector containing the pointers to the children.
 	 */
-	virtual std::vector<Feature *> & getChildren();
+	virtual std::vector< Feature *> & getChildren();
 
 	virtual void addMeshPointsInFather() { } ;
 
@@ -161,7 +163,7 @@ public:
 	 * 
 	 * @param f the new father. The feature is automatically added to the children of the new parent.
 	 */
-	virtual void setFather(Feature *f) ;
+	virtual void setFather(Feature * const f) ;
 	
 	/** \brief Return all the triangle <em>in</em> the feature.
 	 * 
@@ -174,10 +176,10 @@ public:
 	virtual std::vector<DelaunayTetrahedron *> getElements3D(  FeatureTree* dt)  = 0;
 
 /** \brief return triangles intersecting the feature*/
-	virtual std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree* dt) ;
+	virtual std::vector<DelaunayTriangle *> getBoundingElements2D( FeatureTree* dt) const ;
 
 /** \brief return tetrahedrons intersecting the feature*/
-	virtual std::vector<DelaunayTetrahedron *> getBoundingElements3D(FeatureTree* dt) ;
+	virtual std::vector<DelaunayTetrahedron *> getBoundingElements3D(FeatureTree* dt) const ;
 	
 	/** \brief Check for interaction.
 	 * 

@@ -177,7 +177,7 @@ protected:
 	/** \brief  List of points used for the mesh.
 	 * Each point is associated with the feature from whose discretiation it was generated.
 	 */
-	std::deque<std::pair<Point *, Feature *> > meshPoints;
+	std::deque<std::pair<Point *, const Feature *> > meshPoints;
 	std::vector<Point *> additionalPoints ;
 	std::map<Feature *, double> samplingFactors ;
 	std::map<int, double > scalingFactors ;
@@ -438,11 +438,11 @@ public:
 	 * @param father Parent feature.
 	 * @param t daughter feature.
 	 */
-	void addFeature(Feature *father, Feature * f, int layer = -1, double fraction = 1) ;
+	void addFeature( Feature * const father, Feature * const f, int layer = -1, double fraction = 1) ;
 	
 	void addPoint(Point * p) ;
 
-	void twineFeature(CompositeFeature * father, CompositeFeature * f) ;
+	void twineFeature(CompositeFeature * const father, CompositeFeature * const f) ;
 
 	void homothety(double before, double now, double after) ;
 	
@@ -487,7 +487,7 @@ public:
 	 * @param m pointer to the tensor. 
 	 * @param f Feature to affect.
 	 */
-	void setStrainTensor(Matrix * m, Feature * f) ;
+	void setStrainTensor(Matrix * m, Feature * const f) ;
 	
 	/** \brief  set the target order of Elements
 	 * 
@@ -543,8 +543,8 @@ public:
 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 	
 	Vector getAverageField( FieldType f, int grid = -1, double t = 0) ;
-	Vector getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri) ;
-	Vector getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet) ;
+	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
+	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 	
 	std::vector<Point *> getNodes(int g = -1) ;
 	
@@ -572,7 +572,7 @@ public:
 // 	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
 		
 /** \brief return the triangles lying next to a mesh border*/
-	std::vector<DelaunayTriangle *> getBoundingTriangles(Feature * f = nullptr) ;	
+	std::vector<DelaunayTriangle *> getBoundingTriangles(const Feature * f = nullptr) ;	
 	
 /** \brief return the Behaviour of the argument, deduced from the Feature s*/
 	Form * getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;

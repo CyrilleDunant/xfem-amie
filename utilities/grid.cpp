@@ -15,12 +15,12 @@ Voxel::Voxel(double x, double y, double z ,double s) : tlf(x-s*.5, y+s*.5, z+s*.
 {
 }
 
-const std::vector<Geometry *> & Voxel::getFeatures() const
+const std::vector<const Geometry *> & Voxel::getFeatures() const
 {
 	return this->features ;
 }
 
-std::vector<Geometry *> & Voxel::getFeatures()
+std::vector<const Geometry *> & Voxel::getFeatures()
 {
 	return this->features ;
 }
@@ -30,7 +30,7 @@ bool Voxel::in(const Point & p) const
 	return (p.x >= tlf.x)  && (p.x <= brf.x) && (p.y >= brf.y) && (p.y <= tlf.y) && (p.z >= brb.z) && (p.z <= tlf.z);
 }
 
-void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc) const
+void Voxel::coOccuringFeatures(std::vector<const Geometry *> &f , const Geometry * inc) const
 {
 	if(pixels.empty())
 	{
@@ -47,7 +47,7 @@ void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc
 	}
 }
 
-void Voxel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) const
+void Voxel::coOccuringFeatures(std::vector<const Geometry *> &f , const Point & p) const
 {
 	if(pixels.empty())
 	{
@@ -112,7 +112,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| /*Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc) ||*/ in(inc->getCenter()) ;
 }
 
-void Voxel::remove(Geometry * inc)
+void Voxel::remove(const Geometry * inc)
 {
 
 	auto e = std::find(features.begin(), features.end(), inc) ;
@@ -167,7 +167,7 @@ void Voxel::refine()
 	features.clear() ;
 }
 
-bool Voxel::add(Geometry * inc)
+bool Voxel::add(const Geometry * inc)
 {
 	
 	if(filled)
@@ -224,7 +224,7 @@ bool Voxel::add(Geometry * inc)
 	}
 }
 
-void Voxel::forceAdd(Geometry * inc)
+void Voxel::forceAdd(const Geometry * inc)
 {
 	if(pixels.empty())
 		this->features.push_back(inc) ;
@@ -316,12 +316,12 @@ Pixel::Pixel() : pixels(0)
 
 Pixel::Pixel(double x, double y, double s) : tl(x-s*.5, y+s*.5), tr(x+s*.5, y+s*.5), bl(x-s*.5, y-s*.5), br(x+s*.5, y-s*.5), filled(false) {} ;
 
-const std::vector<Geometry *> & Pixel::getFeatures() const
+const std::vector<const Geometry *> & Pixel::getFeatures() const
 {
 	return this->features ;
 }
 
-std::vector<Geometry *> & Pixel::getFeatures()
+std::vector<const Geometry *> & Pixel::getFeatures()
 {
 	return this->features ;
 }
@@ -357,7 +357,7 @@ Pixel::~Pixel()
 {
 }
 
-bool Pixel::coOccur(const Geometry * inc) const
+bool Pixel::coOccur(const Geometry * const inc) const
 {
 	std::vector<Point> bbox = inc->getBoundingBox() ;
 	Rectangle test((tl.x+br.x)*.5, (tl.y+br.y)*.5, tr.x-bl.x, tr.y-bl.y) ;
@@ -387,7 +387,7 @@ bool Pixel::coOccur(const Point & p) const
 	   &&  p.y <= tl.y + POINT_TOLERANCE_2D ;
 }
 
-void Pixel::remove(Geometry * inc)
+void Pixel::remove(const Geometry * inc)
 {
 	auto e = std::find(features.begin(), features.end(), inc) ;
 	if(e != features.end())
@@ -431,7 +431,7 @@ int Pixel::computeFillFactor() const
 	return count ;
 }
 
-void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc) const
+void Pixel::coOccuringFeatures(std::vector<const Geometry *> &f , const Geometry * inc) const
 {
 	if(!pixels.size() && !features.empty())
 	{
@@ -439,7 +439,7 @@ void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc
 		return ;
 	}
 	
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 
 	
 	if(pixels.size())
@@ -454,7 +454,7 @@ void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Geometry * inc
 	}
 }
 
-void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) const
+void Pixel::coOccuringFeatures(std::vector<const Geometry *> &f , const Point & p) const
 {
 	if(!pixels.size() && !features.empty())
 	{
@@ -462,7 +462,7 @@ void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) con
 		return ;
 	}
 	
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 	
 	if(pixels.size())
 	{
@@ -476,7 +476,7 @@ void Pixel::coOccuringFeatures(std::vector<Geometry *> &f , const Point & p) con
 	}
 }
 
-bool Pixel::add(Geometry * inc)
+bool Pixel::add(const Geometry * inc)
 {
 	if(filled)
 		return false;
@@ -527,7 +527,7 @@ bool Pixel::add(Geometry * inc)
 	}
 }
 
-void Pixel::forceAdd(Geometry * inc)
+void Pixel::forceAdd(const Geometry * inc)
 {	
 	this->features.push_back(inc) ;
 	
@@ -626,7 +626,7 @@ Point Grid3D::randomFreeCenter() const
 Grid3D Grid3D::getGrid(int div) const
 {
 	Hexahedron all(x, y, z, c) ;
-	std::vector<Geometry *> features = coOccur(&all) ;
+	std::vector<const Geometry *> features = coOccur(&all) ;
 	Grid3D ret(x,y, z,div,c) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
@@ -660,10 +660,10 @@ double Grid3D::fraction() const
 	return (double)dirtyCounter/(lengthX*lengthY*lengthZ) ;
 }
 
-bool Grid3D::add(Geometry * inc)
+bool Grid3D::add(const Geometry * inc)
 {
 	
-	std::vector<Geometry *> toTest = coOccur(inc);
+	std::vector<const Geometry *> toTest = coOccur(inc);
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 		if(inc->intersects(toTest[i]))
 			return false ;
@@ -724,7 +724,7 @@ bool Grid3D::add(Geometry * inc)
 // 	return ret ;
 }
 
-void Grid3D::forceAdd(Geometry * inc)
+void Grid3D::forceAdd(const Geometry * inc)
 {
 	double startX = .5*x-c.x + inc->getCenter().x-inc->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
@@ -761,7 +761,7 @@ void Grid3D::forceAdd(Geometry * inc)
 
 }
 
-bool Grid3D::remove(Geometry* inc)
+bool Grid3D::remove(const Geometry* inc)
 {
 
 	for(int i = 0 ; i < pixels.size() ; i++)
@@ -778,9 +778,9 @@ bool Grid3D::remove(Geometry* inc)
 	return true ;
 }
 
-std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
+std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 {
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 	double startX = .5*x-c.x + geo->getCenter().x-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -849,9 +849,9 @@ std::vector<Geometry *> Grid3D::coOccur(const Geometry * geo) const
 	return ret ;
 }
 
-std::vector<Geometry *> Grid3D::coOccur(const Point & p) const 
+std::vector<const Geometry *> Grid3D::coOccur(const Point & p) const 
 {
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 	double startX = x*.5-c.x + p.x ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -930,9 +930,9 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	}
 }
 
-std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
+std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
 {
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 	double startX = x*.5-c.x + geo->getCenter().x-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -964,9 +964,9 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 	return ret ;
 }
 
- std::vector<Geometry *> Grid::coOccur(const Point & p) const 
+ std::vector<const Geometry *> Grid::coOccur(const Point & p) const 
 {
-	std::vector<Geometry *> ret ;
+	std::vector<const Geometry *> ret ;
 	double startX = x*.5-c.x + p.x ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
@@ -997,7 +997,7 @@ std::vector<Geometry *> Grid::coOccur(const Geometry * geo) const
 }
 
 
-void Grid::forceAdd(Geometry * inc)
+void Grid::forceAdd(const Geometry * inc)
 {
 	
 	double startX = x*.5-c.x + inc->getCenter().x-inc->getRadius() ;
@@ -1032,7 +1032,7 @@ void Grid::forceAdd(Geometry * inc)
 		pixels[0][0]->forceAdd(inc) ;
 }
 
-bool Grid::remove(Geometry * inc)
+bool Grid::remove(const Geometry * inc)
 {
 	for(int i = 0 ; i < pixels.size() ; i++)
 	{
@@ -1048,7 +1048,7 @@ bool Grid::remove(Geometry * inc)
 Grid Grid::getGrid(int div) const
 {
 	Rectangle all(x, y, c) ;
-	std::vector<Geometry *> features = coOccur(&all) ;
+	std::vector<const Geometry *> features = coOccur(&all) ;
 	Grid ret(x,y,div,c) ;
 	for(size_t i = 0 ; i < features.size() ; i++)
 	{
@@ -1060,9 +1060,9 @@ Grid Grid::getGrid(int div) const
 
 
 
-bool Grid::add(Geometry * inc)
+bool Grid::add(const Geometry * inc)
 {
-	std::vector<Geometry *> toTest = coOccur(inc);
+	std::vector<const Geometry *> toTest = coOccur(inc);
 
 	for(size_t i = 0 ; i < toTest.size() ; i++)
 	{

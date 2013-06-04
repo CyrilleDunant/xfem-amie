@@ -18,7 +18,7 @@ namespace Mu
 class Pixel
 {
 protected:
-	std::vector<Geometry *> features ;
+	std::vector<const Geometry *> features ;
 	Point tl ;
 	Point tr ;
 	Point bl ;
@@ -42,16 +42,16 @@ public:
 	Pixel(double x, double y, double s) ;
 
 	/** \brief return features stored in this pixel*/
-	const std::vector<Geometry *> & getFeatures() const;
+	const std::vector<const Geometry *> & getFeatures() const;
 	
 	/** \brief return features stored in this pixel*/
-	std::vector<Geometry *> & getFeatures();
+	std::vector<const Geometry *> & getFeatures();
 	
 	/** \brief return true if the argument lies in the pixel*/
 	bool in(const Point & p) const;
 
 	/** \brief return true if the Geometry overlaps the pixel*/
-	bool coOccur(const Geometry * inc) const;
+	bool coOccur(const Geometry * const inc) const;
 	
 	/** \brief return true if the argument lies in the pixel*/
 	bool coOccur(const Point & p) const;
@@ -62,7 +62,7 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Geometry to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Geometry *>& ret, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector< const Mu::Geometry* >& f, const Mu::Geometry* inc) const ;
 
 	/** \brief Given a Point, return a list of stored Feature pointers in which the point lies
 *
@@ -70,16 +70,16 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Point to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Geometry *>& ret , const Point & p) const ;
+	void coOccuringFeatures(std::vector<const Geometry *>& ret , const Point & p) const ;
 
 /** \brief remove the argument from the Feature list*/
-	void remove(Geometry * inc);
+	void remove(const Geometry * inc);
 	
 /** \brief add the argument to the Feature list if it does not overlap with another already present Feature*/
-	bool add(Geometry * inc);
+	bool add(const Geometry * inc);
 
 /** \brief add the argument to the Feature list unconditionnally*/
-	void forceAdd(Geometry * inc) ;
+	void forceAdd(const Geometry * inc) ;
 
 	void print() const ;
 
@@ -90,7 +90,7 @@ public:
 class Voxel
 {
 protected:
-	std::vector<Geometry *> features ;
+	std::vector<const Geometry *> features ;
 	Point tlf ;
 	Point trf ;
 	Point blf ;
@@ -122,16 +122,16 @@ public:
 	~Voxel();
 
 	/** \brief return features stored in this voxel*/
-	const std::vector<Geometry *> & getFeatures() const;
+	const std::vector<const Geometry *> & getFeatures() const;
 	
 	/** \brief return features stored in this voxel*/
-	std::vector<Geometry *> & getFeatures();
+	std::vector<const Geometry *> & getFeatures();
 	
 	/** \brief return true if the argument lies in the voxel*/
 	bool in(const Point & p) const;
 
 	/** \brief return true if the Geometry overlaps the voxel*/
-	bool coOccur(const Geometry * inc) const;
+	bool coOccur(const Geometry * const inc) const;
 
 	/** \brief return true if the argument lies in the voxel*/
 	bool coOccur(const Point & p) const;
@@ -142,7 +142,7 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Geometry to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Geometry *>&, const Geometry * inc) const ;
+	void coOccuringFeatures(std::vector<const Geometry *>&, const Geometry * inc) const ;
 
 	/** \brief Given a Point, return a list of stored Feature pointers in which the point lies
 *
@@ -150,16 +150,16 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Point to check for overlaps
 */
-	void coOccuringFeatures(std::vector<Geometry *>&, const Point & p) const ;
+	void coOccuringFeatures(std::vector<const Geometry *>&, const Point & p) const ;
 
 /** \brief remove the argument from the Feature list*/
-	void remove(Geometry * inc);
+	void remove(const Geometry * inc);
 	
 /** \brief add the argument to the Feature list if it does not overlap with another already present Feature*/
-	bool add(Geometry * inc);
+	bool add(const Geometry * inc);
 
 /** \brief add the argument to the Feature list unconditionnally*/
-	void forceAdd(Geometry * inc) ;
+	void forceAdd(const Geometry * inc) ;
 
 	void print() const ;
 	
@@ -205,23 +205,23 @@ public:
 * @param inc Feature to add
 * @return true if insertion was successful
 */
-	bool add(Geometry * inc);
+	bool add(const Geometry * inc);
 	
 	/** \brief Remove a Feature if it does not overlap with another allready present Feature
 *
 * @param inc Feature to remove
 * @return true if deletion was successful
 */
-	bool remove(Geometry * inc);
+	bool remove(const Geometry * inc);
 
 /** \brief Add a Feature unconditionnally*/
-	void forceAdd(Geometry * inc) ;
+	void forceAdd(const Geometry * inc) ;
 
 /** \brief Return the lis of Features overlapping the argument*/
-	std::vector<Geometry *> coOccur(const Geometry * geo) const ;
+	std::vector<const Geometry *> coOccur(const Geometry * geo) const ;
 
 /** \brief Return the list of Features containing the argument*/
-	std::vector<Geometry *> coOccur(const Point & p) const ;
+	std::vector<const Geometry *> coOccur(const Point & p) const ;
 
 /** \brief Get a new grid, given a number of divisions*/
 	Grid getGrid(int div) const;
@@ -272,7 +272,7 @@ public:
 * @param inc Feature to add
 * @return true if insertion was successful
 */
-	bool add(Geometry * inc);
+	bool add(const Geometry * inc);
 	
 	
 /** \brief Remove a Feature 
@@ -280,16 +280,16 @@ public:
 * @param inc Feature to delete
 * @return true if deletion was successful
 */
-	bool remove(Geometry * inc);
+	bool remove(const Geometry * inc);
 	
 /** \brief Add a Feature unconditionnally*/
-	void forceAdd(Geometry * inc) ;
+	void forceAdd(const Geometry * inc) ;
 
 /** \brief Return the lis of Features overlapping the argument*/
-	std::vector<Geometry *> coOccur(const Geometry * geo) const ;
+	std::vector<const Geometry *> coOccur(const Geometry * geo) const ;
 
 /** \brief Return the list of Features containing the argument*/
-	std::vector<Geometry *> coOccur(const Point & p) const;
+	std::vector<const Geometry *> coOccur(const Point & p) const;
 	double fraction() const ;
 
 /** \brief Get a new grid, given a number of divisions*/

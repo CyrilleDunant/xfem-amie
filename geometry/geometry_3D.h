@@ -39,7 +39,7 @@ public:
 	
 	virtual ~Tetrahedron() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 	/** \brief Sample The bounding surface.
 	 * 
@@ -127,7 +127,7 @@ public:
 	
 	virtual ~Hexahedron() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 
 	
 	/** \brief Sample The bounding surface.
@@ -195,7 +195,7 @@ public:
 
 	virtual ~RegularOctahedron() { } ;
 
-	virtual XMLTree * toXML() {return new XMLTree("regular octahedron") ; } ;
+	virtual XMLTree * toXML() const {return new XMLTree("regular octahedron") ; } ;
 
 	
 	/** \brief Sample The bounding surface.
@@ -309,7 +309,7 @@ public:
 	
 	virtual ~Sphere() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const;
 	
 	/** \brief Sample The bounding surface.
 	 * 

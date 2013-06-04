@@ -14,14 +14,13 @@
 using namespace Mu ;
 
 
-Feature::Feature(Feature * father) : behaviour(nullptr)
+Feature::Feature(Feature * father) : behaviour(nullptr), m_f(father)
 {
 	isEnrichmentFeature = false ;
 	isCompositeFeature = false ;
 	isVirtualFeature = false ;
 	isUpdated = false ;
 	behaviourSource = nullptr ;
-	m_f = father ;
 	
 	layer = -1 ;
 	if(father != nullptr)
@@ -54,15 +53,15 @@ std::vector<Point *> Feature::doubleSurfaceSampling()
 	return ret ;
 }
 
-XMLTree * Feature::toXML()
+XMLTree * Feature::toXML() const 
 {
 	XMLTree * feat = new XMLTree("feature") ;
-	feat->addChild(static_cast<Geometry *>(this)->toXML()) ;
+	feat->addChild(static_cast<const Geometry *>(this)->toXML()) ;
 	feat->print(true) ;
 //	feat->addChild(getBehaviour()->toMaterial().toXML()) ;
 	for(size_t i = 0 ; i < m_c.size() ; i++)
 	{
-		Feature * fi = getChild(i) ;
+		const Feature * fi = getChild(i) ;
 		fi->print() ;
 		XMLTree * testi = fi->toXML() ;
 		feat->addChild(testi) ;
@@ -71,16 +70,22 @@ XMLTree * Feature::toXML()
 }
 
 
-Feature * Feature::getBehaviourSource() const
+const Feature * Feature::getBehaviourSource() const
 {
 	return behaviourSource ;
 }
-void Feature::setBehaviourSource(Feature * f)
+
+Feature * Feature::getBehaviourSource() 
+{
+	return behaviourSource ;
+}
+
+void Feature::setBehaviourSource(Feature * const f)
 {
 	behaviourSource = f ;
 }
 
-void  Feature::addChild(Feature *feat)
+void  Feature::addChild( Feature * const feat)
 {
 	if(getChildren().empty() || std::find(getChildren().begin(), getChildren().end(), feat) == getChildren().end())
 	{
@@ -88,26 +93,26 @@ void  Feature::addChild(Feature *feat)
 	}
 }
 
-void  Feature::removeChild(Feature *feat)
+void  Feature::removeChild(Feature * const feat)
 {
-	std::vector<Feature *>::iterator c = std::find(m_c.begin(), m_c.end(), feat) ;
+	auto c = std::find(m_c.begin(), m_c.end(), feat) ;
 	if(c != m_c.end())
 		getChildren().erase(c) ;
 }
 
-void Feature::setBehaviour(Form * f)
+void Feature::setBehaviour(Form * const f)
 {
 /*	if(behaviour)
 		delete this->behaviour ;*/
-	this->behaviour = f ;
+	behaviour = f ;
 }
 
-Form * Feature::getBehaviour( const Point & p)
+Form * Feature::getBehaviour( const Point & p) const 
 {
 	return this->behaviour ;
 }
 
-Form * Feature::getBehaviour()
+Form * Feature::getBehaviour() const 
 {
 	return this->behaviour ;
 }
@@ -163,7 +168,7 @@ std::vector<Feature *> Feature::getDescendants() const
 	return ret ;
 }
 
-void  Feature::setFather(Feature *f)
+void  Feature::setFather(Feature * const f)
 {
 	m_f = f ;
 }
@@ -185,10 +190,16 @@ const std::vector<VirtualFeature *> & CompositeFeature::getComponents() const
 	return components ;
 }
 
-Feature * Feature::getFather() const
+const Feature * Feature::getFather() const
 {
-	return this->m_f ;
+	return m_f ;
 }
+
+Feature * Feature::getFather() 
+{
+	return m_f ;
+}
+
 
 
 Feature::~Feature() 
@@ -199,15 +210,15 @@ Feature::~Feature()
 	delete this->behaviour ;
 }
 
-std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt)
+std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt) const 
 {
-	std::vector<DelaunayTriangle *> tri = dt->getElements2D(dynamic_cast<Geometry *>(this)) ;
+	std::vector<DelaunayTriangle *> tri = dt->getElements2D(dynamic_cast<const Geometry *>(this)) ;
 	
 	std::vector<DelaunayTriangle *> ret  ;
 	
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
-		if(tri[i]->intersects(dynamic_cast<Geometry *>(this)))
+		if(tri[i]->intersects(dynamic_cast<const Geometry *>(this)))
 			ret.push_back(tri[i]) ;
 	}
 	
@@ -215,15 +226,15 @@ std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt
 
 }
 
-std::vector<DelaunayTetrahedron *> Feature::getBoundingElements3D( FeatureTree * dt)
+std::vector<DelaunayTetrahedron *> Feature::getBoundingElements3D( FeatureTree * dt) const
 {
-	std::vector<DelaunayTetrahedron *> tri = dt->getElements3D(dynamic_cast<Geometry *>(this)) ;
+	std::vector<DelaunayTetrahedron *> tri = dt->getElements3D(dynamic_cast<const Geometry *>(this)) ;
 	
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
 	for(size_t i = 0 ; i < tri.size() ; i++)
 	{
-		if(tri[i]->Tetrahedron::intersects(dynamic_cast<Geometry *>(this)))
+		if(tri[i]->Tetrahedron::intersects(dynamic_cast<const Geometry *>(this)))
 			ret.push_back(tri[i]) ;
 	}
 	

@@ -97,7 +97,7 @@ void Triangle::setCenter(const Point & newCenter)
 }
 
 
-XMLTree * Triangle::toXML()
+XMLTree * Triangle::toXML() const
 {
 	XMLTree * tri = new XMLTree("triangle") ;
 	tri->addChild(boundingPoints[0]->toXML()) ;
@@ -178,7 +178,7 @@ OrientedRectangle::OrientedRectangle( const Point *p0,  const Point *p1,  const 
 	
 }
 
-XMLTree * OrientedRectangle::toXML()
+XMLTree * OrientedRectangle::toXML() const
 {
 	XMLTree * rect = new XMLTree("oriented rectangle") ;
 	rect->addChild(boundingPoints[0]->toXML()) ;
@@ -730,32 +730,10 @@ void Triangle::project(Point * p) const
 	Segment s(getCenter(), *p) ;
 	if(dist(*p, getCircumCenter()) < POINT_TOLERANCE_2D)
 		return ;
-	std::vector<Point> pts ;
-	std::multimap<double, Point> pt ;
-	for(size_t i = 0 ; i <  getBoundingPoints().size()/timePlanes() ;  i++)
-	{
-		pt.insert(std::make_pair(std::abs(squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
-	}
-	auto ptend = pt.begin() ;
-	ptend++ ; ptend++ ; ptend++ ;
 	
-	for(auto i = pt.begin() ; i != ptend ; ++i )
-	{
-		pts.push_back(i->second);
-	}
-	for(size_t i = 0 ; i < pts.size() ; i++)
-	{
-		if(s.on(pts[i]) && !Segment(pts[i], *p).on(getCenter()))
-		{
-			p->x = getBoundingPoint(i).x ;
-			p->y = getBoundingPoint(i).y ;
-			return ;
-		}
-	}
-	
-	Segment s0(pts[0], pts[1]) ;
-	Segment s1(pts[1], pts[2]) ;
-	Segment s2(pts[2], pts[0]) ;
+	Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
+	Segment s1(getBoundingPoint(getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes()))) ;
+	Segment s2( getBoundingPoint(2*getBoundingPoints().size()/(3*timePlanes())), getBoundingPoint(0)) ;
 	std::map<double, Point> proj ;
 	Point p0 = s0.project(*p) ;
 	Point p1 = s1.project(*p) ;
@@ -1161,7 +1139,7 @@ Rectangle::Rectangle(XMLTree * xml) : ConvexGeometry(4)
 }
 
 
-XMLTree * Rectangle::toXML()
+XMLTree * Rectangle::toXML() const 
 {
 	XMLTree * rect = new XMLTree("rectangle") ;
 	XMLTree * c = new XMLTree("center") ;
@@ -1684,7 +1662,7 @@ LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
 	radiuses.push_back(r) ;
 }
 
-XMLTree * LayeredCircle::toXML()
+XMLTree * LayeredCircle::toXML() const 
 {
 	XMLTree * circle = new XMLTree("layered circle") ;
 	XMLTree * c = new XMLTree("center") ;
@@ -1925,7 +1903,7 @@ Ellipse::Ellipse(Point center, double a, double b)
 }
 
 
-XMLTree * Ellipse::toXML()
+XMLTree * Ellipse::toXML() const 
 {
 	XMLTree * ell = new XMLTree("ellipse") ;
 	XMLTree * c = new XMLTree("center") ;

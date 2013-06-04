@@ -360,7 +360,7 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 	computeCenter() ;	
 }
 
-XMLTree * Tetrahedron::toXML()
+XMLTree * Tetrahedron::toXML() const
 {
 	XMLTree * tet = new XMLTree("tetrahedron") ;
 	tet->addChild(boundingPoints[0]->toXML()) ;
@@ -750,7 +750,7 @@ Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p
 	
 }
 
-XMLTree * Hexahedron::toXML()
+XMLTree * Hexahedron::toXML() const 
 {
 	XMLTree * hex = new XMLTree("hexahedron") ;
 	hex->addChild(boundingPoints[0]->toXML()) ;
@@ -1273,7 +1273,7 @@ Sphere::Sphere(XMLTree * xml)
 }
 
 
-XMLTree * Sphere::toXML()
+XMLTree * Sphere::toXML() const 
 {
 	XMLTree * sph = new XMLTree("sphere") ;
 	XMLTree * c = new XMLTree("center") ;

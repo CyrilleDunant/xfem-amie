@@ -50,7 +50,7 @@ Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh( int g )
 		return coarseTrees3D[g] ;
 }
 
-std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( Feature *f )
+std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles( const Feature *f )
 {
 	state.setStateTo( MESHED, false ) ;
 
@@ -486,27 +486,27 @@ void FeatureTree::renumber()
 {
 	if( is2D() )
 	{
-			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
+			std::vector<DelaunayTriangle *> sortedElements = dtree->getElements() ;
 			size_t count = 0 ;
 			std::cerr << " renumbering... " << std::flush ;
 
 //			std::cerr << triangles.size() << std::endl ;
-			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 				{
 					( *i )->getBoundingPoint( j ).id = -1 ;
 				}
 			}
-		
+		/*
 
 			Grid tmpgrid = grid->getGrid( std::max( ( size_t )round( sqrt( triangles.size() ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
 
 			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 				tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 
-			std::vector<DelaunayTriangle *> sortedElements ;
-			std::set<Geometry *> placedElements ;
+			std::vector<const DelaunayTriangle *> sortedElements ;
+			std::set<const Geometry *> placedElements ;
 
 			for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
 			{
@@ -517,14 +517,14 @@ void FeatureTree::renumber()
 						if( placedElements.find( tmpgrid.pixels[i][j]->getFeatures()[k] ) == placedElements.end() )
 						{
 							placedElements.insert( tmpgrid.pixels[i][j]->getFeatures()[k] ) ;
-							sortedElements.push_back( dynamic_cast<DelaunayTriangle *> (tmpgrid.pixels[i][j]->getFeatures()[k]) ) ;
+							sortedElements.push_back( dynamic_cast<const DelaunayTriangle *> (tmpgrid.pixels[i][j]->getFeatures()[k]) ) ;
 						}
 					}
 				}
 			}
 			
-			sortedElements = triangles ;
-
+// 			sortedElements = triangles ;
+*/
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
 				if( *i && (*i)->getBehaviour())
@@ -536,6 +536,7 @@ void FeatureTree::renumber()
 					}
 				}
 			}
+			
 
 			lastNodeId = count ;
 
@@ -586,11 +587,11 @@ void FeatureTree::renumber()
 	}
 	else if( is3D() )
 	{
-		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> sortedElements = dtree3D->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 
-		for( auto i = tets.begin() ; i != tets.end() ; ++i )
+		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 		{
 			for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 			{
@@ -598,7 +599,7 @@ void FeatureTree::renumber()
 			}
 		}
 
-
+/*
 		Grid3D tmpgrid = grid3d->getGrid( std::max( ( ( size_t )round( pow( tets.size(), .333333 ) ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
 
 		for( auto i = tets.begin() ; i != tets.end() ; ++i )
@@ -606,8 +607,8 @@ void FeatureTree::renumber()
 			tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 		}
 
-		std::vector<DelaunayTetrahedron *> sortedElements ;
-		std::set<Geometry *> placedElements ;
+		std::vector<const DelaunayTetrahedron *> sortedElements ;
+		std::set<const Geometry *> placedElements ;
 
 		for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
 		{
@@ -621,17 +622,17 @@ void FeatureTree::renumber()
 						if( placedElements.find( tmpgrid.pixels[i][j][k]->getFeatures()[l] ) == placedElements.end() )
 						{
 							placedElements.insert( tmpgrid.pixels[i][j][k]->getFeatures()[l] ) ;
-							sortedElements.push_back( dynamic_cast<DelaunayTetrahedron *> (tmpgrid.pixels[i][j][k]->getFeatures()[l]) ) ;
+							sortedElements.push_back( dynamic_cast<const DelaunayTetrahedron *> (tmpgrid.pixels[i][j][k]->getFeatures()[l]) ) ;
 						}
 					}
 				}
 			}
-		}
-		sortedElements = tets ;
+		}*/
+// 		sortedElements = tets ;
 
 		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 		{
-			DelaunayTetrahedron *tet = dynamic_cast<DelaunayTetrahedron *>( *i ) ;
+			DelaunayTetrahedron *tet = const_cast<DelaunayTetrahedron *>( *i ) ;
 
 			if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
@@ -659,7 +660,7 @@ void FeatureTree::renumber()
 			size_t count = 0 ;
 			std::cerr << " renumbering... " << std::flush ;
 
-			for( std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i )
+			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 				{
@@ -670,11 +671,11 @@ void FeatureTree::renumber()
 
 			Grid tmpgrid = this->grid->getGrid( std::max( ( size_t )round( sqrt( triangles.size() ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
 
-			for( std::vector<DelaunayTriangle *>::iterator i = triangles.begin() ; i != triangles.end() ; ++i )
+			for(auto i = triangles.begin() ; i != triangles.end() ; ++i )
 				tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 
-			std::vector<Geometry *> sortedElements ;
-			std::set<Geometry *> placedElements ;
+			std::vector<const Geometry *> sortedElements ;
+			std::set<const Geometry *> placedElements ;
 
 			for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
 			{
@@ -694,7 +695,7 @@ void FeatureTree::renumber()
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				DelaunayTriangle *tri = dynamic_cast<DelaunayTriangle *>( *i ) ;
+				DelaunayTriangle *tri = const_cast<DelaunayTriangle *>(dynamic_cast<const DelaunayTriangle *>( *i )) ;
 
 				if( tri && tri->getBehaviour() && tri->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
@@ -742,8 +743,8 @@ void FeatureTree::renumber()
 				tmpgrid.forceAdd( ( *i )->getPrimitive() ) ;
 			}
 
-			std::vector<Geometry *> sortedElements ;
-			std::set<Geometry *> placedElements ;
+			std::vector<const Geometry *> sortedElements ;
+			std::set<const Geometry *> placedElements ;
 
 			for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
 			{
@@ -765,9 +766,9 @@ void FeatureTree::renumber()
 			}
 
 
-			for( std::vector<Geometry *>::iterator i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				DelaunayTetrahedron *tet = dynamic_cast<DelaunayTetrahedron *>( *i ) ;
+				DelaunayTetrahedron *tet = const_cast<DelaunayTetrahedron *>(dynamic_cast<const DelaunayTetrahedron *>( *i )) ;
 
 				if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
@@ -2108,8 +2109,8 @@ void FeatureTree::refine( size_t level )
 						std::cerr << "\r refining feature " << i + 1 << "/" << zonesVec.size() << "...added " << points_added << " points" << std::flush ;
 						Point *p = new Point( toAdd[k] ) ;
 						points_added++ ;
-						this->meshPoints.push_back( std::pair<Point *, Feature *>( p, zonesVec[i].second->getFather() ) ) ;
-						this->dtree3D->insert( p ) ;
+						meshPoints.push_back( std::pair<Point *, const Feature *>( p, zonesVec[i].second->getFather() ) ) ;
+						dtree3D->insert( p ) ;
 					}
 				}
 			}
@@ -2272,8 +2273,8 @@ void FeatureTree::refine( size_t level )
 					std::cerr << "\r refining feature " << i + 1 << "/" << zonesVec.size() << "...added " << points_added << " points" << std::flush ;
 					Point *p = new Point( toAdd[k] ) ;
 					points_added++ ;
-					this->meshPoints.push_back( std::pair<Point *, Feature *>( p, zonesVec[i].second->getFather() ) ) ;
-					this->dtree->insert( p ) ;
+					meshPoints.push_back( std::pair<Point *, const Feature *>( p, zonesVec[i].second->getFather() ) ) ;
+					dtree->insert( p ) ;
 				}
 			}
 		}
@@ -2307,13 +2308,13 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 
 	if( tree.size() > 32 )
 	{
-		std::vector<Geometry *> targetstmp = grid->coOccur( t->getPrimitive() ) ;
+		std::vector<const Geometry *> targetstmp = grid->coOccur( t->getPrimitive() ) ;
 
 		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
 		{
-			Feature * tmp = dynamic_cast<Feature *>( targetstmp[i] ) ;
+			const Feature * tmp = dynamic_cast<const Feature *>( targetstmp[i] ) ;
 			if(tmp->getLayer() == layer)
-				targets.push_back( tmp ) ;
+				targets.push_back( const_cast<Feature *>(tmp) ) ;
 		}
 	}
 	else
@@ -2482,13 +2483,13 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 
 	if( tree.size() > 32 )
 	{
-		std::vector<Geometry *> targetstmp = grid3d->coOccur( t->getPrimitive() ) ;
+		std::vector<const Geometry *> targetstmp = grid3d->coOccur( t->getPrimitive() ) ;
 
 		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
 		{
-			Feature * tmp = dynamic_cast<Feature *>( targetstmp[i] ) ;
+			const Feature * tmp = dynamic_cast<const Feature *>( targetstmp[i] ) ;
 			if(tmp->getLayer() == layer)
-				targets.push_back( tmp ) ;
+				targets.push_back( const_cast<Feature *>(tmp) ) ;
 		}
 	}
 	else
@@ -2921,15 +2922,15 @@ void FeatureTree::setElementBehaviours()
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
 
 					triangles[j]->refresh( father2D ) ;
-					std::vector<Geometry * > coocuring ;
+					std::vector<const Geometry * > coocuring ;
 
 					if( tree.size() > 1 )
 						coocuring = grid->coOccur( triangles[j]->getPrimitive() ) ;
 
-					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
+					if( coocuring.size() == 1 && !static_cast<const Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *triangles[j]->first ) && coocuring[0]->in( *triangles[j]->second ) && coocuring[0]->in( *triangles[j]->third ) )
-							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
+							triangles[j]->setBehaviour( static_cast<const Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 						else
 							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
 						
@@ -3013,15 +3014,15 @@ void FeatureTree::setElementBehaviours()
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << tetrahedrons.size() << std::flush ;
 
 					tetrahedrons[j]->refresh( father3D ) ;
-					std::vector<Geometry * > coocuring ;
+					std::vector<const Geometry * > coocuring ;
 
 					if( tree.size() > 1 )
 						coocuring = grid3d->coOccur( tetrahedrons[j]->getPrimitive() ) ;
 
-					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->spaceDependent() )
+					if( coocuring.size() == 1 && !static_cast<const Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *tetrahedrons[j]->first ) && coocuring[0]->in( *tetrahedrons[j]->second ) && coocuring[0]->in( *tetrahedrons[j]->third ) && coocuring[0]->in( *tetrahedrons[j]->fourth ) )
-							tetrahedrons[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy()) ;
+							tetrahedrons[j]->setBehaviour( static_cast<const Feature *>( coocuring[0] )->getBehaviour( tetrahedrons[j]->getCenter() )->getCopy()) ;
 						else
 							tetrahedrons[j]->setBehaviour( new HomogeneisedBehaviour( this, tetrahedrons[j] )) ;
 					}
@@ -3113,15 +3114,15 @@ void FeatureTree::updateElementBehaviours()
 						std::cerr << "\r setting behaviours... grid " << i << ", triangle " << j << "/" << triangles.size() << std::flush ;
 
 					triangles[j]->refresh( father2D ) ;
-					std::vector<Geometry * > coocuring ;
+					std::vector<const Geometry * > coocuring ;
 
 					if( tree.size() > 1 )
 						coocuring = grid->coOccur( triangles[j]->getPrimitive() ) ;
 
-					if( coocuring.size() == 1 && !static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
+					if( coocuring.size() == 1 && !static_cast<const Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->spaceDependent() )
 					{
 						if( coocuring[0]->in( *triangles[j]->first ) && coocuring[0]->in( *triangles[j]->second ) && coocuring[0]->in( *triangles[j]->third ) )
-							triangles[j]->setBehaviour( static_cast<Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
+							triangles[j]->setBehaviour( static_cast<const Feature *>( coocuring[0] )->getBehaviour( triangles[j]->getCenter() )->getCopy()) ;
 						else
 							triangles[j]->setBehaviour( new HomogeneisedBehaviour( this, triangles[j] )) ;
 					}
@@ -4738,7 +4739,6 @@ bool FeatureTree::stepElements()
 					
 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
 				{
-					std::cout << "padoum" <<std::endl ;
 					moveFirstTimePlanes( 0. , elements) ;
 				}
 
@@ -5507,7 +5507,7 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 	return avg/volume ;
 }
 
-Vector FeatureTree::getAverageField( FieldType f, std::vector<DelaunayTriangle *> tri ) 
+Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri ) 
 {
 	Vector avg ;
 	Vector buffer ;
@@ -5524,7 +5524,7 @@ Vector FeatureTree::getAverageField( FieldType f, std::vector<DelaunayTriangle *
 }
 
 
-Vector FeatureTree::getAverageField( FieldType f, std::vector<DelaunayTetrahedron *> tet ) 
+Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet ) 
 {
 	Vector avg ;
 	Vector buffer ;
@@ -6045,7 +6045,7 @@ void FeatureTree::generateElements()
 			{
 				bool isIn = false ;
 
-				std::vector<Geometry *> potentialFeaturestmp  ;
+				std::vector<const Geometry *> potentialFeaturestmp  ;
 				std::vector<Feature *> potentialFeatures ;
 
 				if( is2D() )
@@ -6054,7 +6054,7 @@ void FeatureTree::generateElements()
 					potentialFeaturestmp = grid3d->coOccur( tree[i]->getBoundingPoint( j ) ) ;
 
 				for( size_t l = 0 ; l < potentialFeaturestmp.size() ; l++ )
-					potentialFeatures.push_back( dynamic_cast<Feature *>( potentialFeaturestmp[l] ) ) ;
+					potentialFeatures.push_back( const_cast<Feature *>(dynamic_cast<const Feature *>( potentialFeaturestmp[l] )) ) ;
 
 				std::vector<Feature *> potentialChildren ;
 
@@ -6151,7 +6151,7 @@ void FeatureTree::generateElements()
 			for( size_t j  =  0 ; j <  tree[i]->getInPoints().size() ; j++ )
 			{
 				bool isIn = false ;
-				std::vector<Geometry *> potentialFeaturestmp  ;
+				std::vector<const Geometry *> potentialFeaturestmp  ;
 
 				if( is2D() )
 					potentialFeaturestmp = grid->coOccur( tree[i]->getInPoint( j ) ) ;
@@ -6161,7 +6161,7 @@ void FeatureTree::generateElements()
 				std::vector<Feature *> potentialFeatures ;
 
 				for( size_t k = 0 ; k < potentialFeaturestmp.size() ; ++k )
-					potentialFeatures.push_back( dynamic_cast<Feature *>( potentialFeaturestmp[k] ) ) ;
+					potentialFeatures.push_back( const_cast<Feature *>(dynamic_cast<const Feature *>( potentialFeaturestmp[k] )) ) ;
 
 				std::vector<Feature *> potentialChildren ;
 
@@ -6270,7 +6270,7 @@ void FeatureTree::generateElements()
 		{
 			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getFather() != nullptr )
 			{
-				std::vector<Geometry *> coOccuringFeaturestmp ;
+				std::vector<const Geometry *> coOccuringFeaturestmp ;
 				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
 
 				if( is3D() )
@@ -6278,10 +6278,10 @@ void FeatureTree::generateElements()
 				else
 					coOccuringFeaturestmp = grid->coOccur( tree[i] ) ;
 
-				std::vector<Feature *> coOccuringFeatures ;
+				std::vector<const Feature *> coOccuringFeatures ;
 
 				for( size_t k = 0 ; k < coOccuringFeaturestmp.size() ; k++ )
-					coOccuringFeatures.push_back( dynamic_cast<Feature *>( coOccuringFeaturestmp[k] ) ) ;
+					coOccuringFeatures.push_back( dynamic_cast<const Feature *>( coOccuringFeaturestmp[k] ) ) ;
 
 				for( size_t j  = 0 ; j < coOccuringFeatures.size() ; j++ )
 				{
@@ -6760,7 +6760,7 @@ void FeatureTree::shuffleMeshPoints()
 	return ;
 	std::cout << "shuffling mesh points... " ;
 
-	std::deque<std::pair<Point *, Feature * > > shuffled ;
+	std::deque<std::pair<Point *, const Feature * > > shuffled ;
 
 	for( size_t i = 0 ; i < meshPoints.size() ; i++ )
 		shuffled.push_back( meshPoints[i] ) ;

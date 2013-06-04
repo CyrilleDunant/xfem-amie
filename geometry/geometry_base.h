@@ -530,7 +530,7 @@ struct Point
 	/** \brief export to XML.
 	* Data structure is <point><vector> 4 x y z t </vector><id> id </id></point>
 	*/
-	XMLTree * toXML() ;
+	XMLTree * toXML() const;
 	
 	void setX(double v) ;
 	void setY(double v) ;
@@ -736,7 +736,7 @@ public:
 	Geometry(size_t numPoints) ;
 	virtual ~Geometry() ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 	/** \brief Acessor get the bounding points of the geometry*/
 	virtual const PointArray & getBoundingPoints() const = 0;
@@ -1397,7 +1397,7 @@ public:
 	
 	virtual ~OrientableCircle() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 
 	/** \brief Get points sampling the circle boundary*/
 	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const;

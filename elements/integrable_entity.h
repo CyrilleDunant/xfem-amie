@@ -509,7 +509,7 @@ public:
 	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false) ;
 	
 	virtual Geometry * getSource() const { return source  ;}
-	virtual void setSource( Geometry * const src ) {source = src ;}
+	virtual void setSource(  Geometry *  src ) {source = src ;}
 	 
 	virtual bool hasInducedForces() const ;
 	

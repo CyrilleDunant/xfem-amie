@@ -38,7 +38,7 @@ public:
 	Triangle(XMLTree * xml) ;
 	virtual ~Triangle() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 	/** \brief Return true if the argument lies in the Circumcenter of this triangle*/
 	virtual bool inCircumCircle(const Point & p) const ;
@@ -121,7 +121,7 @@ public:
 
 	virtual ~Rectangle() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 
 	/** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
 	virtual void sampleBoundingSurface(size_t num_points) ;
@@ -190,7 +190,7 @@ public:
 	OrientedRectangle( const Point *p0,  const Point *p1,  const Point *p2,  const Point *p3) ;
 	virtual ~OrientedRectangle() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 	/** \brief Return true if the argument is in the circumcircle*/
 	virtual bool inCircumCircle(const Point p) const ;
@@ -371,7 +371,7 @@ public:
 	LayeredCircle(double r, const Point center) ; 
 	virtual ~LayeredCircle() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 	/** \brief Sample the disc.
 	 * 
@@ -402,7 +402,7 @@ public:
 	SegmentedLine(const Point & p0, const Point & p1) ;
 	virtual ~SegmentedLine() { };
 
-	virtual XMLTree * toXML() {return new XMLTree("segmented line") ; } ;
+	virtual XMLTree * toXML() const {return new XMLTree("segmented line") ; } ;
 
 	
 	/** \brief Sample The bounding surface.
@@ -486,7 +486,7 @@ public:
 
 	virtual ~Ellipse() { } ;
 
-	virtual XMLTree * toXML() ;
+	virtual XMLTree * toXML() const ;
 	
 
 	/** \brief Get the norm of the major radius */
