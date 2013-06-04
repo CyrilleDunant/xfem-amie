@@ -1026,6 +1026,11 @@ void  Assembly::fixPoint(size_t id)
 	setPoint(0,0, id) ;
 }
 
+void Assembly::setDisplacementByDof(size_t dof, double val) 
+{
+	displacements[dof] = val ;
+}
+
 
 void Assembly::setPoint(double ex, size_t id)
 {		

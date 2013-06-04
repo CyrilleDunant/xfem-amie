@@ -157,6 +157,7 @@ std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, 
 	{
 		area += feats[i]->area() ;
 		feats[i]->setBehaviour(behaviour) ;
+//		feats[i]->isUpdated = false ;
 		F->addFeature(box, feats[i]) ;
 	}
 	std::cout << area << std::endl ;

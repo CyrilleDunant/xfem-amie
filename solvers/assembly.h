@@ -379,6 +379,8 @@ public:
 	void addForceOn(Variable var, double val, size_t id) ;
 
 	void addForceOnIndexedAxis(int index, double val, size_t id) ;
+	
+	void setDisplacementByDof(size_t dof, double val) ;
 
 	/** Apply a force on given node (1D)
 	 * @param id ID of the node 

@@ -287,7 +287,7 @@ ElementState * Viscoelasticity::createElementState( IntegrableEntity * e)
 }
 
 void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
-{
+{  
 	Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
 	Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 	

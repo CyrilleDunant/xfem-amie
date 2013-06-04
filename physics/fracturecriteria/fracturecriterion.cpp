@@ -12,6 +12,7 @@
 #include "fracturecriterion.h"
 #include "../damagemodels/damagemodel.h"
 #include "../../mesher/delaunay.h"
+#include "../../physics/viscoelasticity.h"
 #include "../../mesher/delaunay_3d.h"
 #include "../../solvers/assembly.h"
 using namespace Mu ;
@@ -894,76 +895,179 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	double cosangle = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		double iteratorValue = factors[0] ;
-
-		if(m == EFFECTIVE_STRESS)
+		if(s.getParent()->getOrder() < CONSTANT_TIME_LINEAR)
 		{
-			s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+	  
+			double iteratorValue = factors[0] ;
+
+			if(m == EFFECTIVE_STRESS)
+			{
+				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+			}
+			else
+			{
+				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+
+			}
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			
+			stra = tmpstra*iteratorValue ;
+			str = tmpstr*iteratorValue ;
+
+			sumStressFactors += iteratorValue ;
+			sumStrainFactors += iteratorValue ;
+			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
+			{
+				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+				iteratorValue = factors[i] ;
+
+				if(iteratorValue > POINT_TOLERANCE_2D)
+				{
+
+					if(m == EFFECTIVE_STRESS)
+					{
+						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+					}
+					else
+					{
+						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+					}
+
+
+					if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
+						iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
+					
+					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
+					{
+						stra += tmpstra*iteratorValue ;
+						str += tmpstr*iteratorValue ;
+						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+						sumStrainFactors += iteratorValue ;
+						sumStressFactors += iteratorValue ;
+
+					}
+				}
+			}
+
+			str /= sumStressFactors ;
+	// 		str += istress ;
+			stra /= sumStrainFactors ;
+	// 		currentAngle = acos(cosangle/sumStrainFactors) ;
+	// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
+
+	// 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
+	// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
+
+			
+	// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
+	// 		{
+	// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
+	// 			if(currentAngle < 0)
+	// 				currentAngle += M_PI ;
+	// 		}
+
+			return std::make_pair(stra*s.getParent()->getBehaviour()->getTensor(Point()), stra) ;
 		}
 		else
 		{
-			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+	  
+			double iteratorValue = factors[0] ;
+			
+			
+			
+			int blocks = 1. ;
+			Viscoelasticity * visco = dynamic_cast<Viscoelasticity *>(s.getParent()->getBehaviour()) ;
+			if(visco)
+				blocks = visco->blocks ;
+			
+			tmpstra.resize( stra.size()*blocks, 0.) ;
+			stra.resize( tmpstra.size(), 0. ) ;
+			
+			Vector strar(0., stra.size() ) ;
+			Vector tmpstrar(0., stra.size() ) ;
+			
+			if(m == EFFECTIVE_STRESS)
+				s.getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, 0, t) ;
+			else
+				s.getAverageField(REAL_STRESS_FIELD, tmpstr, 0, t) ;
+			
 
-		}
-		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
-		
-		stra = tmpstra*iteratorValue ;
-		str = tmpstr*iteratorValue ;
+			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, 0, t ) ;
+			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, 0, t ) ;
+			
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			
+			strar = tmpstrar*iteratorValue ;
+			stra = tmpstra*iteratorValue ;
+			str = tmpstr*iteratorValue ;
 
-		sumStressFactors += iteratorValue ;
-		sumStrainFactors += iteratorValue ;
-		cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
-		{
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-			iteratorValue = factors[i] ;
-
-			if(iteratorValue > POINT_TOLERANCE_2D)
+			sumStressFactors += iteratorValue ;
+			sumStrainFactors += iteratorValue ;
+			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 			{
+				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+				iteratorValue = factors[i] ;
 
-				if(m == EFFECTIVE_STRESS)
+				if(iteratorValue > POINT_TOLERANCE_2D)
 				{
-					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				}
-				else
-				{
-					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				}
+
+					if(m == EFFECTIVE_STRESS)
+						ci->getState().getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, 0, t) ;
+					else
+						ci->getState().getAverageField(REAL_STRESS_FIELD, tmpstr, 0, t) ;
+				  
+					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, 0, t ) ;
+					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, 0, t ) ;
 
 
-				if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-					iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
-				
-				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
-				{
-					stra += tmpstra*iteratorValue ;
-					str += tmpstr*iteratorValue ;
-					cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-					sumStrainFactors += iteratorValue ;
-					sumStressFactors += iteratorValue ;
+					if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
+						iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
+					
+					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
+					{
+						strar += tmpstrar*iteratorValue ;
+						stra += tmpstra*iteratorValue ;
+						str += tmpstr*iteratorValue ;
+						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+						sumStrainFactors += iteratorValue ;
+						sumStressFactors += iteratorValue ;
 
+					}
 				}
 			}
+
+			str /= sumStressFactors ;
+	// 		str += istress ;
+			stra /= sumStrainFactors ;
+			strar /= sumStrainFactors ;
+	// 		currentAngle = acos(cosangle/sumStrainFactors) ;
+	// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
+
+	// 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
+	// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
+
+			
+	// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
+	// 		{
+	// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
+	// 			if(currentAngle < 0)
+	// 				currentAngle += M_PI ;
+	// 		}
+
+			Vector strFromFullStrain = stra*s.getParent()->getBehaviour()->getTensor(Point()) ;
+			strFromFullStrain += (Vector) (strar*s.getParent()->getBehaviour()->getViscousTensor(Point())) ;
+			Vector strFromStrain(0., str.size()) ;
+			Vector straFromStrain(0., str.size()) ;
+			for(size_t i = 0 ; i < 3 ; i++)
+			{
+				strFromStrain[i] = strFromFullStrain[i] ;
+				straFromStrain[i] = stra[i] ;
+			}
+			
+			return std::make_pair(strFromStrain, straFromStrain) ;		  
 		}
-
-		str /= sumStressFactors ;
-// 		str += istress ;
-		stra /= sumStrainFactors ;
-// 		currentAngle = acos(cosangle/sumStrainFactors) ;
-// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
-
-// 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
-// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
-
-		
-// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-// 		{
-// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
-// 			if(currentAngle < 0)
-// 				currentAngle += M_PI ;
-// 		}
-
-		return std::make_pair(stra*s.getParent()->getBehaviour()->getTensor(Point()), stra) ;
 
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )

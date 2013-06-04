@@ -4725,8 +4725,10 @@ bool FeatureTree::stepElements()
 						this->moveFirstTimePlanes( end-begin-minDeltaTime ) ;
 					}
 					else
+					{
+						std::cout << "not youhou !" << std::endl ;
 						this->moveFirstTimePlanes( 0.) ;
-						
+					}	
 				}
 				
 				
@@ -4736,6 +4738,7 @@ bool FeatureTree::stepElements()
 					
 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
 				{
+					std::cout << "youhou" << std::endl ;
 					this->moveFirstTimePlanes( 0. ) ;
 				}
 
@@ -5887,6 +5890,8 @@ void FeatureTree::setDeltaTime(double d)
 void FeatureTree::moveFirstTimePlanes(double d) 
 {
   
+	std::cout << "time difference = " << d << std::endl ;
+  
 	double prev = 0.; 
 	if(dtree)
 	{	
@@ -5896,7 +5901,8 @@ void FeatureTree::moveFirstTimePlanes(double d)
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 			size_t ndof = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-			Vector buff(ndof) ; buff = 0. ;
+			Vector buff(0.,ndof) ; 
+			Point p(0,0,0,0) ;
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
 				if(triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -5906,14 +5912,15 @@ void FeatureTree::moveFirstTimePlanes(double d)
 					{
 						for(size_t k = 0 ; k < k0 ; k++)
 						{
-							Point p ;
 							p.x = triangles[i]->getBoundingPoint(k+k0*t).x ;
 							p.y = triangles[i]->getBoundingPoint(k+k0*t).y ;
 							p.t = triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes() ;
 							triangles[i]->getState().getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
 							for(size_t n = 0 ; n < ndof ; n++)
 							{
-								K->getDisplacements()[ triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n ] = buff[n] ;
+								double z = buff[n] ;
+								K->setDisplacementByDof( triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n, z  );
+//								K->getDisplacements()[ triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n ] = buff[n] ;
 							}
 						}
 					}
@@ -6501,7 +6508,7 @@ void FeatureTree::generateElements()
 		std::vector<size_t> iterators(meshPoints.size()-4) ;
 		for(size_t i = 0 ;i < iterators.size() ; i++)
 		  iterators[i] = i+4 ;
-//		std::random_shuffle(iterators.begin(), iterators.end(), myrandom);
+		std::random_shuffle(iterators.begin(), iterators.end());
 		
 		
 		for( size_t i = 0 ; i < iterators.size() ; i++ )

@@ -65,7 +65,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 	ret = 0. ; 
 	
 	VirtualMachine vm ;
-	int totaldof = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	int totaldof = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;	
 	int realdof = parent->spaceDimensions() ;
 	int blocks = totaldof / realdof ;
 	Point p_ = p ;

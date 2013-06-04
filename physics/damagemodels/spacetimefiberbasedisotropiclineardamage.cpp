@@ -100,7 +100,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 	{
 		state[state.size()-1] += fibreFraction ;
 		change = true ;
-		converged = false ;
+		converged = true ;
 		s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
 //		std::cout << " before beginning << " << score ;
 	}
@@ -131,6 +131,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::postProcess()
 	{
 		state[i] = state[i+1] ;
 	}
+//	converged = true ;
 }
 
 
