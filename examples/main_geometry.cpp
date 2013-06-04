@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   // creates 3D inclusions with rmax = 0.002, covering a volume of 0.000252, using BOLOME type B particle sizs distribution
   // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
   // covering volume 0.000042
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 300)) ;
+  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 3200)) ;
   
   // attributes mechanical behaviour to the box and the aggregates
   box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
   // assemble and solve problem
   F.step();
-	VoxelWriter vw("sphere_stiffness", 100) ;
+	VoxelWriter vw("sphere_stiffness", 200) ;
 	vw.getField(&F, VWFT_STIFFNESS) ;
 	vw.write();
   // calculate averaged stress and strain

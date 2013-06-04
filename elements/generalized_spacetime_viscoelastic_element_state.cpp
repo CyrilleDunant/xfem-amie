@@ -56,8 +56,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
 {	
-	this->getAverageField(f1, r1, dummy, t) ;
-	this->getAverageField(f2, r2, dummy, t) ;
+	getAverageField(f1, r1, dummy, t) ;
+	getAverageField(f2, r2, dummy, t) ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, int )  const 

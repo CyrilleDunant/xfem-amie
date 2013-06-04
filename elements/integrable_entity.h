@@ -427,6 +427,7 @@ public:
 	
 	virtual const ElementState & getState() const ;
 	virtual ElementState & getState() ;
+	virtual ElementState * getStatePointer() {return state ;} ;
 	virtual void setState( ElementState * state) ;
 	
 	virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;

@@ -17,7 +17,7 @@ class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
 {
 public:
 	GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e) ;
-	GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) ;						
+	GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) ;
 	GeneralizedSpaceTimeViscoElasticElementState & operator =(const GeneralizedSpaceTimeViscoElasticElementState & s) ;
 	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;

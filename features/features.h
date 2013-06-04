@@ -500,7 +500,7 @@ public:
 	void setDeltaTime(double d) ;
 	void setMinDeltaTime(double d) { minDeltaTime = d ; }
 
-	void moveFirstTimePlanes(double d) ;
+	void moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) ;
 	
 	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
 	

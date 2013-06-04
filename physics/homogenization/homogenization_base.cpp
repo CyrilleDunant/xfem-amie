@@ -710,7 +710,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 
 	Matrix cg(3,3) ;
 
-	if(pt == PLANE_STRESS)
+	if(pt == PLANE_STRAIN)
 	{
 		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
 		{
@@ -749,7 +749,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 		else
 			cg.array() = 0 ;
 	}
-	else if (pt == PLANE_STRAIN)
+	else if (pt == PLANE_STRESS)
 	{
 		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
 		{

@@ -415,7 +415,7 @@ double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, dou
 
 void NonLocalMCFT::initialise( ElementState &s)
 {
-	double energy = 3.*75. ; //N/m 32000 prev
+	double energy = 12.*75. ; //N/m 32000 prev
 	strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	if(factors.size()==0)
 		initialiseFactors(s) ;
