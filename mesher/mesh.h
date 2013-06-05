@@ -94,33 +94,32 @@ namespace Mu
 								&& found.find((*j)->getNeighbourhood(i)) == found.end())
 							{
 
-					if((*j)->getNeighbourhood(i)->timePlanes() > 1)
-					{
-						if((*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
-						{
-							to_test.insert((*j)->getNeighbourhood(i)) ;
-						}
-						
-						for(size_t k = 0 ; k < (*j)->getNeighbourhood(i)->timePlanes() ; k++)
-						{
-							Point c = (*j)->getNeighbourhood(i)->getCenter() ;
-							c.t = (*j)->getNeighbourhood(i)->getBoundingPoint( (*j)->getNeighbourhood(i)->getBoundingPoints().size() * k / (*j)->getNeighbourhood(i)->timePlanes() ).t ;
-							if(g->in(c))
-							{
-								new_test.insert((*j)->getNeighbourhood(i)) ;
-							}
-						}
-					}
-					else if(g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
-					{
-						new_test.insert((*j)->getNeighbourhood(i)) ;
-					}
+								if((*j)->getNeighbourhood(i)->timePlanes() > 1)
+								{
+									if((*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
+									{
+										to_test.insert((*j)->getNeighbourhood(i)) ;
+									}
+									
+									for(size_t k = 0 ; k < (*j)->getNeighbourhood(i)->timePlanes() ; k++)
+									{
+										Point c = (*j)->getNeighbourhood(i)->getCenter() ;
+										c.t = (*j)->getNeighbourhood(i)->getBoundingPoint( (*j)->getNeighbourhood(i)->getBoundingPoints().size() * k / (*j)->getNeighbourhood(i)->timePlanes() ).t ;
+										if(g->in(c))
+										{
+											new_test.insert((*j)->getNeighbourhood(i)) ;
+										}
+									}
+								}
+								else if(g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
+								{
+									new_test.insert((*j)->getNeighbourhood(i)) ;
+								}
 							  
 							}
 						}
 					}
-					to_test.clear() ;
-					to_test.insert(new_test.begin(), new_test.end()) ;
+					to_test = new_test ;
 					found.insert(new_test.begin(), new_test.end()) ;
 				}
 				

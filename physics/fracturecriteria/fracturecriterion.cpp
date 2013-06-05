@@ -1453,16 +1453,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		Circle epsilon( physicalCharacteristicRadius*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
-		mesh2d = new std::vector<DelaunayTreeItem *>( testedTri->tree->getTree()) ;
+		mesh2d = &testedTri->tree->getTree();  ;
 		size_t meshsize = mesh2d->size() ;
-		
-		if(testedTri->getBehaviour()->getExtra2dMeshes())
-		{
-		  for(size_t i=0 ; i < testedTri->getBehaviour()->getExtra2dMeshes()->size() ; i++)
-		  {
-		    mesh2d->insert(mesh2d->end(), (*testedTri->getBehaviour()->getExtra2dMeshes())[i]->getTree().begin(), (*testedTri->getBehaviour()->getExtra2dMeshes())[i]->getTree().end()) ;
-		  }
-		}
 
 		std::vector<DelaunayTriangle *> tempcache = testedTri->tree->getNeighbouringElementsInGeometry(testedTri, &epsilon);
 		std::vector<DelaunayTriangle *> neighbourhood ;
@@ -1522,15 +1514,8 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		Sphere epsilon(physicalCharacteristicRadius*2.5,testedTet->getCenter()) ;
 		if(!testedTet->tree)
 			return ;
-		mesh3d = new std::vector<DelaunayTreeItem3D *>  (testedTet->tree->getTree()) ;
+		mesh3d = &testedTet->tree->getTree() ;
 		size_t meshsize = mesh3d->size() ;
-		if(testedTet->getBehaviour()->getExtra3dMeshes())
-		{
-		  for(size_t i=0 ; i < testedTet->getBehaviour()->getExtra3dMeshes()->size() ; i++)
-		  {
-		    mesh3d->insert(mesh3d->end(), (*testedTri->getBehaviour()->getExtra3dMeshes())[i]->getTree().begin(), (*testedTri->getBehaviour()->getExtra3dMeshes())[i]->getTree().end()) ;
-		  }
-		}
 		
 		std::vector<DelaunayTetrahedron *> tempcache3d = testedTet->tree->getConflictingElements(&epsilon);
 		std::vector<DelaunayTetrahedron *> neighbourhood ;
@@ -2615,8 +2600,6 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 
 FractureCriterion::~FractureCriterion()
 {
-  delete mesh2d ;
-  delete mesh3d ;
 }
 
 
