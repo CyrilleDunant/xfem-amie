@@ -1462,7 +1462,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			if(testedTri->getNeighbourhood(i)->getBehaviour() && 
 				testedTri->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR && 
-				testedTri->getNeighbourhood(i)->getBehaviour()->getSource() == testedTri->getBehaviour()->getSource())
+				testedTri->getNeighbourhood(i)->getBehaviour()->getFractureCriterion())
 			{
 				neighbourhood.push_back(testedTri->getNeighbourhood(i));
 				cache.push_back(testedTri->getNeighbourhood(i)->index);
@@ -1472,7 +1472,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			if(tempcache[i]->getBehaviour() && 
 				tempcache[i]->getBehaviour()->type != VOID_BEHAVIOUR && 
-				tempcache[i]->getBehaviour()->getSource() == testedTri->getBehaviour()->getSource())
+				tempcache[i]->getBehaviour()->getFractureCriterion())
 			{
 				bool inNeighbourhood = false ;
 				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
@@ -1523,7 +1523,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			if(testedTet->getNeighbourhood(i)->getBehaviour()
 				&& testedTet->getNeighbourhood(i)->getBehaviour()->type != VOID_BEHAVIOUR  
-				&& testedTet->getNeighbourhood(i)->getBehaviour()->getSource() == testedTet->getBehaviour()->getSource())
+				&& testedTet->getNeighbourhood(i)->getBehaviour()->getFractureCriterion())
 			{
 				neighbourhood.push_back(testedTet->getNeighbourhood(i));
 				cache.push_back(testedTet->getNeighbourhood(i)->index);
@@ -1534,7 +1534,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			if(tempcache3d[i]->getBehaviour()
 				&& tempcache3d[i]->getBehaviour()->type != VOID_BEHAVIOUR 
-				&& tempcache3d[i]->getBehaviour()->getSource() == testedTet->getBehaviour()->getSource())
+				&& tempcache3d[i]->getBehaviour()->getFractureCriterion())
 			{
 				bool inNeighbourhood = false ;
 				for(size_t j = 0 ; j < neighbourhood.size() ; j++)
