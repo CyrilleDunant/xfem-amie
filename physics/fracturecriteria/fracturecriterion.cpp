@@ -1448,7 +1448,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		double overlap = (smoothingType == QUARTIC_COMPACT)?5.:6.5 ;
+		double overlap = (smoothingType == QUARTIC_COMPACT)?3.:3. ;
 		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
 		Circle epsilon( physicalCharacteristicRadius*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
