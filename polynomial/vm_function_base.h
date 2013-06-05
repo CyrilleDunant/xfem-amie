@@ -18,7 +18,7 @@
 #include <valarray>
 #include <iostream>
 #include <cmath>
-#include <boost/tuple/tuple.hpp>
+// #include <boost/tuple/tuple.hpp>
 
 #include "vm_refcount_token.h"
 #include "../elements/integrable_entity.h"
@@ -33,6 +33,13 @@ struct ElementarySurface ;
 struct ElementaryVolume ;
 
 const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 6144 ;
+
+struct functionParseElement
+{
+	TokenOperationType first ;
+	double second ;
+	std::string third ;
+} ;
 
 typedef enum
 {
@@ -93,7 +100,7 @@ protected :
 	}*/
 	
 protected:
-	boost::tuple<TokenOperationType, double, std::string> toToken(const std::string & str, int iter, std::vector<double> & v) const ;
+	functionParseElement toToken(const std::string & str, int iter, std::vector<double> & v) const ;
 
 	bool isOperator(const char c) const ;
 	
@@ -101,8 +108,8 @@ protected:
 	
 	bool isSeparator(const char c) const ;
 	
-	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const char * form, int iter, std::vector<double> & val) ; 
-	std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> getNext(size_t init, const std::string & form, int iter, std::vector<double> & val) ;
+	std::pair<size_t, functionParseElement> getNext(size_t init, const char * form, int iter, std::vector<double> & val) ; 
+	std::pair<size_t, functionParseElement> getNext(size_t init, const std::string & form, int iter, std::vector<double> & val) ;
 	
 	Point * ptID;
 	int dofID;

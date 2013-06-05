@@ -619,125 +619,125 @@ void Function::setPoint(Point * id)
 	this->ptID = id ;
 }
 
-boost::tuple<TokenOperationType, double, std::string> Function::toToken(const std::string & str, int iter, std::vector<double> & val) const
+functionParseElement Function::toToken(const std::string & str, int iter, std::vector<double> & val) const
 {
 	if(isNumeral(str[0]) || (str[0] == '-' && isNumeral(str[1])))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_CONSTANT, atof(str.c_str()), "") ;
+		return {TOKEN_OPERATION_CONSTANT, atof(str.c_str()), ""} ;
 	}
 	else if(str == std::string("cst"))
 	{
 		if(iter < val.size())
-			return boost::make_tuple(TOKEN_OPERATION_CONSTANT, val[iter], "cst") ; 
-		return boost::make_tuple(TOKEN_OPERATION_CONSTANT, val[val.size()-1], "cst") ;		
+			return {TOKEN_OPERATION_CONSTANT, val[iter], "cst"} ; 
+		return {TOKEN_OPERATION_CONSTANT, val[val.size()-1], "cst"} ;
 	}
 	else if(str == std::string("sin"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_SIN, 0., "") ;
+		return {TOKEN_OPERATION_SIN, 0., ""} ;
 	}
 	else if(str == std::string("cos"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_COS, 0., "") ;
+		return {TOKEN_OPERATION_COS, 0., ""} ;
 	}
 	else if(str == std::string("tan"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_TAN, 0., "") ;
+		return {TOKEN_OPERATION_TAN, 0., ""} ;
 	}
 	else if(str == std::string("sinh"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_SINH, 0., "") ;
+		return {TOKEN_OPERATION_SINH, 0., ""} ;
 	}
 	else if(str == std::string("cosh"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_COSH, 0., "") ;
+		return {TOKEN_OPERATION_COSH, 0., ""} ;
 	}
 	else if(str == std::string("tanh"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_TANH, 0., "") ;
+		return {TOKEN_OPERATION_TANH, 0., ""} ;
 	}
 	else if(str == std::string("exp"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_EXP, 0., "") ;
+		return {TOKEN_OPERATION_EXP, 0., ""} ;
 	}
 	else if(str == std::string("abs"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_ABS, 0., "") ;
+		return {TOKEN_OPERATION_ABS, 0., ""} ;
 	}
 	else if(str == std::string("log"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_LOG, 0., "") ;
+		return {TOKEN_OPERATION_LOG, 0., ""} ;
 	}
 	else if(str == std::string("sqrt"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_SQRT, 0., "") ;
+		return {TOKEN_OPERATION_SQRT, 0., ""} ;
 	}
 	else if(str == std::string("sign"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_SIGN, 0., "") ;
+		return {TOKEN_OPERATION_SIGN, 0., ""} ;
 	}
 	else if(str == std::string("atan2"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_ATAN2, 0., "") ;
+		return {TOKEN_OPERATION_ATAN2, 0., ""} ;
 	}
 	else if(str == std::string("sign"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_SIGN, 0., "") ;
+		return {TOKEN_OPERATION_SIGN, 0., ""} ;
 	}
 	else if(str == std::string("positive"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_POSITIVITY, 0., "") ;
+		return {TOKEN_OPERATION_POSITIVITY, 0., ""} ;
 	}
 	else if(str == std::string("negative"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_NEGATIVITY, 0., "") ;
+		return {TOKEN_OPERATION_NEGATIVITY, 0., ""} ;
 	}
 	else if(str == std::string("+"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_PLUS, 0., "") ;
+		return {TOKEN_OPERATION_PLUS, 0., ""} ;
 	}
 	else if(str == std::string("-"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_MINUS, 0., "") ;
+		return {TOKEN_OPERATION_MINUS, 0., ""} ;
 	}
 	else if(str == std::string("*"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_TIMES, 0., "") ;
+		return {TOKEN_OPERATION_TIMES, 0., ""} ;
 	}
 	else if(str == std::string("/"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_DIVIDES, 0., "") ;
+		return {TOKEN_OPERATION_DIVIDES, 0., ""} ;
 	}
 	else if(str == std::string("^"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_POWER, 0., "") ;
+		return {TOKEN_OPERATION_POWER, 0., ""} ;
 	}
 	else if(str == std::string("x"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_X, 0., "") ;
+		return {TOKEN_OPERATION_X, 0., ""} ;
 	}
 	else if(str == std::string("y"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_Y, 0., "") ;
+		return {TOKEN_OPERATION_Y, 0., ""} ;
 	}
 	else if(str == std::string("z"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_Z, 0., "") ;
+		return {TOKEN_OPERATION_Z, 0., ""} ;
 	}
 	else if(str == std::string("t"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_T, 0., "") ;
+		return {TOKEN_OPERATION_T, 0., ""} ;
 	}
 	else if(str == std::string("u"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_U, 0., "") ;
+		return {TOKEN_OPERATION_U, 0., ""} ;
 	}
 	else if(str == std::string("v"))
 	{
-		return boost::make_tuple(TOKEN_OPERATION_V, 0., "") ;
+		return {TOKEN_OPERATION_V, 0., ""} ;
 	}
 	else 
 	{
-		return boost::make_tuple(TOKEN_OPERATION_W, 0., "") ;
+		return {TOKEN_OPERATION_W, 0., ""} ;
 	}
 }
 	
@@ -782,12 +782,12 @@ bool Function::isSeparator(const char c) const
 	return false ;
 } ;
 
-std::pair<size_t, boost::tuple< TokenOperationType, double, std::string>> Function::getNext(size_t init, const std::string & form,  int cstIterator, std::vector<double> & val)
+std::pair<size_t, functionParseElement> Function::getNext(size_t init, const std::string & form,  int cstIterator, std::vector<double> & val)
 {
 	return getNext(init, form.c_str(), cstIterator, val) ;
 }
 
-std::pair<size_t, boost::tuple<TokenOperationType, double, std::string>> Function::getNext(size_t init, const char * form, int cstIterator, std::vector<double> & val)
+std::pair<size_t, functionParseElement> Function::getNext(size_t init, const char * form, int cstIterator, std::vector<double> & val)
 {
 	std::string cur_token("") ;
 	char cur_char  = form[init] ;
@@ -1391,14 +1391,14 @@ Function::Function(const char *f): derivative(nullptr),
 	int iter = 0 ;
 	while(init < strlen(f))
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, iter, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement > temp = getNext(init, f, iter, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 		
 		
 
@@ -1421,14 +1421,14 @@ Function::Function(const char *f, double v): derivative(nullptr),
 	val.push_back(v);
 	while(init < strlen(f))
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, 0, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement> temp = getNext(init, f, 0, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 
 		init = temp.first ;
 	}
@@ -1447,14 +1447,14 @@ Function::Function(const char *f, std::vector<double> & val): derivative(nullptr
 	size_t init = 0 ;
 	while(init < strlen(f))
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f, 0, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement > temp = getNext(init, f, 0, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 
 		init = temp.first ;
 	}
@@ -1473,14 +1473,14 @@ Function::Function(const std::string &f) : derivative(nullptr),
 	std::vector<double> val ;
 	while(init < f.length())
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement > temp = getNext(init, f,0, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 	}
 	initialiseAdresses();
 }
@@ -1498,14 +1498,14 @@ Function::Function(const std::string &f, double v) : derivative(nullptr),
 	val.push_back(v);
 	while(init < f.length())
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement > temp = getNext(init, f,0, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 	}
 	initialiseAdresses();
 }
@@ -1521,14 +1521,14 @@ Function::Function(const std::string &f, std::vector<double> & val) : derivative
 	size_t init = 0 ;
 	while(init < f.length())
 	{
-		std::pair<size_t, boost::tuple<TokenOperationType, double, std::string> > temp = getNext(init, f,0, val) ;
-		byteCode.push_back(boost::get<0>(temp.second)) ;
+		std::pair<size_t, functionParseElement > temp = getNext(init, f,0, val) ;
+		byteCode.push_back(temp.second.first) ;
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		adress_a.push_back(0);
 		if(byteCode.back() == TOKEN_OPERATION_CONSTANT)
-			values.push_back(boost::get<1>(temp.second));
+			values.push_back(temp.second.second);
 	}
 	initialiseAdresses();
 }
