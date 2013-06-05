@@ -712,13 +712,6 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
 		}
 		case TRANSLATE:
 			this->setCenter( center + p ) ;
-			
-// 			center += p ;
-// 			for(size_t i = 0 ; i < inPoints.size() ; i++)
-// 				(*inPoints[i]) += p ;
-// 			for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-// 				getBoundingPoint(i) += p ;
-// 						
 			break ;
 	}
 }

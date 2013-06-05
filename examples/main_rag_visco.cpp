@@ -108,7 +108,21 @@ int main(int argc, char *argv[])
 	double appliedLoadEta = atof(argv[2])*(-1e6) ;
 	double appliedLoadXi = atof(argv[3])*(-1e6) ;
 	
-	bool elastic = (timeScale < 50) ;
+	bool elastic = false ;
+	bool noZones = false ;
+	
+	for(size_t i = 0 ; i < argc ; i++)
+	{
+		if(std::string(argv[i]) == "--elastic")
+			elastic = true ;
+		if(std::string(argv[i]) == "--nozones")
+			noZones = true ;
+	}
+	
+	if(elastic)
+		std::cout << "elastic case" << std::endl ;
+	if(noZones)
+		std::cout << "disabling asr zones" << std::endl ;
 	
 	int nzones = 200 ;
 	int naggregates = 500 ;
@@ -119,12 +133,34 @@ int main(int argc, char *argv[])
 	
 	F.setDeltaTime(tau) ;
 	
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
+// 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() ) ;
+// 	if(elastic)
+//		box.setBehaviour(new ViscoElasticOnlyPasteBehaviour(12e9,0.3,0,0) );
+	
+	Form * stAggregateBehaviour = new ViscoElasticOnlyAggregateBehaviour() ;
+	Form * stPasteBehaviour = new ViscoElasticOnlyPasteBehaviour() ;
+	ViscoelasticityAndImposedDeformation * stGelBehaviour = dynamic_cast<ViscoelasticityAndImposedDeformation *>((new ViscoElasticOnlyGelBehaviour())->getCopy()) ;
+	
+	Form * elasticAggregateBehaviour = new ElasticOnlyAggregateBehaviour() ;
+	Form * elasticPasteBehaviour = new ElasticOnlyPasteBehaviour() ;
+	GelBehaviour * elasticGelBehaviour = new GelBehaviour() ;
+	
+	Form * stElasticAggregateBehaviour = new Viscoelasticity( PURE_ELASTICITY, elasticAggregateBehaviour->param) ;
+	Form * stElasticPasteBehaviour = new Viscoelasticity( PURE_ELASTICITY, elasticPasteBehaviour->param) ;
+	ViscoelasticityAndImposedDeformation * stElasticGelBehaviour = new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, elasticGelBehaviour->param, elasticGelBehaviour->imposed ) ;
+	
+	Form * aggBehaviour = stAggregateBehaviour ;
+	Form * pasteBehaviour = stPasteBehaviour ;
+	ViscoelasticityAndImposedDeformation * gelBehaviour = stGelBehaviour ;
+	
 	if(elastic)
-		box.setBehaviour(new ViscoElasticOnlyPasteBehaviour(12e9,0.3,0,0) );
+	{
+		aggBehaviour = stElasticAggregateBehaviour ;
+		pasteBehaviour = stElasticPasteBehaviour ;
+		gelBehaviour = stElasticGelBehaviour ;
+	}
 	
-	Form * aggBehaviour = new ViscoElasticOnlyAggregateBehaviour() ;
-	
+	box.setBehaviour( pasteBehaviour );
 	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, aggBehaviour, naggregates, 0.008, 0.0001, BOLOME_A) ;
 	
 	std::vector<Inclusion *> aggregates ;
@@ -141,16 +177,17 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 4)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 5)) ;
+	if(!elastic)
+	{
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 4)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 5)) ;
+	}
 	
 	F.step() ;
 	F.step() ;
 	
-	ViscoElasticOnlyGelBehaviour gelBehaviour ;
-
 	if(appliedLoadEta < 0)
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, appliedLoadEta));
 
@@ -158,9 +195,14 @@ int main(int argc, char *argv[])
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, appliedLoadXi));
 
 	
- 	std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, dynamic_cast<ViscoelasticityAndImposedDeformation *>( gelBehaviour.getCopy() ), radius, maxGelRadius, nzones*50, nzones) ;
+	if(!noZones)
+		std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gelBehaviour, radius, maxGelRadius, nzones*50, nzones) ;
 	
 	std::string name = "asr_creep/asr_creep_no_damage_" ;
+	if(elastic)
+		name.append("elastic_") ;
+	if(noZones)
+		name.append("nozones_") ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
