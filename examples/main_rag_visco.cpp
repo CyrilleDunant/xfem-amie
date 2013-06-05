@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
 		}
 		out.close() ;
 		
-		tau += timestep*i ;
+		tau += timestep ;
 	}
 	
 	
