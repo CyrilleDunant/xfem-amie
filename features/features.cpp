@@ -4594,7 +4594,7 @@ bool FeatureTree::stepElements()
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					
-// 					if( i % 1000 == 0 )
+					if( i % 500 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
