@@ -213,9 +213,10 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 
 	for(size_t m = 0 ; m < counter ; m++)
 	{
+
 		
 		std::string fname = base + std::string("_") + itoa(m)+".svg" ;
-		std::fstream outfile(std::fstream(fname.c_str(), std::ios::out | std::ios_base::trunc)) ;
+		std::fstream outfile(fname.c_str(), std::ios::out | std::ios_base::trunc) ;
 		if(!outfile.is_open())
 		{
 			std::cout << "failed opening file for SVG output." << std::endl ;

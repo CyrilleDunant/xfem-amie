@@ -1495,6 +1495,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.push_back(testedTri->index);
 		
 		size_t cachesize = cache.size() ;
+		initialiseFactors(s);
 // 		if(testedTri->getBehaviour()->getExtra2dMeshes())
 // 		{
 // 			for(size_t i = 0 ; i < testedTri->getBehaviour()->getExtra2dMeshes()->size() ; i++)

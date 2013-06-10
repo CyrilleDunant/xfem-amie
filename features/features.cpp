@@ -5766,22 +5766,26 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 		for(auto j = layer2d.begin() ; j != layer2d.end() ;j++)
 		{
 			std::vector<DelaunayTriangle *> tris = j->second->getElements() ;
+
 			int ecounter = 0 ;
 			#pragma omp parallel for
+
 			for( size_t i = 0 ; i < tris.size() ; i++ )
 			{
 				if(!tris[i]->getBehaviour())
 				{
 					std::cout << "ouch" << std::endl ;
-					continue ;
 				}
-				tris[i]->refresh( father2D );
-				tris[i]->getState().initialize( initialiseFractureCache) ;
-				#pragma omp critical
+				else
 				{
-					ecounter++ ;
-					if(ecounter % 100 == 0)
-					std::cerr << "\r initialising... element " << ecounter << "/" << tris.size() << std::flush ;
+					tris[i]->refresh( father2D );
+					tris[i]->getState().initialize( initialiseFractureCache) ;
+					#pragma omp critical
+					{
+						ecounter++ ;
+						if(ecounter % 100 == 0)
+						std::cerr << "\r initialising... element " << ecounter << "/" << tris.size() << std::flush ;
+					}
 				}
 			}
 		}
