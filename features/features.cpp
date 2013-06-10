@@ -5761,12 +5761,14 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 				if(!tris[i]->getBehaviour())
 				{
 					std::cout << "ouch" << std::endl ;
-					continue ;
 				}
-				tris[i]->refresh( father2D );
-				tris[i]->getState().initialize( initialiseFractureCache) ;
-				if(i % 100 == 0)
-					std::cerr << "\r initialising... element " << i << "/" << tris.size() << std::flush ;
+				else
+				{
+					tris[i]->refresh( father2D );
+					tris[i]->getState().initialize( initialiseFractureCache) ;
+					if(i % 100 == 0)
+						std::cerr << "\r initialising... element " << i << "/" << tris.size() << std::flush ;
+				}
 			}
 		}
 
