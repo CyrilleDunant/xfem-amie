@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(atof(argv[1])) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(atof(argv[2])) ;
+	double speed = atof(argv[3]) ;
 //	F.setOrder(LINEAR) ;
 	
 	
@@ -145,12 +146,19 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 
 	std::fstream out ;
-	out.open("wedge.txt", std::ios::out) ;
+	std::string tata = "wedge_" ;
+	tata.append(argv[1]) ;
+	tata.append("_") ;
+	tata.append(argv[2]) ;
+	tata.append("_") ;
+	tata.append(argv[3]) ;
+	tata.append(".txt") ;
+	out.open(tata.c_str(), std::ios::out) ;
 	
-	while(i < 30)
+	while(i < 300)
 	{
 		i++ ;
-		disp->setData( 0.0005*i ) ;
+		disp->setData( speed*i ) ;
 
 //		F.setDeltaTime(1.) ;
 		F.step() ;
@@ -168,7 +176,7 @@ int main(int argc, char *argv[])
 			
  		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
  		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		out << 0.0005*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
+		out << F.getCurrentTime() << "\t" << speed*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
 
 	}
 	

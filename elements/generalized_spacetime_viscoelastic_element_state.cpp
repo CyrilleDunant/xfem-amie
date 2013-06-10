@@ -33,10 +33,18 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;
+		double w = gp.gaussPoints[i].second ;
+		if(dummy < 0)
+		{
+			p_.t = t ;
+			Matrix Jinv ; getParent()->getInverseJacobianMatrix(p_,Jinv) ;
+//			Jinv.print() ;
+			w /= Jinv[2][2] ;
+		}
 		Vector tmp = ret ;
 		getField(f, p_, tmp, true, dummy) ;
-		ret += tmp *gp.gaussPoints[i].second ;
-		total += gp.gaussPoints[i].second ;
+		ret += tmp * w ;
+		total += w ;
 	}	
 	
 	double shapes = 0. ;
@@ -91,6 +99,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			}
 			return ;
 		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
+//			std::cout << ret.size() << "\t" << totaldof << std::endl ;
 			for(size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++)
 			{
 				double f =  vm.eval( parent->getShapeFunction( j ) , p_) ;
