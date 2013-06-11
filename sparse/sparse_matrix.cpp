@@ -22,7 +22,6 @@ using namespace Mu ;
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, double> &source, size_t s): stride(s), array(source.size()*s*(s+s%2)/(s*s)), column_index(source.size()/s), row_size(source.rbegin()->first.first/s), accumulated_row_size(source.rbegin()->first.first/s)
 {
-	std::cout << stride+stride%2 << std::endl ;
 	unsigned int * column_index_iterator = &column_index[0] ;
 	unsigned int * row_size_iterator = &row_size[0] ;
 	std::map<std::pair<size_t, size_t>, double>::const_iterator previous = source.begin() ;
@@ -57,7 +56,6 @@ CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, Matrix> &source) : stride(source.begin()->second.numRows()),  array(source.size()*stride*(stride+stride%2)/(stride*stride)), column_index(source.size()/stride), row_size(source.rbegin()->first.first/stride), accumulated_row_size(source.rbegin()->first.first/stride)
 {
-	std::cout << stride+stride%2 << std::endl ;
 	double * array_iterator = &array[0] ;
 	unsigned int * column_index_iterator = &column_index[0] ;
 	unsigned int * row_size_iterator = &row_size[0] ;
@@ -478,49 +476,37 @@ CompositeSparseMatrixTimesVecMinusVecMinusVec CompositeSparseMatrixTimesVecMinus
 	return CompositeSparseMatrixTimesVecMinusVecMinusVec(*this, v) ;
 }
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, int rowstart, int colstart)
+void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
 {
 	ret = 0 ;
+	size_t stride = c.co.sm.stride ;
+	int end = c.co.sm.row_size.size() ;
+	ret = c.ve ;
 
-#pragma omp parallel for
-	for (int i = 0 ; i < c.co.sm.row_size.size() ; i++)
+	#pragma omp parallel for
+	for (int i = 0 ; i < end ; i++)
 	{
-		c.co.sm[i*c.co.sm.stride].inner_product(c.co.ve, &ret[i*c.co.sm.stride], rowstart, colstart);
-	}
-	
-#pragma omp parallel for
-	for (int i = rowstart ; i < ret.size() ; ++i)
-	{
-		ret[i] += c.ve[i] ;
+		c.co.sm[i*stride].inner_product(c.co.ve, &ret[i*stride], rowstart, colstart);
 	}
 } ;
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, int rowstart, int colstart)
+void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
 {
 	ret = 0 ;
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ; 
-// 	timeval time0, time1 ;
-// 	gettimeofday(&time0, nullptr);
+	const Vector & ve = c.co.ve ;
+	ret = -c.ve ;
 
-#pragma omp parallel for schedule(auto)//shared(c,ret,ve) 
+	#pragma omp parallel  for
 	for (int i = 0 ; i <end ; i+=stride)
 	{
-		c.co.sm[i].inner_product(c.co.ve, &ret[i], rowstart, colstart);
+		c.co.sm[i].inner_product(ve, &ret[i], rowstart, colstart);
 	}
-// 	gettimeofday(&time1, nullptr);
-// 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-// 	std::cout << "mflops: "<< (2.*c.co.sm.array.size())/delta << std::endl ;
-#pragma omp parallel for schedule(auto)//shared(ret,c,vi) 
-	for (int i = rowstart ; i < ret.size() ; ++i)
-	{
-		ret[i] -= c.ve[i] ;
-	}
-
 
 } ;
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, int rowstart, int colstart)
+void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
 {
 	ret = 0 ;
 	int end = c.sm.row_size.size() ;
@@ -528,16 +514,9 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 
 	const Vector & ve = c.ve ;
 	
-// 	timeval time0, time1 ;
-// 	gettimeofday(&time0, nullptr);
-	
 #pragma omp parallel for //shared(c,ve,ret) 
 		for (int i = 0 ; i < end; ++i)
 		{
 			c.sm[i*stride].inner_product(ve, &ret[i*stride], rowstart, colstart);
 		}
-		
-// 	gettimeofday(&time1, nullptr);
-// 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-// 	std::cerr << "mflops: "<< (2.*c.sm.array.size())/delta << std::endl ;
 } ;

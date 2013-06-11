@@ -111,6 +111,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	gettimeofday(&time0, nullptr);
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double neps = std::max(realeps, eps) ;
+
 	while(last_rho*last_rho*vsize*vsize > std::max(neps*neps*err0, neps*neps) && n < Maxit )
 	{
 		P->precondition(r,z) ;
@@ -128,6 +129,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		}
 
 		assign(q, A*p) ;
+		
 		alpha = rho/parallel_inner_product(&q[0], &p[0], vsize);
 		
 		r -= q*alpha ;
@@ -140,13 +142,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		}
 		if(	verbose && n%128 == 0)
 		{
-			std::cerr <<   sqrt(rho) << std::endl  ;
+			std::cerr <<  sqrt(rho) << std::endl  ;
 		}
 	
 		last_rho = rho ;
 		nit++ ;
 		n++ ;
-		
 	}
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

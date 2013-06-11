@@ -64,6 +64,7 @@ InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A) : diago
 
 void  InverseDiagonal::precondition(const Vector &v, Vector & t) 
 {
+#pragma omp parallel for
 	for(size_t i = 0 ; i < t.size() ; i++)
 		t[i]=v[i]*diagonal[i] ;
 }

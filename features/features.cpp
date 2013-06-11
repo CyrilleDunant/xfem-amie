@@ -6472,7 +6472,7 @@ void FeatureTree::generateElements()
 // 	std::srand(1000) ;
 
 	//shuffle for efficiency
-//	shuffleMeshPoints() ;
+	shuffleMeshPoints() ;
 
 //	for(size_t i = 0 ; i < meshPoints.size() ; i++)
 //		meshPoints[i].first->print() ;
