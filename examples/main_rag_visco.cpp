@@ -210,6 +210,8 @@ int main(int argc, char *argv[])
 		name.append("elastic_") ;
 	if(noZones)
 		name.append("nozones_") ;
+	if(pseudoDamage)
+		name.append("pseudodamage_") ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
