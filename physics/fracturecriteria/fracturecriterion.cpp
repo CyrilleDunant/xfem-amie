@@ -1005,12 +1005,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			sumStressFactors += iteratorValue ;
 			sumStrainFactors += iteratorValue ;
 			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+			#pragma omp parallel for
 			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 			{
 				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-				iteratorValue = factors[i] ;
+				double localIteratorValue = factors[i] ;
 
-				if(iteratorValue > POINT_TOLERANCE_2D)
+				if(localIteratorValue > POINT_TOLERANCE_2D)
 				{
 
 					if(m == EFFECTIVE_STRESS)
@@ -1023,17 +1024,17 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 
 					if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-						iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
+						localIteratorValue = pow(localIteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 					
+					#pragma omp critical
 					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
 					{
-						strar += tmpstrar*iteratorValue ;
-						stra += tmpstra*iteratorValue ;
-						str += tmpstr*iteratorValue ;
-						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-						sumStrainFactors += iteratorValue ;
-						sumStressFactors += iteratorValue ;
-
+						strar += tmpstrar*localIteratorValue ;
+						stra += tmpstra*localIteratorValue ;
+						str += tmpstr*localIteratorValue ;
+						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*localIteratorValue ;
+						sumStrainFactors += localIteratorValue ;
+						sumStressFactors += localIteratorValue ;
 					}
 				}
 			}
