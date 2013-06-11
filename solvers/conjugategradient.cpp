@@ -86,7 +86,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	P->precondition(r,z) ;
 
 	p = z ;
-	q = A*p ;
+	assign(q, A*p) ;
 	
 	double last_rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 	double alpha = last_rho/parallel_inner_product(&q[0], &p[0], vsize);
@@ -94,7 +94,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	x += p*alpha ;
 	r -= q*alpha ;
 	nit++ ;
-	int n = 0 ;
 	//****************************************
 	
 	assign(r, A*x-b) ;
@@ -112,13 +111,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double neps = std::max(realeps, eps) ;
 
-	while(last_rho*last_rho*vsize*vsize > std::max(neps*neps*err0, neps*neps) && n < Maxit )
+	while(last_rho*last_rho*vsize*vsize > std::max(neps*neps*err0, neps*neps) && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 
 		double rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 
 		double beta = rho/last_rho ;
+		
 		double * iterp = &p[0] ;
 		double * iterz = &z[0] ;
 		for(; iterp != &p[vsize] ;)
@@ -135,23 +135,22 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		r -= q*alpha ;
 		x += p*alpha ;
 		
-		if(n%32 == 0)
+		if(nit%32 == 0)
 		{
 			assign(r, A*x-b) ;
 			r *= -1 ;
 		}
-		if(	verbose && n%128 == 0)
+		if(	verbose && nit%128 == 0)
 		{
 			std::cerr <<  sqrt(rho) << std::endl  ;
 		}
 	
 		last_rho = rho ;
 		nit++ ;
-		n++ ;
 	}
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cerr << "mflops: "<< n*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
+	std::cerr << "mflops: "<< nit*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
 
 	assign(r,A*x-b) ;
 	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;

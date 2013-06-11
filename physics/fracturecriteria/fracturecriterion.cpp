@@ -130,11 +130,11 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
 	return smoothedPrincipalStressAndStrain(s).second ;
 }
 
-std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , bool useStressLimit, double t )
+std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , double t )
 {
 	if(ss == FROM_STRESS_STRAIN)
 	{
-		std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m, useStressLimit, t) ;
+		std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m, t) ;
 		return std::make_pair(toPrincipal(stressStrain.first), toPrincipal(stressStrain.second)) ;
 	}
 	
@@ -153,55 +153,62 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 	
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
-		double iteratorValue = factors[0] ;
+		double stra0 = stra[0] ;
+		double stra1 = stra[1] ;
+		double str0 = str[0] ;
+		double str1 = str[1] ;
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			stra = tmpstra*factors[0] ;
+			str = tmpstr*factors[0] ;
+
+			sumFactors += factors[0] ;
+			//#pragma omp parallel for shared(stra,str,sumFactors) 
+			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
+			{
+	// 			iteratorValue = factors[i] ;
+				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+				Vector tmpstr(vlength) ;
+				Vector tmpstra(vlength) ;
+				
+				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
+
+				stra += tmpstra*factors[i] ;
+				str += tmpstr*factors[i] ;
+				cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*factors[i] ;
+				sumFactors += factors[i] ;
+			}
 		}
 		else
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-		}
-		
-		stra = tmpstra*iteratorValue ;
-		currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
-		str = (tmpstr)*iteratorValue ;
-		cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-		
-// 		currentAngle = tmpangle*iteratorValue ;
-		sumFactors += iteratorValue ;
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			stra = tmpstra*factors[0] ;
+			str = tmpstr*factors[0] ;
 
-		for( size_t i = 1 ; i < physicalcache.size() ; i++ )
-		{
-			iteratorValue = factors[i] ;
-			DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-
-			if(m == EFFECTIVE_STRESS)
+			sumFactors += factors[0] ;
+			//#pragma omp parallel for shared(stra,str,sumFactors) 
+			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 			{
-				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-			}
-			else
-			{
+				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+				Vector tmpstr(vlength) ;
+				Vector tmpstra(vlength) ;
+				
 				ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD,tmpstra ,tmpstr, 0, t) ;
-			}
-			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-				iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
 
-			stra += tmpstra*iteratorValue ;
-			str += tmpstr*iteratorValue ;
-			cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-			sumFactors += iteratorValue ;
+				stra += tmpstra*factors[i] ;
+				str += tmpstr*factors[i] ;
+				cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*factors[i] ;
+				sumFactors += factors[i] ;
+			}
 		}
+		
+
 
 		str /= sumFactors ;
 		stra /= sumFactors ;
-// 		currentAngle = acos(cosangle/sumFactors) ;
-// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
-// 		tmpstr.resize(3) ;
-// 		tmpstra.resize(3) ;
-// 		s.getParent()->getState().getAverageField(STRAIN_FIELD, tmpstra) ;
-// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m, useStressLimit, t) ;
-// 		currentAngle = 0.5*atan2( smss.second[2],  smss.second[0] -  smss.second[1] ) ;
 
 		return std::make_pair(str, stra) ;
 
@@ -209,7 +216,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m, useStressLimit, t) ;
+		std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m, t) ;
 		
 		Vector lprincipal( 3 ) ;
 		Matrix stresses(3,3) ;
@@ -873,11 +880,8 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalcul
 	return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
 }
 
-std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, bool useStressLimit , double t)
+std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, double t)
 {
-// 	useStressLimit = true ;
-	
-	
 	size_t vlength = 3 ;
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 6 ;
@@ -886,96 +890,93 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	Vector stra(0., vlength) ;
 	Vector tmpstr(0.,vlength) ;
 	Vector tmpstra(0.,vlength) ;
-// 	Vector istress = s.getParent()->getBehaviour()->getImposedStress(s.getParent()->getCenter()) ;
-// 	istress = 0 ;
+
 	if(factors.size() == 0)
 		initialiseFactors(s) ;
-	double sumStressFactors = 0 ;
-	double sumStrainFactors = 0 ;
-	double cosangle = 0 ;
+	double sumFactors = 0 ;
+	double stra0 = stra[0] ;
+	double stra1 = stra[1] ;
+	double stra2 = stra[2] ;
+	double str0 = str[0] ;
+	double str1 = str[1] ;
+	double str2 = str[2] ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		if(s.getParent()->getOrder() < CONSTANT_TIME_LINEAR)
 		{
-	  
-			double iteratorValue = factors[0] ;
 
 			if(m == EFFECTIVE_STRESS)
 			{
+				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				stra = tmpstra*factors[0] ;
+				str = tmpstr*factors[0] ;
+				sumFactors += factors[0] ;
+				
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors)
+				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
+				{
+					Vector tmpstr(0.,vlength) ;
+					Vector tmpstra(0.,vlength) ;
+					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+
+					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				
+					stra0 += tmpstra[0]*factors[i] ;
+					stra1 += tmpstra[1]*factors[i] ;
+					stra2 += tmpstra[2]*factors[i] ;
+					str0 += tmpstr[0]*factors[i] ;
+					str1 += tmpstr[1]*factors[i] ;
+					str2 += tmpstr[2]*factors[i] ;
+					sumFactors += factors[i] ;
+
+				}
 			}
 			else
 			{
+				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				stra = tmpstra*factors[0] ;
+				str = tmpstr*factors[0] ;
+				sumFactors += factors[0] ;
 
-			}
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
-			
-			stra = tmpstra*iteratorValue ;
-			str = tmpstr*iteratorValue ;
-
-			sumStressFactors += iteratorValue ;
-			sumStrainFactors += iteratorValue ;
-			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
-			{
-				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-				iteratorValue = factors[i] ;
-
-				if(iteratorValue > POINT_TOLERANCE_2D)
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors)
+				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
+					Vector tmpstr(0.,vlength) ;
+					Vector tmpstra(0.,vlength) ;
+					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 
-					if(m == EFFECTIVE_STRESS)
-					{
-						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-					}
-					else
-					{
-						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-					}
+					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				
+					stra0 += tmpstra[0]*factors[i] ;
+					stra1 += tmpstra[1]*factors[i] ;
+					stra2 += tmpstra[2]*factors[i] ;
+					str0 += tmpstr[0]*factors[i] ;
+					str1 += tmpstr[1]*factors[i] ;
+					str2 += tmpstr[2]*factors[i] ;
+					sumFactors += factors[i] ;
 
-
-					if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-						iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
-					
-					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
-					{
-						stra += tmpstra*iteratorValue ;
-						str += tmpstr*iteratorValue ;
-						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-						sumStrainFactors += iteratorValue ;
-						sumStressFactors += iteratorValue ;
-
-					}
 				}
 			}
-
-			str /= sumStressFactors ;
-	// 		str += istress ;
-			stra /= sumStrainFactors ;
-	// 		currentAngle = acos(cosangle/sumStrainFactors) ;
-	// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
-
-	// 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
-	// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
-
 			
-	// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-	// 		{
-	// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
-	// 			if(currentAngle < 0)
-	// 				currentAngle += M_PI ;
-	// 		}
+			str[0] += str0 ;
+			str[1] += str1 ;
+			str[2] += str2 ;
+			stra[0] += stra0 ;
+			stra[1] += stra1 ;
+			stra[2] += stra2 ;
+
+			str /= sumFactors ;
+			stra /= sumFactors ;
 
 			return std::make_pair(stra*s.getParent()->getBehaviour()->getTensor(Point()), stra) ;
 		}
 		else
 		{
-	  
-			double iteratorValue = factors[0] ;
-			
-			
-			
+
 			int blocks = 1. ;
 			Viscoelasticity * visco = dynamic_cast<Viscoelasticity *>(s.getParent()->getBehaviour()) ;
 			if(visco)
@@ -998,64 +999,40 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			
 			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 			
-			strar = tmpstrar*iteratorValue ;
-			stra = tmpstra*iteratorValue ;
-			str = tmpstr*iteratorValue ;
+			strar = tmpstrar*factors[0] ;
+			stra = tmpstra*factors[0] ;
+			str = tmpstr*factors[0] ;
 
-			sumStressFactors += iteratorValue ;
-			sumStrainFactors += iteratorValue ;
-			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
-			#pragma omp parallel for
+			sumFactors += factors[0] ;
+// 			cosangle = cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*iteratorValue ;
+			
+			//#pragma omp parallel for
 			for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 			{
 				DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-				double localIteratorValue = factors[i] ;
 
-				if(localIteratorValue > POINT_TOLERANCE_2D)
+				if(m == EFFECTIVE_STRESS)
+					ci->getState().getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, -1, t) ;
+				else
+					ci->getState().getAverageField(REAL_STRESS_FIELD, tmpstr, -1, t) ;
+				
+				ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
+				ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
+
+				//#pragma omp critical
+				if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
 				{
-
-					if(m == EFFECTIVE_STRESS)
-						ci->getState().getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, -1, t) ;
-					else
-						ci->getState().getAverageField(REAL_STRESS_FIELD, tmpstr, -1, t) ;
-				  
-					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
-					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
-
-
-					if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-						localIteratorValue = pow(localIteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),ci->getCenter()-s.getParent()->getCenter())) ;
-					
-					#pragma omp critical
-					if(!ci->getBehaviour()->fractured() && ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() )
-					{
-						strar += tmpstrar*localIteratorValue ;
-						stra += tmpstra*localIteratorValue ;
-						str += tmpstr*localIteratorValue ;
-						cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*localIteratorValue ;
-						sumStrainFactors += localIteratorValue ;
-						sumStressFactors += localIteratorValue ;
-					}
+					strar += tmpstrar*factors[i] ;
+					stra += tmpstra*factors[i] ;
+					str += tmpstr*factors[i] ;
+					sumFactors += factors[i] ;
 				}
 			}
 
-			str /= sumStressFactors ;
-	// 		str += istress ;
-			stra /= sumStrainFactors ;
-			strar /= sumStrainFactors ;
-	// 		currentAngle = acos(cosangle/sumStrainFactors) ;
-	// 		currentAngle = 0.5*atan2( stra[2],  stra[0] -  stra[1] ) ;
+			str /= sumFactors ;
+			stra /= sumFactors ;
+			strar /= sumFactors ;
 
-	// 		s.getParent()->getState().getField(STRAIN_FIELD, Point(.333333, .3333333), tmpstra, true) ;
-	// 		std::pair <Vector, Vector > smss = smoothedStressAndStrain(s, m) ;
-
-			
-	// 		if(std::abs(stra[0]-stra[1]) > POINT_TOLERANCE_2D)
-	// 		{
-	// 			currentAngle =  0.5*atan2( stra[2], stra[0] - stra[1] ) ;
-	// 			if(currentAngle < 0)
-	// 				currentAngle += M_PI ;
-	// 		}
 
 			Vector strFromFullStrain = stra*s.getParent()->getBehaviour()->getTensor(Point()) ;
 			strFromFullStrain += (Vector) (strar*s.getParent()->getBehaviour()->getViscousTensor(Point())) ;
@@ -1073,7 +1050,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		double iteratorValue = factors[0];
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr);
@@ -1082,10 +1058,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		{
 			s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
 		}
-		str = tmpstr*iteratorValue ;
-		stra =tmpstra*iteratorValue ;
-		sumStressFactors += iteratorValue ;
-		sumStrainFactors += iteratorValue ;
+		str = tmpstr*factors[0] ;
+		stra =tmpstra*factors[0] ;
+		sumFactors += factors[0] ;
 		for( size_t i = 0 ; i < cache.size() ; i++ )
 		{
 			DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *>( ( *mesh3d )[cache[i]] ) ;
@@ -1097,23 +1072,14 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr);
 				}
-			iteratorValue = factors[i+1] ;
 			Point direction =  ci->getCenter()-s.getParent()->getCenter() ; 
-			if(useStressLimit && ci->getBehaviour()->getFractureCriterion())
-				iteratorValue = pow(iteratorValue, 1./ci->getBehaviour()->getFractureCriterion()->getSquareInfluenceRatio(ci->getState(),direction)) ;
-			if( ci->getBehaviour()->fractured())
-			{
-				stra += tmpstra*iteratorValue ;
-				sumStrainFactors += iteratorValue ;
-				continue ;
-			}
-			str += tmpstr*iteratorValue ;
-			stra += tmpstra*iteratorValue ;
-			sumStressFactors += iteratorValue ;
-			sumStrainFactors += iteratorValue ;
+
+			str += tmpstr*factors[i+1] ;
+			stra += tmpstra*factors[i+1] ;
+			sumFactors += factors[i+1] ;
 		}
-		str /= sumStressFactors ;
-		stra /= sumStrainFactors ;
+		str /= sumFactors ;
+		stra /= sumFactors ;
 		currentAngle = 0.5 * atan2(stra[3] , stra[0] - stra[1] ) ;
 		return std::make_pair(str,stra)  ;
 	}

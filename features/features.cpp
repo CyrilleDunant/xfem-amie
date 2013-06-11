@@ -4699,28 +4699,29 @@ bool FeatureTree::stepElements()
 				std::cout << "[" << averageDamage << " ; " << std::flush ;
 				maxScore = -1. ;
 				maxTolerance = 1 ;
-				#pragma omp parallel
-				{
-				  double maxs = -1 ;
-				  double maxtol = -1 ;
-				  #pragma omp for nowait
+// 				double maxs = -1 ;
+// 				double maxtol = 1 ;
+// 				#pragma omp parallel lastshared(maxs,maxtol)
+// 				{
+// 
+// 				  #pragma omp for nowait 
 				  for( size_t i = 0 ; i < elements.size() ; i++ )
 				  {
 					  if( elements[i]->getBehaviour()->getFractureCriterion() )
 					  {
 						  //std::cout << "." << std::flush ;
 						  elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-						  maxs = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
-						  maxtol = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
+						  maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						  maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 	
 					  }
 				  }
-				  #pragma omp critical
-				  {
-				    maxScore = std::max(maxScore, maxs) ;
-				    maxTolerance = std::max(maxTolerance, maxtol) ;
-				  }
-				}
+// 				  #pragma omp critical
+// 				  {
+// 				    maxScore = std::max(maxScore, maxs) ;
+// 				    maxTolerance = std::max(maxTolerance, maxtol) ;
+// 				  }
+// 				}
 				
 				std::cout << maxScore << "]" << std::flush ;
 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1.)
