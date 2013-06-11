@@ -11,6 +11,7 @@
 #include "../physics/kelvinvoight.h"
 #include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
+#include "../physics/dual_behaviour.h"
 #include "../physics/parallel_behaviour.h"
 //#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
@@ -110,6 +111,7 @@ int main(int argc, char *argv[])
 	
 	bool elastic = false ;
 	bool noZones = false ;
+	bool pseudoDamage = false ;
 	
 	for(size_t i = 0 ; i < argc ; i++)
 	{
@@ -117,12 +119,17 @@ int main(int argc, char *argv[])
 			elastic = true ;
 		if(std::string(argv[i]) == "--nozones")
 			noZones = true ;
+		if(std::string(argv[i]) == "--pseudodamage")
+			pseudoDamage = true ;
 	}
 	
 	if(elastic)
 		std::cout << "elastic case" << std::endl ;
 	if(noZones)
 		std::cout << "disabling asr zones" << std::endl ;
+	if(pseudoDamage)
+		std::cout << "enabling homogeneous damage in aggregates" << std::endl ;
+	double aggTensile = 45e6 ;
 	
 	int nzones = 200 ;
 	int naggregates = 500 ;
@@ -217,6 +224,7 @@ int main(int argc, char *argv[])
 	
 	std::vector<DelaunayTriangle *> triangles ;
 	std::map<DelaunayTriangle *, int> map ;
+	Vector areas(naggregates+2) ; areas = 0. ;
 	for(size_t i = 0 ; i < 15 ; i++)
 	{
 		F.setDeltaTime(tau) ;
@@ -243,6 +251,7 @@ int main(int argc, char *argv[])
 			for(size_t k = 0 ; k < triangles.size() ; k++)
 			{
 				mapstream << k << "\t" << map[ triangles[k] ] << "\t" << triangles[k]->area() << std::endl ;
+				areas[ map[ triangles[k] ] ] += triangles[k]->area() ;
 			}
 			mapstream.close() ;
 			
@@ -255,7 +264,8 @@ int main(int argc, char *argv[])
 		Vector strain = F.getAverageField(STRAIN_FIELD) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD) ;
 		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
-		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
+		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
+//		summary << std::endl ;
 		
 		std::string namei = name ;
 		namei.append("_") ;
@@ -264,14 +274,62 @@ int main(int argc, char *argv[])
 		std::ofstream out ;
 		out.open(namei.c_str(), std::ios::out ) ;
 		
+		Vector homDamage(naggregates+2) ; homDamage = 0. ;
+		Vector avgStress(naggregates+2) ; avgStress = 0. ;
+		
+		if(pseudoDamage)
+		{
+			for(size_t k = 0 ; k < triangles.size() ; k++)
+			{
+				triangles[k]->getState().getAverageField( REAL_STRESS_FIELD, stress ) ;
+				double principal = (toPrincipal(stress)).max() ;
+				avgStress[ map[triangles[k]] ] += principal * triangles[k]->area() ;
+			}
+			
+			for(size_t k = 0 ; k < naggregates+2 ; k++)
+			{
+				avgStress[k] /= areas[k] ;
+				if(avgStress[k] > aggTensile)
+					homDamage[k] = 1. - aggTensile/avgStress[k] ;
+				summary <<  homDamage[k] << "\t" ;
+			}
+		}
+		summary << std::endl ;
+		
+		
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
+			if(pseudoDamage && map[ triangles[k] ] > 0 && homDamage[ map[ triangles[k] ] ] )
+			{
+				BimaterialInterface * dual = dynamic_cast<BimaterialInterface*>(triangles[k]->getBehaviour()) ;
+				ViscoelasticityAndImposedDeformation * imp = dynamic_cast<ViscoelasticityAndImposedDeformation*>(triangles[k]->getBehaviour()) ;
+				Viscoelasticity * visc = dynamic_cast<Viscoelasticity*>(triangles[k]->getBehaviour()) ;
+				if(!dual && !imp)
+				{
+					triangles[k]->scaleCachedElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
+					triangles[k]->scaleCachedViscousElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
+					visc->param *= (1.-homDamage[map[ triangles[k] ]]) ;
+					visc->eta *= (1.-homDamage[map[ triangles[k] ]]) ;
+				}
+			}
+		  
 			triangles[k]->getState().getAverageField( STRAIN_FIELD, strain ) ;
 			triangles[k]->getState().getAverageField( REAL_STRESS_FIELD, stress ) ;
 			out << k << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
-			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
+			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << homDamage[ map[triangles[k]] ] << std::endl ;			
 		}
 		out.close() ;
+		
+		if(i == 0 || (i+1)%5 == 0)
+		{
+			std::string nametrg = namei ;
+			nametrg.append("_trg") ;
+			TriangleWriter w( nametrg, &F, 1) ;
+			w.getField( STRAIN_FIELD ) ;
+			w.getField( REAL_STRESS_FIELD ) ;
+			w.getField( TWFT_STIFFNESS ) ;
+			w.write() ;
+		}
 		
 		tau += timestep ;
 	}
