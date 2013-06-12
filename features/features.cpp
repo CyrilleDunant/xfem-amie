@@ -5903,14 +5903,24 @@ void FeatureTree::setDeltaTime(double d)
 void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) 
 {
   
+
+  
 	double prev = 0.; 
+	size_t i = 0 ;
+	size_t ndof = 0 ;
+	while(ndof == 0 && i < triangles.size())
+	{
+		ndof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		i++ ;
+	}
+	Vector buff(0.,ndof) ;
+
 	if(dtree)
 	{
 		prev = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t - triangles[0]->getBoundingPoint(0).t ;
 		
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
-			size_t ndof = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
 			for(size_t i = 0 ; i < triangles.size() ; i++)
 			{
@@ -5921,8 +5931,7 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 					{
 						for(size_t k = 0 ; k < k0 ; k++)
 						{
-
-							Vector buff(ndof,0.) ; 
+//							std::cout << i << ";" << k << std::endl ;
 							Point p(triangles[i]->getBoundingPoint(k+k0*t).x,triangles[i]->getBoundingPoint(k+k0*t).y,0.,triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes()) ;
 							triangles[i]->getStatePointer()->getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
 
@@ -5931,6 +5940,7 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 								double z = buff[n] ;
 								K->setDisplacementByDof( triangles[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n, z  );
 							}
+//							std::cout << i << ";" << k << std::endl ;
 						}
 					}
 				}
@@ -5940,10 +5950,10 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 		if(std::abs(d) > POINT_TOLERANCE_2D)
 			  setDeltaTime( prev - d ) ;
 		
-		return ;
 	}
 	
 
+  
   
 }
 
