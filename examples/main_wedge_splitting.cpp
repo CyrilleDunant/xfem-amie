@@ -111,6 +111,9 @@ int main(int argc, char *argv[])
 //	F.setOrder(LINEAR) ;
 	
 	
+	Rectangle refinement( 0.005, length, 0.,0.) ;
+	F.addRefinementZone(&refinement);
+	
 	Matrix c = (new PasteBehaviour())->param ;
 	
 	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
