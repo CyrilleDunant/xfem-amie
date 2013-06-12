@@ -4602,7 +4602,7 @@ bool FeatureTree::stepElements()
 				
 				std::cerr << " ...done. " << std::endl ;
 
-				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
+// 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 				
 // #pragma omp parallel for reduction(+:volume,adamage) 
 				for( size_t i = 0 ; i < elements.size() ; i++ )

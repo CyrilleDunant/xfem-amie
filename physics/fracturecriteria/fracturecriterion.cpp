@@ -15,6 +15,7 @@
 #include "../../physics/viscoelasticity.h"
 #include "../../mesher/delaunay_3d.h"
 #include "../../solvers/assembly.h"
+#include <omp.h>
 using namespace Mu ;
 
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
@@ -914,21 +915,27 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
 				
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors)
+				std::vector<Vector> tmpstrat ;
+				std::vector<Vector> tmpstrt ;
+				for(size_t i = 0 ; i < omp_get_max_threads() ; i++)
+				{
+					tmpstrat.push_back(Vector(0., vlength));
+					tmpstrt.push_back(Vector(0., vlength));
+				}
+				
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
-					Vector tmpstr(0.,vlength) ;
-					Vector tmpstra(0.,vlength) ;
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-
-					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+					int tnum = omp_get_thread_num() ;
+					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
 				
-					stra0 += tmpstra[0]*factors[i] ;
-					stra1 += tmpstra[1]*factors[i] ;
-					stra2 += tmpstra[2]*factors[i] ;
-					str0 += tmpstr[0]*factors[i] ;
-					str1 += tmpstr[1]*factors[i] ;
-					str2 += tmpstr[2]*factors[i] ;
+					stra0 += tmpstrat[tnum][0]*factors[i] ;
+					stra1 += tmpstrat[tnum][1]*factors[i] ;
+					stra2 += tmpstrat[tnum][2]*factors[i] ;
+					str0 += tmpstrt[tnum][0]*factors[i] ;
+					str1 += tmpstrt[tnum][1]*factors[i] ;
+					str2 += tmpstrt[tnum][2]*factors[i] ;
 					sumFactors += factors[i] ;
 
 				}
@@ -942,21 +949,28 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
 
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors)
+				
+				std::vector<Vector> tmpstrat ;
+				std::vector<Vector> tmpstrt ;
+				for(size_t i = 0 ; i < omp_get_max_threads() ; i++)
+				{
+					tmpstrat.push_back(Vector(0., vlength));
+					tmpstrt.push_back(Vector(0., vlength));
+				}
+				
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
-					Vector tmpstr(0.,vlength) ;
-					Vector tmpstra(0.,vlength) ;
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-
-					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+					int tnum = omp_get_thread_num() ;
+					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
 				
-					stra0 += tmpstra[0]*factors[i] ;
-					stra1 += tmpstra[1]*factors[i] ;
-					stra2 += tmpstra[2]*factors[i] ;
-					str0 += tmpstr[0]*factors[i] ;
-					str1 += tmpstr[1]*factors[i] ;
-					str2 += tmpstr[2]*factors[i] ;
+					stra0 += tmpstrat[tnum][0]*factors[i] ;
+					stra1 += tmpstrat[tnum][1]*factors[i] ;
+					stra2 += tmpstrat[tnum][2]*factors[i] ;
+					str0 += tmpstrt[tnum][0]*factors[i] ;
+					str1 += tmpstrt[tnum][1]*factors[i] ;
+					str2 += tmpstrt[tnum][2]*factors[i] ;
 					sumFactors += factors[i] ;
 
 				}
