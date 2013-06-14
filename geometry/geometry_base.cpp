@@ -1527,9 +1527,6 @@ bool Geometry::intersects(const Geometry *g) const
 				for(size_t i = 0 ; i < copy.getBoundingPoints().size() ; i++)
 				{
 					if(in(copy.getBoundingPoint(i)))
-						isin = true ;
-					
-					if(isin)
 						return true ;
 				}
 				

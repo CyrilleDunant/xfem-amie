@@ -1721,8 +1721,7 @@ void FeatureTree::sample()
 			int count = 0 ; 
 			
 			#pragma omp parallel for reduction(+:count) schedule(auto)
-
-			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
+			for( size_t i  = 1 ; i < tree.size() ; i++ )
 			{
 				double shape_factor = ( sqrt( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
 

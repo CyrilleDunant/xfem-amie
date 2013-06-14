@@ -621,7 +621,7 @@ void Function::setPoint(Point * id)
 
 functionParseElement Function::toToken(const std::string & str, int iter, std::vector<double> & val) const
 {
-	if(isNumeral(str[0]) || (str[0] == '-' && isNumeral(str[1])))
+	if(isNumeral(str[0]) || (str.size() > 1 && str[0] == '-' && isNumeral(str[1])))
 	{
 		return {TOKEN_OPERATION_CONSTANT, atof(str.c_str()), ""} ;
 	}
@@ -791,11 +791,13 @@ std::pair<size_t, functionParseElement> Function::getNext(size_t init, const cha
 {
 	std::string cur_token("") ;
 	char cur_char  = form[init] ;
-	while(isSeparator(cur_char) && !isOperator(cur_char))
+	while(init < strlen(form) && isSeparator(cur_char) && !isOperator(cur_char))
 	{
 		init++ ;
 		cur_char  = form[init] ;
 	}
+	if(init == strlen(form))
+		return std::make_pair(init, toToken(cur_token, cstIterator, val)) ;
 	
 	if(isOperator(cur_char))
 	{

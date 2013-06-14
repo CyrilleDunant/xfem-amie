@@ -621,7 +621,7 @@ public:
 	 * 
 	 * @param  p Point to project.
 	 */
-	Point project(Point p) const;
+	Point project(const Point & p) const;
 
 	virtual void project(Point * p) const /*{return ; }*/ ;
 	

@@ -49,7 +49,7 @@ public:
 	/**
 	* @return a double between 0 and 1 chosen from an uniform distribution
 	*/
-	virtual double uniform() const {return (double) rand() / (double) RAND_MAX ; } ;
+	virtual double uniform() const {return (double) rand() / (double) (RAND_MAX-1) ; } ;
 	/**
 	* @return a double between 0 and a chosen from an uniform distribution
 	*/
