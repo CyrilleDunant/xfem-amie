@@ -2230,7 +2230,10 @@ std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, doub
 
 void Ellipse::sampleBoundingSurface (size_t num_points)
 {
-	std::vector<Point> bound = this->getSamplingBoundingPoints(num_points) ;
+	if(num_points < 3)
+		return ;
+		
+	std::vector<Point> bound = getSamplingBoundingPoints(num_points) ;
 
 	for(size_t i = 0 ; i <getBoundingPoints().size() ; i++)
 		delete boundingPoints[i];
@@ -2246,8 +2249,10 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 void Ellipse::sampleSurface (size_t num_points)
 {
-	if(!num_points)
+	std::cout << "pif" << std::endl ;
+	if(num_points < 3)
 		return ;
+	
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
 		delete inPoints[i] ;
 	

@@ -1510,8 +1510,8 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == CIRCLE)
 			{
-				Ellipse * falseCircle = new Ellipse(*dynamic_cast<const Circle *>(g)) ;
-				return this->intersects(falseCircle) ;
+				Ellipse falseCircle(*static_cast<const Circle *>(g)) ;
+				return this->intersects(&falseCircle) ;
 			}
 
 			if(g->getGeometryType() == ELLIPSE)
@@ -1522,17 +1522,18 @@ bool Geometry::intersects(const Geometry *g) const
 				Ellipse copy(g->getCenter(), static_cast<const Ellipse *>(g)->getMajorAxis()*1.01, static_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
 				copy.sampleBoundingSurface(64) ;
 				
-				bool out = false ;
 				bool isin = false ;
 				
 				for(size_t i = 0 ; i < copy.getBoundingPoints().size() ; i++)
 				{
 					if(in(copy.getBoundingPoint(i)))
 						isin = true ;
-					else
-						out = true ;
+					
+					if(isin)
+						return true ;
 				}
-				return isin && out ;
+				
+				return false ;
 				
 			}
 
