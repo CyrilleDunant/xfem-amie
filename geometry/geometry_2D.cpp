@@ -2294,7 +2294,6 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 void Ellipse::sampleSurface (size_t num_points)
 {
-	std::cout << "sampling ell " << num_points << std::endl ;
 	if( getMinorAxis().norm() < POINT_TOLERANCE_2D || getMajorAxis().norm() < POINT_TOLERANCE_2D )
 		return ;
 	
