@@ -2321,7 +2321,6 @@ void Ellipse::sampleSurface (size_t num_points)
 
 	if(ring > 1)
 	{
-		std::cout << "pif" << std::endl ;
 		std::vector<double> newa ;
 		std::vector<double> newb ;
 		std::vector<size_t> newn ;
@@ -2350,7 +2349,6 @@ void Ellipse::sampleSurface (size_t num_points)
 			for(size_t j = 0 ; j < pn.size() ; j++)
 			{
 				pn[j] += Point(RandomNumber().uniform(dist*0.1), RandomNumber().uniform(dist*0.1)) ;
-				pn[j].print() ;
 				bool alone = in(pn[j]) ;
 				if(!alone)
 				{
