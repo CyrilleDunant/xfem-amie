@@ -129,6 +129,126 @@ public:
 			#endif
 		}
 		
+		if(stride == 6)
+		{
+			const int colLength = stride + stride%2 ;
+			#ifdef HAVE_SSE3
+			const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;
+			for(unsigned int j = start ; j != length+start ; j++)
+			{
+				__m128d vval =  _mm_set1_pd(v[idx[j]*stride]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*array_iterator, vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+1), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+2), vval))) ;
+				
+				vval =  _mm_set1_pd(v[idx[j]*stride+1]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+3,) vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+4), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+5), vval))) ;
+				
+				vval =  _mm_set1_pd(v[idx[j]*stride+2]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+6), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+7), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+8), vval))) ;
+				
+				vval =  _mm_set1_pd(v[idx[j]*stride+3]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+9), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+10), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+11), vval))) ;
+				
+				vval =  _mm_set1_pd(v[idx[j]*stride+4]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+12), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+13), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+14), vval))) ;
+				
+				vval =  _mm_set1_pd(v[idx[j]*stride+5]) ;
+
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+15), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+16), vval))) ;
+				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+17), vval))) ;
+				array_iterator +=18 ;
+			}
+			#else
+			const double * array_iterator0 = &val[start*colLength*stride] ;
+			const double * array_iterator1 = &val[start*colLength*stride+1] ;
+			for(unsigned int j = start ; j != length+start ; j++)
+			{
+				double vval =  v[idx[j]*stride] ;
+
+				*(dest) += *array_iterator0 * vval ;
+				*(dest+1) += *array_iterator1 * vval ;
+				
+				*(dest+2) += *(array_iterator0+2) * vval ;
+				*(dest+3) += *(array_iterator1+2) * vval ;
+				
+				*(dest+4) += *(array_iterator0+4) * vval ;
+				*(dest+5) += *(array_iterator1+4) * vval ;
+				
+				vval =  v[idx[j]*stride+1] ;
+
+				*(dest) += *(array_iterator0+6) * vval ;
+				*(dest+1) += *(array_iterator1+6) * vval ;
+				
+				*(dest+2) += *(array_iterator0+8) * vval ;
+				*(dest+3) += *(array_iterator1+8) * vval ;
+				
+				*(dest+4) += *(array_iterator0+10) * vval ;
+				*(dest+5) += *(array_iterator1+10) * vval ;
+				
+				vval =  v[idx[j]*stride+2] ;
+
+				*(dest) += *(array_iterator0+12) * vval ;
+				*(dest+1) += *(array_iterator1+12) * vval ;
+				
+				*(dest+2) += *(array_iterator0+14) * vval ;
+				*(dest+3) += *(array_iterator1+14) * vval ;
+				
+				*(dest+4) += *(array_iterator0+16) * vval ;
+				*(dest+5) += *(array_iterator1+16) * vval ;
+				
+				vval =  v[idx[j]*stride+3] ;
+
+				*(dest) += *(array_iterator0+18) * vval ;
+				*(dest+1) += *(array_iterator1+18) * vval ;
+				
+				*(dest+2) += *(array_iterator0+20) * vval ;
+				*(dest+3) += *(array_iterator1+20) * vval ;
+				
+				*(dest+4) += *(array_iterator0+22) * vval ;
+				*(dest+5) += *(array_iterator1+22) * vval ;
+				
+				vval =  v[idx[j]*stride+4] ;
+
+				*(dest) += *(array_iterator0+24) * vval ;
+				*(dest+1) += *(array_iterator1+24) * vval ;
+				
+				*(dest+2) += *(array_iterator0+26) * vval ;
+				*(dest+3) += *(array_iterator1+26) * vval ;
+				
+				*(dest+4) += *(array_iterator0+28) * vval ;
+				*(dest+5) += *(array_iterator1+28) * vval ;
+				
+				vval =  v[idx[j]*stride+5] ;
+
+				*(dest) += *(array_iterator0+30) * vval ;
+				*(dest+1) += *(array_iterator1+30) * vval ;
+				
+				*(dest+2) += *(array_iterator0+32) * vval ;
+				*(dest+3) += *(array_iterator1+32) * vval ;
+				
+				*(dest+4) += *(array_iterator0+34) * vval ;
+				*(dest+5) += *(array_iterator1+34) * vval ;
+				array_iterator0 += 36 ;
+				array_iterator1 += 36 ;
+			}
+			#endif
+		}
+		
 		const int colLength = stride + stride%2 ;
 		#ifdef HAVE_SSE3
 		const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;

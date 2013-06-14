@@ -720,12 +720,12 @@ bool Assembly::make_final()
 			}
 			
 			delete map ;
-			this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
-			if(this->displacements.size() != max)
+			coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
+			if(displacements.size() != max)
 			{
-				this->displacements.resize(max) ;
+				displacements.resize(max) ;
 			}
-			this->displacements = 0 ;
+			displacements = 0 ;
 		}
 		else
 		{
