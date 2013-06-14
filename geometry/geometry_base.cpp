@@ -1519,7 +1519,8 @@ bool Geometry::intersects(const Geometry *g) const
 				if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())*1.01)
 					return false ;
 					
-				Ellipse copy(g->getCenter(), static_cast<const Ellipse *>(g)->getMajorAxis()*1.01, static_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
+				Ellipse copy(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis()*1.01, dynamic_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
+//				Point p = dynamic_cast<const Ellipse *>(g)->getMajorAxis() ; p.print() ;
 				copy.sampleBoundingSurface(64) ;
 				
 				bool isin = false ;
