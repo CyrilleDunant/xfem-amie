@@ -86,7 +86,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	P->precondition(r,z) ;
 
 	p = z ;
-	assign(q, A*p) ;
+	q = A*p ;
 	
 	double last_rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 	double alpha = last_rho/parallel_inner_product(&q[0], &p[0], vsize);
@@ -110,26 +110,21 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	gettimeofday(&time0, nullptr);
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double neps = std::max(realeps, eps) ;
-
+	double rho = 0 ;
+	double beta = 0 ;
 	while(last_rho*last_rho*vsize*vsize > std::max(neps*neps*err0, neps*neps) && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 
-		double rho = parallel_inner_product(&r[0], &z[0], vsize) ;
+		rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 
-		double beta = rho/last_rho ;
+		beta = rho/last_rho ;
 		
-		double * iterp = &p[0] ;
-		double * iterz = &z[0] ;
-		for(; iterp != &p[vsize] ;)
-		{
-			*iterp = *iterp*beta+*iterz ;
-			++iterp ;
-			++iterz ;
-		}
+		#pragma omp parallel for schedule(static) if (vsize > 10000)
+		for(size_t i = 0 ; i < vsize ; i++)
+			p[i] = p[i]*beta+z[i] ;
 
 		assign(q, A*p) ;
-		
 		alpha = rho/parallel_inner_product(&q[0], &p[0], vsize);
 		
 		r -= q*alpha ;
@@ -142,11 +137,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		}
 		if(	verbose && nit%128 == 0)
 		{
-			std::cerr <<  sqrt(rho) << std::endl  ;
+			std::cerr <<   sqrt(rho) << std::endl  ;
 		}
 	
 		last_rho = rho ;
 		nit++ ;
+		
 	}
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;

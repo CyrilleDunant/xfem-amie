@@ -145,9 +145,9 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
  	{
 		crackInitiated = true ;
  		double downTestVal = tensionCritStrain ;
- 		double upTestVal = strain_te*2. ;
+ 		double upTestVal = strain_te ;
  		double factor = 1 ;
- 		double delta_tech = (strain_te-strain_ch)*2.;
+ 		double delta_tech = (strain_te-strain_ch);
  		double mainCurve = 0 ;
  		int count = 0 ;
 
@@ -156,14 +156,14 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 			double testVal = (upTestVal+downTestVal)*.5 ;
 			mainCurve = 1./(1.+sqrt(value*(testVal))) ;
 
-// 			if(testVal < strain_ch*2.)
+			if(testVal < strain_ch)
 				factor = mainCurve ;
-// 			else if(testVal < strain_te*2.)
-// 			{
-// 				factor = mainCurve*(strain_te*2.-testVal)/(delta_tech) ;
-// 			}
-// 			else
-// 				factor = 0 ;
+			else if(testVal < strain_te)
+			{
+				factor = mainCurve*(strain_te-testVal)/(delta_tech) ;
+			}
+			else
+				factor = 0 ;
 			
 
 			if( testVal*pseudoYoung > upVal*factor )
@@ -415,7 +415,7 @@ double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, dou
 
 void NonLocalMCFT::initialise( ElementState &s)
 {
-	double energy = 12.*75. ; //N/m 32000 prev
+	double energy = 4.*75. ; //N/m 32000 prev
 	strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 	if(factors.size()==0)
 		initialiseFactors(s) ;
