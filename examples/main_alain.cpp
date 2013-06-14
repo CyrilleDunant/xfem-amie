@@ -92,55 +92,33 @@ Sample box(nullptr, 0.08, 0.08,0.,0.) ;
 
 int main(int argc, char *argv[])
 {
-	double timestep = atof(argv[1]) ;
-	int sampling = (int) atof(argv[2]) ;
-	bool fullkv = (bool) atof(argv[3]) ;
-	int axis = (int) atof(argv[4]) ;
-	int ninc = (int) atof(argv[5]) ;
-	int micro = (int) atof(argv[6]) ;
-	double itz = atof(argv[7]) ;
+	double timestep = 1 ;//atof(argv[1]) ;
+	int sampling = 100 ;//(int) atof(argv[2]) ;
+	bool fullkv = true ; //(bool) atof(argv[3]) ;
+	int axis = (int) atof(argv[1]) ;
+	int ninc = 500 ;//(int) atof(argv[5]) ;
+	int micro = (int) atof(argv[2]) ;
+	double itz = 0.0004 ; //atof(argv[7]) ;
 	double aspect = 1. ;
-	if(argc > 8)
-		aspect = atof(argv[8]) ;
 	double orientation = M_PI ;
-	if(argc > 9)
-		orientation = atof(argv[9]) ;
-	
-	if(micro > 0 && argc < 10)
-		exit(0) ;
+	GeometryType inclusions = CIRCLE ;
+	if(micro == 1)
+	{
+		inclusions = ELLIPSE ;
+		sampling = 370 ;
+		aspect = 0.6 ;
+		orientation = 0.1 ;
+	}
+	if(micro == 2)
+	{
+		inclusions = TRIANGLE ;
+		sampling = 450 ;
+	}
 	
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(sampling) ;
 
-	Matrix e = (new ElasticOnlyPasteBehaviour())->param ;
-
-	Matrix e1 = Material::cauchyGreen( 12e9, 0., true, SPACE_TWO_DIMENSIONAL) ;
-
-	Matrix kv1e = e1*0.27 ;
-	Matrix kv1t = kv1e * 10 ;
-
-	Matrix kv2e = e1*0.23 ;
-	Matrix kv2t = kv2e * 500 ;
-
-	Matrix mxt = e1 * 200. ;
-
-	std::vector<std::pair<Matrix, Matrix> > branches ;
-	branches.push_back(std::make_pair(kv1e, kv1t)) ;
-	branches.push_back(std::make_pair(kv2e, kv2t)) ;
-
-	Viscoelasticity * pasteKV = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, e, branches ) ;
-	Viscoelasticity * pasteBurgers = new Viscoelasticity( BURGER, kv1e, kv1t, e, mxt)  ;
-
-	if(fullkv)
-		box.setBehaviour(pasteKV);
-	else
-		box.setBehaviour(pasteBurgers);
-
-	GeometryType inclusions = CIRCLE ;
-	if(micro == 1)
-		inclusions = ELLIPSE ;
-	if(micro == 2)
-		inclusions = TRIANGLE ;
+	box.setBehaviour(new ViscoElasticOnlyPasteBehaviour());
 
 	ParticleSizeDistribution::get2DConcrete(&F, new ViscoElasticOnlyAggregateBehaviour(), ninc, 0.008, itz, BOLOME_A, inclusions, aspect, orientation, ninc*10000) ;
 	
@@ -159,7 +137,7 @@ int main(int argc, char *argv[])
 	if(axis == 1)
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, -10e6, 1)) ;
 	else if(axis == 0)
-		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, -10e6, 1)) ;
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, -10e6, 0)) ;
 	F.step() ;
  	
 	std::fstream out ;
@@ -174,25 +152,12 @@ int main(int argc, char *argv[])
 		name.append("circle_") ;
 	if(micro == 1)
 	{
-		name.append("ellipse(") ;
-		name.append(argv[6]) ;
-		name.append(",") ;
-		name.append(argv[7]) ;
-		name.append(")_") ;
+		name.append("ellipse_") ;
 	}
 	if(micro == 2)
 	{
-		name.append("triangle(") ;
-		name.append(argv[8]) ;
-		name.append(",") ;
-		name.append(argv[9]) ;
-		name.append(")_") ;
+		name.append("triangle_") ;
 	}
-	name.append(argv[1]) ;
-	name.append("_") ;
-	name.append(argv[2]) ;
-	name.append("_") ;
-	name.append(argv[4]) ;
 	
 	out.open(name.c_str(), std::ios::out) ;
 
