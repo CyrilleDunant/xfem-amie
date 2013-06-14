@@ -2246,6 +2246,8 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 void Ellipse::sampleSurface (size_t num_points)
 {
+	if(!num_points)
+		return ;
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
 		delete inPoints[i] ;
 	

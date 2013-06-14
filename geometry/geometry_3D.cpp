@@ -1470,7 +1470,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 		double ry = ((double)rand()/(RAND_MAX))*2.-1. ;
 		double rz = ((double)rand()/(RAND_MAX))*2.-1. ;
 		points.push_back(Point(rx, ry, rz)+center) ;
-		project(&points[i],r) ;
+		project(&points.back(),r) ;
 	}
 	
 	bool haveDuplicates = true ;

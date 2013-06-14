@@ -1719,7 +1719,8 @@ void FeatureTree::sample()
 
 			tree[0]->sample( samplingNumber * 4) ;
 			int count = 0 ; 
-//			#pragma omp parallel for schedule(auto)
+			
+			#pragma omp parallel for reduction(+:count) schedule(auto)
 
 			for( size_t i  = 1 ; i < this->tree.size() ; i++ )
 			{
@@ -1787,7 +1788,7 @@ void FeatureTree::sample()
 			double total_area = tree[0]->area() * tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) * ( tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) ) ;
 			int count = 0 ;
 			
-			#pragma omp parallel for schedule(auto)
+			#pragma omp parallel for reduction(+:count) schedule(auto)
 			for( int i  = 1 ; i < ( int )tree.size() ; i++ )
 			{
 				std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;

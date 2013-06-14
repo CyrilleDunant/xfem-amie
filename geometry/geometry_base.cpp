@@ -1516,20 +1516,23 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == ELLIPSE)
 			{
-				Ellipse copy(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis()*1.01, dynamic_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
-				copy.sampleBoundingSurface(128) ;
+				if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())*1.01)
+					return false ;
+					
+				Ellipse copy(g->getCenter(), static_cast<const Ellipse *>(g)->getMajorAxis()*1.01, static_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
+				copy.sampleBoundingSurface(64) ;
 				
 				bool out = false ;
-				bool in = false ;
+				bool isin = false ;
 				
 				for(size_t i = 0 ; i < copy.getBoundingPoints().size() ; i++)
 				{
-					if(dynamic_cast<const Ellipse *>(this)->in(copy.getBoundingPoint(i)))
-						in = true ;
+					if(in(copy.getBoundingPoint(i)))
+						isin = true ;
 					else
 						out = true ;
 				}
-				return in && out ;
+				return isin && out ;
 				
 			}
 
