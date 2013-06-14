@@ -71,29 +71,62 @@ public:
 		#ifdef HAVE_SSE3
 			const __m128d * array_iterator = (__m128d*)&val[start*4] ;
 			const double * vec_iterator = &v[idx[start]*2] ;
-			for(unsigned int j = start ; j != length+start && j+1 != length+start; vec_iterator += (idx[j+1]-idx[j])*2,j++)
+			for(unsigned int j = start ; j != length+start && j+1 != length+start; vec_iterator += (idx[j+1]-idx[j])*2,++j,array_iterator+=2)
 			{
-				
 				_mm_store_pd(dest,  _mm_add_pd( _mm_load_pd(dest), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1)))))) ;
-				array_iterator+=2 ;
-				
 			}
 		#else
 			const double * array_iterator0 = &val[start*4] ;
 			const double * array_iterator1 = &val[start*4+1] ;
 			const double * array_iterator2 = &val[start*4+2] ;
 			const double * array_iterator3 = &val[start*4+3] ;
-			for(unsigned int j = start ; j != length+start ; j++)
+			for(unsigned int j = start ; j != length+start ; j++,array_iterator0+=4,array_iterator1+=4,array_iterator2+=4,array_iterator3+=4)
 			{
 				*dest += *array_iterator0*v[idx[j]*2]+*array_iterator2*v[idx[j]*2+1] ;
 				*(dest+1) += *array_iterator1*v[idx[j]*2]+*array_iterator3*v[idx[j]*2+1] ;
-				array_iterator0+=4 ;
-				array_iterator1+=4 ;
-				array_iterator2+=4 ;
-				array_iterator3+=4 ;
 			}
 		#endif
 		return ;
+		}
+		
+		if(stride == 3)
+		{
+			#ifdef HAVE_SSE3
+			const __m128d * array_iterator = (__m128d*)&val[start*4*stride] ;
+			for(unsigned int j = start ; j != length+start ; ++j,array_iterator+=6)
+			{
+				const __m128d vval =  _mm_set1_pd(v[idx[j]*stride]) ;
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*array_iterator, vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*array_iterator, vval))) ;
+				vval =  _mm_set1_pd(v[idx[j]*stride+1]) ;
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+2), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+2), vval))) ;
+				vval =  _mm_set1_pd(v[idx[j]*stride+2]) ;
+				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+4), vval))) ;
+				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+4), vval))) ;
+			}
+			#else
+			const double * array_iterator0 = &val[start*4*stride] ;
+			const double * array_iterator1 = &val[start*4*stride+1] ;
+			for(unsigned int j = start ; j != length+start ; ++j)
+			{
+				double vval =  v[idx[j]*stride] ;
+				*(dest+0) += *array_iterator0 * vval ;
+				*(dest+1) += *array_iterator1 * vval ;
+				*(dest+2) += *(array_iterator0+2) * vval ;
+				*(dest+3) += *(array_iterator1+2) * vval ;
+				vval =  v[idx[j]*stride+1] ;
+				*(dest+0) += *(array_iterator0+4) * vval ;
+				*(dest+1) += *(array_iterator1+4) * vval ;
+				*(dest+2) += *(array_iterator0+6) * vval ;
+				*(dest+3) += *(array_iterator1+6) * vval ;
+				vval =  v[idx[j]*stride+2] ;
+				*(dest+0) += *(array_iterator0+8) * vval ;
+				*(dest+1) += *(array_iterator1+8) * vval ;
+				*(dest+2) += *(array_iterator0+10) * vval ;
+				*(dest+3) += *(array_iterator1+10) * vval ;
+			}
+			#endif
 		}
 		
 		const int colLength = stride + stride%2 ;
@@ -101,13 +134,12 @@ public:
 		const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;
 		for(unsigned int j = start ; j != length+start ; j++)
 		{
-			for(size_t c = 0 ; c < stride ; c++)
+			for(size_t c = 0 ; c != stride ; ++c)
 			{
 				const __m128d vval =  _mm_set1_pd(v[idx[j]*stride+c]) ;
-				for(int i = 0 ; i != colLength ; i+=2)
+				for(int i = 0 ; i != colLength/2 ; ++i,++array_iterator)
 				{
-					_mm_store_pd((dest+i),  _mm_add_pd( _mm_load_pd((dest+i)), _mm_mul_pd(*array_iterator, vval))) ;
-					array_iterator++ ;
+					_mm_store_pd((dest+i*2),  _mm_add_pd( _mm_load_pd((dest+i*2)), _mm_mul_pd(*array_iterator, vval))) ;
 				}
 			}
 		}

@@ -1368,7 +1368,7 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case RECTANGLE:
 		{
-			std::vector<Point> box = this->getBoundingBox() ;
+			std::vector<Point> box = getBoundingBox() ;
 			Segment s0(box[0], box[1]) ;
 			Segment s1(box[1], box[2]) ;
 			Segment s2(box[2], box[3]) ;
@@ -1378,13 +1378,13 @@ bool Geometry::intersects(const Geometry *g) const
 		}
 	case PARALLELOGRAMME:
 	{
-		size_t n = this->getBoundingPoints().size() ;
+		size_t n = getBoundingPoints().size() ;
 		
 		std::vector<Point> box ;
-		box.push_back(this->getBoundingPoint(0)) ;
-		box.push_back(this->getBoundingPoint(n*1/4)) ;
-		box.push_back(this->getBoundingPoint(n*2/4)) ;
-		box.push_back(this->getBoundingPoint(n*3/4)) ;
+		box.push_back(getBoundingPoint(0)) ;
+		box.push_back(getBoundingPoint(n*1/4)) ;
+		box.push_back(getBoundingPoint(n*2/4)) ;
+		box.push_back(getBoundingPoint(n*3/4)) ;
 		Segment s0(box[0], box[1]) ;
 		Segment s1(box[1], box[2]) ;
 		Segment s2(box[2], box[3]) ;
@@ -1395,9 +1395,9 @@ bool Geometry::intersects(const Geometry *g) const
 	case SEGMENTED_LINE:
 		{
 			std::vector<Segment> segs ;
-			for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
+			for(size_t i = 0 ; i < getBoundingPoints().size()-1 ; i++)
 			{
-				segs.push_back(Segment(this->getBoundingPoint(i), this->getBoundingPoint(i+1))) ;
+				segs.push_back(Segment(getBoundingPoint(i), getBoundingPoint(i+1))) ;
 			}
 			bool intersects = false ;
 			for(size_t i = 0 ; i < segs.size() ; i++)
@@ -1510,7 +1510,7 @@ bool Geometry::intersects(const Geometry *g) const
 
 			if(g->getGeometryType() == CIRCLE)
 			{
-				Ellipse falseCircle(*static_cast<const Circle *>(g)) ;
+				Ellipse falseCircle(*dynamic_cast<const Circle *>(g)) ;
 				return this->intersects(&falseCircle) ;
 			}
 
@@ -1575,12 +1575,12 @@ bool Geometry::intersects(const Geometry *g) const
 				return false ;
 			}
 
-			if(g->getGeometryType() == ELLIPSE && (g->in(this->getCenter()) || this->in(g->getCenter())))
+			if(g->getGeometryType() == ELLIPSE && (g->in(getCenter()) || in(g->getCenter())))
 				return true ;
 
 			std::vector<Point> box ;
-                        for(size_t i = 0 ; i < this->getBoundingPoints().size() ; i++)
-                            box.push_back(this->getBoundingPoint(i)) ;
+                        for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+                            box.push_back(getBoundingPoint(i)) ;
 			if(box.size() == 0)
 				box = this->getBoundingBox() ;
 			box.push_back(box[0]) ;
@@ -1643,7 +1643,7 @@ bool Geometry::intersects(const Geometry *g) const
 				std::multimap<double, const Point *> pts ;
 				for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
 				{
-					pts.insert(std::make_pair(std::abs(g->getRadius()*g->getRadius()-squareDist3D(static_cast<const Tetrahedron*>(g)->getCircumCenter(), g->getBoundingPoint(i))), & g->getBoundingPoint(i))) ;
+					pts.insert(std::make_pair(std::abs(g->getRadius()*g->getRadius()-squareDist3D(dynamic_cast<const Tetrahedron*>(g)->getCircumCenter(), g->getBoundingPoint(i))), & g->getBoundingPoint(i))) ;
 				}
 				auto p = pts.begin() ;
 				const Point * a = p->second ; ++p ;
@@ -1719,12 +1719,12 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 	{
 	case TRIANGLE :
 		{
-			Segment s0(this->getBoundingPoint(0), 
-			           this->getBoundingPoint(this->getBoundingPoints().size()/3)) ;
-			Segment s1(this->getBoundingPoint(this->getBoundingPoints().size()/3),
-			           this->getBoundingPoint(2*this->getBoundingPoints().size()/3)) ;
-			Segment s2(this->getBoundingPoint(0), 
-			           this->getBoundingPoint(2*this->getBoundingPoints().size()/3)) ;
+			Segment s0(getBoundingPoint(0), 
+			           getBoundingPoint(getBoundingPoints().size()/3)) ;
+			Segment s1(getBoundingPoint(getBoundingPoints().size()/3),
+			           getBoundingPoint(2*getBoundingPoints().size()/3)) ;
+			Segment s2(getBoundingPoint(0), 
+			           getBoundingPoint(2*getBoundingPoints().size()/3)) ;
 			std::vector<Point> intersection = s0.intersection(g) ;
 			ret.insert(ret.end(), intersection.begin(), intersection.end()) ;
 			intersection = s1.intersection(g) ;
@@ -1735,7 +1735,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 		}
 	case RECTANGLE:
 		{
-			std::vector<Point> box = this->getBoundingBox() ;
+			std::vector<Point> box = getBoundingBox() ;
 			Segment s0(box[0], box[1]) ; 
 			Segment s1(box[1], box[2]) ; 
 			Segment s2(box[2], box[3]) ; 
@@ -1884,9 +1884,9 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 	case SEGMENTED_LINE:
 		{
 			std::vector<Segment> segs ;
-			for(size_t i = 0 ; i < this->getBoundingPoints().size()-1 ; i++)
+			for(size_t i = 0 ; i < getBoundingPoints().size()-1 ; i++)
 			{
-				segs.push_back(Segment(this->getBoundingPoint(i), this->getBoundingPoint(i+1))) ;
+				segs.push_back(Segment(getBoundingPoint(i), getBoundingPoint(i+1))) ;
 			}
 			for(size_t i = 0 ; i < segs.size() ; i++)
 			{
