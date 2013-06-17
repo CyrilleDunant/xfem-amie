@@ -110,26 +110,34 @@ int main(int argc, char *argv[])
 	double speed = atof(argv[3]) ;
 //	F.setOrder(LINEAR) ;
 	
+	Rectangle placement(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
 	
 	Rectangle refinement( 0.005, length, 0.,0.) ;
-	F.addRefinementZone(&refinement);
+	Rectangle large( 0.015, length, 0.,0.) ;
+	Rectangle large2( 0.04, length, 0.,0.) ;
+	F.addRefinementZone(&placement);
+//	F.addRefinementZone(&large2);
+//	F.addRefinementZone(&large);
+//	F.addRefinementZone(&refinement);
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+//	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
+	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
-	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.003);	
+//	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
 	ElasticOnlyAggregateBehaviour hop ;
 	Viscoelasticity * agg = new Viscoelasticity( PURE_ELASTICITY, hop.param, 1 ) ;
 	
-	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 400, 0.008, 0.000001) ;
+	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 30, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, &placement) ;
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
+	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
