@@ -1533,6 +1533,18 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 		std::vector<Point> pointsToAdd ;
 		for(size_t i = 0 ; i < conflictingElements.size() ; i++)
 		{
+			bool inrefinedFeature= false ;
+			for(size_t j = 0 ; j < refinedFeatures.size() ; j++)
+			{
+				if(refinedFeatures[j]->in(conflictingElements[i]->getCenter() ))
+				{
+					inrefinedFeature = true ;
+					break ;
+				}
+			}
+			if(inrefinedFeature)
+				continue ;
+			
 // 			conflictingElements[i]->print() ;
 			Point a = *conflictingElements[i]->first*.5+*conflictingElements[i]->second*.5 ;
 			Point b = *conflictingElements[i]->first*.5+*conflictingElements[i]->third*.5 ;
@@ -1541,6 +1553,7 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 			bool uniquea = true ;
 			bool uniqueb = true ;
 			bool uniquec = true ;
+			
 			for(size_t j = 0 ; j < pointsToAdd.size() ; j++)
 			{
 				if(uniquea && dist(a, pointsToAdd[j]) < POINT_TOLERANCE_2D)
@@ -1737,6 +1750,20 @@ void FeatureTree::sample()
 				{
 					correctionfactor = samplingFactors[tree[i]] ;
 					npoints = ( size_t )round(correctionfactor*npoints) ;
+				}
+				
+				if(!tree[i]->isVirtualFeature)
+				{
+					for(size_t j = 0 ;  j < refinementZones.size() ; j++)
+					{
+						if(tree[i]->intersects(refinementZones[j]) || refinementZones[j]->in(tree[i]->getCenter()))
+						{
+							npoints *= 2 ;
+
+							refinedFeatures.push_back(tree[i]);
+
+						}
+					}
 				}
 				
 				if(samplingRestriction == SAMPLE_RESTRICT_8)

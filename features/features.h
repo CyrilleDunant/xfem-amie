@@ -119,6 +119,7 @@ protected:
 	std::vector< BoundaryCondition * > boundaryCondition ;
 	/** \brief Contains all the features. */
 	std::vector<Feature *> tree ;
+	std::vector<Feature *> refinedFeatures ;
 
 	/** \brief For fast Access*/
 	Grid * grid ;
