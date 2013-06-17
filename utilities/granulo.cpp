@@ -128,10 +128,14 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, do
 	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.8, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries, size_t seed) 
+std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries, Geometry * placement,size_t seed) 
 {
 	Feature * box = F->getFeature(0) ;
-	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, sqrt(box->area()), n, type) ;
+	double ar = sqrt(box->area()) ;
+	if(placement != nullptr)
+		ar = sqrt(placement->area()) ;
+
+	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, ar, n, type) ;
 	std::vector<Feature *> feats ;
 	if(geo == ELLIPSE || geo == TRIANGLE)
 	{
@@ -151,7 +155,10 @@ std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, 
 	}
 	inc.clear() ;
 	srand(seed) ;
-	feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation ) ;
+	if(placement)
+		feats = placement2D( placement, feats, itz, 0, tries, orientation ) ;
+	else
+		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
