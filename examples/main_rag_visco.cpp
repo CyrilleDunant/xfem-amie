@@ -128,10 +128,11 @@ int main(int argc, char *argv[])
 	if(noZones)
 		std::cout << "disabling asr zones" << std::endl ;
 	if(pseudoDamage)
-		std::cout << "enabling homogeneous damage in aggregates" << std::endl ;
+		std::cout << "enabling homogeneous damage in paste" << std::endl ;
 	double aggTensile = 45e6 ;
+	double pasteTensile = 2e6 ;
 	
-	int nzones = 200 ;
+	int nzones = 100 ;
 	int naggregates = 500 ;
 
 	FeatureTree F(&box) ;
@@ -288,11 +289,11 @@ int main(int argc, char *argv[])
 				avgStress[ map[triangles[k]] ] += principal * triangles[k]->area() ;
 			}
 			
-			for(size_t k = 0 ; k < naggregates+2 ; k++)
+			for(size_t k = 0 ; k < 1 ; k++)
 			{
 				avgStress[k] /= areas[k] ;
-				if(avgStress[k] > aggTensile)
-					homDamage[k] = 1. - aggTensile/avgStress[k] ;
+				if(avgStress[k] > pasteTensile)
+					homDamage[k] = 1. - pasteTensile/avgStress[k] ;
 				summary <<  homDamage[k] << "\t" ;
 			}
 		}
@@ -301,7 +302,7 @@ int main(int argc, char *argv[])
 		
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
-			if(pseudoDamage && map[ triangles[k] ] > 0 && homDamage[ map[ triangles[k] ] ] )
+			if(pseudoDamage && map[ triangles[k] ] == 0 && homDamage[ map[ triangles[k] ] ] )
 			{
 				BimaterialInterface * dual = dynamic_cast<BimaterialInterface*>(triangles[k]->getBehaviour()) ;
 				ViscoelasticityAndImposedDeformation * imp = dynamic_cast<ViscoelasticityAndImposedDeformation*>(triangles[k]->getBehaviour()) ;
