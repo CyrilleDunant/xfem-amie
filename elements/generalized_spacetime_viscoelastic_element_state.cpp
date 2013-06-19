@@ -24,24 +24,40 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
+GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
+{
+	GaussPointArray gp ;
+	switch(trg->getOrder())
+	{
+		case LINEAR_TIME_LINEAR:
+		case LINEAR_TIME_QUADRATIC:
+			gp = gaussPointSet(LINEAR, trg) ;
+			break ;
+		case QUADRATIC_TIME_LINEAR:
+		case QUADRATIC_TIME_QUADRATIC:
+			gp = gaussPointSet(QUADRATIC, trg) ;
+			break ;
+	}
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		gp.gaussPoints[i].first.t = time ;
+	return gp ;
+}
+
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
   
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
+	if(dummy<0)
+	{
+		gp = genEquivalentGaussPointArray( dynamic_cast<TriElement *>(parent), t) ;
+	}
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;
 		double w = gp.gaussPoints[i].second ;
-		if(dummy < 0)
-		{
-			p_.t = t ;
-			Matrix Jinv ; getParent()->getInverseJacobianMatrix(p_,Jinv) ;
-//			Jinv.print() ;
-			w /= Jinv[2][2] ;
-		}
-		Vector tmp = ret ;
+		Vector tmp(0., ret.size()) ;
 		getField(f, p_, tmp, true, dummy) ;
 		ret += tmp * w ;
 		total += w ;
