@@ -486,19 +486,19 @@ void FeatureTree::renumber()
 {
 	if( is2D() )
 	{
-			std::vector<DelaunayTriangle *> sortedElements = dtree->getElements() ;
+			std::vector<DelaunayTriangle *> triangles = dtree->getElements() ;
 			size_t count = 0 ;
 			std::cerr << " renumbering... " << std::flush ;
 
 //			std::cerr << triangles.size() << std::endl ;
-			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 				{
 					( *i )->getBoundingPoint( j ).id = -1 ;
 				}
 			}
-		/*
+
 
 			Grid tmpgrid = grid->getGrid( std::max( ( size_t )round( sqrt( triangles.size() ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
 
@@ -523,8 +523,9 @@ void FeatureTree::renumber()
 				}
 			}
 			
-// 			sortedElements = triangles ;
-*/
+			sortedElements.clear() ;
+			sortedElements.insert(sortedElements.end(), triangles.begin(), triangles.end()) ;
+
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
 				if( *i && (*i)->getBehaviour())
@@ -532,7 +533,7 @@ void FeatureTree::renumber()
 					for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 					{
 						if( (*i)->getBoundingPoint( j ).id == -1 )
-							(*i)->getBoundingPoint( j ).id = count++ ;
+							const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j ).id = count++ ;
 					}
 				}
 			}
@@ -550,7 +551,7 @@ void FeatureTree::renumber()
 						{
 							if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
 							{
-								(*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
+								const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
 								count++ ;
 							}
 						}
@@ -572,7 +573,7 @@ void FeatureTree::renumber()
 				{
 					for(size_t j = 0 ; j < (*i)->getBoundingPoints().size() ; j++)
 					{
-						nodes[ (*i)->getBoundingPoint( j ).id ] = &( (*i)->getBoundingPoint( j ) ) ;
+						nodes[ (*i)->getBoundingPoint( j ).id ] = const_cast<Point *>(&( (*i)->getBoundingPoint( j ) )) ;
 					}
 				}
 				else
@@ -587,11 +588,11 @@ void FeatureTree::renumber()
 	}
 	else if( is3D() )
 	{
-		std::vector<DelaunayTetrahedron *> sortedElements = dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 		size_t count = 0 ;
 		std::cerr << " renumbering... " << std::flush ;
 
-		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+		for( auto i = tets.begin() ; i != tets.end() ; ++i )
 		{
 			for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
 			{
@@ -599,7 +600,6 @@ void FeatureTree::renumber()
 			}
 		}
 
-/*
 		Grid3D tmpgrid = grid3d->getGrid( std::max( ( ( size_t )round( pow( tets.size(), .333333 ) ) ) / 1024, ( size_t )1 ) ) ; //magic number such that the cache is full, but not too much
 
 		for( auto i = tets.begin() ; i != tets.end() ; ++i )
@@ -627,7 +627,7 @@ void FeatureTree::renumber()
 					}
 				}
 			}
-		}*/
+		}
 // 		sortedElements = tets ;
 
 		for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
@@ -1529,10 +1529,93 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 {
 	if(location->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 	{
-		std::vector<DelaunayTriangle *> conflictingElements = dtree->getConflictingElements(location) ;
+		std::cerr << "quadtree refine... " << std::flush ;
+		std::vector<DelaunayTriangle *> conflictingElements = location? dtree->getConflictingElements(location):dtree->getElements();
+		std::cerr << conflictingElements.size() << " elements... " << std::flush ;
 		std::vector<Point> pointsToAdd ;
+		std::vector<Point> illegalPoints ;
 		for(size_t i = 0 ; i < conflictingElements.size() ; i++)
 		{
+			if(!MinimumAngle(M_PI/7.).meetsCriterion(conflictingElements[i]))
+			{
+				bool inrefinedFeature= false ;
+				for(size_t j = 0 ; j < refinedFeatures.size() ; j++)
+				{
+					if(refinedFeatures[j]->in(conflictingElements[i]->getCenter() ))
+					{
+						inrefinedFeature = true ;
+						break ;
+					}
+				}
+				if(inrefinedFeature)
+					continue ;
+				
+	// 			conflictingElements[i]->print() ;
+				Point a = *conflictingElements[i]->first*.5+*conflictingElements[i]->second*.5 ;
+				Point b = *conflictingElements[i]->first*.5+*conflictingElements[i]->third*.5 ;
+				Point c = (a+b+*conflictingElements[i]->second+*conflictingElements[i]->third)*.25 ;
+				double d0 = dist(conflictingElements[i]->first, conflictingElements[i]->second) ;
+				double d1 = dist(conflictingElements[i]->first, conflictingElements[i]->third) ;
+				double d2 = dist(conflictingElements[i]->third, conflictingElements[i]->second) ;
+				if(d0 < d1 && d0 < d2)
+				{
+					illegalPoints.push_back(a);
+					a = *conflictingElements[i]->second*.5 + *conflictingElements[i]->third*.5 ;
+					c = (a+b+*conflictingElements[i]->second+*conflictingElements[i]->first)*.25 ;
+				}
+				if(d1 < d0 && d1 < d2)
+				{
+					illegalPoints.push_back(b);
+					b = *conflictingElements[i]->third*.5 + *conflictingElements[i]->second*.5 ;
+					c = (a+b+*conflictingElements[i]->third+*conflictingElements[i]->first)*.25 ;
+				}
+				
+				bool uniquea = true ;
+				bool uniqueb = true ;
+				bool uniquec = true ;
+				
+				for(size_t j = 0 ; j < pointsToAdd.size() ; j++)
+				{
+					if(uniquea && dist(a, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+					{
+						uniquea = false ;
+					}
+					if(uniqueb && dist(b, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+					{
+						uniqueb = false ;
+					}
+					if(uniquec && dist(c, pointsToAdd[j]) < POINT_TOLERANCE_2D)
+					{
+						uniquec = false ;
+					}
+					if(!uniquea && !uniqueb && !uniquec)
+						break ;
+				}
+				
+				for(size_t j = 0 ; j < illegalPoints.size() ; j++)
+				{
+					if(uniquea && dist(a, illegalPoints[j]) < POINT_TOLERANCE_2D)
+					{
+						uniquea = false ;
+					}
+					if(uniqueb && dist(b, illegalPoints[j]) < POINT_TOLERANCE_2D)
+					{
+						uniqueb = false ;
+					}
+					if(uniquec && dist(c, illegalPoints[j]) < POINT_TOLERANCE_2D)
+					{
+						uniquec = false ;
+					}
+					if(!uniquea && !uniqueb && !uniquec)
+						break ;
+				}
+				
+				if(uniquea)
+					pointsToAdd.push_back(a);
+				if(uniqueb)
+					pointsToAdd.push_back(b);
+			}
+			
 			bool inrefinedFeature= false ;
 			for(size_t j = 0 ; j < refinedFeatures.size() ; j++)
 			{
@@ -1572,6 +1655,24 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 					break ;
 			}
 			
+			for(size_t j = 0 ; j < illegalPoints.size() ; j++)
+			{
+				if(uniquea && dist(a, illegalPoints[j]) < POINT_TOLERANCE_2D)
+				{
+					uniquea = false ;
+				}
+				if(uniqueb && dist(b, illegalPoints[j]) < POINT_TOLERANCE_2D)
+				{
+					uniqueb = false ;
+				}
+				if(uniquec && dist(c, illegalPoints[j]) < POINT_TOLERANCE_2D)
+				{
+					uniquec = false ;
+				}
+				if(!uniquea && !uniqueb && !uniquec)
+					break ;
+			}
+			
 			if(uniquea)
 				pointsToAdd.push_back(a);
 			if(uniqueb)
@@ -1588,7 +1689,7 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 				j->second->insert(additionalPoints.back()) ;
 			}
 		}
-		
+		std::cerr <<  " ...done. " << std::endl ;
 	}
 }
 

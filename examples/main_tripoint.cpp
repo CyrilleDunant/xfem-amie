@@ -653,6 +653,9 @@ int main( int argc, char *argv[] )
 	F.addFeature( &baseright,&bottomcentervoid, rebarlayer, phi);
 	F.addFeature( &baseright,&rightbottomvoid, rebarlayer, phi) ;
 	
+	Triangle fineZone(Point(0.,sampleHeight*.5), Point(0.,-sampleHeight*.5), Point(sampleLength*.5, -sampleHeight*.5)) ;
+	F.addRefinementZone(&fineZone);
+	
 // 	F.addFeature( nullptr, &topsupportbulk ) ;
 // 	F.addFeature( nullptr, &toprightvoid ) ;
 	
@@ -704,16 +707,16 @@ int main( int argc, char *argv[] )
 
 
 // 	F.setSamplingFactor( &samplebulk, 3 ) ;
-	F.setSamplingFactor( &rebar0, 3 ) ;
-	F.setSamplingFactor( &rebar1, 3 ) ;
+	F.setSamplingFactor( &rebar0, 4 ) ;
+	F.setSamplingFactor( &rebar1, 4 ) ;
 	
 	F.setSamplingFactor( &bottomcentervoid, 1./3 ) ;
 	F.setSamplingFactor( &rightbottomvoid, 1./3 ) ;
 	F.setSamplingFactor( &bottomcentervoid, 1./3 ) ;
 	F.setSamplingFactor( &rightbottomvoid, 1./3 ) ;
 	
-	F.setSamplingFactor( &rebar2, 3 ) ;
-	F.setSamplingFactor( &rebar3, 3 ) ;
+	F.setSamplingFactor( &rebar2, 4 ) ;
+	F.setSamplingFactor( &rebar3, 4 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
 	F.setOrder( LINEAR ) ;
 	F.setSamplingRestriction(SAMPLE_NO_RESTRICTION);

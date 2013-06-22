@@ -483,7 +483,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlu
 	int end = c.co.sm.row_size.size() ;
 	ret = c.ve ;
 
-	#pragma omp parallel for
+	#pragma omp parallel for  schedule(runtime)
 	for (int i = 0 ; i < end ; i++)
 	{
 		c.co.sm[i*stride].inner_product(c.co.ve, &ret[i*stride], rowstart, colstart);
@@ -498,7 +498,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	const Vector & ve = c.co.ve ;
 	ret = -c.ve ;
 
-	#pragma omp parallel  for
+	#pragma omp parallel for  schedule(runtime)
 	for (int i = 0 ; i <end ; i+=stride)
 	{
 		c.co.sm[i].inner_product(ve, &ret[i], rowstart, colstart);
@@ -514,7 +514,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 
 	const Vector & ve = c.ve ;
 	
-#pragma omp parallel for //shared(c,ve,ret) 
+#pragma omp parallel for schedule(runtime)
 		for (int i = 0 ; i < end; ++i)
 		{
 			c.sm[i*stride].inner_product(ve, &ret[i*stride], rowstart, colstart);

@@ -136,7 +136,7 @@ protected:
 	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree3D ;
 	
 	std::vector<const Geometry * > refinementZones ;
-	void quadTreeRefine(const Geometry * location) ;
+	void quadTreeRefine(const Geometry * location = nullptr) ;
 	
 	std::map<int, Mesh<DelaunayTriangle, DelaunayTreeItem> *> layer2d ;
 	std::map<int, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> layer3d ;

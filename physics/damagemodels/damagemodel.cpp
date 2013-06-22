@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 {
 	elementState = &s ;
 	
-	double iterationNumber = 24 ;
+	double iterationNumber = 32 ;
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
@@ -221,7 +221,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 4.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{
@@ -230,12 +230,12 @@ void DamageModel::step( ElementState &s , double maxscore)
 			else if(ctype == DISSIPATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 4.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
 			}
 			else if(ctype == DISSIPATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 4.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
 			}
 			else if(ctype == CONSERVATIVE_MAX)
 			{
@@ -343,7 +343,7 @@ DamageModel::DamageModel(): state(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1e-3 ; //1e-8 ;//1. / pow( 2., 14 );
+	damageDensityTolerance =  1e-4 ; //1e-8 ;//1. / pow( 2., 14 );
 	thresholdDamageDensity = 1.-2.*damageDensityTolerance ;
 	secondaryThresholdDamageDensity = 1.-2.*damageDensityTolerance ;
 } ;
