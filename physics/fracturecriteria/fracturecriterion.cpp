@@ -1430,8 +1430,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 			cache.clear();
 		}
 		double overlap = (smoothingType == QUARTIC_COMPACT)?3.:3. ;
-		physicalCharacteristicRadius = std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. ) ;
-		Circle epsilon( physicalCharacteristicRadius*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
+		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. )*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
 		mesh2d = &testedTri->tree->getTree();  ;
@@ -1867,7 +1866,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 	
 	if(mesh2d)
 	{
-		
+// 		thresholdScore = POINT_TOLERANCE_2D ;
 		// outside of the checkpoints, we only care about the order of the elements in 
 		// term of their score. At the checkpoint, we consider the elements which
 		// have met their criterion
