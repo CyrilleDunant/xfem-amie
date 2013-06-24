@@ -42,6 +42,8 @@ ParticleSizeDistribution * ParticleSizeDistribution::getPSD(PSDType type)
 	    return new PSDBolomeC() ;
 	  case BOLOME_D:
 	    return new PSDBolomeD() ;
+	  case PSD_UNIFORM:
+            return new ParticleSizeDistribution() ;
 	}
 	return new ParticleSizeDistribution() ;
 }
@@ -123,19 +125,19 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(double rmax, doub
 	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, double width, size_t n, PSDType type) 
+std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, double width, size_t n, PSDType type, double percent) 
 {
-	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.8, type, PSDEndCriteria(-1, 0.01, n)) ;
+	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries, Geometry * placement,size_t seed) 
+std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement,size_t seed) 
 {
 	Feature * box = F->getFeature(0) ;
 	double ar = sqrt(box->area()) ;
 	if(placement != nullptr)
 		ar = sqrt(placement->area()) ;
 
-	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, ar, n, type) ;
+	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, ar, n, type,fraction) ;
 	std::vector<Feature *> feats ;
 	if(geo == ELLIPSE || geo == TRIANGLE)
 	{

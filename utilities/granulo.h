@@ -32,7 +32,8 @@ typedef enum
 	BOLOME_A,
 	BOLOME_B,
 	BOLOME_C,
-	BOLOME_D
+	BOLOME_D,
+	PSD_UNIFORM,
 } PSDType ;
 
 typedef enum
@@ -134,7 +135,7 @@ public:
 	 * @param type type of PSD to use
 	 * @return vector of Inclusion*
 	 */
-	static std::vector<Inclusion *> get2DConcrete(double rmax = 0.008, double width = 0.07, size_t n = 6000, PSDType type = BOLOME_A) ;
+	static std::vector<Inclusion *> get2DConcrete(double rmax = 0.008, double width = 0.07, size_t n = 6000, PSDType type = BOLOME_A, double percent = 0.8) ;
 
 	/**
 	 * \brief Creates concrete PSD, set the behaviour and place the inclusions in the sample
@@ -147,7 +148,7 @@ public:
 	 * @param seed seed for random generator
 	 * @return vector of Inclusion*
 	 */
-	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, PSDType type = BOLOME_A, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 100000, Geometry * placement = nullptr,  size_t seed = 0) ;
+	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, PSDType type = BOLOME_A, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 100000, double percent=0.8, Geometry * placement = nullptr,  size_t seed = 0) ;
 
 		/**
 	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample
