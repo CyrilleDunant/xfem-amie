@@ -1297,7 +1297,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->getTensor(p_, parent) * strains) 
 					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
-			std::cout << ((Vector) (visco->getTensor(p_, parent) * strains))[0] << ";" ;
+//			std::cout << ((Vector) (visco->getTensor(p_, parent) * strains))[0] << ";" ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 /*			if(parent->getEnrichmentFunctions().size() > 0)
