@@ -5610,7 +5610,7 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				elements[i]->getState().getAverageField( f, buffer, 0, t) ;
+				elements[i]->getState().getAverageField( f, buffer, -1, t) ;
 // 				if(elements[i]->getOrder() < LINEAR_TIME_LINEAR)
 // 				{
 					avg += buffer * elements[i]->area() ;

@@ -71,6 +71,7 @@ Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity *
 
 void BimaterialInterface::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
+  
 	bool allin = true ;
 	bool allout = true ;
 	Vector x = vm->eval(xtransform,gp) ;
@@ -135,6 +136,8 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
 	
 	ret += retIn ;
+	
+	
 }
 
 void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
@@ -203,6 +206,7 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
 	outBehaviour->applyViscous(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
 	
 	ret += retIn ;
+
 }
 
 bool BimaterialInterface::fractured() const

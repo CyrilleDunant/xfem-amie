@@ -450,7 +450,7 @@ void TriangleGLDrawer::computeDisplayList()
 				else
 					v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
 
-				HSVtoRGB( &r, &g, &b, 180., 0., 1. - v ) ;
+				HSVtoRGB( &r, &g, &b, 180., 0., v ) ;
 
 				glColor4ub( r, g, b, 255 ) ;
 
@@ -463,7 +463,7 @@ void TriangleGLDrawer::computeDisplayList()
 		}
 
 		
-		glLineWidth(1) ;
+/*		glLineWidth(1) ;
 		for( size_t i = 0 ; i < numberOfTriangles ; i++ )
 		{
 			glBegin( GL_LINE_LOOP ) ;
@@ -481,7 +481,7 @@ void TriangleGLDrawer::computeDisplayList()
 			}
 
 			glEnd() ;
-		}
+		}*/
 			
 		glEndList() ;
 	}

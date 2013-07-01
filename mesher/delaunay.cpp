@@ -2550,6 +2550,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMatrix() 
 {
+// 	std::cout << "is fucking viscous" << std::endl ;
+// 	std::cout << "is fucking viscous" << std::endl ;
 	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 	
 	if(!behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
@@ -2583,6 +2585,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	
 	if(behaviour->isViscous())
 	{
+// 		std::cout << "is fucking viscous" << std::endl ;
 		size_t gp = getGaussPoints().gaussPoints.size() ;
 		Jinv.resize( gp*6 ) ;
 		
@@ -2604,16 +2607,17 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	if(behaviour->isSymmetric())
 	{
-		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
+//		std::cout << "is symmetric" << std::endl ;
+/*		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = 0 ; j < i ; j++)
 			{
-				behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+				behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
 				cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
 			}
-		}
+		}*/
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{	
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
@@ -2643,6 +2647,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	else
 	{
+//		std::cout << "is not symmetric" << std::endl ;
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{	
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
@@ -2888,7 +2893,15 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			double div = 8 ;
 			for(double x = 1./div ; x < 1. ; x += 1./div)
 			{
-				for(double y = 1./div ; y < 1.-x ; y += 1./div)
+				for(double y = 1./div ; y < 1.-x-0.25/div ; y += 1./div)
+				{
+					for(double t = -1. + 2./div ; t < 1. ; t += 2./div)
+					{
+// 						std::cout << x << "\t" << y << "\t" << t << std::endl ;
+						gp_alternative.push_back(std::make_pair(Point(x,y,0,t), 1.));
+					}
+				}
+				for(double y = 1./div ; y < 1.-x+0.25/div ; y += 1./div)
 				{
 					for(double t = -1. + 2./div ; t < 1. ; t += 2./div)
 					{

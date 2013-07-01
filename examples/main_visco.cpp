@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 
 	
  	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e,1)) ;
+  	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e,0)) ;
 //  	box.setBehaviour(new Stiffness(e)) ;
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -203,19 +203,21 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
+//    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+//    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6));
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,4)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,5)) ;
-	F.step() ;
-	F.step() ;
+// 	F.step() ;
+// 	F.step() ;
 	
-	Function r("0.003 t *") ;
-	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e*0.7, alpha,1 )) ;	
+	Function r("0.1") ;
+	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e*0.7, alpha,0 )) ;	
 //	ExpansiveZone * tarata = new ExpansiveZone( &box, VirtualMachine().eval(r, 0,0,0,2), 0,0, new StiffnessWithImposedDeformation( e*0.7,alpha)) ;
+	Inclusion * taratatata = new Inclusion( 0.1, 0.,0.) ;
+	taratatata->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e*0.7, alpha,0 ));
 	F.addFeature(&box, tarata);
 	std::vector<DelaunayTriangle *> mesh = F.getElements2D() ;
 	
@@ -229,8 +231,9 @@ int main(int argc, char *argv[])
 // 	  if(i == 2)
 // 		  exit(0) ;
 	  
-	  Vector str = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD) ;
-	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << std::endl ;
+	  Vector str = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, -1, 1) ;
+	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 // 	  std::cout << "finish\t" << F.getDisplacements(-1, false).size() << std::endl ;
   	  std::cout << F.getCurrentTime() << "\t"  << str[0] << "\t" << str[1] << std::endl ;
 // 	  instants += 1 ;

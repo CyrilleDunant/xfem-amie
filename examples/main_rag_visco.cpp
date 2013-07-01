@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	double aggTensile = 45e6 ;
 	double pasteTensile = 2e6 ;
 	
-	int nzones = 100 ;
+	int nzones = 200 ;
 	int naggregates = 500 ;
 
 	FeatureTree F(&box) ;

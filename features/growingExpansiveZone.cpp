@@ -92,7 +92,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	expansive = newExpansive ;
 	bimateralInterfaced = newInterface ;
 	
-	bool noPrevBC = true ;// dofIdPrev.empty() ;
+	bool noPrevBC = dofIdPrev.empty() ;
 	
 	std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end()); 
 

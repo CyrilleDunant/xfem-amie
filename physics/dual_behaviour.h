@@ -104,6 +104,9 @@ public:
 	
 	bool insideGeometry(const Point & p) const { return inGeometry->in(p) ; }
 
+	virtual bool isViscous() const { return inBehaviour->isViscous() || outBehaviour->isViscous() ; }
+
+	
 
 		/** \brief Return the vector of induced forces if any of the behaviours induces internal forces. Return an empty vecor otherwise
 	 * 
