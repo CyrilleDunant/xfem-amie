@@ -24,6 +24,7 @@ namespace Mu {
 */
 class MaximumStrain : public FractureCriterion
 {
+protected:
 	double upVal ;
 	bool metInCompression  ;
 	bool metInTension  ;
@@ -53,6 +54,27 @@ public:
 	virtual Material toMaterial() ;
 		
 	virtual double getTensileLimit(const ElementState & s) const {return upVal*20e9 ; } ;
+};
+
+class SpaceTimeNonLocalMaximumStrain : public MaximumStrain
+{
+protected:
+	PointArray testPoints ;
+public:
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	SpaceTimeNonLocalMaximumStrain(double up, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z) { } ;
+
+	virtual ~SpaceTimeNonLocalMaximumStrain() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalMaximumStrain(*this) ; }
+
+	virtual double grade(ElementState &s)  ;
+
 };
 
 }

@@ -14,6 +14,7 @@
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/parallel_behaviour.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
@@ -112,19 +113,19 @@ int main(int argc, char *argv[])
 	size_t seed = atof(argv[4]) ;
 //	F.setOrder(LINEAR) ;
 	
-	Rectangle placement(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
+	Rectangle * placement= new Rectangle(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
 	
 	Rectangle refinement( 0.005, length, 0.,0.) ;
 	Rectangle large( 0.015, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
-	F.addRefinementZone(&placement);
+	F.addRefinementZone(placement);
 //	F.addRefinementZone(&large2);
 //	F.addRefinementZone(&large);
 //	F.addRefinementZone(&refinement);
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.1) ) ) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMaximumStrain(0.001), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.1) ) ) ;
 //	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
@@ -136,7 +137,9 @@ int main(int argc, char *argv[])
 	ElasticOnlyAggregateBehaviour hop ;
 	Viscoelasticity * agg = new Viscoelasticity( PURE_ELASTICITY, hop.param, 1 ) ;
 	
-	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 40, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, &placement, seed) ;
+	/*std::vector<Inclusion *> inclusions = */
+//	size_t s = seed ;
+	ParticleSizeDistribution::get2DConcrete( &F, agg, 40, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8,placement, seed ) ;
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
@@ -159,7 +162,7 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 
 	std::fstream out ;
-	std::string tata = "wedge_" ;
+	std::string tata = "wedge_strain_" ;
 	tata.append(argv[1]) ;
 	tata.append("_") ;
 	tata.append(argv[2]) ;
@@ -178,7 +181,7 @@ int main(int argc, char *argv[])
 //		F.setDeltaTime(1.) ;
 		F.step() ;
 		
-		std::string tati = "wedge" ;
+		std::string tati = "wedge_strain_" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
 		std::cout << tati << std::endl ;
