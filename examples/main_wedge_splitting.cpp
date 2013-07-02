@@ -107,7 +107,9 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(atof(argv[1])) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(atof(argv[2])) ;
+	F.setMinDeltaTime(atof(argv[2])*1e-6) ;
 	double speed = atof(argv[3]) ;
+	size_t seed = atof(argv[4]) ;
 //	F.setOrder(LINEAR) ;
 	
 	Rectangle placement(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
@@ -122,19 +124,19 @@ int main(int argc, char *argv[])
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-//	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage() ) ) ;
-	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMohrCoulomb(0.001, -0.008, 15e9), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.1) ) ) ;
+//	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
-//	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
+	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
 	ElasticOnlyAggregateBehaviour hop ;
 	Viscoelasticity * agg = new Viscoelasticity( PURE_ELASTICITY, hop.param, 1 ) ;
 	
-	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 30, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, &placement) ;
+	/*std::vector<Inclusion *> inclusions = */ParticleSizeDistribution::get2DConcrete( &F, agg, 40, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, &placement, seed) ;
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
@@ -163,10 +165,12 @@ int main(int argc, char *argv[])
 	tata.append(argv[2]) ;
 	tata.append("_") ;
 	tata.append(argv[3]) ;
+	tata.append("_") ;
+	tata.append(argv[4]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 	
-	while(i < 300)
+	while(speed*i < 0.006)
 	{
 		i++ ;
 		disp->setData( speed*i ) ;
