@@ -55,6 +55,10 @@ Material MaximumStrain::toMaterial()
 
 double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 {
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 	double maxStrainAfter = stateAfter.second.max() ;
