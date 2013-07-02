@@ -59,15 +59,25 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 	double maxStrainAfter = stateAfter.second.max() ;
 	double maxStrainBefore = stateBefore.second.max() ;
+
+	if(std::abs(maxStrainBefore - upVal) < POINT_TOLERANCE_2D)
+	{
+		double maxStressBefore = stateBefore.first.max() ;
+//		std::cout << maxStressBefore << "\t" << upVal << "\t" ;
+		upVal *= maxstress/maxStressBefore ;
+//		std::cout << upVal << "\n" ;
+	}
+
 	metInCompression = false ;
 	metInTension = false ;
 	if(maxStrainAfter > upVal)
 	{
 		metInTension = true ;
-		return std::min(1., 1 - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
+//		std::cout << maxStrainBefore << "\t" << maxStrainAfter << "\t" << upVal << "\t" << std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) << std::endl ;
+		return std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
-	else
-		return -1.+ std::abs(maxStrainAfter/upVal);
+	return -1.+ maxStrainAfter/upVal;
+	
 	
 }
 
