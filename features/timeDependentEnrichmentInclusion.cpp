@@ -288,19 +288,36 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 // 		position.setDerivative(TIME_VARIABLE, zero);
 		
 	
-		Function hatPrev = 1.-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ));
-		Function hatNext = 1.-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(5) ));
-		Function dx = ring[i]->getXTransform() ;
-		Function dy = ring[i]->getYTransform() ;
-		Function dt = ring[i]->getTTransform() ;
-		hatPrev.setVariableTransform( XI, dx );
-		hatPrev.setVariableTransform( ETA, dy );
- 		hatPrev.setVariableTransform( TIME_VARIABLE, dt );
-		hatNext.setVariableTransform( XI, dx );
-		hatNext.setVariableTransform( ETA, dy );
-		hatNext.setVariableTransform( TIME_VARIABLE, dt );
+		
+		Function dx = Function("x")-getCenter().x ;
+		Function dy = Function("y")-getCenter().y ;
+		Function hatPrev = f_sqrt(dx*dx+dy*dy)-radiusAtTime( ring[i]->getBoundingPoint(0) );
+		Function hatNext = f_sqrt(dx*dx+dy*dy)-radiusAtTime( ring[i]->getBoundingPoint(5) );
+// 		Function dt = ring[i]->getTTransform() ;
+		Function enrfuncp("0") ;
+		Function helperp("0") ;
+		Function enrfuncn("0") ;
+		Function helpern("0") ;
+		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
+		{
+			enrfuncp += ring[i]->getShapeFunction(j)*VirtualMachine().eval(f_abs(hatPrev),ring[i]->getBoundingPoint(j).x, ring[i]->getBoundingPoint(j).y,ring[i]->getBoundingPoint(j).z, ring[i]->getBoundingPoint(j).t) ;
+			helperp += ring[i]->getShapeFunction(j)*VirtualMachine().eval(hatPrev,ring[i]->getBoundingPoint(j).x, ring[i]->getBoundingPoint(j).y,ring[i]->getBoundingPoint(j).z, ring[i]->getBoundingPoint(j).t) ;
+			enrfuncn += ring[i]->getShapeFunction(j)*VirtualMachine().eval(f_abs(hatNext),ring[i]->getBoundingPoint(j).x, ring[i]->getBoundingPoint(j).y,ring[i]->getBoundingPoint(j).z, ring[i]->getBoundingPoint(j).t) ;
+			helpern += ring[i]->getShapeFunction(j)*VirtualMachine().eval(hatNext,ring[i]->getBoundingPoint(j).x, ring[i]->getBoundingPoint(j).y,ring[i]->getBoundingPoint(j).z, ring[i]->getBoundingPoint(j).t) ;
+		}
+		enrfuncp -= f_abs(helperp) ;
+		enrfuncn -= f_abs(helpern) ;
+		
+// 		hatPrev.setVariableTransform( XI, dx );
+// 		hatPrev.setVariableTransform( ETA, dy );
+//  		hatPrev.setVariableTransform( TIME_VARIABLE, dt );
+// 		hatNext.setVariableTransform( XI, dx );
+// 		hatNext.setVariableTransform( ETA, dy );
+// 		hatNext.setVariableTransform( TIME_VARIABLE, dt );
 		hatPrev.setNumberOfDerivatives(0);
+		enrfuncp.setNumberOfDerivatives(0);
 		hatNext.setNumberOfDerivatives(0);
+		enrfuncn.setNumberOfDerivatives(0);
 
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -313,11 +330,11 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 				Function f ;
 				if(j < ring[i]->getBoundingPoints().size() / ring[i]->timePlanes())
 				{
-				 f =  ring[i]->getShapeFunction(j)*(hatPrev - VirtualMachine().eval(hatPrev, p.x, p.y,p.z,p.t)) ;
+				 f =  ring[i]->getShapeFunction(j)*(enrfuncp - VirtualMachine().eval(enrfuncp, p.x, p.y,p.z,p.t)) ;
 				}
 				else
 				{
-				 f =  ring[i]->getShapeFunction(j)*(hatNext - VirtualMachine().eval(hatNext, p.x, p.y,p.z,p.t)) ;
+				 f =  ring[i]->getShapeFunction(j)*(enrfuncn - VirtualMachine().eval(enrfuncn, p.x, p.y,p.z,p.t)) ;
 				}
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
@@ -344,23 +361,50 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			
 //			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
-		                           (y-getCenter().y)*(y-getCenter().y)) ;
-			Function hatPrev = f_abs(position-radiusAtTime(t->getBoundingPoint(0)));
-			Function hatNext = f_abs(position-radiusAtTime(t->getBoundingPoint(5)));
-			Function dx = t->getXTransform() ;
-			Function dy = t->getYTransform() ;
+// 			Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
+// 		                           (y-getCenter().y)*(y-getCenter().y)) ;
+			
+// 			Function dx = t->getXTransform()-getCenter().x ;
+// 			Function dy = t->getYTransform()-getCenter().y ;
+			Function hatPrev = f_abs(f_sqrt(dx*dx+dy*dy)-radiusAtTime(t->getBoundingPoint(0)));
+			Function hatNext = f_abs(f_sqrt(dx*dx+dy*dy)-radiusAtTime(t->getBoundingPoint(5)));
 			Function dt = t->getTTransform() ;
-			hatPrev.setVariableTransform(XI, dx);
-			hatPrev.setVariableTransform(ETA, dy);
- 			hatPrev.setVariableTransform(TIME_VARIABLE, dt);
-			hatPrev.makeVariableTransformDerivative() ;
-			hatNext.setVariableTransform(XI, dx);
-			hatNext.setVariableTransform(ETA, dy);
- 			hatNext.setVariableTransform(TIME_VARIABLE, dt);
-			hatNext.makeVariableTransformDerivative() ;
+// 			hatPrev.setVariableTransform(XI, dx);
+// 			hatPrev.setVariableTransform(ETA, dy);
+//  			hatPrev.setVariableTransform(TIME_VARIABLE, dt);
+// 			hatPrev.makeVariableTransformDerivative() ;
+// 			hatNext.setVariableTransform(XI, dx);
+// 			hatNext.setVariableTransform(ETA, dy);
+//  			hatNext.setVariableTransform(TIME_VARIABLE, dt);
+// 			hatNext.makeVariableTransformDerivative() ;
 			hatPrev.setNumberOfDerivatives(0);
 			hatNext.setNumberOfDerivatives(0);
+			
+				Function enrfuncp("0") ;
+				Function helperp("0") ;
+				Function enrfuncn("0") ;
+				Function helpern("0") ;
+				for(size_t j = 0 ; j< t->getBoundingPoints().size() ; j++)
+				{
+					enrfuncp += t->getShapeFunction(j)*VirtualMachine().eval(f_abs(hatPrev),t->getBoundingPoint(j).x, t->getBoundingPoint(j).y,t->getBoundingPoint(j).z, t->getBoundingPoint(j).t) ;
+					helperp += t->getShapeFunction(j)*VirtualMachine().eval(hatPrev,t->getBoundingPoint(j).x, t->getBoundingPoint(j).y,t->getBoundingPoint(j).z, t->getBoundingPoint(j).t) ;
+					enrfuncn += t->getShapeFunction(j)*VirtualMachine().eval(f_abs(hatNext),t->getBoundingPoint(j).x, t->getBoundingPoint(j).y,t->getBoundingPoint(j).z, t->getBoundingPoint(j).t) ;
+					helpern += t->getShapeFunction(j)*VirtualMachine().eval(hatNext,t->getBoundingPoint(j).x, t->getBoundingPoint(j).y,t->getBoundingPoint(j).z, t->getBoundingPoint(j).t) ;
+				}
+				enrfuncp -= f_abs(helperp) ;
+				enrfuncn -= f_abs(helpern) ;
+				
+		// 		hatPrev.setVariableTransform( XI, dx );
+		// 		hatPrev.setVariableTransform( ETA, dy );
+		//  		hatPrev.setVariableTransform( TIME_VARIABLE, dt );
+		// 		hatNext.setVariableTransform( XI, dx );
+		// 		hatNext.setVariableTransform( ETA, dy );
+		// 		hatNext.setVariableTransform( TIME_VARIABLE, dt );
+				hatPrev.setNumberOfDerivatives(0);
+				enrfuncp.setNumberOfDerivatives(0);
+				hatNext.setNumberOfDerivatives(0);
+				enrfuncn.setNumberOfDerivatives(0);
+			
 			
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
@@ -376,11 +420,11 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 						Function f ;
 						if(k < t->getBoundingPoints().size() / t->timePlanes())
 						{
-						f =  t->getShapeFunction(k)*(hatPrev - VirtualMachine().eval(hatPrev, p.x, p.y,p.z,p.t)) ;
+						f =  t->getShapeFunction(k)*(enrfuncp - VirtualMachine().eval(enrfuncp, p.x, p.y,p.z,p.t)) ;
 						}
 						else
 						{
-						f =  t->getShapeFunction(k)*(hatNext - VirtualMachine().eval(hatNext, p.x, p.y,p.z,p.t)) ;
+						f =  t->getShapeFunction(k)*(enrfuncn - VirtualMachine().eval(enrfuncn, p.x, p.y,p.z,p.t)) ;
 						}
 						if(!hinted)
 						{
