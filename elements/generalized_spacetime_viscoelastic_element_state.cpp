@@ -2,6 +2,8 @@
 #include "../physics/viscoelasticity.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../mesher/delaunay.h"
+#include "../utilities/random.h"
+#include "../features/inclusion.h"
 
 using namespace Mu ;
 
@@ -41,23 +43,76 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 	if(trg->getEnrichmentFunctions().size() > 0)
 	{
 		std::vector<std::pair<Point, double> > gp_alternative ;
-		double div = 20 ;
-		for(double x = 1./div ; x < 1. ; x += 1./div)
+		GaussPointArray original = trg->getGaussPoints() ;
+		for(size_t i = 0 ; i < original.gaussPoints.size()/3 ; i++)
 		{
-			for(double y = 1./div ; y < 1.-x-0.25/div ; y += 1./div)
-				gp_alternative.push_back(std::make_pair(Point(x,y,0,time), 1.));
-			for(double y = 1./div ; y < 1.-x+0.25/div ; y += 1./div)
-				gp_alternative.push_back(std::make_pair(Point(x,y,0,time), 1.));
+			gp_alternative.push_back(original.gaussPoints[i*3]);
+			gp_alternative.back().first.t = time ;
+			gp_alternative.back().second /= 5./9 ;
 		}
-		double jac = 2.*trg->area() ;
 		
-		for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-		{
-			gp_alternative[i].second *= jac/gp_alternative.size() ;
-		}
+// 			Point A(0,1) ;
+// 			Point B(0,0) ;
+// 			Point C(1,0) ;
+// 			double a = std::sqrt(0.6) ;
+// 			
+// 			TriangularInclusion triangular(A,B,C) ;
+// 			triangular.sample(16) ;
+// 			DelaunayTree * dt = new DelaunayTree(&A,&B,&C) ;
+// // 			std::cout << trg.getInPoints().size() << std::endl ;
+// // 			std::cout << trg.getBoundingPoints().size() << std::endl ;
+// 			for(size_t i = 0 ; i < triangular.getBoundingPoints().size() ; i++)
+// 			{
+// 				dt->insert(&triangular.getBoundingPoint(i));
+// 			}
+// 			for(size_t i = 0 ; i < triangular.getInPoints().size() ; i++)
+// 			{
+// 				dt->insert(&triangular.getInPoint(i));
+// 			}
+// 			std::vector<DelaunayTriangle *> tris = dt->getElements() ;
+// 			for(size_t i = 0 ; i < tris.size() ; i++)
+// 			{
+// 				Point c = tris[i]->getCenter() ;
+// 				double ar = 2.*tris[i]->area() ;
+// 				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,-a), ar*5./18));
+// 				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,0), ar*8./18));
+// 				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,a), ar*5./18));
+// 				
+// 			}
+// /*			
+// 			
+// 			while(npoints > 0)
+// 			{
+// 				double x = (double)random()/RAND_MAX ;
+// 				double y = (double)random()/RAND_MAX ;
+// 				if(x+y < 1)
+// 				{
+// 					gp_alternative.push_back(std::make_pair(Point(x,y,0,-a), 5./18));
+// 					gp_alternative.push_back(std::make_pair(Point(x,y,0,0), 8./18));
+// 					gp_alternative.push_back(std::make_pair(Point(x,y,0,a), 5./18));
+// 					npoints-- ;
+// 				}
+// 			}*/
+// 			double jac = 2.*trg->area() ;
+// 			
+// 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+// 			{
+// 				gp_alternative[i].second *= jac ;
+// 			}			
 		gp.gaussPoints.resize(gp_alternative.size()) ;
 		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-		gp.id = -1 ;
+// 		gp.id = -1 ;
+// 		delete dt ;
+
+// 			double w1 = 0 ;
+// 			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+// 				w1 += gp.gaussPoints[i].second ;
+// 			double w2 = 0 ;
+// 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+// 				w2 += gp_alternative[i].second ;
+// 			
+// 			std::cout << w1 << "\t" << w2 << std::endl ;
+
 	}
 	
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -67,7 +122,6 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
-  
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
@@ -97,9 +151,22 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		//std::cout << "(" << gp.gaussPoints.size() << ")" << enriched << "\t" ;
 	}
 	
+// 	if(parent->getEnrichmentFunctions().size())
+// 	{
+// 	for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
+// 	  std::cout << parent->getEnrichmentFunction(i).getDofID() << ";" ;
+// 	std::cout << std::endl ;
+// 	}
+//	std::cout << gp.gaussPoints.size() << "\t" << ret.size() << "\t" << getParent()->area() << std::endl ;
+	ret /=  (total);//(shapes/enriched) ;
 	
-//	std::cout << gp.gaussPoints.size() << "\t" << total << "\t" << getParent()->area() << std::endl ;
-	ret /=  (total);///(shapes/enriched) ;
+// 	if(f == STRAIN_FIELD)
+// 	{
+// 		Vector toto(3) ; 
+// 		getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, toto, dummy, t) ;
+// 		std::cout << parent->getEnrichmentFunctions().size() << ";" << ret[0]-toto[0] << "\t" ;
+// 	}
+
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
@@ -120,7 +187,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 	if( !local )
 		p_ = parent->inLocalCoordinates( p ) ;
 	
-	Viscoelasticity * visco = dynamic_cast<Viscoelasticity *>(parent->getBehaviour()) ;
+	Form * visco = (parent->getBehaviour()) ;
 	
 	switch(f)
 	{
@@ -324,7 +391,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				Vector dx(0., totaldof) ;
 				Vector dy(0., totaldof) ;
 				Vector dt(0., totaldof) ;
-			  
+				
 				double x_xi = 0;
 				double x_eta = 0;
 				double x_tau = 0;
@@ -383,6 +450,12 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
 //					std::cout << ret.size() << std::endl ;
 				}
+				
+// 				Vector strainns(3) ;
+// 				this->getField(STRAIN_FIELD, p_, strainns, true);
+// 				
+// 				std::cout << parent->getEnrichmentFunctions().size()<<"-" << ret[0] - strainns[0] << " ; " ;
+				
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 // 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 // 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
@@ -1297,13 +1370,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->getTensor(p_, parent) * strains) 
 					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
-//			std::cout << ((Vector) (visco->getTensor(p_, parent) * strains))[0] << ";" ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 /*			if(parent->getEnrichmentFunctions().size() > 0)
 			{
 				Vector toto = getParent()->getBehaviour()->getImposedStress(p_, parent) ;
-				std::cout << ret[0] << "\t" << ret[1] << std::endl ;
+				Matrix tata = getParent()->getBehaviour()->getTensor( p_ ) ;
+				std::cout << toto[0] << "\t" << tata[0][0] << "\t" << tata[0][1] << std::endl ;
 			}*/
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
@@ -1448,7 +1521,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->param * strains) 
-					+ (Vector) (visco->eta * speeds) ;
+					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -1461,7 +1534,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			ret = (Vector) (visco->param * strains) 
-			    + (Vector) (visco->eta * speeds) ;
+			    + (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			Vector stresses = visco->getImposedStress(p_, parent) ;
 			for(size_t i = 0 ; i < stresses.size() ; i++)
 				ret[i] -= stresses[i] ;
@@ -1497,7 +1570,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			Vector stresses = (Vector) (visco->param * strains) 
-					+ (Vector) (visco->eta * speeds) ;
+					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
@@ -1510,7 +1583,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			this->getField(GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
 			ret = (Vector) (visco->param * strains) 
-			    + (Vector) (visco->eta * speeds) ;
+			    + (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			Vector stresses = visco->getImposedStress(p_, parent) ;
 			for(size_t i = 0 ; i < stresses.size() ; i++)
 				ret[i] -= stresses[i] ;

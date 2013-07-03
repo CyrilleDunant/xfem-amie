@@ -231,7 +231,7 @@ Form * BimaterialInterface::getCopy() const
 }
 
 std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
-{	  
+{	
 	std::vector<BoundaryCondition * > ret ;
 	
 	if(Jinv.size() == 0)
@@ -278,6 +278,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 
 	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+	temp.clear() ;
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
@@ -371,6 +372,14 @@ Vector BimaterialInterface::getForcesFromAppliedStress( Vector & data, Function 
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
 	Vector z = VirtualMachine().eval(ztransform,gp) ;
 	Vector t = VirtualMachine().eval(ttransform,gp) ;
+//  	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+//  	{
+// 		 std::cout << std::sqrt(x[i]*x[i]+y[i]*y[i]) << "\t" ;
+// 		 if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))
+// 			std::cout << "IN" << std::endl ;
+// 		 else
+// 			std::cout << "OUT" << std::endl ;
+//  	}
 	if(inGeometry->in( Point(x[0],y[0],z[0],t[0]) ))
 		return inBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;
 	return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;

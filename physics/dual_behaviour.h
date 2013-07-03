@@ -99,6 +99,8 @@ public:
 	* @param currentState State of the element in which the behaviour is time-stepped
 	*/
 	virtual void step(double timestep, ElementState & currentState, double maxScore) ;
+
+	virtual ElementState * createElementState( IntegrableEntity * e) { return inBehaviour->createElementState( e ) ; }
 	
 	virtual bool hasInducedForces() const { return inBehaviour->hasInducedForces() || outBehaviour->hasInducedForces() ; }
 	

@@ -95,6 +95,9 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	bool noPrevBC = dofIdPrev.empty() ;
 	
 	std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end()); 
+//	std::cout << enriched.size() << "\t" << counter << std::endl ;
+	std::valarray<bool> done(counter) ;
+	done = false ;
 
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
@@ -105,7 +108,12 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	{
 		enriched[i]->clearBoundaryConditions() ;
 		if( enriched[i]->getEnrichmentFunctions().size() == 0)
+		{
 			continue ;
+		}
+// 		if(enriched[i]->hasBoundaryConditions())
+// 			continue ;
+		
 		
 		GaussPointArray gp = enriched[i]->getGaussPoints() ;
 		std::valarray<Matrix> Jinv( gp.gaussPoints.size() ) ;
@@ -120,6 +128,9 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 		
 		for(size_t j = 0 ; j < enriched[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
 		{
+			if(done[ enriched[i]->getEnrichmentFunction(j).getDofID() ])
+				continue ;
+			done[ enriched[i]->getEnrichmentFunction(j).getDofID() ] = true ;
 		  
 			if(noPrevBC)
 			{

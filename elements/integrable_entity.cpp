@@ -123,6 +123,7 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 	{
 		if(boundaryConditionCache)
 		{
+			std::cout << boundaryConditionCache->size() << std::endl;
 			for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
 			{
 				if ((*boundaryConditionCache)[i])
@@ -160,24 +161,24 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 			}
 		}
 
-		start = 0 ;
-		if(timePlanes() > 1)
-		{
-			start = getEnrichmentFunctions().size() - getEnrichmentFunctions().size()/timePlanes() ;
-		}
-		for( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
-		{
-//			std::cout << getGaussPoints().gaussPoints.size() << std::endl ;
-			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
-			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
-			{
-				if( get2DMesh() )
-					boundaryConditionCachetmp[j]->apply( a, get2DMesh() ) ;
-				else
-					boundaryConditionCachetmp[j]->apply( a, get3DMesh() ) ;
-				delete boundaryConditionCachetmp[j] ;
-			}
-		}
+// 		start = 0 ;
+// 		if(timePlanes() > 1)
+// 		{
+// 			start = getEnrichmentFunctions().size() - getEnrichmentFunctions().size()/timePlanes() ;
+// 		}
+// 		for( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
+// 		{
+// //			std::cout << getGaussPoints().gaussPoints.size() << std::endl ;
+// 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
+// 			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
+// 			{
+// 				if( get2DMesh() )
+// 					boundaryConditionCachetmp[j]->apply( a, get2DMesh() ) ;
+// 				else
+// 					boundaryConditionCachetmp[j]->apply( a, get3DMesh() ) ;
+// 				delete boundaryConditionCachetmp[j] ;
+// 			}
+// 		}
 		
 	}
 }

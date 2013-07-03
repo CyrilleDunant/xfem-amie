@@ -391,6 +391,7 @@ public:
 	
 	virtual void addBoundaryCondition( BoundaryCondition * bc) ;
 	virtual void clearBoundaryConditions() ;
+	virtual bool hasBoundaryConditions() { return boundaryConditionCache ; }
 	
 	virtual Function getXTransform() const = 0;
 	virtual Function getYTransform() const = 0;

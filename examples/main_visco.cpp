@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	return 0 ;*/
   
   	FeatureTree F(&box) ;
-	F.setSamplingNumber(20) ;
+	F.setSamplingNumber(64) ;
 
 	Vector alpha(3) ;
 	alpha[0] = 0.1 ;
@@ -192,6 +192,7 @@ int main(int argc, char *argv[])
 
 	
  	Matrix e = (new ElasticOnlyPasteBehaviour(10e9, 0.3))->param ;
+	Matrix e2 = e*0.5 ;
   	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e,0)) ;
 //  	box.setBehaviour(new Stiffness(e)) ;
 	
@@ -203,6 +204,8 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+	F.step() ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6,1));
 //    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
 //    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6));
@@ -213,27 +216,28 @@ int main(int argc, char *argv[])
 // 	F.step() ;
 // 	F.step() ;
 	
-	Function r("0.1") ;
-	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e*0.7, alpha,0 )) ;	
+	Function r("0.003 t *") ;
+	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e, alpha,0 )) ;
+	tarata->setInitialTime(-2.);
 //	ExpansiveZone * tarata = new ExpansiveZone( &box, VirtualMachine().eval(r, 0,0,0,2), 0,0, new StiffnessWithImposedDeformation( e*0.7,alpha)) ;
 	Inclusion * taratatata = new Inclusion( 0.1, 0.,0.) ;
-	taratatata->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e*0.7, alpha,0 ));
+	taratatata->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e, alpha,0 ));
 	F.addFeature(&box, tarata);
 	std::vector<DelaunayTriangle *> mesh = F.getElements2D() ;
 	
 	std::fstream out ;
-	out.open("test_zone_stfem_10", std::ios::out) ;
+	out.open("test_zone_moving_1", std::ios::out) ;
 	
-	for(size_t i = 0 ; i < 10 ; i++)
+	while(F.getCurrentTime() < 100)
 	{
-	  F.setDeltaTime(i+1);
+//	  F.setDeltaTime(i+1);
 	  F.step() ;
 // 	  if(i == 2)
 // 		  exit(0) ;
 	  
-	  Vector str = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, -1, 1) ;
+	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
+	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 // 	  std::cout << "finish\t" << F.getDisplacements(-1, false).size() << std::endl ;
   	  std::cout << F.getCurrentTime() << "\t"  << str[0] << "\t" << str[1] << std::endl ;
 // 	  instants += 1 ;
@@ -244,15 +248,15 @@ int main(int argc, char *argv[])
 // 	  {
 // 		  hop[j]->getBehaviour()->param += e ;
 // 	  }
- 	  std::string name = "hop_stfem_" ;
- 	  name.append( itoa(i) ) ;
-	  TriangleWriter wrt(name, &F, 1) ;
-	  wrt.getField( STRAIN_FIELD ) ;
-	  wrt.getField( REAL_STRESS_FIELD ) ;
-	  wrt.getField( TWFT_STIFFNESS ) ;
-	  wrt.write() ;
+//  	  std::string name = "hop_stfem_" ;
+//  	  name.append( itoa(i) ) ;
+// 	  TriangleWriter wrt(name, &F, 1) ;
+// 	  wrt.getField( STRAIN_FIELD ) ;
+// 	  wrt.getField( REAL_STRESS_FIELD ) ;
+// 	  wrt.getField( TWFT_STIFFNESS ) ;
+// 	  wrt.write() ;
 	  
-	  int cIn = 0 ;
+/*	  int cIn = 0 ;
 	  int cRing = 0 ;
 	  int cRing6 = 0 ;
 	  int cOut = 0 ;
@@ -283,7 +287,7 @@ int main(int argc, char *argv[])
 	  }
 	  
 	  
-//	  tarata->setRadius(VirtualMachine().eval(r, 0,0,0,F.getCurrentTime()+1));
+//	  tarata->setRadius(VirtualMachine().eval(r, 0,0,0,F.getCurrentTime()+1));*/
 	  
 	}
 	
