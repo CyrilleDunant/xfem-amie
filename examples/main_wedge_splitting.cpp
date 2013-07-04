@@ -119,9 +119,9 @@ int main(int argc, char *argv[])
 	Rectangle large( 0.015, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
 	F.addRefinementZone(placement);
-//	F.addRefinementZone(&large2);
-//	F.addRefinementZone(&large);
-//	F.addRefinementZone(&refinement);
+	F.addRefinementZone(&large2);
+	F.addRefinementZone(&large);
+	F.addRefinementZone(&refinement);
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	

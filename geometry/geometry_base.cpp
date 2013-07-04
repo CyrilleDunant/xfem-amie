@@ -3376,13 +3376,11 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 			}
 			else if (delta == 0)
 			{
-			std::cout << delta << std::endl ;
 			
 				std::vector<Point> ret ;
 				ret.push_back(p+v*(-b/(2.*a))) ;
 				return ret ;
 			}
-			std::cout << delta << std::endl ;
 			
 
 			return std::vector<Point>(0) ;
@@ -4124,7 +4122,6 @@ bool Segment::intersects(const Segment & l) const
 {
 	if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
 	{
-// 		std::cout << "a" ;
 		return l.on(f) || l.on(s) || on(l.first()) || on(l.second()) ;
 	}
 	
@@ -4136,18 +4133,15 @@ bool Segment::intersects(const Segment & l) const
 	
 	if(std::abs(vec.x) < POINT_TOLERANCE_2D && std::abs(l.vector().x) < POINT_TOLERANCE_2D)
 	{
-// 		std::cout << "b" ;
 		return false ;
 	}	
 
 	if(std::abs(vec.y) < POINT_TOLERANCE_2D && std::abs(l.vector().y) < POINT_TOLERANCE_2D)
 	{
-// 		std::cout << "c" ;
 		return false ;
 	}
 	if(dist(vec/vec.norm(), l.vector()/l.vector().norm()) < POINT_TOLERANCE_2D)
 	{
-// 		std::cout << "d" ;
 		return false ;
 	}
 
@@ -4161,11 +4155,7 @@ bool Segment::intersects(const Segment & l) const
 	Vector fac = m * v ;
 	
 	Point intersect = f + vec*fac[0];
-// 	if(on(intersect))
-// 		std::cout << "e" ;
-// 	if(l.on(intersect))
-// 		std::cout << "f" ;
-// 	std::cout << std::endl ;
+
 	return on(intersect) && l.on(intersect) ;
 	
 }

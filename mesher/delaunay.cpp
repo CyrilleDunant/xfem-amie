@@ -491,7 +491,7 @@ void DelaunayTree::extrude(double dt)
 			{			
 				next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
 				increment = false ;
-				next->print() ;
+// 				next->print() ;
 			}
 			if(increment && !points.find(&tri[i]->getBoundingPoint(j))->second)
 			{
@@ -2302,7 +2302,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 	
 	if(!neighbourhood && buildNeighbourhood)
 	{
-		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
+// 		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
 			ret[i]->neighbourhood.resize(0) ;
@@ -2313,8 +2313,8 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 		
 		for( size_t i = 0 ; i < ret.size() ;i++)
 		{
-			if(i%100 == 0)
-				std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
+// 			if(i%100 == 0)
+// 				std::cerr << "\r building neighbourhood... element " << i <<"/" << ret.size() << std::flush ;
 			
 			std::vector<DelaunayTriangle *> tocheck ;
 			std::vector<DelaunayTriangle *> toclean ;
@@ -2368,7 +2368,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 // 			}
 		}
 		
-		std::cerr << " ...done" << std::endl ;
+// 		std::cerr << " ...done" << std::endl ;
 		neighbourhood = true ;
 	}
 	
@@ -2868,7 +2868,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 
 const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
-	if(!enrichmentUpdated)
+	if(!enrichmentUpdated && getCachedGaussPoints())
 	{
 // 		if(getEnrichmentFunctions().size() > 0)
 // 			std::cout << "wut?" << std::endl ;
@@ -2899,7 +2899,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			
 			TriangularInclusion trg(A,B,C) ;
 			srand(0) ;
-			trg.sample(16) ;
+			trg.sample(24) ;
 			DelaunayTree * dt = new DelaunayTree(&A,&B,&C) ;
 // 			std::cout << trg.getInPoints().size() << std::endl ;
 // 			std::cout << trg.getBoundingPoints().size() << std::endl ;

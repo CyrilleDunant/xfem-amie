@@ -161,7 +161,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -185,7 +185,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		else
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -910,7 +910,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -927,24 +927,24 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+					double correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
 					int tnum = omp_get_thread_num() ;
 					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
 				
-					stra0 += tmpstrat[tnum][0]*factors[i] ;
-					stra1 += tmpstrat[tnum][1]*factors[i] ;
-					stra2 += tmpstrat[tnum][2]*factors[i] ;
-					str0 += tmpstrt[tnum][0]*factors[i] ;
-					str1 += tmpstrt[tnum][1]*factors[i] ;
-					str2 += tmpstrt[tnum][2]*factors[i] ;
-					sumFactors += factors[i] ;
-
+					stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
+					stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
+					stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
+					str0 += tmpstrt[tnum][0]*factors[i]*correction ;
+					str1 += tmpstrt[tnum][1]*factors[i]*correction ;
+					str2 += tmpstrt[tnum][2]*factors[i]*correction ;
+					sumFactors += factors[i]*correction ;
 				}
 			}
 			else
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -962,16 +962,19 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+					
+					double correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
+						
 					int tnum = omp_get_thread_num() ;
 					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
 				
-					stra0 += tmpstrat[tnum][0]*factors[i] ;
-					stra1 += tmpstrat[tnum][1]*factors[i] ;
-					stra2 += tmpstrat[tnum][2]*factors[i] ;
-					str0 += tmpstrt[tnum][0]*factors[i] ;
-					str1 += tmpstrt[tnum][1]*factors[i] ;
-					str2 += tmpstrt[tnum][2]*factors[i] ;
-					sumFactors += factors[i] ;
+					stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
+					stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
+					stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
+					str0 += tmpstrt[tnum][0]*factors[i]*correction ;
+					str1 += tmpstrt[tnum][1]*factors[i]*correction ;
+					str2 += tmpstrt[tnum][2]*factors[i]*correction ;
+					sumFactors += factors[i]*correction ;
 
 				}
 			}
@@ -986,7 +989,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			str /= sumFactors ;
 			stra /= sumFactors ;
 
-			return std::make_pair(stra*s.getParent()->getBehaviour()->getTensor(Point()), stra) ;
+			return std::make_pair(stra*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()), stra) ;
 		}
 		else
 		{
@@ -1011,7 +1014,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
 			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
 			
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstr[2],  tmpstr[0] -  tmpstr[1] ) ;
 			
 			strar = tmpstrar*factors[0] ;
 			stra = tmpstra*factors[0] ;
@@ -1094,7 +1097,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		}
 		str /= sumFactors ;
 		stra /= sumFactors ;
-		currentAngle = 0.5 * atan2(stra[3] , stra[0] - stra[1] ) ;
+		currentAngle = 0.5 * atan2(str[3] , str[0] - str[1] ) ;
 		return std::make_pair(str,stra)  ;
 	}
 	

@@ -504,28 +504,28 @@ void step(size_t nsteps)
 		}
 		strfile.close();
 		
-		if ( true )
-		{
-			writer.reset( featureTree ) ;
-			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
-			writer.getField( TWFT_STIFFNESS_X ) ;
-			writer.getField( TWFT_STIFFNESS_Y ) ;
-			writer.append() ;
-		}
-		if(go_on)
-		{
-			writerc.reset( featureTree ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writerc.getField( TWFT_CRITERION ) ;
-			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
-			writerc.getField( TWFT_STIFFNESS_X ) ;
-			writerc.getField( TWFT_STIFFNESS_Y ) ;
-			writerc.append() ;
-		}
+// 		if ( true )
+// 		{
+// 			writer.reset( featureTree ) ;
+// 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+// 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+// 			writer.getField( TWFT_CRITERION ) ;
+// 			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
+// 			writer.getField( TWFT_STIFFNESS_X ) ;
+// 			writer.getField( TWFT_STIFFNESS_Y ) ;
+// 			writer.append() ;
+// 		}
+// 		if(go_on)
+// 		{
+// 			writerc.reset( featureTree ) ;
+// 			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
+// 			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
+// 			writerc.getField( TWFT_CRITERION ) ;
+// 			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
+// 			writerc.getField( TWFT_STIFFNESS_X ) ;
+// 			writerc.getField( TWFT_STIFFNESS_Y ) ;
+// 			writerc.append() ;
+// 		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
 

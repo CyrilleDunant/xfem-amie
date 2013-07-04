@@ -1513,11 +1513,11 @@ void Circle::project(Point * p) const
 	Line l(*p, *p-getCenter()) ;
 
 	std::vector<Point> inter = l.intersection(this) ;
-	if(inter.empty() || inter.size() == 1)
-	{
-		p->print() ;
-		getCenter().print() ;
-	}
+// 	if(inter.empty() || inter.size() == 1)
+// 	{
+// 		p->print() ;
+// 		getCenter().print() ;
+// 	}
 	if(squareDist3D(inter[0], *p) < squareDist3D(inter[1], *p))
 	{
 		*p = inter[0] ;

@@ -534,8 +534,8 @@ int main(int argc, char *argv[])
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
-// 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-	Inclusion3D inc(100, 200, 200, 200) ;
+	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
+// 	Inclusion3D inc(100, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 	inc.setBehaviour(new Stiffness(m1*4)) ;
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	step() ;
 	

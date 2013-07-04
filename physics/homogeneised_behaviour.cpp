@@ -185,7 +185,7 @@ HomogeneisedBehaviour::~HomogeneisedBehaviour()
 
 void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const
 {
-	param.print() ;
+// 	param.print() ;
 	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }
 

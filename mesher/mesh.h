@@ -202,6 +202,7 @@ namespace Mu
 						
 						if(targets.empty())
 						{
+							std::cout << "failed projection, empty mesh" << std::endl ;
 							(*i)->print() ;
 							exit(0) ;
 						}

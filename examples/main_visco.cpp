@@ -184,9 +184,9 @@ int main(int argc, char *argv[])
 	return 0 ;*/
   
   	FeatureTree F(&box) ;
-	F.setSamplingNumber(64) ;
+	F.setSamplingNumber(32) ;
 
-	Vector alpha(3) ;
+	Vector alpha(0.,3) ;
 	alpha[0] = 0.1 ;
 	alpha[1] = 0.1 ;
 
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-	F.step() ;
+// 	F.step() ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6,1));
 //    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
 //    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 // 	F.step() ;
 // 	F.step() ;
 	
-	Function r("0.003 t *") ;
+	Function r("0.03 t *") ;
 	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e, alpha,0 )) ;
 	tarata->setInitialTime(-2.);
 //	ExpansiveZone * tarata = new ExpansiveZone( &box, VirtualMachine().eval(r, 0,0,0,2), 0,0, new StiffnessWithImposedDeformation( e*0.7,alpha)) ;
@@ -248,13 +248,13 @@ int main(int argc, char *argv[])
 // 	  {
 // 		  hop[j]->getBehaviour()->param += e ;
 // 	  }
-//  	  std::string name = "hop_stfem_" ;
-//  	  name.append( itoa(i) ) ;
-// 	  TriangleWriter wrt(name, &F, 1) ;
-// 	  wrt.getField( STRAIN_FIELD ) ;
-// 	  wrt.getField( REAL_STRESS_FIELD ) ;
-// 	  wrt.getField( TWFT_STIFFNESS ) ;
-// 	  wrt.write() ;
+	  std::string name = "hop_stfem_" ;
+	  name.append( itoa(F.getCurrentTime()) ) ;
+	  TriangleWriter wrt(name, &F, 1) ;
+	  wrt.getField( STRAIN_FIELD ) ;
+	  wrt.getField( REAL_STRESS_FIELD ) ;
+	  wrt.getField( TWFT_STIFFNESS ) ;
+	  wrt.write() ;
 	  
 /*	  int cIn = 0 ;
 	  int cRing = 0 ;

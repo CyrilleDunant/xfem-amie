@@ -22,7 +22,7 @@ namespace Mu
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal(0.66*1e6*pow(std::abs(down*1e-6),.33) /*.33e6*sqrt(-down*1e-6)*/ ), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
@@ -137,26 +137,27 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value)
 {
 
-	
- 	double maxTension = upVal;
- 	double maxTensionStrain = tensionCritStrain;
+	double altUpVal( 0.66*1e6*pow(std::abs(downVal*1e-6),.33)) ;
+	double altTensionCritStrain(altUpVal/youngModulus) ;
+	double maxTension = altUpVal;
+	double maxTensionStrain = altTensionCritStrain;
 
- 	if(tstrain > tensionCritStrain )
- 	{
+	if(tstrain > altTensionCritStrain )
+	{
 		crackInitiated = true ;
- 		double downTestVal = tensionCritStrain ;
- 		double upTestVal = strain_te ;
- 		double factor = 1 ;
- 		double delta_tech = (strain_te-strain_ch);
- 		double mainCurve = 0 ;
- 		int count = 0 ;
+		double downTestVal = altTensionCritStrain ;
+		double upTestVal = strain_te ;
+		double factor = 1 ;
+		double delta_tech = (strain_te-strain_ch);
+		double mainCurve = 0 ;
+		int count = 0 ;
 
-		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32)
+		while(std::abs(upTestVal-downTestVal) > 1e-8*altTensionCritStrain && count++  <  32)
 		{
 			double testVal = (upTestVal+downTestVal)*.5 ;
 			mainCurve = 1./(1.+sqrt(value*(testVal))) ;
 
-			if(testVal < tensionCritStrain)
+			if(testVal < altTensionCritStrain)
 				factor = 1. ;
 			else //if(testVal < strain_ch)
 				factor = mainCurve ;
@@ -170,20 +171,20 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 // 				factor = 0 ;
 			
 
-			if( testVal*pseudoYoung > upVal*factor )
+			if( testVal*pseudoYoung > altUpVal*factor )
 				upTestVal = testVal ;
 			else
 				downTestVal = testVal ;
 
 		}
 
- 	
- 		maxTension = (upTestVal+downTestVal)*.5*pseudoYoung ;
- 		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
- 
- 		if(factor < POINT_TOLERANCE_2D)
- 			return POINT_TOLERANCE_2D ;
- 	}
+	
+		maxTension = (upTestVal+downTestVal)*.5*pseudoYoung ;
+		maxTensionStrain = (upTestVal+downTestVal)*.5 ;
+
+		if(factor < POINT_TOLERANCE_2D)
+			return POINT_TOLERANCE_2D ;
+	}
 
 	double criterion = 0 ;
 	if(maxTensionStrain > POINT_TOLERANCE_2D)
@@ -248,17 +249,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*3.6;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*3.6 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2.;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2. ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*3.6 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2. && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*3.6 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2. ;
 				inRebarInfluence = true ;
 			}
 		}

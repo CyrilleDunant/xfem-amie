@@ -212,7 +212,11 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 
 	double nunu = nu ;
 	if(getState().max() > POINT_TOLERANCE_2D)
+	{
 		nunu = 0. ;
+		E_0 /= 1.-nu*nu ;
+		E_1 /= 1.-nu*nu ;
+	}
 
 	
 	double nu21 = 0 ; //(nu/std::max(E_0, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;

@@ -123,7 +123,6 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 	{
 		if(boundaryConditionCache)
 		{
-			std::cout << boundaryConditionCache->size() << std::endl;
 			for(size_t i = 0 ; i < boundaryConditionCache->size() ; i++)
 			{
 				if ((*boundaryConditionCache)[i])
