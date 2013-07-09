@@ -881,6 +881,11 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalcul
 	return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
 }
 
+#ifndef _OPENMP_
+	int omp_get_max_threads() { return 1 ; }
+	int omp_get_thread_num() { return 0 ; }
+#endif
+
 std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, double t)
 {
 	size_t vlength = 3 ;
@@ -963,7 +968,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				{
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 					
-					double correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
+					double correction = 0 ;
+					if(ci->getBehaviour()->getDamageModel())
+						correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
 						
 					int tnum = omp_get_thread_num() ;
 					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);

@@ -516,7 +516,7 @@ void step(GeometryType ref, int samplingNumber)
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
-		exit(0) ;
+//		exit(0) ;
 
 		e_xx_max /= e_xx_max_count ;
 		e_xx_min /= e_xx_min_count ;
@@ -680,7 +680,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		if(ret.size() == max)
 		  break ;
 	}
-	exit(0) ;
+//	exit(0) ;
 	
 	int count = 0 ;
 	for(auto i = zonesPerIncs.begin() ; i != zonesPerIncs.end() ; ++i)
@@ -1183,6 +1183,25 @@ bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int
 		return true ;
 }
 
+double getAverageDamage( FeatureTree & F)
+{
+	double area = 0. ;
+	double damage = 0. ;
+	std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		double ar = tri[i]->area() ;
+		double d = 0. ;
+		if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->getDamageModel())
+		{
+			d = tri[i]->getBehaviour()->getDamageModel()->getState().max() ;
+		}
+		damage += d*ar ;
+		area += ar ;
+	}
+	return damage/area ;
+}
+
 int main(int argc, char *argv[])
 {
 	timeval time0, time1 ;
@@ -1193,7 +1212,7 @@ int main(int argc, char *argv[])
   
   GeometryType reference = CIRCLE ;
 	
-	if(argc > 2)
+/*	if(argc > 2)
 	{
 		if(std::string(argv[2]) == std::string("--ellipse"))
 			reference = ELLIPSE ;
@@ -1201,7 +1220,7 @@ int main(int argc, char *argv[])
 			reference = TRIANGLE ;
 		if(std::string(argv[2]) == std::string("--rectangle"))
 			reference = RECTANGLE ;
-	}
+	}*/
 	
 	
 	
@@ -1209,9 +1228,9 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	double itzSize = 0.000000005;
- 	int inclusionNumber = 200 ;
+ 	int inclusionNumber = 6000 ;
 // 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,100) ;
+	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,inclusionNumber) ;
  	
 	double c_area = 0 ;
 	double t_area = 0 ;
@@ -1327,8 +1346,8 @@ int main(int argc, char *argv[])
 // 	return 0 ;
 	
 	
-	sample.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
-	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour() ;
+	sample.setBehaviour(new PasteBehaviour()) ;
+	AggregateBehaviour * agg = new AggregateBehaviour() ;
 	VoidForm * v = new VoidForm() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
@@ -1362,10 +1381,10 @@ int main(int argc, char *argv[])
 
 //	generatePoresHomogeneously(500,100,inclusions, sample, F) ;
     
-/*	switch(reference)
+	switch(reference)
 	{
 		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(100, 20, inclusions, F) ;
+			zones = generateExpansiveZonesHomogeneously(1000, 100, inclusions, F) ;
 			break ;
 		case ELLIPSE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;
@@ -1376,25 +1395,93 @@ int main(int argc, char *argv[])
 		case RECTANGLE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, recinc, F) ;
 			break ;
-	}*/
+	}
 
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.00005*1e-3) ;
-	F.addBoundaryCondition(stress) ;
+//	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.00005*1e-3) ;
+//	F.addBoundaryCondition(stress) ;
 
 	int nSampling = atof(argv[1]) ;
 	
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
+	F.setMaxIterationsPerStep(4000) ;
 	
 	
+	std::string hop = "rag_out" ;
+	std::fstream out ;
+	out.open(hop.c_str(), std::ios::out) ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{
-		step(reference, nSampling+i) ;
-		stress->setData( -0.005*(i+2)*1e-3 ) ;
+		F.step() ;
+		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 0) ;
+		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 0) ;
+		double damage = getAverageDamage(F) ;
+		std::cout << strain[0] << "\t" << strain[1] << std::endl ;
+
+		std::string filename = "rag_" ;
+		filename.append(itoa(i)) ;
+		TriangleWriter writer(filename, &F) ;
+		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+		writer.getField(TWFT_VON_MISES) ;
+		writer.getField(TWFT_STIFFNESS) ;
+		writer.getField(TWFT_DAMAGE) ;
+		writer.write() ;
+
+		double delta_r = sqrt(aggregateArea*.05/((double)zones.size()*M_PI))/(double)30 ;
+	        std::cout << "delta_r => " << delta_r << std::endl ;
+		if(!F.solverConverged())
+				delta_r *= .01 ;
+
+		double reactedArea = 0 ;
+			
+		Feature * current = nullptr ;
+		if(!zones.empty())
+			current = zones[0].feature() ;
+		double current_area = 0 ;
+		int current_number = 0 ;
+		int stopped_reaction = 0 ;
+		for(size_t z = 0 ; z < zones.size() ; z++)
+		{
+			zones[z].zone->setRadius(zones[z].zone->getRadius()+delta_r) ;	
+			if(zones[z].is(current))
+			{
+				current_area += zones[z].zone->area() ;
+				current_number++ ;
+			}
+			else
+			{
+				if(current_area/zones[z-1].areaOfInclusion() > 0.05)
+				{
+					stopped_reaction++ ;
+					for(size_t m = 0 ; m < current_number ; m++)
+					{
+						reactedArea -= zones[z-1-m].zone->area() ;
+						zones[z-1-m].zone->setRadius(zones[z].zone->getRadius()-delta_r) ;
+						reactedArea += zones[z-1-m].zone->area() ;
+					}
+				}
+				current_area = zones[z].zone->area() ;
+				current_number = 1 ;
+				current = zones[z].feature() ;
+			}
+			reactedArea += zones[z].zone->area() ;
+		}
+			
+		out << reactedArea/aggregateArea << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << damage << std::endl ;
+		std::cout << "reacted Area : " << reactedArea << ", reaction stopped in "<< stopped_reaction << " aggs."<< std::endl ;
+
+		
+//			if (tries >= maxtries)
+//				break ;
+	
+
+
+//		step(reference, nSampling+i) ;
+//		stress->setData( -0.005*(i+2)*1e-3 ) ;
 	}
 	
 	double area = 0 ;
