@@ -630,7 +630,9 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_
 
 	e->getState().getExternalFieldAtGaussPoints( field, externaldofs, g) ;
 
-	f += vm.ieval( Gradient( shape ) * g, e, v) ;
+	Vector f1 = vm.ieval( Gradient( shape ) * g, e, v) ;
+//	std::cout << f1[0] << ";" ;
+	f += f1 ;
 	
 	return f ;
 }

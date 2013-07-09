@@ -23,6 +23,7 @@ struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
 	Vector imposedGeneralizedStrain ;
 	Vector imposedStress ;
   
+	ViscoelasticityAndImposedDeformation( ViscoelasticModel model, const Matrix & rig, int additionnalBlocksAfter = 0, double r = 0) ; 
 	// constructor for pure elasticity or pure viscosity
 	ViscoelasticityAndImposedDeformation( ViscoelasticModel model, const Matrix & rig, Vector & imp, int additionnalBlocksAfter = 0, double r = 0) ; 
 	// constructor for elementary Kelvin-Voigt or Maxwell
@@ -63,9 +64,33 @@ struct ViscoelasticityAndImposedDeformation : public Viscoelasticity
 
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
-private:
+protected:
 	void makeImposedStress() ;
   
+} ;
+
+struct ViscoelasticityAndVariableImposedDeformation : public ViscoelasticityAndImposedDeformation
+{
+	Function variableImposed ;
+
+	ViscoelasticityAndVariableImposedDeformation( ViscoelasticModel model, const Matrix & rig, const Function & f, int additionnalBlocksAfter = 0, double r = 0) ; 
+
+	virtual ~ViscoelasticityAndVariableImposedDeformation() { } ;
+
+	virtual Form * getCopy() const ;
+
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
+	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+	
+	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
+	
+	virtual bool isViscous() const { return true ; }
+
 } ;
 
 } ;

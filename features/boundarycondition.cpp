@@ -680,6 +680,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				return ;
 			}
+
 			case SET_STRESS_XI:
 			{
 				if ( e->getBehaviour()->fractured() )
@@ -1019,6 +1020,90 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				break ;
 
+			case SET_VOLUMIC_STRESS_XI:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+
+				
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v, true) ;
+					
+					a->addForceOn( XI, forces[0], id[i].id ) ;
+					a->addForceOn( ETA, forces[1], id[i].id ) ;
+				}
+				return ;
+			}
+
+			case SET_VOLUMIC_STRESS_ETA:
+
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j].id == e->getBoundingPoint( i ).id )
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+				
+				
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e, gp, Jinv, v, true) ;
+					
+					a->addForceOn( XI, forces[0], id[i].id ) ;
+					a->addForceOn( ETA, forces[1], id[i].id ) ;
+				}
+				
+				return ;
+			}				
 			case SET_STRESS_XI:
 			{
 				if ( e->getBehaviour()->fractured() )
