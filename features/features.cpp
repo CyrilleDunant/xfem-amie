@@ -5892,7 +5892,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			std::vector<DelaunayTriangle *> tris = j->second->getElements() ;
 
 			int ecounter = 0 ;
-			#pragma omp parallel for
+// 			#pragma omp parallel for
 			for( size_t i = 0 ; i < tris.size() ; i++ )
 			{
 				if(!tris[i]->getBehaviour())
@@ -5924,7 +5924,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			{
 				std::vector<DelaunayTriangle *> triangles = coarseTrees[i]->getElements() ;
 
-				#pragma omp parallel for schedule(auto)
+// 				#pragma omp parallel for schedule(auto)
 
 				for( size_t j = 0 ; j < triangles.size() ; j++ )
 				{

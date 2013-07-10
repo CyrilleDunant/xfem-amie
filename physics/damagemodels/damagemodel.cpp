@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 {
 	elementState = &s ;
 	
-	double iterationNumber = 32 ;
+	double iterationNumber = 36 ;
 	double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 	double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
