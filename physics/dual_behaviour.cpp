@@ -51,6 +51,7 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 	if(inGeometry->in(test))
 	{
+// 		std::cout << "  padum " << test.t << std::endl ;
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStress(p,e,g) ;
 	}

@@ -185,7 +185,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 
 Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
-
+/*
 	
 // 	if ( getState().max() < POINT_TOLERANCE_2D)
 // 		return m ;
@@ -225,7 +225,7 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
 		G = 0 ;
 
-	stiff->setStiffness(E_0, E_1, G, nunu) ;
+	stiff->setStiffness(E_0, E_1, G, nunu) ;*/
 	return stiff->getTensor(Point())*factor ;
 
 }
@@ -298,6 +298,9 @@ void addAndConsolidate( std::vector<std::pair<double, double> > & target, std::v
 
 void RotatingCrack::postProcess()
 {
+
+	
+	
 // 	if(converged)
 // 	{
 // 		getState(true)[0] = std::max(getState(true)[0],getState(true)[2]) ;
@@ -333,6 +336,40 @@ void RotatingCrack::postProcess()
 		getState(true)[0] = 1. ;
 		getState(true)[1] = 1. ;
  	}
+ 	
+ 	double E_0 = E ;
+	double E_1 = E ;
+	double fs = getState()[0] ;
+	double ss = getState()[2] ;
+	if(!firstTension)
+	{
+		fs = getState()[1] ;
+	}
+	if(!secondTension)
+	{
+		ss = getState()[3] ;
+	}
+	
+
+		E_0 *= ( 1. - fs ) ;
+		E_1 *=  ( 1. - ss ) ;
+
+	double nunu = nu ;
+	if(getState().max() > POINT_TOLERANCE_2D)
+	{
+		nunu = 0. ;
+		E_0 /= 1.-nu*nu ;
+		E_1 /= 1.-nu*nu ;
+	}
+
+	
+	double nu21 = 0 ; //(nu/std::max(E_0, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
+	double nu12 = 0 ; //(nu/std::max(E_1, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
+	double G = E_0*E_1/(E_0+E_1) ;
+	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
+		G = 0 ;
+
+	stiff->setStiffness(E_0, E_1, G, nunu) ;
 }
 
 RotatingCrack::~RotatingCrack()
