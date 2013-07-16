@@ -20,6 +20,7 @@
 #include "../features/pore.h"
 #include "../utilities/writer/triangle_writer.h"
 #include "../physics/materials/gel_behaviour.h"
+#include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/homogenization/homogenization_base.h"
@@ -128,7 +129,7 @@ int main(int argc, char *argv[])
 	if(noZones)
 		std::cout << "disabling asr zones" << std::endl ;
 	if(pseudoDamage)
-		std::cout << "enabling homogeneous damage in paste" << std::endl ;
+		std::cout << "enabling homogeneous orthotropic damage in aggregate" << std::endl ;
 	double aggTensile = 45e6 ;
 	double pasteTensile = 2e6 ;
 	
@@ -212,7 +213,7 @@ int main(int argc, char *argv[])
 	if(noZones)
 		name.append("nozones_") ;
 	if(pseudoDamage)
-		name.append("pseudodamage_") ;
+		name.append("orthodamage_") ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
@@ -277,24 +278,29 @@ int main(int argc, char *argv[])
 		std::ofstream out ;
 		out.open(namei.c_str(), std::ios::out ) ;
 		
-		Vector homDamage(naggregates+2) ; homDamage = 0. ;
-		Vector avgStress(naggregates+2) ; avgStress = 0. ;
+		Vector homDamageX(naggregates+2) ; homDamageX = 0. ;
+		Vector homDamageY(naggregates+2) ; homDamageY = 0. ;
+		Vector avgStressX(naggregates+2) ; avgStressX = 0. ;
+		Vector avgStressY(naggregates+2) ; avgStressY = 0. ;
 		
 		if(pseudoDamage)
 		{
 			for(size_t k = 0 ; k < triangles.size() ; k++)
 			{
 				triangles[k]->getState().getAverageField( REAL_STRESS_FIELD, stress ) ;
-				double principal = (toPrincipal(stress)).max() ;
-				avgStress[ map[triangles[k]] ] += principal * triangles[k]->area() ;
+				avgStressX[ map[triangles[k]] ] += stress[0] * triangles[k]->area() ;
+				avgStressY[ map[triangles[k]] ] += stress[1] * triangles[k]->area() ;
 			}
 			
-			for(size_t k = 0 ; k < 1 ; k++)
+			for(size_t k = 1 ; k < avgStressX.size() ; k++)
 			{
-				avgStress[k] /= areas[k] ;
-				if(avgStress[k] > pasteTensile)
-					homDamage[k] = 1. - pasteTensile/avgStress[k] ;
-				summary <<  homDamage[k] << "\t" ;
+				avgStressX[k] /= areas[k] ;
+				if(avgStressX[k] > pasteTensile)
+					homDamageX[k] = 1. - pasteTensile/avgStressX[k] ;
+				avgStressY[k] /= areas[k] ;
+				if(avgStressY[k] > pasteTensile)
+					homDamageY[k] = 1. - pasteTensile/avgStressY[k] ;
+				summary <<  homDamageX[k] << "\t" << homDamageY[k] << "\t" ;
 			}
 		}
 		summary << std::endl ;
@@ -302,24 +308,32 @@ int main(int argc, char *argv[])
 		
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
-			if(pseudoDamage && map[ triangles[k] ] == 0 && homDamage[ map[ triangles[k] ] ] )
+			if(pseudoDamage && map[ triangles[k] ] > 0 && homDamageX[ map[ triangles[k] ] ] )
 			{
 				BimaterialInterface * dual = dynamic_cast<BimaterialInterface*>(triangles[k]->getBehaviour()) ;
 				ViscoelasticityAndImposedDeformation * imp = dynamic_cast<ViscoelasticityAndImposedDeformation*>(triangles[k]->getBehaviour()) ;
 				Viscoelasticity * visc = dynamic_cast<Viscoelasticity*>(triangles[k]->getBehaviour()) ;
 				if(!dual && !imp)
 				{
-					triangles[k]->scaleCachedElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
-					triangles[k]->scaleCachedViscousElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
-					visc->param *= (1.-homDamage[map[ triangles[k] ]]) ;
-					visc->eta *= (1.-homDamage[map[ triangles[k] ]]) ;
+					double E = 59e9 ; if(map[ triangles[k] ] == 0) { E = 12e9 ; }
+					OrthotropicStiffness tmp(E*(1-homDamageX[ map[ triangles[k] ] ]), E*(1-homDamageX[ map[ triangles[k] ] ]), 0.3,0.3,0., true) ;
+					for(size_t p = 0 ; p < 3 ; p++)
+					{
+						for(size_t q = 0 ; q < 3 ; q++)
+							visc->param[p][q] = tmp.param[p][q] ;
+					}
+					triangles[k]->clearElementaryMatrix() ;
+// 					triangles[k]->scaleCachedElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
+// 					triangles[k]->scaleCachedViscousElementaryMatrix(1.-homDamage[map[ triangles[k] ]]) ;
+// 					visc->param *= (1.-homDamage[map[ triangles[k] ]]) ;
+// 					visc->eta *= (1.-homDamage[map[ triangles[k] ]]) ;
 				}
 			}
 		  
 			triangles[k]->getState().getAverageField( STRAIN_FIELD, strain ) ;
 			triangles[k]->getState().getAverageField( REAL_STRESS_FIELD, stress ) ;
 			out << k << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
-			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << homDamage[ map[triangles[k]] ] << std::endl ;			
+			out << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << homDamageX[ map[triangles[k]] ] << "\t" << homDamageY[ map[triangles[k]] ]<< std::endl ;			
 		}
 		out.close() ;
 		
