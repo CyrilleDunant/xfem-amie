@@ -17,6 +17,8 @@ class TimeDependentCircle : public Circle
 protected:
 	Function radius_t ;
 	std::vector< std::pair<double, double> > circles ;
+	bool linear ;
+	bool constant ;
 	
 public:
 	TimeDependentCircle(Function r = Function(), const Point & center = Point());
@@ -25,11 +27,15 @@ public:
 	TimeDependentCircle(double r0, double rate, Point * center);
 
 	void setTimeCircles( Vector & instants ) ;
+	void setLinear(bool l) { linear = l ; constant = false ;}
+	void setConstant(bool c) { linear = false ; constant = c ;}
 	
 	double radiusAtTime(const Point & p) const ;
 	double radiusAtTime(Point * p) const ;
 	Circle circleAtTime(const Point & p) const ;
 	Circle circleAtTime(Point * p) const ;
+	
+	double timeAtRadius( double r ) const ;
 	
 	virtual bool in(const Point &v) const ;
 

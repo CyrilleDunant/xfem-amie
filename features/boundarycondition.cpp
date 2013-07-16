@@ -3066,6 +3066,13 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 	}
 	else
 	{
+// 		std::cout << std::endl ;
+// 		std::cout << std::endl ;
+// 		std::cout << previousDisp.size() << std::endl ;
+// 		std::cout << ndofmax*dof << std::endl ;
+// 		std::cout << dofPerPlane << std::endl ;
+// 		std::cout << std::endl ;
+// 		std::cout << std::endl ;
 		size_t extradof = previousDisp.size() - ndofmax*dof ;
 		size_t extradofPerPlane = extradof / timePlanes ;
 
@@ -3079,6 +3086,14 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 					a->setPointAlongIndexedAxis( n, previousDisp[ dofPerPlane*(i+1)*dof + j*dof + n], dofPerPlane*i + j )  ;
 				}
 			}
+			
+// 			for(size_t j = dofPerPlane ; j < dofPerPlane+extradofPerPlane ; j++)
+// 			{
+// 				for(size_t n = 0 ; n < dof ; n++)
+// 				{
+// 					a->setPointAlongIndexedAxis( n, previousDisp[ ndofmax*dof + (j-dofPerPlane)*(i+1)*dof + j*dof + n], ndofmax + extradofPerPlane*i + j )  ;
+// 				}
+// 			}
 			
 		}
 	}

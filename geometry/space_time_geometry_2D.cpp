@@ -8,6 +8,8 @@ TimeDependentCircle::TimeDependentCircle(Function r, const Point & c): Circle(0.
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
 	center.t = c.t ;
+	linear = false ;
+	constant = false ;
 }
 
 
@@ -16,6 +18,8 @@ TimeDependentCircle::TimeDependentCircle(Function r, Point * c): Circle(0., c->x
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
 	center.t = c->t ;
+	linear = false ;
+	constant = false ;
 }
 
 TimeDependentCircle::TimeDependentCircle(double r0, double rate, const Point & c): Circle(r0, c.x, c.y), radius_t("t")
@@ -26,6 +30,8 @@ TimeDependentCircle::TimeDependentCircle(double r0, double rate, const Point & c
 	radius_t -= t1 ;
 	radius_t *= rate ;
 	center.t = t1 ;
+	linear = true ;
+	constant = false ;
 }
 
 TimeDependentCircle::TimeDependentCircle(double r0, double rate, Point * c): Circle(r0, c->x, c->y), radius_t("t")
@@ -36,6 +42,8 @@ TimeDependentCircle::TimeDependentCircle(double r0, double rate, Point * c): Cir
 	radius_t -= t1 ;
 	radius_t *= rate ;
 	center.t = t1 ;
+	linear = true ;
+	constant = false ;
 }
 
 double TimeDependentCircle::radiusAtTime(const Point& p) const
@@ -100,7 +108,27 @@ Function TimeDependentCircle::getRadiusFunction(Function& time) const
 // 	r.setNumberOfVariableTransforms(4);
  	r.setVariableTransform(TIME_VARIABLE, time);
 	r.makeVariableTransformDerivative() ;
+//	r.setNumberOfDerivatives(0);
 	return r ;
 }
+
+double TimeDependentCircle::timeAtRadius(double r) const
+{
+	if(constant)
+		return -1 ;
+	if(linear)
+	{
+		double r0 =  VirtualMachine().eval( radius_t, 0,0,0,0) ;
+		double r1 =  VirtualMachine().eval( radius_t, 0,0,0,1) ;
+		return (r-r0)/(r1-r0) ;
+	}
+	else
+	{
+		double r0 =  VirtualMachine().eval( radius_t, 0,0,0,0) ;
+		double r1 =  VirtualMachine().eval( radius_t, 0,0,0,1) ;
+		return (r-r0)/(r1-r0) ;
+	}
+}
+
 
 

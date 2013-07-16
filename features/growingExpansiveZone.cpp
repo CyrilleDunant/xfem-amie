@@ -30,8 +30,8 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	
 	std::vector<DelaunayTriangle *> & disc = TimeDependentEnrichmentInclusion::cache ;
 	
-	if(disc.size() < 2)
-		return ;
+// 	if(disc.size() < 6)
+// 		return ;
 	
 	std::vector<DelaunayTriangle *> ring ;
 	std::vector<DelaunayTriangle *> inDisc ;

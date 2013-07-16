@@ -7,6 +7,7 @@
 #include "homogeneised_behaviour.h"
 #include "viscoelasticity.h"
 #include "fracturecriteria/fracturecriterion.h"
+#include "../geometry/space_time_geometry_2D.cpp"
 #include <typeinfo>
 
 using namespace Mu ;
@@ -49,6 +50,7 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 {
 	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
+//	std::cout << p.t << ";" ;
 	if(inGeometry->in(test))
 	{
 // 		std::cout << "  padum " << test.t << std::endl ;
@@ -135,8 +137,51 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	Matrix retIn(ret) ;
 	inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
 	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
-	
 	ret += retIn ;
+	
+/*	TimeDependentCircle * hop = dynamic_cast<TimeDependentCircle *>(inGeometry) ;
+	if(hop != nullptr)
+	{
+		Matrix test(ret.numRows(),ret.numCols()) ;
+		std::vector<Variable> vars ;
+		vars.push_back(XI);
+		vars.push_back(ETA);
+		vars.push_back(TIME_VARIABLE);
+		Matrix Cinter = inBehaviour->param ;
+		Cinter += outBehaviour->param ;
+		Cinter *= 0.5 ;
+		double tot = 0. ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size()/3 ; i++)
+		{
+			Point p = gp.gaussPoints[i*3].first ;
+			double w = gp.gaussPoints[i*3].second / (5./9.);
+			Point q0( vm->eval(xtransform, p.x,p.y,0,-1), vm->eval(ytransform,p.x,p.y,0,-1),0,vm->eval(ttransform,p.x,p.y,0,-1)) ;
+			Point q1( vm->eval(xtransform, p.x,p.y,0,1), vm->eval(ytransform,p.x,p.y,0,1),0,vm->eval(ttransform,p.x,p.y,0,1)) ;
+			Point c = hop->getCenter() ;
+			double radiusatp = std::sqrt((q0.x-c.x)*(q0.x-c.x) + (q0.y-c.y)*(q0.y-c.y)) ;
+			double radiusatq0 = hop->radiusAtTime(q0) ;
+			double radiusatq1 = hop->radiusAtTime(q1) ;
+			p.t = -1. + 2.*(radiusatp-radiusatq0)/(radiusatq1-radiusatq0) ;
+//			std::cout << radiusatq0 << "\t" << radiusatp << "\t" << radiusatq1 << "\t" <<  p.t << std::endl ;
+			if(p.t > -1 && p.t < 1)
+			{
+				Matrix gnitr = vm->geval(p_i, Jinv[i*3], vars, p.x,p.y,p.z,p.t,true) ;
+				Matrix gnj = vm->geval(p_j, Jinv[i*3], vars, p.x,p.y,p.z,p.t,false) ;
+				Matrix testi = gnitr*Cinter*gnj ;
+				testi *= w ;
+				test += testi ;
+			}
+			tot += w ;
+		}
+//  		if(tot > 0)
+//  			test /= tot ;
+		
+
+
+		ret += test ;
+	}*/
+	
+	
 	
 	
 }
@@ -276,8 +321,11 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 			outIterator++ ;
 		}
 	}
+	
 
 	std::vector<BoundaryCondition * > temp = inBehaviour->getBoundaryConditions(s,id, p_i, gpIn, inMatrixArray) ;
+// 	for(size_t i = 0 ; i < temp.size() ; i++)
+// 		temp[i]->setData(temp[i]->getData()*1.5) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 	temp.clear() ;
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;

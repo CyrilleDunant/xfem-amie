@@ -1,5 +1,6 @@
 #include "generalized_spacetime_viscoelastic_element_state.h"
 #include "../physics/viscoelasticity.h"
+#include "../physics/dual_behaviour.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../mesher/delaunay.h"
 #include "../utilities/random.h"
@@ -48,7 +49,7 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 		{
 			gp_alternative.push_back(original.gaussPoints[i*3]);
 			gp_alternative.back().first.t = time ;
-			gp_alternative.back().second /= 5./9 ;
+			gp_alternative.back().second /= 5./9. ;
 		}
 		
 // 			Point A(0,1) ;
@@ -122,6 +123,20 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
+// 	BimaterialInterface * dual = dynamic_cast<BimaterialInterface *>(parent->getBehaviour()) ;
+// 	if(dual != nullptr)
+// 	{
+// 		ret = 0 ;
+// 		return ;
+// 	}
+// 	Vector toto = parent->getBehaviour()->getImposedStress(Point(1./3.,1./3.,0,0)) ;
+// 	if(toto[0] > 0)
+// 	{
+// 		ret = 0 ;
+// 		return ;
+// 	}
+  
+  
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
@@ -150,6 +165,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		enriched += VirtualMachine().ieval( getParent()->getEnrichmentFunction(i), gp) ;
 		//std::cout << "(" << gp.gaussPoints.size() << ")" << enriched << "\t" ;
 	}
+	
+	
 	
 // 	if(parent->getEnrichmentFunctions().size())
 // 	{
@@ -387,7 +404,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			return ;
 		case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-			{			 
+			{		
+			  
+			  
 				Vector dx(0., totaldof) ;
 				Vector dy(0., totaldof) ;
 				Vector dt(0., totaldof) ;

@@ -32,6 +32,16 @@ TimeDependentEnrichmentInclusion::~TimeDependentEnrichmentInclusion()
 void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	freeIds[dtree].clear();
+	double dt = 1. ;
+	if(cache.size())
+		dt = cache[0]->getState().getNodalDeltaTime() * 2. ;
+
+	Function time("t") ;
+	time += dt ;
+	Function radius = getRadiusFunction(time) ;
+	Point c = getCenter() ;
+	TimeDependentCircle dummy( radius, c) ;
+	
 	for(size_t i = 0 ; i < cache.size() ; i++)
 	{
 		if(!cache[i]->enrichmentUpdated)
@@ -42,7 +52,7 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 		}
 		cache[i]->enrichmentUpdated = true ;
 	}
-	cache = dtree->getConflictingElements(getPrimitive()) ;
+	cache = dtree->getConflictingElements(& dummy) ;
 	
 	if(cache.empty())
 	{
@@ -74,7 +84,6 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 
 Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-// 	
 	TriElement father(LINEAR) ;
 	
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
@@ -124,10 +133,10 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
  	updated = false ;
 	const std::vector<DelaunayTriangle *> & disc  = cache;
 	
-	if(disc.size() < 2)
-	{
-		return ;
-	}
+// 	if(disc.size() < 2)
+// 	{
+// 		return ;
+// 	}
 	
 //	std::cout << "hello" << std::endl ;
 
@@ -148,33 +157,52 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 		bool added = false ;
+		double dt = disc[i]->getState().getNodalDeltaTime() ;
 			
+		bool bin = false ;
+		bool bout = false ;
 		for(size_t j = 0 ; j < nodesIterator.size() && !added ; j++)
 		{
-			bool bin = false ;
-			bool bout = false ;
+ 			double ddt = 0 ;
+// 			if( j == 0)
+// 				ddt = -2.*dt ;
+// 			if(j == nodesIterator.size()-1)
+// 				ddt = 2.*dt ;
+			
 			if(added)
 				break ;
 			
+			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
+			A.t += ddt ;
 			
-			if( in( disc[i]->getBoundingPoint( nodesIterator[j][0] ) ) )
+			if( in( A ))
 				bin = true ;
 			else
 				bout = true ;
 
+			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
+			B.t += ddt ;
 			
-			if( in( disc[i]->getBoundingPoint( nodesIterator[j][1] ) ) )
+			if( in( B ))
 				bin = true ;
 			else
 				bout = true ;
 
-			if( in( disc[i]->getBoundingPoint( nodesIterator[j][2] ) ) )
+			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
+			C.t += ddt ;
+
+			if( in( C ))
 				bin = true ;
 			else
 				bout = true ;
 			
-// 			if(bin && bout)
-// 			{
+// 			A.print() ;
+// 			B.print() ;
+// 			C.print() ;
+// 			std::cout << std::endl ;
+// 			
+//  			if(bin && bout)
+//  			{
 				added = true ;
 				ring.push_back(disc[i]) ;
 // 			}
@@ -407,7 +435,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			disc[i]->clearAllEnrichment() ;
 	}
 	
-	std::cout << enrichedElem.size() << std::endl ;
+//	std::cout << enrichedElem.size() << std::endl ;
 	
 // 	std::cout << lastId << std::endl ;
 	
