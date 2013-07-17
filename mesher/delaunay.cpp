@@ -2881,8 +2881,12 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE_2D ;
 	VirtualMachine vm ;
-	if(getEnrichmentFunctions().size() > 0)
+	if(getEnrichmentFunctions().size() > 0 )
 	{
+		double originalSum = 0 ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			originalSum+=gp.gaussPoints[i].second ;
+		
 		std::vector<std::pair<Point, double> > gp_alternative ;
 		if( order >= CONSTANT_TIME_LINEAR )
 		{
@@ -2896,7 +2900,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			Point B(0,0) ;
 			Point C(1,0) ;
 			double a = std::sqrt(0.6) ;
-			
+			TriElement father (LINEAR) ;
 			TriangularInclusion trg(A,B,C) ;
 			srand(0) ;
 			trg.sample(24) ;
@@ -2911,19 +2915,29 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			{
 				dt->insert(&trg.getInPoint(i));
 			}
+			Function xtr = getXTransform() ;
+			Function ytr = getYTransform() ;
+			Function ttr = getTTransform() ;
+			
 			std::vector<DelaunayTriangle *> tris = dt->getElements() ;
-// 			std::cout << tris.size() << ";" ;
+			double fsum = 0 ;
 			for(size_t i = 0 ; i < tris.size() ; i++)
 			{
-// 				std::cout << i << ";" ;
-				Point c = tris[i]->getCenter() ;
-// 				c.print() ;
-				double ar = 2.*tris[i]->area() ;
-				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,-a), ar*5./18));
-				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,0), ar*8./18));
-				gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,a), ar*5./18));
+				auto gpl = tris[i]->getGaussPoints() ;
+				tris[i]->refresh(&father) ;
+				for(size_t j = 0 ; j < gpl.gaussPoints.size() ; j++)
+				{
+					Point c(vm.eval(xtr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y), vm.eval(ytr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y)) ;
+					double ar = 2.*tris[i]->area() ;
+					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,-1), gpl.gaussPoints[j].second*ar*1./3.));
+					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0, 0), gpl.gaussPoints[j].second*ar*4./3.));
+					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0, 1), gpl.gaussPoints[j].second*ar*1./3.));
+
+				}
 				
 			}
+			
+			
 /*			
 			
 			while(npoints > 0)
@@ -2943,8 +2957,17 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
 			{
 				gp_alternative[i].second *= jac ;
-			}	
+				fsum += gp_alternative[i].second ;
+				
+			}
 			
+			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
+			{
+				gp_alternative[i].second *= originalSum/fsum ;
+			}
+			
+/*			std::cout << "originalSum = " << originalSum << "fsum = " << fsum << std::endl ;
+			exit(0) */;
 			delete dt ;
 // 			std::cout << "out!" << std::endl ;
 			

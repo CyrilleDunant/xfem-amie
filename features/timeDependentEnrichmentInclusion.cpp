@@ -84,37 +84,37 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 
 Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-	TriElement father(LINEAR) ;
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return father.getShapeFunction(0) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return father.getShapeFunction(1) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return father.getShapeFunction(2) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return 1-father.getShapeFunction(0) ;
-	}
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return 1-father.getShapeFunction(1) ;
-	}
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return 1-father.getShapeFunction(2) ;
-	}
+// 	TriElement father(LINEAR) ;
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(0) ;
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(1) ;
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(2) ;
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return 1-father.getShapeFunction(0) ;
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return 1-father.getShapeFunction(1) ;
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return 1-father.getShapeFunction(2) ;
+// 	}
 	return Function("1") ;
 }
 

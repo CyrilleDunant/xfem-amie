@@ -25,6 +25,7 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 // 	getState( true )[0] = 0.998 ;
 	isNull = false ;
 	currentAngle = 0 ;
+	originalAngle = -10 ;
 	factor = 1 ;
 	es = nullptr ;
 	firstTension = false ;
@@ -94,10 +95,20 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	{
 		es = &s ;
 
-		if(state.max() < .9999)
+		if(state.max() < .5)
+		{
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+			if(originalAngle < -8)
+			{
+				originalAngle = currentAngle ;
+			}
+		}
+// 		if(originalAngle > -10 && currentAngle-originalAngle < -M_PI*.1)
+// 			currentAngle = originalAngle-M_PI*.1 ;
+// 		if(originalAngle > -10 && currentAngle-originalAngle >  M_PI*.1)
+// 			currentAngle = originalAngle+M_PI*.1 ;
+// 		currentAngle = originalAngle ;
 		
-		stiff->setAngle(currentAngle) ;
 // 		std::cout << "----- "<< currentAngle << std::endl ;
 
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
@@ -167,8 +178,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			secondMet = false ;
 		}
 		
-		if(firstMet && !firstTension || secondMet && !secondTension)
-			range = 1 ;
+// 		if(firstMet && !firstTension || secondMet && !secondTension)
+// 			range = 1 ;
 // 		if(tensionFailure)
 // 		{
 // 			inTension = false ;
@@ -233,29 +244,30 @@ Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const Integrable
 
 void  RotatingCrack::computeDelta(const ElementState &s)
 {
+	
 	Vector range( 1., 4 ) ;
 		
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0))
 	{
-		firstTension = true ;
+// 		firstTension = true ;
 		range[1] = getState()[1] ;
 	}
 	
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(0))
 	{
-		firstTension = false ;
+// 		firstTension = false ;
 		range[0] = getState()[0] ;
 	}
 	
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(1))
 	{
-		secondTension = true ;
+// 		secondTension = true ;
 		range[3] = getState()[3] ;
 	}
 	
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInCompression(1))
 	{
-		secondTension = false ;
+// 		secondTension = false ;
 		range[2] = getState()[2] ;
 	}
 	
@@ -308,34 +320,34 @@ void RotatingCrack::postProcess()
 // 		getState(true)[1] = std::max(getState(true)[1],getState(true)[3]) ;
 // 		getState(true)[3] = std::max(getState(true)[1],getState(true)[3]) ;
 // 	}
- 	if(converged && getState()[0] >= thresholdDamageDensity)
- 	{
- 		firstTensionFailure = true ;
- 		getState(true)[0] = 1. ;
+//  	if(converged && getState()[0] >= thresholdDamageDensity)
+//  	{
+//  		firstTensionFailure = true ;
+//  		getState(true)[0] = 1. ;
+// // 		getState(true)[2] = 1. ;
+//  	}
+//  	if(converged && getState()[1] >= thresholdDamageDensity)
+//  	{
+//  		firstCompressionFailure = true ;
+//  		getState(true)[1] = 1. ;
 // 		getState(true)[2] = 1. ;
- 	}
- 	if(converged && getState()[1] >= thresholdDamageDensity)
- 	{
- 		firstCompressionFailure = true ;
- 		getState(true)[1] = 1. ;
-		getState(true)[2] = 1. ;
-		getState(true)[0] = 1. ;
-		getState(true)[3] = 1. ;
- 	}
- 	if(converged && getState()[2] >= thresholdDamageDensity)
- 	{
- 		secondTensionFailure = true ;
- 		getState(true)[2] = 1. ;
 // 		getState(true)[0] = 1. ;
- 	}
- 	if(converged && getState()[3] >= thresholdDamageDensity)
- 	{
- 		secondCompressionFailure = true ;
- 		getState(true)[3] = 1. ;
-		getState(true)[2] = 1. ;
-		getState(true)[0] = 1. ;
-		getState(true)[1] = 1. ;
- 	}
+// 		getState(true)[3] = 1. ;
+//  	}
+//  	if(converged && getState()[2] >= thresholdDamageDensity)
+//  	{
+//  		secondTensionFailure = true ;
+//  		getState(true)[2] = 1. ;
+// // 		getState(true)[0] = 1. ;
+//  	}
+//  	if(converged && getState()[3] >= thresholdDamageDensity)
+//  	{
+//  		secondCompressionFailure = true ;
+//  		getState(true)[3] = 1. ;
+// 		getState(true)[2] = 1. ;
+// 		getState(true)[0] = 1. ;
+// 		getState(true)[1] = 1. ;
+//  	}
  	
  	double E_0 = E ;
 	double E_1 = E ;
@@ -368,8 +380,13 @@ void RotatingCrack::postProcess()
 	double G = E_0*E_1/(E_0+E_1) ;
 	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
 		G = 0 ;
-
-	stiff->setStiffness(E_0, E_1, G, nunu) ;
+	
+	if(es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
+	{
+		if(es->getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+			stiff->setAngle(currentAngle) ;
+		stiff->setStiffness(E_0, E_1, G, nunu) ;
+	}
 }
 
 RotatingCrack::~RotatingCrack()

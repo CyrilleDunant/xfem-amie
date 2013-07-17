@@ -41,6 +41,7 @@ protected:
 	bool secondTensionFailure ;
 	bool firstCompressionFailure ;
 	bool secondCompressionFailure ;
+	double originalAngle ;
 	ElementState * es ;
 	
 	OrthotropicStiffness * stiff ;

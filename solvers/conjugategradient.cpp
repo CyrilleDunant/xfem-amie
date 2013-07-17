@@ -50,7 +50,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			x[i] = x0[i] ;
 	}
 
-
 	if(precond == nullptr && !cleanup)
 	{
 		cleanup = true ;
