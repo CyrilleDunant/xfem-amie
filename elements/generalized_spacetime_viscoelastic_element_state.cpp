@@ -41,6 +41,9 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 			gp = gaussPointSet(QUADRATIC, trg) ;
 			break ;
 	}
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		gp.gaussPoints[i].first.t = time ;
+	
 	if(trg->getEnrichmentFunctions().size() > 0)
 	{
 		std::vector<std::pair<Point, double> > gp_alternative ;
@@ -115,6 +118,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 // 	}
 //	std::cout << gp.gaussPoints.size() << "\t" << ret.size() << "\t" << getParent()->area() << std::endl ;
 	ret /= total;//(shapes/enriched) ;
+	
+// 	if(dummy < 0)
+// 		std::cout << t << "\t" << ret.max() << std::endl ;
 	
 // 	if(f == STRAIN_FIELD)
 // 	{
