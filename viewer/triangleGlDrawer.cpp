@@ -147,7 +147,7 @@ void TriangleGLDrawer::paintGL()
 	gluLookAt( getXtrans(), getYtrans(), zpos, getXtrans(), getYtrans(), 0, 0, 1, 0 ) ;
 	computeDisplay() ;
 
-	glColor3f( 1., 1., 1. ) ;
+	glColor3f( 0., 0., 0. ) ;
 	int elapsedTime = startTime.msecsTo( QTime::currentTime() );
 	renderText( 10, 20, QString( "%0 fps" ).arg( 1000.0f / ( float )elapsedTime ) );
 	size_t r, g, b ;
@@ -191,7 +191,7 @@ void TriangleGLDrawer::paintGL()
 // 			glVertex2f((.835-0.5) , (i-0.5)*.7 ) ;
 // 		}
 		glEnd() ;
-		glColor4ub( 255, 0, 0, 255 ) ;
+		glColor4ub( 0, 0, 0, 255 ) ;
 
 		for( double i = 1. ; i > 0 ; i -= 0.1 )
 		{
@@ -299,7 +299,7 @@ void TriangleGLDrawer::initializeGL()
 	glViewport( 0, 0, 600, 600 ) ;
 //	glEnable( GL_BLEND );
 	glShadeModel( GL_SMOOTH ); // Enables Smooth Shading
-	//glEnable( GL_LINE_SMOOTH ) ;
+	glEnable( GL_LINE_SMOOTH ) ;
 	glEnable( GL_POLYGON_SMOOTH );
 	glDisable( GL_DEPTH_TEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST ) ;
@@ -451,7 +451,7 @@ void TriangleGLDrawer::computeDisplayList()
 					v = ( v - ( double )fracdown / 10000. ) / ( ( ( double )fracup - ( double )fracdown ) / 10000. ) ;
 
 				HSVtoRGB( &r, &g, &b, 180., 0., 1.-v ) ;
-				glColor4ub( r, g, b, 255 ) ;
+				glColor4ub( std::min(r,(size_t)240), std::min(g,(size_t)240), std::min(b,(size_t)240), 255 ) ;
 
 				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
 				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
@@ -462,26 +462,26 @@ void TriangleGLDrawer::computeDisplayList()
 		}
 
 		
-/*		glLineWidth(1) ;
-		for( size_t i = 0 ; i < numberOfTriangles ; i++ )
-		{
-			glBegin( GL_LINE_LOOP ) ;
-
-			for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
-			{
-
-	//			HSVtoRGB( &r, &g, &b, 180., 0., 0. ) ;
-
-				glColor4ub( 0, 0, 0, 0 ) ;
-
-				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
-				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
-				glVertex2f( ( ( *valuesAtPoint )[j * 2][i] - min_x ) / maxdelta - 0.5 * cx + dx - 0.2, ( ( *valuesAtPoint )[j * 2 + 1][i] - min_y ) / maxdelta - 0.5 * cy + dy ) ;
-			}
-
-			glEnd() ;
-		}*/
-			
+// 		glLineWidth(1) ;
+// 		for( size_t i = 0 ; i < numberOfTriangles ; i++ )
+// 		{
+// 			glBegin( GL_LINE_LOOP ) ;
+// 
+// 			for( size_t j = 0 ; j < numberOfPointsPerTriangle ; j++ )
+// 			{
+// 
+// 	//			HSVtoRGB( &r, &g, &b, 180., 0., 0. ) ;
+// 
+// 				glColor4ub( 0, 0, 0, 0 ) ;
+// 
+// 				double dx = ( *valuesAtPoint )[( 2 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+// 				double dy = ( *valuesAtPoint )[( 3 ) * numberOfPointsPerTriangle + j][i] * mag/std::max((max_x-min_x), (max_y-min_y)) ;
+// 				glVertex2f( ( ( *valuesAtPoint )[j * 2][i] - min_x ) / maxdelta - 0.5 * cx + dx - 0.2, ( ( *valuesAtPoint )[j * 2 + 1][i] - min_y ) / maxdelta - 0.5 * cy + dy ) ;
+// 			}
+// 
+// 			glEnd() ;
+// 		}
+// 			
 		glEndList() ;
 	}
 	
