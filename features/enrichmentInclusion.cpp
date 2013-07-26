@@ -123,7 +123,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 // 	}
 // 	return f ;
 	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+/*	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
 		return father.getShapeFunction(0) ;
 	}
@@ -151,7 +151,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
 		return 1-father.getShapeFunction(2) ;
-	}
+	}*/
 	
 	return Function("1") ;
 }

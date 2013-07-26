@@ -640,14 +640,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*1000. ;
+		double h = sample.width()*0.5-radius*1000. ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*1000.)*(radius*1000.))
 			{
 				alone = false ;
 				break ;
@@ -663,7 +663,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			Circle circle(incs[j]->getRadius() - radius*60, incs[j]->getCenter()) ;
+			Circle circle(incs[j]->getRadius() - radius*1000., incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
 			{
 				std::cout << dist(zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) << std::endl ;
@@ -1347,7 +1347,7 @@ int main(int argc, char *argv[])
 	
 	
 	sample.setBehaviour(new PasteBehaviour()) ;
-	AggregateBehaviour * agg = new AggregateBehaviour() ;
+	AggregateBehaviour * agg = new AggregateBehaviour(59e9,0.3,0.00025) ;
 	VoidForm * v = new VoidForm() ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
@@ -1380,11 +1380,15 @@ int main(int argc, char *argv[])
 	}
 
 //	generatePoresHomogeneously(500,100,inclusions, sample, F) ;
+
+	std::vector<Inclusion *> largest ;
+	for(size_t i = 0 ; i < 100 ; i++)
+		largest.push_back(inclusions[i]) ;
     
 	switch(reference)
 	{
 		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(1000, 100, inclusions, F) ;
+			zones = generateExpansiveZonesHomogeneously(1000, 100, largest, F) ;
 			break ;
 		case ELLIPSE:
 			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;
@@ -1410,9 +1414,11 @@ int main(int argc, char *argv[])
 	F.setMaxIterationsPerStep(4000) ;
 	
 	
-	std::string hop = "rag_out" ;
+	std::string hop = "rag_out_" ;
+	hop.append(std::string(argv[1])) ;
 	std::fstream out ;
 	out.open(hop.c_str(), std::ios::out) ;
+	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{
@@ -1422,7 +1428,33 @@ int main(int argc, char *argv[])
 		double damage = getAverageDamage(F) ;
 		std::cout << strain[0] << "\t" << strain[1] << std::endl ;
 
+		std::vector<double> u_right ;
+		std::vector<double> u_top ;
+		Vector disp = F.getDisplacements() ;
+		std::valarray<bool> done(disp.size()/2) ;
+		done = false ;
+		for(size_t j = 0 ; j < trg.size() ; j++)
+		{
+			for(size_t k = 0 ; k < trg[j]->getBoundingPoints().size() ; k++)
+			{
+				Point p = trg[j]->getBoundingPoint(k) ;
+				if(!done[p.id])
+				{
+					if(p.x > 0.035*0.999)
+						u_right.push_back(disp[p.id*2]) ;
+					if(p.y > 0.035*0.999)
+						u_top.push_back(disp[p.id*2+1]) ;
+					done[p.id] = true ;
+				}
+			}
+		}
+		
+		std::stable_sort( u_right.begin(), u_right.end() ) ;
+		std::stable_sort( u_top.begin(), u_top.end() ) ;
+		
 		std::string filename = "rag_" ;
+		filename.append(std::string(argv[1])) ;
+		filename.append("_") ;
 		filename.append(itoa(i)) ;
 		TriangleWriter writer(filename, &F) ;
 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
@@ -1471,7 +1503,7 @@ int main(int argc, char *argv[])
 			reactedArea += zones[z].zone->area() ;
 		}
 			
-		out << reactedArea/aggregateArea << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << damage << std::endl ;
+		out << reactedArea/aggregateArea << "\t" << u_right[u_right.size()/2] << "\t" << u_top[u_top.size()/2] << "\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" << damage << std::endl ;
 		std::cout << "reacted Area : " << reactedArea << ", reaction stopped in "<< stopped_reaction << " aggs."<< std::endl ;
 
 		
