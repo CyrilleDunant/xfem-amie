@@ -56,15 +56,16 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	{
 		crackInitiated = true ;
 		double downTestVal = tensionCritStrain ;
-		double upTestVal = strain_te*1.1 ;
+		double upTestVal = std::max(strain_te*100.,tstrain*100.) ;
 		double factor = 1 ;
 		double delta_tech = (strain_te-strain_ch);
 		int count = 0 ;
 	
-		while(std::abs(upTestVal-downTestVal) > 1e-8*tensionCritStrain && count++  <  32 )
+		double sk = sqrt(k) ;
+		while(std::abs(upTestVal-downTestVal) > 1e-12*tensionCritStrain && count++  <  64 )
 		{
 			double testVal = (upTestVal+downTestVal)*.5 ;
-			double mainCurve = 1./(1.+sqrt(k)*sqrt(testVal-tensionCritStrain)) ;
+			double mainCurve = 1./(1.+sk*sqrt(testVal-tensionCritStrain)) ;
 
 			if(testVal < tensionCritStrain)
 				factor = 1. ;
@@ -134,7 +135,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	return POINT_TOLERANCE_2D ;
 }
 
-double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value)
+double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
 {
 
 	double altUpVal( /*0.66*1e6*pow(std::abs(downVal*1e-6),.33)*/upVal) ;
@@ -146,16 +147,16 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 	{
 		crackInitiated = true ;
 		double downTestVal = altTensionCritStrain ;
-		double upTestVal = strain_te ;
+		double upTestVal = std::max(strain_te*100., tstrain*100.) ;
 		double factor = 1 ;
 		double delta_tech = (strain_te-strain_ch);
 		double mainCurve = 0 ;
 		int count = 0 ;
 
-		while(std::abs(upTestVal-downTestVal) > 1e-8*altTensionCritStrain && count++  <  32)
+		while(std::abs(upTestVal-downTestVal) > 1e-12*altTensionCritStrain && count++  <  64)
 		{
 			double testVal = (upTestVal+downTestVal)*.5 ;
-			mainCurve = 1./(1.+sqrt(value*(testVal))) ;
+			mainCurve = 1./(1.+sqrt(value*(testVal-deltaCriterion))) ;
 
 			if(testVal < altTensionCritStrain)
 				factor = 1. ;
@@ -249,17 +250,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*1.5;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*1.5 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*4;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*4 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*1.5 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*4 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*1.5 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*4 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -279,14 +280,21 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 
 	double f = (distanceToRebar)/(effectiveInfluenceDistance) ;
 // 	double df = f ;
-	double df = 3.*f*f-2.*f*f*f ;
-	double factor = df*k+(1.-df)*342.*342. ;
-	if(df < 0)
-		factor = 342*342.;
-	if(df > 1)
-		factor = k ;
 	
-	return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress, sqrt(factor)) ;
+	double df = 3.*f*f-2.*f*f*f ;
+	double factor = df*log(k)+(1.-df)*log(342.) ;
+	double deltaCriterion = tensionCritStrain*df ;
+	if(df < 0)
+	{
+		factor = log(k) ;
+		deltaCriterion = tensionCritStrain ;
+	}
+	if(df > 1)
+	{
+		factor = log(342);
+		deltaCriterion = 0 ;
+	}
+	return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress, exp(factor), deltaCriterion) ;
 
 // 	return df*barecrit + (1.-df)*rebcrit ;
 }
@@ -475,11 +483,11 @@ void NonLocalMCFT::initialise( ElementState &s)
 // 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
 // 		k/=1e5 ;
 		
-// 	if(std::abs(integral-energy) > 1e-4*energy)
-// 	{
-// 	  std::cout << "wrong energy! " << integral << " vs "<< energy  << " k = "<< k << std::endl ;
-// 	  exit(0) ;
-// 	}
+	if(std::abs(integral-energy) > 1e-4*energy)
+	{
+	  std::cout << "wrong energy! " << integral << " vs "<< energy  << " k = "<< k << std::endl ;
+	  exit(0) ;
+	}
 // 	k = 1000 ;
 	initialised = true ;
 }

@@ -738,13 +738,13 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 		else if(E_1 > POINT_TOLERANCE_2D)
 		{
 			cg[0][0] = E_1 ;
-			cg[2][2] = G ;
+			cg[2][2] = 0 ;
 
 		}
 		else if(E_2 > POINT_TOLERANCE_2D)
 		{
 			cg[1][1] = E_2 ;
-			cg[2][2] = G ;
+			cg[2][2] = 0 ;
 		}
 		else
 			cg.array() = 0 ;

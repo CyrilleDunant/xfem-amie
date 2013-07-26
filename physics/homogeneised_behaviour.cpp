@@ -36,10 +36,10 @@ using namespace Mu ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( nullptr ), equivalent( nullptr )
 {
-	original = self->getBehaviour() ;
-
-	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = dynamic_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
+	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+	else
+		original = self->getBehaviour()->getCopy() ;
 
 	GeneralizedSelfConsistentComposite composite( mesh->getElements2D( self->getPrimitive() ) ) ;
 	equivalent = composite.getBehaviour() ;
@@ -54,15 +54,14 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( nullptr ), self3d( nullptr ), equivalent( nullptr )
 {
-	original = self->getBehaviour()->getCopy() ;
-	
-	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
+	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+	else
+		original = self->getBehaviour()->getCopy() ;
 
 
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 	equivalent = composite.getBehaviour() ;
-	std::cout << "HEY" << std::endl ;
 /*	equivalent = composite.inclusions[0].getBehaviour() ;
 	equivalent->getTensor(Point(0,0)).print() ;*/
 	
@@ -86,10 +85,12 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTetrahedron *self ) : LinearForm( Matrix(), true, false, 3 ), self3d( self ), mesh( nullptr ), self2d( nullptr ), equivalent( nullptr )
 {
-	original = self->getBehaviour()->getCopy() ;
 	
-	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour()->getCopy() ;
+	
+	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+	else
+		original = self->getBehaviour()->getCopy() ;
 	
 	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
 	equivalent = composite.inclusions[0].getBehaviour() ;

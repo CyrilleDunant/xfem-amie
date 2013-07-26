@@ -44,6 +44,8 @@ Phase::Phase( DelaunayTriangle *tri )
 		}
 		volume *= out/count ;
 	}
+	if(dynamic_cast<HomogeneisedBehaviour *>(behaviour))
+		behaviour = dynamic_cast<HomogeneisedBehaviour *>(behaviour)->getOriginalBehaviour() ;
 	stiffnessFromBehaviour() ;
 	expansionFromBehaviour() ;
 	ruptureFromBehaviour() ;

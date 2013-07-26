@@ -378,12 +378,12 @@ void RotatingCrack::postProcess()
 	double nu21 = 0 ; //(nu/std::max(E_0, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
 	double nu12 = 0 ; //(nu/std::max(E_1, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
 	double G = E_0*E_1/(E_0+E_1) ;
-	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
+	if(E_0 < POINT_TOLERANCE_2D && E_1 < POINT_TOLERANCE_2D)
 		G = 0 ;
 	
 	if(es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
-		if(es->getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint())
+		if(es->getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
 			stiff->setAngle(currentAngle) ;
 		stiff->setStiffness(E_0, E_1, G, nunu) ;
 	}

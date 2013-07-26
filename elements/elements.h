@@ -65,6 +65,8 @@ public:
 	virtual bool isMoved() const = 0 ;
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const = 0;
+	
+	virtual const Geometry * getEnrichmentSource(size_t i) const  { return enrichmentSource[i] ;} ;
 
 	virtual const std::vector< size_t > getDofIds() const ;
 	

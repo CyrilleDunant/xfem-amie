@@ -204,7 +204,7 @@ void TriangleGLDrawer::paintGL()
 		}
 	}
 
-	glFlush();
+	glFinish();
 	swapBuffers() ;
 }
 

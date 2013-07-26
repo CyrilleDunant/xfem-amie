@@ -26,6 +26,30 @@ GrowingExpansiveZone::~GrowingExpansiveZone() {
 
 void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
+	std::map<Point *, Vector > pointsAndValues ;
+	for(size_t i = 0 ; i < TimeDependentEnrichmentInclusion::cache.size() ; i++)
+	{
+		for(  size_t j = 0 ; j < TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunctions().size() ;j++)
+		{
+			if(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentSource(j) == getPrimitive())
+			{
+				Vector disp(imp->getNumberOfDegreesOfFreedom()) ;
+				for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
+					disp[n] = TimeDependentEnrichmentInclusion::cache[i]->getState().getEnrichedDisplacements()[j*imp->getNumberOfDegreesOfFreedom()+n] ;
+
+				for(size_t k = 0 ; k < TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoints().size() ; k++)
+				{
+					if(squareDist2D(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint(), &TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k)) < POINT_TOLERANCE_2D 
+						  && std::abs(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()->t - TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k).t) > POINT_TOLERANCE_2D )
+					{
+						pointsAndValues[TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()] = disp ;
+						break ;
+					}
+				}
+			}
+		}
+	}
+	
 	TimeDependentEnrichmentInclusion::enrich(counter,dtree) ;
 	
 	std::vector<DelaunayTriangle *> & disc = TimeDependentEnrichmentInclusion::cache ;
@@ -88,7 +112,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 		newExpansive.insert( inDisc[i] ) ;
 	}
-
+	return ;
 	expansive = newExpansive ;
 	bimateralInterfaced = newInterface ;
 	
@@ -96,18 +120,12 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	
 	std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end()); 
 //	std::cout << enriched.size() << "\t" << counter << std::endl ;
-	std::valarray<bool> done(counter) ;
-	done = false ;
 
+	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 		disc[i]->clearBoundaryConditions() ;
-	}
-	
-	for(size_t i = 0 ; i < enriched.size() ; i++)
-	{
-		enriched[i]->clearBoundaryConditions() ;
-		if( enriched[i]->getEnrichmentFunctions().size() == 0)
+		if( disc[i]->getEnrichmentFunctions().size() == 0)
 		{
 			continue ;
 		}
@@ -115,49 +133,48 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 // 			continue ;
 		
 		
-		GaussPointArray gp = enriched[i]->getGaussPoints() ;
+		GaussPointArray gp = disc[i]->getGaussPoints() ;
 		std::valarray<Matrix> Jinv( gp.gaussPoints.size() ) ;
 		
 		for( size_t j = 0 ; j < gp.gaussPoints.size() ;  j++ )
 		{
-			enriched[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+			disc[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 		}
 		
-		size_t enrichedDofPerTimePlanes = enriched[i]->getEnrichmentFunctions().size()/enriched[i]->timePlanes() ;
+		size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;
 		
 		
-		for(size_t j = 0 ; j < enriched[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
+		for(size_t j = 0 ; j < disc[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
 		{
-			if(done[ enriched[i]->getEnrichmentFunction(j).getDofID() ])
-				continue ;
-			done[ enriched[i]->getEnrichmentFunction(j).getDofID() ] = true ;
-		  
+
 			if(noPrevBC)
 			{
-				for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
+				if( pointsAndValues.find( disc[i]->getEnrichmentFunction(j).getPoint()) != pointsAndValues.end())
 				{
-enriched[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, enriched[i], gp, Jinv, enriched[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
+					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
+					{
+						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
+					}
 				}
 			}
 			else
 			{
 				size_t skip = 0 ;
 				size_t ndof = imp->getNumberOfDegreesOfFreedom() ;
-				Vector prev = enriched[i]->getState().getEnrichedDisplacements() ;
-				size_t enrichedDofPerTimePlanesPrev = prev.size()/(ndof * enriched[i]->timePlanes() ) ;
-				if( dofIdPrev.find( enriched[i]->getEnrichmentFunction(j).getPoint() ) == dofIdPrev.end() )
+				size_t enrichedDofPerTimePlanesPrev = disc[i]->getState().getEnrichedDisplacements().size()/(ndof * disc[i]->timePlanes() ) ;
+				if( pointsAndValues.find( disc[i]->getEnrichmentFunction(j).getPoint() ) == pointsAndValues.end() )
 				{
 					skip++ ;
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
-enriched[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, enriched[i], gp, Jinv, enriched[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
+						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
 					}
 				}
 				else
 				{
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
-enriched[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, enriched[i], gp, Jinv, enriched[i]->getEnrichmentFunction(j).getDofID(), prev[ (j-skip+enrichedDofPerTimePlanesPrev)*ndof + n ] , n) ) ;
+						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), pointsAndValues[disc[i]->getEnrichmentFunction(j).getPoint()][n], n) ) ;
 					}
 				}
 				  

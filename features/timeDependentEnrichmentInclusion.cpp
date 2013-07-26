@@ -84,37 +84,37 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 
 Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
 {
-// 	TriElement father(LINEAR) ;
-// 	
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return father.getShapeFunction(0) ;
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return father.getShapeFunction(1) ;
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return father.getShapeFunction(2) ;
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return 1-father.getShapeFunction(0) ;
-// 	}
-// 	
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return 1-father.getShapeFunction(1) ;
-// 	}
-// 	
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return 1-father.getShapeFunction(2) ;
-// 	}
+	TriElement father(LINEAR) ;
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) == dofIds.end())
+	{
+		return father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) == dofIds.end())
+	{
+		return father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) != dofIds.end())
+	{
+		return father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(&t->getBoundingPoint(0)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) == dofIds.end())
+	{
+		return 1-father.getShapeFunction(2) ;
+	}
 	return Function("1") ;
 }
 
@@ -271,55 +271,12 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		//we build the enrichment function, first, we get the transforms from the triangle
 		//this function returns the distance to the centre
 		Function x("x") ; Function y("y") ;
-// 		Function zero("0") ; Function one("1") ; Function z("0") ;
-// 		zero.setNumberOfDerivatives(4);
-// 		zero.setDerivative(XI, z);
-// 		zero.setDerivative(ETA, z);
-// 		zero.setDerivative(ZETA, z);
-// 		zero.setDerivative(TIME_VARIABLE, z);
-// 		one.setNumberOfDerivatives(4);
-// 		one.setDerivative(XI, z);
-// 		one.setDerivative(ETA, z);
-// 		one.setDerivative(ZETA, z);
-// 		one.setDerivative(TIME_VARIABLE, z);
-// 		x.setNumberOfDerivatives(4);
-// 		x.setDerivative(XI, one);
-// 		x.setDerivative(ETA, zero);
-// 		x.setDerivative(ZETA, zero);
-// 		x.setDerivative(TIME_VARIABLE, zero);
-// 		y.setNumberOfDerivatives(4);
-// 		y.setDerivative(ETA, one);
-// 		y.setDerivative(XI, zero);
-// 		y.setDerivative(ZETA, zero);
-// 		y.setDerivative(TIME_VARIABLE, zero);
-		
+
 		Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
 		                           (y-getCenter().y)*(y-getCenter().y)) ;
 					   
-// 		Function dfx( "cst x -", getCenter().x) ;
-// 		dfx /= position ;
-// 		Function dfy( "cst y -", getCenter().y) ;
-// 		dfy /= position ;
-// 		
-// 		dfx.setNumberOfDerivatives(4) ;
-// 		dfx.setDerivative(XI, zero);
-// 		dfx.setDerivative(ETA, zero);
-// 		dfx.setDerivative(ZETA, zero);
-// 		dfx.setDerivative(TIME_VARIABLE, zero);
-// 		dfy.setNumberOfDerivatives(4) ;
-// 		dfy.setDerivative(XI, zero);
-// 		dfy.setDerivative(ETA, zero);
-// 		dfy.setDerivative(ZETA, zero);
-// 		dfy.setDerivative(TIME_VARIABLE, zero);
-// 
-// 		position.setNumberOfDerivatives(4);
-// 		position.setDerivative(XI, dfx);
-// 		position.setDerivative(ETA, dfy);
-// 		position.setDerivative(ZETA, zero);
-// 		position.setDerivative(TIME_VARIABLE, zero);
 		
-		
-		Function hat = 1.-f_abs(position-getRadiusFunction()); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
+		Function hat = 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
 		Function dx = ring[i]->getXTransform() ;
 		Function dy = ring[i]->getYTransform() ;
 		Function dt = ring[i]->getTTransform() ;
@@ -327,31 +284,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		hat.setVariableTransform( ETA, dy );
  		hat.setVariableTransform( TIME_VARIABLE, dt );
 		
-// 		for(double i =-1 ; i < 1  ; i+= 0.05)
-// 		{
-// 			for(double j =-1 ; j < 1  ; j+= 0.05)
-// 			{
-// 				std::cout << VirtualMachine().eval(hat, i,j,0,-0.5) << "  " << std::flush ;
-// 			}
-// 			std::cout << std::endl ;
-// 		}
-// 				for(double i =-1 ; i < 1  ; i+= 0.05)
-// 		{
-// 			for(double j =-1 ; j < 1  ; j+= 0.05)
-// 			{
-// 				std::cout << VirtualMachine().eval(hat, i,j,0,0.) << "  " << std::flush ;
-// 			}
-// 			std::cout << std::endl ;
-// 		}
-// 				for(double i =-1 ; i < 1  ; i+= 0.05)
-// 		{
-// 			for(double j =-1 ; j < 1  ; j+= 0.05)
-// 			{
-// 				std::cout << VirtualMachine().eval(hat, i,j,0,0.5) << "  " << std::flush ;
-// 			}
-// 			std::cout << std::endl ;
-// 		}
-// 		exit(0) ;
+
 		hat.setNumberOfDerivatives(0);
 
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
@@ -391,7 +324,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			bool hinted = false ;
 			Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
 		                           (y-getCenter().y)*(y-getCenter().y)) ;
-			Function hat= blend*(1.-f_abs(position-getRadiusFunction())); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
+			Function hat= 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
 			Function dx = t->getXTransform() ;
 			Function dy = t->getYTransform() ;
 			Function dt = t->getTTransform() ;

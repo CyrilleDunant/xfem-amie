@@ -865,33 +865,7 @@ bool Triangle::in(const Point &p) const
 
 	Segment s(proj, c) ;
 
-// 	std::vector<Point> pts ;
-// 	std::multimap<double, Point> pt ;
-// 	for(size_t i = 0 ; i < getBoundingPoints().size()/timePlanes() ;  i++)
-// 	{
-// 		pt.insert(std::make_pair(
-// 		std::abs(
-// 		squareDist2D(getCircumCenter(), getBoundingPoint(i))-getRadius()*getRadius()), getBoundingPoint(i)));
-// 	}
-// 	std::multimap<double, Point>::const_iterator ptend = pt.begin() ;
-// 	ptend++ ; ptend++ ; ptend++ ;
-//
-// 	for(std::multimap<double, Point>::const_iterator i = pt.begin() ; i != ptend ; ++i )
-// 		pts.push_back(i->second);
-//
 	size_t npts = getBoundingPoints().size()/timePlanes() ;
-// 	std::cout << npts << std::endl ;
-//
-// 	proj.print() ;
-// 	c.print() ;
-//
-// 	getBoundingPoint(0).print() ;
-// 	getBoundingPoint(npts/3).print() ;
-// 	getBoundingPoint(npts*2/3).print() ;
-//
-// 	if(s.on(getBoundingPoint(0)))
-// 		std::cout << "x" <<
-
 
 
 	if(s.on(getBoundingPoint(0)) || s.on(getBoundingPoint(npts/3)) || s.on(getBoundingPoint(npts*2/3)))
@@ -901,66 +875,7 @@ bool Triangle::in(const Point &p) const
 	Segment sb(getBoundingPoint(npts/3),getBoundingPoint(npts*2/3)) ;
 	Segment sc(getBoundingPoint(npts*2/3),getBoundingPoint(0)) ;
 
-// 	if(sa.intersects(s))
-// 		std::cout << "a" << std::endl ;
-// 	if(sb.intersects(s))
-// 		std::cout << "b" << std::endl ;
-// 	if(sc.intersects(s))
-// 		std::cout << "c" << std::endl ;
-
 	return !(sa.intersects(s) || sb.intersects(s) || sc.intersects(s)) ;
-
-
-// 	bool in = false ;
-//
-// 	for (int i = 0, j  =  getBoundingPoints().size()-1; i <  getBoundingPoints().size(); j = i++)
-// 	{
-// 		if( std::abs(getBoundingPoint(j).y - getBoundingPoint(i).y) > 2.*POINT_TOLERANCE_2D)
-// 		{
-// 			if (
-// 				(((getBoundingPoint(i).y < p.y + 2.*POINT_TOLERANCE_2D)
-// 					&& (p.y-2.*POINT_TOLERANCE_2D < boundingPoints[j]->y))
-// 					|| ((getBoundingPoint(j).y < p.y+2.*POINT_TOLERANCE_2D)
-// 					&& (p.y < getBoundingPoint(i).y+2.*POINT_TOLERANCE_2D)))
-// 					&& (p.x < (getBoundingPoint(j).x - getBoundingPoint(i).x)
-// 					 * (p.y - getBoundingPoint(i).y)
-// 					 / (getBoundingPoint(j).y - getBoundingPoint(i).y)
-// 					 + getBoundingPoint(i).x + 2.*POINT_TOLERANCE_2D))
-// 				in = !in;
-// 		}
-// 	}
-//
-// 	return in ;
-// 	std::vector<Point> pts ;
-//
-// 	for(size_t i = 0 ; i <  getBoundingPoints().size() ;  i++)
-// 	{
-// 		if(std::abs(dist(getCircumCenter(), getBoundingPoint(i))-getRadius()) < POINT_TOLERANCE_2D)
-// 			pts.push_back(getBoundingPoint(i));
-// 	}
-//
-// 	Segment sa(pts[0],pts[1]) ;
-// 	Segment sb(pts[1],pts[2]) ;
-// 	Segment sc(pts[2],pts[0]) ;
-//
-// 	for (int i = 0, j  =  pts.size()-1; i <  pts.size(); j = i++)
-// 	{
-// 		if( std::abs(pts[j].y - pts[i].y) > 2.*POINT_TOLERANCE_2D)
-// 		{
-// 			if (
-// 				(((pts[i].y < p.y + 2.*POINT_TOLERANCE_2D)
-// 					&& (p.y-2.*POINT_TOLERANCE_2D < pts[j].y))
-// 					|| ((pts[j].y < p.y+2.*POINT_TOLERANCE_2D)
-// 					&& (p.y < pts[i].y+2.*POINT_TOLERANCE_2D)))
-// 					&& (p.x < (pts[j].x - pts[i].x)
-// 					 * (p.y - pts[i].y)
-// 					 / (pts[j].y - pts[i].y)
-// 					 + pts[i].x + 2.*POINT_TOLERANCE_2D))
-// 				in = !in;
-// 		}
-// 	}
-//
-// 	return in ;
 
 }
 

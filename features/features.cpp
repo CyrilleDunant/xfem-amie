@@ -3391,7 +3391,6 @@ void FeatureTree::enrich()
 			{
 				if( !state.enriched )
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->update( dtree ) ;
-
 				dynamic_cast<EnrichmentFeature *>( tree[i] )->enrich( lastEnrichmentId, dtree) ;
 
 				enrichmentChange = true ;
