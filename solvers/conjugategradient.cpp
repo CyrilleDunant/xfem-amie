@@ -88,8 +88,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	q = A*p ;
 	
 	double last_rho = parallel_inner_product(&r[0], &z[0], vsize) ;
-	double alpha = last_rho/parallel_inner_product(&q[0], &p[0], vsize);
-
+	double pq = parallel_inner_product(&q[0], &p[0], vsize);
+	double alpha = last_rho/pq ;
+	
 	x += p*alpha ;
 	r -= q*alpha ;
 	nit++ ;
@@ -124,8 +125,13 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			p[i] = p[i]*beta+z[i] ;
 
 		assign(q, A*p) ;
-		alpha = rho/parallel_inner_product(&q[0], &p[0], vsize);
-		
+		pq =  parallel_inner_product(&q[0], &p[0], vsize);
+		alpha = rho/pq;
+		if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+		{
+			last_rho = 0 ;
+			break ;
+		}
 		r -= q*alpha ;
 		x += p*alpha ;
 		
@@ -136,12 +142,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		}
 		if(	verbose && nit%128 == 0)
 		{
-			std::cerr <<   sqrt(rho) << std::endl  ;
+			std::cerr << sqrt(rho) << std::endl  ;
 		}
-	
+
 		last_rho = rho ;
 		nit++ ;
-		
 	}
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
@@ -158,6 +163,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 	
-	return nit < Maxit && last_rho*last_rho< std::max(neps*neps*err0, neps*neps);
+	return nit <= Maxit && last_rho*last_rho< std::max(neps*neps*err0, neps*neps);
 }
 
