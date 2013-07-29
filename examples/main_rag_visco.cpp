@@ -107,14 +107,14 @@ int main(int argc, char *argv[])
 	double timeScale = atof(argv[1]) ;
 	double tau = timeScale * 0.01 ;
 	double timestep = tau ;
-	double appliedLoadEta = atof(argv[2])*(-1e6) ;
-	double appliedLoadXi = atof(argv[3])*(-1e6) ;
+	double appliedLoadEta = 0. ; //atof(argv[2])*(-1e6) ;
+	double appliedLoadXi =  0. ;//atof(argv[3])*(-1e6) ;
 	
-	bool elastic = false ;
+	bool elastic = true ; //false ;
 	bool noZones = false ;
 	bool pseudoDamage = false ;
 	
-	for(size_t i = 0 ; i < argc ; i++)
+/*	for(size_t i = 0 ; i < argc ; i++)
 	{
 		if(std::string(argv[i]) == "--elastic")
 			elastic = true ;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 			noZones = true ;
 		if(std::string(argv[i]) == "--pseudodamage")
 			pseudoDamage = true ;
-	}
+	}*/
 	
 	if(elastic)
 		std::cout << "elastic case" << std::endl ;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(400) ;
-	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setOrder(LINEAR) ;
 	
 	F.setDeltaTime(tau) ;
 	
@@ -159,12 +159,12 @@ int main(int argc, char *argv[])
 	ViscoelasticityAndImposedDeformation * stElasticGelBehaviour = new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, elasticGelBehaviour->param, elasticGelBehaviour->imposed ) ;
 	
 	Form * aggBehaviour = stAggregateBehaviour ;
-	Form * pasteBehaviour = stPasteBehaviour ;
-	ViscoelasticityAndImposedDeformation * gelBehaviour = stGelBehaviour ;
+	Form * pasteBehaviour = elasticPasteBehaviour ;
+	ViscoelasticityAndImposedDeformation * gelBehaviour = elasticGelBehaviour ;
 	
 	if(elastic)
 	{
-		aggBehaviour = stElasticAggregateBehaviour ;
+		aggBehaviour = elasticAggregateBehaviour ;
 		pasteBehaviour = stElasticPasteBehaviour ;
 		gelBehaviour = stElasticGelBehaviour ;
 	}
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
 	
 	if(!noZones)
-		std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gelBehaviour, radius, maxGelRadius, nzones*50, nzones) ;
+		std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, aggregates, gelBehaviour, radius, maxGelRadius, nzones*50, nzones) ;
 	
 	std::string name = "asr_creep/asr_creep_no_damage_" ;
 	if(elastic)

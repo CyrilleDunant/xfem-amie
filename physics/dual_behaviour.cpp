@@ -303,6 +303,7 @@ void BimaterialInterface::step(double timestep, ElementState & currentState, dou
 
 DamageModel * BimaterialInterface::getDamageModel() const
 {
+	return nullptr ;
 	double max = -2 ;
 	int ret = 0 ;
 
@@ -337,6 +338,7 @@ DamageModel * BimaterialInterface::getDamageModel() const
 
 FractureCriterion * BimaterialInterface::getFractureCriterion() const
 {
+	return nullptr ;
 	double max = -2 ;
 	int ret = 0 ;
 

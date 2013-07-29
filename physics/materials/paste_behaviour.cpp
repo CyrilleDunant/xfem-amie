@@ -18,7 +18,7 @@ using namespace Mu ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-	materialRadius = 0.00025 ;
+	materialRadius = 0.00018 ;
 }
 
 Form * PasteBehaviour::getCopy() const 
@@ -30,7 +30,7 @@ Form * PasteBehaviour::getCopy() const
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
  	copy->dfunc->setThresholdDamageDensity(.6);
 	
-	if(getExtra2dMeshes())
+/*	if(getExtra2dMeshes())
 	{
 		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
 			copy->addMesh((*getExtra2dMeshes())[i]);
@@ -39,7 +39,7 @@ Form * PasteBehaviour::getCopy() const
 	{
 		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
 			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+	}*/
 	return copy ;
 }
 

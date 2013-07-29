@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	int ninc = 10000 ;//(int) atof(argv[3]) ;
 	int micro = 0 ;//(int) atof(argv[2]) ;
 	double afraction = atof(argv[1]) ;
-	double itz = 0.002 ; //atof(argv[7]) ;
+	double itz = 0.0015 ; //atof(argv[7]) ;
 	double aspect = 1. ;
 	double orientation = M_PI ;
 	GeometryType inclusions = CIRCLE ;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	ElasticOnlyAggregateBehaviour agg ;
 	Viscoelasticity toto( PURE_ELASTICITY, (agg.param)*1e-20, 2) ;
 
-	std::vector<Feature *> aggs = ParticleSizeDistribution::get2DConcrete(&F, new ViscoElasticOnlyAggregateBehaviour(), ninc, 0.005, itz, PSD_UNIFORM, inclusions, aspect, orientation, ninc*100,0.2,dynamic_cast<Geometry*>(&placement),seed) ;
+	std::vector<Feature *> aggs = ParticleSizeDistribution::get2DConcrete(&F, new ViscoElasticOnlyAggregateBehaviour(), ninc, 0.005, itz, PSD_UNIFORM, inclusions, aspect, orientation, 50000,0.4,dynamic_cast<Geometry*>(&placement),seed) ;
 //	std::cout << aggs.size() << "\t" << aggs.size()*aggs[0]->area() << std::endl ;	
 
 	std::vector<Circle *> aggregates ;

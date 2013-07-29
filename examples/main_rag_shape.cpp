@@ -1463,7 +1463,7 @@ int main(int argc, char *argv[])
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
 
-		double delta_r = sqrt(aggregateArea*.05/((double)zones.size()*M_PI))/(double)30 ;
+		double delta_r = sqrt(aggregateArea*.005/((double)zones.size()*M_PI))/(double)30 ;
 	        std::cout << "delta_r => " << delta_r << std::endl ;
 		if(!F.solverConverged())
 				delta_r *= .01 ;

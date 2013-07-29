@@ -35,7 +35,7 @@ Matrix FiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,
 {
 
 	if(fractured())
-		return m*1e-6 ;
+		return m*1e-4 ;
 	
 //	std::cout << getState()[0] << "_" ;
 	

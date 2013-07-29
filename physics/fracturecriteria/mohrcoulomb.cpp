@@ -108,7 +108,6 @@ NonLocalMohrCoulomb::~NonLocalMohrCoulomb()
 
 double NonLocalMohrCoulomb::grade( ElementState &s )
 {
-
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 

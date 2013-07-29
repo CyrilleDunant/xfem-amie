@@ -1839,7 +1839,7 @@ int main( int argc, char *argv[] )
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
 		          << ", smallest r =" << feats.back()->getRadius() - itzSize << std::endl ;
 
-	sample.setBehaviour( new PasteBehaviour() ) ;
+	sample.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
 
 // 		sample.setBehaviour(new Stiffness(m0_paste)) ;
 	Vector setExpansion(0., 3) ; setExpansion[0] = -0.0015 ; setExpansion[1] = -0.0015 ; setExpansion[2] = 0 ;
@@ -1900,7 +1900,7 @@ int main( int argc, char *argv[] )
 		if( !( !baseGeometry.in( a ) && !baseGeometry.in( b ) && !baseGeometry.in( c ) && !baseGeometry.in( d ) ) )
 		{
 			inclusions[i]->setRadius(inclusions[i]->getRadius()-itzSize) ;
-			AggregateBehaviour *stiff = new AggregateBehaviour() ;
+			ElasticOnlyAggregateBehaviour *stiff = new ElasticOnlyAggregateBehaviour() ;
 // 			StiffnessWithImposedDeformation * stiff = new StiffnessWithImposedDeformation(m0_agg, setExpansion) ;
 // 			Stiffness * stiff = new Stiffness(m0_agg) ;
 			// 		stiff->variability = .5 ;
@@ -1923,7 +1923,7 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously( 100, placedinclusions, F ) ;
+	zones = generateExpansiveZonesHomogeneously( 200, placedinclusions, F ) ;
 	F.setSamplingNumber( 256 ) ;
 
 	if( restraintDepth > 0 )
