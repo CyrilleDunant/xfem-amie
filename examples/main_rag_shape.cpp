@@ -761,14 +761,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*1000 ;
+		double h = sample.width()*0.5-radius*1000 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*1000.+radius*1000.)*(radius*1000.+radius*1000.))
 			{
 				alone = false ;
 				break ;
@@ -784,7 +784,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		bool placed = false ;
 		for(int j = 0 ; j < incs.size() ; j++)
 		{
-			Ellipse ellipse(incs[j]->getCenter(), incs[j]->getMajorAxis()*0.95, incs[j]->getMinorAxis()*0.95) ;
+			Ellipse ellipse(incs[j]->getCenter(), incs[j]->getMajorAxis()*0.9, incs[j]->getMinorAxis()*0.9) ;
 			if(ellipse.in(zonesToPlace[i]->getCenter()))
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
@@ -826,14 +826,14 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
-		double w = sample.width()*0.5-radius*60 ;
-		double h = sample.width()*0.5-radius*60 ;
+		double w = sample.width()*0.5-radius*1000 ;
+		double h = sample.width()*0.5-radius*1000 ;
 		Point pos(gen.uniform(-w,w),gen.uniform(-h,h)) ;
 		pos += sample.getCenter() ;
 		bool alone  = true ;
 		for(size_t j = 0 ; j< zonesToPlace.size() ; j++)
 		{
-			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*60.+radius*60.)*(radius*60.+radius*60.))
+			if (squareDist(pos, zonesToPlace[j]->Circle::getCenter()) < (radius*1000.+radius*1000.)*(radius*1000.+radius*1000.))
 			{
 				alone = false ;
 				break ;
@@ -1210,7 +1210,7 @@ int main(int argc, char *argv[])
   
   
   
-  GeometryType reference = CIRCLE ;
+  GeometryType reference = ELLIPSE ;
 	
 /*	if(argc > 2)
 	{
@@ -1229,178 +1229,15 @@ int main(int argc, char *argv[])
 
 	double itzSize = 0.000000005;
  	int inclusionNumber = 6000 ;
-// 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(0.002, 0.0016, BOLOME_B, PSDEndCriteria(0.00009, 0.3, 8000)) ; //GranuloBolome(0.00025, 1., BOLOME_B)(.002, 50., inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(0.008, 0.07,inclusionNumber) ;
- 	
-	double c_area = 0 ;
-	double t_area = 0 ;
-	
-	std::vector<Feature *> feats ;
-	for(size_t i = 0; i < inclusions.size() ; i++)
-	{
-		feats.push_back(inclusions[i]) ;
-		c_area += inclusions[i]->area() ;
-	}
+	sample.setBehaviour( new PasteBehaviour() ) ;
 
-	int nAgg = 1 ;
-	feats = placement(placing.getPrimitive(), feats, &nAgg, 0, 16000);
-	inclusions.clear() ;
-	for(size_t i = 0; i < feats.size() ; i++)
-		inclusions.push_back(static_cast<Inclusion *>(feats[i])) ;
-	
-	srand(20) ;
-
-	if(reference != CIRCLE)
-	{
-		feats.clear() ;
-		InclusionConverter cnv(reference, new ConstantDistribution(1.), new ConstantDistribution(1.), new UniformDistribution(2.*M_PI)) ;
-/*		if(reference == RECTANGLE)
-			cnv.setOrientation(new UniformDistribution(M_PI)) ;*/
-		if(reference == ELLIPSE)
-		{
-			cnv.setAspectRatio(0.5) ;
-			cnv.setOrientation(new UniformDistribution(-M_PI*0.01,M_PI*0.01)) ;
-		}
-		feats = cnv.convert(inclusions) ;
-	}
-
-	
-
+	AggregateBehaviour * agg = new AggregateBehaviour(59e9,0.3/*,0.00025*/) ;
+	std::vector<Feature *> inclusions = ParticleSizeDistribution::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.,BOLOME_A,ELLIPSE, 0.6, 0.1,inclusionNumber*100) ;
 
 	std::vector<EllipsoidalInclusion *> ellinc ;
-	std::vector<TriangularInclusion *> triinc ;
-	std::vector<RectangularInclusion *> recinc ;
-	
-	switch(reference)
-	{
-		case CIRCLE:
-			inclusions.clear() ;
-			for(size_t i = 0 ; i < feats.size() ; i++)
-			{
-				inclusions.push_back(dynamic_cast<Inclusion *>(feats[i])) ;
-				t_area += inclusions[i]->area() ;
-			}
-			break ;
-		case ELLIPSE:
-			for(size_t i = 0 ; i < feats.size() ; i++)
-			{
-				ellinc.push_back(dynamic_cast<EllipsoidalInclusion *>(feats[i])) ;
-				t_area += ellinc[i]->area() ;
-			}
-			break ;
-		case TRIANGLE:
-			for(size_t i = 0 ; i < feats.size() ; i++)
-			{
-				triinc.push_back(dynamic_cast<TriangularInclusion *>(feats[i])) ;
-				t_area += triinc[i]->area() ;
-			}
-			break ;
-		case RECTANGLE:
-			for(size_t i = 0 ; i < feats.size() ; i++)
-			{
-				recinc.push_back(dynamic_cast<RectangularInclusion *>(feats[i])) ;
-				t_area += recinc[i]->area() ;
-			}
-			break ;
-	}
-	
-	int rotated = feats.size() ;
-	int k = 0 ;
-	while(rotated > 0 && k < 1000)
-	{
-		k++ ;
-		rotated = feats.size() ;
-		for(size_t i = 0 ; i < ellinc.size() ; i++)
-		{
-			if(rotateUntilNoIntersection(ellinc, i, &sample))
-				rotated-- ;
-			else
-			{
-				delete ellinc[i] ;
-				rotated-- ;
-			}
-		}
-		
-		for(size_t i = 0 ; i < triinc.size() ; i++)
-		{
-			if(rotateUntilNoIntersection(triinc, i, &sample))
-				rotated-- ;
-		}
-		
-		for(size_t i = 0 ; i < recinc.size() ; i++)
-		{
-			if(rotateUntilNoIntersection(recinc, i, &sample))
-				rotated-- ;
-		}
-		
-		if(reference == CIRCLE)
-			rotated = 0 ;
-		
-		std::cout << rotated << " inclusions not rotated..." << std::endl ;
-		
-	}
-
-	std::cout << c_area << "\t" << t_area << std::endl ;
-
-	
-// 	return 0 ;
-	
-	
-	sample.setBehaviour(new PasteBehaviour()) ;
-	AggregateBehaviour * agg = new AggregateBehaviour(59e9,0.3,0.00025) ;
-	VoidForm * v = new VoidForm() ;
-	for(size_t i = 0 ; i < feats.size() ; i++)
-	{
-		switch(reference)
-		{
-			case CIRCLE:
-				inclusions[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, inclusions[i]) ;
-				placed_area += inclusions[i]->area() ;
-				break ;
-			case ELLIPSE:
-				if(ellinc[i])
-				{
-				ellinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, ellinc[i]) ;
-				placed_area += ellinc[i]->area() ;
-				break ;
-				}
-			case TRIANGLE:
-				triinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, triinc[i]) ;
-				placed_area += triinc[i]->area() ;
-				break ;
-			case RECTANGLE:
-				recinc[i]->setBehaviour(agg) ;
-				F.addFeature(&sample, recinc[i]) ;
-				placed_area += recinc[i]->area() ;
-				break ;
-		}
-	}
-
-//	generatePoresHomogeneously(500,100,inclusions, sample, F) ;
-
-	std::vector<Inclusion *> largest ;
-	for(size_t i = 0 ; i < 100 ; i++)
-		largest.push_back(inclusions[i]) ;
-    
-	switch(reference)
-	{
-		case CIRCLE:
-			zones = generateExpansiveZonesHomogeneously(1000, 100, largest, F) ;
-			break ;
-		case ELLIPSE:
-			zones = generateExpansiveZonesHomogeneously(100, 30, ellinc, F) ;
-			break ;
-		case TRIANGLE:
-			zones = generateExpansiveZonesHomogeneously(100, 30, triinc, F) ;
-			break ;
-		case RECTANGLE:
-			zones = generateExpansiveZonesHomogeneously(100, 30, recinc, F) ;
-			break ;
-	}
-
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
+		ellinc.push_back(dynamic_cast<EllipsoidalInclusion *>(inclusions[i])) ;
+	zones = generateExpansiveZonesHomogeneously(1000, 100, ellinc, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
@@ -1414,7 +1251,7 @@ int main(int argc, char *argv[])
 	F.setMaxIterationsPerStep(4000) ;
 	
 	
-	std::string hop = "rag_out_" ;
+	std::string hop = "rag_ellipse_out_" ;
 	hop.append(std::string(argv[1])) ;
 	std::fstream out ;
 	out.open(hop.c_str(), std::ios::out) ;
@@ -1452,7 +1289,7 @@ int main(int argc, char *argv[])
 		std::stable_sort( u_right.begin(), u_right.end() ) ;
 		std::stable_sort( u_top.begin(), u_top.end() ) ;
 		
-		std::string filename = "rag_" ;
+		std::string filename = "rag_ellipse_" ;
 		filename.append(std::string(argv[1])) ;
 		filename.append("_") ;
 		filename.append(itoa(i)) ;
