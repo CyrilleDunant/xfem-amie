@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 	
 	Form * aggBehaviour = stAggregateBehaviour ;
 	Form * pasteBehaviour = elasticPasteBehaviour ;
-	ViscoelasticityAndImposedDeformation * gelBehaviour = elasticGelBehaviour ;
+	ViscoelasticityAndImposedDeformation * gelBehaviour = stElasticGelBehaviour ;
 	
 	if(elastic)
 	{
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
 	
 	if(!noZones)
-		std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DExpansiveZonesInAggregates( &F, aggregates, gelBehaviour, radius, maxGelRadius, nzones*50, nzones) ;
+		std::vector<std::pair<GrowingExpansiveZone *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gelBehaviour, radius, maxGelRadius, nzones*50, nzones) ;
 	
 	std::string name = "asr_creep/asr_creep_no_damage_" ;
 	if(elastic)
