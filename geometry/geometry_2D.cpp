@@ -2239,7 +2239,7 @@ void Ellipse::sampleSurface (size_t num_points)
 		std::vector<double> newb ;
 		std::vector<size_t> newn ;
 
-		double minn = (double) num_points * std::pow(0.5,(double) ring) ;
+		double minn = (double) num_points ;
 		size_t inc = 1 ;
 		if(ring > 4)
 			inc++ ;
@@ -2248,7 +2248,7 @@ void Ellipse::sampleSurface (size_t num_points)
 		{
 			newa.push_back(getMajorRadius() * (ring - i) / (ring + 1) ) ;
 			newb.push_back(getMinorRadius() * (ring - i) / (ring + 1) ) ;
-			newn.push_back(  (size_t) ((double) num_points) * ((double) (ring-i)*(ring-i) / (double) ((ring+1)*(ring+1)))) ;
+			newn.push_back(  minn + (size_t) ((double) num_points) * ((double) (ring-i)*(ring-i) / (double) ((ring+1)*(ring+1)))) ;
 		}
 		std::vector<Point> toadd ;
 		int rm = 0 ;
@@ -2258,8 +2258,10 @@ void Ellipse::sampleSurface (size_t num_points)
 			Ellipse elln(center,getMajorAxis()*newa[i]/getMajorRadius(),getMinorAxis()*newb[i]/getMinorRadius()) ;
 
 //			int factor = 2 + i/2 ;
+			size_t nell = newn[i] ;
+			if(nell < minn) { nell = minn ; }
 
-			std::vector<Point> pn = elln.getSamplingBoundingPoints(newn[i]) ;
+			std::vector<Point> pn = elln.getSamplingBoundingPoints(nell) ;
 			for(size_t j = 0 ; j < pn.size() ; j++)
 			{
 				pn[j] += Point(RandomNumber().uniform(dist*0.1), RandomNumber().uniform(dist*0.1)) ;
