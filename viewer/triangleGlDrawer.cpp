@@ -200,7 +200,7 @@ void TriangleGLDrawer::paintGL()
 			renderText( ( .805 - 0.5 ) + 0.05,
 			            ( i - 0.5 )*.7,
 			            0.,
-			            QString( "%0" ).arg( v ) );
+			            QString::number( v, 'f', 2) );
 		}
 	}
 
