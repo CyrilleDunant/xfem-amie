@@ -247,7 +247,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	dtree = nullptr ;
 	dtree3D = nullptr ;
 	
-	samplingRestriction = SAMPLE_RESTRICT_8 ;
+	samplingRestriction = SAMPLE_NO_RESTRICTION ;
 
 	if( first )
 	{

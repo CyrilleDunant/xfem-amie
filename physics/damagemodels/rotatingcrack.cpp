@@ -97,11 +97,21 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 
 		if(state.max() < .5)
 		{
+			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 			if(originalAngle < -8)
 			{
 				originalAngle = currentAngle ;
+				prevAngle = currentAngle ;
 			}
+			
+			double delta = prevAngle-currentAngle ;
+			if(std::abs(prevAngle-currentAngle) >  std::abs(prevAngle-currentAngle-M_PI*.5))
+				 delta = prevAngle-originalAngle-M_PI*.5 ;
+			if(std::abs(delta) >  std::abs(prevAngle-currentAngle+M_PI*.5))
+				delta = prevAngle-currentAngle+M_PI*.5 ;
+			
+			currentAngle = prevAngle-delta ;
 		}
 // 		if(originalAngle > -10 && currentAngle-originalAngle < -M_PI*.1)
 // 			currentAngle = originalAngle-M_PI*.1 ;
@@ -196,49 +206,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 
 Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
-/*
-	
-// 	if ( getState().max() < POINT_TOLERANCE_2D)
-// 		return m ;
-// 	
-// 	if(fractured())
-// 		return m *0 ;
-	
-	double E_0 = E ;
-	double E_1 = E ;
-	double fs = getState()[0] ;
-	double ss = getState()[2] ;
-	if(!firstTension)
-	{
-		fs = getState()[1] ;
-	}
-	if(!secondTension)
-	{
-		ss = getState()[3] ;
-	}
-	
-
-		E_0 *= ( 1. - fs ) ;
-		E_1 *=  ( 1. - ss ) ;
-
-	double nunu = nu ;
-	if(getState().max() > POINT_TOLERANCE_2D)
-	{
-		nunu = 0. ;
-		E_0 /= 1.-nu*nu ;
-		E_1 /= 1.-nu*nu ;
-	}
-
-	
-	double nu21 = 0 ; //(nu/std::max(E_0, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
-	double nu12 = 0 ; //(nu/std::max(E_1, E*1e-4))*sqrt(std::max(E_0, E*1e-4)*std::max(E_1, E*1e-4)) ;
-	double G = E_0*E_1/(E_0+E_1) ;
-	if(E_0 < POINT_TOLERANCE_2D || E_1 < POINT_TOLERANCE_2D)
-		G = 0 ;
-
-	stiff->setStiffness(E_0, E_1, G, nunu) ;*/
 	return stiff->getTensor(Point())*factor ;
-
 }
 
 
@@ -357,6 +325,7 @@ void RotatingCrack::postProcess()
 	{
 		fs = getState()[1] ;
 	}
+	
 	if(!secondTension)
 	{
 		ss = getState()[3] ;
@@ -384,8 +353,14 @@ void RotatingCrack::postProcess()
 	if(es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
 		if(es->getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
+		{
 			stiff->setAngle(currentAngle) ;
-		stiff->setStiffness(E_0, E_1, G, nunu) ;
+		}
+		if(currentAngle < M_PI*.25 && currentAngle > -M_PI*.25)
+			stiff->setStiffness(E_0, E_1, G, nunu) ;
+		else
+			stiff->setStiffness(E_1, E_0, G, nunu) ;
+		
 	}
 }
 

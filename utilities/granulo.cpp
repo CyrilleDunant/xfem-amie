@@ -73,9 +73,11 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, 
 	std::sort(radii.begin(), radii.end()) ;
 	std::reverse(radii.begin(), radii.end());
 	
-	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
-	std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
-	
+	if(!radii.empty())
+	{
+		std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
+		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
+	}
 	std::vector<Inclusion *> incs ;
 	for(size_t i = 0 ; i < radii.size() ; i++)
 	{

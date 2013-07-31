@@ -36,20 +36,7 @@ void Stiffness::apply(const Function & p_i, const Function & p_j, const GaussPoi
 {
 
 	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
-// 	if(gp.gaussPoints.size() > 5)
-// 	{
-// 		std::cout << "a--" << std::endl ;
-// 		for(size_t i = 0 ; i <  gp.gaussPoints.size() ; i++)
-// 		{
-// 			std::cout << vm->eval(p_i,gp.gaussPoints[i].first ) << ", ";
-// 			std::cout << vm->eval(p_j,gp.gaussPoints[i].first ) << " ; "<<  gp.gaussPoints[i].second << std::endl;
-// 			gp.gaussPoints[i].first.print() ;
-// 			Jinv[i].print() ;
-// 		}
-// 		param.print();
-// 		ret.print();
-// 		std::cout << v.size() << "--" << std::endl ;
-// 	}
+
 }
 
 bool Stiffness::fractured() const

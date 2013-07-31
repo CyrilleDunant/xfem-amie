@@ -250,17 +250,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*4;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*4 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*3;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*3 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*4 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*3 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*4 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*3 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -340,7 +340,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 		{
 			k_c = 0.67 - f_p/62e6 ;
 		}
-		maxCompression = std::max(f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)), downVal) ;
+		maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
 		maxCompressionStrain = maxCompression/pseudoYoung ;
 
 // 		if(n*f_p/(epsilon_p*pseudoYoung)-n+1. > 0)
@@ -538,7 +538,7 @@ double NonLocalMCFT::grade( ElementState &s )
 		
 	double tstrain = second.max();//stressStrain.second.max() ; //
 	double cstrain = second.min();//stressStrain.second.min();  //
-	double sfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()],double(0)) ;
+// 	double sfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()],double(0)) ;
 // 	if(std::max(crackstress.first, 0.) > POINT_TOLERANCE_2D ||  std::min(crackstress.second, 0.) > POINT_TOLERANCE_2D)
 // 		std::cout << "\n"<< std::max(crackstress.first, 0.) << "   " << std::min(crackstress.second, 0.) << std::endl ;
 	double tstress = first.max(); //-std::max(std::abs(crackstress.first), 0.);   //first.max();//std::min(first.max()-2.*std::max(crackstress.first, 0.), first.max());// 
@@ -566,20 +566,20 @@ double NonLocalMCFT::grade( ElementState &s )
 		double tcrit0 = -1 ;
 		double ccrit1 = -1 ;
 		double tcrit1 = -1 ;
-		if(firstCompression && cpseudoYoung0 > POINT_TOLERANCE_2D && tstress < 0)
+		if(firstCompression && cpseudoYoung0 > POINT_TOLERANCE_2D )
 		{
 			ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
 			if(ccrit0 > 0)
 				firstMet = true ;
 		}
-		else if(firstTension && tpseudoYoung0 > POINT_TOLERANCE_2D && tstress > 0)
+		else if(firstTension && tpseudoYoung0 > POINT_TOLERANCE_2D )
 		{
 			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
 			if(tcrit0 > 0)
 				firstMet = true ;
 		}
 		double c0 = std::max(ccrit0, tcrit0) ;
-		if(secondCompression && cpseudoYoung1 > POINT_TOLERANCE_2D && cstress < 0)
+		if(secondCompression && cpseudoYoung1 > POINT_TOLERANCE_2D )
 		{
 			ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
 			if(ccrit1 > 0)
@@ -587,7 +587,7 @@ double NonLocalMCFT::grade( ElementState &s )
 				secondMet = true ;
 			}
 		}
-		else if(secondTension && tpseudoYoung1 > POINT_TOLERANCE_2D && cstress > 0)
+		else if(secondTension && tpseudoYoung1 > POINT_TOLERANCE_2D )
 		{
 			tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
 			if(tcrit1 > 0)
@@ -596,17 +596,18 @@ double NonLocalMCFT::grade( ElementState &s )
 			}
 		}
 		double c1 = std::max(ccrit1, tcrit1) ;
-		if(c0 > c1)
+		if(c0 > c1+POINT_TOLERANCE_2D)
 		{
 			firstMet = true ;
 			secondMet = false ;
 		}
-		else
+		else if(c1 > c0+POINT_TOLERANCE_2D)
 		{
 			firstMet = false ;
 			secondMet = true ;
 		}
-// 		std::cout << cstress << "  " << tstress << "  "<< ccrit0 << "  "<< tcrit0 << "  "<< tcrit1 << "  "<< ccrit1 << std::endl ;
+// 		std::cout <<"\n"<< cstress << "  " << tstress << "  "<< ccrit0 << "  "<< tcrit0 << "  "<< tcrit1 << "  "<< ccrit1 << std::endl ;
+// 		std::cout << s.getParent()->getBehaviour()->getDamageModel()->getState()[1] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[0] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[2] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[3] << "  " << std::endl ;
 		return std::max(c0, c1) ;
 	}
 	else if (s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 2)

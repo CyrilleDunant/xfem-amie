@@ -16,20 +16,20 @@
 #include "preconditionners.h"
 #include "../sparse/sparse_matrix.h"
 
-// namespace Mu
-// {
-// 
-// 	struct InCompleteCholesky  : public Preconditionner
-// 	{
-// 		bool stable ;
-// 		Vector d ;
-// 		CoordinateIndexedSparseMatrix A ;
-// 		virtual ~InCompleteCholesky() { } ;
-// 		InCompleteCholesky(const CoordinateIndexedSparseMatrix &A) ;
-// 		virtual void precondition(const Vector &v,Vector &) const ;
-// 	} ;
-// 
-// 
-// } ;
+namespace Mu
+{
+
+	struct InCompleteCholesky  : public Preconditionner
+	{
+		bool stable ;
+		Vector d ;
+		CoordinateIndexedSparseMatrix A ;
+		virtual ~InCompleteCholesky() { } ;
+		InCompleteCholesky(const CoordinateIndexedSparseMatrix &A) ;
+		virtual void precondition(const Vector &v,Vector &)  ;
+	} ;
+
+
+} ;
 
 #endif 

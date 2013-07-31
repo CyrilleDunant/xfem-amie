@@ -105,6 +105,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		
 		double earlyRatio = 1.-(1.-downState.max())*.5 ;
 		earlyRatio>1 ? earlyRatio=.5 : earlyRatio=earlyRatio ;
+		earlyRatio = exp(-1./earlyRatio) ;
 // 		earlyRatio<damageDensityTolerance ? earlyRatio=damageDensityTolerance : earlyRatio=earlyRatio ;
 		
 		if(alternating && !alternate)
@@ -225,31 +226,31 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance*earlyRatio;
 			}
 			else if(ctype == CONSERVATIVE_CENTER)
 			{
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance*earlyRatio;
 			}
 			else if(ctype == DISSIPATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance*earlyRatio;
 			}
 			else if(ctype == DISSIPATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 16.*damageDensityTolerance*earlyRatio;
 			}
 			else if(ctype == CONSERVATIVE_MAX)
 			{
 				trialRatio = maxFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance*earlyRatio;
 			}
 			else if(ctype == CONSERVATIVE_MIN)
 			{
 				trialRatio = minFraction ;
-				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance;
+				getState( true ) = downState + ( upState - downState ) *trialRatio*effectiveDeltaFraction + 0.025*damageDensityTolerance*earlyRatio;
 			}
 			converged = true ;
 			alternate = true ;
@@ -302,7 +303,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 				}
 			}
 // 			std::cout << minscoreRatio << std::endl ;
-			getState( true ) = downState + ( upState - downState )*.25 +damageDensityTolerance;
+			getState( true ) = downState + ( upState - downState )*.25 +damageDensityTolerance*earlyRatio;
 // 			getState( true ) = downState + ( upState - downState )*effectiveDeltaFraction*.5 ;
 			for(size_t i = 0 ; i <  state.size() ; i++)
 				state[i] = std::min(state[i], 1.) ;
@@ -347,9 +348,9 @@ DamageModel::DamageModel(): state(0)
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of
 	// fracture criterion scores is non-monotonic.
-	damageDensityTolerance =  1e-5 ; //1e-8 ;//1. / pow( 2., 14 );
-	thresholdDamageDensity = 1.-2.*damageDensityTolerance ;
-	secondaryThresholdDamageDensity = 1.-2.*damageDensityTolerance ;
+	damageDensityTolerance =  1e-6 ; //1e-8 ;//1. / pow( 2., 14 );
+	thresholdDamageDensity = 1. ;
+	secondaryThresholdDamageDensity = 1. ;
 } ;
 
 double DamageModel::getThresholdDamageDensity() const

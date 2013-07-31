@@ -50,7 +50,7 @@ bool UpperTriangular::solve(const Vector &x0, Preconditionner * precond, const d
 	return true ;
 }
 
-CholeskiDecomposed::CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, Vector &b_,const Vector &d_) :LinearSolver(A_, b_), d(d_), y(0., A_.row_size.size())
+CholeskiDecomposed::CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, Vector &b_,const Vector &d_) :LinearSolver(A_, b_), d(d_), y(0., A_.row_size.size()*A_.stride)
 {};
 
 bool CholeskiDecomposed::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)

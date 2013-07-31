@@ -151,6 +151,7 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
 		scores.push_back(-1. + std::abs( minStress / (downStrain*stiffness) )) ;
 	}
 	std::sort(scores.begin(), scores.end()) ;
+	
 	return scores.back() ;
 
 }

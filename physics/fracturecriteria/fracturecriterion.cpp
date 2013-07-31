@@ -934,21 +934,24 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					tmpstrt.push_back(Vector(0., vlength));
 				}
 				
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(runtime)
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(static,16)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
-					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-					double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
-					int tnum = omp_get_thread_num() ;
-					ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
-				
-					stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
-					stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
-					stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
-					str0 += tmpstrt[tnum][0]*factors[i]*correction ;
-					str1 += tmpstrt[tnum][1]*factors[i]*correction ;
-					str2 += tmpstrt[tnum][2]*factors[i]*correction ;
-					sumFactors += factors[i]*correction ;
+					#pragma omp critical
+					{
+						DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
+						double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
+						int tnum = omp_get_thread_num() ;
+						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
+					
+						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
+						stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
+						stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
+						str0 += tmpstrt[tnum][0]*factors[i]*correction ;
+						str1 += tmpstrt[tnum][1]*factors[i]*correction ;
+						str2 += tmpstrt[tnum][2]*factors[i]*correction ;
+						sumFactors += factors[i]*correction ;
+					}
 				}
 			}
 			else
@@ -969,26 +972,28 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					tmpstrt.push_back(Vector(0., vlength));
 				}
 				
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(runtime)
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(static,16)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
-					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
-					
-					double correction = 1. ;
-// 					if(ci->getBehaviour()->getDamageModel())
-// 						correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
+					#pragma omp critical
+					{
+						DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 						
-					int tnum = omp_get_thread_num() ;
-					ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
-				
-					stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
-					stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
-					stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
-					str0 += tmpstrt[tnum][0]*factors[i]*correction ;
-					str1 += tmpstrt[tnum][1]*factors[i]*correction ;
-					str2 += tmpstrt[tnum][2]*factors[i]*correction ;
-					sumFactors += factors[i]*correction ;
-
+						double correction = 1. ;
+	// 					if(ci->getBehaviour()->getDamageModel())
+	// 						correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
+							
+						int tnum = omp_get_thread_num() ;
+						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
+					
+						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
+						stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
+						stra2 += tmpstrat[tnum][2]*factors[i]*correction ;
+						str0 += tmpstrt[tnum][0]*factors[i]*correction ;
+						str1 += tmpstrt[tnum][1]*factors[i]*correction ;
+						str2 += tmpstrt[tnum][2]*factors[i]*correction ;
+						sumFactors += factors[i]*correction ;
+					}
 				}
 			}
 			

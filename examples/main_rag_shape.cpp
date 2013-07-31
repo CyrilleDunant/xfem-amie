@@ -1228,27 +1228,27 @@ int main(int argc, char *argv[])
 	featureTree = &F ;
 
 	double itzSize = 0.000000005;
- 	int inclusionNumber = 6000 ;
+ 	int inclusionNumber = 1 ;
 	sample.setBehaviour( new PasteBehaviour() ) ;
 
 	AggregateBehaviour * agg = new AggregateBehaviour(59e9,0.3/*,0.00025*/) ;
-	std::vector<Feature *> inclusions = ParticleSizeDistribution::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.,BOLOME_A,ELLIPSE, 0.6, 0.1,inclusionNumber*100) ;
+	std::vector<Feature *> inclusions = ParticleSizeDistribution::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.,BOLOME_A,reference, 0.6, 0.1,inclusionNumber*100) ;
 
 	std::vector<EllipsoidalInclusion *> ellinc ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
 		ellinc.push_back(dynamic_cast<EllipsoidalInclusion *>(inclusions[i])) ;
-	zones = generateExpansiveZonesHomogeneously(1000, 100, ellinc, F) ;
+// 	zones = generateExpansiveZonesHomogeneously(1, 100, ellinc, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-//	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.00005*1e-3) ;
-//	F.addBoundaryCondition(stress) ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e3) ;
+	F.addBoundaryCondition(stress) ;
 
 	int nSampling = atof(argv[1]) ;
 	
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(4000) ;
+	F.setMaxIterationsPerStep(200) ;
 	
 	
 	std::string hop = "rag_ellipse_out_" ;
