@@ -120,7 +120,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		beta = rho/last_rho ;
 		
-		#pragma omp parallel for schedule(static) if (vsize > 10000)
+		#pragma omp parallel for schedule(runtime) if (vsize > 10000)
 		for(size_t i = 0 ; i < vsize ; i++)
 			p[i] = p[i]*beta+z[i] ;
 

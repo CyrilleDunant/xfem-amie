@@ -930,7 +930,7 @@ Vector Mu::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 double Mu::parallel_inner_product(const double * v0, const double * v1, int size) 
 {
 	double result = 0 ;
-#pragma omp parallel for reduction(+:result) schedule(static) if (size > 10000) 
+#pragma omp parallel for reduction(+:result) schedule(runtime) if (size > 10000) 
 	for(int i = 0 ; i < size ; ++i)
 		result += *(v0+i)* *(v1+i) ;
 	return result ;

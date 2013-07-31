@@ -1498,7 +1498,7 @@ void Circle::sampleSurface(size_t num_points)
 {
 	if(!sampled)
 	{
-		// 	num_points = std::max(round(num_points*1.5), 16.) ;
+		num_points = std::max(num_points, (size_t)6) ;
 		sampleBoundingSurface(num_points*3/2) ;
 		sampled = true ;
 		size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
@@ -2213,7 +2213,7 @@ void Ellipse::sampleSurface (size_t num_points)
 		return ;
 	
 	if(num_points < 3)
-		return ;
+		num_points = 4 ;
 
 	for(size_t i = 0 ; i < inPoints.size() ; i++)
 		delete inPoints[i] ;
@@ -2221,7 +2221,7 @@ void Ellipse::sampleSurface (size_t num_points)
 	inPoints.resize(1) ;
 	inPoints[0] = new Point(center) ;
 
-	size_t n = num_points*3 ;
+	size_t n = num_points*3*getMajorRadius()/getMinorRadius() ;
 
 	sampleBoundingSurface(n*4/3) ;
 	sampled = true ;

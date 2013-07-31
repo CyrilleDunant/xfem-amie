@@ -488,8 +488,8 @@ void Assembly::initialiseElementaryMatrices()
 // 		}
 // 	}
 
-	if(true)
-	{
+// 	if(true)
+// 	{
 		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
 			for(size_t i = 0 ; i < element2d.size() ; i++)
@@ -514,30 +514,30 @@ void Assembly::initialiseElementaryMatrices()
 					element3d[i]->getElementaryMatrix() ;
 			}
 		}
-	}
-	else
-	{
-		if(dim == SPACE_TWO_DIMENSIONAL)
-		{
-			#pragma omp parallel for 
-			for(size_t i = 0 ; i < element2d.size() ; i++)
-			{
-				if(element2d[i]->getBehaviour())
-					element2d[i]->getElementaryMatrix() ;
-			}
-		}
-		else if(dim == SPACE_THREE_DIMENSIONAL)
-		{
-			#pragma omp parallel for 
-			for(size_t i = 0 ; i < element3d.size() ; i++)
-			{
-				if(element3d[i]->getBehaviour())
-				{
-					element3d[i]->getElementaryMatrix() ;
-				}
-			}
-		}
-	}
+// 	}
+// 	else
+// 	{
+// 		if(dim == SPACE_TWO_DIMENSIONAL)
+// 		{
+// 			#pragma omp parallel for 
+// 			for(size_t i = 0 ; i < element2d.size() ; i++)
+// 			{
+// 				if(element2d[i]->getBehaviour())
+// 					element2d[i]->getElementaryMatrix() ;
+// 			}
+// 		}
+// 		else if(dim == SPACE_THREE_DIMENSIONAL)
+// 		{
+// 			#pragma omp parallel for 
+// 			for(size_t i = 0 ; i < element3d.size() ; i++)
+// 			{
+// 				if(element3d[i]->getBehaviour())
+// 				{
+// 					element3d[i]->getElementaryMatrix() ;
+// 				}
+// 			}
+// 		}
+// 	}
 
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
