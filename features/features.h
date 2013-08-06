@@ -247,7 +247,7 @@ protected:
 	{
 		std::cout << "setting element behaviours from previous mesh... " << std::flush ;
 		std::vector<ETYPE * > elems = destination->getElements() ;
-#pragma omp parallel for
+#pragma omp parallel for schedule(runtime)
 		for(size_t i = 0 ; i < elems.size() ; i++)
 		{
 // 			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;s

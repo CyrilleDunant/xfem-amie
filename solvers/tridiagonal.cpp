@@ -15,7 +15,7 @@
 using namespace Mu ;
 
 
-TriDiagonal::TriDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.diagonal()), upper(diagonal.size()-1)
+TriDiagonal::TriDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.diagonal()), upper(diagonal.size()-1), c(upper)
 {
 	for(size_t i = 0 ; i < upper.size() ; i++)
 		upper[i] = A[i][i+1] ;
@@ -31,24 +31,25 @@ TriDiagonal::TriDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.di
 
 void  TriDiagonal::precondition(const Vector &force, Vector & solution)
 {
-	Vector b(diagonal) ;
-	Vector c(upper) ;
-	Vector d(force) ;
+	c = upper ;
+	solution = force ;
 	int n = diagonal.size() ;
-	c[0] /= b[0];
-	d[0] /= b[0];
+	
+	c[0] /= diagonal[0];
+	solution[0] /= diagonal[0];
 	for(int i = 1 ; i < n-1 ; i++)
 	{
-		double id = 1.0/(b[i] - c[i - 1]*upper[i-1]); 
-		if(i < n-1)
-			c[i] *= id;
-		d[i] = (d[i] - d[i - 1]*upper[i-1])*id;
+		double id = 1./(diagonal[i] - c[i - 1]*upper[i-1]); 
+		c[i] *= id;
+		solution[i] = (solution[i] - solution[i - 1]*upper[i-1])*id;
 	}
+
+	solution[n-1] = (solution[n-1] - solution[n-2]*upper[n-2])/(diagonal[n-1] - c[n-2]*upper[n-2]);
 	
-	d[n-1] = (d[n-1] - d[n - 2]*upper[n-2])/(b[n-1] - c[n - 2]*upper[n-2]);
-	
-	solution[n - 1] = d[n - 1];
-	for(int i = n - 2; i >= 0; i--)
-		solution[i] = d[i] - c[i]*solution[i + 1];
+// 	d[n-1] = (d[n-1] - d[n - 2]*upper[n-2])/(diagonal[n-1] - c[n - 2]*upper[n-2]);
+// 	
+// 	solution[n - 1] = d[n - 1];
+	for(int i = n - 2; i-- > 0; )
+		solution[i] = solution[i] - c[i]*solution[i + 1];
 }
 

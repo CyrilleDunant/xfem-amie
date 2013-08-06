@@ -24,6 +24,7 @@ namespace Mu
 	{
 		Vector diagonal ;
 		Vector upper ;
+		Vector c ;
 		virtual ~TriDiagonal() {  ;}
 		TriDiagonal(const CoordinateIndexedSparseMatrix &A) ;
 		virtual void precondition(const Vector &v,Vector &)  ;

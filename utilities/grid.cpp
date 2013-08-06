@@ -176,7 +176,7 @@ bool Voxel::add(const Geometry * inc)
 	if(!pixels.empty())
 	{
 		bool ret = true ;
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(runtime)
 		for(int i = 0 ; i < 8 ; i++)
 			if(pixels[i]->coOccur(inc))
 				ret = ret && pixels[i]->add(inc) ;

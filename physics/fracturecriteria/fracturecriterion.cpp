@@ -934,7 +934,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					tmpstrt.push_back(Vector(0., vlength));
 				}
 				
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(static,16)
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(runtime)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
 					#pragma omp critical
@@ -972,7 +972,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					tmpstrt.push_back(Vector(0., vlength));
 				}
 				
-				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(static,16)
+				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) shared(tmpstrat,tmpstrt), schedule(runtime)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 				{
 					#pragma omp critical
