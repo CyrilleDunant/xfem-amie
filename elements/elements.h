@@ -134,7 +134,7 @@ public:
 	
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
-	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);cachedViscousElementaryMatrix.resize(0) ;} ;
+	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);cachedViscousElementaryMatrix.resize(0) ; } ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
 	virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2) const ;
 	virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) const ;

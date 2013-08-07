@@ -51,6 +51,17 @@ Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int
 	return outBehaviour->getTensor(p, e, g) ;
 }
 
+Matrix BimaterialInterface::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+	VirtualMachine vm ;
+	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
+
+	if(inGeometry->in(test))
+		return inBehaviour->getViscousTensor(p, e, g) ;
+	
+	return outBehaviour->getViscousTensor(p, e, g) ;
+}
+
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
 	VirtualMachine vm ;
@@ -290,6 +301,8 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 	temp.clear() ;
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
+
+//	std::cout << ret[0]->getData() << std::endl ;
 
 // 	std::vector<BoundaryCondition * > dummy = inBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
 // 	std::cout << dummy[0]->getData() << "\t" << dummy[1]->getData() << std::endl  ;

@@ -70,10 +70,23 @@ namespace Mu
 						{
 							Point c = start->getNeighbourhood(i)->getCenter() ;
 							c.t = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() ).t ;
-							if(g->in(c))
+							if(g->in(c)) 
 							{
 								to_test.insert(start->getNeighbourhood(i)) ;
 							}
+
+							if(g->getGeometryType() == TIME_DEPENDENT_CIRCLE)
+							{	
+								for(size_t k = 0 ; k <  start->getNeighbourhood(i)->getBoundingPoints().size() / start->getNeighbourhood(i)->timePlanes()-1 ; k++)
+								{
+									Point A = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() + k ) ;
+									Point B = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() + k + 1) ;
+									Segment s(A,B) ;
+									if(s.intersects(g) || g->in(A) || g->in(B))
+										to_test.insert(start->getNeighbourhood(i)) ;
+								}
+							}
+
 						}
 					}
 					else if(g->in(start->getNeighbourhood(i)->getCenter()) || start->getNeighbourhood(i)->in(g->getCenter()) || g->intersects(start->getNeighbourhood(i)->getPrimitive()) )
@@ -98,17 +111,20 @@ namespace Mu
 								{
 									if((*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )
 									{
-										to_test.insert((*j)->getNeighbourhood(i)) ;
+										new_test.insert((*j)->getNeighbourhood(i)) ;
 									}
 									
-									for(size_t k = 0 ; k < (*j)->getNeighbourhood(i)->timePlanes() ; k++)
+									for(size_t k = 0 ; k < (*j)->getNeighbourhood(i)->getBoundingPoints().size()-1 ; k++)
 									{
-										Point c = (*j)->getNeighbourhood(i)->getCenter() ;
-										c.t = (*j)->getNeighbourhood(i)->getBoundingPoint( (*j)->getNeighbourhood(i)->getBoundingPoints().size() * k / (*j)->getNeighbourhood(i)->timePlanes() ).t ;
-										if(g->in(c))
+										Point A = (*j)->getNeighbourhood(i)->getBoundingPoint(k) ;
+										Point B = (*j)->getNeighbourhood(i)->getBoundingPoint(k+1) ;
+										Segment s(A,B) ;
+										if(g->in(A) || g->in(B) || s.intersects(g))
 										{
 											new_test.insert((*j)->getNeighbourhood(i)) ;
+											break ;
 										}
+
 									}
 								}
 								else if(g->in((*j)->getNeighbourhood(i)->getCenter()) || (*j)->getNeighbourhood(i)->in(g->getCenter()) || g->intersects((*j)->getNeighbourhood(i)->getPrimitive()) )

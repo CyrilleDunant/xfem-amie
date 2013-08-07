@@ -3670,6 +3670,8 @@ bool Segment::intersects(const Geometry *g) const
 		{
 // 			s.print() ;
 // 			f.print() ;
+			
+
 		  
 			if(g->in(s) && g->in(f))
 				return false ;
@@ -3679,7 +3681,12 @@ bool Segment::intersects(const Geometry *g) const
 			Point center(g->getCenter()) ;
 			center.t = s.t ;
 			Point proj = project(center) ;
-			return g->in(proj) ;
+			if(g->in(proj)) { return true ; }
+			center = g->getCenter() ;
+			center.t = f.t ;
+			proj = project(center) ;
+			if(g->in(proj)) { return true ; }
+			return false ;
 		}  
 	case CIRCLE:
 		{

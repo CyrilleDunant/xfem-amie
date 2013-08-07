@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 {	
   
   	FeatureTree F(&box) ;
-	F.setSamplingNumber(32) ;
+	F.setSamplingNumber(15) ;
 
 	Vector alpha(3) ;
 	alpha[0] = 0.0 ;
@@ -106,26 +106,31 @@ int main(int argc, char *argv[])
 	
  	Matrix e = (new ElasticOnlyPasteBehaviour(60e9, 0.3))->param ;
 	Matrix e2 = (new ElasticOnlyPasteBehaviour(22e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, e,0)) ;
+  	box.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, e, e*0.3, e*3)) ;
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(0.1) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6,1)) ;
 	
-	Function r("0.05 t *") ;
+	Function r("0.05") ;
 	r += 0.05 ;
-	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e2, alpha,0 )) ;
-//	tarata->setInitialTime(-2.);
+	GrowingExpansiveZone *  tarata = new GrowingExpansiveZone( nullptr, r,0,0, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e2, alpha,1 )) ;
+	tarata->setInitialTime(-2.);
 	Inclusion * taratatata = new Inclusion( 0.1, 0.,0.) ;
-	taratatata->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e, alpha,0 ));
+	taratatata->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e, alpha,1 ));
 	F.addFeature(&box, tarata);
 	F.step() ;
+//	F.getAssembly()->print() ;
+
+	if(false)
 	{
-	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 0.) ;
-	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 0.) ;
+	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 	  std::cout << F.getCurrentTime() << "\t" << /*tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" <<*/ str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 	  
 	}
@@ -133,36 +138,28 @@ int main(int argc, char *argv[])
 	
 	std::fstream out ;
 	out.open("test_zone_moving_", std::ios::out) ;
-	int it = 0 ;
-	while(it< 20)
+	
+	while(F.getCurrentTime() < 20)
 	{
 	  F.step() ;
-	  it++ ;
-	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 0.) ;
-	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 0.) ;
+	  
+	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 	  std::cout << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
+
 	
-		std::string filename( "triangles" ) ;
+			std::string nametrg = "toto" ;
+			nametrg.append("_trg") ;
+			TriangleWriter w( nametrg, &F, 1) ;
+			w.getField( STRAIN_FIELD ) ;
+			w.getField( REAL_STRESS_FIELD ) ;
+			w.getField( TWFT_STIFFNESS ) ;
+			w.getField( TWFT_ENRICHMENT ) ;
+			w.write() ;
 
-
-
-		filename.append( itoa( tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime()))*1000., 10 ) ) ;
-		std::cout << filename << std::endl ;
-
-		TriangleWriter writer(filename.c_str(), &F) ;
-		writer.getField(TWFT_PRINCIPAL_STRESS ) ;
-		writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-		writer.getField( TWFT_VON_MISES ) ;
-		writer.getField( TWFT_STIFFNESS ) ;
-		writer.getField( TWFT_DAMAGE ) ;
-
-		writer.write() ;
-		
-	}
-	
-	F.getNodes()[0]->print() ;
-	 
+//		exit(0) ;
+	} 
 	
 	return 0 ;
 }

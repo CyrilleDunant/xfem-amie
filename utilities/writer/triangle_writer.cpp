@@ -13,6 +13,7 @@
 
 #include "triangle_writer.h"
 #include "voxel_writer.h"
+#include "../../physics/dual_behaviour.h"
 #include "../../physics/stiffness.h"
 #include <iostream>
 #include <fstream>
@@ -957,9 +958,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{
-				ret[(size-1-j)*3+0][iterator] = first[j] ;
-				ret[(size-1-j)*3+1][iterator] = second[j] ;
 				ret[(size-1-j)*3+2][iterator] = third[j] ;
+				ret[(size-1-j)*3+1][iterator] = second[j] ;
+				ret[(size-1-j)*3+0][iterator] = first[j] ;
 			}
 			
 			iterator++ ;
@@ -1022,6 +1023,18 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 // 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
 // 				ret[0] = 180.*v[0]/M_PI ;
 
+				found = true ;
+				break ;
+			}
+			case TWFT_ENRICHMENT:
+			{
+				BimaterialInterface * toto = dynamic_cast<BimaterialInterface *>(tri->getBehaviour()) ;
+				int enr = 0 ;
+				if(toto != nullptr)
+					enr = 1 ;
+				ret[2] = tri->getEnrichmentFunctions().size() ;
+				ret[1] = tri->getEnrichmentFunctions().size() ;
+				ret[0] = tri->getEnrichmentFunctions().size() ;
 				found = true ;
 				break ;
 			}
@@ -1127,13 +1140,23 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_STIFFNESS:
 			{
 				double t = 0 ;
+				size_t n = tri->getBoundingPoints().size()/3 ;
+				if(tri->timePlanes() > 1)
+					n /= tri->timePlanes() ;
 
 				if( tri->timePlanes() > 1 )
 					t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
 
-				ret[2] = (tri->getBehaviour()->getTensor( Point( 0.3333, 0.3333, 0.3333, t ) )[0][0]+tri->getBehaviour()->getTensor( Point( 0.3333, 0.3333, 0.3333, t ) )[1][1])*.5 ;
-				ret[1] = ret[2] ;
-				ret[0] = ret[2] ;
+				Point A = tri->getBoundingPoint(0) ;
+				Point B = tri->getBoundingPoint(n) ;
+				Point C = tri->getBoundingPoint(2*n) ;
+				Point A_ = tri->inLocalCoordinates(A) ; A_.t = t ;
+				Point B_ = tri->inLocalCoordinates(B) ; B_.t = t ;
+				Point C_ = tri->inLocalCoordinates(C) ; C_.t = t ;
+
+				ret[2] = (tri->getBehaviour()->getTensor( A_ )[0][0]+tri->getBehaviour()->getTensor( A_ )[1][1])*.5 ;
+				ret[1] = (tri->getBehaviour()->getTensor( B_ )[0][0]+tri->getBehaviour()->getTensor( B_ )[1][1])*.5 ;
+				ret[0] = (tri->getBehaviour()->getTensor( C_ )[0][0]+tri->getBehaviour()->getTensor( C_ )[1][1])*.5 ;
 				found = true ;
 
 				break ;
@@ -1304,6 +1327,8 @@ int numberOfFields( TWFieldType field )
 			return 6 ;
 		case TWFT_VON_MISES:
 			return 3 ;
+		case TWFT_ENRICHMENT:
+			return 3 ;
 		case TWFT_CRITERION:
 			return 3 ;
 		case TWFT_DAMAGE:
@@ -1339,6 +1364,8 @@ std::string nameOfField(TWFieldType field)
 			return std::string("Stiffness Y") ;
 		case TWFT_STIFFNESS_Z:
 			return std::string("Stiffness Z") ;
+		case TWFT_ENRICHMENT:
+			return std::string("Enrichment") ;
 		case TWFT_STRAIN:
 			return std::string("Strain") ;
 		case TWFT_PRINCIPAL_STRAIN:

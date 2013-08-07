@@ -20,6 +20,7 @@ class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
 	std::set<DelaunayTriangle *> expansive ;
 	bool changed ;
 	ViscoelasticityAndImposedDeformation * imp ;
+	std::map<Point *, Vector > pointsAndValues ;
 
 public:
 
@@ -35,6 +36,8 @@ public:
 
 	virtual bool moved() const { return changed ; } ;
 	
+	virtual void step(double dt, std::valarray<double> *, const  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+
 public:
 	GEO_DERIVED_OBJECT(TimeDependentCircle) ;
 	

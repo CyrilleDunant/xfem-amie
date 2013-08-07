@@ -2691,9 +2691,9 @@ void DelaunayTriangle::scaleCachedViscousElementaryMatrix(double s)
 
 void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double nextTimeStep) 
 {
-	if(previousTimeStep == nextTimeStep)
+	if(std::abs(previousTimeStep- nextTimeStep) < POINT_TOLERANCE_2D )
 		return ;
-  
+
 	if( getBehaviour() && !getBehaviour()->isViscous() )
 		return ;
 	if( ! this->getBehaviour()->timeDependent() && ! this->getBehaviour()->spaceDependent() && getEnrichmentFunctions().size() == 0)

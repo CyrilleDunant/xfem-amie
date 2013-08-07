@@ -163,49 +163,30 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		bool bout = false ;
 		for(size_t j = 0 ; j < nodesIterator.size() && !added ; j++)
 		{
- 			double ddt = 0 ;
-// 			if( j == 0)
-// 				ddt = -2.*dt ;
-// 			if(j == nodesIterator.size()-1)
-// 				ddt = 2.*dt ;
-			
 			if(added)
 				break ;
 			
 			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
-			A.t += ddt ;
-			
-			if( in( A ))
-				bin = true ;
+			if(in(A))
+				bin= true ;
 			else
 				bout = true ;
-
 			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
-			B.t += ddt ;
-			
-			if( in( B ))
-				bin = true ;
+			if(in(B))
+				bin= true ;
 			else
 				bout = true ;
-
 			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
-			C.t += ddt ;
-
-			if( in( C ))
-				bin = true ;
+			if(in(C))
+				bin= true ;
 			else
 				bout = true ;
-			
-// 			A.print() ;
-// 			B.print() ;
-// 			C.print() ;
-// 			std::cout << std::endl ;
-// 			
-//  			if(bin && bout)
-//  			{
+
+  			if(bin && bout)
+  			{
 				added = true ;
 				ring.push_back(disc[i]) ;
-// 			}
+ 			}
 		}
 	  
 	}
@@ -389,6 +370,8 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
 		}
 		else
 		{
+		changed = false ;
+		updated = false ;
 
 		  
 		}

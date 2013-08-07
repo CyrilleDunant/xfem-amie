@@ -57,6 +57,7 @@ public:
 	 * @return 
 	 */
 	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 	/** \brief Return the imposed stress at the point considered
 	 * 
