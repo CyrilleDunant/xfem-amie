@@ -525,7 +525,7 @@ int main( int argc, char *argv[] )
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 // 		
 	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-	m0_steel[2][2] = 0 ;
+	
 
 	Sample sample( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
 	Sample samplebulk( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;

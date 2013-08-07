@@ -400,30 +400,33 @@ void step()
 		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
 		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 		
-		std::cout << "average sigma11 : " << avg_s_xx/volume << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy/volume << std::endl ;
-		std::cout << "average sigma33 : " << avg_s_zz/volume << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy/volume << std::endl ;
-		std::cout << "average sigma13 : " << avg_s_xz/volume << std::endl ;
-		std::cout << "average sigma23 : " << avg_s_yz/volume << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx/volume << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy/volume << std::endl ;
-		std::cout << "average epsilon33 : " << avg_e_zz/volume << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy/volume << std::endl ;
-		std::cout << "average epsilon13 : " << avg_e_xz/volume << std::endl ;
-		std::cout << "average epsilon23 : " << avg_e_yz/volume << std::endl ;
+		Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
+		Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
+		
+		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+		std::cout << "average sigma33 : " << stemp[2] << std::endl ;
+		std::cout << "average sigma12 : " << stemp[3] << std::endl ;
+		std::cout << "average sigma13 : " << stemp[4] << std::endl ;
+		std::cout << "average sigma23 : " << stemp[5] << std::endl ;
+		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
+		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
+		std::cout << "average epsilon33 : " << etemp[2] << std::endl ;
+		std::cout << "average epsilon12 : " << etemp[3] << std::endl ;
+		std::cout << "average epsilon13 : " << etemp[4] << std::endl ;
+		std::cout << "average epsilon23 : " << etemp[5] << std::endl ;
 		
 	}
 // 	VoxelWriter vw1("sphere_stiffness", 100) ;
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 	
-	VoxelWriter vw("sphere_stress", 100) ;
+	VoxelWriter vw("sphere_stress", 75) ;
 	vw.getField(featureTree, VWFT_STRESS) ;
 	vw.write();
-	VoxelWriter vw0("sphere_strain", 100) ;
-	vw0.getField(featureTree, VWFT_STRAIN) ;
-	vw0.write();
+// 	VoxelWriter vw0("sphere_strain", 50) ;
+// 	vw0.getField(featureTree, VWFT_STRAIN) ;
+// 	vw0.write();
 	exit(0) ;
 }
 
@@ -443,24 +446,7 @@ void printScreen()
 
 int main(int argc, char *argv[])
 {
-			
-// 	Function myFunc("x 1 +") ; myFunc /= 2 ;
-// 		
-// 	VirtualMachine().print(myFunc); std::cout << VirtualMachine().eval(myFunc, 2) << std::endl ;
-// 	
-// 	myFunc = Function("x 1 +") ; myFunc *= 2 ;
-// 		
-// 	VirtualMachine().print(myFunc); std::cout << VirtualMachine().eval(myFunc, 2) << std::endl ;
-// 	
-// 	myFunc = Function("x 1 +") ; myFunc -= 2 ;
-// 		
-// 	VirtualMachine().print(myFunc); std::cout << VirtualMachine().eval(myFunc, 2) << std::endl ;
-// 	
-// 	myFunc = Function("x 1 +") ; myFunc += 2 ;
-// 		
-// 	VirtualMachine().print(myFunc); std::cout << VirtualMachine().eval(myFunc, 2) << std::endl ;
-// 	
-// 	exit(0) ;
+
 	double nu = 0.2 ;
 	double E = 1 ;
 	Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
@@ -520,17 +506,7 @@ int main(int argc, char *argv[])
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	Stiffness * s = new Stiffness(m0) ;
 	Stiffness * ss = new Stiffness(m1) ;
-// 	std::cout << feats.size() << std::endl ;
-// 	for(size_t i = 0 ; i < feats.size() ; i++)
-// 	{
-// 		feats[i]->setCenter(feats[i]->getCenter()*10000.);
-// 		dynamic_cast<Inclusion3D *>(feats[i])->setRadius(feats[i]->getRadius()*10000.)  ;
-// 		F.addFeature(&samplers, feats[i]) ;
-// 		feats[i]->setBehaviour(ss) ;
-// // 		feats[i]->setBehaviour(new VoidForm()) ;
-// // 		feats[i]->setBehaviour(new Laplacian(d1)) ;
-// // 		std::cout << feats[i]->getRadius() << "   " << feats[i]->getCenter().x << "   "  << feats[i]->getCenter().y << "   " << feats[i]->getCenter().z << std::endl ; 
-// 	}
+
 	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
 // 	samplers.setBehaviour(new Laplacian(d0)) ;
 	Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
@@ -538,7 +514,7 @@ int main(int argc, char *argv[])
 // 	Inclusion3D inc(100, 200, 200, 200) ;
 // 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
-	inc.setBehaviour(new Stiffness(m1*4)) ;
+// 	inc.setBehaviour(new Stiffness(m1*4)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	
 	F.addFeature(&samplers, &inc) ;
@@ -567,10 +543,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-	F.setOrder(QUADRATIC) ;
+	F.setOrder(LINEAR) ;
 
 	step() ;
-	
 // 	delete dt ;
 	
 	return 0 ;

@@ -20,10 +20,13 @@ void BimaterialInterface::transform(ElementarySurface * e)
 {
 	xtransform = e->getXTransform() ;
 	ytransform = e->getYTransform() ;
+	ztransform = Function("0") ;
 	if(inGeometry->timePlanes() > 1)
 	{
 		ttransform = e->getTTransform() ;
 	}
+	else
+		ttransform = Function("0") ;
 }
 
 void BimaterialInterface::transform(ElementaryVolume * e)
@@ -33,6 +36,8 @@ void BimaterialInterface::transform(ElementaryVolume * e)
 	ztransform = e->getZTransform() ;
 	if(inGeometry->timePlanes() > 1)
 		ttransform = e->getTTransform() ;
+	else
+		ttransform = Function("0") ;
 }
 
 Matrix BimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, int g) const

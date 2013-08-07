@@ -474,6 +474,7 @@ void ElementState::getExternalFieldAtGaussPoints( Vector & nodalValues, int exte
 
 void normalizeFieldAtPoint( Vector & values, const IntegrableEntity* f, const Point & p)
 {
+	return ;
 	if(f->getEnrichmentFunctions().size() > 0)
 	{
 		double base = 0. ;

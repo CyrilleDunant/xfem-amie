@@ -133,15 +133,32 @@ int main(int argc, char *argv[])
 	
 	std::fstream out ;
 	out.open("test_zone_moving_", std::ios::out) ;
-	
-	while(F.getCurrentTime() < 20)
+	int it = 0 ;
+	while(it< 20)
 	{
 	  F.step() ;
-	  
+	  it++ ;
 	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 0.) ;
 	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 0.) ;
 	  std::cout << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
 	  out << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
+	
+		std::string filename( "triangles" ) ;
+
+
+
+		filename.append( itoa( tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime()))*1000., 10 ) ) ;
+		std::cout << filename << std::endl ;
+
+		TriangleWriter writer(filename.c_str(), &F) ;
+		writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+		writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+		writer.getField( TWFT_VON_MISES ) ;
+		writer.getField( TWFT_STIFFNESS ) ;
+		writer.getField( TWFT_DAMAGE ) ;
+
+		writer.write() ;
+		
 	}
 	
 	F.getNodes()[0]->print() ;

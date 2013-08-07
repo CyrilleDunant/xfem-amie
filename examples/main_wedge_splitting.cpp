@@ -115,14 +115,20 @@ int main(int argc, char *argv[])
 //	F.setOrder(LINEAR) ;
 	
 	Rectangle * placement= new Rectangle(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
+	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
+	left.isVirtualFeature  = true ;
+	
+	Sample right(nullptr, (length-width)*.5, length, length*.5-(length-width)*.25, 0) ;
+	right.isVirtualFeature  = true ;
+	
 	
 	Rectangle refinement( 0.005, length, 0.,0.) ;
 	Rectangle large( 0.015, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
 	F.addRefinementZone(placement);
 	F.addRefinementZone(&large2);
-	F.addRefinementZone(&large);
-	F.addRefinementZone(&refinement);
+// 	F.addRefinementZone(&large);
+// 	F.addRefinementZone(&refinement);
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
@@ -131,6 +137,10 @@ int main(int argc, char *argv[])
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
+	
+	left.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
+	right.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
+	
 	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
@@ -143,6 +153,8 @@ int main(int argc, char *argv[])
 	ParticleSizeDistribution::get2DConcrete( &F, agg, 40, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8,placement, seed ) ;
  	F.addFeature(&box, &top) ;
  	F.addFeature(&box, &notch) ;
+	F.addFeature(&box, &left) ;
+	F.addFeature(&box, &right) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;

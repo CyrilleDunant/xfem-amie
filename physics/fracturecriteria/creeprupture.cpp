@@ -34,7 +34,7 @@ double CreepRupture::grade( ElementState &s )
 		damage = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
 	if(damage < 0.001)
 		damage = 0.001 ;
-	double kstrain = limStrain * damage ;
+	double kstrain = 1./(limStrain * damage) ;
 
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
@@ -46,35 +46,32 @@ double CreepRupture::grade( ElementState &s )
 
 	double dStress = maxStressAfter - maxStressBefore ;
 	double dStrain = maxStrainAfter - maxStrainBefore ;
+	double ds = maxStress-limStress ;
+	
+	double cBefore = maxStressBefore - ds*exp( - maxStrainBefore * kstrain )  ;
+	double cAfter = maxStressAfter - ds*exp( - maxStrainAfter * kstrain )  ;
 
-	double cBefore = (maxStressBefore - (limStress + (maxStress-limStress)*exp( - maxStrainBefore / kstrain ) ))/maxStress ;
-	double cAfter = (maxStressAfter - (limStress + (maxStress-limStress)*exp( - maxStrainAfter / kstrain ) ))/maxStress ;
-
-	if(cBefore > 0)
+	if(cBefore > limStress)
 		return 1. ;
-	if(cAfter < 0)
-		return cAfter ;
+	if(cAfter < limStress)
+		return cAfter / maxStress;
 
-	double crit = 1. ;
-	double tmin = 0. ;
-	double tmax = 1. ;
-	double tnext = 0.5 ; 
+	float crit = 1. ;
+	float tmin = 0. ;
+	float tmax = 1. ;
+	float tnext = 0.5 ; 
 	int niter = 0 ;
-	while(std::abs(crit) > 1e-6 && niter < 10)
+	
+	while(std::abs(crit) > 1e-6 && niter++ < 10)
 	{
-		tnext = (tmin + tmax)*0.5 ;
-		double sigma = maxStressBefore + (tnext)*dStress ;
-		double epsilon = maxStrainBefore +  (tnext)*dStrain ;
-		crit = (sigma - (limStress + (maxStress-limStress)*exp( - epsilon / kstrain ) ))/maxStress ;
-		if(crit > 0)
-			tmax = tnext ;
-		if(crit < 0)
-			tmin = tnext ;
-		niter ++ ;
+		tnext = tmin*0.66 + tmax*0.34 ;
+		float sigma = maxStressBefore + tnext*dStress ;
+		float epsilon = -(maxStrainBefore + tnext*dStrain)*kstrain ;
+		crit = sigma - ds * expf( epsilon ) ;
+		(crit > limStress) ? tmax = tnext : tmin = tnext ;
 	}
 	metInTension = true ;
-	return 1-tnext ;
-
+	return 1.-tnext ;
 	
 }
 
