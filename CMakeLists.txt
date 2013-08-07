@@ -58,6 +58,7 @@ physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
 physics/fracturecriteria/druckerprager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
+physics/fracturecriteria/creeprupture.cpp 
 physics/damagemodels/damagemodel.cpp
 physics/damagemodels/isotropiclineardamage.cpp 
 physics/damagemodels/nonlocalisotropiclineardamage.cpp 

@@ -867,7 +867,6 @@ bool Triangle::in(const Point &p) const
 
 	size_t npts = getBoundingPoints().size()/timePlanes() ;
 
-
 	if(s.on(getBoundingPoint(0)) || s.on(getBoundingPoint(npts/3)) || s.on(getBoundingPoint(npts*2/3)))
 		return false ;
 
@@ -965,14 +964,30 @@ void Triangle::sampleSurface(size_t num_points)
 
 	std::vector<Point> newPoints ;
 
-	size_t end_i = 3*boundingPoints.size()/3 ;
+	size_t end_i = boundingPoints.size()/3 ;
+	Point p1 = getBoundingPoint( 0 ) ;
+	Point p2 = getBoundingPoint( end_i )-p1 ;
+	Point p3 = getBoundingPoint( end_i*2 )-p1 ;
+	double d = (p2.norm()+p3.norm())*0.01 ;
 
-	for(int i = 0 ; i < ((int)num_points-1) ; i+=2)
+/*	for(double i = 1./num_points ; i < 1 ; i += 1./num_points)
 	{
-		for(int j = 0 ; j < i+1 ; j+=2)
+		for(double j = 1./num_points ; j < i ; j += 1./num_points)
+		{
+			Point test = p1 + p2*(i+xrand) + p3*(j+yrand) ;
+			if(in(test))
+				newPoints.push_back(test) ;
+		}
+	}*/
+
+
+
+
+	for(int i = 0 ; i < ((int)num_points-1) ; i+=1)
+	{
+		for(int j = 0 ; j < i+1 ; j+=1)
 		{
 			double fact = (double)(j+1)/(double)(i+1) ;
-			double d = dist(getBoundingPoint(i+1), getBoundingPoint(end_i-1-i))*0.17/num_points ;
 			double xrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
 			double yrand = ((double)rand()/(double)(RAND_MAX)*2.-1.)*d ;
 			if(this->in(getBoundingPoint(i+1)*(1.-fact) + getBoundingPoint(end_i-1-i)*fact+Point(xrand, yrand)))

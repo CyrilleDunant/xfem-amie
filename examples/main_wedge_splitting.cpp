@@ -15,6 +15,7 @@
 #include "../physics/parallel_behaviour.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/maxstrain.h"
+#include "../physics/fracturecriteria/creeprupture.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
@@ -125,7 +126,7 @@ int main(int argc, char *argv[])
 	
 	Matrix c = (new PasteBehaviour())->param ;
 	
-	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new SpaceTimeNonLocalMaximumStrain(0.0001, 1.2e6), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.1) ) ) ;
+	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new CreepRupture(2e6, 0.8e6, 1e-4), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.001) ) ) ;
 //	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 
 	std::fstream out ;
-	std::string tata = "wedge_strain_" ;
+	std::string tata = "wedge_creep_" ;
 	tata.append(argv[1]) ;
 	tata.append("_") ;
 	tata.append(argv[2]) ;
@@ -177,11 +178,12 @@ int main(int argc, char *argv[])
 	{
 		i++ ;
 		disp->setData( speed*i ) ;
+		std::cout << speed*i << std::endl ;
 
 //		F.setDeltaTime(1.) ;
 		F.step() ;
 		
-		std::string tati = "wedge_strain_" ;
+		std::string tati = "wedge_creep_" ;
 		tati.append("_") ;
 		tati.append(itoa(i)) ;
 		std::cout << tati << std::endl ;

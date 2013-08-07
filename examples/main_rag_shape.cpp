@@ -820,6 +820,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 {
 	RandomNumber gen ;
 	std::vector<Zone> ret ;
+	return ret ;
 	aggregateArea = 0 ;
 	double radius = 0.0000005 ;
 	std::vector<ExpansiveZone *> zonesToPlace ;
@@ -842,7 +843,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		if (alone)
 			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
 	}
-	std::cout << zonesToPlace.size() << std::endl ;
+	std::cout << zonesToPlace.size() << " zones generated" << std::endl ;
 	std::map<TriangularInclusion *, int> zonesPerIncs ; 
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
@@ -852,7 +853,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			Triangle triangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
 			triangle.project(&c) ;
-			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*60.)
+			if(triangle.in(zonesToPlace[i]->getCenter()) && dist(zonesToPlace[i]->getCenter(), c) > radius*1000.)
 			{
 				if(!incs[j]->in(zonesToPlace[i]->getCenter())) {
 					std::cout << i << ";" << j << "||" ;
@@ -1206,52 +1207,40 @@ int main(int argc, char *argv[])
 {
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
-
   
-  
-  
-  GeometryType reference = ELLIPSE ;
-	
-/*	if(argc > 2)
-	{
-		if(std::string(argv[2]) == std::string("--ellipse"))
-			reference = ELLIPSE ;
-		if(std::string(argv[2]) == std::string("--triangle"))
-			reference = TRIANGLE ;
-		if(std::string(argv[2]) == std::string("--rectangle"))
-			reference = RECTANGLE ;
-	}*/
-	
-	
+  	GeometryType reference = TRIANGLE ;
 	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
 	double itzSize = 0.000000005;
- 	int inclusionNumber = 1 ;
-	sample.setBehaviour( new PasteBehaviour() ) ;
+ 	int inclusionNumber = 500 ;
+	sample.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
 
-	AggregateBehaviour * agg = new AggregateBehaviour(59e9,0.3/*,0.00025*/) ;
-	std::vector<Feature *> inclusions = ParticleSizeDistribution::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.,BOLOME_A,reference, 0.6, 0.1,inclusionNumber*100) ;
+	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour(59e9,0.3/*,0.00025*/) ;
+	std::vector<Feature *> inclusions = ParticleSizeDistribution::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.00001,BOLOME_A,TRIANGLE, 1., M_PI,inclusionNumber*100) ;
 
-	std::vector<EllipsoidalInclusion *> ellinc ;
+	std::vector<TriangularInclusion *> ellinc ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)
-		ellinc.push_back(dynamic_cast<EllipsoidalInclusion *>(inclusions[i])) ;
-// 	zones = generateExpansiveZonesHomogeneously(1, 100, ellinc, F) ;
+		ellinc.push_back(dynamic_cast<TriangularInclusion *>(inclusions[i])) ;
+
+	std::cout << inclusions.size() << "\t" << ellinc.size() << std::endl ;
+
+	zones = generateExpansiveZonesHomogeneously(1000, 100, ellinc, F) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1e3) ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, -0.00005*1e-3) ;
 	F.addBoundaryCondition(stress) ;
 
 	int nSampling = atof(argv[1]) ;
 	
 	F.setSamplingNumber(nSampling) ;
 	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(200) ;
+//	F.setMaxIterationsPerStep(4000) ;
 	
 	
-	std::string hop = "rag_ellipse_out_" ;
+	std::string hop = "rag_triangle_out_" ;
 	hop.append(std::string(argv[1])) ;
 	std::fstream out ;
 	out.open(hop.c_str(), std::ios::out) ;
@@ -1289,7 +1278,7 @@ int main(int argc, char *argv[])
 		std::stable_sort( u_right.begin(), u_right.end() ) ;
 		std::stable_sort( u_top.begin(), u_top.end() ) ;
 		
-		std::string filename = "rag_ellipse_" ;
+		std::string filename = "rag_triangle_" ;
 		filename.append(std::string(argv[1])) ;
 		filename.append("_") ;
 		filename.append(itoa(i)) ;
