@@ -78,6 +78,7 @@ void TimeDependentEnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTre
 
 	}
 // 	std::cout << "update !!!! " << cache.size() << std::endl ;
+
 	if(cache.empty())
 		std::cout << "cache empty !" << std::endl ;
 }
@@ -182,15 +183,15 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			else
 				bout = true ;
 
-  			if(bin && bout)
-  			{
+  		if(bin && bout)
+  		{
 				added = true ;
 				ring.push_back(disc[i]) ;
+				break ;
  			}
 		}
-	  
 	}
-	
+	std::sort(ring.begin(), ring.end()) ;
 //	std::cout << "\n" << ring.size() << "/" << disc.size() << std::endl ;
 	
 	//then we build a list of points to enrich
@@ -227,27 +228,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 	{	  
 //		std::cout << "enriching triangle = " << i << "/" << ring.size() << std::endl ;
 		enrichedElem.insert(ring[i]) ;
-		std::vector<Point> hint ;
-		std::vector<Point> inter = intersection(ring[i]->getPrimitive()) ;
-		
-		if(inter.size() == 4)
-		{
-			for(double j = 0.1 ; j < 0.9 ; j += 0.1)
-			{
-				for(double k = 0.1 ; k < 0.9 ; k += 0.1)
-				{
-					Point h0 = inter[0]*j*k+inter[1]*(1.-j)*k + inter[2]*j*(1.-k)+inter[3]*(1.-j)*(1.-k) ;
-					project(&h0);
-					hint.push_back(ring[i]->inLocalCoordinates(h0)) ;
-				}
-			}
-			
-			hint.push_back(ring[i]->inLocalCoordinates(inter[0])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(inter[1])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(inter[2])) ;
-			hint.push_back(ring[i]->inLocalCoordinates(inter[3])) ;
-		}
-		
+		std::vector<Point> hint ;		
 
 		//we build the enrichment function, first, we get the transforms from the triangle
 		//this function returns the distance to the centre
@@ -312,7 +293,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			hat.setVariableTransform(XI, dx);
 			hat.setVariableTransform(ETA, dy);
  			hat.setVariableTransform(TIME_VARIABLE, dt);
-			hat.makeVariableTransformDerivative() ;
+// 			hat.makeVariableTransformDerivative() ;
 			hat.setNumberOfDerivatives(0);
 			
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;

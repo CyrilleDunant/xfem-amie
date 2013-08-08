@@ -32,6 +32,54 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	
 	std::vector<DelaunayTriangle *> & disc = TimeDependentEnrichmentInclusion::cache ;
 	
+	
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		disc[i]->clearBoundaryConditions() ;
+		if( disc[i]->getEnrichmentFunctions().size() == 0)
+		{
+			continue ;
+		}
+// 		if(enriched[i]->hasBoundaryConditions())
+// 			continue ;
+		
+		
+		GaussPointArray gp = disc[i]->getGaussPoints() ;
+		std::valarray< Matrix > Jinv(Matrix(imp->getNumberOfDegreesOfFreedom(), imp->getNumberOfDegreesOfFreedom()), gp.gaussPoints.size()) ;
+		
+		for( size_t j = 0 ; j < gp.gaussPoints.size() ;  j++ )
+		{
+			disc[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+		}
+		
+		size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;
+		
+		
+		for(size_t j = 0 ; j < disc[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
+		{
+
+				if( pointsAndValues.find( disc[i]->getEnrichmentFunction(j).getPoint() ) == pointsAndValues.end() )
+				{
+					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
+					{
+						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
+					}
+				}
+				else
+				{
+					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
+					{
+						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), pointsAndValues[disc[i]->getEnrichmentFunction(j+enrichedDofPerTimePlanes).getPoint()][n], n) ) ;
+					}
+				}
+				  
+				  
+//disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, dofIdCurrent[disc[i]->getEnrichmentFunction(j).getPoint()], 0., n) ) ;
+		}
+//		std::cout << std::endl ;
+	}
+	
+	
 // 	if(disc.size() < 6)
 // 		return ;
 	
@@ -135,66 +183,19 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	expansive = newExpansive ;
 	bimateralInterfaced = newInterface ;
 
-	
 	bool noPrevBC = dofIdPrev.empty() ;
 	
 	std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end()); 
 //	std::cout << enriched.size() << "\t" << counter << std::endl ;
 
 	
-	for(size_t i = 0 ; i < disc.size() ; i++)
-	{
-		disc[i]->clearBoundaryConditions() ;
-		if( disc[i]->getEnrichmentFunctions().size() == 0)
-		{
-			continue ;
-		}
-// 		if(enriched[i]->hasBoundaryConditions())
-// 			continue ;
-		
-		
-		GaussPointArray gp = disc[i]->getGaussPoints() ;
-		std::valarray<Matrix> Jinv( gp.gaussPoints.size() ) ;
-		
-		for( size_t j = 0 ; j < gp.gaussPoints.size() ;  j++ )
-		{
-			disc[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-		}
-		
-		size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;
-		
-		
-		for(size_t j = 0 ; j < disc[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
-		{
-
-				if( pointsAndValues.find( disc[i]->getEnrichmentFunction(j).getPoint() ) == pointsAndValues.end() )
-				{
-					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
-					{
-						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
-					}
-				}
-				else
-				{
-					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
-					{
-						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), pointsAndValues[disc[i]->getEnrichmentFunction(j+enrichedDofPerTimePlanes).getPoint()][n], n) ) ;
-					}
-				}
-				  
-				  
-//disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, dofIdCurrent[disc[i]->getEnrichmentFunction(j).getPoint()], 0., n) ) ;
-		}
-//		std::cout << std::endl ;
-	}
-	
 	dofIdPrev = dofIdCurrent ;
 
 }
 
-void GrowingExpansiveZone::step(double dt, std::valarray< double >* disp, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 {
-	TimeDependentEnrichmentInclusion::step(dt, disp, dtree) ;
+	TimeDependentEnrichmentInclusion::step(dt, results, dtree) ;
 
 	if(dt > 0 )
 	{
@@ -202,26 +203,22 @@ void GrowingExpansiveZone::step(double dt, std::valarray< double >* disp, const 
 		pointsAndValues.clear() ;
 		for(size_t i = 0 ; i < TimeDependentEnrichmentInclusion::cache.size() ; i++)
 		{
-			std::cout <<  TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunctions().size() << std::endl ;
 			for(  size_t j = 0 ; j < TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunctions().size() ;j++)
 			{
-				std::cout << i << ";" << j << std::endl ;
 				if(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentSource(j) == getPrimitive())
 				{
-					Vector disp(imp->getNumberOfDegreesOfFreedom()) ;
+					std::vector<double> disp(imp->getNumberOfDegreesOfFreedom()) ;
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
-						if( TimeDependentEnrichmentInclusion::cache[i]->getState().getEnrichedDisplacements().size() > 0)
-							disp[n] = TimeDependentEnrichmentInclusion::cache[i]->getState().getEnrichedDisplacements()[j*imp->getNumberOfDegreesOfFreedom()+n] ;
-						else
-							disp[n] = 0 ;
+						disp[n] = (*results)[TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getDofID()*imp->getNumberOfDegreesOfFreedom()+n];
 					}
 					for(size_t d = 0 ; d < disp.size() ; d++)
-						std::cout << disp[d] << std::endl ;
+						std::cout << disp[d] << "  "<< std::flush ;
+					std::cout << std::endl ;
 
 					for(size_t k = 0 ; k < TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoints().size() ; k++)
 					{
-						std::cout << i << ";" << j << ";" << k << std::endl ;
+						
 						if(squareDist2D(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint(), &TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k)) < POINT_TOLERANCE_2D 
 							  && std::abs(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()->t - TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k).t) < POINT_TOLERANCE_2D )
 						{

@@ -20,7 +20,7 @@ class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
 	std::set<DelaunayTriangle *> expansive ;
 	bool changed ;
 	ViscoelasticityAndImposedDeformation * imp ;
-	std::map<Point *, Vector > pointsAndValues ;
+	std::map<Point *, std::vector<double> > pointsAndValues ;
 
 public:
 
