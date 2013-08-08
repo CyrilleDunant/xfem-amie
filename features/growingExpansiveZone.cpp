@@ -54,12 +54,15 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 		
 		size_t enrichedDofPerTimePlanes = disc[i]->getEnrichmentFunctions().size()/disc[i]->timePlanes() ;
 		
-		
+		std::set<Point *> donePoints ;
 		for(size_t j = 0 ; j < disc[i]->getEnrichmentFunctions().size() - enrichedDofPerTimePlanes ; j++)
 		{
+			if(donePoints.find(disc[i]->getEnrichmentFunction(j).getPoint()) == donePoints.end())
+			{
 
 				if( pointsAndValues.find( disc[i]->getEnrichmentFunction(j).getPoint() ) == pointsAndValues.end() )
 				{
+					donePoints.insert(disc[i]->getEnrichmentFunction(j).getPoint() ) ;
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
 						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), 0., n) ) ;
@@ -67,16 +70,18 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 				}
 				else
 				{
+					donePoints.insert(disc[i]->getEnrichmentFunction(j).getPoint() ) ;
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
 						disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, disc[i]->getEnrichmentFunction(j).getDofID(), pointsAndValues[disc[i]->getEnrichmentFunction(j+enrichedDofPerTimePlanes).getPoint()][n], n) ) ;
+						std::cout << pointsAndValues[disc[i]->getEnrichmentFunction(j+enrichedDofPerTimePlanes).getPoint()][n] << "   " << std::flush ;
 					}
 				}
-				  
+			}
 				  
 //disc[i]->addBoundaryCondition( new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, disc[i], gp, Jinv, dofIdCurrent[disc[i]->getEnrichmentFunction(j).getPoint()], 0., n) ) ;
 		}
-//		std::cout << std::endl ;
+		std::cout << std::endl ;
 	}
 	
 	
@@ -210,7 +215,7 @@ void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, con
 					std::vector<double> disp(imp->getNumberOfDegreesOfFreedom()) ;
 					for(size_t n = 0 ; n < imp->getNumberOfDegreesOfFreedom() ; n++)
 					{
-						disp[n] = (*results)[TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getDofID()*imp->getNumberOfDegreesOfFreedom()+n];
+						disp[n] = TimeDependentEnrichmentInclusion::cache[i]->getState().getEnrichedDisplacements()[j*imp->getNumberOfDegreesOfFreedom()+n];
 					}
 					for(size_t d = 0 ; d < disp.size() ; d++)
 						std::cout << disp[d] << "  "<< std::flush ;
