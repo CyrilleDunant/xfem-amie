@@ -9,6 +9,7 @@
 
 #include "features.h"
 #include "enrichmentInclusion.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../geometry/space_time_geometry_2D.h"
 
 namespace Mu
@@ -42,6 +43,35 @@ public:
 	
 } ;
 
+class TimeDependentHomogenisingInclusion : public EnrichmentInclusion, public TimeDependentCircle
+{
+protected:  
+	std::map<DelaunayTriangle *, Form *> homogeneised;
+	ViscoelasticityAndImposedDeformation * imposed ;
+	std::set<DelaunayTriangle *> enrichedElem;
+	std::set<DelaunayTriangle *> zoneElem;
+  
+public:
+	TimeDependentHomogenisingInclusion(Feature * father, Function & r, double x, double y, ViscoelasticityAndImposedDeformation * imp) ;
+	TimeDependentHomogenisingInclusion( Function & r, double x, double y, ViscoelasticityAndImposedDeformation * imp) ;
+	virtual ~TimeDependentHomogenisingInclusion() ;
+  	
+	virtual void enrich(size_t & , Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
+	
+	virtual void print() const
+	{
+		std::cout << "I am a time-dependent enriched inclusion" << std::endl ;
+	}
+	
+	virtual void step(double dt, std::valarray<double> *, const  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+
+	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
+
+public:
+	GEO_DERIVED_OBJECT(TimeDependentCircle) ;
+	
+
+} ;
 
 
   

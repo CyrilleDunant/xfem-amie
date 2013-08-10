@@ -2903,7 +2903,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			TriElement father (LINEAR) ;
 			TriangularInclusion trg(A,B,C) ;
 			srand(0) ;
-			trg.sample(24) ;
+			trg.sample(16) ;
 			DelaunayTree * dt = new DelaunayTree(&A,&B,&C) ;
 // 			std::cout << trg.getInPoints().size() << std::endl ;
 // 			std::cout << trg.getBoundingPoints().size() << std::endl ;
@@ -2915,9 +2915,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			{
 				dt->insert(&trg.getInPoint(i));
 			}
-			Function xtr = getXTransform() ;
-			Function ytr = getYTransform() ;
-			Function ttr = getTTransform() ;
 			
 			std::vector<DelaunayTriangle *> tris = dt->getElements() ;
 			double fsum = 0 ;
@@ -2925,6 +2922,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 			{
 				auto gpl = tris[i]->getGaussPoints() ;
 				tris[i]->refresh(&father) ;
+				Function xtr = tris[i]->getXTransform() ;
+				Function ytr = tris[i]->getYTransform() ;
 				for(size_t j = 0 ; j < gpl.gaussPoints.size() ; j++)
 				{
 					Point c(vm.eval(xtr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y), vm.eval(ytr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y)) ;

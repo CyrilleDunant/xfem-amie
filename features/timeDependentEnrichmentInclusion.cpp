@@ -166,25 +166,34 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		{
 			if(added)
 				break ;
+
+			double ddt = 0. ;
+/*			if(j == 0)
+				ddt = -dt ;
+			if(j == nodesIterator.size()-1)
+				ddt = +dt ;*/
 			
 			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
+			A.t += ddt ;
 			if(in(A))
 				bin= true ;
 			else
 				bout = true ;
 			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
+			B.t += ddt ;
 			if(in(B))
 				bin= true ;
 			else
 				bout = true ;
 			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
+			C.t += ddt ;
 			if(in(C))
 				bin= true ;
 			else
 				bout = true ;
 
-  		if(bin && bout)
-  		{
+	  		if(bin && bout)
+	  		{
 				added = true ;
 				ring.push_back(disc[i]) ;
 				break ;
@@ -351,8 +360,8 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
 		}
 		else
 		{
-		changed = false ;
-		updated = false ;
+//		changed = false ;
+//		updated = false ;
 
 		  
 		}
@@ -366,3 +375,223 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
 }
 	
 
+
+
+TimeDependentHomogenisingInclusion::TimeDependentHomogenisingInclusion(Feature * father, Function & r, double x, double y, ViscoelasticityAndImposedDeformation * imp) : EnrichmentInclusion( father, VirtualMachine().eval(r, Point(0,0,0,0)),x,y), TimeDependentCircle(r,Point(x,y)), imposed(imp)
+{
+  
+}
+
+TimeDependentHomogenisingInclusion::TimeDependentHomogenisingInclusion( Function & r, double x, double y, ViscoelasticityAndImposedDeformation * imp) : EnrichmentInclusion( VirtualMachine().eval(r, Point(0,0,0,0)),x,y), TimeDependentCircle(r,Point(x,y)), imposed(imp)
+{
+  
+}
+
+TimeDependentHomogenisingInclusion::~TimeDependentHomogenisingInclusion() 
+{
+  
+}
+	
+void TimeDependentHomogenisingInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+{
+	double dt = 1. ;
+	if(cache.size())
+		dt = cache[0]->getState().getNodalDeltaTime() * 2. ;
+
+	Function time("t") ;
+	time += dt ;
+	Function radius = getRadiusFunction() ;
+	Point c = getCenter() ;
+	TimeDependentCircle dummy( radius, c) ;
+
+	cache = dtree->getConflictingElements(& dummy) ;
+
+	
+	if(cache.empty())
+	{
+		std::vector<DelaunayTriangle *> candidates = dtree->getConflictingElements(&getCenter()) ;
+		for(size_t i = 0 ; i < candidates.size() ; i++)
+		{
+			if(candidates[i]->isTriangle && candidates[i]->in(getCenter()))
+			{
+				cache.push_back(static_cast<DelaunayTriangle *>(candidates[i])) ;
+				break ;
+			}
+		}
+	}
+	for(size_t i = 0 ; i < cache.size() ; i++)
+	{
+		if(homogeneised.find( cache[i] ) == homogeneised.end() )
+		{
+			homogeneised[cache[i]] = cache[i]->getBehaviour()->getCopy() ;
+		}
+	}
+// 	std::cout << "update !!!! " << cache.size() << std::endl ;
+
+	if(cache.empty())
+		std::cout << "cache empty !" << std::endl ;
+}
+
+void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
+{
+	if(updated)
+	{
+		update(dtree) ;
+	}
+ 	updated = false ;
+	
+
+	const std::vector<DelaunayTriangle *> & disc  = cache;
+	std::vector<DelaunayTriangle *> ring ;
+	std::vector<DelaunayTriangle *> inside ;
+
+	std::vector<std::vector<size_t > > nodesIterator ;
+	size_t nodesPerPlane = disc[0]->getBoundingPoints().size() / disc[0]->timePlanes() ;
+	size_t nodesPerEdge = nodesPerPlane/3 ;
+	for(size_t i = 0 ; i < disc[0]->timePlanes() ; i++)
+	{
+		std::vector<size_t> tmp ;
+		tmp.push_back(nodesPerPlane*i + nodesPerEdge*0);
+		tmp.push_back(nodesPerPlane*i + nodesPerEdge*1);
+		tmp.push_back(nodesPerPlane*i + nodesPerEdge*2);
+		nodesIterator.push_back(tmp) ;
+	}
+
+	for(size_t i = 0 ; i < disc.size() ; i++)
+	{
+		bool added = false ;
+		double dt = disc[i]->getState().getNodalDeltaTime() ;
+		double t0 = disc[i]->getBoundingPoint(0).t ;
+			
+		bool bin = false ;
+		bool bout = false ;
+		for(size_t j = 0 ; j < nodesIterator.size() && !added ; j++)
+		{
+			if(added)
+				break ;
+
+			double ddt = 0. ;
+/*			if(j == 0)
+				ddt = -dt ;
+			if(j == nodesIterator.size()-1)
+				ddt = +dt ;*/
+			
+			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
+			A.t += ddt ;
+
+			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
+			B.t += ddt ;
+
+			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
+			C.t += ddt ;
+
+			Triangle dummy(A,B,C) ;
+	  		if(circleAtTime(A).intersects(&dummy))
+	  		{
+				added = true ;
+				ring.push_back(disc[i]) ;
+				break ;
+ 			}
+		}
+		if(!added)
+		{
+			Point c = disc[i]->getCenter() ; c.t = t0+dt/2 ;
+			if(in(c))
+				inside.push_back(disc[i]) ;
+		}
+	}
+
+	std::cout << disc.size() << "\t" << inside.size() << "\t" << ring.size() << std::endl ;
+
+	if(inside.size() == 0 && ring.size() == 0)
+	{
+		for(size_t i = 0 ; i < disc.size() ; i++)
+			ring.push_back(disc[i]) ;
+	}
+
+
+	for(size_t i = 0 ; i < inside.size() ; i++)
+	{
+		inside[i]->setBehaviour(imposed->getCopy()) ;
+		if(zoneElem.find(inside[i]) == zoneElem.end())
+		{
+			zoneElem.insert(inside[i]) ;
+			inside[i]->clearElementaryMatrix() ;
+		}
+	}
+
+	for(size_t i = 0 ; i < ring.size() ; i++)
+	{
+		ring[i]->clearElementaryMatrix() ;
+		Point A = ring[i]->getBoundingPoint(3) ;
+		Point B = ring[i]->getBoundingPoint(4) ;
+		Point C = ring[i]->getBoundingPoint(5) ;
+		int k = 0 ;
+		int areIn = 0 ;
+		while(k < 1000)
+		{
+			double x = ((double) rand())/RAND_MAX ;
+			double y = ((double) rand())/RAND_MAX ;
+			if(x+y < 1)
+			{
+				Point D = A ;
+				D += (B-A)*x ;
+				D += (C-A)*y ;
+				D.t = A.t ;
+				if(in(D))
+					areIn++ ;
+				k++ ;
+			}
+		}
+		
+		Matrix stiff = (imposed->param)*((double) areIn/(double)k) ;
+		stiff += (homogeneised[ring[i]]->getTensor(A))*((double) (k-areIn)/(double)k) ;
+		size_t b = imposed->blocks ;
+		Matrix realStiff(stiff.numRows()/b, stiff.numRows()/b) ;
+		for(size_t r = 0 ; r < realStiff.numRows() ; r++)
+		{
+			for(size_t c = 0 ; c < realStiff.numRows() ; c++)
+			{
+				realStiff[r][c] = stiff[r][c] ;
+			}		
+		}
+
+//		(homogeneised[ring[i]]->param).print() ;
+		Point c = ring[i]->getCenter() ; c.t = A.t ;
+		Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter()))*((double) areIn/(double)k) ;
+		ring[i]->setBehaviour( new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY,realStiff, alpha, b-1)) ;
+
+		
+	}
+
+	
+}
+
+
+void TimeDependentHomogenisingInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+{
+	if(dt > POINT_TOLERANCE_2D)
+	{
+		if( VirtualMachine().deval(TimeDependentCircle::getRadiusFunction(), TIME_VARIABLE, 0,0,0,dt) > POINT_TOLERANCE_3D)
+		{
+	  
+		changed = true ;
+		updated = true ;
+		
+//		std::cout << "update you bastard!" << std::endl ;
+		}
+		else
+		{
+//		changed = false ;
+//		updated = false ;
+
+		  
+		}
+	}
+	else
+	{
+		changed = false ;
+		updated = false ;
+	}
+  
+}

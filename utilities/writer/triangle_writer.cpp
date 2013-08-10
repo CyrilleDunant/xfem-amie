@@ -930,10 +930,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 	int size = fieldTypeElementarySize( field, SPACE_TWO_DIMENSIONAL, blocks) ;
 	int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
 	int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
-	int factor = 1 ;
-
-	if( pointsPerPlane % 6 == 0 )
-		factor = 2 ;
+	int factor = pointsPerPlane/3 ;
 
 	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
 
@@ -951,10 +948,14 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			Vector first(size) ;
 			Vector second(size) ;
 			Vector third(size) ;
+
+			size_t n = triangles[i]->getBoundingPoints().size()/3 ;
+			if(triangles[i]->timePlanes() > 1)
+				n /= triangles[i]->timePlanes() ;
 		  
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + 0), first, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor), second, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset + factor*2), third, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+0), first, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+n), second, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+2*n), third, false, 0);
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{
@@ -1029,12 +1030,13 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_ENRICHMENT:
 			{
 				BimaterialInterface * toto = dynamic_cast<BimaterialInterface *>(tri->getBehaviour()) ;
-				int enr = 0 ;
+				double enr = 0. ;
 				if(toto != nullptr)
-					enr = 1 ;
-				ret[2] = tri->getEnrichmentFunctions().size() ;
-				ret[1] = tri->getEnrichmentFunctions().size() ;
-				ret[0] = tri->getEnrichmentFunctions().size() ;
+					enr = 5. ;
+				double rnd = 0.5*rand()/RAND_MAX ;
+				ret[2] = rnd + tri->getEnrichmentFunctions().size() ;
+				ret[1] = rnd + tri->getEnrichmentFunctions().size() ;
+				ret[0] = rnd + tri->getEnrichmentFunctions().size() ;
 				found = true ;
 				break ;
 			}

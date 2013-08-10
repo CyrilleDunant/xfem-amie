@@ -64,7 +64,7 @@ Matrix BimaterialInterface::getViscousTensor(const Point & p, IntegrableEntity *
 
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-	VirtualMachine vm ;
+/*	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 //	std::cout << p.t << ";" ;
 	if(inGeometry->in(test))
@@ -72,19 +72,19 @@ Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity *
 // 		std::cout << "  padum " << test.t << std::endl ;
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStress(p,e,g) ;
-	}
+	}*/
 	return outBehaviour->getImposedStress(p,e,g) ;
 }
 
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-	VirtualMachine vm ;
+/*	VirtualMachine vm ;
 	Point test = Point(vm.eval(xtransform, p.x, p.y, p.z, p.t), vm.eval(ytransform,  p.x, p.y, p.z, p.t), vm.eval(ztransform,  p.x, p.y, p.z, p.t), vm.eval(ttransform, p.x,p.y,p.z,p.t)) ;
 	if(inGeometry->in(test))
 	{
 // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
 		return inBehaviour->getImposedStrain(p,e,g) ;
-	}
+	}*/
 	return outBehaviour->getImposedStrain(p,e,g) ;
 }
 
@@ -97,7 +97,6 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	Vector y = vm->eval(ytransform,gp) ;
 	Vector z = vm->eval(ztransform,gp) ;
 	Vector t = vm->eval(ttransform,gp) ;
-//	std::cout << sqrt(x[0]*x[0] + y[0]*y[0]) << "," << t[0] << " || " ;
 	std::valarray<bool> inIn(false, x.size()) ;
 	int inCount = 0;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -154,7 +153,6 @@ void BimaterialInterface::apply(const Function & p_i, const Function & p_j, cons
 	inBehaviour->apply(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
 	outBehaviour->apply(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
 	ret += retIn ;
-	
 }
 
 void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
@@ -221,7 +219,6 @@ void BimaterialInterface::applyViscous(const Function & p_i, const Function & p_
 	Matrix retIn(ret) ;
 	inBehaviour->applyViscous(p_i, p_j, gpIn, inMatrixArray, retIn,vm) ; 
 	outBehaviour->applyViscous(p_i, p_j, gpOut, outMatrixArray,ret,vm) ;
-	
 	ret += retIn ;
 
 }
@@ -268,6 +265,12 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 			inCount++ ;
 		}
 	}
+	
+	if(inCount == 0)
+		return inBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
+	if(inCount == gp.gaussPoints.size())
+		return outBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
+
 	std::valarray<std::pair<Point, double> > inArray(inCount) ;
 	std::valarray<Matrix> inMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()),inCount) ;
 	std::valarray<std::pair<Point, double> > outArray(gp.gaussPoints.size()-inCount) ;
@@ -300,12 +303,9 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 	temp.clear() ;
 	temp = outBehaviour->getBoundaryConditions(s,id, p_i, gpOut, outMatrixArray) ;
+//	std::cout << gpOut.gaussPoints.size() << "/" << gp.gaussPoints.size() << std::endl ;
 	ret.insert(ret.end(), temp.begin(), temp.end()) ;
 
-//	std::cout << ret[0]->getData() << std::endl ;
-
-// 	std::vector<BoundaryCondition * > dummy = inBehaviour->getBoundaryConditions(s,id, p_i, gp, Jinv) ;
-// 	std::cout << dummy[0]->getData() << "\t" << dummy[1]->getData() << std::endl  ;
 // 	
 // 	
 	return ret ;

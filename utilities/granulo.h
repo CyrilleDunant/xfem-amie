@@ -16,6 +16,7 @@
 #include "../features/inclusion.h"
 #include "../features/expansiveZone.h"
 #include "../features/growingExpansiveZone.h"
+#include "../features/timeDependentEnrichmentInclusion.h"
 #include "../features/inclusion3d.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../geometry/geometry_base.h"
@@ -173,7 +174,7 @@ public:
 	 */
 	static std::vector<std::pair<ExpansiveZone *, Inclusion *> > get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg = -1) ;
 
-	static std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg = -1) ;
+	static std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> aggregates, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg = -1) ;
 	
 	/**
 	 * \brief Returns appropriate ParticleSizeDistribution* object corresponding to the given type

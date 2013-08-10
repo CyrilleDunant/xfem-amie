@@ -409,7 +409,73 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			getBlockInMatrix(param, 0,0, buffer) ;
  			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
  			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+
+/*			Matrix c(a.numRows(),a.numRows()) ;
+			Matrix d(a.numRows(),a.numRows()) ;
+			size_t beforeCount = 0 ;
+			size_t afterCount = 0 ;
+			std::valarray<bool> isBefore(gp.gaussPoints.size()) ;
+			isBefore = false ;
+			std::valarray<bool> isAfter(gp.gaussPoints.size()) ;
+			isAfter = false ;
+
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				if(gp.gaussPoints[i].first.t < -POINT_TOLERANCE_2D)
+				{
+					isBefore[i] = true ;
+					beforeCount++ ;
+				}
+				if(gp.gaussPoints[i].first.t > POINT_TOLERANCE_2D)
+				{
+					isAfter[i] = true ;
+					afterCount++ ;
+				}
+			}
+
+//			std::cout <<"count = " << beforeCount << " ; " << afterCount << " out of " << gp.gaussPoints.size() << std::endl ;
+			if(beforeCount != afterCount)
+			{
+
+			std::valarray<std::pair<Point, double> > beforeArray(beforeCount) ;
+			std::valarray<Matrix> beforeMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()), beforeCount) ;
+			std::valarray<std::pair<Point, double> > afterArray(afterCount) ;
+			std::valarray<Matrix> afterMatrixArray( Matrix(Jinv[0].numRows(), Jinv[0].numCols()), afterCount) ;
+			GaussPointArray gpBefore(beforeArray, -1) ;
+			int beforeIterator = 0 ;
+			GaussPointArray gpAfter(afterArray, -1) ;
+			int afterIterator = 0 ;
+			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+			{
+				if(isBefore[i])
+				{
+					beforeMatrixArray[beforeIterator] = Jinv[i] ;
+					gpBefore.gaussPoints[beforeIterator] = gp.gaussPoints[i] ;
+					gpBefore.gaussPoints[beforeIterator].first.t = 1 ;
+					beforeIterator++ ;
+				}
+				if(isAfter[i])
+				{
+					afterMatrixArray[afterIterator] = Jinv[i] ;
+					gpAfter.gaussPoints[afterIterator++] = gp.gaussPoints[i] ;
+				}
+			}
+
+			if(beforeCount > 0)
+	 			vm->ieval(Gradient(p_i)    * buffer * Gradient(p_j, true), gpBefore, beforeMatrixArray,v, c) ;
+			if(afterCount > 0)
+	 			vm->ieval(Gradient(p_i)    * buffer * Gradient(p_j, true), gpAfter, afterMatrixArray,v, d) ;
+			
+			d -= c ;
+			d /= Jinv[0][2][2] ;
+
+			}*/
+
+//			std::cout << "---X---\n" ;
+//			d.print() ;
+
  			a += b ;
+//			a += d ;
  			placeMatrixInBlock( a, 0,0, ret ) ;
 			
 			return ;
@@ -636,6 +702,17 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_
 	
 	return f ;
 }
+
+Vector Viscoelasticity::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
+{
+	return Vector(double(0), getTensor(p, e).numCols()/blocks) ;
+}
+
+Vector Viscoelasticity::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+{
+	return Vector(double(0), getTensor(p).numCols()/blocks) ;
+}
+
 
 void Viscoelasticity::print() const
 {

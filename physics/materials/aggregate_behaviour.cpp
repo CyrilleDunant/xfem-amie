@@ -9,10 +9,14 @@
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
 #include "../viscoelasticity.h"
+#include "../viscoelasticity_and_fracture.h"
 #include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../damagemodels/rotatingcrack.h"
 #include "../damagemodels/fiberbasedisotropiclineardamage.h"
+#include "../fracturecriteria/maxstrain.h"
+#include "../fracturecriteria/creeprupture.h"
+#include "../damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../../utilities/random.h"
 
 using namespace Mu ;
@@ -76,4 +80,18 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2 )  ;
+}
+
+ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,dim)
+{
+	materialRadius = r ;
+}
+
+Form * ViscoDamageAggregateBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. - variability + variability*weib ;
+	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 2 )  ;
+	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
+	return copy ;
 }

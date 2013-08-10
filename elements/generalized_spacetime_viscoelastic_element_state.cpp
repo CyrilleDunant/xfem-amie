@@ -399,7 +399,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{
@@ -1385,11 +1385,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			Vector speeds(0., blocks*(3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL))) ;
 			this->getField(GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true) ;
 			this->getField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, p_, speeds, true) ;
+			Vector imposed = visco->getImposedStrain(p_, parent) ;
+			for(size_t i = 0 ; i < strains.size() ; i++)
+				strains[i] -= imposed[i] ;
 			Vector stresses = (Vector) (visco->getTensor(p_, parent) * strains) 
 					+ (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
 			for(size_t i = 0 ; i < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; i++)
 				ret[i] = stresses[i] ;
-			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+//			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
 			return ;
 		}
 		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD:

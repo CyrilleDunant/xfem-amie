@@ -273,15 +273,15 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 	
 }
 
-std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg) 
+std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg) 
 {
   	Feature * box = F->getFeature(0) ;
 	Sample * sample = dynamic_cast<Sample *>(box) ;
 	RandomNumber gen ;
-  	std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > ret ;
+  	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > ret ;
 	double aggregateArea = 0 ;
 	
-	std::vector<GrowingExpansiveZone *> zonesToPlace ;
+	std::vector<TimeDependentHomogenisingInclusion *> zonesToPlace ;
 	
 	for(size_t i = 0 ; i < n ; i++)
 	{
@@ -299,7 +299,7 @@ std::vector<std::pair<GrowingExpansiveZone *, Inclusion *> > ParticleSizeDistrib
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new GrowingExpansiveZone(nullptr, radius, pos.x, pos.y, behaviour)) ;
+			zonesToPlace.push_back(new TimeDependentHomogenisingInclusion(nullptr, radius, pos.x, pos.y, behaviour)) ;
 	}
 
 	std::map<Inclusion *, int> zonesPerIncs ; 
