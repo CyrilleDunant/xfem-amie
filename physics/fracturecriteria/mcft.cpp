@@ -548,12 +548,17 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
-	firstCompression = tstrain < 0 ;
-	secondCompression = cstrain < 0 ;
-	firstTension = tstrain >=0 ;
-	secondTension = cstrain >= 0 ;
+	firstCompression = tstrain < -POINT_TOLERANCE_2D ;
+	secondCompression = cstrain < -POINT_TOLERANCE_2D ;
+	firstTension = tstrain > POINT_TOLERANCE_2D ;
+	secondTension = cstrain > POINT_TOLERANCE_2D ;
 	firstMet = false ;
 	secondMet = false ;
+// 	if(firstTension && secondTension)
+// 	{
+// 		tstrain -= 0.5*(tstrain-(tstrain-cstrain)) ;
+// 		tstress -= 0.5*(tstress-(tstress-cstress)) ;
+// 	}
 
 	
 	if(s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 4)
@@ -596,12 +601,12 @@ double NonLocalMCFT::grade( ElementState &s )
 			}
 		}
 		double c1 = std::max(ccrit1, tcrit1) ;
-		if(c0 > c1+POINT_TOLERANCE_2D)
+		if(c0 > c1+c0*.01)
 		{
 			firstMet = true ;
 			secondMet = false ;
 		}
-		else if(c1 > c0+POINT_TOLERANCE_2D)
+		else if(c1 > c0+c1*.01)
 		{
 			firstMet = false ;
 			secondMet = true ;

@@ -95,8 +95,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	{
 		es = &s ;
 
-		if(state.max() < .5)
-		{
+// 		if(state.max() < .5)
+// 		{
 			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 			if(originalAngle < -8)
@@ -112,7 +112,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 				delta = prevAngle-currentAngle+M_PI*.5 ;
 			
 			currentAngle = prevAngle-delta ;
-		}
+// 		}
 // 		if(originalAngle > -10 && currentAngle-originalAngle < -M_PI*.1)
 // 			currentAngle = originalAngle-M_PI*.1 ;
 // 		if(originalAngle > -10 && currentAngle-originalAngle >  M_PI*.1)
@@ -151,11 +151,11 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			{
 				range[0] = getState()[0] ;
 			}
-			else
-			{
-				range[1] = getState()[1] ;
-				range[0] = getState()[0] ;
-			}
+// 			else
+// 			{
+// 				range[1] = getState()[1] ;
+// 				range[0] = getState()[0] ;
+// 			}
 		}
 		else
 		{
@@ -175,11 +175,11 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 			{
 				range[2] = getState()[2] ;
 			}
-			else
-			{
-				range[1] = getState()[1] ;
-				range[0] = getState()[0] ;
-			}
+// 			else
+// 			{
+// 				range[1] = getState()[1] ;
+// 				range[0] = getState()[0] ;
+// 			}
 		}
 		else
 		{
@@ -356,7 +356,7 @@ void RotatingCrack::postProcess()
 		{
 			stiff->setAngle(currentAngle) ;
 		}
-		if(currentAngle < M_PI*.25 && currentAngle > -M_PI*.25)
+		if(currentAngle < M_PI*.25 || currentAngle > -M_PI*.25)
 			stiff->setStiffness(E_0, E_1, G, nunu) ;
 		else
 			stiff->setStiffness(E_1, E_0, G, nunu) ;
