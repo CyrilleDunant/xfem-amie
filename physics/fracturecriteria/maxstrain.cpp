@@ -64,20 +64,20 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 	double maxStrainAfter = stateAfter.second.max() ;
 	double maxStrainBefore = stateBefore.second.max() ;
 
-	if(std::abs(maxStrainBefore - upVal) < POINT_TOLERANCE_2D)
+/*	if(std::abs(maxStrainBefore - upVal) < POINT_TOLERANCE_2D)
 	{
 		double maxStressBefore = stateBefore.first.max() ;
-//		std::cout << maxStressBefore << "\t" << upVal << "\t" ;
+//		std::cout << maxStrainBefore << "\t" << upVal << "\t" ;
 		upVal *= maxstress/maxStressBefore ;
 //		std::cout << upVal << "\n" ;
-	}
+	}*/
 
 	metInCompression = false ;
 	metInTension = false ;
 	if(maxStrainAfter > upVal)
 	{
 		metInTension = true ;
-//		std::cout << maxStrainBefore << "\t" << maxStrainAfter << "\t" << upVal << "\t" << std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) << std::endl ;
+//		std::cout << s.getParent()->getBoundingPoint(0).id << "\t" << s.getParent()->getBoundingPoint(5).id << "\t" << maxStrainBefore << "\t" << maxStrainAfter << "\t" << upVal << "\t" << std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) << std::endl ;
 		return std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
 	return -1.+ maxStrainAfter/upVal;

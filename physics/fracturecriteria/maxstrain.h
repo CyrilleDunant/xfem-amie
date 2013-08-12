@@ -25,10 +25,10 @@ namespace Mu {
 class MaximumStrain : public FractureCriterion
 {
 protected:
-	double upVal ;
 	bool metInCompression  ;
 	bool metInTension  ;
 public:
+	double upVal ;
 	
 	virtual bool directionInTension(size_t direction) {return metInCompression ;}
 	virtual bool directionInCompression(size_t direction) {return metInTension ;}
@@ -60,8 +60,8 @@ class SpaceTimeNonLocalMaximumStrain : public MaximumStrain
 {
 protected:
 	PointArray testPoints ;
-	double maxstress ;
 public:
+	double maxstress ;
 	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)

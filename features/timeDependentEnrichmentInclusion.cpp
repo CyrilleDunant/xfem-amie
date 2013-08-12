@@ -575,8 +575,8 @@ void TimeDependentHomogenisingInclusion::step(double dt, std::valarray< double >
 		if( VirtualMachine().deval(TimeDependentCircle::getRadiusFunction(), TIME_VARIABLE, 0,0,0,dt) > POINT_TOLERANCE_3D)
 		{
 	  
-		changed = true ;
-		updated = true ;
+//		changed = true ;
+//		updated = true ;
 		
 //		std::cout << "update you bastard!" << std::endl ;
 		}

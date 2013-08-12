@@ -1,5 +1,6 @@
 #include "viscoelasticity_and_fracture.h"
 #include "viscoelasticity.h"
+#include "fracturecriteria/maxstrain.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
 using namespace Mu ;
@@ -535,7 +536,13 @@ void ViscoelasticityAndFracture::step(double timestep, ElementState & currentSta
 {
 	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
-	
+	SpaceTimeNonLocalMaximumStrain * crit = dynamic_cast<SpaceTimeNonLocalMaximumStrain *>(criterion) ;
+	if(crit != nullptr && dfunc->changed() && !dfunc->fractured())
+	{
+		crit->upVal = crit->maxstress/(param[0][0]*(1-dfunc->getState().max())) ;
+	}
+
+
 }
 
 
