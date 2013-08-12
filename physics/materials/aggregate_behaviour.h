@@ -41,8 +41,8 @@ namespace Mu
 
 	struct ViscoDamageAggregateBehaviour : public AggregateBehaviour
 	{
-		double up ;
-		ViscoDamageAggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00075, double r = 000075, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		double rad ;
+		ViscoDamageAggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.00025, double r = 000025, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 	} ;

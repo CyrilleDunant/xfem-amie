@@ -501,7 +501,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 		}
 	}
 
-	std::cout << disc.size() << "\t" << inside.size() << "\t" << ring.size() << std::endl ;
+//	std::cout << disc.size() << "\t" << inside.size() << "\t" << ring.size() << std::endl ;
 
 	if(inside.size() == 0 && ring.size() == 0)
 	{

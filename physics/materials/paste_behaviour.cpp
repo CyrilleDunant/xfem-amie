@@ -82,7 +82,7 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 	return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches) ;
 }
 
-ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, 0.,0.,0., dim), e_1(e1), e_2(e2), up(up_)
+ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up_,0.,0., dim), e_1(e1), e_2(e2)
 {
 	materialRadius = r ;
 }

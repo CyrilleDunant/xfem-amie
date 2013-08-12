@@ -21,7 +21,7 @@
 
 using namespace Mu ;
 
-AggregateBehaviour::AggregateBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
+AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
 {
 	materialRadius = 0.000075 ;
 }
@@ -70,7 +70,7 @@ Form * ElasticOnlyAggregateBehaviour::getCopy() const
 }
 
 
-ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,dim)
+ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim)
 {
 
 }
@@ -82,7 +82,7 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2 )  ;
 }
 
-ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,dim)
+ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,0.,0.,dim), rad(r)
 {
 	materialRadius = r ;
 }
@@ -92,6 +92,6 @@ Form * ViscoDamageAggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 2 )  ;
-	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
+	copy->criterion->setMaterialCharacteristicRadius(rad) ;
 	return copy ;
 }

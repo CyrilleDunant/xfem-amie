@@ -47,7 +47,6 @@ namespace Mu
 	{
 		double e_1 ;
 		double e_2 ;
-		double up ;
 		
 		ViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0005, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		

@@ -112,16 +112,17 @@ int main(int argc, char *argv[])
 	double appliedLoadEta = atof(argv[2])*(-1e6) ;
 	double appliedLoadXi = atof(argv[3])*(-1e6) ;
 		
-	int nzones = 200 ;
-	int naggregates = 500 ;
+	int nzones = 100 ;
+	int naggregates = 5000 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(400) ;
+	F.setSamplingNumber(200) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-6) ;
 		
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
+//	box.setBehaviour( new ViscoDamagePasteBehaviour() );
 	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoDamageAggregateBehaviour(), naggregates, 0.008, 0.0001, BOLOME_A) ;
 	
 	std::vector<Inclusion *> aggregates ;
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
 	double aggregatesArea = 0 ; 
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
 		aggregatesArea += aggregates[i]->area() ;
-	double maxGelArea = aggregatesArea*0.01/nzones ;
+	double maxGelArea = aggregatesArea*0.05/nzones ;
 	double maxGelRadius = sqrt(maxGelArea/M_PI) ;
 	Function radius("t") ;
 	radius *= (maxGelRadius / timeScale) ;
@@ -151,7 +152,7 @@ int main(int argc, char *argv[])
 
 	ViscoelasticityAndImposedDeformation * gel = dynamic_cast<ViscoelasticityAndImposedDeformation *>( (new ViscoElasticOnlyGelBehaviour())->getCopy() ) ;
 	
-	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*50, nzones) ;
+	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*5, nzones) ;
 	
 	std::string name = "asr_creep_no_damage_in_paste_" ;
 	name.append(argv[1]) ;
