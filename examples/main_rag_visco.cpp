@@ -113,16 +113,17 @@ int main(int argc, char *argv[])
 	double appliedLoadXi = atof(argv[3])*(-1e6) ;
 		
 	int nzones = 100 ;
-	int naggregates = 5000 ;
+	int naggregates = 1000 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(200) ;
+	F.setSamplingNumber(160) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-6) ;
+	F.setMaxIterationsPerStep(5000) ;
 		
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
-//	box.setBehaviour( new ViscoDamagePasteBehaviour() );
+//	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
+	box.setBehaviour( new ViscoDamagePasteBehaviour() );
 	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoDamageAggregateBehaviour(), naggregates, 0.008, 0.0001, BOLOME_A) ;
 	
 	std::vector<Inclusion *> aggregates ;
@@ -154,7 +155,7 @@ int main(int argc, char *argv[])
 	
 	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*5, nzones) ;
 	
-	std::string name = "asr_creep_no_damage_in_paste_" ;
+	std::string name = "asr_creep_full_" ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
