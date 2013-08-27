@@ -1620,8 +1620,10 @@ void Sphere::sampleBoundingSurface(size_t num_points)
 
 void Sphere::sampleSurface(size_t num_points) 
 {
+// 	if(num_points < 4)
+// 		return ;
 	if(num_points < 4)
-		return ;
+		num_points = 4 ;
 
 	sampleBoundingSurface(num_points) ;
 	
