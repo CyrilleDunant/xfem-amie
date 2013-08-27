@@ -4,7 +4,7 @@
 // Description:
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2013
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -95,8 +95,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	{
 		es = &s ;
 
-// 		if(state.max() < .5)
-// 		{
+		if(state.max() < .5)
+		{
 			double prevAngle = currentAngle ;
 			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
 			if(originalAngle < -8)
@@ -112,7 +112,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 				delta = prevAngle-currentAngle+M_PI*.5 ;
 			
 			currentAngle = prevAngle-delta ;
-// 		}
+		}
 // 		if(originalAngle > -10 && currentAngle-originalAngle < -M_PI*.1)
 // 			currentAngle = originalAngle-M_PI*.1 ;
 // 		if(originalAngle > -10 && currentAngle-originalAngle >  M_PI*.1)
@@ -356,11 +356,21 @@ void RotatingCrack::postProcess()
 		{
 			stiff->setAngle(currentAngle) ;
 		}
-		if(currentAngle < M_PI*.25 || currentAngle > -M_PI*.25)
-			stiff->setStiffness(E_0, E_1, G, nunu) ;
-		else
-			stiff->setStiffness(E_1, E_0, G, nunu) ;
 		
+		if(firstMet && firstTension || secondMet && secondTension)
+		{
+			if(currentAngle < M_PI*.25 || currentAngle > -M_PI*.25)
+				stiff->setStiffness(E_0, E_1, G, nunu) ;
+			else
+				stiff->setStiffness(E_1, E_0, G, nunu) ;
+		}
+		else
+		{
+			if(currentAngle < M_PI*.25 || currentAngle > -M_PI*.25)
+				stiff->setStiffness(E_0, E_1, G, nunu) ;
+			else
+				stiff->setStiffness(E_1, E_0, G, nunu) ;
+		}
 	}
 }
 

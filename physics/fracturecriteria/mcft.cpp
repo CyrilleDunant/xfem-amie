@@ -1,11 +1,11 @@
 
 //
-// C++ Implementation: mohrcoulomb
+// C++ Implementation: MCFT
 //
-// Description:
+// Description: implement the Modified compression field thery from Collins and Vecchio. This is a non-local, thermodynamics variant thereof
 //
 //
-// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007-2011
+// Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007-2013
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -601,12 +601,12 @@ double NonLocalMCFT::grade( ElementState &s )
 			}
 		}
 		double c1 = std::max(ccrit1, tcrit1) ;
-		if(c0 > c1+c0*.01)
+		if(c0 > c1)
 		{
 			firstMet = true ;
 			secondMet = false ;
 		}
-		else if(c1 > c0+c1*.01)
+		else if(c1 > c0)
 		{
 			firstMet = false ;
 			secondMet = true ;

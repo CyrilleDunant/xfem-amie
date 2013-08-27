@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     }
 	
   // sampling criteria
-  F.setSamplingNumber(14000); //512*16 ) ;
+  F.setSamplingNumber(875); //512*16 ) ;
 
   std::ofstream inclusions;
   inclusions.open("inclusions.csv");
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
   // assemble and solve problem
   F.step();
-	VoxelWriter vw("sphere_stiffness", 200) ;
+	VoxelWriter vw("sphere_stiffness_0.05M_nomin", 200) ;
 	vw.getField(&F, VWFT_STIFFNESS) ;
 	vw.write();
   // calculate averaged stress and strain
