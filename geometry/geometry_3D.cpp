@@ -1359,18 +1359,18 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
 
 //	std::cerr << iter << "-" << ns << "-" << import << "-" << num_points << std::endl ;
 	
-	if(iter > ns)
-	{
-		std::vector<Point> standard = getStandardSamplingBoundingPointsOnSphere(num_points) ;
-		for(size_t i = 0 ; i < standard.size() ; i++)
-		{
-			standard[i] -= getCenter() ;
-			standard[i] *= r ;
-			standard[i] += getCenter() ;
-		}
-		
-		return standard ;
-	}
+// 	if(iter > ns)
+// 	{
+// 		std::vector<Point> standard = getStandardSamplingBoundingPointsOnSphere(num_points) ;
+// 		for(size_t i = 0 ; i < standard.size() ; i++)
+// 		{
+// 			standard[i] -= getCenter() ;
+// 			standard[i] *= r ;
+// 			standard[i] += getCenter() ;
+// 		}
+// 		
+// 		return standard ;
+// 	}
 	
 	//equation of a sphere = 
 	//x = r sin(theta) cos(phi)
