@@ -958,9 +958,9 @@ TriElement::TriElement(Order order_ ): moved(false)
 			(*shapefunc)[0] = Function("y 2 ^ 2 * y -") ;
 			(*shapefunc)[0].setNumberOfDerivatives(2) ;
 			Function d("4 y * 1 -") ;
-                        (*shapefunc)[0].setDerivative( ETA, d) ;
+      (*shapefunc)[0].setDerivative( ETA, d) ;
 			d = Function("0") ;
-                        (*shapefunc)[0].setDerivative( XI, d) ;
+       (*shapefunc)[0].setDerivative( XI, d) ;
 
 
 		//1
@@ -968,21 +968,21 @@ TriElement::TriElement(Order order_ ): moved(false)
 			(*shapefunc)[1].setNumberOfDerivatives(2) ;
 			d = Function("4 x 4 * - y 8 * -") ;
 			(*shapefunc)[1].setDerivative( ETA, d) ;
-			d = Function("y 4 *") ;
-                        (*shapefunc)[1].setDerivative( XI, d) ;
+			d = Function("y -4 *") ;
+      (*shapefunc)[1].setDerivative( XI, d) ;
 
 		//2
 			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
 			(*shapefunc)[2].setNumberOfDerivatives(2) ;
-			d = Function("3 x 4 * + y 4 * +") ;
+			d = Function("x 4 * y 4 * + 3 -") ;
 			(*shapefunc)[2].setDerivative( ETA, d ) ;
-			d = Function("3 y 4 * + x 4 * +") ;
+			d = Function("y 4 * x 4 * + 3 -") ;
 			(*shapefunc)[2].setDerivative( XI, d) ;
 
 		//3
 			(*shapefunc)[3] = Function("x 4 * x x 4 * * - x y 4 * * -") ;
 			(*shapefunc)[3].setNumberOfDerivatives(2) ;
-			d = Function("x 4 *") ;
+			d = Function("x -4 * ") ;
 			(*shapefunc)[3].setDerivative( ETA, d) ;
 			d = Function("4 8 x * - y 4 * -") ;
 			(*shapefunc)[3].setDerivative( XI, d) ;
