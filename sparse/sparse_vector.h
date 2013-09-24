@@ -66,6 +66,7 @@ public:
 	
 	void inner_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
 	{
+		size_t start = std::max(colstart,this->start) ;
 		if(stride == 2)
 		{
 		#ifdef HAVE_SSE3
@@ -288,6 +289,7 @@ public:
 	 */
 	inline double inner_product(const SparseVector & v0, const SparseVector & v1, const size_t end)
 	{
+
 		double ret = 0 ;
 
 		unsigned int i = 0 ; 
@@ -393,7 +395,7 @@ public:
 	 */
 	void inner_product(const Vector &v, double *dest, const size_t rowstart = 0, size_t const colstart = 0) const
 	{
-
+		size_t start = std::max(colstart,this->start) ;
 		switch(stride)
 		{
 			case 1:
