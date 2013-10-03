@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 	int naggregates = 2000 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(1) ;
+	F.setSamplingNumber(64) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-5) ;
