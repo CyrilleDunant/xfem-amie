@@ -67,6 +67,8 @@ void LagrangeMultiplier::setHint(std::pair<unsigned int, double> h)
 
 Assembly::Assembly() 
 {
+	rowstart = 0 ;
+	colstart = 0 ;
 	this->coordinateIndexedMatrix = nullptr ;
 	this->nonLinearPartialMatrix = nullptr;
 	multiplier_offset = 0 ;
@@ -466,6 +468,8 @@ void Assembly::setBoundaryConditions()
 	}
 
 	multipliers.clear() ;
+	
+
 	element2d.clear() ;
 	element3d.clear() ;
 	
@@ -736,6 +740,8 @@ bool Assembly::make_final()
 		double dmax = 0 ;
 		double vmax = 0 ;
 
+
+
 		
 		for(size_t i = 0 ; i < element2d.size() ; i++)
 		{
@@ -815,6 +821,14 @@ bool Assembly::make_final()
 
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		if(element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
+		{
+			int order = 1 ; 
+			if( element2d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element2d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element2d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC ) { order = 2 ; }
+			size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
+			rowstart = totaldofs/(order+1) ;
+			colstart = totaldofs/(order+1) ;
+		}
 		setBoundaryConditions() ;
 		checkZeroLines() ;
 
@@ -1411,6 +1425,15 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 // 		exit(0) ;
 
  		ConjugateGradientWithSecant cg(this) ;
+		if(rowstart > 0 || colstart > 0)
+		{
+			std::cout << "modifying matrix dimensions... [time-linear elements only]" << std::endl ;
+//			int order = 1 ; 
+			cg.rowstart = rowstart;getMatrix().stride ;
+			cg.colstart = colstart;getMatrix().stride ;
+			std::cout << cg.rowstart << "\t" << cg.colstart << std::endl ;
+		}
+
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
 		ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
 // 		ret = false ;

@@ -67,7 +67,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		P = precond ;
 	}
 
-	assign(r, A*x-b) ;
+	assign(r, A*x-b, rowstart, colstart) ;
 	int vsize = r.size() ;
 	double err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	r*=-1 ;
@@ -96,7 +96,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	nit++ ;
 	//****************************************
 	
-	assign(r, A*x-b) ;
+	assign(r, A*x-b, rowstart, colstart) ;
 	r *= -1 ;
 	err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	if (err0 < eps)
@@ -124,7 +124,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		for(size_t i = 0 ; i < vsize ; i++)
 			p[i] = p[i]*beta+z[i] ;
 
-		assign(q, A*p) ;
+		assign(q, A*p, rowstart, colstart) ;
 		pq =  parallel_inner_product(&q[0], &p[0], vsize);
 		alpha = rho/pq;
 		if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
@@ -137,7 +137,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		
 		if(nit%32 == 0)
 		{
-			assign(r, A*x-b) ;
+			assign(r, A*x-b, rowstart, colstart) ;
 			r *= -1 ;
 		}
 		if(	verbose && nit%128 == 0)
@@ -152,7 +152,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "mflops: "<< nit*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
 
-	assign(r,A*x-b) ;
+	assign(r,A*x-b, rowstart, colstart) ;
 	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	
 	if(verbose)

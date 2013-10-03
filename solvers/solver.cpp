@@ -13,7 +13,7 @@
 
 namespace Mu {
 
-Solver::Solver()
+Solver::Solver() : colstart(0), rowstart(0)
 {
 }
 

@@ -189,6 +189,8 @@ protected:
 	std::vector<double> scales ;
 	std::vector<LagrangeMultiplier> multipliers ;
 	size_t ndof ;
+	size_t colstart ;
+	size_t rowstart ;
 	SpaceDimensionality dim ;
 	bool removeZeroOnlyLines ;
 

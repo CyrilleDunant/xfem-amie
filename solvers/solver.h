@@ -28,6 +28,8 @@ class Assembly ;
 	{
 	public:
 		Solver();
+		unsigned long colstart ;
+		unsigned long rowstart ;
 	
 		virtual ~Solver();
 		
