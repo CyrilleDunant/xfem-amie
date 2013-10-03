@@ -150,10 +150,10 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	out.open("test_zone_moving_", std::ios::out) ;
 	int i = 0 ;
-	while(F.getCurrentTime() < 20)
+	while(F.getCurrentTime() < 2)
 	{
 	  F.step() ;
-	  
+// 	  F.getAssembly()->print();
 	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 	  std::cout << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;

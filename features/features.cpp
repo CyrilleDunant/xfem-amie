@@ -1410,7 +1410,6 @@ void FeatureTree::projectTrianglesOnBoundaries( size_t edge, size_t time )
 
 void FeatureTree::stitch()
 {
-	
 	size_t count = 0 ;
 	size_t pd = 0 ;
 
@@ -1427,7 +1426,7 @@ void FeatureTree::stitch()
 			for( size_t j = 0 ; j < coarseTrees.size() ; j++ )
 				coarseTrees[j]->setElementOrder( elemOrder, realDeltaTime ) ;
 			
-			if( projectOnBoundaries )
+			if( projectOnBoundaries)
 			{
 				switch( elemOrder )
 				{

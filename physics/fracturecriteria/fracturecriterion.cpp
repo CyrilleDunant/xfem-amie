@@ -161,7 +161,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[1] -  tmpstra[0] ) ;
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -185,7 +185,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		else
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t) ;
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[1] -  tmpstra[0] ) ;
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -921,7 +921,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[1] -  tmpstra[0] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -958,7 +958,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
-				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[1] -  tmpstra[0] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -1032,7 +1032,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
 			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
 			
-			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			currentAngle = 0.5*atan2( tmpstra[2],  tmpstra[1] -  tmpstra[0] ) ;
 			
 			strar = tmpstrar*factors[0] ;
 			stra = tmpstra*factors[0] ;

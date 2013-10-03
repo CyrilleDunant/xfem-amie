@@ -2206,8 +2206,6 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
 			
-
-			
 			if ( !function )
 			{
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
@@ -2482,6 +2480,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 
 			  for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			  {
+					
 				  if( isOnBoundary( pos, elements[i]->getBoundingPoint( j ), pmin, pmax, tol ) && isInBoundary2D( elements[i]->getBoundingPoint( j ), rmin, rmax ) )
 				  {
 					  if ( cache2d.empty() || cache2d.back() != elements[i] )
@@ -2489,11 +2488,10 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 						  cache.push_back( std::vector<Point>() );
 						  cache2d.push_back( elements[i] );
 					  }
-
+						
 					  cache.back().push_back( elements[i]->getBoundingPoint( j ) ) ;
 				  }
 			  }
-
 
 			  if ( !cache2d.empty() && cache2d.back() == elements[i] )
 			  {
@@ -2523,7 +2521,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 			{
 				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
-			
+
 			if ( !function )
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
 			else

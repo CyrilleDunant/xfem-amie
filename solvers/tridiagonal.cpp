@@ -46,9 +46,6 @@ void  TriDiagonal::precondition(const Vector &force, Vector & solution)
 
 	solution[n-1] = (solution[n-1] - solution[n-2]*upper[n-2])/(diagonal[n-1] - c[n-2]*upper[n-2]);
 	
-// 	d[n-1] = (d[n-1] - d[n - 2]*upper[n-2])/(diagonal[n-1] - c[n - 2]*upper[n-2]);
-// 	
-// 	solution[n - 1] = d[n - 1];
 	for(int i = n - 2; i-- > 0; )
 		solution[i] = solution[i] - c[i]*solution[i + 1];
 }

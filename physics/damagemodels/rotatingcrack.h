@@ -45,10 +45,10 @@ protected:
 	ElementState * es ;
 	
 	OrthotropicStiffness * stiff ;
+	bool postprocheck ;
 	
 public:
 
-	double currentAngle ;
 	
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 

@@ -66,7 +66,6 @@ public:
 	
 	void inner_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
 	{
-		size_t start = std::max(colstart,this->start) ;
 		if(stride == 2)
 		{
 		#ifdef HAVE_SSE3
@@ -395,12 +394,24 @@ public:
 	 */
 	void inner_product(const Vector &v, double *dest, const size_t rowstart = 0, size_t const colstart = 0) const
 	{
-		size_t start = std::max(colstart,this->start) ;
+		size_t mstart = start ;
+		if(colstart)
+		{
+			const unsigned int * __start__       = &idx[start] ;
+			const unsigned int * __end__         = &idx[start+length] ;
+			const unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, colstart/stride) ;
+			const unsigned int offset            = i_index_pointer - __start__ ;
+			
+			mstart = (start <= start+offset && start+offset < start+length) ? (start+offset) : start+length;
+		}
+// 		mstart = start ;std::max(mstart,start) ;
+// 		
+// 		
 		switch(stride)
 		{
 			case 1:
 			{
-				for(unsigned int j = start ; j < length+start ; j++)
+				for(unsigned int j = mstart ; j < length+start ; j++)
 				{
 					*dest += v[idx[j]]*val[j*2] ;
 				}
@@ -408,9 +419,9 @@ public:
 			}
 			case 2:
 			{
-				const double * array_iterator = &val[start*2*2] ;
-				const double * vec_iterator = &v[idx[start]*2] ;
-				for(unsigned int j = start ; j < length+start ; j++ )
+				const double * array_iterator = &val[mstart*2*2] ;
+				const double * vec_iterator = &v[idx[mstart]*2] ;
+				for(unsigned int j = mstart ; j < length+start ; j++ )
 				{
 					*dest     += *array_iterator*(*vec_iterator);
 					*(dest+1) += *(array_iterator+1)*(*vec_iterator) ;
@@ -425,9 +436,9 @@ public:
 			
 			case 3:
 			{
-				const double * array_iterator = &val[start*3*4] ;
-				const double * vec_iterator = &v[idx[start]*3] ;
-				for(unsigned int j = start ; j < length+start ;j++)
+				const double * array_iterator = &val[mstart*3*4] ;
+				const double * vec_iterator = &v[idx[mstart]*3] ;
+				for(unsigned int j = mstart ; j < length+start ;j++)
 				{
 					*dest     += *array_iterator     * (*vec_iterator);
 					*(dest+1) += *(array_iterator+1) * (*vec_iterator);
@@ -446,10 +457,10 @@ public:
 			}
 			default:
 			{
-				int colLength = stride + stride%2 ;
-				const double * array_iterator0 = &val[start*colLength*stride] ;
-				const double * array_iterator1 = &val[start*colLength*stride+1] ;
-				for(unsigned int j = start ; j != length+start ; j++)
+				unsigned int colLength = stride+stride%2 ;
+				const double * array_iterator0 = &val[mstart*colLength*stride] ;
+				const double * array_iterator1 = &val[mstart*colLength*stride+1] ;
+				for(unsigned int j = mstart ; j < length+start ; j++)
 				{
 					for(size_t c = 0 ; c < stride ; c++)
 					{

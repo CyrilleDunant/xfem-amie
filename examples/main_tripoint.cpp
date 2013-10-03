@@ -100,7 +100,7 @@ Function loadFunction("0") ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
 BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0. ) ;
 
-//  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5+plateHeight)) ;
+//  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
 
@@ -577,19 +577,19 @@ int main( int argc, char *argv[] )
 	double rebarcenter = (sampleLength*.5 - rebarEndCover)*.5 ;
 	double rebarlength = (sampleLength - rebarEndCover*2.)*.5 ;
 	Sample rebar0(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
-	rebar0.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar1(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-	rebar1.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 	Sample rebar2(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
-	rebar2.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 // 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 	Sample rebar3(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-	rebar3.setBehaviour( new Stiffness/*AndFracture*/( m0_steel/*, new VonMises( 490e6 )*/ ) );
+	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
 // 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 	
 
@@ -718,7 +718,7 @@ int main( int argc, char *argv[] )
 	F.setSamplingFactor( &rebar2, 4 ) ;
 	F.setSamplingFactor( &rebar3, 4 ) ;
 	F.setSamplingNumber( atoi( argv[1] ) ) ;
-	F.setOrder( LINEAR ) ;
+	
 	F.setSamplingRestriction(SAMPLE_NO_RESTRICTION);
 
 	
@@ -749,9 +749,10 @@ int main( int argc, char *argv[] )
 	F.addBoundaryCondition( load ) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
+	F.setOrder( LINEAR ) ;
 	triangles = F.getElements2D() ;
 	step() ;
-// 	delete dt ;
 
 	return 0 ;
 }

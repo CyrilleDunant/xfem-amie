@@ -1,3 +1,4 @@
+
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
 // Author: Ines Jaouadi <ines.jaouadi@epfl.ch>, (C) 2005-2007
 // Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
@@ -1067,38 +1068,38 @@ TriElement::TriElement(Order order_ ): moved(false)
 			Function one = zero +1 ;
 			Function mone = zero-1 ;
 			
-			Function half = zero + 0.5 ;
-			Function halfm = zero - 0.5 ;
+			Function half("0.5") ;
+			Function halfm("-0.5") ;
 			
-			Function t0("1 t -") ;
-			t0 *= 0.5 ;
+			Function t0("0.5 t 0.5 * -") ;
+// 			t0 *= 0.5 ;
 			t0.setNumberOfDerivatives(4) ;
 			t0.setDerivative( XI, zero) ;
 			t0.setDerivative( ETA, zero) ;
 			t0.setDerivative( ZETA, zero) ;
 			t0.setDerivative( TIME_VARIABLE, halfm) ;
 
-			Function t0m = t0 * -1. ;
-			t0m.setNumberOfDerivatives(4) ;
-			t0m.setDerivative( XI, zero) ;
-			t0m.setDerivative( ETA, zero) ;
-			t0m.setDerivative( ZETA, zero) ;
-			t0m.setDerivative( TIME_VARIABLE, half) ;
+// 			Function t0m = t0 * -1. ;
+// 			t0m.setNumberOfDerivatives(4) ;
+// 			t0m.setDerivative( XI, zero) ;
+// 			t0m.setDerivative( ETA, zero) ;
+// 			t0m.setDerivative( ZETA, zero) ;
+// 			t0m.setDerivative( TIME_VARIABLE, half) ;
 			
-			Function t1("1 t +") ;
-			t1 *= 0.5 ;
+			Function t1("0.5 t 0.5 * +") ;
+// 			t1 *= 0.5 ;
 			t1.setNumberOfDerivatives(4) ;
 			t1.setDerivative( XI, zero) ;
 			t1.setDerivative( ETA, zero) ;
 			t1.setDerivative( ZETA, zero) ;
 			t1.setDerivative( TIME_VARIABLE, half) ;
 			
-			Function t1m = t1 * -1. ;
-			t1m.setNumberOfDerivatives(4) ;
-			t1m.setDerivative( XI, zero) ;
-			t1m.setDerivative( ETA, zero) ;
-			t1m.setDerivative( ZETA, zero) ;
-			t1m.setDerivative( TIME_VARIABLE, halfm) ;
+// 			Function t1m = t1 * -1. ;
+// 			t1m.setNumberOfDerivatives(4) ;
+// 			t1m.setDerivative( XI, zero) ;
+// 			t1m.setDerivative( ETA, zero) ;
+// 			t1m.setDerivative( ZETA, zero) ;
+// 			t1m.setDerivative( TIME_VARIABLE, halfm) ;
 			
 	Function s0("y") ;
 	Function s1("1 x - y -") ;
@@ -2386,6 +2387,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = tdxi ;
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = tdeta ;
 		ret[2][0] = xdtau ;  ret[2][1] = ydtau ; ret[2][2] = tdtau;
+
 		invert3x3Matrix(ret) ;
 		
 // 		ret.print() ;

@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     }
 	
   // sampling criteria
-  F.setSamplingNumber(875); //512*16 ) ;
+  F.setSamplingNumber(32000); //512*16 ) ;
 
   std::ofstream inclusions;
   inclusions.open("inclusions.csv");

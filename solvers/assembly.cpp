@@ -468,7 +468,18 @@ void Assembly::setBoundaryConditions()
 	}
 
 	multipliers.clear() ;
-	
+	if(element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
+	{
+		
+		size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
+		rowstart = totaldofs/2 ;
+		colstart = totaldofs/2 ;
+		if( element2d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element2d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element2d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC ) 
+		{
+			rowstart = 2*totaldofs/3 ;
+			colstart = 2*totaldofs/3 ; 
+		}
+	}
 
 	element2d.clear() ;
 	element3d.clear() ;
@@ -821,14 +832,7 @@ bool Assembly::make_final()
 
 		std::cerr << " ...done" << std::endl ;
 		getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-		if(element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
-		{
-			int order = 1 ; 
-			if( element2d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element2d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element2d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC ) { order = 2 ; }
-			size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
-			rowstart = totaldofs/(order+1) ;
-			colstart = totaldofs/(order+1) ;
-		}
+
 		setBoundaryConditions() ;
 		checkZeroLines() ;
 

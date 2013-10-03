@@ -250,17 +250,17 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*3;
-		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*3 ;
+		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
+		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
 			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
-			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*3 && distanceToRebartest < distanceToRebar)
+			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
 			{
 				distanceToRebar = distanceToRebartest ;
-				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*3 ;
+				effectiveInfluenceDistance = rebarLocationsAndDiameters[i].second*7.5*2 ;
 				inRebarInfluence = true ;
 			}
 		}
@@ -284,12 +284,13 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	double df = 3.*f*f-2.*f*f*f ;
 	double factor = df*log(k)+(1.-df)*log(342.) ;
 	double deltaCriterion = tensionCritStrain*df ;
-	if(df < 0)
+	if(df <= 0)
 	{
 		factor = log(k) ;
 		deltaCriterion = tensionCritStrain ;
 	}
-	if(df > 1)
+	
+	if(df >= 1)
 	{
 		factor = log(342);
 		deltaCriterion = 0 ;
@@ -371,7 +372,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 	
 // 	if(cstrain < 0.05*critStrain)
 // 	{
-// 		std::cout << "\n" << criterion << "\n" <<std::endl ;
+// 		std::cout << "\n criterion :: " << criterion << "\n" <<std::endl ;
 // 		exit(0) ;
 // 	}
 	
@@ -563,28 +564,29 @@ double NonLocalMCFT::grade( ElementState &s )
 	
 	if(s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 4)
 	{
-		double cpseudoYoung0 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
 		double tpseudoYoung0 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
-		double cpseudoYoung1 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[3]) ;
+		double cpseudoYoung0 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
 		double tpseudoYoung1 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[2]) ;
+		double cpseudoYoung1 =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[3]) ;
+		
 		double ccrit0 = -1 ;
 		double tcrit0 = -1 ;
 		double ccrit1 = -1 ;
 		double tcrit1 = -1 ;
-		if(firstCompression && cpseudoYoung0 > POINT_TOLERANCE_2D )
+		if(firstCompression )
 		{
 			ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
 			if(ccrit0 > 0)
 				firstMet = true ;
 		}
-		else if(firstTension && tpseudoYoung0 > POINT_TOLERANCE_2D )
+		else
 		{
 			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
 			if(tcrit0 > 0)
 				firstMet = true ;
 		}
 		double c0 = std::max(ccrit0, tcrit0) ;
-		if(secondCompression && cpseudoYoung1 > POINT_TOLERANCE_2D )
+		if(secondCompression )
 		{
 			ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
 			if(ccrit1 > 0)
@@ -592,7 +594,7 @@ double NonLocalMCFT::grade( ElementState &s )
 				secondMet = true ;
 			}
 		}
-		else if(secondTension && tpseudoYoung1 > POINT_TOLERANCE_2D )
+		else
 		{
 			tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
 			if(tcrit1 > 0)

@@ -47,7 +47,6 @@ public:
 	Function getRadiusFunction(Function & time) const ;
 	
 	void setInitialTime( double t) { center.t = t ; }
-
 } ;
 
 } ;

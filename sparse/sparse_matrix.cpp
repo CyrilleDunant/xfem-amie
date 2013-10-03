@@ -478,48 +478,45 @@ CompositeSparseMatrixTimesVecMinusVecMinusVec CompositeSparseMatrixTimesVecMinus
 
 void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
 {
-	ret = 0 ;
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ;
 	ret = c.ve ;
-	ret[ std::slice(0,colstart,1) ] = 0. ;
+	ret[ std::slice(0,rowstart,1) ] = 0. ;
 
 	#pragma omp parallel for  schedule(runtime)
-	for (int i = std::max((int)(rowstart-rowstart%stride),0) ; i < end ; i+=stride)
+	for (int i = rowstart ; i < end ; i+=stride)
 	{
-		c.co.sm[i].inner_product(c.co.ve, &ret[i], rowstart,  c.co.sm.accumulated_row_size[colstart/stride]);
+		c.co.sm[i].inner_product(c.co.ve, &ret[i], rowstart,  colstart);
 	}
 } ;
 
 void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
 {
-	ret = 0 ;
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ; 
 	const Vector & ve = c.co.ve ;
 	ret = -c.ve ;
-	ret[ std::slice(0,colstart,1) ] = 0. ;
+	ret[ std::slice(0,rowstart,1) ] = 0. ;
 
 	#pragma omp parallel for  schedule(runtime)
-	for (int i = std::max((int)(rowstart-rowstart%stride),0) ; i <end ; i+=stride)
+	for (int i = rowstart ; i <end ; i+=stride)
 	{
-		c.co.sm[i].inner_product(ve, &ret[i], rowstart, c.co.sm.accumulated_row_size[colstart/stride]);
+		c.co.sm[i].inner_product(ve, &ret[i], rowstart, colstart);
 	}
 
 } ;
 
 void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
 {
-//	std::cout << rowstart << std::endl ;
-	ret = 0 ;
-	
+
 	size_t stride = c.sm.stride ;
 	int end = c.sm.row_size.size()*stride ;
 	const Vector & ve = c.ve ;
-	
+	ret = 0. ;
 #pragma omp parallel for schedule(runtime)
-		for (int i = std::max((int)(rowstart-rowstart%stride),0) ; i < end; i+=stride)
+		for (int i = rowstart ; i < end; i+=stride)
 		{
-			c.sm[i].inner_product(ve, &ret[i], rowstart, c.sm.accumulated_row_size[colstart/stride]);
+			c.sm[i].inner_product(ve, &ret[i], rowstart, colstart);
 		}
+	ret[ std::slice(0,rowstart,1) ] = 0. ;
 } ;

@@ -299,9 +299,11 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 		{
 			// stiffness (0,0)
 			getBlockInMatrix(param, 0,0, buffer) ;
+			
  			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
  			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 			a += b ;
+			
 			placeMatrixInBlock( a, 0,0, ret ) ;
 			for(size_t i = 1 ; i < blocks ; i++)
 			{

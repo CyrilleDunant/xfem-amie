@@ -162,7 +162,10 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
-	
+	for (size_t i = 0 ; i < x.size() ; i++)
+	{
+		std::cout << x[i] << "  " << std::flush ;
+	}
 	return nit <= Maxit && last_rho*last_rho< std::max(neps*neps*err0, neps*neps);
 }
 
