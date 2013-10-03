@@ -1429,8 +1429,8 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		{
 			std::cout << "modifying matrix dimensions... [time-linear elements only]" << std::endl ;
 //			int order = 1 ; 
-			cg.rowstart = rowstart;getMatrix().stride ;
-			cg.colstart = colstart;getMatrix().stride ;
+			cg.rowstart = rowstart;
+			cg.colstart = colstart;
 			std::cout << cg.rowstart << "\t" << cg.colstart << std::endl ;
 		}
 
