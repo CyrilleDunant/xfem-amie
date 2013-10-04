@@ -1431,11 +1431,11 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
  		ConjugateGradientWithSecant cg(this) ;
 		if(rowstart > 0 || colstart > 0)
 		{
-			std::cout << "modifying matrix dimensions... [time-linear elements only]" << std::endl ;
+//			std::cout << "modifying matrix dimensions... [time-linear elements only]" << std::endl ;
 //			int order = 1 ; 
 			cg.rowstart = rowstart;
 			cg.colstart = colstart;
-			std::cout << cg.rowstart << "\t" << cg.colstart << std::endl ;
+//			std::cout << cg.rowstart << "\t" << cg.colstart << std::endl ;
 		}
 
 //		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;

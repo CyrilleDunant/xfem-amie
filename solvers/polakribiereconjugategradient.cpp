@@ -40,7 +40,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 		ConjugateGradient cg(assembly->getMatrix(), b) ;
 		cg.colstart = this->colstart ;
 		cg.rowstart = this->rowstart ;
-		std::cout << colstart << "\t" << rowstart << std::endl ;
+//		std::cout << colstart << "\t" << rowstart << std::endl ;
 		bool ret =  cg.solve(x0, nullptr,eps, -1, verbose) ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;

@@ -7,25 +7,20 @@
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../features/growingExpansiveZone.h"
-#include "../features/timeDependentEnrichmentInclusion.h"
 #include "../physics/physics_base.h"
 #include "../physics/kelvinvoight.h"
 #include "../physics/maxwell.h"
 #include "../physics/stiffness.h"
+#include "../physics/dual_behaviour.h"
 #include "../physics/parallel_behaviour.h"
-#include "../physics/viscoelasticity.h"
-#include "../physics/viscoelasticity_and_fracture.h"
+//#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
-#include "../physics/fracturecriteria/maxstrain.h"
-#include "../physics/fracturecriteria/creeprupture.h"
-#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
-#include "../physics/damagemodels/fiberbasedisotropiclineardamage.h"
-#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include "../utilities/writer/triangle_writer.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/homogenization/homogenization_base.h"
@@ -41,10 +36,9 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
-#include "../geometry/space_time_geometry_2D.h"
 
 #include <fstream>
-
+#include <omp.h>
 #include <cmath>
 #include <typeinfo>
 #include <limits>
@@ -94,83 +88,156 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.08,0.08,0.,0.) ;
+Sample box(nullptr, 0.17, 0.17,0.0,0.0) ;
 
-
-int main(int argc, char *argv[])
-{	
-  
-  	FeatureTree F(&box) ;
-	F.setSamplingNumber(55) ;
-
-	Vector alpha(3) ;
-	alpha[0] = 0.5 ;
-	alpha[1] = 0.5 ;
-
-	
- 	Matrix e = (new ElasticOnlyPasteBehaviour(60e9, 0.3))->param ;
-	Matrix e2 = (new ElasticOnlyPasteBehaviour(22e9, 0.3))->param ;
-	Matrix e3 = (new ElasticOnlyPasteBehaviour(12e9, 0.3))->param ;
-  	box.setBehaviour(new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, e3, e3*0.3, e3*3)) ;
-	
-	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setDeltaTime(1.) ;
-	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -1e6,1)) ;
-	
-	Function r("0.0005 t *") ;
-//	r += 0.05 ;
-	TimeDependentHomogenisingInclusion *  tarata = new TimeDependentHomogenisingInclusion( nullptr, r,0,0.008, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e2, alpha,1 )) ;
-//	tarata->setInitialTime(-2.);
-	TimeDependentHomogenisingInclusion *  tarato = new TimeDependentHomogenisingInclusion( nullptr, r,-0.02,0.01, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e2, alpha,1 )) ;
-	TimeDependentHomogenisingInclusion *  taradoc = new TimeDependentHomogenisingInclusion( nullptr, r,0.005,-0.02, new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, e2, alpha,1 )) ;
-	Inclusion * taratatata = new Inclusion( 0.03, 0.,0.) ;
-	taratatata->setBehaviour( new ViscoelasticityAndFracture( PURE_ELASTICITY, e, new SpaceTimeNonLocalMaximumStrain(0.00075, 45e6), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 1 ) );
-	taratatata->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
-	F.addFeature(&box, taratatata);
-	F.addFeature(taratatata, tarata);
-	F.addFeature(taratatata, tarato);
-	F.addFeature(taratatata, taradoc);
-	F.step() ;
-//	F.getAssembly()->print() ;
-
-	if(true)
+int findIndexOfAggregate( DelaunayTriangle * tri, std::vector<Inclusion *> aggregates, FeatureTree * f)
+{
+	for(size_t i = 0 ; i < aggregates.size() ; i++)
 	{
-	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-	  std::cout << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
-	  
+		std::vector<DelaunayTriangle *> aggTriangles = aggregates[i]->getElements2D(f) ;
+		if( std::find( aggTriangles.begin(), aggTriangles.end(), tri) != aggTriangles.end() )
+			return i ;
 	}
-//	std::vector<DelaunayTriangle *> mesh = F.getElements2D() ;
-	
-	std::fstream out ;
-	out.open("test_zone_moving_", std::ios::out) ;
-	int i = 0 ;
-	while(F.getCurrentTime() < 2)
-	{
-	  F.step() ;
-// 	  F.getAssembly()->print();
-	  Vector str = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-	  Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-	  std::cout << F.getCurrentTime() << "\t" << tarata->radiusAtTime(Point(0,0,0,F.getCurrentTime())) << "\t" << str[0] << "\t" << str[1] << "\t" << str[2] << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << std::endl ;
-
-	
-			std::string nametrg = "toto" ;
-			nametrg.append("_trg_") ;
-			nametrg.append(itoa(i++)) ;
-			TriangleWriter w( nametrg, &F, 1) ;
-			w.getField( STRAIN_FIELD ) ;
-			w.getField( REAL_STRESS_FIELD ) ;
-			w.getField( TWFT_STIFFNESS ) ;
-			w.getField( TWFT_ENRICHMENT ) ;
-			w.write() ;
-
-//		exit(0) ;
-	} 
-	
+  
 	return 0 ;
 }
+
+double avgTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
+{
+	double ar = 0. ;
+	double tension = 0. ;
+	for(size_t i = 0 ; i < trg.size() ; i++)
+	{
+		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
+		if(visc->model == GENERALIZED_KELVIN_VOIGT)
+		{
+			Vector stress(2) ; stress = 0 ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			if(stress.max() > 0)
+			{
+				double a = trg[i]->area() ;
+				tension += stress.max()*a ;
+				ar += a ;
+			}
+		}
+	}
+	if(ar > 0)
+		return tension/ar ;
+	return 0 ;
+}
+
+double areaTensionInPaste( std::vector<DelaunayTriangle *> trg)
+{
+	double ar = 0. ;
+	for(size_t i = 0 ; i < trg.size() ; i++)
+	{
+		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
+		if(visc->model == GENERALIZED_KELVIN_VOIGT)
+		{
+			Vector stress(2) ; stress = 0 ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			if(stress.max() > 0)
+			{
+				ar = trg[i]->area() ;
+			}
+		}
+	}
+	return ar ;
+}
+
+double maxTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
+{
+	double tension = 0. ;
+	for(size_t i = 0 ; i < trg.size() ; i++)
+	{
+		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
+		if(visc->model == GENERALIZED_KELVIN_VOIGT)
+		{
+			Vector stress(2) ; stress = 0 ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			if(stress.max() > tension)
+				tension = stress.max() ;
+		}
+	}
+	return tension ;
+}
+
+int main(int argc, char *argv[])
+{
+//	omp_set_num_threads(1) ;
+
+	double timeScale = 1000. ;//atof(argv[1]) ;
+	double tau = 1. ;
+	double timestep = tau ;
+	double appliedLoadEta = -10e6 ;//atof(argv[2])*(-1e6) ;
+	double appliedLoadXi = 0 ;//atof(argv[3])*(-1e6) ;
+	double degree = 0.01 ;//atof(argv[1]) ;
+//	tau /= degree/0.001 ;
+		
+	double limit = 0.1 ;//atof(argv[1]) ;
+
+	int nzones = 400 ;
+	int naggregates = 2000 ;
+
+	FeatureTree F(&box) ;
+	F.setSamplingNumber(196) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setDeltaTime(tau) ;
+	F.setMinDeltaTime(tau*1e-5) ;
+	F.setMaxIterationsPerStep(5000) ;
+		
+	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour(12e9, 0.3, atof(argv[1]), atof(argv[2])) );
+
+	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), naggregates, 0.015, 0.0001, BOLOME_A) ;	
+	
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 5)) ;
+	
+	if(appliedLoadEta < 0)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, appliedLoadEta));
+
+	if(appliedLoadXi < 0)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, appliedLoadXi));
+
+	
+	std::string name = "creep_mauvoisin_" ;
+	name.append(argv[1]) ;
+	name.append("_") ;
+	name.append(argv[2]) ;
+	std::ofstream summary ;
+	summary.open(name.c_str(), std::ios::out) ;
+
+	std::vector<DelaunayTriangle *> trg ;
+	std::vector<Point *> nodes ;
+	while(F.getCurrentTime() < timeScale)
+	{
+		F.setDeltaTime(tau) ;
+		F.setMinDeltaTime(tau*1e-6) ;
+		F.step() ;
+
+		F.getAssembly()->setEpsilon(1e-8) ;
+		if(trg.size() == 0)
+		{
+			trg = F.getElements2D() ;
+			nodes = F.getNodes() ;
+		}
+		
+		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+		summary << F.getCurrentTime() << "\t" << strain[1]/appliedLoadEta << "\t" << areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
+		
+		if(F.getCurrentTime() > 20)
+			timestep *= 10. ;
+		tau += timestep ;
+
+	}
+	
+
+
+	return 0 ;
+}
+
