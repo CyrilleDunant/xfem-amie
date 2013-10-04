@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 	int naggregates = 2000 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(64) ;
+	F.setSamplingNumber(128) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-5) ;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
 //	box.setBehaviour( new ElasticOnlyPasteBehaviour() );
 
-	//std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), 32, 0.015, 0.0001, BOLOME_A) ;
+	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), 32, 0.015, 0.0001, BOLOME_A) ;
 	
 /*	std::vector<EllipsoidalInclusion *> aggregates ;
 	for(size_t i = 0 ; i < feats.size() ; i++)

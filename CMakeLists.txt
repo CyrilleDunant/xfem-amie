@@ -303,7 +303,7 @@ if(DEBUG_BUILD EQUAL 1)
 	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
-	add_definitions(-g3 -fno-exceptions -O4 -std=c++0x -DNDEBUG -funroll-loops -march=native)
+	add_definitions(-g0 -fno-exceptions -O3 -std=c++0x -DNDEBUG -funroll-loops -march=native)
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 
