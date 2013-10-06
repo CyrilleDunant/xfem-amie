@@ -160,16 +160,16 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s,
 
 			if(testVal < altTensionCritStrain)
 				factor = 1. ;
-			else //if(testVal < strain_ch)
+			else if(testVal < strain_ch)
 				factor = mainCurve ;
-// 			if(testVal < strain_ch)
-// 					factor = mainCurve ;
-// 			else if(testVal < strain_te)
-// 			{
-// 				factor = mainCurve*(strain_te-testVal)/(delta_tech) ;
-// 			}
-// 			else
-// 				factor = 0 ;
+			if(testVal < strain_ch)
+					factor = mainCurve ;
+			else if(testVal < strain_te)
+			{
+				factor = mainCurve*(strain_te-testVal)/(delta_tech) ;
+			}
+			else
+				factor = 0 ;
 			
 
 			if( testVal*pseudoYoung > altUpVal*factor )
