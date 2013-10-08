@@ -539,7 +539,9 @@ void ViscoelasticityAndFracture::step(double timestep, ElementState & currentSta
 	SpaceTimeNonLocalMaximumStrain * crit = dynamic_cast<SpaceTimeNonLocalMaximumStrain *>(criterion) ;
 	if(crit != nullptr && dfunc->changed() && !dfunc->fractured())
 	{
-		crit->upVal = crit->maxstress/(param[0][0]*(1-dfunc->getState().max())) ;
+		std::cout << crit->upVal << "->" ;
+		crit->upVal = crit->maxstress/(param[0][0]*(1.-dfunc->getState().max())) ;
+		std::cout << crit->upVal << std::endl ; ;
 	}
 
 

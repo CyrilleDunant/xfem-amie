@@ -48,6 +48,7 @@ struct Viscoelasticity : public LinearForm
 	
 	// number of blocks (= 1+number of additionnal dofs)
 	int blocks ;
+	int effblocks ;
 	
 	std::vector<Variable> v ;
 	

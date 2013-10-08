@@ -108,60 +108,76 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(atof(argv[1])) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setDeltaTime(atof(argv[2])) ;
-	F.setMinDeltaTime(atof(argv[2])*1e-6) ;
-	double speed = atof(argv[3]) ;
-	size_t seed = atof(argv[4]) ;
+	double totaltime = atof(argv[2]) ;
+	F.setDeltaTime(totaltime/50) ;
+	F.setMinDeltaTime((totaltime/50)*1e-6) ;
+	size_t seed = 0 ;//atof(argv[4]) ;
 //	F.setOrder(LINEAR) ;
 	
+	Matrix cmx = (new PasteBehaviour(14e9))->param ;
+	Matrix ckv = (new PasteBehaviour(30e9))->param ;
+	Viscoelasticity dummy( BURGER, ckv, ckv*300, cmx, cmx*5000,2) ;
+
+	Viscoelasticity concrete( dummy.param, dummy.eta, 5) ;
+
 	Rectangle * placement= new Rectangle(width,length-depth-nnotch, 0., length*(0.5)-depth-nnotch*1.5) ;
+
 	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
 	left.isVirtualFeature  = true ;
+	left.setBehaviour(&concrete) ;
 	
+	Sample middle(nullptr, width, nnotch, 0., length*0.5-depth-nnotch*0.5) ;
+	middle.isVirtualFeature = true ;
+	middle.setBehaviour(&concrete) ;
+
 	Sample right(nullptr, (length-width)*.5, length, length*.5-(length-width)*.25, 0) ;
 	right.isVirtualFeature  = true ;
-	
-	
+	right.setBehaviour(&concrete) ;
+
 	Rectangle refinement( 0.005, length, 0.,0.) ;
 	Rectangle large( 0.015, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
+	Rectangle topfine( length, depth*2., 0., length*0.5-depth) ;
 	F.addRefinementZone(placement);
 	F.addRefinementZone(&large2);
+//	F.addRefinementZone(&topfine);
 // 	F.addRefinementZone(&large);
 // 	F.addRefinementZone(&refinement);
 	
-	Matrix c = (new PasteBehaviour())->param ;
-	
-	box.setBehaviour( new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10, new CreepRupture(2e6, 0.8e6, 1e-4), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,0.001) ) ) ;
+	box.setBehaviour( new ViscoDamagePasteBehaviour() ) ;
+
+	Viscoelasticity * test = dynamic_cast<Viscoelasticity *>(box.getBehaviour()->getCopy()) ;
+	std::cout << test->getNumberOfDegreesOfFreedom() << std::endl ;
 //	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
 //	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
 //	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
 //	box.setBehaviour( new Stiffness( c ) ) ;
 	
-	left.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
-	right.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
-	
-	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
+//	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
-	ElasticOnlyAggregateBehaviour hop ;
-	Viscoelasticity * agg = new Viscoelasticity( PURE_ELASTICITY, hop.param, 1 ) ;
-	
 	/*std::vector<Inclusion *> inclusions = */
 //	size_t s = seed ;
-	ParticleSizeDistribution::get2DConcrete( &F, agg, 40, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8,placement, seed ) ;
+	ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), 400, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8,placement, seed ) ;
  	F.addFeature(&box, &top) ;
- 	F.addFeature(&box, &notch) ;
+	F.addFeature(&box, &middle) ;
+ 	F.addFeature(&middle, &notch) ;
 	F.addFeature(&box, &left) ;
 	F.addFeature(&box, &right) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 4 )) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 6 )) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 8 )) ;
  
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 1 ) ) ;
  	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 3 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 5 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 7 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
 	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, width*0.4, width*0.6, length*0.4, length*0.6, 0. ) ;
 	F.addBoundaryCondition(disp) ;
@@ -175,40 +191,38 @@ int main(int argc, char *argv[])
 	size_t i = 0 ;
 
 	std::fstream out ;
-	std::string tata = "wedge_creep_" ;
+	std::string tata = "wedge_strain_" ;
 	tata.append(argv[1]) ;
 	tata.append("_") ;
 	tata.append(argv[2]) ;
-	tata.append("_") ;
-	tata.append(argv[3]) ;
-	tata.append("_") ;
-	tata.append(argv[4]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
-	
-	while(speed*i < 0.006)
+
+	double speed = 0.005/totaltime ;
+	double totaldisp = 0.;
+
+	while(speed*F.getCurrentTime() <= 0.005)
 	{
 		i++ ;
-		disp->setData( speed*i ) ;
-		std::cout << speed*i << std::endl ;
+		totaldisp = speed * F.getCurrentTime() ;
+		disp->setData( totaldisp ) ;
+		std::cout << totaldisp << std::endl ;
 
-//		F.setDeltaTime(1.) ;
 		F.step() ;
-		
-		std::string tati = "wedge_creep_" ;
-		tati.append("_") ;
+
+		std::string tati = "wedge_strain_" ;
 		tati.append(itoa(i)) ;
 		std::cout << tati << std::endl ;
 		TriangleWriter writer(tati, &F, 1) ;
-// 		writer.getField(TWFT_STRAIN) ;
-// 		writer.getField(TWFT_STRESS) ;
+ 		writer.getField(TWFT_STRAIN) ;
+ 		writer.getField(TWFT_STRESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;
 			
  		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
  		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		out << F.getCurrentTime() << "\t" << speed*i << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
+		std::cout << F.getCurrentTime() << "\t" << totaldisp << "\t" << x[0] << "\t" << y[0]*length*length<< "\t" << F.averageDamage << std::endl ;
 
 	}
 	

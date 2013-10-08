@@ -36,7 +36,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 
   
 	if(fractured())
-		return m*1e-9 ;
+		return m*1e-4 ;
 	
 	if(state.size() == 1)
 		return m*(1.-state[0]) ;

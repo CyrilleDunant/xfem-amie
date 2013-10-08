@@ -56,7 +56,7 @@ void Mu::getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & r
 }
 
 
-Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n, double r) : LinearForm(rig, false, false, (1+n)*(rig.numRows()/3+1)), model(m), blocks(1+n)
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n, double r) : LinearForm(rig, false, false, (1+n)*(rig.numRows()/3+1)), model(m), blocks(1+n), effblocks(1)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -82,7 +82,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
 	}
 } ;
 
-Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL))
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL)), effblocks(1+(m==MAXWELL))
 { 
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -117,7 +117,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const 
 	}
 } ;
 
-Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b)
+Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b),effblocks(b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -141,7 +141,7 @@ Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, in
 	}
 } ;
 
-Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int b, int n, double r) : LinearForm(c_kv, false, false, (3+n+b)*(c_kv.numRows()/3+1)), model(m), blocks(3+b+n)
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const Matrix & e_kv, const Matrix & c_mx, const Matrix & e_mx, int b, int n, double r) : LinearForm(c_kv, false, false, (3+n+b)*(c_kv.numRows()/3+1)), model(m), blocks(3+b+n),effblocks(3)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -164,10 +164,10 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const
 			placeMatrixInBlock( c_mx, 1+b,2+b, param) ;
 			placeMatrixInBlock( c_mx, 2+b,1+b, param) ;
 			Matrix r_mx = c_mx * (-1.) ;
-			placeMatrixInBlock( r_mx, 0+b,1+b, param) ;
-			placeMatrixInBlock( r_mx, 0+b,2+b, param) ;
-			placeMatrixInBlock( r_mx, 1+b,0+b, param) ;
- 			placeMatrixInBlock( r_mx, 2+b,0+b, param) ;
+			placeMatrixInBlock( r_mx, 0,1+b, param) ;
+			placeMatrixInBlock( r_mx, 0,2+b, param) ;
+			placeMatrixInBlock( r_mx, 1+b,0, param) ;
+ 			placeMatrixInBlock( r_mx, 2+b,0, param) ;
 			addMatrixInBlock( c_kv, 2+b,2+b, param) ;
 			
 			
@@ -184,7 +184,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const
 	}
 } ;
 
-Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n, double r) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size())
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n, double r) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size()), effblocks(1+branches.size())
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -235,9 +235,10 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::ve
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
 } ;
 
-Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b)
+Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b), effblocks(2)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -305,13 +306,13 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			a += b ;
 			
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			for(size_t i = 1 ; i < blocks ; i++)
+			for(size_t i = 1 ; i < effblocks ; i++)
 			{
 				// first line
 				substractMatrixInBlock( a, i,0, ret ) ;
 				// first column
 				substractMatrixInBlock( a, 0,i, ret ) ;
-				for(size_t j = i+1 ; j < blocks ; j++)
+				for(size_t j = i+1 ; j < effblocks ; j++)
 				{
 					// upper triangle
 					placeMatrixInBlock( a, i,j, ret ) ;
@@ -328,7 +329,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 				a += b ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 			}
-			
+//			ret.print() ;
 			return ;
 		}
 		
@@ -511,6 +512,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 				}
 
 			}
+			return ;
 		}
 	}
 	
@@ -633,6 +635,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 					addMatrixInBlock( a, j,i, ret ) ;
 				}
 			}
+			return ;
 		}
 	}
 	
