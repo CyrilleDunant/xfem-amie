@@ -37,16 +37,26 @@ namespace Mu
 	{
 		double e_1 ;
 		double e_2 ;
+		int freeblocks ;
 		
 		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 	} ;
 
+	typedef enum
+	{
+		STRAIN_CRITERION,
+		STRESS_CRITERION,
+		MIXED_CRITERION,
+	} PasteCriterion ;
+
 	struct ViscoDamagePasteBehaviour : public PasteBehaviour
 	{
 		double e_1 ;
 		double e_2 ;
+		int freeblocks ;
+		PasteCriterion ctype ;
 		
 		ViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0005, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		

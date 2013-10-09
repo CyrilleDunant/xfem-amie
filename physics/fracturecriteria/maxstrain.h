@@ -78,6 +78,54 @@ public:
 
 };
 
+class SpaceTimeNonLocalMaximumStress : public MaximumStrain
+{
+protected:
+	PointArray testPoints ;
+public:
+	double maxstress ;
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	SpaceTimeNonLocalMaximumStress(double up, double mstr, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z),maxstress(mstr) { } ;
+
+	virtual ~SpaceTimeNonLocalMaximumStress() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalMaximumStress(*this) ; }
+
+	virtual double grade(ElementState &s)  ;
+
+};
+
+class SpaceTimeNonLocalEllipsoidalMixedCriterion : public MaximumStrain
+{
+protected:
+	PointArray testPoints ;
+public:
+	double maxstress ;
+	double E_inst ;
+	double E_relaxed ;
+	Function surface ;
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+
+	virtual ~SpaceTimeNonLocalEllipsoidalMixedCriterion() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalEllipsoidalMixedCriterion(upVal, maxstress, E_inst, E_relaxed) ; }
+
+	virtual double grade(ElementState &s)  ;
+
+};
+
+
 }
 
 #endif

@@ -3703,7 +3703,7 @@ bool Segment::intersects(const Geometry *g) const
 		{
 			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 			
-			ell.sampleBoundingSurface(128) ;
+//			ell.sampleBoundingSurface(128) ;
 			
 			for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
 			{
@@ -4062,14 +4062,33 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case ELLIPSE:
 		{
-			Line l(f,s-f) ;
+			std::vector<Point> ret ;
+			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
+			
+			ell.sampleBoundingSurface(128) ;
+			
+			for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
+			{
+				Segment test(ell.getBoundingPoint(i), ell.getBoundingPoint(i+1)) ;
+				if(this->intersects(test))
+				{
+					ret.push_back(this->intersection(test)) ;
+					return ret ;
+				}	
+			}
+			return ret ;
+//			Segment test(ell.getBoundingPoint(ell.getBoundingPoints().size()-1), ell.getBoundingPoint(0)) ;
+//			return this->intersects(test) ;
+
+
+/*			Line l(f,s-f) ;
 			std::vector<Point> ret = l.intersection(g) ;
 			for(size_t i = ret.size() ; i > 0 ; i--)
 			{
 				if(!(this->on(ret[i-1])))
 					ret.erase(ret.begin()+i-1) ;
 			}
-			return ret ;
+			return ret ;*/
 
 		}
 	case SEGMENTED_LINE:

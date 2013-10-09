@@ -903,15 +903,24 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	double stra0 = stra[0] ;
 	double stra1 = stra[1] ;
 	double stra2 = stra[2] ;
-	double stra3 = stra[3] ;
-	double stra4 = stra[4] ;
-	double stra5 = stra[5] ;
 	double str0 = str[0] ;
 	double str1 = str[1] ;
 	double str2 = str[2] ;
-	double str3 = str[3] ;
-	double str4 = str[4] ;
-	double str5 = str[5] ;
+	double stra3 = 0 ;
+	double stra4 = 0 ;
+	double stra5 = 0 ;
+	double str3 = 0 ;
+	double str4 = 0 ;
+	double str5 = 0 ;
+	if(vlength == 6)
+	{
+		stra3 = stra[3] ;
+		stra4 = stra[4] ;
+		stra5 = stra[5] ;
+		str3 = str[3] ;
+		str4 = str[4] ;
+		str5 = str[5] ;
+	}
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
 		if(s.getParent()->getOrder() < CONSTANT_TIME_LINEAR)

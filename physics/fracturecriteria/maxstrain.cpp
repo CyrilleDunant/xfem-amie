@@ -76,4 +76,85 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 	
 }
 
+double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
+{
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	double maxStressAfter = stateAfter.first.max() ;
+	double maxStressBefore = stateBefore.first.max() ;
+
+	metInCompression = false ;
+	metInTension = false ;
+	if(maxStressAfter > maxstress)
+	{
+		metInTension = true ;
+		return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
+	}
+	return -1.+ maxStressAfter/maxstress;
+	
+	
+}
+
+SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z),maxstress(mstr), E_inst(E0), E_relaxed(Einf)
+{
+	double strainrelaxed = maxstress/E_relaxed ;
+	double stressinst = upVal*E_inst ;
+
+	Point center(strainrelaxed, stressinst) ;
+	Point mj(std::abs(upVal - strainrelaxed), 0.) ;
+	Point mn(0.,std::abs(stressinst - maxstress)) ;
+
+	Ellipse ell(center, mj, mn) ;
+	surface = ell.getEllipseFormFunction() ;
+
+
+}
+
+
+double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
+{
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+
+	Point after( stateAfter.second.max(), stateAfter.first.max() ) ;
+	Point before( stateBefore.second.max(), stateBefore.first.max() ) ;
+
+	double kafter = VirtualMachine().eval(surface, after) ;
+	double kbefore = VirtualMachine().eval(surface, before) ;
+
+	if(after.x > maxstress/E_relaxed)
+		kafter = -2.-kafter ;
+	if(after.y > upVal*E_inst)
+		kafter = -2.-kafter ;
+
+	Segment transition(after, before) ;
+	metInCompression = false ;
+	metInTension = false ;
+	if(kafter < 0)
+	{
+		metInTension = true ;
+		return std::min(1., kbefore/(kbefore - kafter)) ;
+	}
+
+/*	if(transition.intersects(&surface))
+	{
+		metInTension = true ;
+		Point k = transition.intersection(&surface)[0] ;
+		double pos = (k-before).norm()/(after-before).norm() ;
+		return std::min(1., 1.-pos) ;
+	}*/
+
+	if(kafter < kbefore)
+		return (-1.)* kafter/kbefore;
+	
+	return -1. ;
+}
+
 }

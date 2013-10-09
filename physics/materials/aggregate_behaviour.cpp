@@ -70,7 +70,7 @@ Form * ElasticOnlyAggregateBehaviour::getCopy() const
 }
 
 
-ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim)
+ViscoElasticOnlyAggregateBehaviour::ViscoElasticOnlyAggregateBehaviour(double E, double nu, SpaceDimensionality dim) : AggregateBehaviour(E,nu,0.,0.,0.,dim), freeblocks(0)
 {
 
 }
@@ -79,10 +79,10 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
-	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2 )  ;
+	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2+freeblocks )  ;
 }
 
-ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,0.,0.,dim), rad(r)
+ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,0.,0.,dim), rad(r), freeblocks(0)
 {
 	materialRadius = r ;
 }
@@ -91,7 +91,7 @@ Form * ViscoDamageAggregateBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
-	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 2 )  ;
+	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 2+freeblocks )  ;
 	copy->criterion->setMaterialCharacteristicRadius(rad) ;
 	return copy ;
 }

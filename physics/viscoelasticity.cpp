@@ -635,7 +635,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 					addMatrixInBlock( a, j,i, ret ) ;
 				}
 			}
-			return ;
+		return ;
 		}
 	}
 	
