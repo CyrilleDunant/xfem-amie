@@ -222,10 +222,10 @@ int main(int argc, char *argv[])
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
-	double speed = 0.0005/totaltime ;
+	double speed = 0.005/totaltime ;
 	double totaldisp = 0.;
 
-	while(speed*F.getCurrentTime() <= 0.0005)
+	while(speed*F.getCurrentTime() <= 0.005)
 	{
 		if(F.solverConverged())
 		{
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 			
  		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
  		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		std::cout << F.getCurrentTime() << "\t" << totaldisp << "\t" << x[0] << "\t" << y[0]*length*length << "\t" << F.averageDamage << std::endl ;
+		out << F.getCurrentTime() << "\t" << totaldisp << "\t" << x[0] << "\t" << y[0]*length*length << "\t" << F.averageDamage << std::endl ;
 
 	}
 	
