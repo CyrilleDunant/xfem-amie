@@ -173,10 +173,7 @@ int main(int argc, char *argv[])
 
 	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 4000, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 1.,placement, seed ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
-	{
-		if(std::abs(aggregates[i]->getCenter().x) < width*0.5 && aggregates[i]->getCenter().y < 0.)
-			F.setSamplingFactor(aggregates[i], 2.) ;
-	}
+		F.setSamplingFactor(aggregates[i], 2.) ;
 
 	Inclusion * support = new Inclusion(nullptr, 0.008, 0., -length*0.5) ;
 	support->setBehaviour( &agg) ;
@@ -189,6 +186,9 @@ int main(int argc, char *argv[])
 	F.addFeature(&box, &left) ;
 	F.addFeature(&box, &right) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
+
+	F.setSamplingFactor( &top, 1.5 ) ;
+	F.setSamplingFactor( &notch, 1.5 ) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
