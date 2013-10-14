@@ -162,6 +162,26 @@ double maxTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 	return tension ;
 }
 
+Vector dispOnTop( Vector disp, std::vector<Point *> nodes)
+{
+	Vector top(6) ;
+	top = 0. ;
+	size_t count = 0 ;
+	for(size_t i = 0 ; i < nodes.size() ; i++)
+	{
+		if(nodes[i]->t > nodes[0]->t && nodes[i]->y >= 0.0849)
+		{
+			for(size_t j = 0 ; j < 6 ; j++)
+			{
+				top[j] += disp[ nodes[i]->id*6 + j ] ;
+			}
+			count++ ;
+		}
+	}
+	top /= count ;
+	return top ;
+}
+
 int main(int argc, char *argv[])
 {
 //	omp_set_num_threads(1) ;
@@ -169,9 +189,10 @@ int main(int argc, char *argv[])
 	double timeScale = 1000. ;//atof(argv[1]) ;
 	double tau = 1. ;
 	double timestep = tau ;
-	double appliedLoadEta = -10e6 ;//atof(argv[2])*(-1e6) ;
+	double appliedLoadEta = -1e6 *atof(argv[2]);
 	double appliedLoadXi = 0 ;//atof(argv[3])*(-1e6) ;
 	double degree = 0.01 ;//atof(argv[1]) ;
+	double maxstress = atof(argv[1])*1e6 ;
 //	tau /= degree/0.001 ;
 		
 	double limit = 0.1 ;//atof(argv[1]) ;
@@ -186,15 +207,18 @@ int main(int argc, char *argv[])
 	F.setMinDeltaTime(tau*1e-5) ;
 	F.setMaxIterationsPerStep(5000) ;
 		
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour(12e9, 0.3, atof(argv[1]), atof(argv[2])) );
+	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3, 2, 10000, maxstress/12e9) ;
+	paste.ctype = STRESS_CRITERION ;
+
+	box.setBehaviour( &paste );
 
 	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), naggregates, 0.015, 0.0001, BOLOME_A) ;	
 	
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 2)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 4)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 4)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 5)) ;
 	
 	if(appliedLoadEta < 0)
@@ -213,8 +237,10 @@ int main(int argc, char *argv[])
 
 	std::vector<DelaunayTriangle *> trg ;
 	std::vector<Point *> nodes ;
+	size_t i = 0 ;
 	while(F.getCurrentTime() < timeScale)
 	{
+		i++ ;
 		F.setDeltaTime(tau) ;
 		F.setMinDeltaTime(tau*1e-6) ;
 		F.step() ;
@@ -228,13 +254,31 @@ int main(int argc, char *argv[])
 		
 		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		summary << F.getCurrentTime() << "\t" << strain[1]/appliedLoadEta << "\t" << areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
+		Vector d =  dispOnTop( F.getDisplacements(), nodes) ;
+		summary << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
+		for(size_t j = 0 ; j < d.size() ; j++)
+			summary << d[j] << "\t" ;
+		summary <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
 		
-		if(F.getCurrentTime() > 20)
-			timestep *= 10. ;
+//		if(F.getCurrentTime() > 20)
+//			timestep *= 10. ;
 		tau += timestep ;
 
+		if(i%5 == 0)
+		{
+			std::string tati = name ;
+			tati.append("_pattern") ;
+			tati.append(itoa(i)) ;
+			TriangleWriter writer(tati, &F, 1) ;
+	 		writer.getField(STRAIN_FIELD) ;
+	 		writer.getField(REAL_STRESS_FIELD) ;
+			writer.getField(TWFT_DAMAGE) ;
+			writer.getField(TWFT_STIFFNESS) ;
+			writer.write() ;
+		}
 	}
+
+
 	
 
 

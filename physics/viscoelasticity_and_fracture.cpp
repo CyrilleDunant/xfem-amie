@@ -539,9 +539,9 @@ void ViscoelasticityAndFracture::step(double timestep, ElementState & currentSta
 	SpaceTimeNonLocalMaximumStrain * crit = dynamic_cast<SpaceTimeNonLocalMaximumStrain *>(criterion) ;
 	if(crit != nullptr && dfunc->changed() && !dfunc->fractured())
 	{
-		std::cout << crit->upVal << "->" ;
+//		std::cout << crit->upVal << "->" ;
 		crit->upVal = crit->maxstress/(param[0][0]*(1.-dfunc->getState().max())) ;
-		std::cout << crit->upVal << std::endl ; ;
+//		std::cout << crit->upVal << std::endl ; ;
 	}
 
 
@@ -614,6 +614,7 @@ Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & 
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
+	return dfunc->apply(param) ; 
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
 	Matrix tmp = dfunc->apply(param) ;
@@ -630,6 +631,7 @@ Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity *
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
+	return dfunc->apply(eta) ; 
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
 	Matrix tmp = dfunc->apply(eta) ;
