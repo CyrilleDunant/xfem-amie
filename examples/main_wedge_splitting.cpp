@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone(&large);
 // 	F.addRefinementZone(&refinement);
 	
-	ViscoDamagePasteBehaviour paste(12e9, 0.3,0.3,0.37, atof(argv[2])) ;
+	ViscoDamagePasteBehaviour paste(12e9, 0.3,0.3,0.37, 0.00038, 0.002) ;
 	paste.freeblocks = 0 ;
 /*	if(argv[2] == std::string("stress"))
 		paste.ctype = STRESS_CRITERION ;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 	ViscoElasticOnlyAggregateBehaviour agg ;
 	agg.freeblocks = 0 ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 400, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 1.,placement, seed ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 4000, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 1.,placement, seed ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
 	{
 		if(std::abs(aggregates[i]->getCenter().x) < width*0.5 && aggregates[i]->getCenter().y < 0.)
@@ -217,15 +217,15 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string tata = "wedge_" ;
 	tata.append(argv[1]) ;
-	tata.append("_strain_") ;
-	tata.append(argv[2]) ;
+	tata.append("_strain_final") ;
+//	tata.append(argv[2]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
-	double speed = 0.005/totaltime ;
+	double speed = 0.0005/totaltime ;
 	double totaldisp = 0.;
 
-	while(speed*F.getCurrentTime() <= 0.005)
+	while(speed*F.getCurrentTime() <= 0.0005)
 	{
 		if(F.solverConverged())
 		{

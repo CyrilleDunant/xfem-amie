@@ -72,6 +72,7 @@ double CreepRupture::grade( ElementState &s )
 	}
 	metInTension = true ;
 	return 1.-tnext ;
+
 	
 }
 

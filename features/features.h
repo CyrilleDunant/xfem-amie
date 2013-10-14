@@ -16,6 +16,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"
 #include "../physics/void_form.h"
+#include "../physics/viscoelasticity.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../solvers/assembly.h"
 #include "boundarycondition.h"
@@ -420,6 +421,48 @@ public:
 	
 public:
 	
+	std::vector<Vector> intermediateStates ;
+
+	double damageAreaInAggregates( std::vector<DelaunayTriangle *> trg )
+	{
+		double total = 0 ;
+		double dam = 0 ;
+		for(size_t i = 0 ; i < trg.size() ; i++)
+		{
+			if((dynamic_cast<Viscoelasticity *>( trg[i]->getBehaviour()))->model == PURE_ELASTICITY)
+			{
+				total += trg[i]->area() ;
+				if(trg[i]->getBehaviour()->getDamageModel() != nullptr)
+				{
+					dam += trg[i]->area() * trg[i]->getBehaviour()->getDamageModel()->getState().max() ;
+				}
+			}
+		}
+		if(total < POINT_TOLERANCE_2D)
+			return 0 ;
+		return dam/total ;
+	}
+
+	double damageAreaInPaste( std::vector<DelaunayTriangle *> trg )
+	{
+		double total = 0 ;
+		double dam = 0 ;
+		for(size_t i = 0 ; i < trg.size() ; i++)
+		{
+			if((dynamic_cast<Viscoelasticity *>( trg[i]->getBehaviour()))->model == GENERALIZED_KELVIN_VOIGT)
+			{
+				total += trg[i]->area() ;
+				if(trg[i]->getBehaviour()->getDamageModel() != nullptr)
+				{
+					dam += trg[i]->area() * trg[i]->getBehaviour()->getDamageModel()->getState().max() ;
+				}
+			}
+		}
+		if(total < POINT_TOLERANCE_2D)
+			return 0 ;
+		return dam/total ;
+	}
+
 	/** \brief  Initialise the feature tree with the parent feature.
 	 * 
 	 * @param first Parent of all features. This shoud typically be the sample itself.

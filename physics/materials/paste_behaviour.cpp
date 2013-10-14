@@ -106,13 +106,13 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*factor*0.85, param[0][0]*factor, param[0][0]*factor/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*factor*0.85, param[0][0]*factor, param[0][0]*factor/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;

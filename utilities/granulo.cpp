@@ -310,17 +310,20 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > Parti
 		{
 			  for(int j = 0 ; j < incs.size() ; j++)
 			  {
-				  Circle circle(incs[j]->getRadius() - rmax , incs[j]->getCenter()) ;
-				  if(circle.in(zonesToPlace[i]->getCenter()))
+				  if(incs[j]->getRadius() > rmax*4.)
 				  {
-					if((maxPerAgg < 0 || zonesPerIncs[incs[j]] < maxPerAgg) )
-					{
-					  zonesPerIncs[incs[j]]++ ; 
-					  F->addFeature(incs[j],zonesToPlace[i]) ;
-					  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
-					  placed = true ;
-					  break ;
-					}
+					  Circle circle(incs[j]->getRadius() - rmax*3. , incs[j]->getCenter()) ;
+					  if(circle.in(zonesToPlace[i]->getCenter()))
+					  {
+						if((maxPerAgg < 0 || zonesPerIncs[incs[j]] < maxPerAgg) )
+						{
+						  zonesPerIncs[incs[j]]++ ; 
+						  F->addFeature(incs[j],zonesToPlace[i]) ;
+						  ret.push_back(std::make_pair(zonesToPlace[i],incs[j])) ;
+						  placed = true ;
+						  break ;
+						}
+					  }
 				  }
 			  }
 		}

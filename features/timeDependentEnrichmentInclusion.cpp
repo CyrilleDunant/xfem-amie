@@ -496,8 +496,11 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 		if(!added)
 		{
 			Point c = disc[i]->getCenter() ; c.t = t0+dt/2 ;
-			if(in(c))
+			Point a = disc[i]->getBoundingPoint(0) ; a.t = t0+dt/2 ;
+			if(in(c) && in(a))
 				inside.push_back(disc[i]) ;
+			else if(in(c))
+				ring.push_back(disc[i]) ;
 		}
 	}
 
@@ -558,7 +561,9 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 
 //		(homogeneised[ring[i]]->param).print() ;
 		Point c = ring[i]->getCenter() ; c.t = A.t ;
-		Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter()))*((double) areIn/(double)k) ;
+//		std::cout << (int) dynamic_cast<Viscoelasticity *>(homogeneised[ring[i]])->model ;
+		double factor = ((double) areIn/(double)k) * imposed->param[0][0]/realStiff[0][0] ;
+		Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter())) * factor;
 		ring[i]->setBehaviour( new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY,realStiff, alpha, b-1)) ;
 
 		

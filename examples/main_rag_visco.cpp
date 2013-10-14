@@ -88,7 +88,7 @@
 
 using namespace Mu ;
 
-Sample box(nullptr, 0.17, 0.17,0.0,0.0) ;
+Sample box(nullptr, 0.08, 0.08,0.0,0.0) ;
 
 int findIndexOfAggregate( DelaunayTriangle * tri, std::vector<Inclusion *> aggregates, FeatureTree * f)
 {
@@ -102,98 +102,37 @@ int findIndexOfAggregate( DelaunayTriangle * tri, std::vector<Inclusion *> aggre
 	return 0 ;
 }
 
-double avgTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
-{
-	double ar = 0. ;
-	double tension = 0. ;
-	for(size_t i = 0 ; i < trg.size() ; i++)
-	{
-		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
-		if(visc->model == GENERALIZED_KELVIN_VOIGT)
-		{
-			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
-			if(stress.max() > 0)
-			{
-				double a = trg[i]->area() ;
-				tension += stress.max()*a ;
-				ar += a ;
-			}
-		}
-	}
-	if(ar > 0)
-		return tension/ar ;
-	return 0 ;
-}
 
-double areaTensionInPaste( std::vector<DelaunayTriangle *> trg)
-{
-	double ar = 0. ;
-	for(size_t i = 0 ; i < trg.size() ; i++)
-	{
-		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
-		if(visc->model == GENERALIZED_KELVIN_VOIGT)
-		{
-			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
-			if(stress.max() > 0)
-			{
-				ar = trg[i]->area() ;
-			}
-		}
-	}
-	return ar ;
-}
-
-double maxTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
-{
-	double tension = 0. ;
-	for(size_t i = 0 ; i < trg.size() ; i++)
-	{
-		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
-		if(visc->model == GENERALIZED_KELVIN_VOIGT)
-		{
-			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
-			if(stress.max() > tension)
-				tension = stress.max() ;
-		}
-	}
-	return tension ;
-}
 
 int main(int argc, char *argv[])
 {
-//	omp_set_num_threads(1) ;
+	omp_set_num_threads(1) ;
 
 	double timeScale = 450. ;//atof(argv[1]) ;
-	double tau = 1. ;
+	double tau = 30. ;
 	double timestep = tau ;
-	double appliedLoadEta = -20e6 ;//atof(argv[2])*(-1e6) ;
+	double appliedLoadEta = 0 ;//atof(argv[2])*(-1e6) ;
 	double appliedLoadXi = 0 ;//atof(argv[3])*(-1e6) ;
-	double degree = 0.01 ;//atof(argv[1]) ;
-//	tau /= degree/0.001 ;
+	double degree = atof(argv[1]) ;
+	tau /= degree/0.001 ;
 		
-	double limit = 0.1 ;//atof(argv[1]) ;
-
 	int nzones = 400 ;
-	int naggregates = 2000 ;
+	int naggregates = 1000 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(128) ;
+	F.setSamplingNumber(160) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
-	F.setMinDeltaTime(tau*1e-5) ;
+	F.setMinDeltaTime(tau*1e-9) ;
 	F.setMaxIterationsPerStep(5000) ;
 		
-	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
-//	box.setBehaviour( new ElasticOnlyPasteBehaviour() );
-
-	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), 32, 0.015, 0.0001, BOLOME_A) ;
+//	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
+	box.setBehaviour( new ViscoDamagePasteBehaviour() );
+	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoDamageAggregateBehaviour(), naggregates, 0.008, 0.0001, BOLOME_A) ;
 	
-/*	std::vector<EllipsoidalInclusion *> aggregates ;
+	std::vector<Inclusion *> aggregates ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
-	      aggregates.push_back( dynamic_cast<EllipsoidalInclusion *>(feats[i]) ) ;
+	      aggregates.push_back( dynamic_cast<Inclusion *>(feats[i]) ) ;
 	
 	double aggregatesArea = 0 ; 
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
@@ -202,7 +141,7 @@ int main(int argc, char *argv[])
 	double maxGelRadius = sqrt(maxGelArea/(nzones*M_PI)) ;
 	Function radius("t") ;
 	radius *= (maxGelRadius / timeScale ) ;
-//	radius = f_sqrt(radius) ;*/
+//	radius = f_sqrt(radius) ;
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
@@ -219,10 +158,10 @@ int main(int argc, char *argv[])
 
 	ViscoelasticityAndImposedDeformation * gel = dynamic_cast<ViscoelasticityAndImposedDeformation *>( (new ViscoElasticOnlyGelBehaviour())->getCopy() ) ;
 	
-//	std::vector<std::pair<TimeDependentHomogenisingInclusion *, EllipsoidalInclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInEllipsoidalAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*50, nzones) ;
+	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*50, nzones) ;
 	
-	std::string name = "creep_stress_" ;
-//	name.append(argv[1]) ;
+	std::string name = "asr_creep_stress_450_degree_" ;
+	name.append(argv[1]) ;
 
 	std::string namebis = name ;
 	namebis.append("_inter") ;
@@ -233,21 +172,16 @@ int main(int argc, char *argv[])
 	std::ofstream sinter ;
 	sinter.open(namebis.c_str(), std::ios::out) ;
 
-		timeval time0, time1 ;
-	gettimeofday(&time0, nullptr);
-
-
 	std::vector<DelaunayTriangle *> trg ;
 	std::vector<Point *> nodes ;
 	int i = 0 ;
-	while(i<2)
+	while(F.getCurrentTime() < 450)
 	{
 		i++ ;
-		F.setDeltaTime(tau) ;
-		F.setMinDeltaTime(tau*1e-6) ;
+//		F.setDeltaTime(tau) ;
+//		F.setMinDeltaTime(tau*1e-6) ;
 		F.step() ;
 		F.getAssembly()->setEpsilon(1e-8) ;
-// 		F.getAssembly()->print() ;
 		if(trg.size() == 0)
 		{
 			trg = F.getElements2D() ;
@@ -267,46 +201,32 @@ int main(int argc, char *argv[])
 		}
 		F.intermediateStates.clear() ;*/
 
-		double area = 0. ;
-		for(size_t j = 0 ; j < trg.size() ; j++)
-		{
-			if(trg[j]->getBehaviour()->param[0][0] < 20e9)
-			{
-				Vector pr(2) ;
-				trg[j]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, Point(0,0), pr, true) ;
-				if( pr.max() > limit)
-					area += trg[j]->area() ;
-			} 
-		}
-
-
-/*		summary << nodes[ nodes.size()-1]->t << "\t" ;
+		summary << nodes[ nodes.size()-1]->t << "\t" ;
 		double r = VirtualMachine().eval( radius, 0,0,0, nodes[ nodes.size()-1]->t ) ;
-		summary << r << "\t" << nzones*r*r*M_PI/aggregatesArea << "\t" ;*/
+		summary << r << "\t" << nzones*r*r*M_PI/aggregatesArea << "\t" ;
 		
 		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		summary << F.getCurrentTime() << "\t" << "\t" << areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
-//		summary << F.damageAreaInAggregates(trg) << "\t" << F.damageAreaInPaste(trg) << "\t" << F.averageDamage << "\t" << std::endl ;
+		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
+		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
+		summary << F.damageAreaInAggregates(trg) << "\t" << F.damageAreaInPaste(trg) << "\t" << F.averageDamage << "\t" << std::endl ;
 		
 
 
-/*		std::string nametrg = name ;
+		std::string nametrg = name ;
 		nametrg.append("_trg_") ;
-		TriangleWriter w( nametrg, &F, 0) ;
+		nametrg.append(itoa(i)) ;
+		TriangleWriter w( nametrg, &F, 1) ;
 		w.getField( STRAIN_FIELD ) ;
 		w.getField( REAL_STRESS_FIELD ) ;
-		w.write() ;*/
+		w.getField( TWFT_STIFFNESS ) ;
+		w.getField( TWFT_DAMAGE ) ;
+		w.write() ;
 		
 		tau += timestep ;
-
 	}
 	
-	gettimeofday(&time1, nullptr);
-
-	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cout << " Time to generate (s) " << delta/1e6 << std::endl ;
-
+	
 	return 0 ;
 }
 

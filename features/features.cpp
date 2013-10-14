@@ -4916,6 +4916,19 @@ bool FeatureTree::stepElements()
 
 			  
 			}
+
+/*			Vector inter(12) ;
+			inter = 0 ;
+			inter[0] = nodes[0]->t ;
+			Vector stress = getAverageField(REAL_STRESS_FIELD, -1, -1) ;
+			Vector strain = getAverageField(STRAIN_FIELD, -1, -1) ;
+			inter[3] = strain[0] ; inter[4] = strain[1] ; inter[5] = strain[2] ; 
+			inter[6] = stress[0] ; inter[7] = stress[1] ; inter[8] = stress[2] ; 
+			inter[9] = damageAreaInAggregates( elements) ;
+			inter[10] = damageAreaInPaste( elements ) ;
+			inter[11] = averageDamage ;
+			intermediateStates.push_back(inter) ;*/
+
 			std::cerr << " ...done. " << std::endl ;
 				
 			
