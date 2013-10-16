@@ -197,6 +197,7 @@ protected:
 	Vector externalForces ;
 	Vector naturalBoundaryConditionForces ;
 	Vector displacements ;
+	Vector prevDisplacements ;
 	Vector nonLinearExternalForces ;
 	CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
 	CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
