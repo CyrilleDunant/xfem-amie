@@ -62,7 +62,29 @@ namespace Mu
 		
 		virtual Form * getCopy() const ;
 	} ;
-	
+
+	struct PseudoBurgerViscoElasticOnlyPasteBehaviour : public PasteBehaviour
+	{
+		double e_1 ;
+		double t_2 ;
+		
+		PseudoBurgerViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		virtual Form * getCopy() const ;
+	} ;
+
+	struct PseudoBurgerViscoDamagePasteBehaviour : public PasteBehaviour
+	{
+		double e_1 ;
+		double t_2 ;
+		int freeblocks ;
+		PasteCriterion ctype ;
+		
+		PseudoBurgerViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, double up = 0.0005, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		virtual Form * getCopy() const ;
+	} ;
+
 } ;
 
 #endif // PASTE_BEHAVIOUR
