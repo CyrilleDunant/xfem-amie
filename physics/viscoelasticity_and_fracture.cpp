@@ -614,7 +614,7 @@ Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Function & 
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-	return dfunc->apply(param) ; 
+//	return dfunc->apply(param) ; 
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
 	Matrix tmp = dfunc->apply(param) ;
@@ -631,7 +631,7 @@ Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity *
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-	return dfunc->apply(eta) ; 
+//	return dfunc->apply(eta) ; 
 	Matrix tensor(param.numRows(), param.numCols()) ;
 	Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
 	Matrix tmp = dfunc->apply(eta) ;

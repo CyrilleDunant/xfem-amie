@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone(&large);
 // 	F.addRefinementZone(&refinement);
 	
-	ViscoDamagePasteBehaviour paste(12e9, 0.3,0.3,0.37, 0.00038, 0.002) ;
+	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, 0.00038, 0.002) ;
 	paste.freeblocks = 0 ;
 /*	if(argv[2] == std::string("stress"))
 		paste.ctype = STRESS_CRITERION ;
