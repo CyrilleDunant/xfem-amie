@@ -74,6 +74,7 @@ Assembly::Assembly()
 	multiplier_offset = 0 ;
 	this->displacements.resize(0) ;
 	this->externalForces.resize(0) ;
+	this->prevDisplacements.resize(0) ;
 	this->naturalBoundaryConditionForces.resize(0) ;
 	this->boundaryMatrix = nullptr ;
 	ndof = 1 ;
@@ -467,7 +468,6 @@ void Assembly::setBoundaryConditions()
 
 	}
 
-	multipliers.clear() ;
 	if(element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
 	{
 		
@@ -480,6 +480,19 @@ void Assembly::setBoundaryConditions()
 			colstart = 2*totaldofs/3 ; 
 		}
 	}
+
+	prevDisplacements.resize(rowstart) ;
+	prevDisplacements = 0. ;
+
+	for(size_t p = 0 ; p < multipliers.size() ; p++)
+	{
+		size_t id = multipliers[p].getId() ;
+		if(id < rowstart)
+			prevDisplacements[id] = multipliers[p].value ;
+	}
+
+	multipliers.clear() ;
+
 
 	element2d.clear() ;
 	element3d.clear() ;
@@ -1446,6 +1459,15 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
 		displacements.resize(cg.x.size()) ;
 		displacements = cg.x ;
+
+//		std::cout << multipliers.size() << std::endl ;
+		if(rowstart > 0 || colstart > 0)
+		{
+			for(size_t p = 0 ; p < prevDisplacements.size() ; p++)
+			{
+				displacements[p] = prevDisplacements[p] ;
+			}
+		}
 		
 // 		GaussSeidel cg(getMatrix(), externalForces) ;
 // 		ret = cg.solve(x0) ;
