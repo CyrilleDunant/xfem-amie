@@ -468,7 +468,7 @@ void Assembly::setBoundaryConditions()
 
 	}
 
-	if(element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
+	if( dim == SPACE_TWO_DIMENSIONAL &&  element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
 	{
 		
 		size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
@@ -480,6 +480,19 @@ void Assembly::setBoundaryConditions()
 			colstart = 2*totaldofs/3 ; 
 		}
 	}
+	if( dim == SPACE_THREE_DIMENSIONAL &&  element3d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
+	{
+		
+		size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
+		rowstart = totaldofs/2 ;
+		colstart = totaldofs/2 ;
+		if( element3d[0]->getOrder() == CONSTANT_TIME_QUADRATIC || element3d[0]->getOrder() == LINEAR_TIME_QUADRATIC || element3d[0]->getOrder() == QUADRATIC_TIME_QUADRATIC ) 
+		{
+			rowstart = 2*totaldofs/3 ;
+			colstart = 2*totaldofs/3 ; 
+		}
+	}
+	
 
 	prevDisplacements.resize(rowstart) ;
 	prevDisplacements = 0. ;
