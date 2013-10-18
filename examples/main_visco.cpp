@@ -256,8 +256,8 @@ int main(int argc, char *argv[])
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 		Vector d =  dispOnTop( F.getDisplacements(), nodes) ;
 		summary << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
-		for(size_t j = 0 ; j < d.size() ; j++)
-			summary << d[j] << "\t" ;
+//		for(size_t j = 0 ; j < d.size() ; j++)
+//			summary << d[j] << "\t" ;
 		summary <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
 		
 //		if(F.getCurrentTime() > 20)
