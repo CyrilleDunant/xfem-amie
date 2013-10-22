@@ -43,6 +43,7 @@
 
 #include <fstream>
 
+#include <omp.h>
 #include <cmath>
 #include <typeinfo>
 #include <limits>
@@ -105,6 +106,9 @@ Sample notch(nullptr,nwidth, nnotch, 0.0, length*0.5 - depth - nnotch*0.5) ;
 
 int main(int argc, char *argv[])
 {
+	 omp_set_schedule(omp_sched_static, 60) ;
+
+
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(50) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -139,7 +143,7 @@ int main(int argc, char *argv[])
 	right.setBehaviour(&pastenodamage) ;
 
 	Rectangle refinement( 0.005, length, 0.,0.) ;
-	Rectangle large( 0.015, length, 0.,0.) ;
+	Rectangle large( width, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
 	Rectangle topfine( length, depth*2., 0., length*0.5-depth) ;
 	F.addRefinementZone(placement);
@@ -171,9 +175,11 @@ int main(int argc, char *argv[])
 	ViscoElasticOnlyAggregateBehaviour agg ;
 	agg.freeblocks = 0 ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 4000, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 1.,placement, seed ) ;
-	for(size_t i = 0 ; i < aggregates.size() ; i++)
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 1200, 0.008, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8 ) ;
+	for(size_t i = 0 ; i < 1000 ; i++)
 		F.setSamplingFactor(aggregates[i], 2.) ;
+	for(size_t i = 1000 ; i < 2000 ; i++)
+		F.setSamplingFactor(aggregates[i], 3.) ;
 
 	Inclusion * support = new Inclusion(nullptr, 0.008, 0., -length*0.5) ;
 	support->setBehaviour( &agg) ;
@@ -187,8 +193,9 @@ int main(int argc, char *argv[])
 	F.addFeature(&box, &right) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 
-	F.setSamplingFactor( &top, 1.5 ) ;
-	F.setSamplingFactor( &notch, 1.5 ) ;
+	F.setSamplingFactor( &top, 2. ) ;
+	F.setSamplingFactor( &notch, 2. ) ;
+	F.setSamplingFactor( support, 2. ) ;
 	
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0 )) ;
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2 )) ;
