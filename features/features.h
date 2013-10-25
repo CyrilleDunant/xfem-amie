@@ -546,7 +546,9 @@ public:
 
 	void moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) ;
 	
-	void setMaxIterationsPerStep(size_t its) {maxitPerStep = its ;}
+	void setMaxIterationsPerStep(size_t its) 
+		{maxitPerStep = its ;}
+#warning logic for space-time non-converged iterations not implemented
 	
 		/** \brief  set Sampling parameter
 	 */
