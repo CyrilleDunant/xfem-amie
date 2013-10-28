@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_XI, RIGHT_AFTER, appliedLoadXi));
 
 	
-	std::string name = "creep_nonlinear_" ;
+	std::string name = "creep_instantloading_" ;
 	name.append(argv[1]) ;
 	name.append("_") ;
 	name.append(argv[2]) ;
@@ -242,6 +242,8 @@ int main(int argc, char *argv[])
 	{
 		i++ ;
 		F.setDeltaTime(tau) ;
+		if(i == 1)
+			F.setDeltaTime(0.0005) ;
 		F.setMinDeltaTime(tau*1e-6) ;
 		F.step() ;
 
@@ -262,7 +264,8 @@ int main(int argc, char *argv[])
 		
 //		if(F.getCurrentTime() > 20)
 //			timestep *= 10. ;
-		tau += timestep ;
+		if(i > 1)
+			tau += timestep ;
 
 		if(i%5 == 0)
 		{
