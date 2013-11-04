@@ -184,7 +184,7 @@ Vector dispOnTop( Vector disp, std::vector<Point *> nodes)
 
 int main(int argc, char *argv[])
 {
-//	omp_set_num_threads(1) ;
+//	omp_set_num_threads(4) ;
 
 	double timeScale = 1000. ;//atof(argv[1]) ;
 	double tau = 1. ;
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-5) ;
-	F.setMaxIterationsPerStep(5000) ;
+	F.setMaxIterationsPerStep(500) ;
 		
 	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3, 2, 10000, maxstress/12e9) ;
 	paste.ctype = STRESS_CRITERION ;
@@ -238,14 +238,22 @@ int main(int argc, char *argv[])
 	std::vector<DelaunayTriangle *> trg ;
 	std::vector<Point *> nodes ;
 	size_t i = 0 ;
+	bool goOn = true ;
+	bool first = true ;
 	while(F.getCurrentTime() < timeScale)
 	{
 		i++ ;
-		F.setDeltaTime(tau) ;
-		if(i == 1)
-			F.setDeltaTime(0.0005) ;
-		F.setMinDeltaTime(tau*1e-6) ;
-		F.step() ;
+		if(goOn)
+		{
+			F.setDeltaTime(tau) ;
+			F.setMinDeltaTime(tau*1e-9) ;
+			if(i == 1)
+			{
+				F.setDeltaTime(0.0005) ;
+				F.setMinDeltaTime(1e-12) ;
+			}
+		}
+		goOn = F.step() ;
 
 		F.getAssembly()->setEpsilon(1e-8) ;
 		if(trg.size() == 0)
@@ -257,20 +265,27 @@ int main(int argc, char *argv[])
 		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 		Vector d =  dispOnTop( F.getDisplacements(), nodes) ;
-		summary << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
+		std::cout << F.getCurrentTime() << "\t" << tau << "\t" << trg[0]->getState().getNodalDeltaTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
 //		for(size_t j = 0 ; j < d.size() ; j++)
 //			summary << d[j] << "\t" ;
-		summary <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
+		std::cout <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
 		
 //		if(F.getCurrentTime() > 20)
 //			timestep *= 10. ;
-		if(i > 1)
+		if(goOn)
 			tau += timestep ;
+		if(goOn && first)
+		{
+			tau = timestep ;
+			first = false ;
+		}
 
-		if(i%5 == 0)
+		if(i>0)
 		{
 			std::string tati = name ;
-			tati.append("_pattern") ;
+			tati.append("_pattern_") ;
+			if(!goOn)
+				tati.append("inter_") ;
 			tati.append(itoa(i)) ;
 			TriangleWriter writer(tati, &F, 1) ;
 	 		writer.getField(STRAIN_FIELD) ;
