@@ -243,6 +243,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 	useMultigrid = false ;
 	foundCheckPoint = true ;
 	averageDamage = 0 ;
+	damageConverged = false ;
 	stateConverged = false ;
 	dtree = nullptr ;
 	dtree3D = nullptr ;
@@ -5422,14 +5423,24 @@ bool FeatureTree::step()
 {
 	double realdt = deltaTime ;
 	
-	if( state.meshed && solverConverged() && !behaviourChanged())
+	if( damageConverged && state.meshed && solverConverged() && !behaviourChanged())
 	{
+		std::cout << "start iteration delta time " << deltaTime << std::endl ;
 		now += deltaTime ;
  		for(size_t i = 0 ; i < nodes.size() ; i++)
  			nodes[i]->t += deltaTime ;
 	}
 	else
+	{
 		deltaTime = 0 ;
+	}
+
+	for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
+	{
+		TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
+		if(timec != nullptr)
+			timec->goToNext = damageConverged ;
+	}
 
 	bool ret = true ;
 	size_t it = 1 ;
@@ -5475,9 +5486,11 @@ bool FeatureTree::step()
 	if(notConvergedCounts >= 8)
 		ret = false ;
 	std::cout << std::endl ;
-	setDeltaTime(realdt) ;
+	if(ret)
+		setDeltaTime(realDeltaTime) ;
 	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
-	
+	damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && (it <= maxitPerStep) ;	
+
 	return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
 }
 

@@ -169,6 +169,7 @@ protected:
 	bool setBehaviours ;
 	bool enrichmentChange ;
 	bool stateConverged ;
+	bool damageConverged ;
 
 	bool elastic ;
 	bool projectOnBoundaries ;
@@ -548,7 +549,6 @@ public:
 	
 	void setMaxIterationsPerStep(size_t its) 
 		{maxitPerStep = its ;}
-#warning logic for space-time non-converged iterations not implemented
 	
 		/** \brief  set Sampling parameter
 	 */
