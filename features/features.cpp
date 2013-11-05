@@ -5425,7 +5425,7 @@ bool FeatureTree::step()
 	
 	if( damageConverged && state.meshed && solverConverged() && !behaviourChanged())
 	{
-		std::cout << "start iteration delta time " << deltaTime << std::endl ;
+//		std::cout << "start iteration delta time " << deltaTime << std::endl ;
 		now += deltaTime ;
  		for(size_t i = 0 ; i < nodes.size() ; i++)
  			nodes[i]->t += deltaTime ;

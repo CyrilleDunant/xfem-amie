@@ -112,7 +112,7 @@ double avgTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
 			if(stress.max() > 0)
 			{
 				double a = trg[i]->area() ;
@@ -135,7 +135,7 @@ double areaTensionInPaste( std::vector<DelaunayTriangle *> trg)
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
 			if(stress.max() > 0)
 			{
 				ar = trg[i]->area() ;
@@ -154,7 +154,7 @@ double maxTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
 			if(stress.max() > tension)
 				tension = stress.max() ;
 		}
@@ -184,7 +184,7 @@ Vector dispOnTop( Vector disp, std::vector<Point *> nodes)
 
 int main(int argc, char *argv[])
 {
-//	omp_set_num_threads(4) ;
+	omp_set_num_threads(4) ;
 
 	double timeScale = 1000. ;//atof(argv[1]) ;
 	double tau = 1. ;
@@ -198,14 +198,14 @@ int main(int argc, char *argv[])
 	double limit = 0.1 ;//atof(argv[1]) ;
 
 	int nzones = 400 ;
-	int naggregates = 2000 ;
+	int naggregates = 6000 ;
 
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(196) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-5) ;
-	F.setMaxIterationsPerStep(500) ;
+	F.setMaxIterationsPerStep(50) ;
 		
 	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3, 2, 10000, maxstress/12e9) ;
 	paste.ctype = STRESS_CRITERION ;
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 			if(i == 1)
 			{
 				F.setDeltaTime(0.0005) ;
-				F.setMinDeltaTime(1e-12) ;
+				F.setMinDeltaTime(1e-15) ;
 			}
 		}
 		goOn = F.step() ;
@@ -262,13 +262,13 @@ int main(int argc, char *argv[])
 			nodes = F.getNodes() ;
 		}
 		
-		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;
-		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+		Vector strain = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
+		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
 		Vector d =  dispOnTop( F.getDisplacements(), nodes) ;
-		std::cout << F.getCurrentTime() << "\t" << tau << "\t" << trg[0]->getState().getNodalDeltaTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
+		summary << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
 //		for(size_t j = 0 ; j < d.size() ; j++)
 //			summary << d[j] << "\t" ;
-		std::cout <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
+		summary <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
 		
 //		if(F.getCurrentTime() > 20)
 //			timestep *= 10. ;
@@ -287,7 +287,10 @@ int main(int argc, char *argv[])
 			if(!goOn)
 				tati.append("inter_") ;
 			tati.append(itoa(i)) ;
-			TriangleWriter writer(tati, &F, 1) ;
+			tati.append("_time=") ;
+			tati += trg[0]->getBoundingPoint(0+3*goOn).t ;
+//			tati.append(hop) ;
+			TriangleWriter writer(tati, &F, -1+2*((int) goOn)) ;
 	 		writer.getField(STRAIN_FIELD) ;
 	 		writer.getField(REAL_STRESS_FIELD) ;
 			writer.getField(TWFT_DAMAGE) ;
