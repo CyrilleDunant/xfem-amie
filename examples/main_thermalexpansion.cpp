@@ -420,7 +420,8 @@ Vector step(int nInc)
 		outfile.open(filename.c_str(), std::ios::out) ;
 		
 		TriangleWriter writer(filename, featureTree) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+		writer.getField(REAL_STRESS_FIELD ) ;
+		writer.getField(STRAIN_FIELD ) ;
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.write() ;

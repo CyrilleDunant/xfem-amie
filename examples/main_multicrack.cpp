@@ -493,8 +493,8 @@ void step(size_t nsteps)
 	// 		std::cout << filename.str() << std::endl ;
 
 			TriangleWriter writer(filename.str(), featureTree) ;
-			writer.getField(TWFT_STRESS ) ;
-			writer.getField(TWFT_STRAIN ) ;
+			writer.getField(REAL_STRESS_FIELD ) ;
+			writer.getField(STRAIN_FIELD ) ;
 			writer.getField(TWFT_CRITERION) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.getField(TWFT_IMPOSED_STRESS_NORM) ;

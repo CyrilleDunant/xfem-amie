@@ -558,7 +558,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		ret.push_back( reti ) ;
 	}
 	
-	if( field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS )
+/*	if( field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS )
 	{
 
 		std::pair<Vector, Vector> stress_strain ;//= source->getStressAndStrainInLayer( layer, false ) ;
@@ -694,7 +694,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				break ;
 		}
 	}
-	else
+	else*/
 	{
 		if( field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX )
 		{
@@ -1311,16 +1311,16 @@ int numberOfFields( TWFieldType field )
 			return 3 ;
 		case TWFT_STIFFNESS_Z:
 			return 3 ;
-		case TWFT_STRAIN:
-			return 9 ;
+/*		case TWFT_STRAIN:
+			return 9 ;*/
 		case TWFT_PRINCIPAL_STRAIN:
 			return 6 ;
 		case TWFT_PRINCIPAL_STRESS:
 			return 6 ;
-		case TWFT_STRAIN_AND_STRESS:
+/*		case TWFT_STRAIN_AND_STRESS:
 			return 18 ;
 		case TWFT_STRESS:
-			return 9 ;
+			return 9 ;*/
 		case TWFT_GRADIENT:
 			return 6 ;
 		case TWFT_GRADIENT_AND_FLUX:
@@ -1368,16 +1368,16 @@ std::string nameOfField(TWFieldType field)
 			return std::string("Stiffness Z") ;
 		case TWFT_ENRICHMENT:
 			return std::string("Enrichment") ;
-		case TWFT_STRAIN:
-			return std::string("Strain") ;
+/*		case TWFT_STRAIN:
+			return std::string("Strain") ;*/
 		case TWFT_PRINCIPAL_STRAIN:
 			return std::string("Principal Strain") ;
 		case TWFT_PRINCIPAL_STRESS:
 			return std::string("Principal Stress") ;
-		case TWFT_STRAIN_AND_STRESS:
+/*		case TWFT_STRAIN_AND_STRESS:
 			return std::string("Strains and Stress") ;
 		case TWFT_STRESS:
-			return std::string("Stress") ;
+			return std::string("Stress") ;*/
 		case TWFT_GRADIENT:
 			return std::string("Gradient") ;
 		case TWFT_GRADIENT_AND_FLUX:

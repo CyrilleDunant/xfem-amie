@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
 	}
   
 	TriangleWriter writer("test-zone", &F) ;
-	writer.getField(TWFT_STRAIN) ;
-	writer.getField(TWFT_STRESS) ;
+	writer.getField(STRAIN_FIELD) ;
+	writer.getField(REAL_STRESS_FIELD) ;
 	writer.getField(TWFT_STIFFNESS) ;
 	writer.write() ;
 

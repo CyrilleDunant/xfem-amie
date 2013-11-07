@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 //	omp_set_num_threads(1) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(5) ;
+	F.setSamplingNumber(50) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 100 ) ;
 	double totaltime = atof(argv[1]) ;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone(&large);
 // 	F.addRefinementZone(&refinement);
 	
-	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, 0.0001) ;
+	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, atof(argv[2]), 0.002) ;
 	paste.freeblocks = 0 ;
 /*	if(argv[2] == std::string("stress"))
 		paste.ctype = STRESS_CRITERION ;
@@ -174,16 +174,16 @@ int main(int argc, char *argv[])
 	ViscoElasticOnlyAggregateBehaviour agg ;
 	agg.freeblocks = 0 ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 1, 0.01, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 500, 0.01, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
-		F.setSamplingFactor(aggregates[i], 6.) ;
+		F.setSamplingFactor(aggregates[i], 5.) ;
 //	for(size_t i = 1000 ; i < 2000 ; i++)
 //		F.setSamplingFactor(aggregates[i], 3.) ;
 
 /*	Inclusion * support = new Inclusion(nullptr, 0.008, 0., -length*0.5) ;
 	support->setBehaviour( &agg) ;*/
 
-// 	F.addFeature(&box, &top) ;
+ 	F.addFeature(&box, &top) ;
 	F.addFeature(&box, &middle) ;
 // 	F.addFeature(&middle, &notch) ;
 //	F.addFeature(&box, support) ;
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 7 ) ) ;
  //	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.2, length*0.99, length*1.01, 0., 0 ) ;
+	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.6, length*0.99, length*1.01, 0., 0 ) ;
 	F.addBoundaryCondition(disp) ;
 
 	
@@ -224,8 +224,8 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string tata = "wedge_" ;
 	tata.append(argv[1]) ;
-	tata.append("_strain_final") ;
-//	tata.append(argv[2]) ;
+	tata.append("_strain_") ;
+	tata.append(argv[2]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
@@ -253,14 +253,14 @@ int main(int argc, char *argv[])
 			tati.append(itoa(i)) ;
 			std::cout << tati << std::endl ;
 			TriangleWriter writer(tati, &F, 1) ;
-	 		writer.getField(TWFT_STRAIN) ;
-	 		writer.getField(TWFT_STRESS) ;
+	 		writer.getField(STRAIN_FIELD) ;
+	 		writer.getField(REAL_STRESS_FIELD) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.write() ;
 			j = 0 ;
 		}
-		else
+		if(!goOn)
 		{
 			j++ ;
 			std::string tati = tata ; tati.append("_") ;
@@ -268,8 +268,8 @@ int main(int argc, char *argv[])
 			tati.append(itoa(j)) ;
 			std::cout << tati << std::endl ;
 			TriangleWriter writer(tati, &F, -1) ;
-	 		writer.getField(TWFT_STRAIN) ;
-	 		writer.getField(TWFT_STRESS) ;
+	 		writer.getField(STRAIN_FIELD) ;
+	 		writer.getField(REAL_STRESS_FIELD) ;
 			writer.getField(TWFT_DAMAGE) ;
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.write() ;

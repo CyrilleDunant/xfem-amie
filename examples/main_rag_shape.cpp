@@ -1283,7 +1283,8 @@ int main(int argc, char *argv[])
 		filename.append("_") ;
 		filename.append(itoa(i)) ;
 		TriangleWriter writer(filename, &F) ;
-		writer.getField(TWFT_STRAIN_AND_STRESS) ;
+		writer.getField(REAL_STRESS_FIELD ) ;
+		writer.getField(STRAIN_FIELD ) ;
 		writer.getField(TWFT_VON_MISES) ;
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
