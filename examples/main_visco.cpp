@@ -288,7 +288,9 @@ int main(int argc, char *argv[])
 				tati.append("inter_") ;
 			tati.append(itoa(i)) ;
 			tati.append("_time=") ;
-			tati += trg[0]->getBoundingPoint(0+3*goOn).t ;
+			std::stringstream f2str(std::stringstream::in | std::stringstream::out) ;
+			f2str << trg[0]->getBoundingPoint(0+3*goOn).t ; 
+			tati.append(f2str.str()) ;
 //			tati.append(hop) ;
 			TriangleWriter writer(tati, &F, -1+2*((int) goOn)) ;
 	 		writer.getField(STRAIN_FIELD) ;
