@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
 //	F.addRefinementZone(&topfine);
 // 	F.addRefinementZone(&large);
 // 	F.addRefinementZone(&refinement);
+	Rectangle support( 0.001, depth, width*0.5, length-depth*0.5) ;
 	
 	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, atof(argv[2]), 0.002) ;
 	paste.freeblocks = 0 ;
@@ -208,7 +209,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 7 ) ) ;
  //	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
-	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.6, length*0.99, length*1.01, 0., 0 ) ;
+//	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.6, length*0.99, length*1.01, 0., 0 ) ;
+	GeometryDefinedBoundaryCondition * disp = new GeometryDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, &support, 0., 0 ) ;
 	F.addBoundaryCondition(disp) ;
 
 	
