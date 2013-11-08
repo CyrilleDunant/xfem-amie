@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	right.isVirtualFeature  = true ;
 	right.setBehaviour(&pastenodamage) ;
 
-	Rectangle refinement( length*0.6,nnotch*1.2, length*0.25, length-(depth+nnotch)*0.5) ;
+	Rectangle refinement( length*0.6,nnotch*1.2, length*0.1, length-(depth+nnotch)*0.5) ;
 /*	Rectangle large( width, length, 0.,0.) ;
 	Rectangle large2( 0.04, length, 0.,0.) ;
 	Rectangle topfine( length, depth*2., 0., length*0.5-depth) ;*/
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone(&refinement);
 	Rectangle support( 0.001, depth, width*0.5, length-depth*0.5) ;
 	
-	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, atof(argv[2]), 0.002) ;
+	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, 0.0000825*2, 0.002) ;
 	paste.freeblocks = 0 ;
 /*	if(argv[2] == std::string("stress"))
 		paste.ctype = STRESS_CRITERION ;
@@ -210,8 +210,10 @@ int main(int argc, char *argv[])
  //	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
 //	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.6, length*0.99, length*1.01, 0., 0 ) ;
-	GeometryDefinedBoundaryCondition * disp = new GeometryDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, &support, 0., 0 ) ;
-	F.addBoundaryCondition(disp) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispx = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 0) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispy = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 1) ;
+	F.addBoundaryCondition(dispx) ;
+	F.addBoundaryCondition(dispy) ;
 
 	
 	F.step() ;
@@ -226,14 +228,15 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string tata = "wedge_" ;
 	tata.append(argv[1]) ;
-	tata.append("_strain_") ;
-	tata.append(argv[2]) ;
+	tata.append("_strain") ;
+//	tata.append(argv[2]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
 	double speed = 0.0005/totaltime ;
 	double totaldisp = 0.;
 	bool goOn = true ;
+	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 
 	while(speed*F.getCurrentTime() <= 0.0005)
 	{
@@ -241,7 +244,8 @@ int main(int argc, char *argv[])
 		{
 			i++ ;
 			totaldisp = speed * F.getCurrentTime() ;
-			disp->setData( totaldisp*0.5 ) ;
+			dispx->setData( totaldisp*0.5 ) ;
+			dispy->setData( totaldisp*0.25/(-1.8666) ) ;
 			F.setDeltaTime(totaltime/100.) ;
 			F.setMinDeltaTime((totaltime/100.)*1e-9) ;
 			std::cout << totaldisp*0.5 << std::endl ;
@@ -278,9 +282,9 @@ int main(int argc, char *argv[])
 
 		}
 			
- 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
- 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-		out << F.getCurrentTime() << "\t" << totaldisp*0.5 << "\t" << x[0] << "\t" << y[0]*length*length << "\t" << F.averageDamage << std::endl ;
+ 		x = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
+ 		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
+		out << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << totaldisp*0.5 << "\t" << x[0] << "\t" << y[0]*length*length << "\t" << F.averageDamage << std::endl ;
 
 	}
 	
