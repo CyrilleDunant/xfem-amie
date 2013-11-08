@@ -111,6 +111,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				break ;
 				
 			case SET_ALONG_INDEXED_AXIS:
+//				std::cout << axis << "\t" << id[idit] << "\t" << data << std::endl ;
 				a->setPointAlongIndexedAxis( axis, data, id[idit] ) ;
 				break ;
 
@@ -2208,10 +2209,10 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			
 			if ( !function )
 			{
-				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a, axis ) ;
 			}
 			else
-				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
+				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a, axis ) ;
 		}
 	}
 }
@@ -2470,7 +2471,8 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 		
 		Point rmin(xmin, ymin) ;
 		Point rmax(xmax, ymax) ;
-		
+
+
 		  for ( size_t i = 0 ; i < elements.size() ; ++i )
 		  {
 			  if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
@@ -2521,6 +2523,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 			{
 				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
+
 
 			if ( !function )
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a , axis) ;
