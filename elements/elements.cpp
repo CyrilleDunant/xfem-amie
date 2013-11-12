@@ -1101,24 +1101,24 @@ TriElement::TriElement(Order order_ ): moved(false)
 // 			t1m.setDerivative( ZETA, zero) ;
 // 			t1m.setDerivative( TIME_VARIABLE, halfm) ;
 			
-	Function s0("y") ;
-	Function s1("1 x - y -") ;
-	Function s2("x") ;
-	s0.setNumberOfDerivatives(4) ;
-	s0.setDerivative( XI, zero) ;
-	s0.setDerivative( ETA, one) ;
-	s0.setDerivative( ZETA, zero) ;
-	s0.setDerivative( TIME_VARIABLE, zero) ;
-	s1.setNumberOfDerivatives(4) ;
-	s1.setDerivative( XI, mone) ;
-	s1.setDerivative( ETA, mone) ;
-	s1.setDerivative( ZETA, zero) ;
-	s1.setDerivative( TIME_VARIABLE, zero) ;
-	s2.setNumberOfDerivatives(4) ;
-	s2.setDerivative( XI, one) ;
-	s2.setDerivative( ETA, zero) ;
-	s2.setDerivative( ZETA, zero) ;
-	s2.setDerivative( TIME_VARIABLE, zero) ;
+				Function s0("y") ;
+				Function s1("1 x - y -") ;
+				Function s2("x") ;
+				s0.setNumberOfDerivatives(4) ;
+				s0.setDerivative( XI, zero) ;
+				s0.setDerivative( ETA, one) ;
+				s0.setDerivative( ZETA, zero) ;
+				s0.setDerivative( TIME_VARIABLE, zero) ;
+				s1.setNumberOfDerivatives(4) ;
+				s1.setDerivative( XI, mone) ;
+				s1.setDerivative( ETA, mone) ;
+				s1.setDerivative( ZETA, zero) ;
+				s1.setDerivative( TIME_VARIABLE, zero) ;
+				s2.setNumberOfDerivatives(4) ;
+				s2.setDerivative( XI, one) ;
+				s2.setDerivative( ETA, zero) ;
+				s2.setDerivative( ZETA, zero) ;
+				s2.setDerivative( TIME_VARIABLE, zero) ;
 			
 		//0			
 			(*shapefunc)[0] = s0*t0 ;
@@ -3102,6 +3102,11 @@ const std::valarray< Function >  & TriElement::getShapeFunctions() const
 	return *shapefunc   ;
 }
 
+std::valarray< Function >  & TriElement::getShapeFunctions()
+{
+	return *shapefunc   ;
+}
+
 
 const std::vector<Function> & ElementarySurface::getEnrichmentFunctions() const
 {
@@ -3230,6 +3235,11 @@ Point HexahedralElement::inLocalCoordinates(const Point& p) const
 
 
 const Function &  ElementarySurface::getShapeFunction(size_t i) const
+{
+	return getShapeFunctions()[i] ;
+}
+
+Function &  ElementarySurface::getShapeFunction(size_t i) 
 {
 	return getShapeFunctions()[i] ;
 }
@@ -3396,7 +3406,7 @@ std::vector<size_t> ElementaryVolume::clearEnrichment(const Geometry * g)
 		else
 			ret.push_back(enrichfunc[i].getDofID());
 	}
-
+	blendfunc.clear();
 	enrichfunc = newFunc ;
 	enrichmentSource = newSource ;
 	
@@ -3455,6 +3465,7 @@ std::vector<size_t> ElementarySurface::clearEnrichment(const Geometry * g)
 			ret.push_back(enrichfunc[i].getDofID());
 	}
 	enrichfunc.clear() ;
+	blendfunc.clear();
 	enrichfunc = newFunc ;
 	enrichmentSource = newSource ;
 	
@@ -3658,7 +3669,17 @@ const std::valarray<Function  >  & TetrahedralElement::getShapeFunctions() const
 	return *shapefunc ;
 }
 
+std::valarray<Function  >  & TetrahedralElement::getShapeFunctions()
+{
+	return *shapefunc ;
+}
+
 const std::valarray<Function  >  & HexahedralElement::getShapeFunctions() const
+{
+	return *shapefunc ;
+}
+
+std::valarray<Function  >  & HexahedralElement::getShapeFunctions()
 {
 	return *shapefunc ;
 }
@@ -3770,6 +3791,11 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getViscousElementaryM
 
 
 const Function  & ElementaryVolume::getShapeFunction(size_t i) const
+{
+	return getShapeFunctions()[i] ;
+}
+
+Function  & ElementaryVolume::getShapeFunction(size_t i)
 {
 	return getShapeFunctions()[i] ;
 }

@@ -27,7 +27,6 @@ ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Ve
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-	double realeps = 1e-12 ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
@@ -109,10 +108,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	double neps = std::max(realeps, eps) ;
 	double rho = 0 ;
 	double beta = 0 ;
-	while(last_rho*last_rho*vsize*vsize > std::max(neps*neps*err0, neps*neps) && nit < Maxit )
+	while(last_rho*last_rho*vsize*vsize > std::max(eps*eps*err0, eps*eps) && nit < Maxit )
 	{
 		P->precondition(r,z) ;
 
@@ -157,12 +155,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	if(verbose)
 	{
-		if(nit <= Maxit && last_rho*last_rho< std::max(neps*neps*err0, neps*neps))
+		if(nit <= Maxit && last_rho*last_rho< std::max(eps*eps*err0, eps*eps))
 			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 		else
 			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
 	}
 
-	return nit <= Maxit && last_rho*last_rho< std::max(neps*neps*err0, neps*neps);
+	return nit <= Maxit && last_rho*last_rho< std::max(eps*eps*err0, eps*eps);
 }
 

@@ -123,7 +123,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 // 	}
 // 	return f ;
 	
-/*	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
 		return father.getShapeFunction(0) ;
 	}
@@ -151,7 +151,7 @@ Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const 
 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
 	{
 		return 1-father.getShapeFunction(2) ;
-	}*/
+	}
 	
 	return Function("1") ;
 }
@@ -333,7 +333,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			}
 		}
 		hint.clear(); hint.push_back(Point(1./3., 1./3.));
-		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+		for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 			enrichedElem.insert(t) ;
@@ -349,7 +349,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			bool hinted = false ;
 			Function position = f_sqrt((t->getXTransform()-getCenter().x)*(t->getXTransform()-getCenter().x) +
 		                           (t->getYTransform()-getCenter().y)*(t->getYTransform()-getCenter().y)) ; ;
-			Function hat = (getRadius()-f_abs(position-getRadius()))/**blend*/;
+			Function hat = (getRadius()-f_abs(position-getRadius()))*blend;
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
@@ -371,23 +371,23 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 						f.setDofID(dofId[&t->getBoundingPoint(k)]) ;
 						t->setEnrichment(f, getPrimitive()) ;
 					}
-// 					else
-// 					{
-// 						enriched.insert(that) ;
-// 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-// 						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
-// 						
-// 						if(!hinted)
-// 						{
-// 							f.setIntegrationHint(hint) ;
-// 							hinted = true ;
-// 						}
-// 						f.setPoint(&t->getBoundingPoint(k)) ;
-// 						if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
-// 							extradofs[&t->getBoundingPoint(k)] = lastId++ ;
-// 						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
-// 						t->setEnrichment(f, getPrimitive()) ;
-// 					}
+					else
+					{
+						enriched.insert(that) ;
+						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
+						Function f = t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y))*blend ;
+						
+						if(!hinted)
+						{
+							f.setIntegrationHint(hint) ;
+							hinted = true ;
+						}
+						f.setPoint(&t->getBoundingPoint(k)) ;
+						if(extradofs.find(&t->getBoundingPoint(k)) == extradofs.end())
+							extradofs[&t->getBoundingPoint(k)] = lastId++ ;
+						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
+						t->setEnrichment(f, getPrimitive()) ;
+					}
 				}
 			}
 		}

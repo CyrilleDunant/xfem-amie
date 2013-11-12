@@ -2668,26 +2668,52 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 		Jinv.resize( getGaussPoints().gaussPoints.size(), J ) ;
 	}
 
+// 	std::cout << "plouf" << std::endl ;
 	VirtualMachine vm ;
 
-	for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
+	if(getBlendingFunctions().empty())
+	{
+		for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
+		{
+
+			behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
+
+			for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
+			{
+				behaviour->apply( getShapeFunction( i ), getShapeFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j], &vm ) ;
+				behaviour->apply( getShapeFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j][i], &vm ) ;
+			}
+
+			for( size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++ )
+			{
+				behaviour->apply( getShapeFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j + getShapeFunctions().size()], &vm ) ;
+				behaviour->apply( getEnrichmentFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i], &vm ) ;
+			}
+		}
+	
+	}
+	else
 	{
 
-		behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
-
-		for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
+		for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
 		{
-			behaviour->apply( getShapeFunction( i ), getShapeFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j], &vm ) ;
-			behaviour->apply( getShapeFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j][i], &vm ) ;
-		}
+			behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
+			
 
-		for( size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++ )
-		{
-			behaviour->apply( getShapeFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j + getShapeFunctions().size()], &vm ) ;
-			behaviour->apply( getEnrichmentFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i], &vm ) ;
+			for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
+			{
+				behaviour->apply( getShapeFunction( i ), getShapeFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j], &vm ) ;
+				behaviour->apply( getShapeFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j][i], &vm ) ;
+			}
+
+			for( size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++ )
+			{
+				behaviour->apply( getShapeFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j + getShapeFunctions().size()], &vm ) ;
+				behaviour->apply( getEnrichmentFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i], &vm ) ;
+			}
 		}
 	}
-
+	
 	for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
 	{
 		behaviour->apply( getEnrichmentFunction( i ), getEnrichmentFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i + getShapeFunctions().size()][i + getShapeFunctions().size()], &vm ) ;
@@ -2698,6 +2724,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 			behaviour->apply( getEnrichmentFunction( j ), getEnrichmentFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i + getShapeFunctions().size()], &vm ) ;
 		}
 	}
+	
+	
 
 	enrichmentUpdated = false ;
 	behaviourUpdated = false ;
@@ -3067,7 +3095,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		{
 			TetrahedralElement father(LINEAR) ;
 			
-			int target = 256 ;
+			int target = 512 ;
 			
 			double npoints = 8 ;
 

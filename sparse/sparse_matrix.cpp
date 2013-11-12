@@ -481,7 +481,8 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlu
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ;
 	ret = c.ve ;
-	ret[ std::slice(0,rowstart,1) ] = 0. ;
+	if(rowstart)
+		ret[ std::slice(0,rowstart,1) ] = 0. ;
 
 	#pragma omp parallel for  schedule(runtime)
 	for (int i = rowstart ; i < end ; i+=stride)
@@ -496,7 +497,8 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	int end = c.co.sm.row_size.size()*stride ; 
 	const Vector & ve = c.co.ve ;
 	ret = -c.ve ;
-	ret[ std::slice(0,rowstart,1) ] = 0. ;
+	if(rowstart)
+		ret[ std::slice(0,rowstart,1) ] = 0. ;
 
 	#pragma omp parallel for  schedule(runtime)
 	for (int i = rowstart ; i <end ; i+=stride)
@@ -518,5 +520,6 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 		{
 			c.sm[i].inner_product(ve, &ret[i], rowstart, colstart);
 		}
-	ret[ std::slice(0,rowstart,1) ] = 0. ;
+		if(rowstart)
+			ret[ std::slice(0,rowstart,1) ] = 0. ;
 } ;

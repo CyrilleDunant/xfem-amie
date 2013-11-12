@@ -279,7 +279,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 //		ring[i]->enrichmentUpdated = true ;
 		
 		hint.clear(); hint.push_back(Point(1./3., 1./3.,0,0));
-		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+		for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 			enrichedElem.insert(t) ;

@@ -200,7 +200,7 @@ bool RotatingCrack::fractured() const
 // 	if ( fraction < 0 )
 		return false ;
 
-	return (firstTension && firstTensionFailure || !firstTension && firstCompressionFailure) || ( secondTension && secondTensionFailure || !secondTension && secondCompressionFailure ) ;
+// 	return (firstTension && firstTensionFailure || !firstTension && firstCompressionFailure) || ( secondTension && secondTensionFailure || !secondTension && secondCompressionFailure ) ;
 	
 }
 
@@ -252,7 +252,7 @@ void RotatingCrack::postProcess()
 	double nunu = nu ;
 	if(getState().max() > POINT_TOLERANCE_2D)
 	{
-		nunu = nu*(1.-state.max()) ;
+		nunu = nu*exp(-1./(1.-std::max(fs,ss))) ;
 		E_0 /= 1.-nu*nu ;
 		E_1 /= 1.-nu*nu ;
 	}

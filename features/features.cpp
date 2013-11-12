@@ -4777,7 +4777,10 @@ bool FeatureTree::stepElements()
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
 							{
-								adamage += are * dmodel->getState().max() ;
+								double d = 0 ;
+								for(size_t m = 0 ;  m < dmodel->getState().size() ; m++)
+									d += dmodel->getState()[m] ;
+								adamage += are * d ;
 // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
 // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
 							}
@@ -5438,7 +5441,7 @@ bool FeatureTree::step()
 	for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
 	{
 		TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
-		if(timec != nullptr)
+		if(timec)
 			timec->goToNext = damageConverged ;
 	}
 

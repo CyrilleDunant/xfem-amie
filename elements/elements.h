@@ -65,12 +65,14 @@ public:
 	virtual bool isMoved() const = 0 ;
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const = 0;
+	virtual std::valarray< Function > & getShapeFunctions() = 0;
 	
 	virtual const Geometry * getEnrichmentSource(size_t i) const  { return enrichmentSource[i] ;} ;
 
 	virtual const std::vector< size_t > getDofIds() const ;
 	
 	virtual const Function & getShapeFunction(size_t i) const ;
+	virtual Function & getShapeFunction(size_t i) ;
 	
 	virtual const Function & getEnrichmentFunction(size_t i) const ;
 	virtual const std::vector<Function>  & getEnrichmentFunctions() const ;
@@ -148,6 +150,7 @@ public:
 	const GaussPointArray & getGaussPoints();
 
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	virtual std::valarray< Function > & getShapeFunctions() ;
 	
 	virtual bool isMoved() const;
 	
@@ -206,8 +209,9 @@ public:
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
 	virtual const std::valarray< Function > & getShapeFunctions() const = 0 ;
+	virtual std::valarray< Function > & getShapeFunctions() = 0 ;
 	virtual const Function & getShapeFunction(size_t i) const ;
-// 	virtual Function & getShapeFunction(size_t i)  ;
+	virtual Function & getShapeFunction(size_t i)  ;
 	virtual const Function & getEnrichmentFunction(size_t i) const  ;
 // 	virtual Function & getEnrichmentFunction(size_t i)  ;
 	virtual const std::vector< Function>  & getEnrichmentFunctions() const ;
@@ -271,6 +275,7 @@ public:
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	virtual std::valarray< Function > & getShapeFunctions() ;
 	virtual Vector getNonLinearForces() ;
 	
 	void refresh(const TetrahedralElement * parent);
@@ -335,6 +340,7 @@ public:
 	virtual Vector getNonLinearForces() ;
 	virtual std::valarray<std::valarray<Mu::Matrix> > getNonLinearElementaryMatrix() ;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
+	virtual std::valarray< Function > & getShapeFunctions()  ;
 	bool visited ;
 
 	virtual Function getXTransform() const ;

@@ -373,6 +373,7 @@ protected:
 	GaussPointArray * cachedGps ;
 	const GaussPointArray * getCachedGaussPoints() const { return cachedGps ;};
 	void setCachedGaussPoints(GaussPointArray * gp) ;
+	std::vector<Function> blendfunc ;
 public:
 	bool enrichmentUpdated ;
 	bool behaviourUpdated ;
@@ -399,11 +400,21 @@ public:
 	virtual Function getTTransform() const ;
 
 	virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
-	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
-// 	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
+	virtual	std::valarray< Function >  & getShapeFunctions() = 0 ;
+	virtual	Function & getShapeFunction(size_t i)  = 0 ;
 	virtual	const Function & getShapeFunction(size_t i) const = 0 ;
-// 	virtual	Function & getShapeFunction(size_t i)  = 0 ;
+	
+	virtual	const std::vector< Function> & getEnrichmentFunctions() const = 0 ;
 	virtual const Function & getEnrichmentFunction(size_t i) const = 0;	
+	
+	virtual	const std::vector< Function >  & getBlendingFunctions() const { return blendfunc ;} ;
+	virtual	const  Function  & getBlendingFunction(size_t i) const { return blendfunc[i] ;} ;
+	virtual void addBlendingFunction(const Function & f) { blendfunc.push_back(f); }
+	
+// 	virtual	std::vector< Function> & getEnrichmentFunctions() = 0 ;
+	
+	
+	
 // 	virtual Function & getEnrichmentFunction(size_t i) = 0;	
 	virtual Order getOrder() const  = 0 ;
 	

@@ -273,6 +273,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 	//then we iterate on every element
 	
 	std::cout <<"\n  -> "<< std::flush ;
+
 	for(size_t i = 0 ; i < ring.size() ; i++)
 	{
 		std::cout <<"\r  -> "<< i+1<< "/" << ring.size() << std::flush ;
@@ -335,7 +336,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function dy = ring[i]->getYTransform()-getCenter().y ; dy *= dy ;
 		Function dz = ring[i]->getZTransform()-getCenter().z ; dz *= dz ;
 		Function position = f_sqrt(dx + dy + dz) ;
-		Function hat =  f_exp((position-getRadius())/(-4.*maxd*getRadius()));
+		Function hat = getRadius()-f_abs(position-getRadius());
 // 		hat.setNumberOfDerivatives(0);
 // 		exit(0) ;
 // 		for(double j = -1 ; j < 1 ; j+=.01)
@@ -372,7 +373,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		}
 		hint.clear();
 		hint.push_back(Point(.25, .25, .25));
-		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+		for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
 		{
 			DelaunayTetrahedron * t = ring[i]->getNeighbourhood(j) ;
 			if(std::binary_search(ring.begin(), ring.end(), t))
@@ -389,7 +390,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			Function dy = t->getYTransform()-getCenter().y ; dy *= dy ;
 			Function dz = t->getZTransform()-getCenter().z ; dz *= dz ;
 			Function position = f_sqrt(dx + dy + dz) ;
-			Function hat =  f_exp(f_abs(position-getRadius())/(-4.*maxd*getRadius()));
+			Function hat = (getRadius()-f_abs(position-getRadius()));
 // 			hat.setNumberOfDerivatives(0);
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{
@@ -401,7 +402,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z))*blend ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -416,7 +417,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
+						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z))*blend ;
 
 						if(!hinted)
 						{
@@ -430,6 +431,8 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 						f.setDofID(extradofs[&t->getBoundingPoint(k)]) ;
 						t->setEnrichment(f, getPrimitive()) ;
 					}
+					t->addBlendingFunction(1.-blend);
+					
 				}
 			}
 		}

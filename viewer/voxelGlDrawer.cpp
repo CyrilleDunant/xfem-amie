@@ -526,7 +526,7 @@ void VoxelGLDrawer::openFile(const QString f) {
 	
 	size_x = 1 ;
 	size_y = (double)columns/(double)rows ;
-	size_z = (double)columns/(double)rows ;
+	size_z = (double)strips/(double)rows ;
 
 	recalculate() ;
 }

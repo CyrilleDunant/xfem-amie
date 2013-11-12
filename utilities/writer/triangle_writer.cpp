@@ -848,8 +848,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
 					{
-						double d = triangles[i]->getBehaviour()->getDamageModel()->getState().max();
-
+						double d = 0 ;
+						for(size_t m = 0 ;  m <  triangles[i]->getBehaviour()->getDamageModel()->getState().size() ; m++)
+							d +=  triangles[i]->getBehaviour()->getDamageModel()->getState()[m] ;
 						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
 							d = 1 ;
 
