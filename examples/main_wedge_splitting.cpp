@@ -178,11 +178,11 @@ int main(int argc, char *argv[])
 	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 170, 0.008, 0.000001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.9 ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
 	{
-		if(aggregates[i]->in( Point(0., nnotch) ) )
+/*		if(aggregates[i]->in( Point(0., nnotch) ) )
 		{
 			F.removeFeature(aggregates[i]) ;
 			continue ;
-		}
+		}*/
 
 //		if(placement->in(aggregates[i]->getCenter()))
 			F.setSamplingFactor(aggregates[i], 4.) ;
