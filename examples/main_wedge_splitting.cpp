@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 //	omp_set_num_threads(1) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(50) ;
+	F.setSamplingNumber(64) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 100 ) ;
 	double totaltime = atof(argv[1]) ;
@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
 
 //	Viscoelasticity concrete( dummy.param, dummy.eta, 5) ;
 
-	PseudoBurgerViscoElasticOnlyPasteBehaviour pastenodamage ;
+	PseudoBurgerViscoElasticOnlyPasteBehaviour pastenodamage(12e9,0.3,2,10000) ;
 
-	Rectangle * placement= new Rectangle(length*0.7,nnotch, length*0.1, nnotch*0.5) ;
+	Rectangle * placement= new Rectangle(length*0.7,nnotch, length*(-0.1), nnotch*0.5) ;
 
 //	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
 //	left.isVirtualFeature  = true ;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	middle.isVirtualFeature = true ;
 	middle.setBehaviour(&pastenodamage) ;
 
-	Sample right(nullptr, (length-width)*.5, nnotch*1.1, length*.5-(length-width)*.25, length - depth-nnotch*1.5) ;
+	Sample right(nullptr, (length-width)*.5, nnotch*2., length*.5-(length-width)*.25, nnotch) ;
 	right.isVirtualFeature  = true ;
 	right.setBehaviour(&pastenodamage) ;
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone(&refinement);
 	Rectangle support( 0.001, depth, width*0.5, length-depth*0.5) ;
 	
-	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, 0.0000825*2, 0.002) ;
+	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, atof(argv[2]), 0.002) ;
 	paste.freeblocks = 0 ;
 /*	if(argv[2] == std::string("stress"))
 		paste.ctype = STRESS_CRITERION ;
@@ -175,9 +175,25 @@ int main(int argc, char *argv[])
 	ViscoElasticOnlyAggregateBehaviour agg ;
 	agg.freeblocks = 0 ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 500, 0.01, 0.0001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 170, 0.008, 0.000001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.9 ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
-		F.setSamplingFactor(aggregates[i], 5.) ;
+	{
+		if(aggregates[i]->in( Point(0., nnotch) ) )
+		{
+			F.removeFeature(aggregates[i]) ;
+			continue ;
+		}
+
+//		if(placement->in(aggregates[i]->getCenter()))
+			F.setSamplingFactor(aggregates[i], 4.) ;
+/*		else
+		{
+			if(aggregates[i]->getRadius() < 0.006)
+				aggregates[i]->setBehaviour( &pastenodamage ) ;
+			else 
+				F.setSamplingFactor(aggregates[i], 8.) ;
+		}*/
+	}
 //	for(size_t i = 1000 ; i < 2000 ; i++)
 //		F.setSamplingFactor(aggregates[i], 3.) ;
 
@@ -228,8 +244,8 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string tata = "wedge_" ;
 	tata.append(argv[1]) ;
-	tata.append("_strain") ;
-//	tata.append(argv[2]) ;
+	tata.append("_strain_") ;
+	tata.append(argv[2]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
