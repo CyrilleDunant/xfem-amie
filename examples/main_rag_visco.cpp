@@ -106,7 +106,7 @@ int findIndexOfAggregate( DelaunayTriangle * tri, std::vector<Inclusion *> aggre
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(1) ;
+//	omp_set_num_threads(1) ;
 
 	double timeScale = 450. ;//atof(argv[1]) ;
 	double tau = 30. ;

@@ -930,7 +930,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 	int blocks = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() / 2 ;
 	int size = fieldTypeElementarySize( field, SPACE_TWO_DIMENSIONAL, blocks) ;
 	int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-	int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
+	int pointsPerPlane = pointsPerTri ;
+	if(triangles[0]->timePlanes() > 1)
+		pointsPerPlane /= triangles[0]->timePlanes() ;
 	int factor = pointsPerPlane/3 ;
 
 	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
@@ -954,9 +956,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			if(triangles[i]->timePlanes() > 1)
 				n /= triangles[i]->timePlanes() ;
 		  
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+0), first, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+n), second, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(pointsPerPlane+2*n), third, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(0), first, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(n), second, false, 0);
+			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(2*n), third, false, 0);
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{

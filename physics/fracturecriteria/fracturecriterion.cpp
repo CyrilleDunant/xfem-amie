@@ -1022,6 +1022,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 		{
 //			std::cout << omp_get_thread_num() << std::endl ;
 
+
 			int blocks = 1. ;
 			Viscoelasticity * visco = dynamic_cast<Viscoelasticity *>(s.getParent()->getBehaviour()) ;
 			if(visco)
@@ -1188,7 +1189,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			str /= sumFactors ;
 			stra /= sumFactors ;
 			strar /= sumFactors ;
-
 
 			Vector strFromFullStrain = stra*s.getParent()->getBehaviour()->getTensor(Point()) ;
 			strFromFullStrain += (Vector) (strar*s.getParent()->getBehaviour()->getViscousTensor(Point())) ;

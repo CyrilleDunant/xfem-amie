@@ -71,6 +71,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double err0 = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	r*=-1 ;
 
+
 	if (err0 < eps)
 	{
 		if(verbose)
@@ -117,6 +118,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		rho = parallel_inner_product(&r[0], &z[0], vsize) ;
 
 		beta = rho/last_rho ;
+
 		
 		#pragma omp parallel for schedule(runtime) if (vsize > 10000)
 		for(size_t i = 0 ; i < vsize ; i++)
@@ -125,6 +127,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		assign(q, A*p, rowstart, colstart) ;
 		pq =  parallel_inner_product(&q[0], &p[0], vsize);
 		alpha = rho/pq;
+	
 		if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
 		{
 			last_rho = 0 ;
@@ -142,6 +145,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		{
 			std::cerr << sqrt(rho) << std::endl  ;
 		}
+
 
 		last_rho = rho ;
 		nit++ ;
