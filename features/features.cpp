@@ -4777,10 +4777,7 @@ bool FeatureTree::stepElements()
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
 							{
-								double d = 0 ;
-								for(size_t m = 0 ;  m < dmodel->getState().size() ; m++)
-									d += dmodel->getState()[m] ;
-								adamage += are * d ;
+								adamage += are * dmodel->getState().max() ;
 // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
 // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
 							}
@@ -5428,7 +5425,6 @@ bool FeatureTree::step()
 	
 	if( damageConverged && state.meshed && solverConverged() && !behaviourChanged())
 	{
-//		std::cout << "start iteration delta time " << deltaTime << std::endl ;
 		now += deltaTime ;
  		for(size_t i = 0 ; i < nodes.size() ; i++)
  			nodes[i]->t += deltaTime ;
@@ -5441,7 +5437,7 @@ bool FeatureTree::step()
 	for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
 	{
 		TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
-		if(timec)
+		if(timec != nullptr)
 			timec->goToNext = damageConverged ;
 	}
 
@@ -5449,9 +5445,18 @@ bool FeatureTree::step()
 	size_t it = 1 ;
 	int notConvergedCounts = 0 ;
 	
-	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+//	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 	do
 	{
+		if(it == 2)
+		{
+			for(size_t k = 0 ; k < boundaryCondition.size() ; k++)
+			{
+				TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[k]) ;
+				if(timec != nullptr)
+					timec->goToNext = true ;
+			}
+		}
 		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
  		deltaTime = 0 ;
 		if( solverConverged() )
@@ -5491,7 +5496,7 @@ bool FeatureTree::step()
 	std::cout << std::endl ;
 	if(ret)
 		setDeltaTime(realDeltaTime) ;
-	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+	std::cout << it-1 << "/" << maxitPerStep << "." << std::flush ;
 	damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && (it <= maxitPerStep) ;	
 
 	return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
@@ -6084,9 +6089,6 @@ void FeatureTree::setDeltaTime(double d)
 
 void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) 
 {
-  
-
-  
 	double prev = 0.; 
 	size_t i = 0 ;
 	size_t ndof = 0 ;
