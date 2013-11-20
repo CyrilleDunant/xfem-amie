@@ -3040,13 +3040,22 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
   
 	t->getAdditionalPoints() ;
 	std::vector<DelaunayTriangle *> tri = t->getElements() ;
-	size_t timePlanes = tri[0]->timePlanes() ;
+	int j = -1 ;
+	size_t dof = 0 ;
+	while(dof == 0)
+	{
+		j++ ;
+		if(j >= tri.size())
+			return ;
+		dof = tri[j]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+	}
+
+	size_t timePlanes = tri[j]->timePlanes() ;
 
 	if ( timePlanes < 2 )
 		return ;
 
 	size_t ndofmax = a->getMaxDofID() ;
-	size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 	size_t dofPerPlane = ndofmax / timePlanes ;
 
 	previousDisp.resize( a->getDisplacements().size()) ;
