@@ -158,6 +158,8 @@ int main(int argc, char *argv[])
 		paste.ctype = STRESS_CRITERION ;
 	if(argv[2] == std::string("mixed"))
 		paste.ctype = MIXED_CRITERION ;*/
+	paste.ctype = MIXED_CRITERION ;
+	paste.stressFraction = atof(argv[3]) ;
 
 	box.setBehaviour( &paste ) ;
 
@@ -244,8 +246,10 @@ int main(int argc, char *argv[])
 	std::fstream out ;
 	std::string tata = "wedge_" ;
 	tata.append(argv[1]) ;
-	tata.append("_strain_") ;
+	tata.append("_mixed_") ;
 	tata.append(argv[2]) ;
+	tata.append("_") ;
+	tata.append(argv[3]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 

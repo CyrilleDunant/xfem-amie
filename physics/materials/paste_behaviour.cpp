@@ -145,6 +145,7 @@ Form * PseudoBurgerViscoElasticOnlyPasteBehaviour::getCopy() const
 
 PseudoBurgerViscoDamagePasteBehaviour::PseudoBurgerViscoDamagePasteBehaviour(double E, double nu, double e1, double t2, double up, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up,0.,0., dim), e_1(e1), t_2(t2), freeblocks(0), ctype(STRAIN_CRITERION)
 {
+	stressFraction = 0.85 ;
 	materialRadius = r ;
 	variability = 0. ;//0.001 ;
 }
@@ -181,7 +182,7 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*0.85, param[0][0], param[0][0]/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;

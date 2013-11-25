@@ -79,6 +79,7 @@ namespace Mu
 		double t_2 ;
 		int freeblocks ;
 		PasteCriterion ctype ;
+		double stressFraction ;
 		
 		PseudoBurgerViscoDamagePasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double t2=300, double up = 0.0005, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		

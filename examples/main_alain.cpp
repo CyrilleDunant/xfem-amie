@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(0.1) ;
 	F.setSamplingNumber(5) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setMaxIterationsPerStep(50) ;
+	F.setMaxIterationsPerStep(atof(argv[1])) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;
@@ -114,11 +114,13 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(disp) ;
 
 	size_t j = 0 ;
-	for(size_t i = 0 ; i < 10 ; i++)
+	bool goOn = true ;
+	for(size_t i = 0 ; j < 10 ; i++)
 	{
 		disp->setData(1e-5*j) ;
-		F.setDeltaTime(0.1) ;
-		bool goOn = F.step() ;
+		if(goOn)
+			F.setDeltaTime(0.1) ;
+		goOn = F.step() ;
 
 		std::string ex("ex_") ;
 		ex.append(itoa(j)) ;
@@ -127,10 +129,13 @@ int main(int argc, char *argv[])
 			ex.append("_inter_") ;			
 			ex.append(itoa(i)) ;
 		}
-		TriangleWriter w(ex, &F, -1+2*goOn) ;
+		std::cout << "go-on is equal to " << (int) goOn << std::endl ;
+		std::cout << "delta-time is equal to " << F.getElements2D()[0]->getState().getNodalDeltaTime() << std::endl ;
+		std::cout << "initial displacement is equal to " << F.getDisplacements(-1,false)[0] << "\tlast displacement " << F.getDisplacements(-1,false)[162] << std::endl ;
+/*		TriangleWriter w(ex, &F, -1+2*goOn) ;
 		w.getField(STRAIN_FIELD) ;
 		w.getField(TWFT_DAMAGE) ;
-		w.write() ;
+		w.write() ;*/
 		if(goOn)
 			j++ ;
 	}
