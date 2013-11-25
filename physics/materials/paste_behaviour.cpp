@@ -17,6 +17,7 @@
 #include "../fracturecriteria/maxstrain.h"
 #include "../fracturecriteria/creeprupture.h"
 #include "../damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include <cstdio> 
 
 using namespace Mu ;
 
@@ -182,7 +183,9 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
+//			std::cout << k << std::endl ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
