@@ -135,13 +135,13 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	if(after.y > upVal*E_inst)
 		kafter = -2.-kafter ;
 
-	Segment transition(after, before) ;
+//	Segment transition(after, before) ;
 	metInCompression = false ;
 	metInTension = false ;
 	if(kafter < 0)
 	{
 		metInTension = true ;
-		return std::min(1., kbefore/(kbefore - kafter)) ;
+		return std::min(1., ats::abs(kafter)/(std::abs(kbefore) + std::abs(kafter))) ;
 	}
 
 /*	if(transition.intersects(&surface))
