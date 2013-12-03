@@ -31,7 +31,7 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.1,0.6)) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.1,0.8)) ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
 // 	ret->dfunc->setThresholdDamageDensity(1.);
 /*	if(getExtra2dMeshes())

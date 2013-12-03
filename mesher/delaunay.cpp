@@ -2464,7 +2464,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 		}
 	}*/
 
-	VirtualMachine vm ;
 	size_t start = 0 ;
 	size_t startEnriched = 0 ;
 	if(timePlanes() > 1)
@@ -2475,9 +2474,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	if(behaviour->isSymmetric())
 	{
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-		{	
+		{
+			VirtualMachine vm ;
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
-
+			
 			for(size_t j = 0 ; j < i ; j++)
 			{
 				behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
@@ -2492,6 +2492,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
+			VirtualMachine vm ;
 			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = 0 ; j < i ; j++)
@@ -2505,8 +2506,9 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	else
 	{
-		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-		{	
+		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+		{
+			VirtualMachine vm ;
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 
 			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
@@ -2521,8 +2523,9 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			}
 		}
 
-		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
+			VirtualMachine vm ;
 			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
@@ -2577,21 +2580,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 		}
 	}
 	
-/*	if(behaviour->isViscous())
-	{
-// 		std::cout << "is fucking viscous" << std::endl ;
-		size_t gp = getGaussPoints().gaussPoints.size() ;
-		Jinv.resize( gp*6 ) ;
-		
-		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
-		{
-			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
-//			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
-//			getThirdJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp*3+i], Jinv[gp*4+i], Jinv[gp*5+i]) ;
-		}
-	}*/
-
-	VirtualMachine vm ;
 	size_t start = 0 ;
 	size_t startEnriched = 0 ;
 	if(timePlanes() > 1)
@@ -2601,19 +2589,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	if(behaviour->isSymmetric())
 	{
-//		std::cout << "is symmetric" << std::endl ;
-/*		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
-		{
-			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
-			
-			for(size_t j = 0 ; j < i ; j++)
-			{
-				behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
-				cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
-			}
-		}*/
+		#pragma omp parallel for
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
-		{	
+		{
+			VirtualMachine vm ;
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
 
 			for(size_t j = 0 ; j < i ; j++)
@@ -2628,8 +2607,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 			}
 		}
 
+		#pragma omp parallel for
 		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
+			VirtualMachine vm ;
 			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = 0 ; j <  i ; j++)
@@ -2641,9 +2622,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	else
 	{
-//		std::cout << "is not symmetric" << std::endl ;
+		#pragma omp parallel for
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
-		{	
+		{
+			VirtualMachine vm ;
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
 
 			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
@@ -2658,8 +2640,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 			}
 		}
 
+		#pragma omp parallel for
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
+			VirtualMachine vm ;
 			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
@@ -2850,7 +2834,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 				Point pr = *to_add[k] ;
 				tf.project(&pr) ;
 				if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k]) 
-					< 0.001 || (dist(*to_add[k], pr) < 0.1 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE_2D))
+					< 0.001 || (dist(*to_add[k], pr) < 0.001 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE_2D))
 				{
 					go = false ;
 					break ;
@@ -2877,7 +2861,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	}
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 3 ;
+	size_t numberOfRefinements = 4 ;
 	
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE_2D ;

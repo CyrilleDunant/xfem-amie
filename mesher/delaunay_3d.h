@@ -185,6 +185,7 @@ public:
 	void refresh(const TetrahedralElement *) ;
 	
 	std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
+	std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	void clearElementaryMatrix() ;
 	std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
 // 	Vector getForces() ;

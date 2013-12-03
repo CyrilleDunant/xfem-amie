@@ -1830,8 +1830,11 @@ void FeatureTree::sample()
 		{
 			std::cerr << "2D features " << tree.size() << std::endl ;
 			double total_area = tree[0]->area() ;
-
-			tree[0]->sample( samplingNumber * 4) ;
+			
+			double correctionfactor = 1. ;
+			if(samplingFactors.find(tree[0]) != samplingFactors.end())
+				correctionfactor =  samplingFactors[tree[0]] ;
+			tree[0]->sample( correctionfactor * samplingNumber * 4) ;
 			int count = 0 ; 
 			
 // 			#pragma omp parallel for reduction(+:count) schedule(auto)
@@ -1846,7 +1849,7 @@ void FeatureTree::sample()
 				if(npoints < 8 && npoints >= 5)
 					npoints = 8 ;
 // 				size_t npoints = std::max( ( size_t )round( sqrt( tree[i]->area() / ( total_area * shape_factor ) ) * samplingNumber ), (size_t) 8 ) ;
-				double correctionfactor = 1. ;
+				correctionfactor = 1. ;
 				if(samplingFactors.find(tree[i]) != samplingFactors.end())
 				{
 					correctionfactor = samplingFactors[tree[i]] ;
@@ -5237,10 +5240,11 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 	bool behaviourChanged = ft->behaviourChanged() ;
 	bool xfemChanged = ft->enrichmentChanged() ;
 	bool samplingChanged = ft->needMeshing ;
-	bool initialiseFractureCache = true ;
+	bool initialiseFractureCache = false ;
 
 	if( samplingChanged )
 	{
+		initialiseFractureCache = true ;
 		sampled = false ;
 		meshed = false ;
 		behaviourSet = behaviourSet ;

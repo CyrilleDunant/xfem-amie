@@ -183,7 +183,6 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 		}
 
 	}
-
 	return  stack.memory.heap[8] ;
 }
 

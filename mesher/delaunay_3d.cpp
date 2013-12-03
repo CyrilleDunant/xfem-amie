@@ -2654,7 +2654,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 
 	std::valarray<Matrix> Jinv( Matrix( 3, 3 ),  getGaussPoints().gaussPoints.size() ) ;
 
-	if( true ) //moved)
+	if(moved && false)
 	{
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
 		{
@@ -2668,60 +2668,78 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 		Jinv.resize( getGaussPoints().gaussPoints.size(), J ) ;
 	}
 
-// 	std::cout << "plouf" << std::endl ;
+	size_t start = 0 ;
+	size_t startEnriched = 0 ;
+	if(timePlanes() > 1)
+	{
+		start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
+		startEnriched = getEnrichmentFunctions().size() -  getEnrichmentFunctions().size()/timePlanes() ;
+	}
 	VirtualMachine vm ;
 
-	if(getBlendingFunctions().empty())
+	if(behaviour->isSymmetric())
 	{
-		for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
+
+		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{
-
-			behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
-
-			for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
+			behaviour->apply(getShapeFunction(i),getShapeFunction(i), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
+			
+			for(size_t j = 0 ; j < i ; j++)
 			{
-				behaviour->apply( getShapeFunction( i ), getShapeFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j], &vm ) ;
-				behaviour->apply( getShapeFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j][i], &vm ) ;
+				behaviour->apply(getShapeFunction(i), getShapeFunction(j), getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
+				cachedElementaryMatrix[j][i] = cachedElementaryMatrix[i][j].transpose() ;
 			}
-
-			for( size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++ )
+			
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 			{
-				behaviour->apply( getShapeFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j + getShapeFunctions().size()], &vm ) ;
-				behaviour->apply( getEnrichmentFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i], &vm ) ;
+				behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j), getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+				cachedElementaryMatrix[j+getShapeFunctions().size()][i] = cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose() ;
 			}
 		}
-	
+
+		
+		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i), getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			
+			for(size_t j = 0 ; j < i ; j++)
+			{
+				behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j), getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+				cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
+			}
+		}
+// 		if(getEnrichmentFunctions().size() == 6)
+// 			exit(0) ;
 	}
 	else
 	{
-
-		for( size_t i = 0 ; i < getShapeFunctions().size() ; i++ )
+		
+		for(size_t i = start; i < getShapeFunctions().size() ; i++)
 		{
-			behaviour->apply( getShapeFunction( i ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm ) ;
 			
-
-			for( size_t j = i + 1 ; j < getShapeFunctions().size() ; j++ )
+			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
 			{
-				behaviour->apply( getShapeFunction( i ), getShapeFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j], &vm ) ;
-				behaviour->apply( getShapeFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j][i], &vm ) ;
+				behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], &vm) ;
+				behaviour->apply(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j][i], &vm) ;
 			}
-
-			for( size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++ )
+			
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
 			{
-				behaviour->apply( getShapeFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i][j + getShapeFunctions().size()], &vm ) ;
-				behaviour->apply( getEnrichmentFunction( j ), getShapeFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i], &vm ) ;
+				behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+				behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
 			}
 		}
-	}
-	
-	for( size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++ )
-	{
-		behaviour->apply( getEnrichmentFunction( i ), getEnrichmentFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[i + getShapeFunctions().size()][i + getShapeFunctions().size()], &vm ) ;
 
-		for( size_t j = i + 1 ; j < getEnrichmentFunctions().size() ; j++ )
+		
+		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			behaviour->apply( getEnrichmentFunction( i ), getEnrichmentFunction( j ), getGaussPoints(), Jinv, cachedElementaryMatrix[i + getShapeFunctions().size()][j + getShapeFunctions().size()], &vm ) ;
-			behaviour->apply( getEnrichmentFunction( j ), getEnrichmentFunction( i ), getGaussPoints(), Jinv, cachedElementaryMatrix[j + getShapeFunctions().size()][i + getShapeFunctions().size()], &vm ) ;
+			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+
+			for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+				behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			}
 		}
 	}
 	
@@ -2748,6 +2766,122 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 // 	exit(0) ;
 	return cachedElementaryMatrix ;
 }
+
+
+std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementaryMatrix() 
+{
+// 	std::cout << "is fucking viscous" << std::endl ;
+// 	std::cout << "is fucking viscous" << std::endl ;
+	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+	
+	if(!behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
+	{
+		return cachedViscousElementaryMatrix ;
+	}
+	int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+
+	if(enrichmentUpdated || behaviourUpdated 
+		|| cachedViscousElementaryMatrix.size() == 0 
+		|| cachedViscousElementaryMatrix.size() != dofCount 
+		||  (cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() != dofCount))
+	{
+		
+		std::valarray< Matrix > v_j(Matrix(ndofs, ndofs), dofCount) ;
+		cachedViscousElementaryMatrix.resize(dofCount,v_j) ;
+		getSubTriangulatedGaussPoints() ;
+	}
+
+	Matrix J(ndofs, ndofs) ;
+	getInverseJacobianMatrix(Point( 1./4.,1./4.,1./4.), J ) ;
+	std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
+	
+	if(moved)
+	{
+		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
+		{
+			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
+		}
+	}
+	
+	size_t start = 0 ;
+	size_t startEnriched = 0 ;
+	if(timePlanes() > 1)
+	{
+		start = getShapeFunctions().size() -  getShapeFunctions().size()/timePlanes() ;
+		startEnriched = getEnrichmentFunctions().size() -  getEnrichmentFunctions().size()/timePlanes() ;
+	}
+	if(behaviour->isSymmetric())
+	{
+		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
+		{
+			VirtualMachine vm ;
+			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
+
+			for(size_t j = 0 ; j < i ; j++)
+			{
+				behaviour->applyViscous(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j], &vm) ;
+				cachedViscousElementaryMatrix[j][i] = cachedViscousElementaryMatrix[i][j].transpose() ;
+			}
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				behaviour->applyViscous(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+				cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i] = cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()].transpose() ;
+			}
+		}
+
+		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			VirtualMachine vm ;
+			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			
+			for(size_t j = 0 ; j <  i ; j++)
+			{
+				behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+				cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
+			}
+		}
+	}
+	else
+	{
+		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
+		{
+			VirtualMachine vm ;
+			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
+
+			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
+			{
+				behaviour->applyViscous(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j], &vm) ;
+				behaviour->applyViscous(getShapeFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[j][i], &vm) ;
+			}
+			for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				behaviour->applyViscous(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
+				behaviour->applyViscous(getEnrichmentFunction(j), getShapeFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
+			}
+		}
+
+		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
+		{
+			VirtualMachine vm ;
+			behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			
+			for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
+			{
+				behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
+				behaviour->applyViscous(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+			}
+		}
+	}
+
+	enrichmentUpdated = false ;
+	behaviourUpdated = false ;
+	if(behaviour->hasInducedForces())
+		cachedForces.resize(0) ;
+	
+	
+	return cachedViscousElementaryMatrix ;
+}
+
 
 void DelaunayTree3D::extrude(double dt)
 {
@@ -3095,23 +3229,23 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		{
 			TetrahedralElement father(LINEAR) ;
 			
-			int target = 512 ;
+			int target = 1024*4 ;
 			
 			double npoints = 8 ;
 
 			while(gp_alternative.size() < target)
 			{
-				for(double i = -getRadius() ; i <= getRadius() ; i += 2.*getRadius()*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+				for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
 				{
-					for(double j = -getRadius() ; j <= getRadius() ; j += 2.*getRadius()*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+					for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
 					{
-						for(double k = -getRadius() ; k <= getRadius() ; k += 2.*getRadius()*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+						for(double k = 0 ; k <= 1 ; k += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
 						{
-							Point test = Point(i,j,k)+getCircumCenter() ;
+							Point test = Point(i,j,k);
 // 							inLocalCoordinates(test).print();
-							if( in( test ) )
+							if( father.in( test ) )
 							{
-								gp_alternative.push_back( std::make_pair( inLocalCoordinates(test), 1. / 6. ) ) ;
+								gp_alternative.push_back( std::make_pair( test, 1. / 6. ) ) ;
 							}
 						}
 					}

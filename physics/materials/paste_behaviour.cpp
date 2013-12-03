@@ -23,7 +23,7 @@ using namespace Mu ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-	materialRadius = 0.00018 ;
+	materialRadius = 0.0005 ;
 }
 
 Form * PasteBehaviour::getCopy() const 
@@ -31,9 +31,9 @@ Form * PasteBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.1,0.8)) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.05,0.9)) ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
- 	copy->dfunc->setThresholdDamageDensity(.6);
+//  	copy->dfunc->setThresholdDamageDensity(.8);
 	
 /*	if(getExtra2dMeshes())
 	{

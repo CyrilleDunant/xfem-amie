@@ -517,6 +517,7 @@ int main(int argc, char *argv[])
 // 	inc.setBehaviour(new Stiffness(m1*4)) ;
 // 	inc0->setBehaviour(new Laplacian(d1)) ;
 	
+	
 	F.addFeature(&samplers, &inc) ;
 // 	F.addFeature(&samplers, inc0) ;
 	F.setSamplingNumber(atoi(argv[1])) ;

@@ -15,11 +15,11 @@ namespace Mu
 {
 	struct PasteBehaviour : public WeibullDistributedStiffness
 	{
-	    // ultimate tensile strength: 5.68 MPa
+	    // ultimate tensile strength: 12 MPa which is 3 * 4 MPa (instantaneous stress)
 		double up ;
 		double yield ;
 		double c ;
-		PasteBehaviour(double E=12e9, double nu=0.3,  double up = 0.0005, double yield = 0.00035, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 0.001, double yield = 0.001, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
@@ -27,7 +27,7 @@ namespace Mu
 	
 	struct ElasticOnlyPasteBehaviour : public PasteBehaviour
 	{
-		ElasticOnlyPasteBehaviour(double E=12e9, double nu=0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		ElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;	
 	} ;
@@ -39,7 +39,7 @@ namespace Mu
 		double e_2 ;
 		int freeblocks ;
 		
-		ViscoElasticOnlyPasteBehaviour(double E=12e9, double nu = 0.3, double e1=0.3, double e2=0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		ViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.37, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 	} ;

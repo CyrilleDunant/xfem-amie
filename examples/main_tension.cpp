@@ -185,7 +185,7 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-			loadt->setData(loadt->getData()+6e-6) ;
+// 			loadt->setData(loadt->getData()+6e-6) ;
 			loadr->setData(loadr->getData()-6e-5) ;
 			
 // 			loadt->setData(0) ;
@@ -461,28 +461,28 @@ void step(size_t nsteps)
 		}
 		strfile.close();
 		
-// 		if ( true )
-// 		{
-// 			writer.reset( featureTree ) ;
-// 			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-// 			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-// 			writer.getField( TWFT_CRITERION ) ;
-// 			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
-// 			writer.getField( TWFT_STIFFNESS_X ) ;
-// 			writer.getField( TWFT_STIFFNESS_Y ) ;
-// 			writer.append() ;
-// 		}
-// 		if(go_on)
-// 		{
-// 			writerc.reset( featureTree ) ;
-// 			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
-// 			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
-// 			writerc.getField( TWFT_CRITERION ) ;
-// 			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
-// 			writerc.getField( TWFT_STIFFNESS_X ) ;
-// 			writerc.getField( TWFT_STIFFNESS_Y ) ;
-// 			writerc.append() ;
-// 		}
+		if ( true )
+		{
+			writer.reset( featureTree ) ;
+			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writer.getField( TWFT_CRITERION ) ;
+			writer.getField( TWFT_PRINCIPAL_ANGLE ) ;
+			writer.getField( TWFT_STIFFNESS_X ) ;
+			writer.getField( TWFT_STIFFNESS_Y ) ;
+			writer.append() ;
+		}
+		if(go_on)
+		{
+			writerc.reset( featureTree ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRESS ) ;
+			writerc.getField( TWFT_PRINCIPAL_STRAIN ) ;
+			writerc.getField( TWFT_CRITERION ) ;
+			writerc.getField( TWFT_PRINCIPAL_ANGLE ) ;
+			writerc.getField( TWFT_STIFFNESS_X ) ;
+			writerc.getField( TWFT_STIFFNESS_Y ) ;
+			writerc.append() ;
+		}
 		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 	}
 
@@ -657,8 +657,8 @@ int main(int argc, char *argv[])
 // 	
 // 	inc.setBehaviourSource(&samplef);
 // 	samplef.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6, -20e6,E_paste,0.1 , mradius),new PlasticStrain())) ;
-	samplef.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
-// 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
+// 	samplef.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
 	
 // 	inc.setBehaviour(new VoidForm()) ;
 // 	F.addFeature(&samplef, new Pore(samplef.height()*.15, samplef.getCenter().x, samplef.getCenter().y+samplef.height()*.5));
@@ -730,7 +730,7 @@ int main(int argc, char *argv[])
 // 	F.addPoint(new Point(1.300*.5+.225, effectiveRadius*.5)) ;
 // 	F.addPoint(new Point(-1.300*.5-.225, effectiveRadius*.5)) ;
 	
-	step(300) ;
+	step(2) ;
 
 // 	delete dt ;
 	

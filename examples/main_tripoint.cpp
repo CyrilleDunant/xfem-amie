@@ -498,7 +498,7 @@ void step()
 int main( int argc, char *argv[] )
 {
 
-	double softeningFactor = 1 ; .85 ;
+	double softeningFactor = .85 ; .85 ;
 	
 	sampleLength = atof( argv[3] ) ;
 	sampleHeight = atof( argv[4] ) ;
@@ -506,14 +506,14 @@ int main( int argc, char *argv[] )
 
 	std::cout << sampleLength << "  " << supportLever << std::endl ;
 
-	double compressionCrit = -34.2e6*softeningFactor ;
+	double compressionCrit = -34.2e6 ;
 
 	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
 // 	double mradius = 0.1; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
-	double E_steel = 200e9 * M_PI *.25; 
-	double nu_steel = 0.3 ;
+	double E_steel = 200e9 * M_PI *.25*softeningFactor; 
+	double nu_steel = 0.2 ;
 	double nu = 0.3 ;
 	double E_paste = 32.4e9*softeningFactor ;
 

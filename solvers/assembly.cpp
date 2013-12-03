@@ -533,6 +533,7 @@ void Assembly::initialiseElementaryMatrices()
 // 	{
 		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
+			#pragma omp parallel for
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
 				if(i%10000 == 0)
@@ -547,12 +548,17 @@ void Assembly::initialiseElementaryMatrices()
 		}
 		else if(dim == SPACE_THREE_DIMENSIONAL)
 		{
+			#pragma omp parallel for
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
 				if(i%1000 == 0)
 					std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
 				if(element3d[i]->getBehaviour())	
+				{
 					element3d[i]->getElementaryMatrix() ;
+					if(element3d[i]->getBehaviour()->isViscous())
+						element3d[i]->getViscousElementaryMatrix() ;
+				}
 			}
 		}
 // 	}
@@ -590,6 +596,7 @@ void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 
+	#pragma omp parallel for
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
 		if(i%1000 == 0)
@@ -597,6 +604,9 @@ void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 		if(element3d[i]->getBehaviour())
 		{
 			element3d[i]->getElementaryMatrix() ;
+			
+			if(element3d[i]->getBehaviour()->isViscous())
+				element3d[i]->getViscousElementaryMatrix() ;
 		}
 	}
 
@@ -612,6 +622,7 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
 
+	#pragma omp parallel for
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 		if(i%10000 == 0)
@@ -619,6 +630,8 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 		if(element2d[i]->getBehaviour())
 		{
 			element2d[i]->getElementaryMatrix() ;
+			if(element2d[i]->getBehaviour()->isViscous())
+				element2d[i]->getViscousElementaryMatrix() ;
 		}
 		
 	}

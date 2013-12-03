@@ -47,6 +47,18 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {	
+	
+	VirtualMachine vm ;
+	
+	Function f("2 2 + x * x *") ;
+	
+	std::cout << vm.deval(f,XI ,.1) << std::endl ;
+	
+	
+	
+	exit(0) ;
+	
+	
   // scale factor (to be adjusted for the meshing)
   double scale = 1. ;
   if(argc > 1)
@@ -54,6 +66,7 @@ int main(int argc, char *argv[])
   
 	double nu = 0.2 ;
 	double E = 1 ;
+	
 	Matrix m0(6,6) ;
 	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
 	m0[1][0] = nu ; m0[1][1] = 1. - nu ; m0[1][2] = nu ;
@@ -73,7 +86,8 @@ int main(int argc, char *argv[])
   //std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 3200)) ;
   std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000023104, BOLOME_B, PSDEndCriteria(0.00025, -1, 3200)) ;
   // attributes mechanical behaviour to the box and the aggregates
-  box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
+  
+	box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
   for(size_t i = 0 ; i < incs.size() ; i++)
     incs[i]->setBehaviour( new ElasticOnlyAggregateBehaviour( 60e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;
 
@@ -88,6 +102,8 @@ int main(int argc, char *argv[])
   int n = 0 ;
   feats = placement(box.getPrimitive(), feats, &n) ;
   incs.clear() ;
+	
+	
   for(size_t i = 0 ; i < feats.size() ; i++)
     {
       incs.push_back( dynamic_cast<Inclusion3D *>( feats[i] ) ) ;
@@ -187,6 +203,8 @@ int main(int argc, char *argv[])
 
   // assemble and solve problem
   F.step();
+	
+	
 	VoxelWriter vw("sphere_stiffness_0.05M_nomin", 200) ;
 	vw.getField(&F, VWFT_STIFFNESS) ;
 	vw.write();
