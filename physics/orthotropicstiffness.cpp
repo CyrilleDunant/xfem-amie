@@ -79,6 +79,12 @@ OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double G,  do
 	v.push_back(ETA);
 	paramBase = param ;
 	setAngle(angle);
+	param.print() ;
+} ;
+
+OrthotropicStiffness::OrthotropicStiffness(const OrthotropicStiffness * source) : LinearForm(source->param, true, false, source->getNumberOfDegreesOfFreedom()) , transform(source->transform),
+		transformt(source->transformt),transformset(source->transformset),v(source->v), paramBase(source->paramBase)
+{
 } ;
 
 OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) : LinearForm(Material::orthothropicCauchyGreen(E_1, E_2, E_1*E_2/(E_1*(1.+nu_12)+E_2*(1.+nu_21)),  (nu_12+nu_21)*.5), true, false, 2) , 
@@ -122,11 +128,7 @@ Form * OrthotropicStiffness::getCopy() const
 {
 	if(v.size() == 2)
 	{
-		OrthotropicStiffness * copy = new OrthotropicStiffness(3) ;
-		copy->param = param ;
-		copy->paramBase = paramBase ;
-		copy->transform = transformt ;
-		copy->transformt = transformt ;
+		OrthotropicStiffness * copy = new OrthotropicStiffness(this) ;
 			
 		if(getExtra2dMeshes())
 		{
@@ -140,10 +142,8 @@ Form * OrthotropicStiffness::getCopy() const
 		}
 		return copy ; 
 	}
-	OrthotropicStiffness * copy =  new OrthotropicStiffness(6) ;
-		copy->paramBase = paramBase ;
-		copy->transform = transformt ;
-		copy->transformt = transformt ;
+	OrthotropicStiffness * copy =  new OrthotropicStiffness(this) ;
+
 		if(getExtra2dMeshes())
 		{
 			for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)

@@ -27,13 +27,12 @@ namespace Mu
 	*/
 	struct OrthotropicStiffness : public LinearForm
 	{
-	protected:
+	public:
 		Matrix transform ;
 		Matrix transformt ;
 		Matrix paramBase ;
 		bool transformset ;
 		std::vector<Variable> v ;
-		OrthotropicStiffness(int s):transform(s,s), transformt(s,s), paramBase(s,s)  {};
 	public:
 		/** \brief Constructor
 		 * 
@@ -45,6 +44,8 @@ namespace Mu
 		 * @param poissondefined dummy parameter
 		 */
 		OrthotropicStiffness(double E_1, double E_2, double nu_12,  double nu_21, double angle, bool poissondefined) ;
+		
+		OrthotropicStiffness(const OrthotropicStiffness * source) ;
 		
 		void setAngle(double) ;
 		void setStiffness(double E_1, double E_2, double G, double nu) ;

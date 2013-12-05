@@ -13,6 +13,7 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../physics/stiffness.h"
+#include "../physics/orthotropicstiffness.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
@@ -867,7 +868,7 @@ int main( int argc, char *argv[] )
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
 		          << ", smallest r =" << feats.back()->getRadius() - itzSize << std::endl ;
 
-	sample.setBehaviour( new PasteBehaviour() ) ;
+	sample.setBehaviour( new PasteBehaviour()) ;
 	
 
 // 		sample.setBehaviour(new Stiffness(m0_paste)) ;
@@ -901,22 +902,23 @@ int main( int argc, char *argv[] )
 
 
 		Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
-		blocktop->setBehaviour(/* new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
+		blocktop->setBehaviour(/* new VoidForm()*/new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+		
 		F.addFeature( nullptr, blocktop );
 		F.setSamplingFactor(blocktop, 0.5);
 
 		Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-		blockbottom->setBehaviour( /*new VoidForm()*/new Stiffness( m0_support * fact0 ) ) ;
+		blockbottom->setBehaviour( /*new VoidForm()*/new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
 		F.addFeature( nullptr, blockbottom );
 		F.setSamplingFactor(blockbottom, 0.5);
 
 		Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
-		blockleft->setBehaviour( new Stiffness( m0_support * fact )) ;
+		blockleft->setBehaviour( new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.)) ;
 		F.addFeature( nullptr, blockleft );
 		F.setSamplingFactor(blockleft, 0.5);
 
 		Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new Stiffness( m0_support * fact ) ) ;
+		blockright->setBehaviour(new  OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
 		F.addFeature( nullptr, blockright );
 		F.setSamplingFactor(blockright, 0.5);
 	}
