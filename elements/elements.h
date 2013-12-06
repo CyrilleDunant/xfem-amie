@@ -357,5 +357,6 @@ public:
 void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec) ;
 void burn(std::vector<Mu::HexahedralElement *> & vec) ;
 Mu::GaussPointArray gaussPointSet(Mu::Order order, const Mu::TriElement * t) ;
+Mu::GaussPointArray gaussPointSet(Mu::Order order, const Mu::TetrahedralElement * t) ;
 
 #endif // __ELEMENTS_H_

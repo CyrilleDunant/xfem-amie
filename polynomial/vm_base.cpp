@@ -1916,35 +1916,17 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			if(transpose)
 			{
 				std::valarray<Matrix> ret(Matrix(3,2), gp.gaussPoints.size()) ;
-				
-//				size_t g = gp.gaussPoints.size() ;
-
-//				Vector dxidxi = ddeval(f, var[0], var[0], gp,default_derivation_delta*100./**0.01*/) ;
-//				Vector detadeta = ddeval(f, var[1], var[1], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector dtau = ddeval(f, var[2], var[2], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector dxi = ddeval(f, var[0], var[2], gp,default_derivation_delta*100./**0.01*/) ;
-//				Vector detadtau = ddeval(f, var[1], var[2], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector deta = ddeval(f, var[1], var[2], gp,default_derivation_delta*100./**0.01*/) ;
-
-//				Vector dxi = deval(f, var[0], gp) ;
-//				Vector deta = deval(f, var[1], gp) ;
-//				Vector dtau = deval(f, var[2], gp) ;
 				
 				for(size_t i = 0 ; i < ret.size() ; i++)
 				{
-				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;//+ dtau[i]*m[i][0][2] ;
-				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;//+ dtau[i]*m[i][1][2]  ;
-				ret[i][2][0] = ret[i][1][1] ;
-				ret[i][2][1] = ret[i][0][0] ;
-				ret[i] *= m[i][2][2] ;
-/*					ret[i][0][0] = dxi[i]*m[g+i][5][0] + deta[i]*m[g+i][5][1] + dtau[i]*m[g+i][5][2] 
-						+ dxidxi[i]*m[g*2+i][5][0] + detadeta[i]*m[g*2+i][5][1] + dtaudtau[i]*m[g*2+i][5][2] 
-						+ dxideta[i]*m[g*2+i][5][3] + detadtau[i]*m[g*2+i][5][4] + dxidtau[i]*m[g*2+i][5][5] ;
-					ret[i][1][1] = dxi[i]*m[g+i][4][0] + deta[i]*m[g+i][4][1] + dtau[i]*m[g+i][4][2] 
-						+ dxidxi[i]*m[g*2+i][4][0] + detadeta[i]*m[g*2+i][4][1] + dtaudtau[i]*m[g*2+i][4][2] 
-						+ dxideta[i]*m[g*2+i][4][3] + detadtau[i]*m[g*2+i][4][4] + dxidtau[i]*m[g*2+i][4][5] ;
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;//+ dtau[i]*m[i][0][2] ;
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;//+ dtau[i]*m[i][1][2]  ;
 					ret[i][2][0] = ret[i][1][1] ;
-					ret[i][2][1] = ret[i][0][0] ;*/
+					ret[i][2][1] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;
@@ -1952,35 +1934,17 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			else
 			{
 				std::valarray<Matrix> ret(Matrix(2,3), gp.gaussPoints.size()) ;
-				
-//				size_t g = gp.gaussPoints.size() ;
 
-//				Vector dxidxi = ddeval(f, var[0], var[0], gp,default_derivation_delta*100./**0.01*/) ;
-//				Vector detadeta = ddeval(f, var[1], var[1], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector dtau = ddeval(f, var[2], var[2], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector deta = ddeval(f, var[1], var[2], gp,default_derivation_delta*100./**0.01*/) ;
-//				Vector detadtau = ddeval(f, var[1], var[2], gp,default_derivation_delta*100./**0.01*/) ;
 				Vector dxi = ddeval(f, var[0], var[2], gp,default_derivation_delta*100./**0.01*/) ;
-
-//				Vector dxi = deval(f, var[0], gp) ;
-//				Vector deta = deval(f, var[1], gp) ;
-//				Vector dtau = deval(f, var[2], gp) ;
-				
 				for(size_t i = 0 ; i < ret.size() ; i++)
 				{
-				ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;//+ dtau[i]*m[i][0][2] ;
-				ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;//+ dtau[i]*m[i][1][2]  ;
-				ret[i][0][2] = ret[i][1][1] ;
-				ret[i][1][2] = ret[i][0][0] ;
-				ret[i] *= m[i][2][2] ;
-/*					ret[i][0][0] = dxi[i]*m[g+i][5][0] + deta[i]*m[g+i][5][1] + dtau[i]*m[g+i][5][2] 
-						+ dxidxi[i]*m[g*2+i][5][0] + detadeta[i]*m[g*2+i][5][1] + dtaudtau[i]*m[g*2+i][5][2] 
-						+ dxideta[i]*m[g*2+i][5][3] + detadtau[i]*m[g*2+i][5][4] + dxidtau[i]*m[g*2+i][5][5] ;
-					ret[i][1][1] = dxi[i]*m[g+i][4][0] + deta[i]*m[g+i][4][1] + dtau[i]*m[g+i][4][2] 
-						+ dxidxi[i]*m[g*2+i][4][0] + detadeta[i]*m[g*2+i][4][1] + dtaudtau[i]*m[g*2+i][4][2] 
-						+ dxideta[i]*m[g*2+i][4][3] + detadtau[i]*m[g*2+i][4][4] + dxidtau[i]*m[g*2+i][4][5] ;
-					ret[i][2][0] = ret[i][1][1] ;
-					ret[i][2][1] = ret[i][0][0] ;*/
+					ret[i][0][0] = dxi[i]*m[i][0][0] + deta[i]*m[i][0][1] ;//+ dtau[i]*m[i][0][2] ;
+					ret[i][1][1] = dxi[i]*m[i][1][0] + deta[i]*m[i][1][1] ;//+ dtau[i]*m[i][1][2]  ;
+					ret[i][0][2] = ret[i][1][1] ;
+					ret[i][1][2] = ret[i][0][0] ;
+					ret[i] *= m[i][2][2] ;
 				}
 				
 				return ret ;
@@ -2110,7 +2074,6 @@ std::valarray<Matrix> VirtualMachine::gdeval(const Function &f, const std::valar
 			Vector deta = ddeval(f, var[1],TIME_VARIABLE, gp) ;
 			Vector dzeta = ddeval(f, var[2],TIME_VARIABLE, gp) ;
 			Vector dteta = ddeval(f, var[3],TIME_VARIABLE, gp) ;
-//			std::cout << dxi[0] << std::endl ;
 			
 			for(size_t i = 0 ; i < ret.size() ; i++)
 			{

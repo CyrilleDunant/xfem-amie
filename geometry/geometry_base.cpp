@@ -4386,14 +4386,14 @@ std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDepen
 	}
 	else
 	{
-		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.*ar) ;
-		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*2.*ar) ;
-		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*2.*ar) ;
+		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*ar) ;
+		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*ar) ;
+		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*ar) ;
+		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*ar) ;
+		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, 0.577350269189626), 0.260416666666667*ar) ;
+		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, 0.577350269189626), 0.260416666666667*ar) ;
+		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, 0.577350269189626), 0.260416666666667*ar) ;
+		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, 0.577350269189626), -0.28125*ar) ;
 	}
 	
 	
@@ -4699,11 +4699,12 @@ double squareDist3D(const  Point &v1, const Point & v2)
 #ifdef HAVE_SSE4
 	__m128d temp ;
 	vecdouble r0 ;
+	vecdouble r1 ;
 	temp = _mm_sub_pd(v1.veczt, v2.veczt) ;
 	r0.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
-	r0.vec += _mm_dp_pd(temp, temp, 62) ;
-	return r0.val[0]+ r0.val[1] ;
+	r1.vec = _mm_dp_pd(temp, temp, 62) ;
+	return r0.val[0]+ r1.val[0]+r1.val[1] ;
 #elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
@@ -4711,7 +4712,7 @@ double squareDist3D(const  Point &v1, const Point & v2)
 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-	return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
+	return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
 #else 
 	double x = v1.x-v2.x ;
 	double y = v1.y-v2.y ;
@@ -4727,11 +4728,12 @@ double squareDist3D(const Point *v1, const Point *v2)
 #ifdef HAVE_SSE4
 	__m128d temp ;
 	vecdouble r0 ;
+	vecdouble r1 ;
 	temp = _mm_sub_pd(v1->veczt, v2->veczt) ;
 	r0.vec = _mm_dp_pd(temp, temp, 61) ;
 	temp = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
-	r0.vec += _mm_dp_pd(temp, temp, 62) ;
-	return r0.val[0]+ r0.val[1] ;
+	r1.vec = _mm_dp_pd(temp, temp, 62) ;
+	return r0.val[0]+ r1.val[0]+r1.val[1] ;
 #elif defined HAVE_SSE3
 	vecdouble rzt ;
 	vecdouble rxy ;
@@ -4739,7 +4741,7 @@ double squareDist3D(const Point *v1, const Point *v2)
 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	rxy.vec = _mm_sub_pd(v1->vecxy, v2->vecxy) ;
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-	return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
+	return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
 #else 
 	double x = v1->x-v2->x ;
 	double y = v1->y-v2->y ;

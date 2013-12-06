@@ -596,6 +596,106 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 	return GaussPointArray(fin, order)  ;
 }
 
+GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t)
+{
+	size_t ordre=0 ;
+	if(order == LINEAR)
+		ordre = 1 ;
+	else if(order == LINEAR_TIME_QUADRATIC  || order == LINEAR_TIME_LINEAR)
+		ordre = 3 ;
+	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
+		ordre = 5 ;
+	else if (order == QUADRIC || order == QUINTIC )
+		ordre = 17 ;
+	else
+		ordre = 10 ;
+	
+	std::valarray< std::pair<Point, double> > fin(ordre);
+	
+	if(order == LINEAR )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.1666666666666667) ;
+	}
+	else if (order == CUBIC || order == QUADRATIC )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.1666666666666667*-.8) ;
+		fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667), 0.1666666666666667*0.45) ;
+		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5), 0.1666666666666667*0.45) ;
+	}
+	else if (order == QUADRIC || order == QUINTIC )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), 0.031403092789502) ;
+		fin[1] = std::pair<Point, double>(Point(0.731636907957618, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
+		fin[2] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.089454364014127), 0.011173097287728) ;
+		fin[3] = std::pair<Point, double>(Point(0.089454364014127, 0.731636907957618, 0.089454364014127), 0.011173097287728) ;
+		fin[4] = std::pair<Point, double>(Point(0.089454364014127, 0.089454364014127, 0.731636907957618), 0.011173097287728) ;		
+		fin[5] = std::pair<Point, double>(Point(0.132581099938466, 0.024540037929030, 0.421439431066252), 0.007547598727224) ;
+		fin[6] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.024540037929030), 0.007547598727224) ;
+		fin[7] = std::pair<Point, double>(Point(0.132581099938466, 0.421439431066252, 0.421439431066252), 0.007547598727224) ;
+		fin[8] = std::pair<Point, double>(Point(0.024540037929030, 0.132581099938466, 0.421439431066252), 0.007547598727224) ;
+		fin[9] = std::pair<Point, double>(Point(0.024540037929030, 0.421439431066252, 0.132581099938466), 0.007547598727224) ;
+		fin[10] = std::pair<Point, double>(Point(0.024540037929030, 0.421439431066252, 0.421439431066252), 0.007547598727224) ;
+		fin[11] = std::pair<Point, double>(Point(0.421439431066252, 0.132581099938466, 0.024540037929030), 0.007547598727224) ;
+		fin[12] = std::pair<Point, double>(Point(0.421439431066252, 0.132581099938466, 0.421439431066252), 0.007547598727224) ;
+		fin[13] = std::pair<Point, double>(Point(0.421439431066252, 0.024540037929030, 0.132581099938466), 0.007547598727224) ;
+		fin[14] = std::pair<Point, double>(Point(0.421439431066252, 0.024540037929030, 0.421439431066252), 0.007547598727224) ;
+		fin[15] = std::pair<Point, double>(Point(0.421439431066252, 0.421439431066252, 0.132581099938466), 0.007547598727224) ;
+		fin[16] = std::pair<Point, double>(Point(0.421439431066252, 0.421439431066252, 0.024540037929030), 0.007547598727224) ;
+	}
+	else if(order == LINEAR_TIME_LINEAR )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+		fin[1] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*8./9) ;
+		fin[2] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+	}
+	else if(order == LINEAR_TIME_QUADRATIC )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+		fin[1] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*8./9) ;
+		fin[2] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+	}
+	else if (order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25), -0.5333333333333333333) ;
+		fin[1] = std::pair<Point, double>(Point(0.16666666666666666667, 0.166666666666667, 0.1666666666666666667), 0.3) ;
+		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666666666667, 0.166666666666666666667), 0.3) ;
+		fin[3] = std::pair<Point, double>(Point(0.16666666666666666667, 0.5, 0.166666666666667), 0.3) ;
+		fin[4] = std::pair<Point, double>(Point(0.16666666666666666667, 0.1666666666666666667, 0.5), 0.3) ;
+	}
+	else if (order == CUBIC_TIME_QUADRATIC || order == QUADRATIC_TIME_QUADRATIC )
+	{
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-0.577350269189626), -0.133333333333333) ;
+		fin[1] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667,-0.577350269189626), 0.075) ;
+		fin[2] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667,-0.577350269189626), 0.075) ;
+		fin[3] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667,-0.577350269189626), 0.075) ;
+		fin[4] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5,-0.577350269189626), 0.075) ;
+		fin[5] = std::pair<Point, double>(Point(0.25, 0.25, 0.25, 0.577350269189626), -0.133333333333333) ;
+		fin[6] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.166666666666667, 0.577350269189626), 0.075) ;
+		fin[7] = std::pair<Point, double>(Point(0.5, 0.166666666666667, 0.166666666666667, 0.577350269189626), 0.075) ;
+		fin[8] = std::pair<Point, double>(Point(0.166666666666667, 0.5, 0.166666666666667, 0.577350269189626), 0.075) ;
+		fin[9] = std::pair<Point, double>(Point(0.166666666666667, 0.166666666666667, 0.5, 0.577350269189626), 0.075) ;
+	}
+	
+	if( false && t->isMoved())
+	{
+		for(size_t i = 0 ; i < fin.size() ; i++)
+		{
+			fin[i].second *= t->jacobianAtPoint(fin[i].first) ;
+		}
+	}
+	else
+	{
+		double j = t->volume()*6. ;
+		for(size_t i = 0 ; i < fin.size() ; i++)
+		{
+			fin[i].second *= j;
+		}
+	}
+	return GaussPointArray(fin, order)  ;
+}
+
 const GaussPointArray & TriElement::genGaussPoints() 
 {
 	if(getCachedGaussPoints() && !moved)
@@ -2498,10 +2598,10 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 		
 	size_t ordre=0 ;
-	if(order == LINEAR || order == LINEAR_TIME_LINEAR)
+	if(order == LINEAR)
 		ordre = 1 ;
-	else if(order == LINEAR_TIME_QUADRATIC)
-		ordre = 2 ;
+	else if(order == LINEAR_TIME_QUADRATIC  || order == LINEAR_TIME_LINEAR)
+		ordre = 3 ;
 	else if (order == CUBIC || order == QUADRATIC || order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR)
 		ordre = 5 ;
 	else if (order == QUADRIC || order == QUINTIC )
@@ -2545,12 +2645,15 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	}
 	else if(order == LINEAR_TIME_LINEAR )
 	{
-		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*2.) ;
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+		fin[1] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*8./9) ;
+		fin[2] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,std::sqrt(0.6)), 0.1666666666666667*5./9) ;
 	}
 	else if(order == LINEAR_TIME_QUADRATIC )
 	{
-		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-0.577350269189626), 0.1666666666666667) ;
-		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.577350269189626), 0.1666666666666667) ;
+		fin[0] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,-std::sqrt(0.6)), 0.1666666666666667*5./9) ;
+		fin[1] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,0.), 0.1666666666666667*8./9) ;
+		fin[2] = std::pair<Point, double>(Point(0.25, 0.25, 0.25,std::sqrt(0.6)), 0.1666666666666667*5./9) ;
 	}
 	else if (order == CUBIC_TIME_LINEAR || order == QUADRATIC_TIME_LINEAR )
 	{
@@ -2763,25 +2866,89 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	else if(order == LINEAR_TIME_LINEAR)
 	{
 		shapefunc = new std::valarray<Function>(8) ;
-			//0		
-		(*shapefunc)[0] = Function("z 0.5 0.5 t * - *") ;
-			//1
-		(*shapefunc)[1] = Function("1 x - y - z - 0.5 0.5 t * - *") ;
-			//2
-		(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
-			//3
-		(*shapefunc)[3] = Function("y 0.5 0.5 t * - *") ;
-			//4
-		(*shapefunc)[4] = Function("z 0.5 0.5 t * + *") ;
-			//5
-		(*shapefunc)[5] = Function("1 x - y - z - 0.5 0.5 t * + *") ;
-			//6
-		(*shapefunc)[6] = Function("x 0.5 0.5 t * + *") ;
-			//7
-		(*shapefunc)[7] = Function("y 0.5 0.5 t * + *") ;
+			Function z2("0") ;
+
+			Function z1("0") ;
+
+			z1.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				z1.setDerivative( (const Variable) i, z2) ;
+			}
+			
+			Function zero("0") ;
+			zero.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				zero.setDerivative( (const Variable) i, z1) ;
+			}	
+			Function one = zero +1 ;
+			Function mone = zero-1 ;
+			
+			Function half("0.5") ;
+			half.setNumberOfDerivatives(4) ;
+			Function halfm("-0.5") ;
+			halfm.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				halfm.setDerivative( (const Variable) i, z1) ;
+				half.setDerivative( (const Variable) i, z1) ;
+			}	
+			
+			Function t0("0.5 t 0.5 * -") ;
+			t0.setNumberOfDerivatives(4) ;
+			t0.setDerivative( XI, zero) ;
+			t0.setDerivative( ETA, zero) ;
+			t0.setDerivative( ZETA, zero) ;
+			t0.setDerivative( TIME_VARIABLE, halfm) ;
+
+			Function t1("0.5 t 0.5 * +") ;
+			t1.setNumberOfDerivatives(4) ;
+			t1.setDerivative( XI, zero) ;
+			t1.setDerivative( ETA, zero) ;
+			t1.setDerivative( ZETA, zero) ;
+			t1.setDerivative( TIME_VARIABLE, half) ;
+			
+			Function s0("z") ;
+			Function s1("1 x - y - z -") ;
+			Function s2("x") ;
+			Function s3("y") ;
+			s0.setNumberOfDerivatives(4) ;
+			s0.setDerivative( XI, zero) ;
+			s0.setDerivative( ETA, zero) ;
+			s0.setDerivative( ZETA, one) ;
+			s0.setDerivative( TIME_VARIABLE, zero) ;
+			s1.setNumberOfDerivatives(4) ;
+			s1.setDerivative( XI, mone) ;
+			s1.setDerivative( ETA, mone) ;
+			s1.setDerivative( ZETA, mone) ;
+			s1.setDerivative( TIME_VARIABLE, zero) ;
+			s2.setNumberOfDerivatives(4) ;
+			s2.setDerivative( XI, one) ;
+			s2.setDerivative( ETA, zero) ;
+			s2.setDerivative( ZETA, zero) ;
+			s2.setDerivative( TIME_VARIABLE, zero) ;
+			s3.setNumberOfDerivatives(4) ;
+			s3.setDerivative( XI, zero) ;
+			s3.setDerivative( ETA, one) ;
+			s3.setDerivative( ZETA, zero) ;
+			s3.setDerivative( TIME_VARIABLE, zero) ;
+			
+		//0			
+			(*shapefunc)[0] = s0*t0 ;
+			(*shapefunc)[1] = s1*t0 ;
+			(*shapefunc)[2] = s2*t0 ;
+			(*shapefunc)[3] = s3*t0 ;
+			(*shapefunc)[4] = s0*t1 ;
+			(*shapefunc)[5] = s1*t1 ;
+			(*shapefunc)[6] = s2*t1 ;
+			(*shapefunc)[7] = s3*t1 ;
 	}
 	else if(order == LINEAR_TIME_QUADRATIC)
 	{
+		std::cout << "element order not implemented" << std::endl ;
+		exit(0) ;
+
 		shapefunc = new std::valarray<Function>(12) ;
 			//0
 		(*shapefunc)[0] = Function("x t 1 - t * 0.5 * *") ;
@@ -2813,6 +2980,8 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	}
 	else if(order == QUADRATIC_TIME_LINEAR)
 	{
+		std::cout << "element order not implemented" << std::endl ;
+		exit(0) ;
 		shapefunc = new std::valarray<Function>(20) ;
 
 			//0
@@ -2858,6 +3027,8 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	}
 	else if(order == QUADRATIC_TIME_QUADRATIC)
 	{
+		std::cout << "element order not implemented" << std::endl ;
+		exit(0) ;
 		shapefunc = new std::valarray<Function>(30) ;
 		
 			//0
@@ -3116,83 +3287,132 @@ const std::vector<Function> & ElementarySurface::getEnrichmentFunctions() const
 
 Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 {
-
-	
-	if(order < QUADRATIC)
+	if(timePlanes() == 1)
 	{
-		Matrix S(4,4) ;
-		S[0][0] = this->getBoundingPoint(2).x;
-		S[0][1] = this->getBoundingPoint(3).x; 
-		S[0][2] = this->getBoundingPoint(0).x ; 
-		S[0][3] = this->getBoundingPoint(1).x ;  
-		
-		S[1][0] = this->getBoundingPoint(2).y ;
-		S[1][1] = this->getBoundingPoint(3).y;
-		S[1][2] = this->getBoundingPoint(0).y ; 
-		S[1][3] = this->getBoundingPoint(1).y ;  
 
-		S[2][0] = this->getBoundingPoint(2).z ;
-		S[2][1] = this->getBoundingPoint(3).z;
-		S[2][2] = this->getBoundingPoint(0).z ; 
-		S[2][3] = this->getBoundingPoint(1).z ;  
+		if(order < QUADRATIC)
+		{
+			Matrix S(4,4) ;
+			S[0][0] = this->getBoundingPoint(2).x;
+			S[0][1] = this->getBoundingPoint(3).x; 
+			S[0][2] = this->getBoundingPoint(0).x ; 
+			S[0][3] = this->getBoundingPoint(1).x ;  
 		
-		S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
-		
-		Vector v(4) ; 
-		v[0] = p.x ;
-		v[1] = p.y ;
-		v[2] = p.z ;
-		v[3] = 1 ;
+			S[1][0] = this->getBoundingPoint(2).y ;
+			S[1][1] = this->getBoundingPoint(3).y;
+			S[1][2] = this->getBoundingPoint(0).y ; 
+			S[1][3] = this->getBoundingPoint(1).y ;  
 
-		Vector coeff = inverse4x4Matrix(S) * v ;
+			S[2][0] = this->getBoundingPoint(2).z ;
+			S[2][1] = this->getBoundingPoint(3).z;
+			S[2][2] = this->getBoundingPoint(0).z ; 
+			S[2][3] = this->getBoundingPoint(1).z ;  
 		
-	// 	VirtualMachine vm ;
+			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
+		
+			Vector v(4) ; 
+			v[0] = p.x ;
+			v[1] = p.y ;
+			v[2] = p.z ;
+			v[3] = 1 ;
 
-	// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
-	// 	t.print();
-	// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
-	// 	test.print() ;
-	// 	inLocalCoordinates(test) ;
-	// 	std::cout << std::endl ;
-		return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+			Vector coeff = inverse4x4Matrix(S) * v ;
+		
+		// 	VirtualMachine vm ;
+
+		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+		// 	t.print();
+		// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
+		// 	test.print() ;
+		// 	inLocalCoordinates(test) ;
+		// 	std::cout << std::endl ;
+			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+		}
+		else
+		{
+			Matrix S(4,4) ;
+			S[0][0] = this->getBoundingPoint(4).x;
+			S[0][1] = this->getBoundingPoint(6).x; 
+			S[0][2] = this->getBoundingPoint(0).x ; 
+			S[0][3] = this->getBoundingPoint(2).x ;  
+		
+			S[1][0] = this->getBoundingPoint(4).y ;
+			S[1][1] = this->getBoundingPoint(6).y;
+			S[1][2] = this->getBoundingPoint(0).y ; 
+			S[1][3] = this->getBoundingPoint(2).y ;  
+
+			S[2][0] = this->getBoundingPoint(4).z ;
+			S[2][1] = this->getBoundingPoint(6).z;
+			S[2][2] = this->getBoundingPoint(0).z ; 
+			S[2][3] = this->getBoundingPoint(2).z ;  
+		
+			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
+		
+			Vector v(4) ; 
+			v[0] = p.x ;
+			v[1] = p.y ;
+			v[2] = p.z ;
+			v[3] = 1 ;
+
+			Vector coeff = inverse4x4Matrix(S) * v ;
+		
+			double time = p.t ;
+			if(timePlanes() > 1)
+			{
+				double t0 = this->getBoundingPoint(0).t ;
+				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).t ;
+				time = -1 + 2.*( p.t-t0)/(t1-t0) ;
+			}	
+
+		// 	VirtualMachine vm ;
+
+		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+		// 	t.print();
+		// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
+		// 	test.print() ;
+		// 	inLocalCoordinates(test) ;
+		// 	std::cout << std::endl ;
+			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,time); 
+		}
 	}
 	else
 	{
-		Matrix S(4,4) ;
-		S[0][0] = this->getBoundingPoint(4).x;
-		S[0][1] = this->getBoundingPoint(6).x; 
-		S[0][2] = this->getBoundingPoint(0).x ; 
-		S[0][3] = this->getBoundingPoint(2).x ;  
+			Matrix S(4,4) ;
+			S[0][0] = this->getBoundingPoint(2).x;
+			S[0][1] = this->getBoundingPoint(3).x; 
+			S[0][2] = this->getBoundingPoint(0).x ; 
+			S[0][3] = this->getBoundingPoint(1).x ;  
 		
-		S[1][0] = this->getBoundingPoint(4).y ;
-		S[1][1] = this->getBoundingPoint(6).y;
-		S[1][2] = this->getBoundingPoint(0).y ; 
-		S[1][3] = this->getBoundingPoint(2).y ;  
+			S[1][0] = this->getBoundingPoint(2).y ;
+			S[1][1] = this->getBoundingPoint(3).y;
+			S[1][2] = this->getBoundingPoint(0).y ; 
+			S[1][3] = this->getBoundingPoint(1).y ;  
 
-		S[2][0] = this->getBoundingPoint(4).z ;
-		S[2][1] = this->getBoundingPoint(6).z;
-		S[2][2] = this->getBoundingPoint(0).z ; 
-		S[2][3] = this->getBoundingPoint(2).z ;  
+			S[2][0] = this->getBoundingPoint(2).z ;
+			S[2][1] = this->getBoundingPoint(3).z;
+			S[2][2] = this->getBoundingPoint(0).z ; 
+			S[2][3] = this->getBoundingPoint(1).z ;  
 		
-		S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
+			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 		
-		Vector v(4) ; 
-		v[0] = p.x ;
-		v[1] = p.y ;
-		v[2] = p.z ;
-		v[3] = 1 ;
+			Vector v(4) ; 
+			v[0] = p.x ;
+			v[1] = p.y ;
+			v[2] = p.z ;
+			v[3] = 1 ;
 
-		Vector coeff = inverse4x4Matrix(S) * v ;
-		
-	// 	VirtualMachine vm ;
+			Vector coeff = inverse4x4Matrix(S) * v ;
 
-	// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
-	// 	t.print();
-	// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
-	// 	test.print() ;
-	// 	inLocalCoordinates(test) ;
-	// 	std::cout << std::endl ;
-		return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+			double time = p.t ;
+			if(timePlanes() > 1)
+			{
+				double t0 = this->getBoundingPoint(0).t ;
+				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).t ;
+				time = -1 + 2.*( p.t-t0)/(t1-t0) ;
+			}	
+
+			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,time); 
+
 	}
 }
 
@@ -3501,8 +3721,10 @@ Function ElementaryVolume::jacobian() const
 	
 	Function ret = xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
 						xdxi*ydzeta*zdeta - xdeta*ydxi*zdzeta - xdzeta*ydeta*zdxi ;
-	
-	return ret ;
+	if(order < CONSTANT_TIME_LINEAR)
+		return ret ;	
+
+	return ret * getTTransform().d(TIME_VARIABLE) ;
 }
 
 double ElementaryVolume::jacobianAtPoint(const Point & p) const 
@@ -3962,10 +4184,10 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		VirtualMachine vm ;
 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 		{
-			double dxi = vm.deval(getShapeFunction(i), XI, p, Point(0,0,0,0), 1e-5) ;
-			double deta = vm.deval(getShapeFunction(i), ETA, p, Point(0,0,0,0), 1e-5) ;
-			double dzeta = vm.deval(getShapeFunction(i), ZETA, p, Point(0,0,0,0), 1e-5) ;
-			double dtau = vm.deval(getShapeFunction(i), TIME_VARIABLE, p, Point(0,0,0,0), 1e-5) ;
+			double dxi = vm.deval(getShapeFunction(i), XI, p) ;
+			double deta = vm.deval(getShapeFunction(i), ETA, p) ;
+			double dzeta = vm.deval(getShapeFunction(i), ZETA, p) ;
+			double dtau = vm.deval(getShapeFunction(i), TIME_VARIABLE, p) ;
 			
 			xdxi += dxi*getBoundingPoint(i).x ;
 			ydxi += dxi*getBoundingPoint(i).y ;
@@ -3993,7 +4215,6 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ; ret[1][2] = zdeta ; ret[1][3] = 0;
 		ret[2][0] = xdzeta ; ret[2][1] = ydzeta ; ret[2][2] = zdzeta ; ret[2][3] = 0;
 		ret[3][0] = 0 ; ret[3][1] = 0 ; ret[3][2] = 0 ; ret[3][3] = tdtau;
-
 
 		ret = inverse4x4Matrix(ret) ;
 	}

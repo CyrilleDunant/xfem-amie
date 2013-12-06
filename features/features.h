@@ -485,6 +485,8 @@ public:
 	 */
 	void addFeature( Feature * const father, Feature * const f, int layer = -1, double fraction = 1) ;
 	
+	void removeFeature( Feature * f) ;
+
 	void addPoint(Point * p) ;
 
 	void twineFeature(CompositeFeature * const father, CompositeFeature * const f) ;

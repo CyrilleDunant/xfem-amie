@@ -82,6 +82,9 @@ struct Viscoelasticity : public LinearForm
 
 	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+//	virtual Matrix getConstitutiveStiffnessTensor() ;
+//	virtual Matrix getConstitutiveViscosityTensor() ;
 	
 	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const { return param ; }	
 	
@@ -93,8 +96,12 @@ struct Viscoelasticity : public LinearForm
 	
 	virtual void print() const ;
 	
+//	static Viscoelasticity * serialAssembly( Viscoelasticity * v1, Viscoelasticity * v2) ;
+//	static Viscoelasticity * parallelAssembly( Viscoelasticity * v1, Viscoelasticity * v2) ;
+
   
 } ;
+
 
 } ;
 

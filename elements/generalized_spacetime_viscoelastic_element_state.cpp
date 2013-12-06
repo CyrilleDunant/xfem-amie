@@ -27,7 +27,7 @@ GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticE
 	return *this ;
 }
 
-GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
+GaussPointArray genEquivalentGaussPointArray2D( TriElement * trg, double time)
 {
 	GaussPointArray gp ;
 	switch(trg->getOrder())
@@ -63,28 +63,54 @@ GaussPointArray genEquivalentGaussPointArray( TriElement * trg, double time)
 	return gp ;
 }
 
+GaussPointArray genEquivalentGaussPointArray3D( TetrahedralElement * tet, double time)
+{
+	GaussPointArray gp ;
+	switch(tet->getOrder())
+	{
+		case LINEAR_TIME_LINEAR:
+		case LINEAR_TIME_QUADRATIC:
+			gp = gaussPointSet(LINEAR, tet) ;
+			break ;
+		case QUADRATIC_TIME_LINEAR:
+		case QUADRATIC_TIME_QUADRATIC:
+			gp = gaussPointSet(QUADRATIC, tet) ;
+			break ;
+	}
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		gp.gaussPoints[i].first.t = time ;
+	
+	if(tet->getEnrichmentFunctions().size() > 0)
+	{
+		std::vector<std::pair<Point, double> > gp_alternative ;
+		GaussPointArray original = tet->getGaussPoints() ;
+		for(size_t i = 0 ; i < original.gaussPoints.size()/3 ; i++)
+		{
+			gp_alternative.push_back(original.gaussPoints[i*3]);
+			gp_alternative.back().first.t = time ;
+			gp_alternative.back().second /= 1./3. ;
+		}
+
+		gp.gaussPoints.resize(gp_alternative.size()) ;
+		std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
+
+	}
+
+	return gp ;
+}
+
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, int dummy , double t) 
 {
-// 	BimaterialInterface * dual = dynamic_cast<BimaterialInterface *>(parent->getBehaviour()) ;
-// 	if(dual != nullptr)
-// 	{
-// 		ret = 0 ;
-// 		return ;
-// 	}
-// 	Vector toto = parent->getBehaviour()->getImposedStress(Point(1./3.,1./3.,0,0)) ;
-// 	if(toto[0] > 0)
-// 	{
-// 		ret = 0 ;
-// 		return ;
-// 	}
-  
   
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
 	if(dummy<0)
 	{
-		gp = genEquivalentGaussPointArray( dynamic_cast<TriElement *>(parent), t) ;
+		if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+			gp = genEquivalentGaussPointArray2D( dynamic_cast<TriElement *>(parent), t) ;
+		else
+			gp = genEquivalentGaussPointArray3D( dynamic_cast<TetrahedralElement *>(parent), t) ;
 	}
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
@@ -96,39 +122,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		total += w ;
 	}	
 	
-// 	double shapes = 0. ;
-// 	for(size_t i = 0 ; i < getParent()->getShapeFunctions().size() ; i++)
-// 	{
-// 		shapes += VirtualMachine().ieval( getParent()->getShapeFunction(i), gp) ;
-// 	}
-// 	double enriched = shapes ;
-// 	for(size_t i = 0 ; i < getParent()->getEnrichmentFunctions().size() ; i++)
-// 	{
-// 		enriched += VirtualMachine().ieval( getParent()->getEnrichmentFunction(i), gp) ;
-// 		//std::cout << "(" << gp.gaussPoints.size() << ")" << enriched << "\t" ;
-// 	}
+	ret /= total;
 	
-	
-	
-// 	if(parent->getEnrichmentFunctions().size())
-// 	{
-// 	for(size_t i = 0 ; i < parent->getEnrichmentFunctions().size() ; i++)
-// 	  std::cout << parent->getEnrichmentFunction(i).getDofID() << ";" ;
-// 	std::cout << std::endl ;
-// 	}
-//	std::cout << gp.gaussPoints.size() << "\t" << ret.size() << "\t" << getParent()->area() << std::endl ;
-	ret /= total;//(shapes/enriched) ;
-	
-// 	if(dummy < 0)
-// 		std::cout << t << "\t" << ret.max() << std::endl ;
-	
-// 	if(f == STRAIN_FIELD)
-// 	{
-// 		Vector toto(3) ; 
-// 		getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, toto, dummy, t) ;
-// 		std::cout << parent->getEnrichmentFunctions().size() << ";" << ret[0]-toto[0] << "\t" ;
-// 	}
-
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, int dummy , double t) 
@@ -319,7 +314,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					z_zeta += f_zeta * z ;
 				}
 
-				Matrix Jinv( 3, 3 ) ;
+				Matrix Jinv ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];

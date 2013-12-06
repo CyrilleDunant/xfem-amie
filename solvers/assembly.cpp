@@ -553,7 +553,7 @@ void Assembly::initialiseElementaryMatrices()
 			{
 				if(i%1000 == 0)
 					std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
-				if(element3d[i]->getBehaviour())	
+				if(element3d[i]->getBehaviour())
 				{
 					element3d[i]->getElementaryMatrix() ;
 					if(element3d[i]->getBehaviour()->isViscous())
@@ -912,6 +912,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
+
 				
 			max = map->rbegin()->first +1;
 			size_t realDofs = max ;
@@ -1002,6 +1003,37 @@ bool Assembly::make_final()
 					}
 				}
 			}
+
+			if(element3d[i]->getBehaviour()->isViscous())
+			{
+			std::valarray<std::valarray<Matrix > > vmother = element3d[i]->getViscousElementaryMatrix();
+				for(size_t j = 0 ; j < ids.size() ;j++)
+				{
+
+					for(size_t l = 0 ; l < ndof  ; l++)
+					{
+						for(size_t m = 0 ; m < ndof  ; m++)
+						{
+							getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * vmother[j][j][l][m] ;
+						}
+					}
+				
+					for(size_t k = j+1 ; k < ids.size() ;k++)
+					{
+						for(size_t l = 0 ; l < ndof  ; l++)
+						{
+							for(size_t m = 0 ; m < ndof  ; m++)
+							{
+								getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * vmother[j][k][l][m] ;
+								getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * vmother[k][j][l][m] ;
+								test[j*ndof+l][k*ndof+m] = scales[i] * vmother[j][k][l][m] ;
+								test[k*ndof+l][j*ndof+m] = scales[i] * vmother[k][j][l][m] ;
+							}
+						}
+					}
+				}
+			}
+
 			dmax = std::abs(test.array()).max() ;
 			if(dmax > POINT_TOLERANCE_3D)
 			{
@@ -1019,7 +1051,7 @@ bool Assembly::make_final()
 		}
 
 // 		
-		getMatrix().stride =  ndof;
+		getMatrix().stride =   element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;;
 		std::cerr << " ...done" << std::endl ;
 			
 		setBoundaryConditions() ;

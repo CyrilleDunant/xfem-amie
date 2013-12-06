@@ -699,12 +699,11 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
-						)
-						)
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+ 						)
 						{
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
@@ -760,6 +759,8 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
 					
+					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
+
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -786,12 +787,11 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
-						)
-						)
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+ 						)
 						{
 							if(!first)
 								first = new Point(e->getBoundingPoint( i ) ) ;
@@ -873,11 +873,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->first->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->second->id ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->third->id  ||
-						  id[j] == dynamic_cast<DelaunayTetrahedron *>(e)->fourth->id 
-						)
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)

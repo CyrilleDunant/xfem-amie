@@ -491,7 +491,6 @@ void FeatureTree::renumber()
 			size_t count = 0 ;
 			std::cerr << " renumbering... " << std::flush ;
 
-//			std::cerr << triangles.size() << std::endl ;
 			for( auto i = triangles.begin() ; i != triangles.end() ; ++i )
 			{
 				for( size_t j = 0 ; j < ( *i )->getBoundingPoints().size() ; j++ )
@@ -637,7 +636,7 @@ void FeatureTree::renumber()
 
 			if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
-				for( size_t j = 0 ; j < tet->getBoundingPoints().size() ; j++ )
+				for( size_t j = 0 ; j < tet->getBoundingPoints().size()/tet->timePlanes() ; j++ )
 				{
 					if( tet->getBoundingPoint( j ).id == -1 )
 						tet->getBoundingPoint( j ).id = count++ ;
@@ -646,7 +645,31 @@ void FeatureTree::renumber()
 		}
 
 
-		lastNodeId = count ;
+			lastNodeId = count ;
+
+			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
+			{
+				if( *i && (*i)->getBehaviour())
+				{
+					for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
+					{
+						for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
+						{
+							if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
+							{
+								const_cast<DelaunayTetrahedron *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
+								count++ ;
+							}
+						}
+					}
+				}
+				else if (!*i)
+				{
+					std::cerr << "nullTet" << std::endl ;
+				}
+			}
+			
+			lastNodeId = count ;
 
 		std::cerr << count * 3 << " ...done " << std::endl ;
 
@@ -5674,30 +5697,20 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				elements[i]->getState().getAverageField( f, buffer, -1, t) ;
-// 				if(elements[i]->getOrder() < LINEAR_TIME_LINEAR)
-// 				{
-					avg += buffer * elements[i]->area() ;
-					volume += elements[i]->area() ;
-// 				}
-// 				else
-// 				{
-// 					Triangle tprev(elements[i]->getBoundingPoint(0), elements[i]->getBoundingPoint(1), elements[i]->getBoundingPoint(2)) ;
-// 					Triangle tnext(elements[i]->getBoundingPoint(3), elements[i]->getBoundingPoint(4), elements[i]->getBoundingPoint(5)) ;
-// 					double area = tprev.area() + (t+1)/2*(tnext.area() - tprev.area())  ; 
-// 					avg += buffer * area ;
-// 					volume += area ;
-// 				}
+				avg += buffer * elements[i]->area() ;
+				volume += elements[i]->area() ;
 			}
 		}
 	}
 	else
 	{
 		std::vector<DelaunayTetrahedron *> elements = this->getElements3D( grid ) ;
-		avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
+		avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; 
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			elements[i]->getState().getAverageField( f, buffer ) ;
+			elements[i]->getState().getAverageField( f, buffer, -1, t ) ;
 			avg += buffer * elements[i]->volume() ;
 			volume += elements[i]->volume() ;
 		}
