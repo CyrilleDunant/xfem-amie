@@ -56,17 +56,17 @@ double CreepRupture::grade( ElementState &s )
 	if(cAfter < limStress)
 		return cAfter / maxStress;
 
-	float crit = 1. ;
-	float tmin = 0. ;
-	float tmax = 1. ;
-	float tnext = 0.5 ; 
+	double crit = 1. ;
+	double tmin = 0. ;
+	double tmax = 1. ;
+	double tnext = 0.5 ; 
 	int niter = 0 ;
 	
 	while(std::abs(crit) > 1e-6 && niter++ < 10)
 	{
 		tnext = tmin*0.66 + tmax*0.34 ;
-		float sigma = maxStressBefore + tnext*dStress ;
-		float epsilon = -(maxStrainBefore + tnext*dStrain)*kstrain ;
+		double sigma = maxStressBefore + tnext*dStress ;
+		double epsilon = -(maxStrainBefore + tnext*dStrain)*kstrain ;
 		crit = sigma - ds * expf( epsilon ) ;
 		(crit > limStress) ? tmax = tnext : tmin = tnext ;
 	}

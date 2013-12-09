@@ -6,13 +6,6 @@ find_package(OpenMP)
 if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
-find_package(GLUT)
-find_package(OpenGL)
-if( GLUT_FOUND EQUAL 1 )
-	include(FindGLUT)
-else( GLUT_FOUND EQUAL 0 )
-	message( STATUS " GLUT not found " )
-endif( GLUT_FOUND EQUAL 1 )
 
 set(ALL_SRC 
 elements/elements.cpp 
@@ -195,6 +188,11 @@ CHECK_CXX_COMPILER_FLAG(-msse4.1 COMPILER_HAS_SSE41 )
 CHECK_CXX_COMPILER_FLAG(-msse4.2 COMPILER_HAS_SSE42 )
 CHECK_CXX_COMPILER_FLAG(-msse3 COMPILER_HAS_SSE3 )
 
+if(BUILD_32 EQUAL 1)
+	set(BIT32_FLAGS "-m32")
+	message (STATUS "  32 bit build")
+endif(BUILD_32 EQUAL 1)
+
 if(DEBUG_BUILD EQUAL 0)
  if(COMPILER_HAS_SSE3)
  	add_definitions("-msse3")
@@ -303,22 +301,17 @@ if(DEBUG_BUILD EQUAL 1)
 	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
-	add_definitions(-g3 -fno-exceptions -O3 -std=c++0x -DNDEBUG -funroll-loops -march=native)
+	add_definitions(-g3 -fno-exceptions -O3 ${BIT32_FLAGS} -std=c++0x -DNDEBUG -funroll-loops )
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
-
-#if we are under windows, we'll assume freeglut...
-if(CMAKE_HOST_WIN32)
-	set(GLUT_LIBRARY "-lfreeglut -lopengl32 -lglu32")
-endif(CMAKE_HOST_WIN32)
 
 add_library (Amie ${ALL_SRC})
 
 add_executable(small examples/main_small.cpp )
-target_link_libraries( small Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( small Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(3d  examples/main_3d.cpp  )
-target_link_libraries( 3d Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( 3d Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -327,10 +320,10 @@ target_link_libraries( 3d Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${
 #target_link_libraries( cl Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(example examples/main.cpp )
-target_link_libraries( example Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( example Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(def examples/main_def.cpp )
-target_link_libraries( def Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( def Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable(detail examples/main_detail.cpp )
 #target_link_libraries( detail Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -339,60 +332,60 @@ target_link_libraries( def Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU $
 #target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(multicrack examples/main_multicrack.cpp )
-target_link_libraries( multicrack Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( multicrack Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} )
 
 add_executable(steel examples/main_steel.cpp )
-target_link_libraries( steel Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( steel Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} )
 
 add_executable(alain examples/main_alain.cpp )
-target_link_libraries( alain Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( alain Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(rag examples/main_rag.cpp )
-target_link_libraries( rag Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(rag_simple examples/main_rag_simple.cpp )
-target_link_libraries( rag_simple Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag_simple Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(wedge examples/main_wedge_splitting.cpp )
-target_link_libraries( wedge Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( wedge Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable(ellipse_test examples/main_ellipse_test.cpp )
-#target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+#target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
-target_link_libraries( thermal_expansion Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( thermal_expansion Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(geometry examples/main_geometry.cpp )
-target_link_libraries( geometry Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( geometry Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(benchmark examples/main_benchmark.cpp )
-target_link_libraries( benchmark Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( benchmark Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(rag_shape examples/main_rag_shape.cpp )
-target_link_libraries( rag_shape Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag_shape Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(homogenization examples/main_homogenization.cpp )
-target_link_libraries( homogenization Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( homogenization Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable(simple examples/main_simple.cpp )
-#target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+#target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(tripoint examples/main_tripoint.cpp )
-target_link_libraries( tripoint Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( tripoint Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(visco examples/main_visco.cpp )
-target_link_libraries( visco Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(rag_visco examples/main_rag_visco.cpp )
-target_link_libraries( rag_visco Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( rag_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(tension examples/main_tension.cpp )
-target_link_libraries( tension Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( tension Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable( wave examples/main_wave.cpp )
-#target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+#target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable( cyrille_test examples/main_cyrille.cpp )
-target_link_libraries( cyrille_test Amie ${GLUT_LIBRARY} ${OPENGL_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( cyrille_test Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 

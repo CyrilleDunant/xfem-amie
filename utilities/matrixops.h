@@ -21,15 +21,15 @@
 #include <assert.h>
 
 
-#ifdef HAVE_SSE3
-#include <emmintrin.h>
-
-typedef union 
-{
-	__m128d vec ;
-	double val[2] ;
-} vecdouble;
-#endif
+// #ifdef HAVE_SSE3
+// #include <emmintrin.h>
+// 
+// typedef union 
+// {
+// 	__m128d vec ;
+// 	double val[2] ;
+// } vecdouble;
+// #endif
 
 typedef std::valarray<double> Vector ;
 

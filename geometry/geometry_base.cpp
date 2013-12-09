@@ -5148,17 +5148,17 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	if(na >= nb && na >= nc)
 	{
 		Line l(f0_,(f1_-f0_)/na) ;
-		Sphere s(1.*POINT_TOLERANCE_2D, test_) ;
+		Sphere s(POINT_TOLERANCE_2D, test_) ;
 		return l.intersects(&s) ;
 	}
 	if(nb >= na && nb >= nc)
 	{
 		Line l(f0_,(test_-f0_)/nb) ;
-		Sphere s(1.*POINT_TOLERANCE_2D, f1_) ;
+		Sphere s(POINT_TOLERANCE_2D, f1_) ;
 		return l.intersects(&s) ;
 	}
 	Line l(f1_,(test_-f1_)/nc) ;
-	Sphere s(1.*POINT_TOLERANCE_2D, f0_) ;
+	Sphere s(POINT_TOLERANCE_2D, f0_) ;
 	return l.intersects(&s) ;
 } 
 
