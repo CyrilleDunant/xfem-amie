@@ -533,7 +533,7 @@ void Assembly::initialiseElementaryMatrices()
 // 	{
 		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
-			#pragma omp parallel for
+//			#pragma omp parallel for
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
 				if(i%10000 == 0)
@@ -548,7 +548,7 @@ void Assembly::initialiseElementaryMatrices()
 		}
 		else if(dim == SPACE_THREE_DIMENSIONAL)
 		{
-			#pragma omp parallel for
+//			#pragma omp parallel for
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
 				if(i%1000 == 0)
@@ -596,7 +596,7 @@ void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
 		if(i%1000 == 0)
@@ -622,7 +622,7 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
 
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 		if(i%10000 == 0)

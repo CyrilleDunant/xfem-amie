@@ -78,7 +78,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		std::vector<double> newindividual ;
 		for(size_t j = 0 ;  j < vars.size() ; j++)
 		{
-			newindividual.push_back((bounds[j].second-bounds[j].first)*random()/RAND_MAX + bounds[j].first);
+            newindividual.push_back((bounds[j].second-bounds[j].first)*rand()/RAND_MAX + bounds[j].first);
 		}
 		individuals.push_back(newindividual);
 	}
@@ -88,7 +88,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		std::vector<double> newindividual ;
 		for(size_t j = 0 ;  j < namedVars.size() ; j++)
 		{
-			newindividual.push_back((namedVarsBounds[j].second-namedVarsBounds[j].first)*random()/RAND_MAX + namedVarsBounds[j].first);
+            newindividual.push_back((namedVarsBounds[j].second-namedVarsBounds[j].first)*rand()/RAND_MAX + namedVarsBounds[j].first);
 		}
 		nindividuals.push_back(newindividual);
 	}
@@ -98,7 +98,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		std::vector<double> newllindividual ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 		{
-			newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*random()/RAND_MAX + lowLevelbounds[j].first);
+            newllindividual.push_back((lowLevelbounds[j].second-lowLevelbounds[j].first)*rand()/RAND_MAX + lowLevelbounds[j].first);
 		}
 		llindividuals.push_back(newllindividual);
 	}
@@ -238,7 +238,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 				}
 				
 				double llf = lowLevelFunction() ;
-				if(!isnan(llf))
+                if(!std::isnan(llf))
 				{
 					sorted[llf] = llindividuals[i] ;
 					break ;
@@ -365,7 +365,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 				}
 				
 				double llf = generator->score() ;
-				if(!isnan(llf))
+                if(!std::isnan(llf))
 				{
 					sorted[llf] = llindividuals[i] ;
 					break ;

@@ -43,7 +43,6 @@
 #include <cmath>
 #include <typeinfo>
 #include <limits>
-#include <GL/glut.h>
 #include <sys/time.h>
 
 using namespace Mu ;

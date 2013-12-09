@@ -35,63 +35,9 @@
 #include <cmath>
 #include <typeinfo>
 #include <limits>
-#include <GL/glut.h>
 #include <time.h> 
 #include "../utilities/writer/voxel_writer.h"
 #define DEBUG 
-
-#define ID_QUIT 1
-#define ID_ZOOM 2
-#define ID_UNZOOM 3
-#define ID_NEXT10 4
-#define ID_NEXT100 5
-#define ID_NEXT1000 6
-#define ID_NEXT 7
-#define ID_NEXT_TIME 8
-#define ID_REFINE 9
-#define ID_AMPLIFY 10
-#define ID_DEAMPLIFY 11
-
-#define ID_DISP 12
-#define ID_STRAIN_XX 13
-#define ID_STRAIN_XY 14
-#define ID_STRAIN_XZ 15
-#define ID_STRAIN_YZ 16
-#define ID_STRAIN_YY 17
-#define ID_STRAIN_ZZ 18
-#define ID_STRESS_XX 19
-#define ID_STRESS_XY 20
-#define ID_STRESS_YY 21
-#define ID_STRESS_ZZ 22
-#define ID_STRESS_XZ 23
-#define ID_STRESS_YZ 24
-
-#define ID_STIFNESS 25
-#define ID_ELEM 26
-#define ID_VON_MISES 27
-#define ID_ANGLE 28
-#define ID_ENRICHMENT 29
-
-GLuint DISPLAY_LIST_DISPLACEMENT = 0 ;
-GLuint DISPLAY_LIST_ELEMENTS = 0 ;
-GLuint DISPLAY_LIST_STRAIN_XX = 0 ;
-GLuint DISPLAY_LIST_STRAIN_YY = 0 ;
-GLuint DISPLAY_LIST_STRAIN_ZZ = 0 ;
-GLuint DISPLAY_LIST_STRAIN_XY = 0 ;
-GLuint DISPLAY_LIST_STRAIN_XZ = 0 ;
-GLuint DISPLAY_LIST_STRAIN_YZ = 0 ;
-GLuint DISPLAY_LIST_STRESS_XX = 0 ;
-GLuint DISPLAY_LIST_STRESS_YY = 0 ;
-GLuint DISPLAY_LIST_STRESS_ZZ = 0 ;
-GLuint DISPLAY_LIST_STRESS_XY = 0 ;
-GLuint DISPLAY_LIST_STRESS_XZ = 0 ;
-GLuint DISPLAY_LIST_STRESS_YZ = 0 ;
-GLuint DISPLAY_LIST_STIFFNESS = 0 ;
-GLuint DISPLAY_LIST_VON_MISES  = 0 ;
-GLuint DISPLAY_LIST_ANGLE  = 0 ;
-GLuint DISPLAY_LIST_ENRICHMENT = 0 ;
-GLuint DISPLAY_LIST_STIFFNESS_DARK = 0 ;
-
 using namespace Mu ;
 
 int viewangle = 0 ;
@@ -114,9 +60,6 @@ double x_min = 0 ;
 double y_min = 0 ;
 double z_min = 0 ;
 
-GLint xangle = 0;
-GLint yangle = 0;
-GLint zangle = 0;
 
 timeval t0, t1 ;
 
@@ -125,9 +68,6 @@ double timepos = 0.1 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
-
-int windowWidth = 600 ;
-int windowHeight = 600 ;
 
 std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
@@ -167,7 +107,6 @@ double E_paste = 1 ;//stiff
 double E_stiff = E_agg*10 ;//stiffer
 double E_soft = E_agg/10; //stiffest
 
-size_t current_list = DISPLAY_LIST_DISPLACEMENT ;
 double factor = 0.3 ;
 MinimumAngle cri(M_PI/6.) ;
 bool nothingToAdd = false ;
