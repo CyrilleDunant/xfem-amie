@@ -4761,6 +4761,7 @@ bool FeatureTree::stepElements()
 
 			int fracturedCount = 0 ;
 			int ccount = 0 ;
+			size_t changecount = 0 ;				
 
 			if( !elastic )
 			{
@@ -4803,10 +4804,13 @@ bool FeatureTree::stepElements()
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
 							{
-								adamage += are * dmodel->getState().max() ;
+								adamage += are  * (dmodel->getState().max() > 0.) ;
 // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
 // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
 							}
+							else
+								adamage += are ;// * dmodel->getState().max() ;
+
 						}
 						if( elements[i]->getBehaviour()->changed() )
 						{
@@ -4834,7 +4838,7 @@ bool FeatureTree::stepElements()
 				averageDamage = adamage/volume ;
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
-				
+
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4876,7 +4880,7 @@ bool FeatureTree::stepElements()
 			
 			if( !elastic && foundCheckPoint )
 			{
-				std::cout << "[" << averageDamage << " ; " << std::flush ;
+				std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
 				maxScore = -1. ;
 				maxTolerance = 1 ;
 // 				double maxs = -1 ;

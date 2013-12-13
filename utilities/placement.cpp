@@ -35,6 +35,17 @@ bool bord(double r, double longueurX, double longueurY, double x, double y)//fon
 	return false;
 }
 
+bool intersections( Feature * feat, const std::vector<Geometry *> & exclusionZones)
+{
+	for(size_t i = 0 ; i < exclusionZones.size() ; i++)
+	{
+		if(feat->intersects(exclusionZones[i]))
+			return true ;
+	}
+	return false ;
+}
+
+
 void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution, RandomDistribution & rDistribution)
 {
 	Point c( xDistribution.draw(), yDistribution.draw() ) ;
@@ -43,7 +54,7 @@ void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistr
 	inc->transform(ROTATE, theta) ;
 }
 
-std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation) 
+std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
 {
 	std::vector<Feature *> ret ;
 	int tries = 0 ;
@@ -74,7 +85,7 @@ std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature 
 		
 		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
 		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || intersections(inclusions[i], exclusionZones) )
 		{
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			bbox = inclusions[i]->getBoundingBox() ;
@@ -86,7 +97,7 @@ std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature 
 			
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))|| intersections(inclusions[i], exclusionZones) )
 			{
 				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 				bbox = inclusions[i]->getBoundingBox() ;
@@ -114,7 +125,7 @@ std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature 
 }
 
 
-std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, bool verbose)
+std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, std::vector<Geometry *> exclusionZones, bool verbose)
 {
 	int tries = 0 ;
 	
@@ -155,7 +166,8 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 			}
 			inclusions[i]->setCenter(newCentre) ;
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )/*|| inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
+			
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || intersections(inclusions[i], exclusionZones) )/*|| inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
 			{
 				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
@@ -168,7 +180,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 				Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 				inclusions[i]->setCenter(newCentre) ;
 				bbox = inclusions[i]->getBoundingBox() ;
-				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) )/* || inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
+				while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || intersections(inclusions[i], exclusionZones))/* || inclusions[0]->in(inclusions[i]->getCenter()) || (inclusions[0]->in(bbox[0]) || inclusions[0]->in(bbox[1]) || inclusions[0]->in(bbox[2]) || inclusions[0]->in(bbox[3])))*/
 				{
 					Point newCentre(gen.uniform(ix) - ix/2. + offset.x , gen.uniform(iy) - iy/2. + offset.y) ;
 					inclusions[i]->setCenter(newCentre) ;

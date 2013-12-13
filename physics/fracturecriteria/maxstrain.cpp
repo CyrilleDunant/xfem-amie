@@ -66,11 +66,11 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 
 	metInCompression = false ;
 	metInTension = false ;
-//	std::cout << maxstress << "\t" << maxStrainAfter << std::endl ;
 	if(maxStrainAfter > upVal)
 	{
 		metInTension = true ;
-		return std::min(1., 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
+//		std::cout << upVal << "\t" << maxStrainAfter  << "\t" << maxStrainBefore << std::endl ;
+		return  1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore) ;
 	}
 	return -1.+ maxStrainAfter/upVal;
 	

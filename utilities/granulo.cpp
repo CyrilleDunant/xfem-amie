@@ -132,7 +132,7 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, do
 	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement,size_t seed) 
+std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
 {
 	Feature * box = F->getFeature(0) ;
 	double ar = sqrt(box->area()) ;
@@ -160,9 +160,9 @@ std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, 
 	inc.clear() ;
 	srand(seed) ;
 	if(placement)
-		feats = placement2D( placement, feats, itz, 0, tries, orientation ) ;
+		feats = placement2D( placement, feats, itz, 0, tries, orientation, exclusionZones ) ;
 	else
-		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation ) ;
+		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation, exclusionZones ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{

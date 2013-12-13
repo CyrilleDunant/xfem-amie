@@ -25,6 +25,8 @@ class SpaceTimeFiberBasedIsotropicLinearDamage : public DamageModel
 protected:
 	double fibreFraction ;
 	double timeTolerance ;
+	Function visc ;
+
 public:
 	/** \brief Constructor. Set the number of degrees of freedom
 	 * 
@@ -46,6 +48,8 @@ public:
 	 * @param s ElementState
 	 */
 	virtual void step(ElementState & s, double maxscore)  ;
+
+	void setLogitViscousDamageLaw(double a, double b, double c) ;
 	
 	/** \brief compute the new stifness matrix after damage
 	 * 
@@ -54,6 +58,7 @@ public:
 	 * @return the new Matrix
 	 */
 	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+	virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 	
 	virtual void postProcess() ;
 	
@@ -61,7 +66,7 @@ public:
 		*/
 	virtual bool fractured() const  ;
 	
-	virtual DamageModel * getCopy() const { return new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;}
+	virtual DamageModel * getCopy() const ;
 };
 
 };

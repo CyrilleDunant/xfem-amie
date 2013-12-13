@@ -60,9 +60,9 @@ double width = 0.06 ;
 double depth = 0.03 ;//2.5 ;
 double nnotch = 0.085 ;
 double nwidth = 0.0025 ;
-Sample box(nullptr, length*0.5, length,length*0.25,length*0.5) ;
-Sample top(nullptr, width*0.5, depth, width*0.25, length - depth*0.5) ;
-Sample notch(nullptr,nwidth, nnotch, 0.0, length*0.5 - depth - nnotch*0.5) ;
+Sample box(nullptr, length, length,0.,length*0.5) ;
+Sample top(nullptr, width, depth, 0.0, length - depth*0.5) ;
+Sample notch(nullptr,nwidth, nnotch, 0.0, length - depth - nnotch*0.5) ;
 
 int main(int argc, char *argv[])
 {
@@ -70,30 +70,22 @@ int main(int argc, char *argv[])
 //	omp_set_num_threads(1) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(64) ;
+	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 100 ) ;
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/100.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
-	size_t seed = 0 ;//atof(argv[4]) ;
-//	F.setOrder(LINEAR) ;
+	size_t seed = 0 ;
+	ViscoElasticOnlyPasteBehaviour pastenodamage(20e9) ;
+
+	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.55) ;
+
+	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
+	left.isVirtualFeature  = true ;
+	left.setBehaviour(&pastenodamage) ;
 	
-//	Matrix cmx = (new PasteBehaviour(14e9))->param ;
-//	Matrix ckv = (new PasteBehaviour(30e9))->param ;
-//	Viscoelasticity dummy( BURGER, ckv, ckv*300, cmx, cmx*5000,2) ;
-
-//	Viscoelasticity concrete( dummy.param, dummy.eta, 5) ;
-
-	PseudoBurgerViscoElasticOnlyPasteBehaviour pastenodamage(12e9,0.3,2,10000) ;
-
-	Rectangle * placement= new Rectangle(length*0.7,nnotch, length*(-0.1), nnotch*0.5) ;
-
-//	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
-//	left.isVirtualFeature  = true ;
-//	left.setBehaviour(&pastenodamage) ;
-	
-	Sample middle(nullptr, length*0.5, depth+nnotch*0.9, length*0.25, length-(depth+nnotch*0.9)*0.5) ;
+	Sample middle(nullptr, length, depth+nnotch*0.9, 0., length-(depth+nnotch*0.9)*0.5) ;
 	middle.isVirtualFeature = true ;
 	middle.setBehaviour(&pastenodamage) ;
 
@@ -101,97 +93,84 @@ int main(int argc, char *argv[])
 	right.isVirtualFeature  = true ;
 	right.setBehaviour(&pastenodamage) ;
 
-	Rectangle refinement( length*0.6,nnotch*1.2, length*0.1, length-(depth+nnotch)*0.5) ;
-/*	Rectangle large( width, length, 0.,0.) ;
-	Rectangle large2( 0.04, length, 0.,0.) ;
-	Rectangle topfine( length, depth*2., 0., length*0.5-depth) ;*/
-//	F.addRefinementZone(placement);
-//	F.addRefinementZone(&refinement);
-//	F.addRefinementZone(&topfine);
-// 	F.addRefinementZone(&large);
-// 	F.addRefinementZone(&refinement);
-	Rectangle support( 0.001, depth, width*0.5, length-depth*0.5) ;
+	Rectangle refinement( width*1.1,nnotch*1.2, 0., nnotch*0.6) ;
+	Rectangle refinement2( width*1,nnotch*1.1, 0., nnotch*0.55) ;
+	F.addRefinementZone( &refinement ) ;
+//	F.addRefinementZone( &refinement2 ) ;
 	
-	PseudoBurgerViscoDamagePasteBehaviour paste(12e9, 0.3,2, 10000, atof(argv[2]), 0.002) ;
+	ViscoDamagePasteBehaviour paste ;
 	paste.freeblocks = 0 ;
-/*	if(argv[2] == std::string("stress"))
+	if(argv[2] == std::string("strain"))
+	{
+		paste.up = 0.00035 ;
+	}
+	if(argv[2] == std::string("stress"))
+	{
 		paste.ctype = STRESS_CRITERION ;
+		paste.up = 0.0003 ;
+	}
 	if(argv[2] == std::string("mixed"))
-		paste.ctype = MIXED_CRITERION ;*/
-	paste.ctype = MIXED_CRITERION ;
-	paste.stressFraction = atof(argv[3]) ;
+	{
+		paste.ctype = MIXED_CRITERION ;
+		paste.up = 0.00035 ;
+		paste.stressFraction = 0.75 ;
+	}
+	paste.materialRadius = 0.002 ;
 
-	box.setBehaviour( &paste ) ;
+	if(argv[2] == std::string("elastic"))
+		box.setBehaviour( &pastenodamage ) ;
+	else
+		box.setBehaviour( &paste ) ;
 
-//	box.setBehaviour( new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, c, c*0.3, c*0.3*10)) ;
-//	box.setBehaviour( new Viscoelasticity(PURE_ELASTICITY, c) ) ;
-//	box.setBehaviour( new StiffnessAndFracture( c, new NonLocalMohrCoulomb( 0.001, -0.008, 15e9) ) ) ;
-//	box.setBehaviour( new Stiffness( c ) ) ;
-	
-//	box.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius(0.00025);	
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 
-	/*std::vector<Inclusion *> inclusions = */
-//	size_t s = seed ;
 	ViscoElasticOnlyAggregateBehaviour agg ;
 	agg.freeblocks = 0 ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 170, 0.008, 0.000001, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.9 ) ;
+	std::vector<Geometry *> exclusionZones ;
+	exclusionZones.push_back( notch.getPrimitive() ) ;
+
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 300, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
 	for(size_t i = 0 ; i < aggregates.size() ; i++)
 	{
-/*		if(aggregates[i]->in( Point(0., nnotch) ) )
-		{
-			F.removeFeature(aggregates[i]) ;
-			continue ;
-		}*/
-
-//		if(placement->in(aggregates[i]->getCenter()))
-			F.setSamplingFactor(aggregates[i], 4.) ;
-/*		else
-		{
-			if(aggregates[i]->getRadius() < 0.006)
-				aggregates[i]->setBehaviour( &pastenodamage ) ;
-			else 
-				F.setSamplingFactor(aggregates[i], 8.) ;
-		}*/
+		F.setSamplingFactor(aggregates[i], 1.5) ;
 	}
-//	for(size_t i = 1000 ; i < 2000 ; i++)
-//		F.setSamplingFactor(aggregates[i], 3.) ;
-
-/*	Inclusion * support = new Inclusion(nullptr, 0.008, 0., -length*0.5) ;
-	support->setBehaviour( &agg) ;*/
 
  	F.addFeature(&box, &top) ;
 	F.addFeature(&box, &middle) ;
-// 	F.addFeature(&middle, &notch) ;
-//	F.addFeature(&box, support) ;
-//	F.setSamplingFactor(support, 2.) ;
-//	F.addFeature(&box, &left) ;
+ 	F.addFeature(&middle, &notch) ;
+	F.setSamplingFactor(&box, .125) ;
+//	F.setSamplingFactor(&top, 10.) ;
+//	F.setSamplingFactor(&notch, 10.) ;
+	F.addFeature(&box, &left) ;
 	F.addFeature(&box, &right) ;
 	F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 
-	F.setSamplingFactor( &top, 5. ) ;
-//	F.setSamplingFactor( &notch, 2. ) ;
-//	F.setSamplingFactor( support, 2. ) ;
-	
- 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5,0, 0 )) ;
- 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5, 0, 2 )) ;
- 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5, 0, 4 )) ;
+// 	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5,0, 0 )) ;
+ //	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5, 0, 2 )) ;
+ //	F.addBoundaryCondition(new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, -1e-5, 1e-5, -1e-5, nnotch+1e-5, 0, 4 )) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 6 )) ;
  //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 8 )) ;
 
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 1 ) ) ;
  	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 3 ) ) ;
  	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 5 ) ) ;
+	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 0 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 2 ) ) ;
+ 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 4 ) ) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 7 ) ) ;
  //	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
 //	BoundingBoxAndRestrictionDefinedBoundaryCondition * disp = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, -0.1*width, width*0.6, length*0.99, length*1.01, 0., 0 ) ;
-	BoundingBoxNearestNodeDefinedBoundaryCondition * dispx = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 0) ;
-	BoundingBoxNearestNodeDefinedBoundaryCondition * dispy = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 1) ;
-	F.addBoundaryCondition(dispx) ;
-	F.addBoundaryCondition(dispy) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispxr = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 0) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispyr = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*0.5, length), 0., 1) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispxl = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*(-0.5), length), 0., 0) ;
+	BoundingBoxNearestNodeDefinedBoundaryCondition * dispyl = new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, Point(width*(-0.5), length), 0., 1) ;
+	F.addBoundaryCondition(dispxr) ;
+	F.addBoundaryCondition(dispyr) ;
+	F.addBoundaryCondition(dispxl) ;
+	F.addBoundaryCondition(dispyl) ;
 
 	
 	F.step() ;
@@ -205,11 +184,9 @@ int main(int argc, char *argv[])
 
 	std::fstream out ;
 	std::string tata = "wedge_" ;
-	tata.append(argv[1]) ;
-	tata.append("_mixed_") ;
 	tata.append(argv[2]) ;
 	tata.append("_") ;
-	tata.append(argv[3]) ;
+	tata.append(argv[1]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
@@ -224,11 +201,13 @@ int main(int argc, char *argv[])
 		{
 			i++ ;
 			totaldisp = speed * F.getCurrentTime() ;
-			dispx->setData( totaldisp*0.5 ) ;
-			dispy->setData( totaldisp*0.25/(-1.8666) ) ;
+			dispxr->setData( totaldisp*0.5 ) ;
+			dispyr->setData( totaldisp*0.25/(-1.8666) ) ;
+			dispxl->setData( totaldisp*(-0.5) ) ;
+			dispyl->setData( totaldisp*(-0.25)/(-1.8666) ) ;
 			F.setDeltaTime(totaltime/100.) ;
 			F.setMinDeltaTime((totaltime/100.)*1e-9) ;
-			std::cout << totaldisp*0.5 << std::endl ;
+			std::cout << totaldisp << std::endl ;
 		}
 
 		goOn = F.step() ;
@@ -261,10 +240,10 @@ int main(int argc, char *argv[])
 			writer.write() ;
 
 		}
-			
+
  		x = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
  		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
-		out << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << totaldisp*0.5 << "\t" << x[0] << "\t" << y[0]*length*length << "\t" << F.averageDamage << std::endl ;
+		out << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << totaldisp << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 
 	}
 	

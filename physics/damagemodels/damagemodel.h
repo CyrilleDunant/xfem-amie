@@ -165,6 +165,7 @@ public:
 	 * @return a new Matrix
 	 */
 	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const = 0 ;
+	virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) { return m ; }
 	
 	virtual DamageModel * getCopy() const = 0 ;
 	/** \brief Modify the rigidity matrix according to the damage model function (for space-time behaviour)

@@ -14,9 +14,9 @@
 
 namespace Mu {
 
-SpaceTimeFiberBasedIsotropicLinearDamage::SpaceTimeFiberBasedIsotropicLinearDamage(double f, double t, double c)  : fibreFraction(f), timeTolerance(t)
+SpaceTimeFiberBasedIsotropicLinearDamage::SpaceTimeFiberBasedIsotropicLinearDamage(double f, double t, double density)  : fibreFraction(f), timeTolerance(t), visc("x")
 {
-	thresholdDamageDensity = c ;
+	thresholdDamageDensity = density ;
 	getState(true).resize(1, 0.);
 	isNull = false ;
 }
@@ -29,6 +29,28 @@ std::pair< Vector, Vector > SpaceTimeFiberBasedIsotropicLinearDamage::computeDam
 void SpaceTimeFiberBasedIsotropicLinearDamage::computeDelta(const ElementState & s)
 {
 	delta = 1.-getState()[0] ;
+}
+
+Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
+{  
+	if(fractured())
+		return m*1e-4 ;
+	
+	if(state.size() == 1)
+	{
+		if(state[0] > 0)
+			return m*(1.-VirtualMachine().eval(visc,state[0])) ;
+		return m ;
+	}
+	
+	double i = (p.t + 1.) * state.size() / 2 ;
+	if(i >= state.size())
+		i = state.size() - 1 ;
+	
+	if(state[i] > 0)
+		return m*(1.-VirtualMachine().eval(visc,state[i])) ;
+	return m ;
+	
 }
 
 Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
@@ -47,10 +69,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 	
 	return m*(1.-state[i]) ;
 	
-//	std::cout << getState()[0] << "_" ;
-	
 }
-
 
 
 bool SpaceTimeFiberBasedIsotropicLinearDamage::fractured() const 
@@ -130,6 +149,24 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 	return ;
 }
 
+void SpaceTimeFiberBasedIsotropicLinearDamage::setLogitViscousDamageLaw(double a, double b, double c) 
+{
+	double f1 = log(b/(1.-b)) ;
+	Function f="x 1 x - /";
+	f /= Function("x") ;
+	f = f_log(f) ;
+	f = f-f1 ;
+	f = f*f ;
+	f /= (-c) ;
+	f = f_exp(f) ;
+	f*= a ;
+	f /= Function("1 x -") ;
+	f += Function("x") ;
+
+	visc = f ;
+}
+
+
 void SpaceTimeFiberBasedIsotropicLinearDamage::postProcess() 
 {
 	for(size_t i = 0 ; i < state.size()-1 ; i++)
@@ -139,6 +176,12 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::postProcess()
 //	converged = true ;
 }
 
+DamageModel * SpaceTimeFiberBasedIsotropicLinearDamage::getCopy() const
+{ 
+	SpaceTimeFiberBasedIsotropicLinearDamage * dam = new SpaceTimeFiberBasedIsotropicLinearDamage(fibreFraction, timeTolerance, thresholdDamageDensity) ;
+	dam->visc = visc ;
+	return dam ;
+}
 
 } ;
 

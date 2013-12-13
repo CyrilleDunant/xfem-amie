@@ -21,12 +21,12 @@ namespace Mu
 {
 
 struct ViscoelasticityAndFracture : public Viscoelasticity
-{
-	// matrix of damage coefficients by block
-	Matrix coeffsDamageElastic ;
-	Matrix coeffsDamageViscous ;
-	
+{	
 	DamageModel * dfunc ;
+
+	std::vector<Matrix> tensors ;
+	Matrix elasticParam ;
+	Matrix viscousParam ;
 
 	FractureCriterion * criterion ;
 	
@@ -80,6 +80,9 @@ struct ViscoelasticityAndFracture : public Viscoelasticity
 
 	virtual Vector getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) ;
 	
+private:
+	void setElasticAndViscousStiffnessMatrix() ;
+
   
 } ;
 

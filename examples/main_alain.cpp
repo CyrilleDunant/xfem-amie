@@ -52,26 +52,49 @@ int main(int argc, char *argv[])
 {
 	double timestep = 1. ;//atof(argv[1]) ;
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(64) ;
+	F.setSamplingNumber(50) ;
 
 	ViscoElasticOnlyPasteBehaviour dpaste ;
-	ViscoelasticityAndFracture paste( PURE_ELASTICITY, dpaste.param, new SpaceTimeNonLocalMaximumStrain( 0.0001, 0.0001*dpaste.param[0][0]), new SpaceTimeFiberBasedIsotropicLinearDamage( 0.1, atof(argv[1]) ) ) ;
-	paste.getFractureCriterion()->setMaterialCharacteristicRadius(0.0005) ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, atof(argv[1]) ) ;
+	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+	ViscoelasticityAndFracture paste( PURE_ELASTICITY, dpaste.param, /*dpaste.param*0.3, dpaste.param*10,*/ new SpaceTimeNonLocalMaximumStrain( 0.0001, 0.0001*dpaste.param[0][0]), dampaste ) ;
+	paste.getFractureCriterion()->setMaterialCharacteristicRadius(0.003) ;
 	box.setBehaviour(&paste);
 
+	F.setSamplingFactor(&box, 2.) ;
+
 	ViscoElasticOnlyAggregateBehaviour dagg ;
-	ParticleSizeDistribution::get2DConcrete(&F, new Viscoelasticity(PURE_ELASTICITY, dagg.param), 500, 0.006, 0.0004, BOLOME_A, CIRCLE, 1., M_PI, 50000, 0.4) ;
+	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete(&F, new Viscoelasticity(PURE_ELASTICITY, dagg.param, 0), 500, 0.004, 0.0006, BOLOME_A, CIRCLE, 1., M_PI, 50000, 0.5) ;
+
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
+	F.setMaxIterationsPerStep(10) ;
 	F.setMinDeltaTime(atof(argv[1])) ;
 
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0,0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+/*	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,3)) ;*/
 	F.step() ;
 
-	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.0001, 1) ;
+	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.000008, 1) ;
 	F.addBoundaryCondition(disp) ;
+
+	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
+	int count = 0 ;
+	for(size_t i = 0 ; i < trg.size() ; i++)
+	{
+		if(trg[i]->getBehaviour()->getFractureCriterion())
+		{
+			if(std::abs(trg[i]->getCenter().x) > 0.038 && std::abs(trg[i]->getCenter().y) < 0.002)
+			{
+				dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour())->param *= 2. ;
+				count++ ;
+			}
+		}
+	}
+	std::cout << "paste weakened in " << count << " elements" << std::endl ;
 
  	
 	std::fstream out ;
@@ -109,7 +132,7 @@ int main(int argc, char *argv[])
 		stress = F.getAverageField(REAL_STRESS_FIELD,-1,-1) ;
 		strain = F.getAverageField(STRAIN_FIELD,-1,-1) ;
 		rate = F.getAverageField(STRAIN_RATE_FIELD,-1,-1) ;
-		displ = F.getDisplacements() ;
+		displ = F.getDisplacements(-1, false) ;
 		out << std::setprecision(16) << (F.getElements2D()[0])->getBoundingPoint(0).t << "\t" << displ.max() << "\t" << displ.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;
@@ -123,12 +146,13 @@ int main(int argc, char *argv[])
 		writer.getField(TWFT_STIFFNESS) ;
 		writer.getField(TWFT_DAMAGE) ;
 		writer.write() ;
+		std::cout << nametrg << std::endl ;
 	}
 
 	stress = F.getAverageField(REAL_STRESS_FIELD,-1,1) ;
 	strain = F.getAverageField(STRAIN_FIELD,-1,1) ;
 	rate = F.getAverageField(STRAIN_RATE_FIELD,-1,1) ;
-	displ = F.getDisplacements() ;
+	displ = F.getDisplacements(-1, false) ;
 	out << std::setprecision(16) << 1. << "\t" << displ.max() << "\t" << displ.min() << "\t" << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress[2] << 
 			"\t" << strain[0] << "\t" << strain[1] << "\t" << strain[2] << 
 			"\t" << rate[0] << "\t" << rate[1] << "\t" << rate[2] << std::endl ;

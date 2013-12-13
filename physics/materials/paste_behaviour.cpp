@@ -86,6 +86,7 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up_,0.,0., dim), e_1(e1), e_2(e2), freeblocks(0), ctype(STRAIN_CRITERION)
 {
 	materialRadius = r ;
+	stressFraction = 1. ;
 }
 
 Form * ViscoDamagePasteBehaviour::getCopy() const 
@@ -104,16 +105,21 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C2,E2));
 	
 	ViscoelasticityAndFracture * copy ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9 ) ;
+	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*factor*0.85, param[0][0]*factor, param[0][0]*factor/6.666666666), new SpaceTimeFiberBasedIsotropicLinearDamage(0.06,1e-9), 0, freeblocks) ;
+			double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
+//			std::cout << k << std::endl ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
@@ -173,19 +179,22 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C1,E1));
 	branches.push_back(std::make_pair(C2,E2));
 
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9 ) ;
+	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+
 	ViscoelasticityAndFracture * copy ;
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
 			double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
 //			std::cout << k << std::endl ;
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
