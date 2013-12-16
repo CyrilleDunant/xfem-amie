@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 			dispxr->setData( totaldisp*0.5 ) ;
 			dispyr->setData( totaldisp*0.25/(-1.8666) ) ;
 			dispxl->setData( totaldisp*(-0.5) ) ;
-			dispyl->setData( totaldisp*(-0.25)/(-1.8666) ) ;
+			dispyl->setData( totaldisp*(0.25)/(-1.8666) ) ;
 			F.setDeltaTime(totaltime/100.) ;
 			F.setMinDeltaTime((totaltime/100.)*1e-9) ;
 			std::cout << totaldisp << std::endl ;
