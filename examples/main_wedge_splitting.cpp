@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	size_t seed = 0 ;
 	ViscoElasticOnlyPasteBehaviour pastenodamage(20e9) ;
 
-	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.55) ;
+	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
 	Sample left(nullptr, (length-width)*.5, length, (length-width)*.25-length*.5, 0) ;
 	left.isVirtualFeature  = true ;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 
 	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 300, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
-	for(size_t i = 0 ; i < aggregates.size() ; i++)
+	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 1.5) ;
 	}
