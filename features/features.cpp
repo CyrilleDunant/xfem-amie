@@ -3587,7 +3587,8 @@ Vector FeatureTree::stressFromDisplacements()
 {
 	state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != nullptr )
+	VirtualMachine vm ;
+	if( dtree)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		Vector stress( 0.f, 3 * 3 * elements.size() ) ;
@@ -3602,7 +3603,7 @@ Vector FeatureTree::stressFromDisplacements()
 				pts[2] =  elements[i]->third ;
 				
 				Vector str(0., 3*3) ;
-				elements[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false) ;
+				elements[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false, &vm) ;
 
 				for( size_t j = 0 ; j < 9 ; j++ )
 					stress[i * 3 * 3 + j] = str[j] ;
@@ -3629,7 +3630,7 @@ Vector FeatureTree::stressFromDisplacements()
 			pts[2] =  elements3D[i]->fourth ;
 
 			Vector str(0., 24) ;
-			elements3D[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false) ;
+			elements3D[i]->getState().getField(REAL_STRESS_FIELD, pts, str, false, &vm) ;
 
 			for( size_t j = 0 ; j < 24 ; j++ )
 				stress[i * 4 * 6 + j] = str[j] ;
@@ -3663,7 +3664,8 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
-	if( dtree != nullptr )
+	VirtualMachine vm ;
+	if( dtree)
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 
@@ -3690,7 +3692,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 
 				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
 				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
-				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false, &vm ) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
@@ -3731,7 +3733,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 
 				Vector strain(0., 24) ;
 				Vector stress(0., 24) ;
-				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false) ;
+				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
 
 				for( size_t j = 0 ; j < 24 ; j++ )
 				{
@@ -3751,13 +3753,14 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 	}
 }
 
-
 std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool stepTree )
 {
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+	
+	VirtualMachine vm ;
 
-	if( dtree != nullptr )
+	if( dtree )
 	{
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
 		if(g != -1 && layer2d.find(g) != layer2d.end())
@@ -3778,7 +3781,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 
 				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
 				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
-				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false, &vm ) ;
 
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
@@ -3819,7 +3822,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 
 				Vector strain(0., 24) ;
 				Vector stress(0., 24) ;
-				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false) ;
+				tets[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
 
 				for( size_t j = 0 ; j < 24 ; j++ )
 				{
@@ -3839,18 +3842,19 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 	}
 }
 
-
 std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool stepTree)
 {
 	if(stepTree)
 		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
 
+	VirtualMachine vm ;
 	if( dtree != nullptr )
 	{
 		std::vector<DelaunayTriangle *> elements = getActiveElements2D() ;
 
 
-		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
+		std::pair<Vector , Vector > stress_strain( Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ), 
+																							 Vector( 0., elements[0]->getBoundingPoints().size() * 3 * elements.size() ) ) ;
 		int donecomputed = 0 ;
 		
 		#pragma omp parallel for shared(donecomputed) schedule(runtime) 
@@ -3865,7 +3869,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 
 				Vector strain(0., 3*elements[i]->getBoundingPoints().size()) ;
 				Vector stress(0., 3*elements[i]->getBoundingPoints().size()) ;
-				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false) ;
+				elements[i]->getState().getField( STRAIN_FIELD, REAL_STRESS_FIELD, elements[i]->getBoundingPoints(), strain, stress, false, &vm) ;
 				for( size_t j = 0 ; j < elements[0]->getBoundingPoints().size() * 3 ; j++ )
 				{
 					stress_strain.first[i * elements[0]->getBoundingPoints().size() * 3 + j] = stress[j] ;
@@ -3921,7 +3925,6 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 		return stress_strain ;
 	}
 }
-
 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTree)
 {
@@ -4002,7 +4005,6 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTr
 		return grad_flux ;
 	}
 }
-
 
 std::vector<int>FeatureTree:: listLayers() const
 {
@@ -4093,8 +4095,6 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool 
 	}
 }
 
-
-
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<DelaunayTetrahedron *> & tets , bool stepTree)
 {
 	if(stepTree)
@@ -4129,7 +4129,6 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<D
 	std::cerr << " ...done." << std::endl ;
 	return stress_strain ;
 }
-
 
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<DelaunayTetrahedron *> & tets, bool stepTree )
 {
@@ -4283,7 +4282,6 @@ void FeatureTree::insert( Point *p )
 			this->dtree3D->insert( p ) ;
 	}
 }
-
 
 bool FeatureTree::solverConverged() const
 {
@@ -4967,129 +4965,91 @@ bool FeatureTree::stepElements()
 		}
 		else if( is3D() )
 		{
-
 			std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-			for(auto j = layer3d.begin() ; j != layer3d.end() ;j++)
-			{
-				std::vector<DelaunayTetrahedron *> elementstmp = j->second->getElements() ;
-				for( size_t i = 0 ; i < elementstmp.size() ; i++ )
-				{
-					if(elementstmp[i]->getBehaviour())
-						elements.push_back(elementstmp[i]);
-				}
-			}
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
-				{
-					foundCheckPoint = false ;
-					break ;
-				}
-			}
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
-				{
-					behaviourChange = true ;
-// 					needAssembly = true ;
-					break ;
-				}
-			}
 
-			if( foundCheckPoint )
+			if(cachedVolumes.empty())
 			{
-				std::cout << "[" << averageDamage << " ; " << std::flush ;
-
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					if( elements[i]->getBehaviour()->getFractureCriterion() )
-					{
-						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
-						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
-					}
+					if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+						cachedVolumes.push_back(elements[i]->area()) ;
+					else
+						cachedVolumes.push_back(0.) ;
 				}
-				std::cout << maxScore << "]" << std::flush ;
 			}
-			
-			double volume = 0;
-			if(!elastic)
-				crackedVolume = 0 ;
-			if(!elastic)
-				damagedVolume = 0 ;
+			double volume = std::accumulate(cachedVolumes.begin(), cachedVolumes.end(), double(0)) ;
 			double previousAverageDamage = averageDamage ;
+			double adamage = 0 ;
 			if(!elastic)
+			{
+				crackedVolume = 0 ;
+				damagedVolume = 0 ;
 				averageDamage = 0. ;
+			}
 			//this will update the state of all elements. This is necessary as
 			//the behaviour updates might depend on the global state of the
 			//simulation.
-			std::cerr << " stepping through elements... " << std::flush ;
-#pragma omp parallel for schedule(runtime)
+ 			std::cerr << " stepping through elements... " << std::flush ;
+//#pragma omp parallel for schedule(runtime)
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
 					std::cerr << "\r stepping through elements... " << i << "/" << elements.size() << std::flush ;
-
-				elements[i]->step( deltaTime, &K->getDisplacements()) ;
+				
+				elements[i]->step( deltaTime, &K->getDisplacements() ) ;
 			}
 
 			std::cerr << " ...done" << std::endl ;
 
 			int fracturedCount = 0 ;
 			int ccount = 0 ;
-			
+
 			if( !elastic )
 			{
-				double maxscoreinit = -1 ;
-				for( size_t i = 0 ; i < elements.size() ; i++ )
-				{
-					if( i % 1000 == 0 )
-						std::cerr << "\r checking for fractures (0)... " << i << "/" << elements.size() << std::flush ;
-				}
-					std::cerr << " ...done. " << std::endl ;
-				
+				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					
-					if( i % 1000 == 0 )
+					if( i % 500 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
 					{
-						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;						
+						elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
 						elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
-						maxscoreinit = std::max(maxscoreinit, elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState()) ;
+						maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
+						
 					}
 				}
-					std::cerr << " ...done. " << std::endl ;
 				
-//#pragma omp parallel for
+				std::cerr << " ...done. " << std::endl ;
 
+// 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
+				
+// #pragma omp parallel for reduction(+:volume,adamage) 
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 
-					double are = elements[i]->area() ;
+					double are = cachedVolumes[i] ;
 
-//					if( i % 10000 == 0 )
-//						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
+					if( i % 10000 == 0 )
+						std::cerr << "\r checking for fractures (2)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
-						volume += are ;
 						DamageModel * dmodel = elements[i]->getBehaviour()->getDamageModel() ;
+						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
+						
+						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxScoreInit ) ;
 						if( dmodel )
 						{
 							if( !elements[i]->getBehaviour()->fractured() )
-								averageDamage += are * dmodel->getState().max() ;
-							else
-								averageDamage += are ;
+							{
+								adamage += are * dmodel->getState().max() ;
+// 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
+// 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
+							}
 						}
-						
-						bool wasFractured = elements[i]->getBehaviour()->fractured() ;
-						
-						elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxscoreinit ) ;
 						if( elements[i]->getBehaviour()->changed() )
 						{
 							needAssembly = true ;
@@ -5113,32 +5073,122 @@ bool FeatureTree::stepElements()
 						}
 					}
 				}
-			}
-			
-			std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
-			
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-			{
-				if( i % 1000 == 0 )
-					std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
+				averageDamage = adamage/volume ;
 
-				if( elements[i]->getBehaviour()->getDamageModel() )
+				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+				
+				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
-					if(elements[i]->getBehaviour()->changed())
+					if( i % 1000 == 0 )
+						std::cerr << "\r checking for fractures (3)... " << i << "/" << elements.size() << std::flush ;
+
+					if( elements[i]->getBehaviour()->getDamageModel() )
 					{
-						needAssembly = true ;
-						behaviourChange = true ;
+						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
+						if(elements[i]->getBehaviour()->changed())
+						{
+							needAssembly = true ;
+							behaviourChange = true ;
+						}
+					}
+				}
+				foundCheckPoint = true ;
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getDamageModel() && !elements[i]->getBehaviour()->getDamageModel()->converged )
+					{
+						foundCheckPoint = false ;
+						maxScore = maxScoreInit ;
+						break ;
+					}
+				}
+				
+				if(!behaviourChange)
+				{
+					for( size_t i = 0 ; i < elements.size() ; i++ )
+					{
+						if( elements[i]->getBehaviour()->getFractureCriterion() && elements[i]->getBehaviour()->getFractureCriterion()->met() )
+						{
+							behaviourChange = true ;
+							break ;
+						}
 					}
 				}
 			}
-			std::cerr << " ...done. " << std::endl ;
-				averageDamage /= volume ;
 			
+			if( !elastic && foundCheckPoint )
+			{
+				std::cout << "[" << averageDamage << " ; " << std::flush ;
+				maxScore = -1. ;
+				maxTolerance = 1 ;
+// 				double maxs = -1 ;
+// 				double maxtol = 1 ;
+// 				#pragma omp parallel lastshared(maxs,maxtol)
+// 				{
+// 
+// 				  #pragma omp for nowait 
+				  for( size_t i = 0 ; i < elements.size() ; i++ )
+				  {
+					  if( elements[i]->getBehaviour()->getFractureCriterion() )
+					  {
+						  //std::cout << "." << std::flush ;
+						  elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						  maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						  maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
+	
+					  }
+				  }
+// 				  #pragma omp critical
+// 				  {
+// 				    maxScore = std::max(maxScore, maxs) ;
+// 				    maxTolerance = std::max(maxTolerance, maxtol) ;
+// 				  }
+// 				}
+				
+				std::cout << maxScore << "]" << std::flush ;
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1.)
+				{
+					std::cerr << "adjusting time step..." << std::endl ;
+					double begin = elements[0]->getBoundingPoint(0).t ;
+					double end = elements[0]->getBoundingPoint( elements[0]->getBoundingPoints().size() -1).t ;
+					if(maxScore*(end-begin) > minDeltaTime) 
+						moveFirstTimePlanes( (1.-maxScore)*(end-begin) , elements) ;
+					else if(end - begin > minDeltaTime)
+					{
+						moveFirstTimePlanes( end-begin-minDeltaTime , elements) ;
+					}
+					else
+					{
+						std::cout << "negative time step: setting to 0..." << std::endl ;
+						this->moveFirstTimePlanes( 0., elements) ;
+					}	
+				}
+				
+				
+			}
+			else if(!elastic)
+			{
+					
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
+				{
+					moveFirstTimePlanes( 0. , elements) ;
+				}
 
+			    
+				#pragma omp parallel for schedule(runtime)
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( false ) ;
+				}
+
+
+			  
+			}
+
+			std::cerr << " ...done. " << std::endl ;
+				
 		}
-		std::cerr << " ...done. " << std::endl ;
-			
 	}
 	else
 	{
@@ -5684,12 +5734,12 @@ std::vector<Point *> FeatureTree::getNodes(int grid)
 	return pts ;
 }
 
-
 Vector FeatureTree::getAverageField( FieldType f, int grid , double t) 
 {
 	Vector avg ;
 	Vector buffer ;
 	double volume = 0 ;
+	VirtualMachine vm ;
 	if(is2D())
 	{
 		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
@@ -5700,7 +5750,7 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				elements[i]->getState().getAverageField( f, buffer, -1, t) ;
+				elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
 				avg += buffer * elements[i]->area() ;
 				volume += elements[i]->area() ;
 			}
@@ -5714,7 +5764,7 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
-			elements[i]->getState().getAverageField( f, buffer, -1, t ) ;
+			elements[i]->getState().getAverageField( f, buffer,&vm, -1, t ) ;
 			avg += buffer * elements[i]->volume() ;
 			volume += elements[i]->volume() ;
 		}
@@ -5739,7 +5789,6 @@ Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTria
 	return avg/volume ;
 }
 
-
 Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet ) 
 {
 	Vector avg ;
@@ -5755,7 +5804,6 @@ Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetr
 	}
 	return avg/volume ;
 }
-
 
 bool FeatureTree::isStable()
 {
@@ -6123,7 +6171,7 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 	if(dtree)
 	{
 		prev = triangles[0]->getBoundingPoint( triangles[0]->getBoundingPoints().size() -1 ).t - triangles[0]->getBoundingPoint(0).t ;
-		
+		VirtualMachine vm ;
 		if(triangles.size() && triangles[0]->timePlanes() > 1)
 		{
 
@@ -6137,8 +6185,11 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 						for(size_t k = 0 ; k < k0 ; k++)
 						{
 //							std::cout << i << ";" << k << std::endl ;
-							Point p(triangles[i]->getBoundingPoint(k+k0*t).x,triangles[i]->getBoundingPoint(k+k0*t).y,0.,triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes()) ;
-							triangles[i]->getStatePointer()->getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false) ;
+							Point p(triangles[i]->getBoundingPoint(k+k0*t).x,
+											triangles[i]->getBoundingPoint(k+k0*t).y,
+											0.,
+							        triangles[i]->getBoundingPoint(k+k0*t).t + d*( triangles[i]->timePlanes()-t )/triangles[i]->timePlanes()) ;
+							triangles[i]->getStatePointer()->getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm) ;
 
 							for(size_t n = 0 ; n < ndof ; n++)
 							{
@@ -6156,13 +6207,60 @@ void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> 
 			  setDeltaTime( prev - d ) ;
 		
 	}
-	
-
-  
-  
 }
 
-int myrandom (int i) { return std::rand()%i;}
+void FeatureTree::moveFirstTimePlanes(double d, std::vector<DelaunayTetrahedron *> & tets ) 
+{
+	double prev = 0.; 
+	size_t i = 0 ;
+	size_t ndof = 0 ;
+	while(ndof == 0 && i < tets.size())
+	{
+		ndof = tets[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+		i++ ;
+	}
+	Vector buff(0.,ndof) ;
+
+	if(dtree)
+	{
+		prev = tets[0]->getBoundingPoint( tets[0]->getBoundingPoints().size() -1 ).t - tets[0]->getBoundingPoint(0).t ;
+		VirtualMachine vm ;
+		if(tets.size() && tets[0]->timePlanes() > 1)
+		{
+
+			for(size_t i = 0 ; i < tets.size() ; i++)
+			{
+				if(tets[i]->getBehaviour() && tets[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+				{
+					size_t k0 = tets[i]->getBoundingPoints().size()/tets[i]->timePlanes() ;
+					for(size_t t = 0 ; t < tets[i]->timePlanes() -1 ; t++)
+					{
+						for(size_t k = 0 ; k < k0 ; k++)
+						{
+//							std::cout << i << ";" << k << std::endl ;
+							Point p(tets[i]->getBoundingPoint(k+k0*t).x,
+											tets[i]->getBoundingPoint(k+k0*t).y,
+											tets[i]->getBoundingPoint(k+k0*t).z,
+							        tets[i]->getBoundingPoint(k+k0*t).t + d*( tets[i]->timePlanes()-t )/tets[i]->timePlanes()) ;
+							tets[i]->getStatePointer()->getField( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm) ;
+
+							for(size_t n = 0 ; n < ndof ; n++)
+							{
+								double z = buff[n] ;
+								K->setDisplacementByDof( tets[i]->getBoundingPoint((t+1)*k0+k).id * ndof + n, z  );
+							}
+//							std::cout << i << ";" << k << std::endl ;
+						}
+					}
+				}
+			}
+		}
+		
+		if(std::abs(d) > POINT_TOLERANCE_2D)
+			  setDeltaTime( prev - d ) ;
+		
+	}
+}
 
 void FeatureTree::generateElements()
 {

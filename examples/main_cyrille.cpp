@@ -404,6 +404,7 @@ void step()
 		double e_xx = 0 ;
 		double ex_count = 0 ;
 		double enr = 0 ;
+		VirtualMachine vm ;
 		for(size_t k = 0 ; k < triangles.size() ; k++)
 		{
 			bool in = false ;
@@ -420,7 +421,7 @@ void step()
 		
 			if(triangles[k]->getBehaviour() && !in && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
-				avgdisplacement += triangles[k]->getState().getAverageDisplacement()*triangles[k]->area() ;
+				avgdisplacement += triangles[k]->getState().getAverageDisplacement(&vm)*triangles[k]->area() ;
 				avgdisplacementarea += triangles[k]->area() ;
 			}
 			

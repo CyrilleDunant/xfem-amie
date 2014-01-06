@@ -891,7 +891,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	size_t vlength = 3 ;
 	if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 		vlength = 6 ;
-	
+	VirtualMachine vm ;
 	Vector str(0., vlength) ;
 	Vector stra(0., vlength) ;
 	Vector tmpstr(0.,vlength) ;
@@ -1040,9 +1040,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			if(m == EFFECTIVE_STRESS)
 			{
 				double iteratorValue = factors[0] ;
-				s.getAverageField( EFFECTIVE_STRESS_FIELD, tmpstr, -1, t) ;
-				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
-				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
+				s.getAverageField( EFFECTIVE_STRESS_FIELD, tmpstr,&vm, -1, t) ;
+				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra,&vm, -1, t ) ;
+				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar,&vm, -1, t ) ;
 				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 				strar = tmpstra*factors[0] ;
 				stra = tmpstra*factors[0] ;
@@ -1069,9 +1069,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					{
 						double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
 						int tnum = omp_get_thread_num() ;
-						ci->getState().getAverageField( EFFECTIVE_STRESS_FIELD, tmpstrt[tnum], -1, t) ;
-						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstrat[tnum], -1, t ) ;
-						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrart[tnum], -1, t ) ;
+						ci->getState().getAverageField( EFFECTIVE_STRESS_FIELD, tmpstrt[tnum],&vm, -1, t) ;
+						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstrat[tnum],&vm, -1, t ) ;
+						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrart[tnum],&vm, -1, t ) ;
 
 						stra = stra+tmpstrat[tnum]*factors[i]*correction ;
 						strar = strar+tmpstrart[tnum]*factors[i]*correction ;
@@ -1085,9 +1085,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			else
 			{
 				double iteratorValue = factors[0] ;
-				s.getAverageField( REAL_STRESS_FIELD, tmpstr, -1, t) ;
-				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
-				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
+				s.getAverageField( REAL_STRESS_FIELD, tmpstr,&vm, -1, t) ;
+				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra,&vm, -1, t ) ;
+				s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar,&vm, -1, t ) ;
 				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 				strar = tmpstra*factors[0] ;
 				stra = tmpstra*factors[0] ;
@@ -1114,9 +1114,9 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					{
 						double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
 						int tnum = omp_get_thread_num() ;
-						ci->getState().getAverageField( REAL_STRESS_FIELD, tmpstrt[tnum], -1, t) ;
-						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstrat[tnum], -1, t ) ;
-						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrart[tnum], -1, t ) ;
+						ci->getState().getAverageField( REAL_STRESS_FIELD, tmpstrt[tnum],&vm, -1, t) ;
+						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstrat[tnum],&vm, -1, t ) ;
+						ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrart[tnum],&vm, -1, t ) ;
 
 						stra = stra+tmpstrat[tnum]*factors[i]*correction ;
 						strar = strar+tmpstrart[tnum]*factors[i]*correction ;
@@ -1155,7 +1155,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			if(m == EFFECTIVE_STRESS)
 			{
 				double iteratorValue = factors[0] ;
-				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t);
 				currentAngle = 0.5*atan2( tmpstra[3],  tmpstra[0] -  tmpstra[1] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
@@ -1178,7 +1178,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					{
 						double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
 						int tnum = omp_get_thread_num() ;
-						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
+						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum],&vm, 0, t);
 					
 						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
 						stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
@@ -1199,7 +1199,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			else
 			{
 				double iteratorValue = factors[0] ;
-				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, 0, t);
+				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t);
 				currentAngle = 0.5*atan2( tmpstra[3],  tmpstra[0] -  tmpstra[1] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
@@ -1226,7 +1226,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	// 						correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
 							
 						int tnum = omp_get_thread_num() ;
-						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum], 0, t);
+						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum],&vm, 0, t);
 					
 						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
 						stra1 += tmpstrat[tnum][1]*factors[i]*correction ;
@@ -1278,13 +1278,13 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			Vector tmpstrar(0., stra.size() ) ;
 			
 			if(m == EFFECTIVE_STRESS)
-				s.getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, -1, t) ;
+				s.getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr,&vm, -1, t) ;
 			else
-				s.getAverageField(REAL_STRESS_FIELD, tmpstr, -1, t) ;
+				s.getAverageField(REAL_STRESS_FIELD, tmpstr,&vm, -1, t) ;
 			
 
-			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
-			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
+			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra,&vm, -1, t ) ;
+			s.getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar,&vm, -1, t ) ;
 			
 			currentAngle = 0.5*atan2( tmpstra[3],  tmpstra[0] -  tmpstra[1] ) ;
 			
@@ -1302,12 +1302,12 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
 				{
 					if(m == EFFECTIVE_STRESS)
-						ci->getState().getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr, -1, t) ;
+						ci->getState().getAverageField(EFFECTIVE_STRESS_FIELD, tmpstr,&vm, -1, t) ;
 					else
-						ci->getState().getAverageField(REAL_STRESS_FIELD, tmpstr, -1, t) ;
+						ci->getState().getAverageField(REAL_STRESS_FIELD, tmpstr,&vm, -1, t) ;
 					
-					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra, -1, t ) ;
-					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar, -1, t ) ;
+					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, tmpstra,&vm, -1, t ) ;
+					ci->getState().getAverageField( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, tmpstrar,&vm, -1, t ) ;
 
 					//#pragma omp critical
 					if(!ci->getBehaviour()->fractured() )

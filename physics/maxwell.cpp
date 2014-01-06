@@ -118,7 +118,7 @@ void IterativeMaxwell::updateElementState(double timestep, ElementState & curren
 	LinearForm::updateElementState(timestep, currentState) ;
 	if(timestep < POINT_TOLERANCE_2D)
 		return ;
-	
+	VirtualMachine vm ;
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector strain_next( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
@@ -126,8 +126,8 @@ void IterativeMaxwell::updateElementState(double timestep, ElementState & curren
 	for(size_t g = 0 ; g < imposedStressAtGaussPoints.size() ; g++)
 	{
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain_next) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev, 0) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, 1) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev,&vm, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev,&vm, 1) ;
 		
 		alpha_next = (strain_next*coeff_unext) ;
 		alpha_next += (strain_prev*coeff_uprev) ;
@@ -157,8 +157,9 @@ void IterativeMaxwell::preProcessAtGaussPoint(double timestep, ElementState & cu
 {  
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
-	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, 0) ;
-	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev, 1) ;
+	VirtualMachine vm ;
+	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev,&vm, 0) ;
+	currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev,&vm, 1) ;
 	strain_prev *= coeff_uprev ;
 	alpha_prev *= coeff_aprev ;
 	
@@ -351,15 +352,16 @@ void GeneralizedIterativeMaxwell::updateElementState(double timestep, ElementSta
 	Vector strain_next( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_next( 0., 3+3*(num_dof == 3)) ;
+	VirtualMachine vm ;
 	for(size_t g = 0 ; g < imposedStressAtGaussPoints.size() ; g++)
 	{
 		strain_next = 0 ; strain_prev = 0 ; alpha_next = 0 ; alpha_prev = 0 ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain_next) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev,&vm, 0) ;
 		for(size_t i = 0 ; i < branches.size() ; i++)
 		{
 			alpha_prev = 0 ; 
-			currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, i+1) ;
+			currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev,&vm, i+1) ;
 			
 			alpha_next = (strain_next*branches[i]->coeff_unext) ;
 			alpha_next += (strain_prev*branches[i]->coeff_uprev) ;
@@ -419,11 +421,12 @@ void GeneralizedIterativeMaxwell::preProcessAtGaussPoint(double timestep, Elemen
 
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
+	VirtualMachine vm ;
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
 		alpha_prev = 0 ; strain_prev = 0 ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, 0) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev, i+1) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev,&vm, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev,&vm, i+1) ;
 		strain_prev *= branches[i]->coeff_uprev ;
 		alpha_prev *= branches[i]->coeff_aprev ;
 		

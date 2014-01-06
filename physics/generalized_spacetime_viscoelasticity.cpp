@@ -482,8 +482,8 @@ void GeneralizedSpaceTimeViscoelasticity::applyViscous(const Function & p_i, con
 			{
 				// viscosity (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
-				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-				vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+				vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true), gp, Jinv,v, a) ;
+				vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				addMatrixInBlock( b, i,i, ret ) ;
 			}

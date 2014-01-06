@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
 	paste.freeblocks = 0 ;
 	if(argv[2] == std::string("strain"))
 	{
+
 		paste.up = 0.00035 ;
 	}
 	if(argv[2] == std::string("stress"))

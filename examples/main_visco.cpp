@@ -66,13 +66,14 @@ double avgTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 {
 	double ar = 0. ;
 	double tension = 0. ;
+	VirtualMachine vm ;
 	for(size_t i = 0 ; i < trg.size() ; i++)
 	{
 		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, &vm, -1, 1 ) ;
 			if(stress.max() > 0)
 			{
 				double a = trg[i]->area() ;
@@ -89,13 +90,14 @@ double avgTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 double areaTensionInPaste( std::vector<DelaunayTriangle *> trg)
 {
 	double ar = 0. ;
+	VirtualMachine vm ;
 	for(size_t i = 0 ; i < trg.size() ; i++)
 	{
 		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, &vm, -1, 1 ) ;
 			if(stress.max() > 0)
 			{
 				ar = trg[i]->area() ;
@@ -108,13 +110,14 @@ double areaTensionInPaste( std::vector<DelaunayTriangle *> trg)
 double maxTensileStressInPaste( std::vector<DelaunayTriangle *> trg)
 {
 	double tension = 0. ;
+	VirtualMachine vm ;
 	for(size_t i = 0 ; i < trg.size() ; i++)
 	{
 		Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>(trg[i]->getBehaviour()) ;
 		if(visc->model == GENERALIZED_KELVIN_VOIGT)
 		{
 			Vector stress(2) ; stress = 0 ;
-			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, -1, 1 ) ;
+			trg[i]->getState().getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, &vm, -1, 1 ) ;
 			if(stress.max() > tension)
 				tension = stress.max() ;
 		}
@@ -144,7 +147,7 @@ Vector dispOnTop( Vector disp, std::vector<Point *> nodes)
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(4) ;
+// 	omp_set_num_threads(4) ;
 
 	double timeScale = 1000. ;//atof(argv[1]) ;
 	double tau = 1. ;

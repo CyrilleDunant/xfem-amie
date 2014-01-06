@@ -548,6 +548,7 @@ public:
 	void setMinDeltaTime(double d) { minDeltaTime = d ; }
 
 	void moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) ;
+	void moveFirstTimePlanes(double d, std::vector<DelaunayTetrahedron *> & tets )  ;
 	
 	void setMaxIterationsPerStep(size_t its) 
 		{maxitPerStep = its ;}

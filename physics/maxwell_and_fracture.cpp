@@ -204,7 +204,7 @@ void GeneralizedIterativeMaxwellAndFracture::updateElementState(double timestep,
 	{
 		return ;
 	}
-	
+	VirtualMachine vm ;
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector strain_next( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
@@ -213,11 +213,11 @@ void GeneralizedIterativeMaxwellAndFracture::updateElementState(double timestep,
 	{
 		strain_next = 0 ; strain_prev = 0 ; alpha_next = 0 ; alpha_prev = 0 ;
 		currentState.getFieldAtGaussPoint( STRAIN_FIELD, g, strain_next) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, strain_prev,&vm, 0) ;
 		for(size_t i = 0 ; i < branches.size() ; i++)
 		{
 			alpha_prev = 0 ; 
-			currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, i+1) ;
+			currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, g, alpha_prev, &vm, i+1) ;
 			
 			alpha_next = (strain_next*branches[i]->coeff_unext) ;
 			alpha_next += (strain_prev*branches[i]->coeff_uprev) ;
@@ -277,11 +277,12 @@ void GeneralizedIterativeMaxwellAndFracture::preProcessAtGaussPoint(double times
 
 	Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
 	Vector alpha_prev( 0., 3+3*(num_dof == 3)) ;
+	VirtualMachine vm ;
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
 		alpha_prev = 0 ; strain_prev = 0 ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, 0) ;
-		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev, i+1) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, strain_prev, &vm, 0) ;
+		currentState.getFieldAtGaussPoint( INTERNAL_VARIABLE_FIELD, j, alpha_prev,&vm, i+1) ;
 		strain_prev *= branches[i]->coeff_uprev ;
 		alpha_prev *= branches[i]->coeff_aprev ;
 		

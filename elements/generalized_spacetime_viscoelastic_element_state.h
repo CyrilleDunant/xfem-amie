@@ -20,17 +20,17 @@ public:
 	GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) ;
 	GeneralizedSpaceTimeViscoElasticElementState & operator =(const GeneralizedSpaceTimeViscoElasticElementState & s) ;
 	
-	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, int i = 0) const ;
+	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0) const ;
 
-	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
+	virtual void getFieldAtNodes( FieldType f, Vector & ret, VirtualMachine * vm = nullptr, int i = 0) ;
 	
-	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, int i = 0, int j = 0) const  ;
+	virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0) const  ;
 			
-	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
+	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0) ;
 	
-	virtual void getAverageField( FieldType f, Vector & ret, int i = 0, double t = 0) ;
+	virtual void getAverageField( FieldType f, Vector & ret, VirtualMachine * vm = nullptr, int i = 0, double t = 0) ;
 
-	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, int dummy= 0, double t = 0)  ;
+	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm = nullptr, int dummy= 0, double t = 0)  ;
 	
 	
 } ;

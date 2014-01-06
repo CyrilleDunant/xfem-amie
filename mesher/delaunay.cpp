@@ -2547,8 +2547,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMatrix() 
 {
-// 	std::cout << "is fucking viscous" << std::endl ;
-// 	std::cout << "is fucking viscous" << std::endl ;
 	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 	
 	if(!behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
@@ -2589,9 +2587,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	if(behaviour->isSymmetric())
 	{
-		#pragma omp parallel for
+// 		#pragma omp parallel for
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{
+			
 			VirtualMachine vm ;
 			behaviour->applyViscous(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedViscousElementaryMatrix[i][i], &vm) ;
 
@@ -2606,8 +2605,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 				cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i] = cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()].transpose() ;
 			}
 		}
-
-		#pragma omp parallel for
+// 		#pragma omp parallel for
 		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
 			VirtualMachine vm ;
@@ -2622,7 +2620,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 	}
 	else
 	{
-		#pragma omp parallel for
+// 		#pragma omp parallel for
 		for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 		{
 			VirtualMachine vm ;
@@ -2640,7 +2638,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 			}
 		}
 
-		#pragma omp parallel for
+// 		#pragma omp parallel for
 		for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 		{
 			VirtualMachine vm ;

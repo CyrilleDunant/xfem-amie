@@ -533,7 +533,7 @@ void Assembly::initialiseElementaryMatrices()
 // 	{
 		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
-//			#pragma omp parallel for
+// 			#pragma omp parallel for
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
 				if(i%10000 == 0)
@@ -548,7 +548,7 @@ void Assembly::initialiseElementaryMatrices()
 		}
 		else if(dim == SPACE_THREE_DIMENSIONAL)
 		{
-//			#pragma omp parallel for
+// 			#pragma omp parallel for
 			for(size_t i = 0 ; i < element3d.size() ; i++)
 			{
 				if(i%1000 == 0)
@@ -596,7 +596,7 @@ void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 
-//	#pragma omp parallel for
+// 	#pragma omp parallel for
 	for(size_t i = 0 ; i < element3d.size() ; i++)
 	{
 		if(i%1000 == 0)
@@ -621,17 +621,19 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 //	std::cerr << "Generating elementary matrices..." << std::flush ;
-
-//	#pragma omp parallel for
+// 	#pragma omp parallel for
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
+		
 		if(i%10000 == 0)
 			std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
 		if(element2d[i]->getBehaviour())
 		{
 			element2d[i]->getElementaryMatrix() ;
 			if(element2d[i]->getBehaviour()->isViscous())
+			{
 				element2d[i]->getViscousElementaryMatrix() ;
+			}
 		}
 		
 	}
@@ -800,7 +802,7 @@ bool Assembly::make_final()
 			if(i%1000 == 0)
 				std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 			std::vector<size_t> ids = element2d[i]->getDofIds() ;
-
+			std::valarray<std::valarray<Matrix > > mother = element2d[i]->getElementaryMatrix();
 			Matrix test(ids.size()*ndof, ids.size()*ndof) ;
 			for(size_t j = 0 ; j < ids.size() ;j++)
 			{
@@ -808,7 +810,7 @@ bool Assembly::make_final()
 				{
 					for(size_t m = 0 ; m < ndof ; m++)
 					{
-						getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix()[j][j][n][m] ;
+						getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * mother[j][j][n][m] ;
 					}
 				}
 				for(size_t k = j+1 ; k < ids.size() ;k++)
@@ -817,10 +819,10 @@ bool Assembly::make_final()
 					{
 						for(size_t m = 0 ; m < ndof ; m++)
 						{
-							getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix()[j][k][n][m] ;
-							getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix()[k][j][n][m] ;
-							test[j*ndof+n][k*ndof+m] = scales[i] * element2d[i]->getElementaryMatrix()[j][k][n][m] ;
-							test[k*ndof+n][j*ndof+m] = scales[i] * element2d[i]->getElementaryMatrix()[k][j][n][m] ;
+							getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * mother[j][k][n][m] ;
+							getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * mother[k][j][n][m] ;
+							test[j*ndof+n][k*ndof+m] = scales[i] * mother[j][k][n][m] ;
+							test[k*ndof+n][j*ndof+m] = scales[i] * mother[k][j][n][m] ;
 						}
 					}
 				}
@@ -828,13 +830,14 @@ bool Assembly::make_final()
 
 			if(element2d[i]->getBehaviour()->isViscous())
 			{
+				std::valarray<std::valarray<Matrix > > vmother = element2d[i]->getViscousElementaryMatrix();
 				for(size_t j = 0 ; j < ids.size() ;j++)
 				{
 					for(size_t n = 0 ; n < ndof ; n++)
 					{
 						for(size_t m = 0 ; m < ndof ; m++)
 						{
-							getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix()[j][j][n][m] ;
+							getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * vmother[j][j][n][m] ;
 						}
 					}
 					for(size_t k = j+1 ; k < ids.size() ;k++)
@@ -843,10 +846,10 @@ bool Assembly::make_final()
 						{
 							for(size_t m = 0 ; m < ndof ; m++)
 							{
-								getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix()[j][k][n][m] ;
-								getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix()[k][j][n][m] ;
-								test[j*ndof+n][k*ndof+m] = scales[i] * element2d[i]->getViscousElementaryMatrix()[j][k][n][m] ;
-								test[k*ndof+n][j*ndof+m] = scales[i] * element2d[i]->getViscousElementaryMatrix()[k][j][n][m] ;
+								getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * vmother[j][k][n][m] ;
+								getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * vmother[k][j][n][m] ;
+								test[j*ndof+n][k*ndof+m] = scales[i] * vmother[j][k][n][m] ;
+								test[k*ndof+n][j*ndof+m] = scales[i] * vmother[k][j][n][m] ;
 							}
 						}
 					}
