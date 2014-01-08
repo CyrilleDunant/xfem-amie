@@ -1066,7 +1066,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					int tnum = omp_get_thread_num() ;
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 					if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-						static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(ci->getState()).getEssentialAverageFields(EFFECTIVE_STRESS_FIELD,tmpstrt[tnum],tmpstrat[tnum],tmpstrart[tnum],nullptr,t) ;
+						static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(ci->getState()).getEssentialAverageFields(EFFECTIVE_STRESS_FIELD,tmpstrt[tnum],tmpstrat[tnum],tmpstrart[tnum],&vm,t) ;
 					
 // 					#pragma omp critical 
 					if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
@@ -1113,7 +1113,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 
 					if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-						static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(ci->getState()).getEssentialAverageFields(REAL_STRESS_FIELD,tmpstrt[tnum],tmpstrat[tnum],tmpstrart[tnum],nullptr,t) ;
+						static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(ci->getState()).getEssentialAverageFields(REAL_STRESS_FIELD,tmpstrt[tnum],tmpstrat[tnum],tmpstrart[tnum],&vm,t) ;
 					
 // 					#pragma omp critical
 					if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())

@@ -153,6 +153,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(Fie
 		stress = averagestressafter ;
 		strain = averagestrainafter ;
 		strain_rate = averagestrainrateafter ;
+		if (cleanup) delete vm ;
 		return ;
 	}
 	
@@ -162,6 +163,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(Fie
 		stress = averagestressbefore ;
 		strain = averagestrainbefore ;
 		strain_rate = averagestrainratebefore ;
+		if (cleanup) delete vm ;
 		return ;
 	}
 	
