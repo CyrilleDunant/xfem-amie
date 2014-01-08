@@ -17,8 +17,8 @@ VirtualMachine::VirtualMachine(){ } ;
 
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
 {
-#pragma omp critical
-	{
+// #pragma omp critical
+// 	{
 	size_t size = f.byteCode.size() ;
 	stack.memory.heap[1] = x ;
 	stack.memory.heap[2] = y ;
@@ -185,7 +185,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 		}
 
 	}
-	}
+// 	}
 	return  stack.memory.heap[8] ;
 	
 }
@@ -1027,6 +1027,7 @@ double VirtualMachine::dddeval(const Function &f, const Variable v_0, const Vari
 
 double VirtualMachine::deval(const Function &f, const Variable v_,  const double x, const double y , const double z,  const double t, const double u, const double v, const double w, const double eps) 
 {
+	
 	if(f.isDifferentiable(v_))
 	{
 // 		if(f.adress_t.size() > 0)

@@ -112,21 +112,429 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 		else
 			gp = genEquivalentGaussPointArray3D( dynamic_cast<TetrahedralElement *>(parent), t) ;
 	}
+	if(!vm) vm = new VirtualMachine() ;
+	Vector tmp(0., ret.size()) ;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		Point p_ = gp.gaussPoints[i].first ;
 		double w = gp.gaussPoints[i].second ;
-		Vector tmp(0., ret.size()) ;
-		if(!vm) vm = new VirtualMachine() ;
+
 		getField(f, p_, tmp, true, vm, dummy) ;
-		if (cleanup) delete vm ;
+		
 		ret += tmp * w ;
 		total += w ;
-	}	
-	
+	}
+	if (cleanup) delete vm ;
 	ret /= total;
 	
 }
+
+void  GeneralizedSpaceTimeViscoElasticElementState::step( double dt, const Vector *d )
+{
+	averagestressbefore.resize(0);
+	averagestressafter.resize(0);
+	
+	averagestrainbefore.resize(0);
+	averagestrainafter.resize(0);
+	
+	averagestrainratebefore.resize(0);
+	averagestrainrateafter.resize(0);
+	
+	ElementState::step(dt,d);
+}
+
+void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(FieldType f , Vector & stress, Vector & strain, Vector & strain_rate, VirtualMachine * vm, double t)
+{
+	bool cleanup = !vm ;
+	if(!vm) vm = new VirtualMachine() ;
+	
+	if(std::abs(t-1) < POINT_TOLERANCE_2D && averagestrainafter.size() > 0)
+	{
+		stress = averagestressafter ;
+		strain = averagestrainafter ;
+		strain_rate = averagestrainrateafter ;
+		return ;
+	}
+	
+	if(std::abs(t+1) < POINT_TOLERANCE_2D && averagestrainbefore.size() > 0)
+	{
+
+		stress = averagestressbefore ;
+		strain = averagestrainbefore ;
+		strain_rate = averagestrainratebefore ;
+		return ;
+	}
+	
+	if(std::abs(t+1) < POINT_TOLERANCE_2D)
+	{
+		averagestressbefore.resize(stress.size());
+		averagestrainbefore.resize(strain.size());
+		averagestrainratebefore.resize(strain_rate.size());
+	}
+	
+	if(std::abs(t-1) < POINT_TOLERANCE_2D)
+	{
+		averagestressafter.resize(stress.size());
+		averagestrainafter.resize(strain.size());
+		averagestrainrateafter.resize(strain_rate.size());
+	}
+	GaussPointArray gp = parent->getGaussPoints() ;
+	stress = 0 ;
+	strain = 0 ;
+	strain_rate = 0 ;
+	
+	double total = 0 ;
+	
+	int totaldof = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;	
+	int realdof = parent->spaceDimensions() ;
+	int blocks = totaldof / realdof ;
+
+	Form * visco = parent->getBehaviour() ;
+
+	if(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		gp = genEquivalentGaussPointArray2D( static_cast<TriElement *>(parent), t) ;
+	else
+		gp = genEquivalentGaussPointArray3D( static_cast<TetrahedralElement *>(parent), t) ;
+	
+	Vector tmpstress(0., strain.size()) ;
+	Vector tmpstrain(0., strain.size()) ;
+	Vector tmpstrainrate(0., strain_rate.size()) ;
+	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+	{
+		double w = gp.gaussPoints[i].second ;
+		Matrix Jinv ;
+		parent->getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv ) ;
+		
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		{
+			
+			Vector dx(0., totaldof) ;
+			Vector dy(0., totaldof) ;
+			Vector dt(0., totaldof) ;
+			
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_tau = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_tau = 0;
+			
+			for( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
+			{
+				double f_xi = vm->deval( parent->getShapeFunction( j ), XI, gp.gaussPoints[i].first ) ;
+				double f_eta = vm->deval( parent->getShapeFunction( j ), ETA, gp.gaussPoints[i].first ) ;
+				double f_tau = vm->deval( parent->getShapeFunction( j ), TIME_VARIABLE, gp.gaussPoints[i].first ) ;
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi  * displacements[j * totaldof + k] ;
+					dy[k] += f_eta * displacements[j * totaldof + k] ;
+					dt[k] += f_tau * displacements[j * totaldof + k] ;
+				}
+			}
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
+			{
+				double f_xi = vm->deval( parent->getEnrichmentFunction( j ), XI, gp.gaussPoints[i].first ) ;
+				double f_eta = vm->deval( parent->getEnrichmentFunction( j ), ETA, gp.gaussPoints[i].first ) ;
+				double f_tau = vm->deval( parent->getEnrichmentFunction( j ), TIME_VARIABLE, gp.gaussPoints[i].first ) ;
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi  * enrichedDisplacements[j * totaldof + k] ;
+					dy[k] += f_eta * enrichedDisplacements[j * totaldof + k] ;
+					dt[k] += f_tau * enrichedDisplacements[j * totaldof + k] ;
+				}
+			}
+
+
+			for(size_t k = 0 ; k < blocks ; k++)
+			{
+				x_xi  = dx[ k * realdof + 0 ] ;
+				x_eta = dy[ k * realdof + 0 ] ;
+				x_tau = dt[ k * realdof + 0 ] ;
+				y_xi  = dx[ k * realdof + 1 ] ;
+				y_eta = dy[ k * realdof + 1 ] ;
+				y_tau = dt[ k * realdof + 1 ] ;
+				tmpstrain[k*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2];
+				tmpstrain[k*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
+				tmpstrain[k*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+			}
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
+
+			Vector dx(0., totaldof) ;
+			Vector dy(0., totaldof) ;
+			Vector dz(0., totaldof) ;
+			
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm->deval( parent->getShapeFunction( j ), XI, gp.gaussPoints[i].first ) ;
+				double f_eta = vm->deval( parent->getShapeFunction( j ), ETA, gp.gaussPoints[i].first ) ;
+				double f_zeta = vm->deval( parent->getShapeFunction( j ), ZETA, gp.gaussPoints[i].first ) ;
+
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi   * displacements[j * totaldof + k] ;
+					dy[k] += f_eta  * displacements[j * totaldof + k] ;
+					dz[k] += f_zeta * displacements[j * totaldof + k] ;
+				}
+
+			}
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm->deval( parent->getEnrichmentFunction( j ), XI, gp.gaussPoints[i].first ) ;
+				double f_eta = vm->deval( parent->getEnrichmentFunction( j ), ETA, gp.gaussPoints[i].first ) ;
+				double f_zeta = vm->deval( parent->getEnrichmentFunction( j ), ZETA, gp.gaussPoints[i].first ) ;
+				
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi   * enrichedDisplacements[j * totaldof + k] ;
+					dy[k] += f_eta  * enrichedDisplacements[j * totaldof + k] ;
+					dz[k] += f_zeta * enrichedDisplacements[j * totaldof + k] ;
+				}
+
+			}
+
+			for(size_t k = 0 ; k < blocks ; k++)
+			{
+				x_xi   = dx[ k * realdof + 0 ] ;
+				x_eta  = dy[ k * realdof + 0 ] ;
+				x_zeta = dz[ k * realdof + 0 ] ;
+				y_xi   = dx[ k * realdof + 1 ] ;
+				y_eta  = dy[ k * realdof + 1 ] ;
+				y_zeta = dz[ k * realdof + 1 ] ;
+				z_xi   = dx[ k * realdof + 2 ] ;
+				z_eta  = dy[ k * realdof + 2 ] ;
+				z_zeta = dz[ k * realdof + 2 ] ;
+				tmpstrain[k*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				tmpstrain[k*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				tmpstrain[k*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+				tmpstrain[k*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+								( y_eta ) * Jinv[2][1] +
+								( y_zeta ) * Jinv[2][2] +
+								( z_xi ) * Jinv[1][0] +
+								( z_eta ) * Jinv[1][1] +
+								( z_zeta ) * Jinv[1][2] );
+
+				tmpstrain[k*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+								( x_eta ) * Jinv[2][1] +
+								( x_zeta ) * Jinv[2][2] +
+								( z_xi ) * Jinv[0][0] +
+								( z_eta ) * Jinv[0][1] +
+								( z_zeta ) * Jinv[0][2] );
+
+				tmpstrain[k*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+								( y_eta )  * Jinv[0][1] +
+								( y_zeta ) * Jinv[0][2] +
+								( x_xi )   * Jinv[1][0] +
+								( x_eta )  * Jinv[1][1] +
+								( x_zeta ) * Jinv[1][2] );
+			}
+			
+		}
+		
+		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
+		{
+			
+			Vector dx(0., totaldof) ;
+			Vector dy(0., totaldof) ;
+			Vector dt(0., totaldof) ;
+			
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_tau = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_tau = 0;
+			
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+			{
+				double f_xi = vm->ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, gp.gaussPoints[i].first , 1e-12) ;
+				double f_eta = vm->ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE,gp.gaussPoints[i].first , 1e-12) ;
+				double f_tau = vm->ddeval( parent->getShapeFunction( j ), TIME_VARIABLE, TIME_VARIABLE,gp.gaussPoints[i].first , 1e-12) ;
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi  * displacements[j * totaldof + k] ;
+					dy[k] += f_eta * displacements[j * totaldof + k] ;
+					dt[k] += f_tau * displacements[j * totaldof + k] ;
+				}
+
+			}
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm->ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE,gp.gaussPoints[i].first , 1e-12) ;
+				double f_eta = vm->ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE,gp.gaussPoints[i].first , 1e-12) ;
+				double f_tau = vm->ddeval( parent->getEnrichmentFunction( j ), TIME_VARIABLE,TIME_VARIABLE, gp.gaussPoints[i].first , 1e-12) ;
+				for(size_t k = 0 ; i < totaldof ; k++)
+				{
+					dx[k] += f_xi  * enrichedDisplacements[j * totaldof + k] ;
+					dy[k] += f_eta * enrichedDisplacements[j * totaldof + k] ;
+					dt[k] += f_tau * enrichedDisplacements[j * totaldof + k] ;
+				}
+
+			}
+
+
+			for(size_t k = 0 ; k < blocks ; k++)
+			{
+				x_xi  = dx[ k * realdof + 0 ] ;
+				x_eta = dy[ k * realdof + 0 ] ;
+				x_tau = dt[ k * realdof + 0 ] ;
+				y_xi  = dx[ k * realdof + 1 ] ;
+				y_eta = dy[ k * realdof + 1 ] ;
+				y_tau = dt[ k * realdof + 1 ] ;
+				tmpstrainrate[k*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2];
+				tmpstrainrate[k*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
+				tmpstrainrate[k*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+			}
+			tmpstrainrate *= Jinv[2][2] ;
+
+		}
+		else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
+		{
+			double x_xi = 0;
+			double x_eta = 0;
+			double x_zeta = 0;
+			double y_xi = 0;
+			double y_eta = 0;
+			double y_zeta = 0;
+			double z_xi = 0;
+			double z_eta = 0;
+			double z_zeta = 0;
+
+			Vector dx(0., totaldof) ;
+			Vector dy(0., totaldof) ;
+			Vector dz(0., totaldof) ;
+			
+			for( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
+			{
+				double f_xi = vm->ddeval( parent->getShapeFunction( j ), XI, TIME_VARIABLE, gp.gaussPoints[i].first , 1e-5 ) ;
+				double f_eta = vm->ddeval( parent->getShapeFunction( j ), ETA, TIME_VARIABLE, gp.gaussPoints[i].first , 1e-5 ) ;
+				double f_zeta = vm->ddeval( parent->getShapeFunction( j ), ZETA, TIME_VARIABLE,  gp.gaussPoints[i].first, 1e-5 ) ;
+
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi   * displacements[j * totaldof + k] ;
+					dy[k] += f_eta  * displacements[j * totaldof + k] ;
+					dz[k] += f_zeta * displacements[j * totaldof + k] ;
+				}
+
+			}
+
+			for( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
+			{
+				double f_xi = vm->ddeval( parent->getEnrichmentFunction( j ), XI, TIME_VARIABLE, gp.gaussPoints[i].first, 1e-5 ) ;
+				double f_eta = vm->ddeval( parent->getEnrichmentFunction( j ), ETA, TIME_VARIABLE, gp.gaussPoints[i].first , 1e-5) ;
+				double f_zeta = vm->ddeval( parent->getEnrichmentFunction( j ), ZETA, TIME_VARIABLE, gp.gaussPoints[i].first, 1e-5 ) ;
+				
+				for(size_t k = 0 ; k < totaldof ; k++)
+				{
+					dx[k] += f_xi   * enrichedDisplacements[j * totaldof + k] ;
+					dy[k] += f_eta  * enrichedDisplacements[j * totaldof + k] ;
+					dz[k] += f_zeta * enrichedDisplacements[j * totaldof + k] ;
+				}
+
+			}
+
+
+			for(size_t k = 0 ; k < blocks ; k++)
+			{
+				x_xi   = dx[ k * realdof + 0 ] ;
+				x_eta  = dy[ k * realdof + 0 ] ;
+				x_zeta = dz[ k * realdof + 0 ] ;
+				y_xi   = dx[ k * realdof + 1 ] ;
+				y_eta  = dy[ k * realdof + 1 ] ;
+				y_zeta = dz[ k * realdof + 1 ] ;
+				z_xi   = dx[ k * realdof + 2 ] ;
+				z_eta  = dy[ k * realdof + 2 ] ;
+				z_zeta = dz[ k * realdof + 2 ] ;
+				tmpstrainrate[k*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
+				tmpstrainrate[k*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
+				tmpstrainrate[k*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+
+				tmpstrainrate[k*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
+								( y_eta ) * Jinv[2][1] +
+								( y_zeta ) * Jinv[2][2] +
+								( z_xi ) * Jinv[1][0] +
+								( z_eta ) * Jinv[1][1] +
+								( z_zeta ) * Jinv[1][2] );
+
+				tmpstrainrate[k*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
+								( x_eta ) * Jinv[2][1] +
+								( x_zeta ) * Jinv[2][2] +
+								( z_xi ) * Jinv[0][0] +
+								( z_eta ) * Jinv[0][1] +
+								( z_zeta ) * Jinv[0][2] );
+
+				tmpstrainrate[k*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
+								( y_eta )  * Jinv[0][1] +
+								( y_zeta ) * Jinv[0][2] +
+								( x_xi )   * Jinv[1][0] +
+								( x_eta )  * Jinv[1][1] +
+								( x_zeta ) * Jinv[1][2] );
+			}
+			tmpstrainrate *= Jinv[3][3] ;
+			
+		}
+		
+		
+		if(f == REAL_STRESS_FIELD)
+		{
+			tmpstress = (Vector) (visco->getTensor(gp.gaussPoints[i].first, parent) * tmpstrain) 
+					+ (Vector) (visco->getViscousTensor(gp.gaussPoints[i].first, parent) * tmpstrainrate) ;
+			for(size_t j = 0 ; j < stress.size() ; j++)
+			{
+				stress[j] += tmpstress[j]*w ;
+			}
+		}
+		else 
+		{
+			tmpstress = (Vector) (visco->param * tmpstrain) 
+					+ (Vector) (visco->getViscousTensor(gp.gaussPoints[i].first, parent) * tmpstrainrate) ;
+			for(size_t j = 0 ; j < 3+3*(parent->spaceDimensions()== SPACE_THREE_DIMENSIONAL) ; j++)
+				stress[j] += tmpstress[j]*w ;
+		}
+		
+		strain += tmpstrain * w ;
+		strain_rate += tmpstrainrate * w ;
+		stress -= parent->getBehaviour()->getImposedStress(gp.gaussPoints[i].first, parent)*w ;
+
+		total += w ;
+	}
+	
+	stress /= total ;
+	strain /= total ;
+	strain_rate /= total ;
+	
+	if(std::abs(t+1) < POINT_TOLERANCE_2D)
+	{
+		averagestressbefore = stress;
+		averagestrainbefore = strain;
+		averagestrainratebefore = strain_rate;
+	}
+	
+	if(std::abs(t-1) < POINT_TOLERANCE_2D)
+	{
+		averagestressafter = stress;
+		averagestrainafter = strain;
+		averagestrainrateafter = strain_rate;
+	}
+	if (cleanup) delete vm ;
+}
+
+
 
 void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t) 
 {	
@@ -365,7 +773,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 			if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 			{		
 			  
-			  
 				Vector dx(0., totaldof) ;
 				Vector dy(0., totaldof) ;
 				Vector dt(0., totaldof) ;
@@ -377,7 +784,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				double y_eta = 0;
 				double y_tau = 0;
 				
-				for( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
+				for( size_t j = 0 ; j < parent->getShapeFunctions().size(); j++ )
 				{
 					double f_xi = vm->deval( parent->getShapeFunction( j ), XI, p_ ) ;
 					double f_eta = vm->deval( parent->getShapeFunction( j ), ETA, p_ ) ;
@@ -428,7 +835,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
 //					std::cout << ret.size() << std::endl ;
 				}
-				
 // 				Vector strainns(3) ;
 // 				this->getField(STRAIN_FIELD, p_, strainns, true);
 // 				
@@ -542,6 +948,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				
 			}
+			
 			if (cleanup) delete vm ;
 			return ;
 		case PRINCIPAL_STRAIN_FIELD:
@@ -1140,6 +1547,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				ret *= Jinv[3][3] ;
 				
 			}
+			
 			if (cleanup) delete vm ;
 			return ;
 		case NON_ENRICHED_STRAIN_RATE_FIELD:

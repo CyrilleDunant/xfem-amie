@@ -4766,7 +4766,6 @@ bool FeatureTree::stepElements()
 				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					
 					if( i % 500 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 

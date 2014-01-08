@@ -15,7 +15,17 @@ namespace Mu
 
 class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
 {
+	Vector averagestressbefore ;
+	Vector averagestressafter ;
+	
+	Vector averagestrainbefore ;
+	Vector averagestrainafter ;
+	
+	Vector averagestrainratebefore ;
+	Vector averagestrainrateafter ;
 public:
+	
+	void getEssentialAverageFields(FieldType f, Vector & stress, Vector & strain, Vector & strain_rate, VirtualMachine * vm, double t) ;
 	GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e) ;
 	GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) ;
 	GeneralizedSpaceTimeViscoElasticElementState & operator =(const GeneralizedSpaceTimeViscoElasticElementState & s) ;
@@ -32,7 +42,7 @@ public:
 
 	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm = nullptr, int dummy= 0, double t = 0)  ;
 	
-	
+	virtual void step( double dt, const Vector *d ) ;
 } ;
 
 } ;
