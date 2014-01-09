@@ -1564,7 +1564,7 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 				bool inrefinedFeature= false ;
 				for(size_t j = 0 ; j < refinedFeatures.size() ; j++)
 				{
-					if(refinedFeatures[j]->in(conflictingElements[i]->getCenter() ))
+					if(!refinedFeatures[j]->isVirtualFeature && refinedFeatures[j]->in(conflictingElements[i]->getCenter() ))
 					{
 						inrefinedFeature = true ;
 						break ;
@@ -1644,8 +1644,13 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 			{
 				if(refinedFeatures[j]->in(conflictingElements[i]->getCenter() ))
 				{
-					inrefinedFeature = true ;
-					break ;
+					Point proj = conflictingElements[i]->getCenter() ;
+					tree[0]->project(&proj) ;
+					if(dist(proj,conflictingElements[i]->getCenter() ) > 2.*conflictingElements[i]->getRadius() )
+					{
+						inrefinedFeature = true ;
+						break ;
+					}
 				}
 			}
 			if(inrefinedFeature)

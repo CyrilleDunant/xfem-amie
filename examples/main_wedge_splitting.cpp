@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 //	omp_set_num_threads(1) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(96) ;
+	F.setSamplingNumber(92) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 100 ) ;
 	double totaltime = atof(argv[1]) ;
@@ -93,10 +93,18 @@ int main(int argc, char *argv[])
 	right.isVirtualFeature  = true ;
 	right.setBehaviour(&pastenodamage) ;
 
-	Rectangle refinement( width*1.1,nnotch*1.2, 0., nnotch*0.6) ;
-	Rectangle refinement2( width*1,nnotch*1.1, 0., nnotch*0.55) ;
+	Rectangle refinement( width*1.1,nnotch*1.5, 0., nnotch*0.6) ;
+	Rectangle refinement2( width*1,0.001, 0., 0.) ;
+	Rectangle refinement3( width*1,0.001, 0., 0.) ;
+	Rectangle refinement4( width*1,0.00075, 0., 0.) ;
+	Rectangle refinement5( width*1,0.0005, 0., 0.) ;
+	Rectangle refinement6( width*1,0.0005, 0., 0.) ;
 	F.addRefinementZone( &refinement ) ;
-//	F.addRefinementZone( &refinement2 ) ;
+	F.addRefinementZone( &refinement2 ) ;
+	F.addRefinementZone( &refinement3 ) ;
+	F.addRefinementZone( &refinement4 ) ;
+	F.addRefinementZone( &refinement5 ) ;
+	F.addRefinementZone( &refinement6 ) ;
 	
 	ViscoDamagePasteBehaviour paste ;
 	paste.freeblocks = 0 ;
