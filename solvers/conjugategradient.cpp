@@ -48,6 +48,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		for(size_t i = 0 ; i < std::min(b.size(), x0.size()) ; i++)
 			x[i] = x0[i] ;
 	}
+	
+	if(rowstart)
+	{
+		for(size_t i = 0 ; i < rowstart ; i++)
+			x[i] = b[i] ;
+	}
 
 	if(precond == nullptr && !cleanup)
 	{
@@ -144,7 +150,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		
 		if(nit%32 == 0)
 		{
-			assign(r, A*x-b, rowstart, colstart) ;
+			assign(r, A*x-b, rowstart, rowstart) ;
 			r *= -1 ;
 		}
 		if(	verbose && nit%128 == 0)
@@ -160,8 +166,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "mflops: "<< nit*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
 
-	assign(r,A*x-b, rowstart, colstart) ;
-	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+	assign(r,A*x-b, rowstart, rowstart) ;
+	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize)) ;
 	
 	if(verbose)
 	{

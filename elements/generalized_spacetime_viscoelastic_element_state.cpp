@@ -5,6 +5,7 @@
 #include "../mesher/delaunay.h"
 #include "../utilities/random.h"
 #include "../features/inclusion.h"
+#include <omp.h>
 
 using namespace Mu ;
 
@@ -533,6 +534,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(Fie
 		averagestrainafter = strain;
 		averagestrainrateafter = strain_rate;
 	}
+	
 	if (cleanup) delete vm ;
 }
 

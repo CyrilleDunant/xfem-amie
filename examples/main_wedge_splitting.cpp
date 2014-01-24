@@ -56,7 +56,7 @@ using namespace Mu ;
 // see Cecot 2001, p98, for sample dimensions
 
 double length = 0.2 ; //5.5 ;
-double width = 0.06 ;
+double width = 0.045 ;
 double depth = 0.03 ;//2.5 ;
 double nnotch = 0.085 ;
 double nwidth = 0.0025 ;
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 //	omp_set_num_threads(1) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(92) ;
+	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 100 ) ;
 	double totaltime = atof(argv[1]) ;
@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
 	F.addRefinementZone( &refinement ) ;
 	F.addRefinementZone( &refinement2 ) ;
 	F.addRefinementZone( &refinement3 ) ;
-	F.addRefinementZone( &refinement4 ) ;
-	F.addRefinementZone( &refinement5 ) ;
-	F.addRefinementZone( &refinement6 ) ;
+// 	F.addRefinementZone( &refinement4 ) ;
+// 	F.addRefinementZone( &refinement5 ) ;
+// 	F.addRefinementZone( &refinement6 ) ;
 	
 	ViscoDamagePasteBehaviour paste ;
 	paste.freeblocks = 0 ;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 300, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
-		F.setSamplingFactor(aggregates[i], 1.5) ;
+		F.setSamplingFactor(aggregates[i], 2.5) ;
 	}
 
  	F.addFeature(&box, &top) ;

@@ -2498,7 +2498,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 		for( size_t i = 0 ; i < targetstmp.size() ; i++ )
 		{
 			const Feature * tmp = dynamic_cast<const Feature *>( targetstmp[i] ) ;
-			if(tmp->getLayer() == layer)
+			if(tmp->getLayer() == layer && (tmp->getBoundingPoints().size() || tmp->isVirtualFeature || samplingRestriction == SAMPLE_NO_RESTRICTION))
 				targets.push_back( const_cast<Feature *>(tmp) ) ;
 		}
 	}
@@ -2506,7 +2506,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 	{
 		for( size_t i = 0 ; i < tree.size() ; i++ )
 		{
-			if(tree[i]->getLayer() == layer)
+			if(tree[i]->getLayer() == layer && (tree[i]->getBoundingPoints().size() || tree[i]->isVirtualFeature || samplingRestriction == SAMPLE_NO_RESTRICTION))
 				targets.push_back( tree[i] ) ;
 		}
 	}
@@ -3492,7 +3492,7 @@ void FeatureTree::assemble()
 				if( j % 1000 == 0 )
 					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
 						
-				if(tris[j] && tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if(tris[j] && tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR && tris[j]->getBehaviour()->fractured() )
 				{
 					tris[j]->refresh( father2D ) ;
 					tris[j]->getBehaviour()->preProcess( deltaTime, tris[j]->getState() ) ;
@@ -3533,7 +3533,7 @@ void FeatureTree::assemble()
 
 		for( size_t j = 0 ; j < tetrahedrons.size() ; j++ )
 		{
-			if(tetrahedrons[j]->getBehaviour() && tetrahedrons[j]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if(tetrahedrons[j]->getBehaviour() && tetrahedrons[j]->getBehaviour()->type != VOID_BEHAVIOUR && tetrahedrons[j]->getBehaviour()->fractured())
 			{
 
 				if( j % 1000 == 0 )

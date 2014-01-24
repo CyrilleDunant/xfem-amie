@@ -105,7 +105,7 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C2,E2));
 	
 	ViscoelasticityAndFracture * copy ;
-	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9 ) ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.8 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
 
 	switch(ctype)
@@ -179,7 +179,7 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C1,E1));
 	branches.push_back(std::make_pair(C2,E2));
 
-	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9 ) ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.8 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
 
 	ViscoelasticityAndFracture * copy ;
