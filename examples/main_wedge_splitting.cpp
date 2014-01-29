@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 
  		x = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
  		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
-		out << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << totaldisp << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
+		out << trg[0]->getBoundingPoint(3).t << "\t" << trg[0]->getBoundingPoint(3).t*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 
 	}
 	

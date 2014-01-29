@@ -3492,11 +3492,12 @@ void FeatureTree::assemble()
 				if( j % 1000 == 0 )
 					std::cerr << "\r assembling stiffness matrix, layer "<< i->first << " ... triangle " << j + 1 << "/" << tris.size() << std::flush ;
 						
-				if(tris[j] && tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR && tris[j]->getBehaviour()->fractured() )
+				if(tris[j] && tris[j]->getBehaviour() && tris[j]->getBehaviour()->type != VOID_BEHAVIOUR  )
 				{
 					tris[j]->refresh( father2D ) ;
 					tris[j]->getBehaviour()->preProcess( deltaTime, tris[j]->getState() ) ;
-					K->add( tris[j], scalingFactors[i->first] ) ;
+// 					if(!tris[j]->getBehaviour()->fractured())
+						K->add( tris[j], scalingFactors[i->first] ) ;
 				}
 			}
 			std::cerr << " ...done." << std::endl ;
@@ -3541,7 +3542,8 @@ void FeatureTree::assemble()
 
 				tetrahedrons[j]->refresh( father3D ) ;
 				tetrahedrons[j]->getBehaviour()->preProcess( deltaTime, tetrahedrons[j]->getState() ) ;
-				K->add( tetrahedrons[j] ) ;
+// 				if(!tetrahedrons[j]->getBehaviour()->fractured())
+					K->add( tetrahedrons[j] ) ;
 			}
 		}
 		
@@ -3557,7 +3559,8 @@ void FeatureTree::assemble()
 
 					tets[j]->refresh( father3D ) ;
 					tets[j]->getBehaviour()->preProcess( deltaTime, tets[j]->getState() ) ;
-					K->add( tets[j] ) ;
+					if(!tets[j]->getBehaviour()->fractured())
+						K->add( tets[j] ) ;
 				}
 			}
 		}
