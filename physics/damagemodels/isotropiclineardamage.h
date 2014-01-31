@@ -46,6 +46,7 @@ public:
 	 * @return the new Matrix
 	 */
 	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+	virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
 	
 	/** \brief return true is the element concerned is fractured 
 		*/

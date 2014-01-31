@@ -105,8 +105,8 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C2,E2));
 	
 	ViscoelasticityAndFracture * copy ;
-	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.8 ) ;
-	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+	IsotropicLinearDamage * dampaste = new IsotropicLinearDamage() ;
+//	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
 
 	switch(ctype)
 	{
@@ -123,6 +123,10 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 			break ;
 	}
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
+	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
+	copy->getDamageModel()->setDamageDensityTolerance(0.05) ;
+	copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
+	copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
 	return copy ;
 
 }

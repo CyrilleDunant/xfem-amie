@@ -91,7 +91,11 @@ Form * ViscoDamageAggregateBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
-	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9), 2+freeblocks )  ;
+	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new IsotropicLinearDamage(), 2+freeblocks )  ;
+	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
+	copy->getDamageModel()->setDamageDensityTolerance(0.05) ;
+	copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
 	copy->criterion->setMaterialCharacteristicRadius(rad) ;
+	copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
 	return copy ;
 }

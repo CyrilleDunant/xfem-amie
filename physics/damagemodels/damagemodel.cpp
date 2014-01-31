@@ -49,7 +49,11 @@ void DamageModel::step( ElementState &s , double maxscore)
 		return ;
 	}
 	double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood() ;
-	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , maxScoreInNeighbourhood) ;
+	double max = maxScoreInNeighbourhood ;
+	if(needGlobalMaximumScore)
+		max = maxscore ;
+
+	std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;//maxscore ;
 	bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
 	if( !isInDamagingSet )
@@ -344,6 +348,7 @@ DamageModel::DamageModel(): state(0)
 	effectiveDeltaFraction = 1 ;
 	alternating = false ;
 	alternate = false ;
+	needGlobalMaximumScore = false ;
 	// The exploration increment is crucial for finding
 	// the correct distribution of damage: the effect
 	// of damage increment on the distribution of

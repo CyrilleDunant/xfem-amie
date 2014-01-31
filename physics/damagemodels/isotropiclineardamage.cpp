@@ -38,6 +38,15 @@ Matrix IsotropicLinearDamage::apply(const Matrix & m, const Point & p,const Inte
 	return m*(1.-getState()[0]) ;
 }
 
+Matrix IsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
+{
+
+	if(fractured())
+		return m*0 ;
+	
+	return m*(1.-getState()[0]) ;
+}
+
 bool IsotropicLinearDamage::fractured() const 
 {
 	if(fraction < 0)

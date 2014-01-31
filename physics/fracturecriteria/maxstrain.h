@@ -108,7 +108,10 @@ public:
 	double maxstress ;
 	double E_inst ;
 	double E_relaxed ;
-	Function surface ;
+	Ellipse* surface ;
+	double base ;
+	double renormStrain ;
+	double renormStress ;
 	
 /** \brief Constructor, set the maximum and minimum strain
  * @param up Maximum stress (tension)
@@ -116,7 +119,7 @@ public:
 */
 	SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
-	virtual ~SpaceTimeNonLocalEllipsoidalMixedCriterion() { } ;
+	virtual ~SpaceTimeNonLocalEllipsoidalMixedCriterion() { delete surface ; } ;
 
 /** \brief Return a copy of this fracture criterion*/
 	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalEllipsoidalMixedCriterion(upVal, maxstress, E_inst, E_relaxed) ; }

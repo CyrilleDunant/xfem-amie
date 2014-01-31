@@ -4063,19 +4063,23 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 	case ELLIPSE:
 		{
 			std::vector<Point> ret ;
-			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
+//			Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 			
-			ell.sampleBoundingSurface(128) ;
+//			ell.sampleBoundingSurface(128) ;
 			
-			for(size_t i = 0 ; i < ell.getBoundingPoints().size()-1 ; i++)
+			for(size_t i = 0 ; i < g->getBoundingPoints().size()-1 ; i++)
 			{
-				Segment test(ell.getBoundingPoint(i), ell.getBoundingPoint(i+1)) ;
+				Segment test(g->getBoundingPoint(i), g->getBoundingPoint(i+1)) ;
 				if(this->intersects(test))
 				{
 					ret.push_back(this->intersection(test)) ;
-					return ret ;
 				}	
 			}
+			Segment test(g->getBoundingPoint(g->getBoundingPoints().size()-1), g->getBoundingPoint(0)) ;
+			if(this->intersects(test))
+			{
+				ret.push_back(this->intersection(test)) ;
+			}	
 			return ret ;
 //			Segment test(ell.getBoundingPoint(ell.getBoundingPoints().size()-1), ell.getBoundingPoint(0)) ;
 //			return this->intersects(test) ;

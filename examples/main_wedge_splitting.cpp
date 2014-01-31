@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setMaxIterationsPerStep( 100 ) ;
+	F.setMaxIterationsPerStep( 256 ) ;
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/100.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;

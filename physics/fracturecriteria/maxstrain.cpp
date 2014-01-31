@@ -105,57 +105,50 @@ SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCri
 	double strainrelaxed = maxstress/E_relaxed ;
 	double stressinst = upVal*E_inst ;
 
-	Point center(strainrelaxed, stressinst) ;
-	Point mj(std::abs(upVal - strainrelaxed), 0.) ;
-	Point mn(0.,std::abs(stressinst - maxstress)) ;
+	renormStrain=1e4 ;
+	renormStress=1e-6 ;
 
-	Ellipse ell(center, mj, mn) ;
-	surface = ell.getEllipseFormFunction() ;
+	Point center(strainrelaxed*renormStrain, stressinst*renormStress) ;
+	Point mj(std::abs(upVal - strainrelaxed)*renormStrain, 0.) ;
+	Point mn(0.,std::abs(stressinst - maxstress)*renormStress) ;
 
+	surface = new Ellipse(center, mj, mn) ;
+	surface->sampleBoundingSurface(512) ;
+	base = std::abs(VirtualMachine().eval( surface->getEllipseFormFunction() )) ;
 
 }
-
 
 double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 {
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
+	metInCompression = false ;
+	metInTension = false ;
+
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 
-	Point after( stateAfter.second.max(), stateAfter.first.max() ) ;
-	Point before( stateBefore.second.max(), stateBefore.first.max() ) ;
+	Point after( stateAfter.second.max()*renormStrain, stateAfter.first.max()*renormStress ) ;
+	Point before( stateBefore.second.max()*renormStrain, stateBefore.first.max()*renormStress ) ;
 
-	double kafter = VirtualMachine().eval(surface, after) ;
-	double kbefore = VirtualMachine().eval(surface, before) ;
+	Segment evolution(before, after) ;
+	std::vector<Point> inter = evolution.intersection( surface ) ;
 
-	if(after.x > maxstress/E_relaxed)
-		kafter = -2.-kafter ;
-	if(after.y > upVal*E_inst)
-		kafter = -2.-kafter ;
+	if(inter.size() == 0)
+		return std::max(-1.,0.-std::abs(VirtualMachine().eval( surface->getEllipseFormFunction(), after ))/base );
 
-//	Segment transition(after, before) ;
-	metInCompression = false ;
-	metInTension = false ;
-	if(kafter < 0)
-	{
-		metInTension = true ;
-		return std::min(1., std::abs(kafter)/(std::abs(kbefore) + std::abs(kafter))) ;
-	}
+	metInTension = true ;
+	int i = 0 ;
+	if(inter.size() == 2 && squareDist2D( before, inter[1] ) < squareDist2D( before, inter[0] ) )
+		i = 1 ;
 
-/*	if(transition.intersects(&surface))
-	{
-		metInTension = true ;
-		Point k = transition.intersection(&surface)[0] ;
-		double pos = (k-before).norm()/(after-before).norm() ;
-		return std::min(1., 1.-pos) ;
-	}*/
+	// should not happen, but just in case...
+	if(!evolution.on(inter[i]))
+		return std::max(-1.,0.-std::abs(VirtualMachine().eval( surface->getEllipseFormFunction(), after ))/base );
 
-	if(kafter < kbefore)
-		return (-1.)* kafter/kbefore;
-	
-	return -1. ;
+	return std::min(1., std::sqrt(squareDist2D( inter[i], after )/squareDist2D( before, after ) )) ;
+
 }
 
 }

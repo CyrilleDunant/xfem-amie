@@ -4913,7 +4913,7 @@ bool FeatureTree::stepElements()
 // 				}
 				
 				std::cout << maxScore << "]" << std::flush ;
-				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1.)
+				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE_2D)
 				{
 					std::cerr << "adjusting time step..." << std::endl ;
 					double begin = elements[0]->getBoundingPoint(0).t ;
@@ -4929,6 +4929,11 @@ bool FeatureTree::stepElements()
 						std::cout << "negative time step: setting to 0..." << std::endl ;
 						this->moveFirstTimePlanes( 0., elements) ;
 					}	
+				}
+
+				if(maxScore > 1.-POINT_TOLERANCE_2D)
+				{
+					this->moveFirstTimePlanes( 0., elements) ;
 				}
 				
 				

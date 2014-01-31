@@ -105,6 +105,7 @@ protected:
 	ConvergenceType ctype ;
 	bool alternating ;
 	bool alternate ;
+	bool needGlobalMaximumScore ;
 
 public:
 	
@@ -120,6 +121,8 @@ public:
 	
 	double getDamageDensityTolerance() const ;
 
+	bool getNeedGlobalMaximumScore() const { return needGlobalMaximumScore ; }
+
 	void setThresholdDamageDensity(double d);
 	
 	void setSecondaryThresholdDamageDensity(double d) ;
@@ -127,6 +130,8 @@ public:
 	void setDamageDensityTolerance(double d) ;
 	
 	void setConvergenceType(ConvergenceType ct) {ctype = ct ;}
+
+	void setNeedGlobalMaximumScore(bool m) { needGlobalMaximumScore = m ; }
 	
 	double getDamageDensityTolerance() { return damageDensityTolerance ; };
 	bool hasConverged() const {return converged ; }
