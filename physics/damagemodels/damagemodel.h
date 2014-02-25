@@ -97,6 +97,7 @@ protected:
 	bool haslimit ;
 	
 	Vector state ;
+	Vector initalState ;
 
 	std::vector<PointState> states ;
 	

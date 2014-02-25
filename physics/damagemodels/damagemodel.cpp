@@ -40,6 +40,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 		else
 			fraction = s.getParent()->volume();
 
+		initalState.resize( state.size(), 0. );
 	}
 	
 	change = false ;
@@ -72,6 +73,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 	
 	if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
 	{
+		initalState = state ;
 		error = score ;
 		s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
 		states.clear() ;
@@ -102,6 +104,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 	}
 	else if( !converged )
 	{
+
 		double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
 		double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
 		int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
@@ -227,6 +230,8 @@ void DamageModel::step( ElementState &s , double maxscore)
 		)
 		{
 			Vector delta = ( upState - downState ) ;
+			
+
 // 			std::cout << deltaRoot << scoreRoot << proximityRoot << shiftRoot << modeRoot << "  "<< setChange.first << "  "<< score<< std::endl ;
 			if(ctype == DISSIPATIVE_CENTER)
 			{
@@ -280,6 +285,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 				}
 // 			}
 			trialRatio = 0 ;
+			initalState = state ;
 		}
 		else if(states.size() > iterationNumber+n)
 		{
@@ -288,6 +294,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 			{
 // 				states[i].print();
 // 			}
+			
 			
 			double minscoreRatio = states[0].fraction ;
 			double mindeltaRatio = states[0].fraction ;
@@ -315,7 +322,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 			converged = true ;
 			alternate = true ;
 			trialRatio = 0 ;
-			
+			initalState = state ;
 
 // 				std::cout << "\n" << effectiveDeltaFraction << ", "<<error << std::endl ;
 // 				for(size_t i = 0 ; i < states.size() ; i++ )

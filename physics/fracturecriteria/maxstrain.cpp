@@ -105,8 +105,8 @@ SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCri
 	double strainrelaxed = maxstress/E_relaxed ;
 	double stressinst = upVal*E_inst ;
 
-	renormStrain=1e4 ;
-	renormStress=1e-6 ;
+	renormStrain=1 ;
+	renormStress=1 ;
 
 	Point center(strainrelaxed*renormStrain, stressinst*renormStress) ;
 	Point mj(std::abs(upVal - strainrelaxed)*renormStrain, 0.) ;
@@ -115,6 +115,7 @@ SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCri
 	surface = new Ellipse(center, mj, mn) ;
 	surface->sampleBoundingSurface(512) ;
 	base = std::abs(VirtualMachine().eval( surface->getEllipseFormFunction() )) ;
+	upVal = surface->getCenter().x-surface->getMajorRadius() ;
 
 }
 
@@ -129,14 +130,74 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 
-	Point after( stateAfter.second.max()*renormStrain, stateAfter.first.max()*renormStress ) ;
-	Point before( stateBefore.second.max()*renormStrain, stateBefore.first.max()*renormStress ) ;
+	Point before( stateBefore.second.max()*renormStrain/surface->getMinorRadius(), stateBefore.first.max()*renormStress/surface->getMajorRadius()) ;
+	Point after( stateAfter.second.max()*renormStrain/surface->getMinorRadius() , stateAfter.first.max()*renormStress/surface->getMajorRadius()) ;
+	
+	
+	if(stateAfter.second.max() <= POINT_TOLERANCE_2D || stateAfter.first.max() <= POINT_TOLERANCE_2D)
+		return -1 ;
+	
+	if(after.x > surface->getCenter().x/surface->getMinorRadius()+1)
+	{
+		double maxStressAfter = stateAfter.first.max() ;
+		double maxStressBefore = stateBefore.first.max() ;
 
-	Segment evolution(before, after) ;
-	std::vector<Point> inter = evolution.intersection( surface ) ;
+		metInCompression = false ;
+		metInTension = false ;
+		if(maxStressAfter > maxstress)
+		{
+			metInTension = true ;
+			
+			return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
+		}
+		return -1.+ maxStressAfter/maxstress;
+	}
+	
+	if(after.x < surface->getCenter().x/surface->getMinorRadius()-1  || after.y >= surface->getCenter().y/surface->getMajorRadius())
+	{
+		double maxStrainAfter = stateAfter.second.max() ;
+		double maxStrainBefore = stateBefore.second.max() ;
+		
+		metInCompression = false ;
+		metInTension = false ;
+		if(maxStrainAfter > upVal)
+		{
+			metInTension = true ;
+// 			std::cout << upVal << "\t" << maxStrainAfter  << "\t" << maxStrainBefore << std::endl ;
+			double score = 1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore) ;
+			if(score > 1)
+			{
+				double maxStressAfter = stateAfter.first.max() ;
+				double maxStressBefore = stateBefore.first.max() ;
+
+				metInCompression = false ;
+				metInTension = false ;
+				if(maxStressAfter > maxstress)
+				{
+					metInTension = true ;
+					
+					return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
+				}
+				return -1.+ maxStressAfter/maxstress;
+			}
+			return  1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore) ;
+		}
+		return -1.+ maxStrainAfter/upVal;
+	}
+	
+	Segment evolution(before,after) ;
+	Circle renormsurf(1.,surface->getCenter().x/surface->getMinorRadius(), surface->getCenter().y/surface->getMajorRadius()) ;
+	
+	metInTension = true ;
+
+	std::vector<Point> inter = evolution.intersection( &renormsurf ) ;
 
 	if(inter.size() == 0)
-		return std::max(-1.,0.-std::abs(VirtualMachine().eval( surface->getEllipseFormFunction(), after ))/base );
+	{
+		Point proj(after) ;
+		renormsurf.project(&proj);
+		return std::max(-1.,-squareDist2D(proj,after) );
+	}
 
 	metInTension = true ;
 	int i = 0 ;
@@ -145,7 +206,11 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 
 	// should not happen, but just in case...
 	if(!evolution.on(inter[i]))
-		return std::max(-1.,0.-std::abs(VirtualMachine().eval( surface->getEllipseFormFunction(), after ))/base );
+	{
+		Point proj(after) ;
+		renormsurf.project(&proj);
+		return std::max(-1.,-squareDist2D(proj,after) );
+	}
 
 	return std::min(1., std::sqrt(squareDist2D( inter[i], after )/squareDist2D( before, after ) )) ;
 

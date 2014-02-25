@@ -4941,10 +4941,10 @@ bool FeatureTree::stepElements()
 			else if(!elastic)
 			{
 					
-				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
-				{
-					moveFirstTimePlanes( 0. , elements) ;
-				}
+// 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
+// 				{
+// 					moveFirstTimePlanes( 0. , elements) ;
+// 				}
 
 			    
 				#pragma omp parallel for schedule(runtime)
@@ -5516,7 +5516,7 @@ bool FeatureTree::step()
 {
 	double realdt = deltaTime ;
 	
-	if( damageConverged && state.meshed && solverConverged() && !behaviourChanged())
+	if( stateConverged && state.meshed && solverConverged() && !behaviourChanged())
 	{
 		now += deltaTime ;
  		for(size_t i = 0 ; i < nodes.size() ; i++)
@@ -5531,7 +5531,7 @@ bool FeatureTree::step()
 	{
 		TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
 		if(timec != nullptr)
-			timec->goToNext = damageConverged ;
+			timec->goToNext = stateConverged ;
 	}
 
 	bool ret = true ;
@@ -5547,7 +5547,7 @@ bool FeatureTree::step()
 			{
 				TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[k]) ;
 				if(timec != nullptr)
-					timec->goToNext = true ;
+					timec->goToNext = stateConverged ;
 			}
 		}
 		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;

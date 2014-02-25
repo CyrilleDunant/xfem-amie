@@ -645,7 +645,7 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
 
 Matrix ViscoelasticityAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
 {
-	return  dfunc->apply(elasticParam)+dfunc->applyViscous(viscousParam) ;
+	return  dfunc->apply(elasticParam, p)+dfunc->applyViscous(viscousParam, p) ;
 }
 
 Matrix ViscoelasticityAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const

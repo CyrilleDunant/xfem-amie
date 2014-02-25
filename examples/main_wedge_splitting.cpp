@@ -69,10 +69,11 @@ int main(int argc, char *argv[])
 //	 omp_set_schedule(omp_sched_static, 60) ;
 //	omp_set_num_threads(1) ;
 
+	srandom(1) ;
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
-	F.setMaxIterationsPerStep( 256 ) ;
+	F.setMaxIterationsPerStep( 1024 ) ;
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/100.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
@@ -111,18 +112,18 @@ int main(int argc, char *argv[])
 	if(argv[2] == std::string("strain"))
 	{
 
-		paste.up = 0.00035 ;
+		paste.up = 0.0002 ;
 	}
 	if(argv[2] == std::string("stress"))
 	{
 		paste.ctype = STRESS_CRITERION ;
-		paste.up = 0.0003 ;
+		paste.up = 0.00018 ;
 	}
 	if(argv[2] == std::string("mixed"))
 	{
 		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.00035 ;
-		paste.stressFraction = 0.75 ;
+		paste.up = 0.0003 ;
+		paste.stressFraction = 0.8 ;
 	}
 	paste.materialRadius = 0.002 ;
 
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 300, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 80, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 2.5) ;
@@ -204,7 +205,7 @@ int main(int argc, char *argv[])
 	bool goOn = true ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 
-	while(speed*F.getCurrentTime() <= 0.0005)
+	while(speed*F.getCurrentTime() <= 0.0005*3.)
 	{
 		if(goOn)
 		{
@@ -250,9 +251,9 @@ int main(int argc, char *argv[])
 
 		}
 
- 		x = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
- 		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
-		out << trg[0]->getBoundingPoint(3).t << "\t" << trg[0]->getBoundingPoint(3).t*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
+ 		x = F.getAverageField(STRAIN_FIELD, -1, -1) ;
+ 		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1) ;
+		out << trg[0]->getBoundingPoint(0).t << "\t" << trg[0]->getBoundingPoint(0).t*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 
 	}
 	
