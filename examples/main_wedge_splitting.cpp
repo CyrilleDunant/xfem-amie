@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 //	 omp_set_schedule(omp_sched_static, 60) ;
 //	omp_set_num_threads(1) ;
 
-	srandom(1) ;
+	srandom((int) atof(argv[3])) ;
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -197,6 +197,8 @@ int main(int argc, char *argv[])
 	tata.append(argv[2]) ;
 	tata.append("_") ;
 	tata.append(argv[1]) ;
+	tata.append("_") ;
+	tata.append(argv[3]) ;
 	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
