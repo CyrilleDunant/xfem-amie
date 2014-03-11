@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	if(argv[2] == std::string("mixed"))
 	{
 		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.0003 ;
+		paste.up = 0.00023 ;
 		paste.stressFraction = 0.8 ;
 	}
 	paste.materialRadius = 0.002 ;
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 80, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 60, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 2.5) ;
