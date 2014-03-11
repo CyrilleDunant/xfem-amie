@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 //	 omp_set_schedule(omp_sched_static, 60) ;
 //	omp_set_num_threads(1) ;
 
-	srandom((int) atof(argv[3])) ;
+//	srandom((int) atof(argv[3])) ;
 	FeatureTree F(&box) ;
 	F.setSamplingNumber(96) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/100.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
-	size_t seed = 0 ;
+	size_t seed = atof(argv[3]) ;
 	ViscoElasticOnlyPasteBehaviour pastenodamage(20e9) ;
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
@@ -112,12 +112,12 @@ int main(int argc, char *argv[])
 	if(argv[2] == std::string("strain"))
 	{
 
-		paste.up = 0.0002 ;
+		paste.up = 0.00023 ;
 	}
 	if(argv[2] == std::string("stress"))
 	{
 		paste.ctype = STRESS_CRITERION ;
-		paste.up = 0.00018 ;
+		paste.up = 0.000184 ;
 	}
 	if(argv[2] == std::string("mixed"))
 	{
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 
-	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 60, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones ) ;
+	std::vector<Feature *> aggregates = ParticleSizeDistribution::get2DConcrete( &F, &agg, 60, 0.008, 0.0003, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones, seed ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 2.5) ;
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 	bool goOn = true ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 
-	while(speed*F.getCurrentTime() <= 0.0005*3.)
+	while(speed*F.getCurrentTime() <= 0.0005)
 	{
 		if(goOn)
 		{
@@ -224,33 +224,35 @@ int main(int argc, char *argv[])
 
 		goOn = F.step() ;
 
-		if(goOn)
+		if(i%10 == 0)
 		{
-			std::string tati = tata ; tati.append("_") ;
-			tati.append(itoa(i)) ;
-			std::cout << tati << std::endl ;
-			TriangleWriter writer(tati, &F, 1) ;
-	 		writer.getField(STRAIN_FIELD) ;
-	 		writer.getField(REAL_STRESS_FIELD) ;
-			writer.getField(TWFT_DAMAGE) ;
-			writer.getField(TWFT_STIFFNESS) ;
-			writer.write() ;
-			j = 0 ;
-		}
-		if(!goOn)
-		{
-			j++ ;
-			std::string tati = tata ; tati.append("_") ;
-			tati.append(itoa(i)) ; tati.append("_inter_") ;
-			tati.append(itoa(j)) ;
-			std::cout << tati << std::endl ;
-			TriangleWriter writer(tati, &F, -1) ;
-	 		writer.getField(STRAIN_FIELD) ;
-	 		writer.getField(REAL_STRESS_FIELD) ;
-			writer.getField(TWFT_DAMAGE) ;
-			writer.getField(TWFT_STIFFNESS) ;
-			writer.write() ;
-
+			if(goOn)
+			{
+				std::string tati = tata ; tati.append("_") ;
+				tati.append(itoa(i)) ;
+				std::cout << tati << std::endl ;
+				TriangleWriter writer(tati, &F, 1) ;
+	 			writer.getField(STRAIN_FIELD) ;
+		 		writer.getField(REAL_STRESS_FIELD) ;
+				writer.getField(TWFT_DAMAGE) ;
+				writer.getField(TWFT_STIFFNESS) ;
+				writer.write() ;
+				j = 0 ;
+			}
+			if(!goOn)
+			{
+				j++ ;
+				std::string tati = tata ; tati.append("_") ;
+				tati.append(itoa(i)) ; tati.append("_inter_") ;
+				tati.append(itoa(j)) ;
+				std::cout << tati << std::endl ;
+				TriangleWriter writer(tati, &F, -1) ;
+		 		writer.getField(STRAIN_FIELD) ;
+	 			writer.getField(REAL_STRESS_FIELD) ;
+				writer.getField(TWFT_DAMAGE) ;
+				writer.getField(TWFT_STIFFNESS) ;
+				writer.write() ;
+			}
 		}
 
  		x = F.getAverageField(STRAIN_FIELD, -1, -1) ;
