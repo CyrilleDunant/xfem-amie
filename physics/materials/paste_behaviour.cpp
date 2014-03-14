@@ -209,3 +209,134 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 }
 
 
+
+HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * diffusionTree) :LinearForm(Material::cauchyGreen(std::make_pair(1,0.2), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS), true, true, 2),  diffusionTree(diffusionTree)
+{
+	v.push_back(XI);
+	v.push_back(ETA);
+}
+
+Form * HydratingMechanicalCementPaste::getCopy() const
+{
+	return new HydratingMechanicalCementPaste(diffusionTree) ;
+}
+
+void HydratingMechanicalCementPaste::step(double timestep, ElementState & currentState, double maxscore)
+{
+	DelaunayTriangle * diffusionElement = diffusionTree->getElements2D()[dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index] ;
+	Vector saturation = diffusionElement->getState().getDisplacements() ;
+	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
+	double doh = dynamic_cast<HydratingDiffusionCementPaste *>(diffusionElement->getBehaviour())->getDegreeOfHydration() ;
+	
+	double C [10]= { 6328.4269, - 5426.419, 20602.939, - 13932.055, 19700.509, 105229.09, 25708.722, - 52055.068, 47843.694, - 136323.96 };
+
+	//in MPa
+	double E = C[0] + C[1]*effectiveSaturation + C[2]*doh + C[3]*effectiveSaturation*effectiveSaturation + C[4]*doh*effectiveSaturation + C[5]*doh*doh + C[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + C[7]*doh*effectiveSaturation*effectiveSaturation + C[8]*doh*doh*effectiveSaturation + C[9]*doh*doh*doh;
+
+	if (E<0) E=0; 
+		
+	double nu = 0.2 ;
+	
+	param = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
+	
+}
+
+void HydratingMechanicalCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+
+	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v, ret) ;
+}
+
+bool HydratingMechanicalCementPaste::fractured() const {return false ; }
+
+HydratingMechanicalCementPaste::~HydratingMechanicalCementPaste() {} ;
+
+bool HydratingMechanicalCementPaste::changed() const {return false ; }
+
+Matrix HydratingMechanicalCementPaste::getTensor(const Point & p, IntegrableEntity * e, int g) const 
+{
+	return param ;
+}
+
+
+HydratingDiffusionCementPaste::HydratingDiffusionCementPaste(): LinearForm(Matrix(2,2), false, false, 1)  
+{
+	v.push_back(XI);
+	v.push_back(ETA);
+	
+	doh = 0.3 ;
+	
+}
+
+Form * HydratingDiffusionCementPaste::getCopy() const
+{
+	HydratingDiffusionCementPaste * ret = new HydratingDiffusionCementPaste() ;
+	ret->doh = doh ;
+	return ret ;
+}
+
+void HydratingDiffusionCementPaste::step(double timestep, ElementState & currentState, double maxscore) 
+{
+	Vector saturation = currentState.getDisplacements() ;
+	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
+	double deltaH = getDeltaDoH(effectiveSaturation, currentState) ;
+	doh += deltaH ;
+	double D = getDiffusionCoefficient(effectiveSaturation, currentState) ;
+	param[0][0]=D ;
+	param[1][1]=D ;
+
+	
+}
+
+double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementState & currentState) 
+{
+	double thresholdRelativeHumidity = 1.199*doh-0.1503 ;
+	double maxRelativeHumidity = 0.999 ;
+	double factor = (saturation-thresholdRelativeHumidity)/(maxRelativeHumidity-thresholdRelativeHumidity) ;
+	if(factor < POINT_TOLERANCE_2D)
+		return 0. ;
+
+	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
+	double currentTime = diffusionElement->getBoundingPoint(0).t ;
+	double deltaTime = currentState.getNodalDeltaTime() ;
+	
+	double A1 =-0.347;
+	double A2 = 278.8;
+	double A3 =-0.677;
+	double A4 = 1.37;
+
+	return ((-(A1/A2)*exp(-currentTime/A2) - (A3/A4)*exp(-currentTime/A4) )* deltaTime)*factor;
+	
+}
+
+double HydratingDiffusionCementPaste::getDiffusionCoefficient(double saturation, ElementState & currentState) 
+{
+	double D1_bz= (-5.412*doh*doh - 0.987*doh + 3.713)*1e-10;     //[m2/s], Duffison coefficient in function of DoH
+
+	double a = 0.04 ;
+	int n = 6;
+	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of DoH
+	double Bbz=0.2815*doh+0.0297;   
+	double h_b=1-1/(1+exp((saturation-Abz)/Bbz));   //Bolzmann function for inversed desorption isotherm
+	return D1_bz*(a + (1-a)*1/(1+pow((1-h_b)/0.25,n)));
+}
+
+
+void HydratingDiffusionCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
+{
+
+	ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+	+ vm->ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
+
+}
+
+HydratingDiffusionCementPaste::~HydratingDiffusionCementPaste() { } ;
+
+/** \brief return true if the damage state has been modfied*/
+bool HydratingDiffusionCementPaste::changed() const { return false ; }
+
+/** \brief Return the (damaged) Stifness tensor*/
+Matrix HydratingDiffusionCementPaste::getTensor(const Point & p, IntegrableEntity * e , int g ) const { return param ; }
+
+
+

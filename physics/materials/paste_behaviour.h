@@ -10,6 +10,7 @@
 
 #include "../weibull_distributed_stiffness.h"
 #include "../../geometry/geometry_base.h"
+#include "../../features/features.h"
 
 namespace Mu
 {
@@ -24,6 +25,60 @@ namespace Mu
 		virtual Form * getCopy() const ;
 		
 	} ;
+	
+	struct HydratingMechanicalCementPaste : public LinearForm
+	{
+		std::vector<Variable> v ;
+		FeatureTree * diffusionTree ;
+		
+		HydratingMechanicalCementPaste(FeatureTree * diffusionTree) ;
+		
+		virtual Form * getCopy() const ;
+		
+		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
+		
+		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		
+		virtual bool fractured() const ;
+		
+		virtual ~HydratingMechanicalCementPaste();
+
+		/** \brief return true if the damage state has been modfied*/
+		virtual bool changed() const ;
+
+		/** \brief Return the (damaged) Stifness tensor*/
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+	} ;
+	
+	struct HydratingDiffusionCementPaste : public LinearForm
+	{
+		std::vector<Variable> v ;
+		double doh ;
+		
+		HydratingDiffusionCementPaste() ;
+		
+		virtual Form * getCopy() const ;
+		
+		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
+		
+		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		
+		virtual ~HydratingDiffusionCementPaste();
+
+		double getDegreeOfHydration() const { return doh ; }
+		
+		/** \brief return true if the damage state has been modfied*/
+		virtual bool changed() const ;
+		
+		/** \brief Return the (damaged) Stifness tensor*/
+		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+		virtual double getDeltaDoH(double stauration, ElementState & currentState) ;
+		virtual double getDiffusionCoefficient(double stauration, ElementState & currentState) ;
+		
+	} ;
+	
 	
 	struct ElasticOnlyPasteBehaviour : public PasteBehaviour
 	{

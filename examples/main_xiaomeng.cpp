@@ -52,62 +52,65 @@ int main(int argc, char *argv[])
   double scale = 1. ;
   if(argc > 1)
     scale = atof(argv[1]) ;
-  
-	double nu = 0.2 ;
-	double E = 1 ;
-	
-	Matrix D(2,2) ;
-	D[0][0] = .1 ; D[1][1] = .1;
-	
+
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
-  Sample box( nullptr, 1, 1, 0.,0.) ;
-  
-	box.setBehaviour( new Diffusion( D ) ) ;
+  Sample boxd( nullptr, 1, 1, 0.,0.) ;
+	Sample boxm( nullptr, 1, 1, 0.,0.) ;
+	boxd.setBehaviour( new HydratingDiffusionCementPaste() ) ;
+	
 
   // creates main object
-  FeatureTree F(&box) ;
-  F.setOrder(LINEAR_TIME_LINEAR) ;
+  FeatureTree Fd(&boxd) ;
+	FeatureTree Fm(&boxm) ;
+	boxm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;
+  Fd.setOrder(LINEAR_TIME_LINEAR) ;
+	Fm.setOrder(LINEAR);
 
-  // place the inclusions in the box
 
   // sampling criteria
-  F.setSamplingNumber(32); //512*16 ) ;
+  Fd.setSamplingNumber(32); //512*16 ) ;
+	Fm.setSamplingNumber(32); //512*16 ) ;
 
 
   // add boundary conditions
-  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 0));
-  F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.001, 0));
+  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 0));
+  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.001, 0));
+	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
+  Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0));
+	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 
   // assemble and solve problem
-	F.setDeltaTime(0.01) ;
-  F.step();
-	F.step();
-	F.step();
-	F.step();
+	Fd.setDeltaTime(0.01) ;
+	Fm.setDeltaTime(0.01) ;
+	
+  Fd.step();
+	Fd.step();
+	Fd.step();
+	Fd.step();
 
 	MultiTriangleWriter writer( "scalar_field", "scalar_field_layer", nullptr ) ;
-	writer.reset( &F ) ;
+	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
 	
-	F.step();
-	F.step();
-	F.step();
-	F.step();
+	Fd.step();
+	Fd.step();
+	Fd.step();
+	Fd.step();
 	
-	writer.reset( &F ) ;
+	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
 	
-	F.step();
-	F.step();
-	F.step();
-	F.step();
+	Fd.step();
+	Fd.step();
+	Fd.step();
+	Fd.step();
 	
-	writer.reset( &F ) ;
+	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
