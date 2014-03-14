@@ -263,6 +263,7 @@ HydratingDiffusionCementPaste::HydratingDiffusionCementPaste(): LinearForm(Matri
 {
 	v.push_back(XI);
 	v.push_back(ETA);
+	v.push_back(TIME_VARIABLE);
 	
 	doh = 0.3 ;
 	
@@ -325,6 +326,8 @@ double HydratingDiffusionCementPaste::getDiffusionCoefficient(double saturation,
 void HydratingDiffusionCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
 {
 
+	param[0][0] = 1 ;
+	param[1][1] = 1 ;
 	ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
 	+ vm->ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
 
