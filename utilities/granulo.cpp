@@ -159,6 +159,7 @@ std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, 
 	}
 	inc.clear() ;
 	srand(seed) ;
+	srandom(seed) ;
 	if(placement)
 		feats = placement2D( placement, feats, itz, 0, tries, orientation, exclusionZones ) ;
 	else

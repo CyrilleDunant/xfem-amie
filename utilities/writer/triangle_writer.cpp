@@ -724,6 +724,37 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					}
 
 					break ;
+					
+				case TWFT_SCALAR:
+				{
+					Vector x = source->getDisplacements(-1, false) ;
+					std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+					int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+					int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+					int factor = pointsPerTimePlanes / 3 ;
+					if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
+						timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
+
+					int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+
+					for( int i = 0 ; i < triangles.size() ; i++ )
+					{
+						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+						{
+							size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+							
+							size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
+							size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
+							size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
+
+							ret[2][iterator] = x[id1  ] ;
+							ret[1][iterator] = x[id2  ] ;
+							ret[0][iterator++] = x[id3 ] ;
+						}
+					}
+
+					break ;
+				}
 
 				case TWFT_GRADIENT_AND_FLUX:
 
@@ -1300,6 +1331,8 @@ int numberOfFields( TWFieldType field )
 			return 6 ;
 		case TWFT_DISPLACEMENTS:
 			return 6 ;
+		case TWFT_SCALAR:
+			return 3 ;
 		case TWFT_PRINCIPAL_ANGLE:
 			return 3 ;
 		case TWFT_TRIANGLE_ANGLE:

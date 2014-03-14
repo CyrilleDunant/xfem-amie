@@ -316,8 +316,8 @@ target_link_libraries( 3d Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
-#add_executable(cl examples/main_cl.cpp )
-#target_link_libraries( cl Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+add_executable(xia examples/main_xiaomeng.cpp )
+target_link_libraries( xia Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(example examples/main.cpp )
 target_link_libraries( example Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})

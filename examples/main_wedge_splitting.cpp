@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	if(argv[2] == std::string("mixed"))
 	{
 		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.00023 ;
+		paste.up = 0.00025 ;
 		paste.stressFraction = 0.8 ;
 	}
 	paste.materialRadius = 0.002 ;
