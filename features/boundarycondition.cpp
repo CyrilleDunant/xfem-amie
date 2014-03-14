@@ -389,18 +389,52 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				std::vector<Function> shapeFunctions ;
 
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
 				for ( size_t j = 0 ; j < id.size() ; j++ )
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
 						if ( id[j] == e->getBoundingPoint( i ).id )
+						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = new Point(e->getBoundingPoint( i ) ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+							}
+						}
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
 						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				Segment edge( *first, *last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				{
+					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
+					gpe.gaussPoints[i].second *= edge.norm()/2 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -418,8 +452,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, idit ) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
 				}
 
 				return ;
@@ -432,18 +466,52 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				std::vector<Function> shapeFunctions ;
 
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
 				for ( size_t j = 0 ; j < id.size() ; j++ )
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
 						if ( id[j] == e->getBoundingPoint( i ).id )
+						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = new Point(e->getBoundingPoint( i ) ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = new Point(e->getBoundingPoint( i ) ) ;
+								}
+							}
+						}
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
 						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				Segment edge( *first, *last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				{
+					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
+					gpe.gaussPoints[i].second *= edge.norm()/2 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
 
 				std::vector<Variable> v( 2 ) ;
@@ -461,8 +529,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
 					double f = 0. ;
-					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, idit ) ;
+					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gpe, Jinve, v) ;
+					a->addForceOn( XI, f, id[i] ) ;
 				}
 
 				return ;
