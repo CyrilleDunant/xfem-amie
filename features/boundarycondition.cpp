@@ -3097,7 +3097,7 @@ void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetra
 }
 
 
-TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition(double initialValue) : BoundaryCondition( GENERAL, 0. ), initialValue(initialValue) { 
+TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition(double i) : BoundaryCondition( GENERAL, 0. ), initialValue(i) { 
 	goToNext = true ;
 	previousDisp.resize(0) ;
 } ;

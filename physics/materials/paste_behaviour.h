@@ -40,6 +40,9 @@ namespace Mu
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 		
 		virtual bool fractured() const ;
+
+		virtual Matrix getMechanicalProperties(double saturation, double doh) ;
+		virtual Vector getAutogeneousForce(double saturation, double doh) ;
 		
 		virtual ~HydratingMechanicalCementPaste();
 

@@ -43,12 +43,16 @@ namespace Mu
 		 * @param vm VirtualMachine to use
 		 */
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+
+		virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 		
 		/** \brief return false
 		 * 
 		 * @return false
 		 */
 		virtual bool fractured() const ;
+		
+		virtual bool isViscous() const { return true ; }
 		
 		/** \brief Return a Copy of the behaviour
 		 * 

@@ -429,6 +429,11 @@ DtF Differential::operator *(const Function & f) const
 	return DtF(*this, f) ;
 }
 
+DDtF DoubleDifferential::operator *(const Function & f) const
+{
+	return DDtF(*this, f) ;
+}
+
 DtD Differential::operator *(const Differential & f) const
 {
 	return DtD(*this, f) ;
@@ -474,6 +479,11 @@ VGtM VectorGradient::operator *(const Matrix & f) const
 	return VGtM(*this, f) ; 
 }
 
+VGDtM VectorGradientDot::operator *(const Matrix & f) const 
+{ 
+	return VGDtM(*this, f) ; 
+}
+
 VGtV VectorGradient::operator *(const Vector & f) const 
 { 
 	return VGtV(*this, f) ; 
@@ -485,6 +495,15 @@ VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const
 	return VGtMtVG(first,second, f) ;
 }
 
+VGtMtVGD VGtM::operator*(const Mu::VectorGradientDot & f) const 
+{
+	return VGtMtVGD(first,second, f) ;
+}
+
+VGDtMtVG VGDtM::operator*(const Mu::VectorGradient & f) const 
+{
+	return VGDtMtVG(first,second, f) ;
+}
 
 Function::Function() : derivative(nullptr),
 		transforms(nullptr),

@@ -228,18 +228,29 @@ void HydratingMechanicalCementPaste::step(double timestep, ElementState & curren
 	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
 	double doh = dynamic_cast<HydratingDiffusionCementPaste *>(diffusionElement->getBehaviour())->getDegreeOfHydration() ;
 	
+	param = getMechanicalProperties(effectiveSaturation,doh) ;
+}
+
+Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveSaturation, double doh) 
+{
 	double C [10]= { 6328.4269, - 5426.419, 20602.939, - 13932.055, 19700.509, 105229.09, 25708.722, - 52055.068, 47843.694, - 136323.96 };
 
 	//in MPa
 	double E = C[0] + C[1]*effectiveSaturation + C[2]*doh + C[3]*effectiveSaturation*effectiveSaturation + C[4]*doh*effectiveSaturation + C[5]*doh*doh + C[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + C[7]*doh*effectiveSaturation*effectiveSaturation + C[8]*doh*doh*effectiveSaturation + C[9]*doh*doh*doh;
 
-	if (E<0) E=0; 
+	if (E<0){ E=0; }
+	E *= 1e6 ;
 		
 	double nu = 0.2 ;
 	
-	param = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
-	
+	return Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 }
+
+Vector HydratingMechanicalCementPaste::getAutogeneousForce(double saturation, double doh) 
+{
+
+}
+
 
 void HydratingMechanicalCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {

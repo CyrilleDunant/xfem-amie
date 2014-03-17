@@ -17,6 +17,8 @@ namespace Mu
 struct FtF ;
 struct GtFMtG ;
 struct VGtMtVG ;
+struct VGDtMtVG ;
+struct VGtMtVGD ;
 struct GtM ;
 struct GtML ;
 struct GtMtG ;
@@ -47,11 +49,13 @@ struct FunctionMatrix ;
 struct Differential ;
 struct DtF ;
 struct DtD ;
+struct DDtF ;
 struct DtV ;
 struct DtVL ;
 struct Gradient ;
 struct GradientDot ;
 struct VectorGradient ;
+struct VectorGradientDot ;
 
 /** \brief A virtual machine class for computation of symbolic formulas.
  *
@@ -568,6 +572,10 @@ VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
 */
 	double ieval(const VGtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
+	double ieval(const VGDtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
+	double ieval(const VGtMtVGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
 /** \brief Overloaded function to compute the integral of a VectorGradient times a Matrix times a Vector using the inverse Jacobian matrices given by Jinv and the Gauss points in gp, with variables defined by vars. 
 VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
 @param f VGtV to integrate.
@@ -603,6 +611,8 @@ Differential is the usual \f$ d \cdot \f$ operator.
 @param vars std::vector of space Variable s
 */
 	double ieval(const DtD & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
+
+	double ieval(const DDtF & d, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars) ;
 
 /** \brief Overloaded function to compute the integral of a Differential over the IntegrableEntity e, with variables defined by vars. 
 Differential is the usual \f$ d \cdot \f$ operator.
@@ -756,6 +766,8 @@ VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
 */
 	Matrix gveval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
 
+	Matrix gvdeval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0, bool transpose = false) ;	
+
 /** \brief Overloaded function to compute the value of the VectorGradient f using the Matrix m as the inverse Jacobian, with variables defined by vars, at point x, y, z, t.
 VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
 @param f VectorGradient which should be computed.
@@ -767,6 +779,8 @@ VectorGradient is the usual \f$ \nabla \cdot \f$ operator.
 @param t coordinate at which to evaluate.
 */
 	Matrix gveval(const VectorGradient &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
+
+	Matrix gvdeval(const VectorGradientDot &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y = 0, const double z = 0, const double t = 0) ;
 
 /** \brief Overloaded function to compute the value of the GradientDot f using the Matrix m as the inverse Jacobian, with variables defined by vars, at point x, y, z, t.
 GradientDot is the usual \f$ \dot{\nabla}\otimes(\cdot) \f$ operator.

@@ -545,6 +545,7 @@ public:
 
 struct FtF ;
 struct DtF ;
+struct DDtF ;
 struct GtM ;
 struct GtML ;
 struct GtV ;
@@ -553,10 +554,13 @@ struct GtMtG ;
 struct GtMLtG ;
 struct VGtM ;
 struct VGtV ;
+struct VGDtM ;
+struct VGDtMtVG ;
 struct DtD ;
 struct DtV ;
 struct DtVL ;
 struct VGtMtVG ;
+struct VGtMtVGD ;
 struct DtGtMtG ;
 struct GDtM ;
 struct GDtML ;
@@ -615,6 +619,17 @@ struct Differential
 	 * @return DtGtMtG
 	 */
 	DtGtMtG operator *(const GtMtG & g) const ;
+} ;
+
+struct DoubleDifferential
+{
+	const Function & f ;
+	const Variable & v1 ;
+	const Variable & v2 ;
+
+	DoubleDifferential(const Function & u, const Variable & v1_, const Variable & v2_) : f(u), v1(v1_), v2(v2_) { } ;
+
+	DDtF operator*(const Function & f) const ;
 } ;
 
 /** \brief Create a structure for the lazy evaluation of a Gradient 
@@ -744,6 +759,16 @@ struct VectorGradient
 	 * @return VGtV
 	 */
 	VGtV operator *(const Vector & f) const ;
+} ;
+
+struct VectorGradientDot
+{
+	const Function & f ;
+	const bool transpose ;
+
+	VectorGradientDot(const Function &u, bool t = false) : f(u), transpose(t) { } ;
+
+	VGDtM operator *(const Matrix & f) const ;
 } ;
 
 struct FtF
@@ -1023,6 +1048,14 @@ struct DtF
 	DtF(const Differential & d_, const Function & f_) : d(d_), f(f_) { } ;
 } ;
 
+struct DDtF
+{
+	const DoubleDifferential & d ;
+	const Function & f ;
+
+	DDtF(const DoubleDifferential & dd, const Function & u) : d(dd), f(u) { } ;
+} ;
+
 /** \brief Structure for the lazy evaluation of a Differential * Differential */
 struct DtD
 {
@@ -1082,6 +1115,18 @@ struct VGtM
 	 * @return VGtMtVG
 	 */
 	VGtMtVG operator*(const Mu::VectorGradient & f) const ;
+
+	VGtMtVGD operator*(const Mu::VectorGradientDot & f) const ;
+} ;
+
+struct VGDtM
+{
+	const VectorGradientDot & first ;
+	const Matrix & second ;
+
+	VGDtM(const VectorGradientDot & g, const Matrix & f) : first(g), second(f) { } ;
+
+	VGDtMtVG operator*(const Mu::VectorGradient & d) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Vector */
@@ -1252,6 +1297,25 @@ struct VGtMtVG
 	VGtMtVG(const VectorGradient & g, const Matrix & f,const VectorGradient & g_) : first(g), second(f), third(g_) { };
 	
 } ;
+
+struct VGDtMtVG
+{
+	const VectorGradientDot & first ;
+	const Matrix & second ;
+	const VectorGradient & third ;
+
+	VGDtMtVG(const VectorGradientDot & gd, const Matrix & f, const VectorGradient & g) : first(gd), second(f), third(g) { } ;
+} ;
+
+struct VGtMtVGD
+{
+	const VectorGradient & first ;
+	const Matrix & second ;
+	const VectorGradientDot & third ;
+
+	VGtMtVGD(const VectorGradient & g, const Matrix & f, const VectorGradientDot & gd) : first(g), second(f), third(gd) { } ;
+} ;
+
 
 } ;
 
