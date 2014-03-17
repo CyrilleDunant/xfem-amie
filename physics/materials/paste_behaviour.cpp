@@ -264,7 +264,6 @@ HydratingDiffusionCementPaste::HydratingDiffusionCementPaste(): LinearForm(Matri
 	v.push_back(XI);
 	v.push_back(ETA);
 	v.push_back(TIME_VARIABLE);
-	
 	doh = 0.3 ;
 	
 }
@@ -278,15 +277,16 @@ Form * HydratingDiffusionCementPaste::getCopy() const
 
 void HydratingDiffusionCementPaste::step(double timestep, ElementState & currentState, double maxscore) 
 {
-	Vector saturation = currentState.getDisplacements() ;
-	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
+	if(saturation.size() == 0)
+		saturation.resize(6, 1.);
+	else
+		saturation = currentState.getDisplacements() ;
+	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3. ;
 	double deltaH = getDeltaDoH(effectiveSaturation, currentState) ;
 	doh += deltaH ;
 	double D = getDiffusionCoefficient(effectiveSaturation, currentState) ;
-	param[0][0]=D ;
-	param[1][1]=D ;
-
-	
+	param[0][0]=D*24*3600 ;
+	param[1][1]=D*24*3600 ;
 }
 
 double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementState & currentState) 
@@ -294,6 +294,7 @@ double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementStat
 	double thresholdRelativeHumidity = 1.199*doh-0.1503 ;
 	double maxRelativeHumidity = 0.999 ;
 	double factor = (saturation-thresholdRelativeHumidity)/(maxRelativeHumidity-thresholdRelativeHumidity) ;
+	
 	if(factor < POINT_TOLERANCE_2D)
 		return 0. ;
 
@@ -325,12 +326,8 @@ double HydratingDiffusionCementPaste::getDiffusionCoefficient(double saturation,
 
 void HydratingDiffusionCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const 
 {
-
-	param[0][0] = 1 ;
-	param[1][1] = 1 ;
 	ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
 	+ vm->ieval(Differential(p_j, TIME_VARIABLE)*p_i, gp, Jinv, v)  ;
-
 }
 
 HydratingDiffusionCementPaste::~HydratingDiffusionCementPaste() { } ;

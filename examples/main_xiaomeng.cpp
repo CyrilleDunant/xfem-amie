@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
 
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
-  Sample boxd( nullptr, 1, 1, 0.,0.) ;
-	Sample boxm( nullptr, 1, 1, 0.,0.) ;
+  Sample boxd( nullptr, 0.03, 0.03, 0.,0.) ;
+	Sample boxm( nullptr, 0.03, 0.03, 0.,0.) ;
 	boxd.setBehaviour( new HydratingDiffusionCementPaste() ) ;
 	
 
@@ -69,25 +69,28 @@ int main(int argc, char *argv[])
 
 
   // sampling criteria
-  Fd.setSamplingNumber(32); //512*16 ) ;
-	Fm.setSamplingNumber(32); //512*16 ) ;
+  Fd.setSamplingNumber(64); //512*16 ) ;
+	Fm.setSamplingNumber(64); //512*16 ) ;
+	double timeStep = .1 ;
 
-
+// 	BoundingBoxDefinedBoundaryCondition * initial = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BEFORE, 1, 0) ;
   // add boundary conditions
-  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 0));
-  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.0001, 0));
+// 	Fd.addBoundaryCondition(initial);
+//   Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 0));
+  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.7, 0));
+	Fd.setInitialValue(1) ;
 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
   Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0));
 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 
   // assemble and solve problem
-	Fd.setDeltaTime(0.01) ;
-	Fm.setDeltaTime(0.01) ;
+	Fd.setDeltaTime(timeStep) ;
+	Fm.setDeltaTime(timeStep) ;
 	
   Fd.step();
-	Fd.step();
-	Fd.step();
-	Fd.step();
+// 	Fd.removeBoundaryCondition(initial);
+	for(int i = 0 ; i < 30 ; i++)
+		Fd.step();
 
 	MultiTriangleWriter writer( "scalar_field", "scalar_field_layer", nullptr ) ;
 	writer.reset( &Fd ) ;
@@ -95,20 +98,16 @@ int main(int argc, char *argv[])
 	writer.append() ;
 	writer.writeSvg(0., true) ;
 	
-	Fd.step();
-	Fd.step();
-	Fd.step();
-	Fd.step();
+	for(int i = 0 ; i < 30 ; i++)
+		Fd.step();
 	
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
 	
-	Fd.step();
-	Fd.step();
-	Fd.step();
-	Fd.step();
+	for(int i = 0 ; i < 30 ; i++)
+		Fd.step();
 	
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;

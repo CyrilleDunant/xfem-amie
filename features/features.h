@@ -125,6 +125,7 @@ protected:
 	/** \brief For fast Access*/
 	Grid * grid ;
 	Grid3D * grid3d ;
+	double initialValue ;
 	
 	std::vector<Mesh<DelaunayTriangle, DelaunayTreeItem> *> coarseTrees ;
 	std::vector<Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> coarseTrees3D ;
@@ -328,6 +329,9 @@ public:
 	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh(int grid = -1) ;
 	
 	void shuffleMeshPoints() ;
+	
+	void setInitialValue(double v) {initialValue = v ; } ;
+	double getInitialValue() const {return initialValue ;} ;
 
 public:
 	Vector instants ;

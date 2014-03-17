@@ -237,6 +237,7 @@ std::vector<DelaunayTetrahedron *> FeatureTree::getElements3D( const Geometry *p
 
 FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gridsize ) : grid( nullptr ), grid3d( nullptr ), state( this ), nodes(0) 
 {
+	initialValue = 0 ;
 	deltaTime = 0 ;
 	minDeltaTime = 0.001 ; 
 	reuseDisplacements = false ;
@@ -478,7 +479,7 @@ void FeatureTree::setOrder( Order ord )
 	
 	if(ord >= CONSTANT_TIME_LINEAR)
 	{
-		addBoundaryCondition( new TimeContinuityBoundaryCondition() ) ;
+		addBoundaryCondition( new TimeContinuityBoundaryCondition(initialValue) ) ;
 	}
 	
 }

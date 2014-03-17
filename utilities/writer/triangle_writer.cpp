@@ -268,6 +268,16 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			}
 		}
 
+		bool isScalar = false ;
+		for( size_t k = 0 ; k < fields.size() ; k++ )
+		{
+			if(fields[k] == TWFT_SCALAR)
+			{
+				isScalar = true ;
+				break ;
+			}
+		}
+		std::vector<size_t> skips ;
 		for( size_t k = 0 ; k < layers.size() ; k++ )
 		{
 			outfile << "\t<g>" << std::endl ;
@@ -278,6 +288,23 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
 			{
 				std::string currentField = nameOfField(fields[fieldCounter]) ;
+				if(isScalar && (fields[fieldCounter] == TWFT_COORDINATE || fields[fieldCounter] == TWFT_DISPLACEMENTS))
+				{
+					if(localFieldCounter < numberOfFields(fields[fieldCounter]))
+					{
+						localFieldCounter +=3 ;
+					}
+					else
+					{
+						localFieldCounter = 3 ;
+						fieldCounter++ ;
+					}
+					skips.push_back(j);
+					std::cout << "skipping ! " << j <<std::endl ;
+					
+					continue ;
+				}
+				
 				if(localFieldCounter < numberOfFields(fields[fieldCounter]))
 				{
 					localFieldCounter +=3 ;
@@ -287,12 +314,14 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					localFieldCounter = 3 ;
 					fieldCounter++ ;
 				}
+
+				
 				double dval = (maxval[jit]-minval[jit]) ;
 				if (dval < 1e-14)
 					dval = 1 ;
 				outfile << "\t\t<!-- maxval = " <<  maxval[jit] << ", minval = " << minval[jit] << "-->" << std::endl ;
 				outfile << "\t\t<g>" << std::endl ;
-				outfile << "\t\t<text font-size=\"28\" x=\"" << gfactor*minx+((maxx-minx)*gfactor*1.1)*(k+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
+				outfile << "\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(k+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
 				for( int i = 0 ; i < nTriangles[0] ; i++ )
 				{
 					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
@@ -320,6 +349,10 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 		
 		for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
 		{
+			for(size_t k = 0 ; k < skips.size() ; k++)
+				if(j == skips[k])
+					goto postScale ;
+			
 			outfile << "\t\t<g>" << std::endl ;
 			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
 						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+12 << "\">" << std::setprecision(4) << maxval[jit] << "</text>" << std::endl ;
@@ -338,6 +371,8 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 							<< "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)
 							<< "\"  style=\"fill-opacity:1\" fill=\"url(#hue)\"/>" << std::endl ;
 			outfile << "\t\t</g>" << std::endl ;
+			
+postScale:
 			jit++ ;
 			outfile.flush();
 		}
@@ -558,260 +593,36 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		ret.push_back( reti ) ;
 	}
 	
-/*	if( field == TWFT_STRAIN || field == TWFT_STRAIN_AND_STRESS || field == TWFT_STRESS )
+	if( field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX )
 	{
-
-		std::pair<Vector, Vector> stress_strain ;//= source->getStressAndStrainInLayer( layer, false ) ;
+		std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer( layer, false ) ;
 		std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-		int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-		int pointsPerPlane = pointsPerTri / triangles[0]->timePlanes() ;
-		int factor = 1 ;
-
-		if( pointsPerPlane % 6 == 0 )
-			factor = 2 ;
-
-		int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
 
 		switch( field )
 		{
-			case TWFT_STRAIN:
-				stress_strain.first.resize( 0 ) ;
+
+			case TWFT_FLUX:
+				gradient_flux.first.resize( 0 ) ;
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
-						Vector strain0(3) ;
-						Vector strain1(3) ;
-						Vector strain2(3) ;
-						
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + 0), strain0, false,  0);
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor), strain1, false,  0);
-						triangles[i]->getState().getField(STRAIN_FIELD,  triangles[i]->getBoundingPoint(time_offset + factor*2), strain2, false,  0);
-						
-						// epsilon11
-						ret[8][iterator]   = strain0[0];
-						ret[7][iterator]   = strain1[0];
-						ret[6][iterator]   = strain2[0];
+						// j11
+						ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
 
-						// epsilon12
-						ret[5][iterator]   = strain0[1];
-						ret[4][iterator]   = strain1[1];
-						ret[3][iterator]   = strain2[1];
-
-						// epsilon22
-						ret[2][iterator]   = strain0[2];
-						ret[1][iterator]   = strain1[2];
-						ret[0][iterator++]   = strain2[2];
-					  
-					}
-
-				}
-
-				break ;
-
-			case TWFT_STRAIN_AND_STRESS:
-
-				for( int i = 0 ; i < triangles.size() ; i++ )
-				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
-					{
-						Vector strain0(3) ;
-						Vector strain1(3) ;
-						Vector strain2(3) ;
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0);
-						triangles[i]->getState().getField(STRAIN_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0);
-						
-						// epsilon11
-						ret[17][iterator]   = strain0[0];
-						ret[16][iterator]   = strain1[0];
-						ret[15][iterator]   = strain2[0];
-
-						// epsilon12
-						ret[14][iterator]   = strain0[1];
-						ret[13][iterator]   = strain1[1];
-						ret[12][iterator]   = strain2[1];
-
-						// epsilon22
-						ret[11][iterator]   = strain0[2];
-						ret[10][iterator]   = strain1[2];
-						ret[9][iterator]    = strain2[2];
-						// epsilon11
-
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0);
-						// sigma11
-						ret[8][iterator]   = strain0[0];
-						ret[7][iterator]   = strain1[0];
-						ret[6][iterator]   = strain2[0];
-
-						// sigma12
-						ret[5][iterator]   = strain0[1];
-						ret[4][iterator]   = strain1[1];
-						ret[3][iterator]   = strain2[1];
-
-						// sigma22
-						ret[2][iterator]   = strain0[2];
-						ret[1][iterator]   = strain1[2];
-						ret[0][iterator++] = strain2[2];
-					}
-				}
-				break ;
-
-			case TWFT_STRESS:
-				stress_strain.second.resize( 0 ) ;
-
-				for( int i = 0 ; i < triangles.size() ; i++ )
-				{
-					if( triangles[i]->getBehaviour()&& triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
-					{
-						Vector strain0(3) ;
-						Vector strain1(3) ;
-						Vector strain2(3) ;
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 0), strain0, false, 0);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + factor), strain1, false, 0);
-						triangles[i]->getState().getField(REAL_STRESS_FIELD, triangles[i]->getBoundingPoint(time_offset + 2*factor), strain2, false, 0);
-
-						// epsilon11
-						ret[8][iterator]   = strain0[0];
-						ret[7][iterator]   = strain1[0];
-						ret[6][iterator]   = strain2[0];
-
-						// epsilon12
-						ret[5][iterator]   = strain0[1];
-						ret[4][iterator]   = strain1[1];
-						ret[3][iterator]   = strain2[1];
-
-						// epsilon22
-						ret[2][iterator]   = strain0[2];
-						ret[1][iterator]   = strain1[2];
-						ret[0][iterator++] = strain2[2];
+						// j22
+						ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 					}
 				}
 
 				break ;
-		}
-	}
-	else*/
-	{
-		if( field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX )
-		{
-			std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer( layer, false ) ;
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-
-			switch( field )
-			{
-
-				case TWFT_FLUX:
-					gradient_flux.first.resize( 0 ) ;
-
-					for( int i = 0 ; i < triangles.size() ; i++ )
-					{
-						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
-						{
-							// j11
-							ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
-							ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
-							ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
-
-							// j22
-							ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
-							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
-							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
-						}
-					}
-
-					break ;
-					
-				case TWFT_SCALAR:
-				{
-					Vector x = source->getDisplacements(-1, false) ;
-					std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-					int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-					int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
-					int factor = pointsPerTimePlanes / 3 ;
-					if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
-						timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
-
-					int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
-
-					for( int i = 0 ; i < triangles.size() ; i++ )
-					{
-						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-						{
-							size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-							
-							size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
-							size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
-							size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
-
-							ret[2][iterator] = x[id1  ] ;
-							ret[1][iterator] = x[id2  ] ;
-							ret[0][iterator++] = x[id3 ] ;
-						}
-					}
-
-					break ;
-				}
-
-				case TWFT_GRADIENT_AND_FLUX:
-
-					for( int i = 0 ; i < triangles.size() ; i++ )
-					{
-						if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
-						{
-							// d11
-							ret[11][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
-							ret[10][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
-							ret[9][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
-
-							// d22
-							ret[8][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
-							ret[7][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
-							ret[6][iterator] = gradient_flux.first[i * 3 * 2 + 5] ;
-
-							// j11
-							ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
-							ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
-							ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
-
-							// j22
-							ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
-							ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
-							ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
-						}
-					}
-
-					break ;
-
-				case TWFT_GRADIENT:
-					gradient_flux.second.resize( 0 ) ;
-
-					for( int i = 0 ; i < triangles.size() ; i++ )
-					{
-						if(  triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
-						{
-							// d11
-							ret[5][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
-							ret[4][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
-							ret[3][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
-
-							// d22
-							ret[2][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
-							ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
-							ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
-						}
-					}
-
-					break ;
-			}
-
-		}
-		else
-		{
-			if( field == TWFT_DISPLACEMENTS )
+				
+			case TWFT_SCALAR:
 			{
 				Vector x = source->getDisplacements(-1, false) ;
 				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
@@ -828,121 +639,206 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-					  
+						
 						size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
 						size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
 						size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
 
-						ret[5][iterator] = x[id1 * dof] ;
-						ret[4][iterator] = x[id2 * dof] ;
-						ret[3][iterator] = x[id3 * dof] ;
-						ret[2][iterator] = x[id1 * dof + 1] ;
-						ret[1][iterator] = x[id2 * dof + 1] ;
-						ret[0][iterator++] = x[id3 * dof + 1] ;
+						ret[2][iterator] = x[id1  ] ;
+						ret[1][iterator] = x[id2  ] ;
+						ret[0][iterator++] = x[id3 ] ;
 					}
 				}
+
+				break ;
 			}
-			else if( field == TWFT_CRACKS )
-			{
-				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+
+			case TWFT_GRADIENT_AND_FLUX:
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
+						// d11
+						ret[11][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
+						ret[10][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
+						ret[9][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
 
-						std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
-						ret[0][iterator] = np.first;
-						ret[1][iterator] = np.first ;
-						ret[2][iterator] = np.first ;
-						ret[3][iterator] = np.second;
-						ret[4][iterator] = np.second ;
-						ret[5][iterator++] = np.second ;
+						// d22
+						ret[8][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
+						ret[7][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
+						ret[6][iterator] = gradient_flux.first[i * 3 * 2 + 5] ;
 
-					}
-					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						ret[0][iterator] = 0;
-						ret[1][iterator] = 0 ;
-						ret[2][iterator] = 0 ;
-						ret[3][iterator] = 0;
-						ret[4][iterator] = 0 ;
-						ret[5][iterator++] = 0 ;
+						// j11
+						ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
+
+						// j22
+						ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 					}
 				}
-			}
-			else if( field == TWFT_DAMAGE)
-			{
-				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+
+				break ;
+
+			case TWFT_GRADIENT:
+				gradient_flux.second.resize( 0 ) ;
 
 				for( int i = 0 ; i < triangles.size() ; i++ )
 				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
+					if(  triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
 					{
-						double d = 0 ;
-						for(size_t m = 0 ;  m <  triangles[i]->getBehaviour()->getDamageModel()->getState().size() ; m++)
-							d +=  triangles[i]->getBehaviour()->getDamageModel()->getState()[m] ;
-						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
-							d = 1 ;
+						// d11
+						ret[5][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
 
-						ret[0][iterator] = d;
-						ret[1][iterator] = d ;
-						ret[2][iterator++] = d ;
-
-					}
-					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						ret[0][iterator] = 0;
-						ret[1][iterator] = 0 ;
-						ret[2][iterator++] = 0 ;
+						// d22
+						ret[2][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
 					}
 				}
-			}
-			else if( field == TWFT_IMPOSED_STRESS_NORM )
+
+				break ;
+		}
+
+	}
+	else
+	{
+		if( field == TWFT_DISPLACEMENTS )
+		{
+			Vector x = source->getDisplacements(-1, false) ;
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+			int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+			int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+			int factor = pointsPerTimePlanes / 3 ;
+			if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
+				timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
+
+			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
 			{
-				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-				Vector x( triangles.size() * 3 ) ;
-
-				for( int i = 0 ; i < triangles.size() ; i++ )
+				if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
-					if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() && triangles[i]->getBehaviour()->getDamageModel())
-					{
-						Vector dv = triangles[i]->getBehaviour()->getDamageModel()->getImposedStress(triangles[i]->getCenter());
+					size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+					
+					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
+					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
+					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
 
-						double d = sqrt(std::inner_product(&dv[0], &dv[dv.size()], &dv[0], 0.));
-						if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
-							d = 1 ;
-
-						ret[0][iterator] = d;
-						ret[1][iterator] = d ;
-						ret[2][iterator++] = d ;
-
-					}
-					else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						ret[0][iterator] = 0;
-						ret[1][iterator] = 0 ;
-						ret[2][iterator++] = 0 ;
-					}
+					ret[5][iterator] = x[id1 * dof] ;
+					ret[4][iterator] = x[id2 * dof] ;
+					ret[3][iterator] = x[id3 * dof] ;
+					ret[2][iterator] = x[id1 * dof + 1] ;
+					ret[1][iterator] = x[id2 * dof + 1] ;
+					ret[0][iterator++] = x[id3 * dof + 1] ;
 				}
 			}
-			else
+		}
+		else if( field == TWFT_CRACKS )
+		{
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
 			{
-				std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer( layer ) ;
-
-				for( size_t i = 0 ; i < tri.size() ; i++ )
+				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
 				{
-					std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field ) ;
 
-					if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
+					ret[0][iterator] = np.first;
+					ret[1][iterator] = np.first ;
+					ret[2][iterator] = np.first ;
+					ret[3][iterator] = np.second;
+					ret[4][iterator] = np.second ;
+					ret[5][iterator++] = np.second ;
+
+				}
+				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					ret[0][iterator] = 0;
+					ret[1][iterator] = 0 ;
+					ret[2][iterator] = 0 ;
+					ret[3][iterator] = 0;
+					ret[4][iterator] = 0 ;
+					ret[5][iterator++] = 0 ;
+				}
+			}
+		}
+		else if( field == TWFT_DAMAGE)
+		{
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
+			{
+				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
+				{
+					double d = 0 ;
+					for(size_t m = 0 ;  m <  triangles[i]->getBehaviour()->getDamageModel()->getState().size() ; m++)
+						d +=  triangles[i]->getBehaviour()->getDamageModel()->getState()[m] ;
+					if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
+						d = 1 ;
+
+					ret[0][iterator] = d;
+					ret[1][iterator] = d ;
+					ret[2][iterator++] = d ;
+
+				}
+				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					ret[0][iterator] = 0;
+					ret[1][iterator] = 0 ;
+					ret[2][iterator++] = 0 ;
+				}
+			}
+		}
+		else if( field == TWFT_IMPOSED_STRESS_NORM )
+		{
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+			Vector x( triangles.size() * 3 ) ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
+			{
+				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() && triangles[i]->getBehaviour()->getDamageModel())
+				{
+					Vector dv = triangles[i]->getBehaviour()->getDamageModel()->getImposedStress(triangles[i]->getCenter());
+
+					double d = sqrt(std::inner_product(&dv[0], &dv[dv.size()], &dv[0], 0.));
+					if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
+						d = 1 ;
+
+					ret[0][iterator] = d;
+					ret[1][iterator] = d ;
+					ret[2][iterator++] = d ;
+
+				}
+				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					ret[0][iterator] = 0;
+					ret[1][iterator] = 0 ;
+					ret[2][iterator++] = 0 ;
+				}
+			}
+		}
+		else
+		{
+			std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer( layer ) ;
+
+			for( size_t i = 0 ; i < tri.size() ; i++ )
+			{
+				std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field ) ;
+
+				if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					if( val.first )
 					{
-						if( val.first )
-						{
-							for( size_t j = 0 ; j < numberOfFields( field ) ; j++ )
-								ret[j][iterator] = val.second[j] ;
+						for( size_t j = 0 ; j < numberOfFields( field ) ; j++ )
+							ret[j][iterator] = val.second[j] ;
 
-							iterator++ ;
-						}
+						iterator++ ;
 					}
 				}
 			}
@@ -1388,6 +1284,8 @@ std::string nameOfField(TWFieldType field)
 			return std::string("Coordinates") ;
 		case TWFT_DISPLACEMENTS:
 			return std::string("Displacements") ;
+		case TWFT_SCALAR:
+			return std::string("Scalar Field") ;
 		case TWFT_PRINCIPAL_ANGLE:
 			return std::string("Angle of Principal Stresses") ;
 		case TWFT_TRIANGLE_ANGLE:

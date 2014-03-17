@@ -54,6 +54,7 @@ namespace Mu
 	struct HydratingDiffusionCementPaste : public LinearForm
 	{
 		std::vector<Variable> v ;
+		Vector saturation ;
 		double doh ;
 		
 		HydratingDiffusionCementPaste() ;

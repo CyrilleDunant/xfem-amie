@@ -3097,7 +3097,7 @@ void ProjectionDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetra
 }
 
 
-TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition() : BoundaryCondition( GENERAL, 0. ) { 
+TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition(double initialValue) : BoundaryCondition( GENERAL, 0. ), initialValue(initialValue) { 
 	goToNext = true ;
 	previousDisp.resize(0) ;
 } ;
@@ -3137,7 +3137,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 			{
 				for(size_t n = 0 ; n < dof ; n++)
 				{
-					a->setPointAlongIndexedAxis( n, 0., dofPerPlane*i + j )  ;
+					a->setPointAlongIndexedAxis( n, initialValue, dofPerPlane*i + j )  ;
 				}
 			}
 		}
@@ -3186,7 +3186,7 @@ void TimeContinuityBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 			{
 				for(size_t n = 0 ; n < dof ; n++)
 				{
-					a->setPointAlongIndexedAxis( n, 0., dofPerPlane*i + j )  ;
+					a->setPointAlongIndexedAxis( n, initialValue, dofPerPlane*i + j )  ;
 				}
 			}
 		}
