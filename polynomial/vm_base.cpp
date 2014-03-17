@@ -4324,8 +4324,8 @@ double VirtualMachine::ieval(const DtD & d, const GaussPointArray &gp, const std
 
 			ret += deval(d.d.f, var[j], gp.gaussPoints[i].first)
 				*deval(d.f.f, var[j], gp.gaussPoints[i].first)
-				*Jinv[i][var_line][j]*gp.gaussPoints[i].second ;
-// 				std::cout << deval(d.d.f, var[j], gp.gaussPoints[i].first) << "   " << deval(d.f.f, var[j], gp.gaussPoints[i].first) << std::endl ;
+				*Jinv[i][var_line][j]*Jinv[i][var_line][j]*gp.gaussPoints[i].second ;
+ 				std::cout << var_line << "\t" << deval(d.d.f, var[j], gp.gaussPoints[i].first) << "\t" << deval(d.f.f, var[j], gp.gaussPoints[i].first) << "\t" << Jinv[i][var_line][j] << "\t" << j << "\t" << ret << std::endl ;
 		}
 	}
 		
