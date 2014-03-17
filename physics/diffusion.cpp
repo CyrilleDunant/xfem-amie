@@ -30,8 +30,8 @@ Diffusion::~Diffusion() { } ;
 void Diffusion::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const
 {
 	
-	ret[0][0] = (vm->ieval(VectorGradientDot(p_i, true) * param * VectorGradient(p_j),  gp, Jinv, v)
-		  + vm->ieval(VectorGradient(p_i, true) * param * VectorGradientDot(p_j),  gp, Jinv, v)) ;
+	ret[0][0] = (vm->ieval(VectorGradientDot(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
+		  + vm->ieval(VectorGradient(p_i) * param * VectorGradientDot(p_j, true),  gp, Jinv, v)) ;
 }
 
 void Diffusion::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const
@@ -39,11 +39,6 @@ void Diffusion::applyViscous(const Function & p_i, const Function & p_j, const G
 	
 	ret[0][0] = (vm->ieval(Differential(p_i, TIME_VARIABLE) * Differential(p_j, TIME_VARIABLE),  gp, Jinv, v)
 		  + vm->ieval(DoubleDifferential(p_j, TIME_VARIABLE, TIME_VARIABLE) * p_i,  gp, Jinv, v)) ;
-	double r = 0 ; 
-	for(size_t i = 0 ; i < Jinv.size() ; i++)
-		r += gp.gaussPoints[i].second ;
-
-	std::cout << ret[0][0] << "\t" << r << std::endl ;
 }
 
 bool Diffusion::fractured() const
