@@ -31,6 +31,9 @@ namespace Mu
 		
 		std::vector<Variable> v ;
 		FeatureTree * diffusionTree ;
+		double bulk ;
+		double bulkSolid ;
+		Vector imposed ;
 		
 		HydratingMechanicalCementPaste(FeatureTree * diffusionTree) ;
 		
@@ -42,8 +45,11 @@ namespace Mu
 		
 		virtual bool fractured() const ;
 
+		void makeBulkModuli(double saturation, double doh) ;
+		double getCapillaryPressure(double saturation, double doh) ;
+
 		virtual Matrix getMechanicalProperties(double saturation, double doh) ;
-		virtual Vector getAutogeneousForce(double saturation, double doh) ;
+		virtual Vector getAutogeneousDeformation(double saturation, double doh) ;
 		
 		virtual ~HydratingMechanicalCementPaste();
 
@@ -52,6 +58,15 @@ namespace Mu
 
 		/** \brief Return the (damaged) Stifness tensor*/
 		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+		virtual bool hasInducedForces() const { return true ; }
+		
+		/** \brief Return the Vector of imposed Stress at the considered point. As the imposed stress is uniform, the point is ignored*/
+		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e, int g = -1) const ;
+		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e, int g = -1) const ;
+
+		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
 
 	} ;
 	
@@ -83,7 +98,7 @@ namespace Mu
 		/** \brief Return the (damaged) Stifness tensor*/
 		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
-		virtual double getDeltaDoH(double stauration, ElementState & currentState) ;
+		virtual double getDeltadoh(double stauration, ElementState & currentState) ;
 		virtual double getDiffusionCoefficient(double stauration, ElementState & currentState) ;
 		
 	} ;

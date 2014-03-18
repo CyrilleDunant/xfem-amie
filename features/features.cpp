@@ -4426,6 +4426,7 @@ void FeatureTree::solve()
 				std::cerr << " stepping through elements... grid " << 0 << std::flush ;
 				std::vector<DelaunayTriangle *> elements = coarseTrees[0]->getElements() ;
 
+				std::cout << elements.size() << std::endl ;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )

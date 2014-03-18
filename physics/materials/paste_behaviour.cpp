@@ -214,6 +214,10 @@ HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * dif
 {
 	v.push_back(XI);
 	v.push_back(ETA);
+
+	param = getMechanicalProperties(0.999,0.3) ;
+	imposed.resize(3) ;
+	imposed = getAutogeneousDeformation(0.999, 0.3) ;
 }
 
 Form * HydratingMechanicalCementPaste::getCopy() const
@@ -223,12 +227,48 @@ Form * HydratingMechanicalCementPaste::getCopy() const
 
 void HydratingMechanicalCementPaste::step(double timestep, ElementState & currentState, double maxscore)
 {
-	DelaunayTriangle * diffusionElement = diffusionTree->getElements2D()[dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index] ;
+	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(diffusionTree->get2DMesh()->getTree()[dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index]) ;
 	Vector saturation = diffusionElement->getState().getDisplacements() ;
 	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
 	double doh = dynamic_cast<HydratingDiffusionCementPaste *>(diffusionElement->getBehaviour())->getDegreeOfHydration() ;
 	
 	param = getMechanicalProperties(effectiveSaturation,doh) ;
+	imposed = getAutogeneousDeformation(effectiveSaturation, doh) ;
+
+	currentState.getParent()->behaviourUpdated = true ;
+}
+
+void HydratingMechanicalCementPaste::makeBulkModuli(double effectiveSaturation, double doh) 
+{
+	double K [10] = { 5326.7247, - 11043.576, 1084.6109, 31480.598, - 9074.1705, 84734.677, - 20941.74, 3925.6201, - 15481.504, - 66958.406  };
+
+	bulk = K[0] + K[1]*effectiveSaturation + K[2]*doh + K[3]*effectiveSaturation*effectiveSaturation + K[4]*doh*effectiveSaturation + K[5]*doh*doh + K[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + K[7]*doh*effectiveSaturation*effectiveSaturation + K[8]*doh*doh*effectiveSaturation + K[9]*doh*doh*doh;
+	
+	if (bulk<0){ bulk=0; }
+	bulk *= 1e6 ;
+
+	bulkSolid = K[0] + K[2]*doh + K[5]*doh*doh + K[9]*doh*doh*doh;
+	if (bulkSolid<0){bulkSolid=0;} 
+	bulkSolid *= 1e6 ;
+}
+
+Vector HydratingMechanicalCementPaste::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
+{
+	return (param * imposed) ;
+}
+
+Vector HydratingMechanicalCementPaste::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+{
+	return imposed ;
+}
+
+std::vector<BoundaryCondition * > HydratingMechanicalCementPaste::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{	
+	std::vector<BoundaryCondition * > ret ;
+	Vector istress = param * imposed   ;
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+	ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+	return ret ;
 }
 
 Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveSaturation, double doh) 
@@ -240,15 +280,34 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 
 	if (E<0){ E=0; }
 	E *= 1e6 ;
-		
-	double nu = 0.2 ;
+
+	makeBulkModuli(effectiveSaturation, doh) ;
+	
+	double nu = (3.*bulk-E)/(6.*bulk) ;
 	
 	return Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 }
 
-Vector HydratingMechanicalCementPaste::getAutogeneousForce(double saturation, double doh) 
+double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, double doh) 
 {
+	double m=0.488;
+	double a=-39.623*std::pow(( 1. - std::exp(-25.057*doh) ) , 8.15) ; 
+	a *=1e6 ;
+	return a*std::pow((std::pow(saturation,-1./m)-1.),(1.-m)); 
+}
 
+Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturation, double doh) 
+{
+	double pc = getCapillaryPressure(saturation, doh) ;
+	makeBulkModuli(saturation, doh) ;
+	double deformation = pc*saturation*(1./(3*bulk) - 1./(3*bulkSolid)) ;
+
+	Vector a(3) ;
+	a[0] = deformation ;
+	a[1] = deformation ;
+	a[2] = 0. ;
+
+	return a ;
 }
 
 
@@ -277,11 +336,11 @@ HydratingDiffusionCementPaste::HydratingDiffusionCementPaste(): LinearForm(Matri
 	v.push_back(TIME_VARIABLE);
 	doh = 0.3 ;
 	change = false ;
-	double D1_bz= (-5.412*doh*doh - 0.987*doh + 3.713)*1e-10;     //[m2/s], Duffison coefficient in function of DoH
+	double D1_bz= (-5.412*doh*doh - 0.987*doh + 3.713)*1e-10;     //[m2/s], Duffison coefficient in function of doh
 
 	double a = 0.04 ;
 	int n = 6;
-	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of DoH
+	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of doh
 	double Bbz=0.2815*doh+0.0297;   
 	double h_b=1.-1./(1.+exp((1.-Abz)/Bbz));   //Bolzmann function for inversed desorption isotherm
 	
@@ -304,7 +363,7 @@ void HydratingDiffusionCementPaste::step(double timestep, ElementState & current
 		saturation = currentState.getDisplacements() ;
 	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3. ;
 	effectiveSaturation = std::min(.999, effectiveSaturation) ;
-	double deltaH = std::max(0.,getDeltaDoH(effectiveSaturation, currentState)) ;
+	double deltaH = std::max(0.,getDeltadoh(effectiveSaturation, currentState)) ;
 	doh = std::min(doh+deltaH, 1.) ;
 	double D = std::abs(getDiffusionCoefficient(effectiveSaturation, currentState) ) ;
 	param[0][0]=D ;
@@ -312,7 +371,7 @@ void HydratingDiffusionCementPaste::step(double timestep, ElementState & current
 	currentState.getParent()->behaviourUpdated = true ;
 }
 
-double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementState & currentState) 
+double HydratingDiffusionCementPaste::getDeltadoh(double saturation, ElementState & currentState) 
 {
 	double thresholdRelativeHumidity = 1.199*doh-0.1503 ;
 	double maxRelativeHumidity = 0.999 ;
@@ -337,11 +396,11 @@ double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementStat
 
 double HydratingDiffusionCementPaste::getDiffusionCoefficient(double saturation, ElementState & currentState) 
 {
-	double D1_bz= (-5.412*doh*doh - 0.987*doh + 3.713)*1e-10;     //[m2/s], Duffison coefficient in function of DoH
+	double D1_bz= (-5.412*doh*doh - 0.987*doh + 3.713)*1e-10;     //[m2/s], Duffison coefficient in function of doh
 
 	double a = 0.04 ;
 	int n = 6;
-	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of DoH
+	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of doh
 	double Bbz=0.2815*doh+0.0297;   
 	double h_b=1.-1./(1.+exp((saturation-Abz)/Bbz));   //Bolzmann function for inversed desorption isotherm
 	return D1_bz*(a + (1.-a)*1./(1.+pow((1.-h_b)/0.25,n)))*24*3600;
