@@ -53,76 +53,89 @@ int main(int argc, char *argv[])
   if(argc > 1)
     scale = atof(argv[1]) ;
 
-	Matrix D(2,2) ;
-	D[0][0] = 1. ;
-	D[1][1] = 1. ;
-
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
-  Sample boxd( nullptr, 0.03, 0.03, 0.,0.) ;
-	Sample boxm( nullptr, 0.03, 0.03, 0.,0.) ;
-	boxd.setBehaviour( new Diffusion(D) ) ;
+  Sample boxd( nullptr, 0.02, 0.02, 0.,0.) ;
+	Sample boxm( nullptr, 0.02, 0.02, 0.,0.) ;
+	boxd.setBehaviour( new HydratingDiffusionCementPaste() ) ;
 	
 
   // creates main object
   FeatureTree Fd(&boxd) ;
-/*	FeatureTree Fm(&boxm) ;
-	boxm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;*/
-	Fd.setInitialValue(1) ;
+	Fd.setInitialValue(.99);
+	FeatureTree Fm(&boxm) ;
+	boxm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;
   Fd.setOrder(LINEAR_TIME_LINEAR) ;
-//	Fm.setOrder(LINEAR);
+	
+	Fm.setOrder(LINEAR);
 
 
   // sampling criteria
-  Fd.setSamplingNumber(8); //512*16 ) ;
-//	Fm.setSamplingNumber(64); //512*16 ) ;
-	double timeStep = 1. ;
+  Fd.setSamplingNumber(64); //512*16 ) ;
+	Fm.setSamplingNumber(64); //512*16 ) ;
 
-// 	BoundingBoxDefinedBoundaryCondition * initial = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BEFORE, 1, 0) ;
+
   // add boundary conditions
-// 	Fd.addBoundaryCondition(initial);
 //   Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 0));
-  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.7, 0));
-//	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
-//  Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0));
-//	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
+  Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, TOP, 0.7, 0));
+	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
+  Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT, 0));
+	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 
   // assemble and solve problem
-	Fd.setDeltaTime(timeStep) ;
-//	Fm.setDeltaTime(timeStep) ;
-
+	Fd.setDeltaTime(1) ;
+	Fm.setDeltaTime(1) ;
+	Fd.step();
+	MultiTriangleWriter writer( "scalar_field", "scalar_field_layer", nullptr ) ;
+	writer.reset( &Fd ) ;
+	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
+	writer.append() ;
+	writer.writeSvg(0., true) ;
 	
-  Fd.step();
-// 	Fd.removeBoundaryCondition(initial);
-	for(int i = 0 ; i < 30 ; i++)
-	{//	Fd.step();
-	}
-	TriangleWriter writer( "scalar_field",  &Fd, 1 ) ;
-	writer.write() ;
+	for(size_t i = 0 ; i < 30 ; i++)
+		Fd.step();
 
-//	Fd.getAssembly()->print() ;
-
-	exit(0) ;
+	writer.reset( &Fd ) ;
+	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
+	writer.append() ;
+	writer.writeSvg(0., true) ;
 	
-	for(int i = 0 ; i < 30 ; i++)
+	for(size_t i = 0 ; i < 30 ; i++)
+		Fd.step();
+
+	writer.reset( &Fd ) ;
+	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
+	writer.append() ;
+	writer.writeSvg(0., true) ;
+	
+	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
 	
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
-	
-	for(int i = 0 ; i < 30 ; i++)
+
+	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
 	
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
 	writer.writeSvg(0., true) ;
-
-	Vector c = Fd.getDisplacements() ;
-	std::cout << c.max() << std::endl ;
-	std::cout << c.min() << std::endl ;
-
+	
+	for(size_t i = 0 ; i < 30 ; i++)
+		Fd.step();
+	
+	writer.reset( &Fd ) ;
+	writer.getField( TWFT_SCALAR ) ;
+	writer.getField( TWFT_DOH ) ;
+	writer.append() ;
+	writer.writeSvg(0., true) ;
   return 0 ;
 }

@@ -28,6 +28,7 @@ namespace Mu
 	
 	struct HydratingMechanicalCementPaste : public LinearForm
 	{
+		
 		std::vector<Variable> v ;
 		FeatureTree * diffusionTree ;
 		
@@ -59,14 +60,18 @@ namespace Mu
 		std::vector<Variable> v ;
 		Vector saturation ;
 		double doh ;
+		bool change ;
 		
 		HydratingDiffusionCementPaste() ;
 		
 		virtual Form * getCopy() const ;
 		
+		virtual bool isViscous() const { return true ; } 
+		
 		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 		
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+		virtual void applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const ;
 		
 		virtual ~HydratingDiffusionCementPaste();
 

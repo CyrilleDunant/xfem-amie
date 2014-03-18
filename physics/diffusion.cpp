@@ -59,6 +59,6 @@ Form * Diffusion::getCopy() const
 		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
 			copy->addMesh((*getExtra3dMeshes())[i]);
 	}
-	return copy ; ;
+	return copy ;
 }
 

@@ -15,6 +15,7 @@
 #include "voxel_writer.h"
 #include "../../physics/dual_behaviour.h"
 #include "../../physics/stiffness.h"
+#include "../../physics/materials/paste_behaviour.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip> 
@@ -199,6 +200,16 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 	double minx = 0 ;
 	double miny = 0 ;
 	
+	bool isScalar = false ;
+	for( size_t k = 0 ; k < fields.size() ; k++ )
+	{
+		if(fields[k] == TWFT_SCALAR)
+		{
+			isScalar = true ;
+			break ;
+		}
+	}
+	
 	for(size_t j = 0 ; j < counter ; j++)
 	{
 		for( int i = 0 ; i < nTriangles[0] ; i++ )
@@ -223,9 +234,9 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			std::cout << "failed opening file for SVG output." << std::endl ;
 			return ;
 		}
-		outfile << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1+330<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values.back()[0].size()-5)/3.<<"\" version=\"1.1\">" << std::endl ;
+		outfile << "<svg xmlns=\"http://www.w3.org/2000/svg\" width =\""<< (maxx-minx)*gfactor*layers.size()*1.1+330<< "\" height =\"" << (maxy-miny)*gfactor*1.1*(values.back()[0].size()-isScalar*5-5)/3.<<"\" version=\"1.1\">" << std::endl ;
 		outfile.flush();
-	
+		
 		if(incolor)
 		{
 			//define a linear hue gradient_flux
@@ -268,15 +279,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			}
 		}
 
-		bool isScalar = false ;
-		for( size_t k = 0 ; k < fields.size() ; k++ )
-		{
-			if(fields[k] == TWFT_SCALAR)
-			{
-				isScalar = true ;
-				break ;
-			}
-		}
+
 		std::vector<size_t> skips ;
 		for( size_t k = 0 ; k < layers.size() ; k++ )
 		{
@@ -300,7 +303,6 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 						fieldCounter++ ;
 					}
 					skips.push_back(j);
-					std::cout << "skipping ! " << j <<std::endl ;
 					
 					continue ;
 				}
@@ -321,7 +323,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					dval = 1 ;
 				outfile << "\t\t<!-- maxval = " <<  maxval[jit] << ", minval = " << minval[jit] << "-->" << std::endl ;
 				outfile << "\t\t<g>" << std::endl ;
-				outfile << "\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(k+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
+				outfile << "\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(k-0.3+0.05) << "\" y=\"" << (maxy-miny)*gfactor*1.1*(j-isScalar*5-6+0.27)/3. << "\">" << currentField << "</text>" << std::endl ;
 				for( int i = 0 ; i < nTriangles[0] ; i++ )
 				{
 					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
@@ -332,9 +334,9 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 						HSVtoRGB(&r,&g,&b,180., 0., (maxval[jit]-val)/dval);
 					
 					outfile << "\t\t\t<polygon points =\"" 
-						  <<  gfactor*(-minx+values[m][k][0][i]+values[m][k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][1][i]-values[m][k][9][i]*factor) << " "
-										<<  gfactor*(-minx+values[m][k][2][i]+values[m][k][7][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][3][i]-values[m][k][10][i]*factor) << " "
-										<<  gfactor*(-minx+values[m][k][4][i]+values[m][k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-6+0.3)/3.+gfactor*(maxy-values[m][k][5][i]-values[m][k][11][i]*factor)<< " " 
+						  <<  gfactor*(-minx+values[m][k][0][i]+values[m][k][6][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-isScalar*5-6+0.3)/3.+gfactor*(maxy-values[m][k][1][i]-values[m][k][9][i]*factor) << " "
+										<<  gfactor*(-minx+values[m][k][2][i]+values[m][k][7][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << "," << (maxy-miny)*gfactor*1.1*(j-isScalar*5-6+0.3)/3.+gfactor*(maxy-values[m][k][3][i]-values[m][k][10][i]*factor) << " "
+										<<  gfactor*(-minx+values[m][k][4][i]+values[m][k][8][i]*factor)+((maxx-minx)*gfactor*1.1)*(k+0.05) << ","<< (maxy-miny)*gfactor*1.1*(j-isScalar*5-6+0.3)/3.+gfactor*(maxy-values[m][k][5][i]-values[m][k][11][i]*factor)<< " " 
 										<< "\" style=\"stroke-width:0.5;stroke:darkgray;fill-opacity:1\" fill=\"rgb("<< r*100 <<"%,"<<g*100<<"%," <<b*100 << "%)"<<"\"" << std::flush ;
 
 					outfile << " />" << std::endl ;
@@ -354,21 +356,21 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					goto postScale ;
 			
 			outfile << "\t\t<g>" << std::endl ;
-			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+12 << "\">" << std::setprecision(4) << maxval[jit] << "</text>" << std::endl ;
-			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-						    << "\" y=\"" <<  (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+0.5*(maxy-miny)*gfactor*.35+12 << "\">" << std::setprecision(4) <<  minval[jit]*0.25+maxval[jit]*0.75 << "</text>" << std::endl ;
-			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << (minval[jit]+maxval[jit])*.5 << "</text>" << std::endl ;
-			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+1.5*(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << minval[jit]*0.75+maxval[jit]*0.25 << "</text>" << std::endl ;
-			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+60  
-						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)+2.*(maxy-miny)*gfactor*.35+12   << "\">"<< std::setprecision(4) << minval[jit] << "</text>" << std::endl ;
+			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05)+60  
+						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)+12 << "\">" << std::setprecision(4) << maxval[jit] << "</text>" << std::endl ;
+			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05)+60  
+						    << "\" y=\"" <<  (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)+0.5*(maxy-miny)*gfactor*.35+12 << "\">" << std::setprecision(4) <<  minval[jit]*0.25+maxval[jit]*0.75 << "</text>" << std::endl ;
+			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05)+60  
+						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)+(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << (minval[jit]+maxval[jit])*.5 << "</text>" << std::endl ;
+			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05)+60  
+						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)+1.5*(maxy-miny)*gfactor*.35+12  << "\">" << std::setprecision(4) << minval[jit]*0.75+maxval[jit]*0.25 << "</text>" << std::endl ;
+			outfile << "\t\t\t<text font-size=\"28\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05)+60  
+						    << "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)+2.*(maxy-miny)*gfactor*.35+12   << "\">"<< std::setprecision(4) << minval[jit] << "</text>" << std::endl ;
 
 			
 			outfile << "\t\t\t<rect width=\"30\" height=\"" <<  (maxy-miny)*gfactor*.7 
-							<< "\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()+0.05)+20 
-							<< "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-6+0.5)/3.)
+							<< "\" x=\"" << -gfactor*minx+((maxx-minx)*gfactor*1.1)*(layers.size()-0.5+0.05) + 20
+							<< "\" y=\"" << (maxy-miny)*gfactor*1.1*((j-isScalar*5-6+0.5)/3.)
 							<< "\"  style=\"fill-opacity:1\" fill=\"url(#hue)\"/>" << std::endl ;
 			outfile << "\t\t</g>" << std::endl ;
 			
@@ -561,6 +563,7 @@ void MultiTriangleWriter::append()
 
 void TriangleWriter::getField( TWFieldType field, bool extra )
 {
+
 	fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
@@ -622,36 +625,6 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 				break ;
 				
-			case TWFT_SCALAR:
-			{
-				Vector x = source->getDisplacements(-1, false) ;
-				std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-				int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-				int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
-				int factor = pointsPerTimePlanes / 3 ;
-				if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
-					timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
-
-				int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
-
-				for( int i = 0 ; i < triangles.size() ; i++ )
-				{
-					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-					{
-						size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-						
-						size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
-						size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
-						size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
-
-						ret[2][iterator] = x[id1  ] ;
-						ret[1][iterator] = x[id2  ] ;
-						ret[0][iterator++] = x[id3 ] ;
-					}
-				}
-
-				break ;
-			}
 
 			case TWFT_GRADIENT_AND_FLUX:
 
@@ -736,6 +709,55 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					ret[2][iterator] = x[id1 * dof + 1] ;
 					ret[1][iterator] = x[id2 * dof + 1] ;
 					ret[0][iterator++] = x[id3 * dof + 1] ;
+				}
+			}
+		}
+		else if( field == TWFT_SCALAR )
+		{
+			Vector x = source->getDisplacements(-1, false) ;
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+			int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+			int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+			int factor = pointsPerTimePlanes / 3 ;
+			if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
+				timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
+
+			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
+			{
+				if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
+					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
+					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
+
+					ret[2][iterator] = x[id1  ] ;
+					ret[1][iterator] = x[id2  ] ;
+					ret[0][iterator++] = x[id3 ] ;
+				}
+			}
+		}
+		else if( field == TWFT_DOH )
+		{
+			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+
+			for( int i = 0 ; i < triangles.size() ; i++ )
+			{
+				if( triangles[i]->getBehaviour() && dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour()) )
+				{
+					double d = dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour())->doh ;
+
+					ret[0][iterator] = d;
+					ret[1][iterator] = d ;
+					ret[2][iterator++] = d ;
+
+				}
+				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
+					ret[0][iterator] = 0;
+					ret[1][iterator] = 0 ;
+					ret[2][iterator++] = 0 ;
 				}
 			}
 		}
@@ -1229,6 +1251,8 @@ int numberOfFields( TWFieldType field )
 			return 6 ;
 		case TWFT_SCALAR:
 			return 3 ;
+		case TWFT_DOH:
+			return 3 ;
 		case TWFT_PRINCIPAL_ANGLE:
 			return 3 ;
 		case TWFT_TRIANGLE_ANGLE:
@@ -1286,6 +1310,8 @@ std::string nameOfField(TWFieldType field)
 			return std::string("Displacements") ;
 		case TWFT_SCALAR:
 			return std::string("Scalar Field") ;
+		case TWFT_DOH:
+			return std::string("Degree Of Hydration") ;
 		case TWFT_PRINCIPAL_ANGLE:
 			return std::string("Angle of Principal Stresses") ;
 		case TWFT_TRIANGLE_ANGLE:

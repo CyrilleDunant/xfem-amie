@@ -3955,6 +3955,7 @@ double VirtualMachine::ieval(const VGDtMtVG &f, const GaussPointArray &gp, const
 	Matrix B_(gveval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose)) ;
 
 	Matrix r_  (B*f.second*B_) ;
+
 	double ret = r_[0][0] * gp.gaussPoints[0].second;
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
@@ -4325,7 +4326,7 @@ double VirtualMachine::ieval(const DtD & d, const GaussPointArray &gp, const std
 			ret += deval(d.d.f, var[j], gp.gaussPoints[i].first)
 				*deval(d.f.f, var[j], gp.gaussPoints[i].first)
 				*Jinv[i][var_line][j]*Jinv[i][var_line][j]*gp.gaussPoints[i].second ;
- 				std::cout << var_line << "\t" << deval(d.d.f, var[j], gp.gaussPoints[i].first) << "\t" << deval(d.f.f, var[j], gp.gaussPoints[i].first) << "\t" << Jinv[i][var_line][j] << "\t" << j << "\t" << ret << std::endl ;
+//  				std::cout << var_line << "\t" << deval(d.d.f, var[j], gp.gaussPoints[i].first) << "\t" << deval(d.f.f, var[j], gp.gaussPoints[i].first) << "\t" << Jinv[i][var_line][j] << "\t" << j << "\t" << ret << std::endl ;
 		}
 	}
 		
