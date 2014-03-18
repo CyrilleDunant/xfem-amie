@@ -329,7 +329,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					double val = (values[m][k][j][i]+values[m][k][j+1][i]+values[m][k][j+2][i])/3. ;
 					double r,g,b ;
 					if(incolor)
-						HSVtoRGB(&r,&g,&b,295.2*(maxval[jit]-val)/dval, 1., 1.);
+						HSVtoRGB(&r,&g,&b,295.2*(maxval[jit]-val)/dval+2, 1., 1.);
 					else
 						HSVtoRGB(&r,&g,&b,180., 0., (maxval[jit]-val)/dval);
 					

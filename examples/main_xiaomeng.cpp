@@ -83,15 +83,15 @@ int main(int argc, char *argv[])
 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 
   // assemble and solve problem
-	Fd.setDeltaTime(1) ;
-	Fm.setDeltaTime(1) ;
+	Fd.setDeltaTime(1./24.) ;
+	Fm.setDeltaTime(1./24.) ;
 	Fd.step();
 	MultiTriangleWriter writer( "scalar_field", "scalar_field_layer", nullptr ) ;
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
 	
 	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
 	
 	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
 	
 	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
 	
 	for(size_t i = 0 ; i < 30 ; i++)
 		Fd.step();
@@ -136,6 +136,6 @@ int main(int argc, char *argv[])
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;
 	writer.append() ;
-	writer.writeSvg(0., true) ;
+	writer.writeSvg(0., false) ;
   return 0 ;
 }

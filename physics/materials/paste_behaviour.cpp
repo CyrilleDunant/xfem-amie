@@ -305,8 +305,7 @@ void HydratingDiffusionCementPaste::step(double timestep, ElementState & current
 	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3. ;
 	effectiveSaturation = std::min(.999, effectiveSaturation) ;
 	double deltaH = std::max(0.,getDeltaDoH(effectiveSaturation, currentState)) ;
-	doh += deltaH ;
-	doh = std::min(doh, 1.) ;
+	doh = std::min(doh+deltaH, 1.) ;
 	double D = std::abs(getDiffusionCoefficient(effectiveSaturation, currentState) ) ;
 	param[0][0]=D ;
 	param[1][1]=D ;
@@ -323,15 +322,16 @@ double HydratingDiffusionCementPaste::getDeltaDoH(double saturation, ElementStat
 		return 0. ;
 
 	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
-	double currentTime = diffusionElement->getBoundingPoint(0).t+3600*4 ;
+	
 	double deltaTime = currentState.getNodalDeltaTime() ;
+// 	double currentTime = diffusionElement->getBoundingPoint(0).t + deltaTime*.5;
 	
 	double A1 =-0.347;
 	double A2 = 278.8;
 	double A3 =-0.677;
 	double A4 = 1.37;
 
-	return ((-(A1/A2)*exp(-currentTime/A2) - (A3/A4)*exp(-currentTime/A4) )* deltaTime)*factor;
+	return ((-(A1/A2)*exp(-doh/A2) - (A3/A4)*exp(-doh/A4) )* deltaTime)*factor;
 	
 }
 
@@ -344,14 +344,13 @@ double HydratingDiffusionCementPaste::getDiffusionCoefficient(double saturation,
 	double Abz=0.9002*doh-0.1503;    //Bolzmann function parameter in function of DoH
 	double Bbz=0.2815*doh+0.0297;   
 	double h_b=1.-1./(1.+exp((saturation-Abz)/Bbz));   //Bolzmann function for inversed desorption isotherm
-	return D1_bz*(a + (1.-a)*1./(1.+pow((1.-h_b)/0.25,n)));
+	return D1_bz*(a + (1.-a)*1./(1.+pow((1.-h_b)/0.25,n)))*24*3600;
 }
 
 
 void HydratingDiffusionCementPaste::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const
 {
-	
-	
+
 	ret[0][0] = (vm->ieval(VectorGradientDot(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)
 		  + vm->ieval(VectorGradient(p_i) * param * VectorGradientDot(p_j, true),  gp, Jinv, v)) ;
 }
