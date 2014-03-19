@@ -189,6 +189,7 @@ protected:
 	std::vector<double> scales ;
 	std::vector<LagrangeMultiplier> multipliers ;
 	size_t ndof ;
+	size_t ndofmax ;
 	size_t colstart ;
 	size_t rowstart ;
 	SpaceDimensionality dim ;
@@ -224,6 +225,8 @@ public:
 
 /** \brief chek if a line is equal to 0 or not*/
 	void checkZeroLines() ;
+
+	void setMaxDof(size_t n) { ndofmax = n ; }
 	
 /** \brief update element e
 * 

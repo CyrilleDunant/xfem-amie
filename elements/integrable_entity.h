@@ -53,7 +53,7 @@ typedef enum : char
 	PURE_LINEAR,
 	LINEAR_AND_CONSTANT,
 	NON_LINEAR,
-	VOID_BEHAVIOUR
+	VOID_BEHAVIOUR = 3
 } ParametersType ;
 
 typedef enum : char{

@@ -69,6 +69,7 @@ Assembly::Assembly()
 {
 	rowstart = 0 ;
 	colstart = 0 ;
+	ndofmax = 0 ;
 	this->coordinateIndexedMatrix = nullptr ;
 	this->nonLinearPartialMatrix = nullptr;
 	multiplier_offset = 0 ;
@@ -760,6 +761,7 @@ bool Assembly::make_final()
 			{
 				map->insert(std::make_pair(i,i)) ;
 			}
+			map->insert(std::make_pair(ndofmax-1,ndofmax-1)) ;
 			
 			std::cerr << " ...done" << std::endl ;
 			size_t total_num_dof = map->rbegin()->first+1 ;
@@ -777,6 +779,8 @@ bool Assembly::make_final()
 			
 			delete map ;
 			coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
+			if(max < ndofmax)
+				max = ndofmax ;
 			if(displacements.size() != max)
 			{
 				displacements.resize(max) ;
@@ -952,6 +956,8 @@ bool Assembly::make_final()
 			}
 			delete map ;
 			this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
+			if(max < ndofmax)
+				max = ndofmax ;
 			if(this->displacements.size() != max)
 			{
 				this->displacements.resize(max) ;

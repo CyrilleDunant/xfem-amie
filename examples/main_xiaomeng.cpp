@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	boxm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;
   Fd.setOrder(LINEAR_TIME_LINEAR) ;
 	
-	Fm.setOrder(QUADRATIC);
+	Fm.setOrder(LINEAR);
 
 
   // sampling criteria
@@ -96,7 +96,15 @@ int main(int argc, char *argv[])
 	srand(0) ;
 	srandom(0) ;
 	Fm.step();
-	MultiTriangleWriter writer( "saturation_field", "saturation_field_layer", nullptr ) ;
+
+	std::vector<DelaunayTriangle *> tri = Fd.getElements2D() ;
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		if(tri[i]->getBoundingPoints().size() != 6)
+			std::cout << "BAD TRIANGLE" << std::endl ;
+	}
+
+	MultiTriangleWriter writer( "saturation_field", "saturation_field_layer", nullptr,1 ) ;
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
 	writer.getField( TWFT_DOH ) ;

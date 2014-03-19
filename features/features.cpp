@@ -3445,6 +3445,7 @@ void FeatureTree::assemble()
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
+			int ndof = 0 ;
 			for( size_t j = 0 ; j < tris.size() ; j++ )
 			{
 				if( j % 1000 == 0 )
@@ -3456,8 +3457,11 @@ void FeatureTree::assemble()
 					tris[j]->getBehaviour()->preProcess( deltaTime, tris[j]->getState() ) ;
 // 					if(!tris[j]->getBehaviour()->fractured())
 						K->add( tris[j], scalingFactors[i->first] ) ;
+					ndof = tris[j]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 				}
+				
 			}
+			K->setMaxDof( getNodes().size()*ndof ) ;
 			std::cerr << " ...done." << std::endl ;
 		}
 
@@ -6792,7 +6796,6 @@ void FeatureTree::generateElements()
 		for(size_t i = 0 ;i < iterators.size() ; i++)
 		  iterators[i] = i+4 ;
 
-		std::random_shuffle(iterators.begin(), iterators.end());
 		std::random_shuffle(iterators.begin(), iterators.end());
 		
 		
