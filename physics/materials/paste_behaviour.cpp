@@ -244,11 +244,17 @@ void HydratingMechanicalCementPaste::makeBulkModuli(double effectiveSaturation, 
 
 	bulk = K[0] + K[1]*effectiveSaturation + K[2]*doh + K[3]*effectiveSaturation*effectiveSaturation + K[4]*doh*effectiveSaturation + K[5]*doh*doh + K[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + K[7]*doh*effectiveSaturation*effectiveSaturation + K[8]*doh*doh*effectiveSaturation + K[9]*doh*doh*doh;
 	
-	if (bulk<0){ bulk=0; }
+	if (bulk<0)
+	{ 
+		bulk=0; 
+	}
 	bulk *= 1e6 ;
 
 	bulkSolid = K[0] + K[2]*doh + K[5]*doh*doh + K[9]*doh*doh*doh;
-	if (bulkSolid<0){bulkSolid=0;} 
+	if (bulkSolid<0)
+	{
+		bulkSolid=0;
+	} 
 	bulkSolid *= 1e6 ;
 }
 
@@ -278,7 +284,11 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 	//in MPa
 	double E = C[0] + C[1]*effectiveSaturation + C[2]*doh + C[3]*effectiveSaturation*effectiveSaturation + C[4]*doh*effectiveSaturation + C[5]*doh*doh + C[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + C[7]*doh*effectiveSaturation*effectiveSaturation + C[8]*doh*doh*effectiveSaturation + C[9]*doh*doh*doh;
 
-	if (E<0){ E=0; }
+	if (E<0)
+	{ 
+		E=0; 
+	}
+	
 	E *= 1e6 ;
 
 	makeBulkModuli(effectiveSaturation, doh) ;

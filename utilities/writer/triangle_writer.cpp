@@ -31,7 +31,7 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 	counter = 0 ;
 	values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
 
-	if( source != nullptr )
+	if( source )
 	{
 		layers = source->listLayers() ;
 
@@ -39,13 +39,13 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 		{
 			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
 			nTriangles.push_back( tri.size() );
-/*			int count = 0 ;
+			int count = 0 ;
 
 			for( int i = 0 ; i < nTriangles.back() ; i++ )
 				if( tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 					count++ ;
 
-			nTriangles.back() = count ;*/
+			nTriangles.back() = count ;
 			timePlane.push_back( t ) ;
 
 			if( timePlane.back() < 0 )
@@ -61,8 +61,6 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 
 		getField( TWFT_COORDINATE, false ) ;
 		getField( TWFT_DISPLACEMENTS, false ) ;
-		fields.push_back(TWFT_COORDINATE);
-		fields.push_back(TWFT_DISPLACEMENTS);
 	}
 }
 
@@ -86,8 +84,10 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 {
 	fields.clear();
 	if(counter > values.size()-1)
+	{
 		values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
-	values.back().clear() ;
+		values.back().clear() ;
+	}
 	nTriangles.clear();
 	layers.clear();
 	timePlane.clear() ;
@@ -100,15 +100,22 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
 			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
+			
 			if(tri.empty())
+			{
 				continue ;
+			}
 			nTriangles.push_back( tri.size() );
 			int count = 0 ;
 
 			for( int i = 0 ; i < nTriangles.back() ; i++ )
+			{
+				
 				if( tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				{
 					count++ ;
-
+				}
+			}
 			nTriangles.back() = count ;
 			timePlane.push_back( t ) ;
 
@@ -272,7 +279,9 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			for( size_t l = 0 ; l < layers.size() ; l++ )
 			{
 				for( int i = 0 ; i < nTriangles[0] ; i++ )
-					{
+				{
+// 					std::cout << m << "  " << l << "  " << j << "  " << i << "  " << std::endl ;
+// 					std::cout << values.size() << "  " << values[m].size() << "  " << values[m][l].size() << "  " << values[m][l][j].size()  << "  " << std::endl ;
 					maxval.back() = std::max(values[m][l][j][i], maxval.back()) ;
 					minval.back() = std::min(values[m][l][j][i], minval.back()) ;
 				}
@@ -290,10 +299,10 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			
 			for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
 			{
-				std::string currentField = nameOfField(fields[fieldCounter]) ;
+				std::string currentField = nameOfField(fields[fieldCounter], fieldCounter, fieldsOther) ;
 				if(isScalar && (fields[fieldCounter] == TWFT_COORDINATE || fields[fieldCounter] == TWFT_DISPLACEMENTS))
 				{
-					if(localFieldCounter < numberOfFields(fields[fieldCounter]))
+					if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter , fieldsOther))
 					{
 						localFieldCounter +=3 ;
 					}
@@ -303,11 +312,11 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 						fieldCounter++ ;
 					}
 					skips.push_back(j);
-					
+					jit++ ;
 					continue ;
 				}
 				
-				if(localFieldCounter < numberOfFields(fields[fieldCounter]))
+				if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter, fieldsOther))
 				{
 					localFieldCounter +=3 ;
 				}
@@ -567,15 +576,18 @@ void TriangleWriter::getField( TWFieldType field, bool extra )
 	fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
-		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
+		std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j] ) ;
 		std::reverse( val.begin(), val.end() );
 		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
 
 }
 
+
 void TriangleWriter::getField( FieldType field, bool extra )
 {
+	fieldsOther[fields.size()] = field;
+	fields.push_back(TWFT_FIELD_TYPE);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
 		std::vector<std::valarray<double> > val = getDoubleValues( field, layers[j] ) ;
@@ -585,12 +597,12 @@ void TriangleWriter::getField( FieldType field, bool extra )
 
 }
 
-std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, int layer )
+std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, size_t index, int layer )
 {
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
 
-	for( int i = 0 ; i < numberOfFields( field ) ; i++ )
+	for( int i = 0 ; i < numberOfFields( field, index , fieldsOther) ; i++ )
 	{
 		std::valarray<double> reti( nTriangles[layerTranslator[layer]] ) ;
 		ret.push_back( reti ) ;
@@ -620,6 +632,18 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
 						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
+					}
+					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+					{
+												// j11
+						ret[5][iterator] = 0 ;
+						ret[4][iterator] = 0 ;
+						ret[3][iterator] = 0 ;
+
+						// j22
+						ret[2][iterator] = 0 ;
+						ret[1][iterator] = 0 ;
+						ret[0][iterator++] = 0 ;
 					}
 				}
 
@@ -652,6 +676,27 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
 						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
 					}
+					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						ret[11][iterator] = 0 ;
+						ret[10][iterator] = 0 ;
+						ret[9][iterator] = 0 ;
+
+						// d22
+						ret[8][iterator] = 0 ;
+						ret[7][iterator] = 0 ;
+						ret[6][iterator] = 0 ;
+
+						// j11
+						ret[5][iterator] = 0 ;
+						ret[4][iterator] = 0 ;
+						ret[3][iterator] = 0 ;
+
+						// j22
+						ret[2][iterator] = 0 ;
+						ret[1][iterator] = 0 ;
+						ret[0][iterator++] =0 ;
+					}
 				}
 
 				break ;
@@ -673,6 +718,16 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 						ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
 						ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
 					}
+					else if(triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					{
+						ret[5][iterator] = 0 ;
+						ret[4][iterator] = 0 ;
+						ret[3][iterator] = 0 ;
+
+						ret[2][iterator] = 0 ;
+						ret[1][iterator] = 0 ;
+						ret[0][iterator++] = 0;
+					}
 				}
 
 				break ;
@@ -685,11 +740,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		{
 			Vector x = source->getDisplacements(-1, false) ;
 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-			int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-			int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+			int pointsPerTri = triangles[1]->getBoundingPoints().size() ;
+
+			int pointsPerTimePlanes = pointsPerTri / triangles[1]->timePlanes() ;
 			int factor = pointsPerTimePlanes / 3 ;
-			if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
-				timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
+			if( timePlane[layerTranslator[layer]] >= triangles[1]->timePlanes() )
+				timePlane[layerTranslator[layer]] = triangles[1]->timePlanes() - 1 ;
 
 			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
 
@@ -716,13 +772,13 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		{
 			Vector x = source->getDisplacements(-1, false) ;
 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-			int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
-			int pointsPerTimePlanes = pointsPerTri / triangles[0]->timePlanes() ;
+			int pointsPerTri = triangles[1]->getBoundingPoints().size() ;
+			int pointsPerTimePlanes = pointsPerTri / triangles[1]->timePlanes() ;
 			int factor = pointsPerTimePlanes / 3 ;
-			if( timePlane[layerTranslator[layer]] >= triangles[0]->timePlanes() )
-				timePlane[layerTranslator[layer]] = triangles[0]->timePlanes() - 1 ;
+			if( timePlane[layerTranslator[layer]] >= triangles[1]->timePlanes() )
+				timePlane[layerTranslator[layer]] = triangles[1]->timePlanes() - 1 ;
 
-			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[1]->timePlanes() ;
 
 			for( int i = 0 ; i < triangles.size() ; i++ )
 			{
@@ -732,6 +788,10 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
 					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
 
+					if(triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() != 1)
+					{
+						std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
+					}
 					ret[2][iterator] = x[id1  ] ;
 					ret[1][iterator] = x[id2  ] ;
 					ret[0][iterator++] = x[id3 ] ;
@@ -744,7 +804,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 			for( int i = 0 ; i < triangles.size() ; i++ )
 			{
-				if( triangles[i]->getBehaviour() && dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour()) )
+				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour()) )
 				{
 					double d = dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour())->doh ;
 
@@ -851,13 +911,13 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 			for( size_t i = 0 ; i < tri.size() ; i++ )
 			{
-				std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field ) ;
+				std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field , index) ;
 
 				if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					if( val.first )
 					{
-						for( size_t j = 0 ; j < numberOfFields( field ) ; j++ )
+						for( size_t j = 0 ; j < numberOfFields( field , index, fieldsOther) ; j++ )
 							ret[j][iterator] = val.second[j] ;
 
 						iterator++ ;
@@ -917,17 +977,16 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			}
 			
 			iterator++ ;
-			
 		}
 	}
 
 	return ret ;
 }
 
-std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTriangle *tri, TWFieldType field )
+std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTriangle *tri, TWFieldType field , size_t index)
 {
 	bool found = false ;
-	std::vector<double> ret( numberOfFields( field ) ) ;
+	std::vector<double> ret( numberOfFields( field,  index, fieldsOther) ) ;
 
 	if( tri->getBehaviour() && tri->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
@@ -1241,7 +1300,7 @@ void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
 
 
 
-int numberOfFields( TWFieldType field )
+int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther)
 {
 	switch( field )
 	{
@@ -1295,14 +1354,16 @@ int numberOfFields( TWFieldType field )
 			return 3 ;
 		case TWFT_CRACKS:
 			return 6 ;
+		case TWFT_FIELD_TYPE:
+			return numberOfFields(fieldsOther[index]) ;
 	}
 
 	return 3 ;
 }
 
-std::string nameOfField(TWFieldType field)
+std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther)
 {
-		switch( field )
+	switch( field )
 	{
 		case TWFT_COORDINATE:
 			return std::string("Coordinates") ;
@@ -1354,10 +1415,168 @@ std::string nameOfField(TWFieldType field)
 			return std::string("Imposed Stress") ;
 		case TWFT_CRACKS:
 			return std::string("Crack Opening") ;
+		case TWFT_FIELD_TYPE:
+			return nameOfField(fieldsOther[index]) ;
 	}
 
 	return std::string("Not a Field") ;
 }
+
+std::string nameOfField(FieldType field)
+{
+	switch( field )
+	{
+		case DISPLACEMENT_FIELD :
+			return std::string("Displacements") ;
+		case ENRICHED_DISPLACEMENT_FIELD :
+			return std::string("Enriched Displacements") ;
+		case SPEED_FIELD :
+			return std::string("") ;
+		case FLUX_FIELD :
+			return std::string("") ;
+		case GRADIENT_FIELD :
+			return std::string("") ;
+		case STRAIN_FIELD :
+			return std::string("") ;
+		case STRAIN_RATE_FIELD :
+			return std::string("") ;
+		case EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case REAL_STRESS_FIELD :
+			return std::string("") ;
+		case PRINCIPAL_STRAIN_FIELD :
+			return std::string("") ;
+		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case PRINCIPAL_REAL_STRESS_FIELD :
+			return std::string("") ;
+		case NON_ENRICHED_STRAIN_FIELD :
+			return std::string("") ;
+		case NON_ENRICHED_STRAIN_RATE_FIELD :
+			return std::string("") ;
+		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case NON_ENRICHED_REAL_STRESS_FIELD :
+			return std::string("") ;
+		case VON_MISES_STRAIN_FIELD :
+			return std::string("") ;
+		case VON_MISES_REAL_STRESS_FIELD :
+			return std::string("") ;
+		case VON_MISES_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case PRINCIPAL_ANGLE_FIELD :
+			return std::string("") ;
+		case INTERNAL_VARIABLE_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_STRAIN_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD :
+			return std::string("") ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD :
+			return std::string("") ;
+	}
+	return std::string("Not a Field") ;
+}
+
+int numberOfFields( FieldType field )
+{
+	switch( field )
+	{
+		case DISPLACEMENT_FIELD :
+			return 6 ;
+		case ENRICHED_DISPLACEMENT_FIELD :
+			return 6 ;
+		case SPEED_FIELD :
+			return 6 ;
+		case FLUX_FIELD :
+			return 6 ;
+		case GRADIENT_FIELD :
+			return 6 ;
+		case STRAIN_FIELD :
+			return 9 ;
+		case STRAIN_RATE_FIELD :
+			return 9 ;
+		case EFFECTIVE_STRESS_FIELD :
+			return 9 ;
+		case REAL_STRESS_FIELD :
+			return 9 ;
+		case PRINCIPAL_STRAIN_FIELD :
+			return 6 ;
+		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+			return 6 ;
+		case PRINCIPAL_REAL_STRESS_FIELD :
+			return 6 ;
+		case NON_ENRICHED_STRAIN_FIELD :
+			return 9 ;
+		case NON_ENRICHED_STRAIN_RATE_FIELD :
+			return 9 ;
+		case NON_ENRICHED_EFFECTIVE_STRESS_FIELD :
+			return 9;
+		case NON_ENRICHED_REAL_STRESS_FIELD :
+			return 9 ;
+		case VON_MISES_STRAIN_FIELD :
+			return 3 ;
+		case VON_MISES_REAL_STRESS_FIELD :
+			return 3 ;
+		case VON_MISES_EFFECTIVE_STRESS_FIELD :
+			return 3 ;
+		case PRINCIPAL_ANGLE_FIELD :
+			return 3 ;
+		case INTERNAL_VARIABLE_FIELD :
+			return 3 ;
+		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :
+			return 6 ;
+		case GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD :
+			return 3 ;
+		case GENERALIZED_VISCOELASTIC_SPEED_FIELD :
+			return 6 ;
+		case GENERALIZED_VISCOELASTIC_STRAIN_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD :
+			return 9;
+		case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD :
+			return 6 ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD :
+			return 6 ;
+		case GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD :
+			return 9 ;
+		case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD :
+			return 9 ;
+	}
+	return 3. ;
+} ;
 
 }
 

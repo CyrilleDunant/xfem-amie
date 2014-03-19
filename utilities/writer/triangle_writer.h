@@ -47,7 +47,8 @@ typedef enum
 	TWFT_FLUX,
 	TWFT_GRADIENT_AND_FLUX,
 	TWFT_VON_MISES,
-	TWFT_CRACKS
+	TWFT_CRACKS,
+	TWFT_FIELD_TYPE
 } TWFieldType ;
 
 /** \brief utility class to write the values of various fields of a 2D sample in a text file. You need to use getField() to get your data before writing the file.*/
@@ -64,6 +65,7 @@ protected:
 	std::vector<int> layers ;
 	std::vector<TWFieldType> extraFields ;
 	std::vector<TWFieldType> fields ;
+	std::map<size_t, FieldType> fieldsOther ;
 	std::map<int, size_t> layerTranslator ;
 	int counter ;
 
@@ -89,19 +91,20 @@ public:
 	virtual void append() ;
 
 	/** \brief store the values of the field in the writer*/
+	
 	virtual void getField(TWFieldType field, bool extra = true) ;
 	
 	/** \brief store the values of the field in the writer*/
 	virtual void getField(FieldType field, bool extra = true) ;
 
 	/** \brief get the raw values of the specified field from the source*/
-	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, int layer) ;
+	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, size_t index, int layer) ;
 
 	/** \brief get the raw values of the specified field from the source*/
 	virtual std::vector<std::valarray<double> > getDoubleValues(FieldType field, int layer) ;
 	
 	/** \brief get the raw values of the specific field from a single DelaunayTriangle */
-	virtual std::pair<bool, std::vector<double> > getDoubleValue(DelaunayTriangle * tri, TWFieldType field) ;
+	virtual std::pair<bool, std::vector<double> > getDoubleValue(DelaunayTriangle * tri, TWFieldType field, size_t index) ;
 
 protected:
 	/** \brief write the header */
@@ -140,9 +143,11 @@ protected:
 
 
 /** \brief indicates the number of "columns" needed by a specific field type*/
-int numberOfFields(TWFieldType field) ;
+int numberOfFields(TWFieldType field, size_t index, std::map<size_t, FieldType> & fieldsOther) ;
+int numberOfFields(FieldType field) ;
 
-std::string nameOfField(TWFieldType field) ;
+std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther) ;
+std::string nameOfField(FieldType field) ;
 
 
 

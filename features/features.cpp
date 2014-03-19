@@ -89,8 +89,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getElements2DInLayer( int l )
 
 	if( is2D() && layer2d.find(l) != layer2d.end())
 	{
-		std::vector<DelaunayTriangle *> elems = layer2d[l]->getElements() ;
-		return elems ;
+		return layer2d[l]->getElements() ;
 	}
 	return std::vector<DelaunayTriangle *>() ;
 }
@@ -529,13 +528,10 @@ void FeatureTree::renumber()
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				if( *i && (*i)->getBehaviour())
+				for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 				{
-					for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
-					{
-						if( (*i)->getBoundingPoint( j ).id == -1 )
-							const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j ).id = count++ ;
-					}
+					if( (*i)->getBoundingPoint( j ).id == -1 )
+						const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j ).id = count++ ;
 				}
 			}
 			
@@ -544,23 +540,16 @@ void FeatureTree::renumber()
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				if( *i && (*i)->getBehaviour())
+				for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
 				{
-					for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
+					for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 					{
-						for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
+						if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
 						{
-							if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
-							{
-								const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
-								count++ ;
-							}
+							const_cast<DelaunayTriangle *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
+							count++ ;
 						}
 					}
-				}
-				else if (!*i)
-				{
-					std::cerr << "nullTri" << std::endl ;
 				}
 			}
 			
@@ -613,7 +602,6 @@ void FeatureTree::renumber()
 
 		for( size_t i = 0 ; i < tmpgrid.pixels.size() ; ++i )
 		{
-
 			for( size_t j = 0 ; j < tmpgrid.pixels[i].size() ; ++j )
 			{
 				for( size_t k = 0 ; k < tmpgrid.pixels[i][j].size() ; ++k )
@@ -635,13 +623,10 @@ void FeatureTree::renumber()
 		{
 			DelaunayTetrahedron *tet = const_cast<DelaunayTetrahedron *>( *i ) ;
 
-			if( tet && tet->getBehaviour() && tet->getBehaviour()->type != VOID_BEHAVIOUR )
+			for( size_t j = 0 ; j < tet->getBoundingPoints().size()/tet->timePlanes() ; j++ )
 			{
-				for( size_t j = 0 ; j < tet->getBoundingPoints().size()/tet->timePlanes() ; j++ )
-				{
-					if( tet->getBoundingPoint( j ).id == -1 )
-						tet->getBoundingPoint( j ).id = count++ ;
-				}
+				if( tet->getBoundingPoint( j ).id == -1 )
+					tet->getBoundingPoint( j ).id = count++ ;
 			}
 		}
 
@@ -650,23 +635,16 @@ void FeatureTree::renumber()
 
 			for( auto i = sortedElements.begin() ; i != sortedElements.end() ; ++i )
 			{
-				if( *i && (*i)->getBehaviour())
+				for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
 				{
-					for(size_t k = 1 ; k < (*i)->timePlanes() ; k++)
+					for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
 					{
-						for( size_t j = 0 ; j < (*i)->getBoundingPoints().size()/(*i)->timePlanes() ; j++ )
+						if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
 						{
-							if( (*i)->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes() ).id == -1 )
-							{
-								const_cast<DelaunayTetrahedron *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
-								count++ ;
-							}
+							const_cast<DelaunayTetrahedron *>((*i))->getBoundingPoint( j + k*(*i)->getBoundingPoints().size()/(*i)->timePlanes()).id = (*i)->getBoundingPoint( j).id + lastNodeId*k ;
+							count++ ;
 						}
 					}
-				}
-				else if (!*i)
-				{
-					std::cerr << "nullTet" << std::endl ;
 				}
 			}
 			
@@ -1546,7 +1524,6 @@ void FeatureTree::setSamplingNumber( size_t news )
 	samplingNumber = news ;
 	needMeshing = true ;
 	state.enriched = false ;
-
 }
 
 void FeatureTree::quadTreeRefine(const Geometry * location)
@@ -1721,7 +1698,6 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 		std::cerr <<  " ...done. " << std::endl ;
 	}
 }
-
 
 void FeatureTree::duplicate2DMeshPoints()
 {
@@ -2482,14 +2458,6 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 	if( t->getBoundingPoints().size() % 3 != 0 )
 		return new VoidForm() ;
 
-	for( size_t i = 0 ; i < t->getBoundingPoints().size() ; i++ )
-	{
-		if( t->getBoundingPoint( i ).id == -1 )
-		{
-			return new VoidForm() ;
-		}
-	}
-
 	std::vector<Feature *> targets ;
 
 	if( tree.size() > 32 )
@@ -2653,15 +2621,6 @@ Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int l
 	if( !inRoot( t->getCenter() ) )
 	{
 		return new VoidForm() ;
-	}
-
-
-	for( size_t i = 0 ; i < t->getBoundingPoints().size() ; i++ )
-	{
-		if( t->getBoundingPoint( i ).id == -1 )
-		{
-			return new VoidForm() ;
-		}
 	}
 
 // 	std::vector<Geometry *> targetstmp = grid3d->coOccur(t->getPrimitive()) ;
@@ -3239,8 +3198,6 @@ void FeatureTree::updateElementBehaviours()
 		}
 		scalingFactors[-1] = 1.-remainder ;
 		layer2d[-1] = dtree ;
-
-	
 
 		
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
@@ -5402,7 +5359,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->sample();
 		sampled = true ;
 	}
-
 	if( s == SAMPLED )
 		return ;
 
@@ -5411,11 +5367,18 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->generateElements();
 		meshed = true ;
 	}
-
 	if( s == MESHED )
 		return ;
 
-
+	
+	if( !stitched )
+	{
+		ft->stitch();
+		stitched = true ;
+	}
+	if( s == STITCHED )
+		return ;
+	
 	if( !behaviourSet )
 	{
 		ft->setElementBehaviours() ;
@@ -5428,25 +5391,14 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->updateElementBehaviours();
 		behaviourUpdated = true;
 	}
-
 	if( s == BEHAVIOUR_SET )
 		return ;
-
-	if( !stitched )
-	{
-		ft->stitch();
-		stitched = true ;
-	}
-
-	if( s == STITCHED )
-		return ;
-
+	
 	if( !renumbered )
 	{
 		ft->renumber();
 		renumbered = true ;
 	}
-
 	if( s == RENUMBERED )
 		return ;
 
@@ -5455,7 +5407,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->initializeElements( initialiseFractureCache );
 		initialised = true ;
 	}
-
 	if( s == INITIALISED )
 		return ;
 
@@ -5472,7 +5423,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->assemble();
 		assembled = true ;
 	}
-
 	if( s == ASSEMBLED )
 		return ;
 
@@ -5481,7 +5431,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->solve() ;
 		solved = true ;
 	}
-
 	if( s == SOLVED )
 		return ;
 
@@ -5490,7 +5439,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->stepXfem();
 		xfemStepped = true ;
 	}
-
 	if( s == XFEM_STEPPED )
 		return ;
 
@@ -5499,7 +5447,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		ft->stepElements();
 		behaviourStepped = true ;
 	}
-
 	if( s == BEHAVIOUR_STEPPED )
 		return ;
 
@@ -6846,7 +6793,7 @@ void FeatureTree::generateElements()
 		  iterators[i] = i+4 ;
 
 		std::random_shuffle(iterators.begin(), iterators.end());
-
+		std::random_shuffle(iterators.begin(), iterators.end());
 		
 		
 		for( size_t i = 0 ; i < iterators.size() ; i++ )

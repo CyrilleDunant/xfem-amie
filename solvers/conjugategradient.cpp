@@ -167,7 +167,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	std::cerr << "mflops: "<< nit*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
 
 	assign(r,A*x-b, rowstart, rowstart) ;
-	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize)) ;
+	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 	
 	if(verbose)
 	{
