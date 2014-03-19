@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   FeatureTree Fd(&boxd) ;
 	Fd.addFeature(&boxd, &elementd) ;
 	Fd.addFeature(&elementd, &pored);
-	Fd.setInitialValue(.999);
+	Fd.setInitialValue(.99);
 	
 	FeatureTree Fm(&boxm) ;
 	Fm.addFeature(&boxm, &elementm) ;
@@ -86,7 +86,8 @@ int main(int argc, char *argv[])
 
 
   // add boundary conditions
-  Fd.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_INDEXED_AXIS, elementd.getPrimitive(), 0.7, 0));
+	GeometryDefinedSurfaceBoundaryCondition * outsideRH = new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_INDEXED_AXIS, elementd.getPrimitive(), 0.6, 0) ;
+  Fd.addBoundaryCondition(outsideRH);
 // 	Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.7, 0));
 
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
@@ -120,10 +121,26 @@ int main(int argc, char *argv[])
 	writerm.append() ;
 	writerm.writeSvg(200., true) ;
 	
+	std::vector<DelaunayTriangle * > elements = Fd.getElements2D() ;
+	std::vector<DelaunayTriangle * > borderElements ;
+	for(size_t i = 0 ; i < elements.size() ; i++)
+	{
+		if(std::abs(elements[i]->getCenter().norm() - 0.3) < elements[i]->getRadius())
+			borderElements.push_back(elements[i]);
+	}
+	
 	for(size_t j = 0 ; j < 5 ; j++)
 	{
 		for(size_t i = 0 ; i < 3 ; i++)
 		{
+			double averageDoH = 0 ;
+			for(size_t k = 0 ; k < borderElements.size() ; k++)
+			{
+				averageDoH += dynamic_cast<HydratingDiffusionCementPaste * >(borderElements[k]->getBehaviour())->getDegreeOfHydration() ;
+			}
+			averageDoH /= borderElements.size() ;
+			outsideRH->setData(std::max(-0.4103*averageDoH*averageDoH+1.475*averageDoH-0.2714, 0.0));
+			
 			std::cout << "diffusion" << std::endl ;
 			Fd.step();
 			std::cout << "mechanics" << std::endl ;
