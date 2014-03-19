@@ -6798,7 +6798,6 @@ void FeatureTree::generateElements()
 
 		std::random_shuffle(iterators.begin(), iterators.end());
 		
-		
 		for( size_t i = 0 ; i < iterators.size() ; i++ )
 		{
 			if( ( i ) % 1000 == 0 )

@@ -282,8 +282,11 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 				{
 // 					std::cout << m << "  " << l << "  " << j << "  " << i << "  " << std::endl ;
 // 					std::cout << values.size() << "  " << values[m].size() << "  " << values[m][l].size() << "  " << values[m][l][j].size()  << "  " << std::endl ;
-					maxval.back() = std::max(values[m][l][j][i], maxval.back()) ;
-					minval.back() = std::min(values[m][l][j][i], minval.back()) ;
+					for(size_t p = 0 ; p < counter ; p++)
+					{
+						maxval.back() = std::max(values[p][l][j][i], maxval.back()) ;
+						minval.back() = std::min(values[p][l][j][i], minval.back()) ;
+					}
 				}
 			}
 		}
@@ -788,10 +791,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
 					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
 
-					if(triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() != 1)
-					{
-						std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
-					}
+// 					std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
 					ret[2][iterator] = x[id1  ] ;
 					ret[1][iterator] = x[id2  ] ;
 					ret[0][iterator++] = x[id3 ] ;
@@ -1006,7 +1006,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				found = true ;
 				break ;
 			}
-
 			case TWFT_PRINCIPAL_ANGLE:
 			{
 				Vector v(0., 1) ;
@@ -1437,19 +1436,19 @@ std::string nameOfField(FieldType field)
 		case GRADIENT_FIELD :
 			return std::string("") ;
 		case STRAIN_FIELD :
-			return std::string("") ;
+			return std::string("Strain") ;
 		case STRAIN_RATE_FIELD :
-			return std::string("") ;
+			return std::string("Strain Rate") ;
 		case EFFECTIVE_STRESS_FIELD :
-			return std::string("") ;
+			return std::string("Stress") ;
 		case REAL_STRESS_FIELD :
-			return std::string("") ;
+			return std::string("Stress") ;
 		case PRINCIPAL_STRAIN_FIELD :
-			return std::string("") ;
+			return std::string("Principal Strain") ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-			return std::string("") ;
+			return std::string("Principal Effective Stress") ;
 		case PRINCIPAL_REAL_STRESS_FIELD :
-			return std::string("") ;
+			return std::string("Principal Stress") ;
 		case NON_ENRICHED_STRAIN_FIELD :
 			return std::string("") ;
 		case NON_ENRICHED_STRAIN_RATE_FIELD :
@@ -1459,13 +1458,13 @@ std::string nameOfField(FieldType field)
 		case NON_ENRICHED_REAL_STRESS_FIELD :
 			return std::string("") ;
 		case VON_MISES_STRAIN_FIELD :
-			return std::string("") ;
+			return std::string("Von Mises Strain") ;
 		case VON_MISES_REAL_STRESS_FIELD :
-			return std::string("") ;
+			return std::string("Von Mises Stress") ;
 		case VON_MISES_EFFECTIVE_STRESS_FIELD :
 			return std::string("") ;
 		case PRINCIPAL_ANGLE_FIELD :
-			return std::string("") ;
+			return std::string("Principal Angle") ;
 		case INTERNAL_VARIABLE_FIELD :
 			return std::string("") ;
 		case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :

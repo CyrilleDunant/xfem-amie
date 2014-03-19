@@ -229,7 +229,7 @@ void HydratingMechanicalCementPaste::step(double timestep, ElementState & curren
 {
 	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(diffusionTree->get2DMesh()->getTree()[dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index]) ;
 	Vector saturation = diffusionElement->getState().getDisplacements() ;
-	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3 ;
+	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3. ;
 	double doh = dynamic_cast<HydratingDiffusionCementPaste *>(diffusionElement->getBehaviour())->getDegreeOfHydration() ;
 	
 	param = getMechanicalProperties(effectiveSaturation,doh) ;
@@ -284,9 +284,9 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 	//in MPa
 	double E = C[0] + C[1]*effectiveSaturation + C[2]*doh + C[3]*effectiveSaturation*effectiveSaturation + C[4]*doh*effectiveSaturation + C[5]*doh*doh + C[6]*effectiveSaturation*effectiveSaturation*effectiveSaturation + C[7]*doh*effectiveSaturation*effectiveSaturation + C[8]*doh*doh*effectiveSaturation + C[9]*doh*doh*doh;
 
-	if (E<0)
+	if ( E < 0 )
 	{ 
-		E=0; 
+		E = 0; 
 	}
 	
 	E *= 1e6 ;
@@ -295,14 +295,16 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 	
 	double nu = (3.*bulk-E)/(6.*bulk) ;
 	
+// 	std::cout << E << "  " << nu << std::endl ;
+	
 	return Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 }
 
 double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, double doh) 
 {
-	double m=0.488;
-	double a=-39.623*std::pow(( 1. - std::exp(-25.057*doh) ) , 8.15) ; 
-	a *=1e6 ;
+	double m = 0.488;
+	double a = -39.623*std::pow(( 1. - std::exp(-25.057*doh) ) , 8.15) ; 
+	a *= 1e6 ;
 	return a*std::pow((std::pow(saturation,-1./m)-1.),(1.-m)); 
 }
 
@@ -310,9 +312,12 @@ Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturati
 {
 	double pc = getCapillaryPressure(saturation, doh) ;
 	makeBulkModuli(saturation, doh) ;
+	Vector a(0., 3) ;
+	
 	double deformation = pc*saturation*(1./(3*bulk) - 1./(3*bulkSolid)) ;
-
-	Vector a(3) ;
+	if(isnan(deformation))
+		deformation = 0 ;
+	
 	a[0] = deformation ;
 	a[1] = deformation ;
 	a[2] = 0. ;
@@ -400,6 +405,7 @@ double HydratingDiffusionCementPaste::getDeltadoh(double saturation, ElementStat
 	double A3 =-0.677;
 	double A4 = 1.37;
 
+	//This is false. fix it!
 	return ((-(A1/A2)*exp(-doh/A2) - (A3/A4)*exp(-doh/A4) )* deltaTime)*factor;
 	
 }

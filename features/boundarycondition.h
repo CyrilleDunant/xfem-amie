@@ -142,6 +142,20 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
+/** \brief Boundary condition object for usage in multigrid solver*/
+class GeometryDefinedSurfaceBoundaryCondition : public BoundaryCondition
+{
+protected:
+	Geometry * domain ;
+	std::vector<std::pair<DelaunayTriangle *, std::vector<Point>  > > cache2d  ;
+	std::vector<std::pair<DelaunayTetrahedron *, std::vector<Point>  > > cache3d  ;
+public:
+	GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
+	GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
+
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/
 class GeometryProjectedBoundaryCondition : public BoundaryCondition
 {
