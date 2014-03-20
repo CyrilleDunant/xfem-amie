@@ -1506,6 +1506,8 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;*/
 // 		std::cerr << "symmetrical problem" << std::endl ;
 // 		print();
+// 		for(size_t p = 0 ; p < externalForces.size() ; p++)
+// 			std::cout << externalForces[p] << std::endl ;
 // 		exit(0) ;
 
  		ConjugateGradientWithSecant cg(this) ;

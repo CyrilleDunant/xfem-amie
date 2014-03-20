@@ -3461,7 +3461,7 @@ void FeatureTree::assemble()
 				}
 				
 			}
-			K->setMaxDof( getNodes().size()*ndof ) ;
+			K->setMaxDof( getNodes().size() ) ;
 			std::cerr << " ...done." << std::endl ;
 		}
 
