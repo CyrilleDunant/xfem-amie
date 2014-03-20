@@ -677,6 +677,7 @@ struct Point
 struct TriPoint
 {
 	Point normal ;
+	Point center ;
 
 	std::valarray<Point const *> point ;
 	std::vector<TriPoint *> neighbour ;
@@ -688,6 +689,8 @@ struct TriPoint
 		point[1] = p1 ;
 		point[2] = p2 ;
 		normal = (*p0-*p1)^(*p2-*p1) ;
+		normal /= normal.norm() ;
+		center = (*p0+*p1+*p2)/3. ;
 	}
 	
 	/** \brief return area of the triangle*/
@@ -695,6 +698,11 @@ struct TriPoint
 	{
 		return .5*normal.norm() ;
 	}
+	
+	const Point & getCenter() const { return center ;} ;
+	const Point & first() const {return *point[0] ;} ;
+	const Point & second() const {return *point[1] ;} ;
+	const Point & third() const {return *point[2] ;} ;
 
 	/** \brief return true is the argument is in*/
 	bool in(const Point & p) const ;
@@ -1043,7 +1051,9 @@ public:
 	/** \brief Accessor, set the endpoints */
 	void set(double x0, double y0, double x1, double y1) ;
 	
-	/** \brief Return a normal to the segment.*/
+	/** \brief Return a normal to the segment.
+	 *	The vector is of norm 1.
+	 */
 	Point normal() const ;
 	
 	/** \brief Return a normal to the segment. The argument gives the "inside" of the Segment*/

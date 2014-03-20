@@ -315,7 +315,7 @@ Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturati
 	Vector a(0., 3) ;
 	
 	double deformation = pc*saturation*(1./(3*bulk) - 1./(3*bulkSolid)) ;
-	if(isnan(deformation))
+	if(std::isnan(deformation))
 		deformation = 0 ;
 	
 	a[0] = deformation ;

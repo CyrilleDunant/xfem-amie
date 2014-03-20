@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 // 	Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.7, 0));
 
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
-// 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -1e5));
+	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -1e5));
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_XI, porem.getPrimitive(), 0., 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_ETA, porem.getPrimitive(), 0., 0));
@@ -100,10 +100,10 @@ int main(int argc, char *argv[])
 	Fd.setDeltaTime(1./24.) ;
 	Fm.setDeltaTime(1./24.) ;
 	srand(0) ;
-	srandom(0) ;
+// 	srandom(0) ;
 	Fd.step();
 	srand(0) ;
-	srandom(0) ;
+// 	srandom(0) ;
 	Fm.step();
 
 	MultiTriangleWriter writer( "saturation_field", "saturation_field_layer", nullptr,1 ) ;

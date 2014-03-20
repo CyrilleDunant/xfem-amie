@@ -129,7 +129,7 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
-/** \brief Boundary condition object for usage in multigrid solver*/
+/** \brief Boundary condition applied on points on the surface of specified geometry*/
 class GeometryDefinedBoundaryCondition : public BoundaryCondition
 {
 protected:
@@ -142,16 +142,27 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
-/** \brief Boundary condition object for usage in multigrid solver*/
+/** \brief Boundary condition applied on points in specified geometry*/
 class GeometryDefinedSurfaceBoundaryCondition : public BoundaryCondition
 {
 protected:
 	Geometry * domain ;
-	std::vector<std::pair<DelaunayTriangle *, std::vector<Point>  > > cache2d  ;
-	std::vector<std::pair<DelaunayTetrahedron *, std::vector<Point>  > > cache3d  ;
 public:
 	GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
 	GeometryDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
+
+/** \brief Boundary condition applied on points in specified geometry*/
+class GeometryDefinedSurfaceAndRestrictionsBoundaryCondition : public BoundaryCondition
+{
+protected:
+	Geometry * domain ;
+	double xmin, xmax, ymin, ymax, zmin, zmax ;
+public:
+	GeometryDefinedSurfaceAndRestrictionsBoundaryCondition(LagrangeMultiplierType t, Geometry * source, double d = 0, int a = 0) ;
+	GeometryDefinedSurfaceAndRestrictionsBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Function & d, int a = 0) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
