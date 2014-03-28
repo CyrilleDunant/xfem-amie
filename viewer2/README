@@ -1,5 +1,4 @@
 to compile:
-
-qmake -project QT+=opengl
-qmake
+qmake-qt5 -project QT+="core gui opengl" LIBS+=-lGLU
+qmake-qt5
 make
