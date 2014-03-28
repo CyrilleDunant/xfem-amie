@@ -699,6 +699,10 @@ struct TriPoint
 		return .5*normal.norm() ;
 	}
 	
+	Vector normalv() const
+	{
+		Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
+	}
 	const Point & getCenter() const { return center ;} ;
 	const Point & first() const {return *point[0] ;} ;
 	const Point & second() const {return *point[1] ;} ;
@@ -1055,6 +1059,21 @@ public:
 	 *	The vector is of norm 1.
 	 */
 	Point normal() const ;
+	
+	Vector normalv() const 
+	{
+		
+		double n = norm();
+		if(n > POINT_TOLERANCE_2D)
+		{
+			Vector ret(2) ;
+			ret[0] = -vec.y/n ;
+			ret[1] = vec.x/n ;
+			return ret ;
+		}
+		
+		return Vector(0., 2) ;
+	}
 	
 	/** \brief Return a normal to the segment. The argument gives the "inside" of the Segment*/
 	Point normal(const Point & inside) const ;

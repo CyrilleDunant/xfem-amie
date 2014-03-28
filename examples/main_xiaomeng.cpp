@@ -55,12 +55,12 @@ int main(int argc, char *argv[])
 
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)
-  Sample boxd( nullptr, 0.31, 0.31, 0.,0.) ;
-	Sample boxm( nullptr, 0.31, 0.31, 0.,0.) ;
-	Inclusion elementd( nullptr, 0.15, 0.,0.) ;
-	Inclusion elementm( nullptr, 0.15, 0.,0.) ;
-	Pore pored(0.11,0.,0.) ;
-	Pore porem(0.11,0.,0.) ;
+  Sample boxd( 0.31, 0.31, 0.0,0.0) ;
+	Sample boxm( 0.31, 0.31, 0.0,0.0) ;
+	Inclusion elementd( 0.15, 0.0,0.0) ;
+	Inclusion elementm( 0.15, 0.0,0.0) ;
+	Pore pored(0.11,0.0,0.0) ;
+	Pore porem(0.11,0.0,0.0) ;
 
   // creates main object
   FeatureTree Fd(&boxd) ;
@@ -74,24 +74,24 @@ int main(int argc, char *argv[])
 	
 	boxd.setBehaviour( new VoidForm() ) ;
 	boxm.setBehaviour( new VoidForm() ) ;
-	elementm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;
+	elementm.setBehaviour( new ElasticOnlyPasteBehaviour()/*HydratingMechanicalCementPaste(&Fd)*/ ) ;
 	elementd.setBehaviour( new HydratingDiffusionCementPaste() ) ;
-  Fd.setOrder(LINEAR_TIME_LINEAR) ;
-	Fm.setOrder(QUADRATIC);
+  Fd.setOrder(LINEAR_TIME_QUADRATIC) ;
+	Fm.setOrder(LINEAR);
 
 
   // sampling criteria
-  Fd.setSamplingNumber(128); 
-	Fm.setSamplingNumber(128); 
+  Fd.setSamplingNumber(256); 
+	Fm.setSamplingNumber(256); 
 
 
   // add boundary conditions
-	GeometryDefinedSurfaceBoundaryCondition * outsideRH = new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_INDEXED_AXIS, elementd.getPrimitive(), 0.6, 0) ;
+	GeometryDefinedSurfaceBoundaryCondition * outsideRH = new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_INDEXED_AXIS, elementd.getPrimitive(), 0.99, 0) ;
   Fd.addBoundaryCondition(outsideRH);
 // 	Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.7, 0));
 
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
-	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -1e5));
+	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_NORMAL_STRESS, elementm.getPrimitive(), 1e8));
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_XI, porem.getPrimitive(), 0., 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_ETA, porem.getPrimitive(), 0., 0));
@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
 // 	srandom(0) ;
 	Fm.step();
 
+	
 	MultiTriangleWriter writer( "saturation_field", "saturation_field_layer", nullptr,1 ) ;
 	writer.reset( &Fd ) ;
 	writer.getField( TWFT_SCALAR ) ;
@@ -119,7 +120,8 @@ int main(int argc, char *argv[])
 	writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
 	writerm.getField( TWFT_STIFFNESS ) ;
 	writerm.append() ;
-	writerm.writeSvg(200., true) ;
+	writerm.writeSvg(50, true) ;
+	exit(0) ;
 	
 	std::vector<DelaunayTriangle * > elements = Fd.getElements2D() ;
 	std::vector<DelaunayTriangle * > borderElements ;
@@ -133,13 +135,13 @@ int main(int argc, char *argv[])
 	{
 		for(size_t i = 0 ; i < 3 ; i++)
 		{
-			double averageDoH = 0 ;
-			for(size_t k = 0 ; k < borderElements.size() ; k++)
-			{
-				averageDoH += dynamic_cast<HydratingDiffusionCementPaste * >(borderElements[k]->getBehaviour())->getDegreeOfHydration() ;
-			}
-			averageDoH /= borderElements.size() ;
-			outsideRH->setData(std::max(-0.4103*averageDoH*averageDoH+1.475*averageDoH-0.2714, 0.0));
+// 			double averageDoH = 0 ;
+// 			for(size_t k = 0 ; k < borderElements.size() ; k++)
+// 			{
+// 				averageDoH += dynamic_cast<HydratingDiffusionCementPaste * >(borderElements[k]->getBehaviour())->getDegreeOfHydration() ;
+// 			}
+// 			averageDoH /= borderElements.size() ;
+// 			outsideRH->setData(std::max(-0.4103*averageDoH*averageDoH+1.475*averageDoH-0.2714, 0.0));
 			
 			std::cout << "diffusion" << std::endl ;
 			Fd.step();
@@ -159,7 +161,7 @@ int main(int argc, char *argv[])
 		writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
 		writerm.getField( TWFT_STIFFNESS ) ;
 		writerm.append() ;
-		writerm.writeSvg(200., true) ;
+		writerm.writeSvg(1e3, true) ;
 	}
 	
   return 0 ;

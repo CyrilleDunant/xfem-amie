@@ -1266,91 +1266,91 @@ TriElement::TriElement(Order order_ ): moved(false)
 			
 			break ;
 		}
-	case LINEAR_TIME_QUADRATIC :
+		case LINEAR_TIME_QUADRATIC :
 		{
 			shapefunc = new std::valarray<Function>(Function(),9) ;
 
-	Function z2("0") ;
+			Function z2("0") ;
 
-	Function z1("0") ;
-	z1.setNumberOfDerivatives(4) ;
-	for(int i = 0 ; i < 4 ; i++)
-	{
-		z1.setDerivative( (const Variable) i, z2) ;
-	}
-  
-	Function zero("0") ;
-	zero.setNumberOfDerivatives(4) ;
-	for(int i = 0 ; i < 4 ; i++)
-	{
-		zero.setDerivative( (const Variable) i, z1) ;
-	}	
-	Function one = zero +1 ;
-	Function mone = zero-1 ;
-  
-	Function s0("y") ;
-	Function s1("1 x - y -") ;
-	Function s2("x") ;
-	
-	Function t0("t 2 ^ t - 0.5 *") ;			
-	Function t1("1 t 2 ^ -") ;
-	Function t2("t 2 ^ t + 0.5 *") ;
+			Function z1("0") ;
+			z1.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				z1.setDerivative( (const Variable) i, z2) ;
+			}
+			
+			Function zero("0") ;
+			zero.setNumberOfDerivatives(4) ;
+			for(int i = 0 ; i < 4 ; i++)
+			{
+				zero.setDerivative( (const Variable) i, z1) ;
+			}	
+			Function one = zero +1 ;
+			Function mone = zero-1 ;
+			
+			Function s0("y") ;
+			Function s1("1 x - y -") ;
+			Function s2("x") ;
+			
+			Function t0("t 2 ^ t - 0.5 *") ;			
+			Function t1("1 t 2 ^ -") ;
+			Function t2("t 2 ^ t + 0.5 *") ;
 
-	Function tt0("t 0.5 -") ;
-	Function tt1("t -2 *") ; 
-	Function tt2("t 0.5 +") ;
-	
-	Function ttt0 = one ;
-	Function ttt1 = mone *2 ;
-	Function ttt2 = one ;
-	
-	s0.setNumberOfDerivatives(4) ;
-	s0.setDerivative( XI, zero) ;
-	s0.setDerivative( ETA, one) ;
-	s0.setDerivative( ZETA, zero) ;
-	s0.setDerivative( TIME_VARIABLE, zero) ;
-	s1.setNumberOfDerivatives(4) ;
-	s1.setDerivative( XI, mone) ;
-	s1.setDerivative( ETA, mone) ;
-	s1.setDerivative( ZETA, zero) ;
-	s1.setDerivative( TIME_VARIABLE, zero) ;
-	s2.setNumberOfDerivatives(4) ;
-	s2.setDerivative( XI, one) ;
-	s2.setDerivative( ETA, zero) ;
-	s2.setDerivative( ZETA, zero) ;
-	s2.setDerivative( TIME_VARIABLE, zero) ;
+			Function tt0("t 0.5 -") ;
+			Function tt1("t -2 *") ; 
+			Function tt2("t 0.5 +") ;
+			
+			Function ttt0 = one ;
+			Function ttt1 = mone *2 ;
+			Function ttt2 = one ;
+			
+			s0.setNumberOfDerivatives(4) ;
+			s0.setDerivative( XI, zero) ;
+			s0.setDerivative( ETA, one) ;
+			s0.setDerivative( ZETA, zero) ;
+			s0.setDerivative( TIME_VARIABLE, zero) ;
+			s1.setNumberOfDerivatives(4) ;
+			s1.setDerivative( XI, mone) ;
+			s1.setDerivative( ETA, mone) ;
+			s1.setDerivative( ZETA, zero) ;
+			s1.setDerivative( TIME_VARIABLE, zero) ;
+			s2.setNumberOfDerivatives(4) ;
+			s2.setDerivative( XI, one) ;
+			s2.setDerivative( ETA, zero) ;
+			s2.setDerivative( ZETA, zero) ;
+			s2.setDerivative( TIME_VARIABLE, zero) ;
 
-	tt0.setNumberOfDerivatives(4) ;
-	tt0.setDerivative( XI, zero) ;
-	tt0.setDerivative( ETA, zero) ;
-	tt0.setDerivative( ZETA, zero) ;
-	tt0.setDerivative( TIME_VARIABLE, ttt0 ) ;
-	tt1.setNumberOfDerivatives(4) ;
-	tt1.setDerivative( XI, zero) ;
-	tt1.setDerivative( ETA, zero) ;
-	tt1.setDerivative( ZETA, zero) ;
-	tt1.setDerivative( TIME_VARIABLE, ttt1 ) ;
-	tt2.setNumberOfDerivatives(4) ;
-	tt2.setDerivative( XI, zero) ;
-	tt2.setDerivative( ETA, zero) ;
-	tt2.setDerivative( ZETA, zero) ;
-	tt2.setDerivative( TIME_VARIABLE, ttt2 ) ;
-	
-	t0.setNumberOfDerivatives(4) ;
-	t0.setDerivative( XI, zero) ;
-	t0.setDerivative( ETA, zero) ;
-	t0.setDerivative( ZETA, zero) ;
-	t0.setDerivative( TIME_VARIABLE, tt0 ) ;
-	t1.setNumberOfDerivatives(4) ;
-	t1.setDerivative( XI, zero) ;
-	t1.setDerivative( ETA, zero) ;
-	t1.setDerivative( ZETA, zero) ;
-	t1.setDerivative( TIME_VARIABLE, tt1 ) ;
-	t2.setNumberOfDerivatives(4) ;
-	t2.setDerivative( XI, zero) ;
-	t2.setDerivative( ETA, zero) ;
-	t2.setDerivative( ZETA, zero) ;
-	t2.setDerivative( TIME_VARIABLE, tt2 ) ;	
+			tt0.setNumberOfDerivatives(4) ;
+			tt0.setDerivative( XI, zero) ;
+			tt0.setDerivative( ETA, zero) ;
+			tt0.setDerivative( ZETA, zero) ;
+			tt0.setDerivative( TIME_VARIABLE, ttt0 ) ;
+			tt1.setNumberOfDerivatives(4) ;
+			tt1.setDerivative( XI, zero) ;
+			tt1.setDerivative( ETA, zero) ;
+			tt1.setDerivative( ZETA, zero) ;
+			tt1.setDerivative( TIME_VARIABLE, ttt1 ) ;
+			tt2.setNumberOfDerivatives(4) ;
+			tt2.setDerivative( XI, zero) ;
+			tt2.setDerivative( ETA, zero) ;
+			tt2.setDerivative( ZETA, zero) ;
+			tt2.setDerivative( TIME_VARIABLE, ttt2 ) ;
+			
+			t0.setNumberOfDerivatives(4) ;
+			t0.setDerivative( XI, zero) ;
+			t0.setDerivative( ETA, zero) ;
+			t0.setDerivative( ZETA, zero) ;
+			t0.setDerivative( TIME_VARIABLE, tt0 ) ;
+			t1.setNumberOfDerivatives(4) ;
+			t1.setDerivative( XI, zero) ;
+			t1.setDerivative( ETA, zero) ;
+			t1.setDerivative( ZETA, zero) ;
+			t1.setDerivative( TIME_VARIABLE, tt1 ) ;
+			t2.setNumberOfDerivatives(4) ;
+			t2.setDerivative( XI, zero) ;
+			t2.setDerivative( ETA, zero) ;
+			t2.setDerivative( ZETA, zero) ;
+			t2.setDerivative( TIME_VARIABLE, tt2 ) ;	
 			
 		//0
 			(*shapefunc)[0] = s0*t0 ;
@@ -1383,101 +1383,178 @@ TriElement::TriElement(Order order_ ): moved(false)
 			
 			break ;
 		}
-	case QUADRATIC_TIME_LINEAR:
+		case QUADRATIC_TIME_LINEAR:
 		{
 			shapefunc = new std::valarray<Function>(Function(),12) ;
 			
-			Function prev("0.5 0.5 t * -") ;
-			Function next("0.5 0.5 t * +") ;
+			Function zero("0") ;
+			Function t0("0.5 t 0.5 * -") ;
+			Function half("0.5") ;
+			Function halfm("-0.5") ;
+// 			t0 *= 0.5 ;
+			t0.setNumberOfDerivatives(4) ;
+			t0.setDerivative( XI, zero) ;
+			t0.setDerivative( ETA, zero) ;
+			t0.setDerivative( ZETA, zero) ;
+			t0.setDerivative( TIME_VARIABLE, halfm) ;
 
+// 			Function t0m = t0 * -1. ;
+// 			t0m.setNumberOfDerivatives(4) ;
+// 			t0m.setDerivative( XI, zero) ;
+// 			t0m.setDerivative( ETA, zero) ;
+// 			t0m.setDerivative( ZETA, zero) ;
+// 			t0m.setDerivative( TIME_VARIABLE, half) ;
 			
-			shapefunc = new std::valarray<Function>(Function(),6) ;
+			Function t1("0.5 t 0.5 * +") ;
+// 			t1 *= 0.5 ;
+			t1.setNumberOfDerivatives(4) ;
+			t1.setDerivative( XI, zero) ;
+			t1.setDerivative( ETA, zero) ;
+			t1.setDerivative( ZETA, zero) ;
+			t1.setDerivative( TIME_VARIABLE, half) ;
 
-			Function s1("y 2 ^ 2 * y -") ;
-			s1.setNumberOfDerivatives(2) ;
+			(*shapefunc)[0] = Function("y 2 ^ 2 * y -") ;
+			(*shapefunc)[0].setNumberOfDerivatives(4) ;
 			Function d("4 y * 1 -") ;
-      s1.setDerivative( ETA, d) ;
+      (*shapefunc)[0].setDerivative( ETA, d) ;
 			d = Function("0") ;
-      s1.setDerivative( XI, d) ;
+       (*shapefunc)[0].setDerivative( XI, d) ;
+			d = Function("0") ;
+       (*shapefunc)[0].setDerivative( ZETA, d) ;
+       (*shapefunc)[0].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[0] =  (*shapefunc)[0]*t0 ;
 
 		//1
-			Function s2("y 4 * y x 4 * * - y y 4 * * -") ;
-			s2.setNumberOfDerivatives(2) ;
+			(*shapefunc)[1] = Function("y 4 * y x 4 * * - y y 4 * * -") ;
+			(*shapefunc)[1].setNumberOfDerivatives(4) ;
 			d = Function("4 x 4 * - y 8 * -") ;
-			s2.setDerivative( ETA, d) ;
-			d = Function("y 4 *") ;
-      s2.setDerivative( XI, d) ;
+			(*shapefunc)[1].setDerivative( ETA, d) ;
+			d = Function("y -4 *") ;
+      (*shapefunc)[1].setDerivative( XI, d) ;
+				d = Function("0") ;
+       (*shapefunc)[1].setDerivative( ZETA, d) ;
+       (*shapefunc)[1].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[1] =  (*shapefunc)[1]*t0 ;
 
 		//2
-			Function s3("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
-			s3.setNumberOfDerivatives(2) ;
-			d = Function("3 x 4 * + y 4 * +") ;
-			s3.setDerivative( ETA, d ) ;
-			d = Function("3 y 4 * + x 4 * +") ;
-			s3.setDerivative( XI, d) ;
+			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
+			(*shapefunc)[2].setNumberOfDerivatives(4) ;
+			d = Function("x 4 * y 4 * + 3 -") ;
+			(*shapefunc)[2].setDerivative( ETA, d ) ;
+			d = Function("y 4 * x 4 * + 3 -") ;
+			(*shapefunc)[2].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[2].setDerivative( ZETA, d) ;
+       (*shapefunc)[2].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[2] =  (*shapefunc)[2]*t0 ;
 
 		//3
-			Function s4("x 4 * x x 4 * * - x y 4 * * -") ;
-			s4.setNumberOfDerivatives(2) ;
-			d = Function("x 4 *") ;
-			s4.setDerivative( ETA, d) ;
+			(*shapefunc)[3] = Function("x 4 * x x 4 * * - x y 4 * * -") ;
+			(*shapefunc)[3].setNumberOfDerivatives(4) ;
+			d = Function("x -4 * ") ;
+			(*shapefunc)[3].setDerivative( ETA, d) ;
 			d = Function("4 8 x * - y 4 * -") ;
-			s4.setDerivative( XI, d) ;
+			(*shapefunc)[3].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[3].setDerivative( ZETA, d) ;
+       (*shapefunc)[3].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[3] =  (*shapefunc)[3]*t0 ;
 
 		//4
-			Function s5("x x 2 * * x -") ;
-			s5.setNumberOfDerivatives(2) ;
+			(*shapefunc)[4] = Function("x x 2 * * x -") ;
+			(*shapefunc)[4].setNumberOfDerivatives(4) ;
 			d = Function("0") ;
-			s5.setDerivative( ETA, d) ;
+			(*shapefunc)[4].setDerivative( ETA, d) ;
 			d = Function("4 x * 1 -") ;
-			s5.setDerivative( XI, d) ;
+			(*shapefunc)[4].setDerivative( XI, d) ;
+			d = Function("0") ;
+       (*shapefunc)[4].setDerivative( ZETA, d) ;
+       (*shapefunc)[4].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[4] =  (*shapefunc)[4]*t0 ;
 
 		//5
-			Function s6("x y 4 * *") ;
-			s6.setNumberOfDerivatives(2) ;
+			(*shapefunc)[5] = Function("x y 4 * *") ;
+			(*shapefunc)[5].setNumberOfDerivatives(4) ;
 			d = Function("4 x *") ;
-			s6.setDerivative( ETA, d) ;
+			(*shapefunc)[5].setDerivative( ETA, d) ;
 			d = Function("4 y *") ;
-			s6.setDerivative( XI, d) ;
+			(*shapefunc)[5].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[5].setDerivative( ZETA, d) ;
+       (*shapefunc)[5].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[5] =  (*shapefunc)[5]*t0 ;
+			
+			(*shapefunc)[6] = Function("y 2 ^ 2 * y -") ;
+			(*shapefunc)[6].setNumberOfDerivatives(4) ;
+			 d = Function("4 y * 1 -") ;
+      (*shapefunc)[6].setDerivative( ETA, d) ;
+			d = Function("0") ;
+       (*shapefunc)[6].setDerivative( XI, d) ;
+			d = Function("0") ;
+       (*shapefunc)[6].setDerivative( ZETA, d) ;
+       (*shapefunc)[6].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[6] =  (*shapefunc)[6]*t1 ;
 
-			
-			
-			(*shapefunc)[0] = s1*prev ;
-			(*shapefunc)[1] = s2*prev ;
-			(*shapefunc)[2] = s3*prev ;
-			(*shapefunc)[3] = s4*prev ;
-			(*shapefunc)[4] = s5*prev ;
-			(*shapefunc)[5] = s6*prev ;
-			(*shapefunc)[6] = s1*next ;
-			(*shapefunc)[7] = s2*next ;
-			(*shapefunc)[8] = s3*next ;
-			(*shapefunc)[9] = s4*next ;
-			(*shapefunc)[10] = s5*next ;
-			(*shapefunc)[11] = s6*next ;
-		//0
-/*			(*shapefunc)[0] = Function("y y 2 * * y - 0.5 0.5 t * - *") ;
 		//1
-			(*shapefunc)[1] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 0.5 t * - *") ;
+			(*shapefunc)[7] = Function("y 4 * y x 4 * * - y y 4 * * -") ;
+			(*shapefunc)[7].setNumberOfDerivatives(4) ;
+			d = Function("4 x 4 * - y 8 * -") ;
+			(*shapefunc)[7].setDerivative( ETA, d) ;
+			d = Function("y -4 *") ;
+      (*shapefunc)[7].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[7].setDerivative( ZETA, d) ;
+       (*shapefunc)[7].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[7] =  (*shapefunc)[7]*t1 ;
+
 		//2
-			(*shapefunc)[2] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * + 0.5 0.5 t * - *") ;
+			(*shapefunc)[8] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
+			(*shapefunc)[8].setNumberOfDerivatives(4) ;
+			d = Function("x 4 * y 4 * + 3 -") ;
+			(*shapefunc)[8].setDerivative( ETA, d ) ;
+			d = Function("y 4 * x 4 * + 3 -") ;
+			(*shapefunc)[8].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[8].setDerivative( ZETA, d) ;
+       (*shapefunc)[8].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[8] =  (*shapefunc)[8]*t1 ;
+
 		//3
-			(*shapefunc)[3] = Function("4 x * x x 4 * * - x y 4 * * - 0.5 0.5 t * - *") ;
+			(*shapefunc)[9] = Function("x 4 * x x 4 * * - x y 4 * * -") ;
+			(*shapefunc)[9].setNumberOfDerivatives(4) ;
+			d = Function("x -4 * ") ;
+			(*shapefunc)[9].setDerivative( ETA, d) ;
+			d = Function("4 8 x * - y 4 * -") ;
+			(*shapefunc)[9].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[9].setDerivative( ZETA, d) ;
+       (*shapefunc)[9].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[9] =  (*shapefunc)[9]*t1 ;
+
 		//4
-			(*shapefunc)[4] = Function("x x 2 * * x - 0.5 0.5 t * - *") ;
+			(*shapefunc)[10] = Function("x x 2 * * x -") ;
+			(*shapefunc)[10].setNumberOfDerivatives(4) ;
+			d = Function("0") ;
+			(*shapefunc)[10].setDerivative( ETA, d) ;
+			d = Function("4 x * 1 -") ;
+			(*shapefunc)[10].setDerivative( XI, d) ;
+			d = Function("0") ;
+       (*shapefunc)[10].setDerivative( ZETA, d) ;
+       (*shapefunc)[10].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[10] =  (*shapefunc)[10]*t1 ;
+
 		//5
-			(*shapefunc)[5] = Function("x y 4 * * 0.5 0.5 t * - *") ;
-		//0
-			(*shapefunc)[6] = Function("y y 2 * * y - 0.5 0.5 t * + *") ;
-		//1
-			(*shapefunc)[7] = Function("y 4 * x y 4 * * - y y 4 * * - 0.5 0.5 t * + *") ;
-		//2
-			(*shapefunc)[8] = Function("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * + 0.5 0.5 t * + *") ;
-		//3
-			(*shapefunc)[9] = Function("4 x * x x 4 * * - x y 4 * * - 0.5 0.5 t * + *") ;
-		//4
-			(*shapefunc)[10] = Function("x x 2 * * x - 0.5 0.5 t * + *") ;
-		//5
-			(*shapefunc)[11] = Function("x y 4 * * 0.5 0.5 t * + *") ;*/
+			(*shapefunc)[11] = Function("x y 4 * *") ;
+			(*shapefunc)[11].setNumberOfDerivatives(4) ;
+			d = Function("4 x *") ;
+			(*shapefunc)[11].setDerivative( ETA, d) ;
+			d = Function("4 y *") ;
+			(*shapefunc)[11].setDerivative( XI, d) ;
+						d = Function("0") ;
+       (*shapefunc)[11].setDerivative( ZETA, d) ;
+       (*shapefunc)[11].setDerivative( TIME_VARIABLE, d) ;
+			 (*shapefunc)[11] =  (*shapefunc)[11]*t1 ;
+			
 
 			break ;
 		}
@@ -1493,46 +1570,64 @@ TriElement::TriElement(Order order_ ): moved(false)
       x0.setDerivative( ETA, d) ;
 			d = Function("0") ;
       x0.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x0.setDerivative( ZETA, d) ;
+      x0.setDerivative( TIME_VARIABLE, d) ;
 
 		//1
 			Function x1("y 4 * y x 4 * * - y y 4 * * -") ;
-			x1.setNumberOfDerivatives(2) ;
+			x1.setNumberOfDerivatives(4) ;
 			d = Function("4 x 4 * - y 8 * -") ;
 			x1.setDerivative( ETA, d) ;
 			d = Function("y 4 *") ;
       x1.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x1.setDerivative( ZETA, d) ;
+      x1.setDerivative( TIME_VARIABLE, d) ;
 
 		//2
 			Function x2("1 x 3 * - y 3 * - x y 4 * * + x x 2 * * + y y 2 * * +") ;
-			x2.setNumberOfDerivatives(2) ;
+			x2.setNumberOfDerivatives(4) ;
 			d = Function("3 x 4 * + y 4 * +") ;
 			x2.setDerivative( ETA, d ) ;
 			d = Function("3 y 4 * + x 4 * +") ;
 			x2.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x2.setDerivative( ZETA, d) ;
+      x2.setDerivative( TIME_VARIABLE, d) ;
 
 		//3
 			Function x3("x 4 * x x 4 * * - x y 4 * * -") ;
-			x3.setNumberOfDerivatives(2) ;
+			x3.setNumberOfDerivatives(4) ;
 			d = Function("x 4 *") ;
 			x3.setDerivative( ETA, d) ;
 			d = Function("4 8 x * - y 4 * -") ;
 			x3.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x3.setDerivative( ZETA, d) ;
+      x3.setDerivative( TIME_VARIABLE, d) ;
 
 		//4
 			Function x4("x x 2 * * x -") ;
-			x4.setNumberOfDerivatives(2) ;
+			x4.setNumberOfDerivatives(4) ;
 			d = Function("0") ;
 			x4.setDerivative( ETA, d) ;
 			d = Function("4 x * 1 -") ;
 			x4.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x4.setDerivative( ZETA, d) ;
+      x4.setDerivative( TIME_VARIABLE, d) ;
 
 		//5
 			Function x5("x y 4 * *") ;
-			x5.setNumberOfDerivatives(2) ;
+			x5.setNumberOfDerivatives(4) ;
 			d = Function("4 x *") ;
 			x5.setDerivative( ETA, d) ;
 			d = Function("4 y *") ;
 			x5.setDerivative( XI, d) ;
+			d = Function("0") ;
+      x5.setDerivative( ZETA, d) ;
+      x5.setDerivative( TIME_VARIABLE, d) ;
 
 			(*shapefunc)[0] = x0*t0;
 			(*shapefunc)[1] = x1*t0;
@@ -2946,8 +3041,9 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	}
 	else if(order == LINEAR_TIME_QUADRATIC)
 	{
-		std::cout << "element order not implemented" << std::endl ;
-		exit(0) ;
+
+// 		std::cout << "element order not implemented" << std::endl ;
+// 		exit(0) ;
 
 		shapefunc = new std::valarray<Function>(12) ;
 			//0
@@ -2980,8 +3076,8 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	}
 	else if(order == QUADRATIC_TIME_LINEAR)
 	{
-		std::cout << "element order not implemented" << std::endl ;
-		exit(0) ;
+// 		std::cout << "element order not implemented" << std::endl ;
+// 		exit(0) ;
 		shapefunc = new std::valarray<Function>(20) ;
 
 			//0
@@ -3027,8 +3123,8 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
 	}
 	else if(order == QUADRATIC_TIME_QUADRATIC)
 	{
-		std::cout << "element order not implemented" << std::endl ;
-		exit(0) ;
+// 		std::cout << "element order not implemented" << std::endl ;
+// 		exit(0) ;
 		shapefunc = new std::valarray<Function>(30) ;
 		
 			//0

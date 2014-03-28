@@ -76,12 +76,12 @@ Form * KelvinVoight::getCopy() const
 	return copy ; 
 }
 
-Vector KelvinVoight::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector KelvinVoight::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
 {
 	return VirtualMachine().ieval(GradientDot( shape ) * ( data ), gp, Jinv, v) ;
 }
 
-Vector KelvinVoight::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector KelvinVoight::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal )
 {
 	VirtualMachine vm ;
 	

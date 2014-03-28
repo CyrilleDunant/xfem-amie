@@ -123,9 +123,11 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 			}
 
 			case SET_FORCE_ETA:
+			{
 				if ( !e->getBehaviour()->fractured() )
 					a->addForceOn( ETA, data/nTimePlanes, id[idit] ) ;
 				break ;
+			}
 
 			case SET_VOLUMIC_STRESS_XI:
 			{
@@ -175,7 +177,6 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 			}
 
 			case SET_VOLUMIC_STRESS_ETA:
-
 			{
 				if ( e->getBehaviour()->fractured() )
 					return ;
@@ -220,7 +221,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				}
 				
 				return ;
-			}				
+			}
+			
 			case SET_STRESS_XI:
 			{
 				if ( e->getBehaviour()->fractured() )
@@ -297,7 +299,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv()) ;
 				  					
 					a->addForceOn( XI, forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
@@ -377,7 +379,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
@@ -429,8 +431,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				if(!last)
 					return ;
 				
-				
-				Segment edge( *first, *last) ;
+				Segment edge( *last, *first) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
@@ -440,9 +441,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
 				
-
 				std::vector<Variable> v( 2 ) ;
-
 				v[0] = XI ;
 				v[1] = ETA ;
 				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
@@ -451,24 +450,41 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				}
 				
 				Point normal = edge.normal() ;
+				
 				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
 				double sign = 1. ;
-				if(data < 0 && sameSide || data > 0 && !sameSide)
+				if(!sameSide)
 					sign = -1 ;
+				double nangle = atan2(normal.y*sign, normal.x*sign) ;
+				Vector normalv(2) ; 
+				normalv[0] = normal.x*sign ; 
+				normalv[1] = normal.y*sign ;
+
+				Vector imposedx( 3 ) ;
+				imposedx[0] = data ;
+				imposedx[1] = 0;
+				imposedx[2] = 0 ;
 				
-				Vector imposed( 3 ) ;
-				imposed[0] = data*normal.x*sign ;
-				imposed[1] = data*normal.y*sign ;
-				imposed[2] = 0 ;
-				
+
+				double c = cos (nangle) ;
+				double s = sin (nangle) ;
+				Matrix nrot(3,3) ;
+				nrot[0][0] = c*c ; nrot[0][1] = s*s ; nrot[0][2] = -2.*s*c ;
+				nrot[1][0] = s*s ; nrot[1][1] = c*c ; nrot[1][2] = 2.*s*c ;
+				nrot[2][0] = s*c ; nrot[2][1] = -s*c ; nrot[2][2] = c*c-s*s ;
+
+				Vector istr(0., 3) ;
+
+				istr = nrot*(imposedx) ;
+
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v) ;
-					
-					a->addForceOn( XI, forces[0], id[j] ) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, normalv ) ;
+
+					a->addForceOn( XI,  forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
 				}
-				
+
  				return ;
 			}
 
@@ -857,10 +873,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
  						)
 						{
 							if(!first)
@@ -915,7 +931,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -943,10 +959,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
  						)
 						{
 							if(!first)
@@ -999,7 +1015,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
 					
 //					std::cout << "constant\t" << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 
@@ -1086,7 +1102,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1177,7 +1193,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1310,7 +1326,6 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 			}
 
 			case SET_VOLUMIC_STRESS_ETA:
-
 			{
 				if ( e->getBehaviour()->fractured() )
 					return ;
@@ -1371,6 +1386,53 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ) )
+						{
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = &e->getBoundingPoint( i ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = &e->getBoundingPoint( i ) ;
+								}
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				Segment edge( *first, *last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					gpe.gaussPoints[j].second *= edge.norm()*.5 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
+				
 
 				std::vector<Variable> v( 2 ) ;
 				Vector imposed( 3 ) ;
@@ -1385,7 +1447,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1416,6 +1478,55 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ) )
+						{
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = &e->getBoundingPoint( i ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = &e->getBoundingPoint( i ) ;
+								}
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				Segment edge( *first, *last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					gpe.gaussPoints[j].second *= edge.norm()*.5 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
+				
+				
 
 				std::vector<Variable> v( 2 ) ;
 
@@ -1431,7 +1542,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
 				
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1487,11 +1598,11 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				Segment edge( *first, *last) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
-				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
 				{
-					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					gpe.gaussPoints[i].second *= edge.norm()*.5 ;
-					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					gpe.gaussPoints[j].second *= edge.norm()*.5 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
 				}
 				
 
@@ -1503,21 +1614,38 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 				  v.push_back(TIME_VARIABLE) ;
 				}
-				
+
 				Point normal = edge.normal() ;
+				
 				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
 				double sign = 1. ;
-				if(vm.eval(data, id[i]) < 0 && sameSide || vm.eval(data, id[i]) > 0 && !sameSide)
+				if(!sameSide)
 					sign = -1 ;
+				double nangle = atan2(normal.y*sign, normal.x*sign) ;
+				Vector normalv(2) ; 
+				normalv[0] = normal.x*sign ; 
+				normalv[1] = normal.y*sign ;
+
+				Vector imposedx( 3 ) ;
+				imposedx[0] = VirtualMachine().eval(data, edge.midPoint()) ;
+				imposedx[1] = 0;
+				imposedx[2] = 0 ;
 				
-				Vector imposed( 3 ) ;
-				imposed[0] = vm.eval(data, id[i])*normal.x*sign ;
-				imposed[1] = vm.eval(data, id[i])*normal.y*sign ;
-				imposed[2] = 0 ;
+
+				double c = cos (nangle) ;
+				double s = sin (nangle) ;
+				Matrix nrot(3,3) ;
+				nrot[0][0] = c*c ; nrot[0][1] = s*s ; nrot[0][2] = -2.*s*c ;
+				nrot[1][0] = s*s ; nrot[1][1] = c*c ; nrot[1][2] = 2.*s*c ;
+				nrot[2][0] = s*c ; nrot[2][1] = -s*c ; nrot[2][2] = c*c-s*s ;
+
+				Vector istr(0., 3) ;
+
+				istr = nrot*(imposedx) ;
 				
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normalv) ;
 					
 					a->addForceOn( XI, forces[0], id[j].id ) ;
 					a->addForceOn( ETA, forces[1], id[j].id ) ;
@@ -1667,6 +1795,54 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 				}
 
+				Point* first = nullptr ;
+				Point* middle = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if(id[j] == e->getBoundingPoint( i ))
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ) && (
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+						)
+						{
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!middle)
+									  middle = &e->getBoundingPoint( i ) ;
+								else
+									last = &e->getBoundingPoint( i ) ;
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				TriPoint edge( first, middle, last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
 				std::vector<Variable> v( 3 ) ;
 
 				v[0] = XI ;
@@ -1680,7 +1856,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 6, shapeFunctions[i], e,gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
 
 //					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 					
@@ -1714,7 +1890,54 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
+				Point* first = nullptr ;
+				Point* middle = nullptr ;
+				Point* last = nullptr ;
 
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if(id[j] == e->getBoundingPoint( i ))
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ) && (
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+						)
+						{
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!middle)
+									  middle = &e->getBoundingPoint( i ) ;
+								else
+									last = &e->getBoundingPoint( i ) ;
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				TriPoint edge( first, middle, last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
 				std::vector<Variable> v( 3 ) ;
 
 				v[0] = XI ;
@@ -1728,7 +1951,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 6, shapeFunctions[i], e,gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
 					
 //					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 					
@@ -1763,6 +1986,55 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 				}
 
+								Point* first = nullptr ;
+				Point* middle = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if(id[j] == e->getBoundingPoint( i ))
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ) && (
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+						)
+						{
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!middle)
+									  middle = &e->getBoundingPoint( i ) ;
+								else
+									last = &e->getBoundingPoint( i ) ;
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				TriPoint edge( first, middle, last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
+				
 				std::vector<Variable> v( 3 ) ;
 
 				v[0] = XI ;
@@ -1776,7 +2048,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e,gp, Jinv, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1880,10 +2152,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
 
-				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
 				{
-					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
 				}
 
 				std::vector<Variable> v( 3 ) ;
@@ -1912,7 +2184,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -2528,6 +2800,7 @@ bool isOnBoundary( BoundingBoxPosition pos, Point test, Point min, Point max , d
 
 void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
+
 	if ( cache.empty() )
 	{
 		std::vector<DelaunayTriangle *> elements = t->getElements() ;
@@ -2785,9 +3058,11 @@ void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<Delaunay
 				id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 			}
 		}
-		
-		cache2d.push_back(elements[i]);
-		cache.push_back(id);
+		if(!id.empty())
+		{
+			cache2d.push_back(elements[i]);
+			cache.push_back(id);
+		}
 
 	}
 	
@@ -2831,9 +3106,11 @@ void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<Delaunay
 					id.push_back( elements[i]->getBoundingPoint( j ) ) ;
 				}
 			}
-			
-			cache3d.push_back(elements[i]);
-			cache.push_back(id);
+			if(!id.empty())
+			{
+				cache3d.push_back(elements[i]);
+				cache.push_back(id);
+			}
 		}
 	}
 	

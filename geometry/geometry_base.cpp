@@ -3567,8 +3567,9 @@ Point Line::projection(const Point &m ) const
 
 Point Segment::normal() const
 {
-	if(this->norm() > 1e-8)
-		return Point(this->f.y-this->s.y, this->s.x-this->f.x)/this->norm() ;
+	double n = norm();
+	if(n > POINT_TOLERANCE_2D)
+		return Point(-vec.y, vec.x)/n ;
 	
 	return Point(0, 0) ;
 }

@@ -1,0 +1,5 @@
+to compile:
+
+qmake -project QT+=opengl
+qmake
+make

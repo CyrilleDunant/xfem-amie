@@ -542,13 +542,13 @@ Form * Maxwell::getCopy() const
 	return copy ; 
 }
 
-Vector Maxwell::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Maxwell::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic,  const Vector & normal)
 {
 	Vector imposed = data ;
 	return VirtualMachine().ieval(GradientDot( shape ) * ( imposed ), gp, Jinv, v) ;
 }
 
-Vector Maxwell::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector Maxwell::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
 {
 	VirtualMachine vm ;
 	
@@ -661,13 +661,13 @@ Form * StandardLinearSolid::getCopy() const
 	return copy ; 
 }
 
-Vector StandardLinearSolid::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector StandardLinearSolid:: getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal)
 {
 	Vector imposed = data ;
 	return VirtualMachine().ieval(GradientDot( shape ) * ( imposed ), gp, Jinv, v) ;
 }
 
-Vector StandardLinearSolid::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector StandardLinearSolid::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e, std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal )
 {
 	VirtualMachine vm ;
 	

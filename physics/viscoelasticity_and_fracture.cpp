@@ -550,7 +550,7 @@ Form * ViscoelasticityAndFracture::getCopy() const
 	return copy ;
 }
 
-Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
+Vector ViscoelasticityAndFracture::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v) 
 {
 	return VirtualMachine().ieval(GradientDot( shape ) * ( data ), gp, Jinv, v) ;
 }

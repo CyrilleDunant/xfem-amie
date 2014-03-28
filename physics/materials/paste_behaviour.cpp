@@ -50,7 +50,7 @@ Form * PasteBehaviour::getCopy() const
 
 ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,0.,0.,dim)
 {
-
+	variability = 0 ;
 }
 
 Form * ElasticOnlyPasteBehaviour::getCopy() const 
@@ -314,7 +314,7 @@ Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturati
 	makeBulkModuli(saturation, doh) ;
 	Vector a(0., 3) ;
 	
-	double deformation = pc*saturation*(1./(3*bulk) - 1./(3*bulkSolid)) ;
+	double deformation = 0 ; //pc*saturation*(1./(3*bulk) - 1./(3*bulkSolid)) ;
 	if(std::isnan(deformation))
 		deformation = 0 ;
 	

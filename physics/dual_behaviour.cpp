@@ -389,7 +389,7 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 }
 
 
-Vector BimaterialInterface::getForcesFromAppliedStress( Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic) 
+Vector BimaterialInterface::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal) 
 {
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
@@ -404,19 +404,19 @@ Vector BimaterialInterface::getForcesFromAppliedStress( Vector & data, Function 
 // 			std::cout << "OUT" << std::endl ;
 //  	}
 	if(inGeometry->in( Point(x[0],y[0],z[0],t[0]) ))
-		return inBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;
-	return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic) ;
+		return inBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic, normal) ;
+	return outBehaviour->getForcesFromAppliedStress( data, shape, gp, Jinv, v, isVolumic, normal) ;
 }
 
-Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic) 
+Vector BimaterialInterface::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic,  const Vector & normal) 
 {
 	Vector x = VirtualMachine().eval(xtransform,gp) ;
 	Vector y = VirtualMachine().eval(ytransform,gp) ;
 	Vector z = VirtualMachine().eval(ztransform,gp) ;
 	Vector t = VirtualMachine().eval(ttransform,gp) ;
 	if(inGeometry->in( Point(x[0],y[0],z[0],t[0]) ))
-		return inBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic) ;
-	return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic) ;
+		return inBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
+	return outBehaviour->getForcesFromAppliedStress( data, index, externaldofs, shape, e, gp, Jinv, v, isVolumic, normal) ;
 }
 
 
