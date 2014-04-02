@@ -43,28 +43,28 @@ std::vector<DelaunayTriangle *> Pore::getElements2D( FeatureTree * dt)
 
 Pore::Pore(Feature *father, double r, double x, double y): Feature(father), Circle(r, x, y)
 {
-	this->isEnrichmentFeature = false ;
+	isEnrichmentFeature = false ;
 	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(Feature *father, double r, Point center): Feature(father), Circle(r, center)
 {
-	this->isEnrichmentFeature = false ;
+	isEnrichmentFeature = false ;
 	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(double r, double x, double y) : Feature(nullptr), Circle(r, x, y)
 {
-	this->isEnrichmentFeature = false ;
+	isEnrichmentFeature = false ;
 	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }
 
 Pore::Pore(double r, Point center) :  Feature(nullptr), Circle(r, center)
 {
-	this->isEnrichmentFeature = false ;
+	isEnrichmentFeature = false ;
 	delete this->behaviour ; 
 	this->behaviour = new VoidForm() ;
 }

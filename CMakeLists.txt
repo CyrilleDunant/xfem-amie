@@ -382,8 +382,8 @@ target_link_libraries( rag_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-#add_executable( wave examples/main_wave.cpp )
-#target_link_libraries( wave Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable( pore_pressure examples/main_julien.cpp )
+target_link_libraries( pore_pressure Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable( cyrille_test examples/main_cyrille.cpp )
 target_link_libraries( cyrille_test Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})

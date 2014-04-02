@@ -599,6 +599,9 @@ public:
 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 	
+	/** \brief Assuming the base sample is a rectangle, this computed the apparent macro strain based on the displacement along the border */
+	std::vector<double> getMacroscopicStrain(const Geometry * base, double tol =0.001)  ;
+	
 	std::vector<Point *> getNodes(int g = -1) ;
 	
 	size_t numPoints() const ;

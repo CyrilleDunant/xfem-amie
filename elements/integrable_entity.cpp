@@ -68,6 +68,8 @@ ElementState * Form::createElementState( IntegrableEntity * e)
 IntegrableEntity::IntegrableEntity() : boundaryConditionCache( nullptr ), cachedGps( nullptr )
 {
 	state = new ElementState( this ) ;
+	enrichmentUpdated = false ;
+	behaviourUpdated = false ;
 }
 
 
