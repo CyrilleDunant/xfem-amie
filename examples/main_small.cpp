@@ -38,74 +38,13 @@
 #define DEBUG 
 
 
-
 using namespace Mu ;
 
-int viewangle = 0 ;
-int viewangle2 = 0 ;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTetrahedron *> tets ;
-std::vector<bool> cracked ;
 
-double E_min = 10;
-double E_max = 0;
-
-double x_max = 0 ;
-double y_max = 0 ;
-double z_max = 0 ;
-
-double x_min = 0 ;
-double y_min = 0 ;
-double z_min = 0 ;
-
-
-double timepos = 0.00 ;
-
-bool firstRun = true ;
-
-std::vector<DelaunayTriangle *> tris__ ;
-
-int windowWidth = 600 ;
-int windowHeight = 600 ;
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
-
-Vector b(0) ;
 Vector x(0) ;
-Vector sigma(0) ; 
-Vector sigma11(0) ; 
-Vector sigma22(0) ; 
-Vector sigma33(0) ; 
-Vector sigma12(0) ; 
-Vector sigma13(0) ; 
-Vector sigma23(0) ; 
-Vector epsilon(0) ; 
-Vector epsilon11(0) ; 
-Vector epsilon22(0) ; 
-Vector epsilon33(0) ; 
-Vector epsilon12(0) ; 
-Vector epsilon13(0) ; 
-Vector epsilon23(0) ; 
-Vector vonMises(0) ; 
-Vector stiffness(0) ; 
-Vector angle(0) ; 
-Vector damage(0) ; 
-
-double nu = 0.2 ;
-double E_agg = 100 ;//softest
-double E_paste = 1 ;//stiff
-double E_stiff = E_agg*10 ;//stiffer
-double E_soft = E_agg/10; //stiffest
-
-double factor = 0.3 ;
-MinimumAngle cri(M_PI/6.) ;
-bool nothingToAdd = false ;
-bool dlist = false ;
-int count = 0 ;
-double aggregateArea = 0;
 
 void step()
 {
@@ -115,59 +54,18 @@ void step()
 
 	for(size_t i = 0 ; i < nsteps ; i++)
 	{
-
-		bool go_on = featureTree->step() ;
+		featureTree->step() ;
 		
 		tets= featureTree->getElements3D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-
-		std::pair<Vector, Vector > sigma_epsilon ;
-		sigma_epsilon.first.resize(24*tets.size()) ;
-		sigma_epsilon.second.resize(24*tets.size()) ;
-		sigma_epsilon = featureTree->getStressAndStrain(tets) ;
-		sigma.resize(sigma_epsilon.first.size()) ;
-		sigma = sigma_epsilon.first ;
-		epsilon.resize(sigma_epsilon.second.size()) ;
-		epsilon = sigma_epsilon.second ;
-		sigma11.resize(sigma.size()/6, 0.) ;
-		sigma22.resize(sigma.size()/6, 0.) ;
-		sigma33.resize(sigma.size()/6, 0.) ;
-		sigma12.resize(sigma.size()/6, 0.) ;
-		sigma13.resize(sigma.size()/6, 0.) ;
-		sigma23.resize(sigma.size()/6, 0.) ;
-		
-		epsilon11.resize(sigma.size()/6, 0.) ;
-		epsilon22.resize(sigma.size()/6, 0.) ;
-		epsilon33.resize(sigma.size()/6, 0.) ;
-		epsilon12.resize(sigma.size()/6, 0.) ;
-		epsilon13.resize(sigma.size()/6, 0.) ;
-		epsilon23.resize(sigma.size()/6, 0.) ;
-		stiffness.resize(sigma.size()/6, 0.) ;
-		vonMises.resize(sigma.size()/6, 0.) ;
-		angle.resize(sigma.size()/6, 0.) ;
-		damage.resize(sigma.size()/6, 0.) ;
 	
 		std::cout << "unknowns :" << x.size() << std::endl ;
-	
 	
 		int npoints = 4 ;
 	
 		double volume = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_zz = 0;
-		double avg_e_xy = 0;
-		double avg_e_xz = 0;
-		double avg_e_yz = 0;
-		double avg_s_xx = 0;
-		double avg_s_zz = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double avg_s_xz = 0;
-		double avg_s_yz = 0;
-		double e_xx = 0 ;
-		double ex_count = 0 ;
+
 		double xavg = 0 ;
 		
 		for(size_t k = 0 ; k < tets.size() ; k++)
@@ -175,178 +73,55 @@ void step()
 			
 			if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
-				
-// 				for(size_t p = 0 ;p < 4 ; p++)
-// 				{
-// 					if(x[tets[k]->getBoundingPoint(p).id*3] > x_max)
-// 						x_max = x[tets[k]->getBoundingPoint(p).id*3];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3] < x_min)
-// 						x_min = x[tets[k]->getBoundingPoint(p).id*3];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] > y_max)
-// 						y_max = x[tets[k]->getBoundingPoint(p).id*3+1];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+1] < y_min)
-// 						y_min = x[tets[k]->getBoundingPoint(p).id*3+1];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] > z_max)
-// 						z_max = x[tets[k]->getBoundingPoint(p).id*3+2];
-// 					if(x[tets[k]->getBoundingPoint(p).id*3+2] < z_min)
-// 						z_min = x[tets[k]->getBoundingPoint(p).id*3+2];
-// 					if(tets[k]->getBoundingPoint(p).x > 0.0799)
-// 					{
-// 						e_xx+=x[tets[k]->getBoundingPoint(p).id*3] ;
-// 						ex_count++ ;
-// 					}
-// 				}
-				volume += tets[k]->volume() ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-				{
-					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] > E_max)
-						E_max = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					if(tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] < E_min)
-						E_min = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					
-					stiffness[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					stiffness[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0] ;
-					damage[k*npoints] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+1] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+2] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-					damage[k*npoints+3] = tets[k]->getBehaviour()->getTensor(Point(.25, .25, .25))[0][0]/tets[k]->getBehaviour()->param[0][0] ;
-				}
-					
-				sigma11[k*npoints] = sigma[k*npoints*6];
-				sigma22[k*npoints] = sigma[k*npoints*6+1];
-				sigma33[k*npoints] = sigma[k*npoints*6+2];
-				sigma12[k*npoints] = sigma[k*npoints*6+3];
-				sigma13[k*npoints] = sigma[k*npoints*6+4];
-				sigma23[k*npoints] = sigma[k*npoints*6+5];
-				
-				sigma11[k*npoints+1] = sigma[k*npoints*6+6];
-				sigma22[k*npoints+1] = sigma[k*npoints*6+7];
-				sigma33[k*npoints+1] = sigma[k*npoints*6+8];
-				sigma12[k*npoints+1] = sigma[k*npoints*6+9];
-				sigma13[k*npoints+1] = sigma[k*npoints*6+10];
-				sigma23[k*npoints+1] = sigma[k*npoints*6+11];
-				
-				sigma11[k*npoints+2] = sigma[k*npoints*6+12];
-				sigma22[k*npoints+2] = sigma[k*npoints*6+13];
-				sigma33[k*npoints+2] = sigma[k*npoints*6+14];
-				sigma12[k*npoints+2] = sigma[k*npoints*6+15];
-				sigma13[k*npoints+2] = sigma[k*npoints*6+16];
-				sigma23[k*npoints+2] = sigma[k*npoints*6+17];
-				
-				sigma11[k*npoints+3] = sigma[k*npoints*6+18];
-				sigma22[k*npoints+3] = sigma[k*npoints*6+19];
-				sigma33[k*npoints+3] = sigma[k*npoints*6+20];
-				sigma12[k*npoints+3] = sigma[k*npoints*6+21];
-				sigma13[k*npoints+3] = sigma[k*npoints*6+22];
-				sigma23[k*npoints+3] = sigma[k*npoints*6+23];
-				
-				epsilon11[k*npoints] = epsilon[k*npoints*6];
-				epsilon22[k*npoints] = epsilon[k*npoints*6+1];
-				epsilon33[k*npoints] = epsilon[k*npoints*6+2];
-				epsilon12[k*npoints] = epsilon[k*npoints*6+3];
-				epsilon13[k*npoints] = epsilon[k*npoints*6+4];
-				epsilon23[k*npoints] = epsilon[k*npoints*6+5];
-				
-				epsilon11[k*npoints+1] = epsilon[k*npoints*6+6];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*6+7];
-				epsilon33[k*npoints+1] = epsilon[k*npoints*6+8];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*6+9];
-				epsilon13[k*npoints+1] = epsilon[k*npoints*6+10];
-				epsilon23[k*npoints+1] = epsilon[k*npoints*6+11];
-				
-				epsilon11[k*npoints+2] = epsilon[k*npoints*6+12];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*6+13];
-				epsilon33[k*npoints+2] = epsilon[k*npoints*6+14];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*6+15];
-				epsilon13[k*npoints+2] = epsilon[k*npoints*6+16];
-				epsilon23[k*npoints+2] = epsilon[k*npoints*6+17];
-				
-				epsilon11[k*npoints+3] = epsilon[k*npoints*6+18];
-				epsilon22[k*npoints+3] = epsilon[k*npoints*6+19];
-				epsilon33[k*npoints+3] = epsilon[k*npoints*6+20];
-				epsilon12[k*npoints+3] = epsilon[k*npoints*6+21];
-				epsilon13[k*npoints+3] = epsilon[k*npoints*6+22];
-				epsilon23[k*npoints+3] = epsilon[k*npoints*6+23];
-				
-				Vector vm0(0.,1) ;
-				Vector agl(0.,3) ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					tets[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD,  tets[k]->getCenter(), vm0, false) ;
-				if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-					tets[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, tets[k]->getCenter(), agl, false) ;
-				for(size_t l = 0 ; l < 4 ; l++)
-				{
-					vonMises[k*npoints+l]  = vm0[0] ;
-					angle[k*npoints+l]  = agl[0] ;
-				}
-				
 				double ar = tets[k]->volume() ;
-				Vector avgsig(6) ;
-				Vector avgeps(6) ;
-				tets[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig);
-				tets[k]->getState().getAverageField(STRAIN_FIELD, avgeps);
-
-				avg_e_xx += avgeps[0] * ar;
-				avg_e_yy += avgeps[1] * ar;
-				avg_e_zz += avgeps[2] * ar;
-				avg_e_xy += avgeps[3] * ar;
-				avg_e_xz += avgeps[4] * ar;
-				avg_e_yz += avgeps[5] * ar;
-				
-				avg_s_xx += avgsig[0] * ar;
-				avg_s_yy += avgsig[1] * ar;
-				avg_s_zz += avgsig[2] * ar;
-				avg_s_xy += avgsig[3] * ar;
-				avg_s_xz += avgsig[4] * ar;
-				avg_s_yz += avgsig[5] * ar;
-			
+				volume += ar ;
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
 					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
 				}
-	
 			}
 		}
 			
 		xavg /= volume ;
-		
-		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "avg value :" << xavg << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cout << "max sigma13 :" << sigma13.max() << std::endl ;
-		std::cout << "min sigma13 :" << sigma13.min() << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
-		std::cout << "max sigma23 :" << sigma23.max() << std::endl ;
-		std::cout << "min sigma23 :" << sigma23.min() << std::endl ;
-		std::cout << "max sigma33 :" << sigma33.max() << std::endl ;
-		std::cout << "min sigma33 :" << sigma33.min() << std::endl ;
-		
-		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cout << "max epsilon13 :" << epsilon13.max() << std::endl ;
-		std::cout << "min epsilon13 :" << epsilon13.min() << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-		std::cout << "max epsilon23 :" << epsilon23.max() << std::endl ;
-		std::cout << "min epsilon23 :" << epsilon23.min() << std::endl ;
-		std::cout << "max epsilon33 :" << epsilon33.max() << std::endl ;
-		std::cout << "min epsilon33 :" << epsilon33.min() << std::endl ;
-		
-		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
-		
+		std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
+		std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+		std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
 		Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
 		Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
+		
+		std::cout << std::endl ;
+		std::cout << "max value :" << x.max() << std::endl ;
+		std::cout << "min value :" << x.min() << std::endl ;
+		std::cout << "avg value :" << xavg << std::endl ;
+
+		std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
+		std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
+		std::cout << "max sigma12 :" << stempm.second[3]  << std::endl ;
+		std::cout << "min sigma12 :" << stempm.first[3]   << std::endl ;
+		std::cout << "max sigma13 :" << stempm.second[4]  << std::endl ;
+		std::cout << "min sigma13 :" << stempm.first[4]   << std::endl ;
+		std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
+		std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+		std::cout << "max sigma23 :" << stempm.second[5]  << std::endl ;
+		std::cout << "min sigma23 :" << stempm.first[5]   << std::endl ;
+		std::cout << "max sigma33 :" << stempm.second[2]  << std::endl ;
+		std::cout << "min sigma33 :" << stempm.first[2]   << std::endl ;
+		
+		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
+		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+		std::cout << "max epsilon12 :" << etempm.second[3] << std::endl ;
+		std::cout << "min epsilon12 :" << etempm.first[3]  << std::endl ;
+		std::cout << "max epsilon13 :" << etempm.second[4] << std::endl ;
+		std::cout << "min epsilon13 :" << etempm.first[4]  << std::endl ;
+		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+		std::cout << "max epsilon23 :" << etempm.second[5] << std::endl ;
+		std::cout << "min epsilon23 :" << etempm.first[5]  << std::endl ;
+		std::cout << "max epsilon33 :" << etempm.second[2] << std::endl ;
+		std::cout << "min epsilon33 :" << etempm.first[2]  << std::endl ;
+		
+		std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
+		std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
 		
 		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
 		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
@@ -389,7 +164,7 @@ int main(int argc, char *argv[])
 
 	double nu = 0.2 ;
 	double E = 1 ;
-    Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
+   Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
 
 	FeatureTree F(&samplers) ;
 	featureTree = &F ;

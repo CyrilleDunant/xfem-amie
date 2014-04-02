@@ -5899,6 +5899,118 @@ Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetr
 	return avg/volume ;
 }
 
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax( FieldType f, int grid, double t)
+{
+	Vector min ;
+	Vector max ;
+	Vector buffer ;
+	VirtualMachine vm ;
+	if(is2D())
+	{
+		std::vector<DelaunayTriangle *> elements = getElements2D( grid ) ;
+		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
+		min.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
+		max.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
+		buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
+		buffer = 0 ;
+		size_t start = 0 ;
+		while(elements[start]->getBehaviour()->type == VOID_BEHAVIOUR && start < elements.size())
+			start++ ;
+		elements[start]->getState().getAverageField( f, buffer ) ;
+		min = buffer ;
+		max = buffer ;
+		for(size_t i = start+1 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
+				for(size_t j = 0 ; j < min.size() ; j++)
+				{
+					min[j] = std::min(min[j], buffer[j]) ;
+					max[j] = std::max(max[j], buffer[j]) ;
+				}
+			}
+		}
+	}
+	else
+	{
+		std::vector<DelaunayTetrahedron *> elements = getElements3D( grid ) ;
+		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
+		min.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
+		max.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
+		buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; 
+		buffer = 0 ;
+		size_t start = 0 ;
+		while(elements[start]->getBehaviour()->type == VOID_BEHAVIOUR && start < elements.size())
+			start++ ;
+		elements[start]->getState().getAverageField( f, buffer ) ;
+		min = buffer ;
+		max = buffer ;
+		for(size_t i = start+1 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
+				for(size_t j = 0 ; j < min.size() ; j++)
+				{
+					min[j] = std::min(min[j], buffer[j]) ;
+					max[j] = std::max(max[j], buffer[j]) ;
+				}
+			}
+		}
+	}
+	return std::make_pair(min, max) ;
+}
+
+
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax( FieldType f, const std::vector<DelaunayTriangle *> & tri)
+{
+	Vector min ;
+	Vector max ;
+	Vector buffer ;
+	min.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+	max.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+	buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ; 
+	tri[0]->getState().getAverageField( f, buffer ) ;
+	min = buffer ;
+	max = buffer ;
+	for(size_t i = 1 ; i < tri.size() ; i++)
+	{
+		tri[i]->getState().getAverageField( f, buffer ) ;
+		for(size_t j = 0 ; j < min.size() ; j++)
+		{
+			min[j] = std::min(min[j], buffer[j]) ;
+			max[j] = std::max(max[j], buffer[j]) ;
+		}
+	}
+	return std::make_pair(min, max) ;
+}
+
+std::pair<Vector, Vector> FeatureTree::getFieldMinMax( FieldType f, const std::vector<DelaunayTetrahedron *> & tet)
+{
+	Vector min ;
+	Vector max ;
+	Vector buffer ;
+	min.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+	max.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+	buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ; 
+	tet[0]->getState().getAverageField( f, buffer ) ;
+	min = buffer ;
+	max = buffer ;
+	for(size_t i = 1 ; i < tet.size() ; i++)
+	{
+		tet[i]->getState().getAverageField( f, buffer ) ;
+		for(size_t j = 0 ; j < min.size() ; j++)
+		{
+			min[j] = std::min(min[j], buffer[j]) ;
+			max[j] = std::max(max[j], buffer[j]) ;
+		}
+	}
+	return std::make_pair(min, max) ;
+}
+
+
+
 bool FeatureTree::isStable()
 {
 	bool needAssemblyinit = needAssembly ;

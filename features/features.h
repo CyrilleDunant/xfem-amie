@@ -599,6 +599,10 @@ public:
 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 	
+	std::pair<Vector, Vector> getFieldMinMax( FieldType f, int grid = -1, double t = 0) ;
+	std::pair<Vector, Vector> getFieldMinMax( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
+	std::pair<Vector, Vector> getFieldMinMax( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
+	
 	/** \brief Assuming the base sample is a rectangle, this computed the apparent macro strain based on the displacement along the border */
 	std::vector<double> getMacroscopicStrain(const Geometry * base, double tol =0.001)  ;
 	
@@ -620,12 +624,6 @@ public:
 	
 /** \brief Return the Assembly*/
 	Assembly * getAssembly(bool forceReassembly = true) ;
-
-/** \brief return the triangles of the mesh*/
-// 	std::vector<DelaunayTriangle *> getTriangles(int grid = -1);
-
-/** \brief return the tetrahedrons of the mesh*/
-// 	std::vector<DelaunayTetrahedron *> getTetrahedrons(int grid = -1) ;
 		
 /** \brief return the triangles lying next to a mesh border*/
 	std::vector<DelaunayTriangle *> getBoundingTriangles(const Feature * f = nullptr) ;	
