@@ -772,7 +772,6 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	return ret ;	
 }
 
-
 std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vector<TriangularInclusion * > & incs , FeatureTree & F)
 {
 	RandomNumber gen ;
@@ -907,8 +906,6 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	return ret ;	
 }
 
-
-
 TriangularInclusion * rotate(TriangularInclusion * tri, double alpha)
 {
 	size_t n = tri->getBoundingPoints().size() ;
@@ -998,7 +995,6 @@ EllipsoidalInclusion * rotate(EllipsoidalInclusion * ell, double alpha)
 	
 }
 
-
 bool tintersects(std::vector<TriangularInclusion *> triinc, int index, Sample * box)
 {
 	if(triinc[index]->getPrimitive()->intersects(box->getPrimitive()))
@@ -1073,7 +1069,6 @@ bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample *
 	}
 	return false ;
 }
-
 
 bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int index, Sample * box)
 {

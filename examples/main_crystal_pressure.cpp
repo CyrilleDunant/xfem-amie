@@ -51,9 +51,10 @@ int main(int argc, char *argv[])
 	std::vector<double> radii ; 
 	std::normal_distribution<double> distribution(5.,2.) ;
 	std::default_random_engine generator;
+	double poreFraction = .3 ;
+	
 	for(size_t i = 0 ; i < npores ; i++)
 	{
-		
 		double test = 0 ;
 		do{
 			test = distribution(generator) ;
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < npores ; i++)
 		pores.push_back(new Pore(radii[i], 0., 0.));
 
-	double poreFraction = .3 ;
+	
 	double sampleSide = sqrt(poreArea/poreFraction) ;
 	
 	Sample s(sampleSide, sampleSide, 0., 0.) ;
@@ -94,8 +95,10 @@ int main(int argc, char *argv[])
 	for(size_t i = 0 ; i < pores.size() ; i++)
 	{
 		double pressure = atoi(argv[1])-200./(pores[i]->getRadius()-1.5) ;
+		
 		if(pressure > 0 && pores[i]->getRadius() > 1.5)
 		{
+			pressure = 200./(pores[i]->getRadius()-1.5) ;
 			ft.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), pressure*1e-3));
 			criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
 			poresUnderPressure += pores[i]->getRadius()*pores[i]->getRadius()*M_PI ;
@@ -107,7 +110,7 @@ int main(int argc, char *argv[])
 	ft.step() ;
 	std::vector<double> apparentStrain = ft.getMacroscopicStrain(s.getPrimitive()) ;
 	
-	std::fstream outfile("p0_rad_frac_dx_dy_5_30.txt", std::ios::out | std::ios::app) ;
+	std::fstream outfile("p0_rad_frac_dx_dy_5_20_alt.txt", std::ios::out | std::ios::app) ;
 	outfile<< argv[1] << "   " << criticalRadius << "   "<< poresUnderPressure/poreArea << "   " << apparentStrain[0] << "   " << apparentStrain[1] << std::endl ;
 	
 	MultiTriangleWriter writerm( "displacements_pores", "displacements_layer", nullptr ) ;

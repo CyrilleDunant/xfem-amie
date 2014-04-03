@@ -316,8 +316,8 @@ target_link_libraries( 3d Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
-add_executable(xia examples/main_xiaomeng.cpp )
-target_link_libraries( xia Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+add_executable(hyd_paste examples/main_hydrating_paste.cpp )
+target_link_libraries( hyd_paste Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(example examples/main.cpp )
 target_link_libraries( example Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
@@ -382,7 +382,7 @@ target_link_libraries( rag_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable( pore_pressure examples/main_julien.cpp )
+add_executable( pore_pressure examples/main_crystal_pressure.cpp )
 target_link_libraries( pore_pressure Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable( cyrille_test examples/main_cyrille.cpp )

@@ -585,8 +585,7 @@ Function & Function::operator=(const Function &f)
 	
 	if(f.hasGeoOp)
 	{
-		if(!hasGeoOp)
-			geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr);
+		geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr);
 		for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 		{
 			if(f.geo_op[i])
@@ -1761,7 +1760,7 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 }
 
 Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode),transforms(nullptr),
- geo_op((GeometryOperation*)nullptr,f.geo_op.size()),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
+ geo_op((GeometryOperation*)nullptr,HEAP_SIZE*f.hasGeoOp),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
 {
 	if(f.derivative)
 	{
@@ -1794,6 +1793,7 @@ Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode),t
 
 	if(hasGeoOp)
 	{
+		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 		for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 		{
 			if(f.geo_op[i])
@@ -2056,7 +2056,6 @@ Function Function::operator*(const Function &f) const
 	}
 	ret.hasGeoOp = f.hasGeoOp ;
 	
-	
 	return ret ;
 }
 	
@@ -2115,6 +2114,7 @@ Function Function::operator+(const Function &f) const
 		(*(ret.derivative))[i] = newderivatives[i] ;
 	
 	ret.hasGeoOp = f.hasGeoOp ;
+
 	return ret ;
 }
 	
@@ -2124,14 +2124,18 @@ Function operator-(const double & a, const Function &f)
 	ret.values.clear();
 	ret.values.push_back(a) ;
 	ret.values.insert(ret.values.end(), f.values.begin(), f.values.end()) ;
+	if(f.hasGeoOp)
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	
 	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 	{
 		if(f.hasGeoOp)
+		{	
 			if(f.geo_op[i])
 			{
 				ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 			}
+		}
 			
 		if(f.adress_a[i*4] >= HEAP_SIZE-f.values.size()-2)
 			ret.adress_a[(i)*4] = f.adress_a[i*4]-1 ;
@@ -2192,7 +2196,9 @@ Function operator*(const double & a, const Function &f)
 	ret.values.clear();
 	ret.values.push_back(a) ;
 	ret.values.insert(ret.values.end(), f.values.begin(), f.values.end()) ;
-	
+	if(f.hasGeoOp)
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+		
 	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 	{
 		if(f.hasGeoOp)
@@ -2255,6 +2261,8 @@ Function operator+(const double & a, const Function &f)
 	ret.values.clear();
 	ret.values.push_back(a) ;
 	ret.values.insert(ret.values.end(), f.values.begin(), f.values.end()) ;
+	if(f.hasGeoOp)
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	
 	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 	{
@@ -2316,6 +2324,8 @@ Function operator/(const double & a, const Function &f)
 	ret.values.clear();
 	ret.values.push_back(a) ;
 	ret.values.insert(ret.values.end(), f.values.begin(), f.values.end()) ;
+	if(f.hasGeoOp)
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	
 	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
 	{
@@ -2398,6 +2408,12 @@ Function Function::operator-(const Function &f) const
 		(*(ret.derivative))[i] = newderivatives[i] ;
 	
 	ret.hasGeoOp = f.hasGeoOp ;
+	if(f.hasGeoOp)
+		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
+		if(f.geo_op[i])
+				ret.geo_op[i] = f.geo_op[i]->getCopy() ;
+		
 	return ret ;
 
 }
@@ -2406,7 +2422,6 @@ Function Function::operator*(const double a) const
 {
 
 	Function ret(*this) ;
-	
 	
 
 	if(hasGeoOp)
@@ -2504,15 +2519,6 @@ Function Function::operator-(const double a) const
 
 	ret.values.push_back(a) ;
 
-	if(hasGeoOp)
-	{
-		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-		for(size_t i = 0 ; i < byteCode.size() ; i++)
-		{
-			if(geo_op[i])
-				ret.geo_op[i] = geo_op[i]->getCopy() ;
-		}
-	}
 	ret.byteCode.push_back(TOKEN_OPERATION_MINUS); 
 	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
@@ -2529,15 +2535,6 @@ Function  Function::operator^(const int a) const
 
 	ret.values.push_back(a) ;
 
-	if(hasGeoOp)
-	{
-		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-		for(size_t i = 0 ; i < byteCode.size() ; i++)
-		{
-			if(geo_op[i])
-				ret.geo_op[i] = geo_op[i]->getCopy() ;
-		}
-	}
 	ret.byteCode.push_back(TOKEN_OPERATION_POWER);
 	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;

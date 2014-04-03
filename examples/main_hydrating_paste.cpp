@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	
 	boxd.setBehaviour( new VoidForm() ) ;
 	boxm.setBehaviour( new VoidForm() ) ;
-	elementm.setBehaviour( new ElasticOnlyPasteBehaviour()/*HydratingMechanicalCementPaste(&Fd)*/ ) ;
+	elementm.setBehaviour( new HydratingMechanicalCementPaste(&Fd) ) ;
 	elementd.setBehaviour( new HydratingDiffusionCementPaste() ) ;
   Fd.setOrder(LINEAR_TIME_QUADRATIC) ;
 	Fm.setOrder(LINEAR);
@@ -88,10 +88,10 @@ int main(int argc, char *argv[])
   // add boundary conditions
 	GeometryDefinedSurfaceBoundaryCondition * outsideRH = new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_INDEXED_AXIS, elementd.getPrimitive(), 0.99, 0) ;
   Fd.addBoundaryCondition(outsideRH);
-// 	Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.7, 0));
+	Fd.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.7, 0));
 
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0));
-	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_NORMAL_STRESS, elementm.getPrimitive(), 1e8));
+// 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_NORMAL_STRESS, elementm.getPrimitive(), 1e8));
 // 	Fm.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, BOTTOM, 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_XI, porem.getPrimitive(), 0., 0));
 	Fm.addBoundaryCondition(new GeometryDefinedSurfaceBoundaryCondition(SET_ALONG_ETA, porem.getPrimitive(), 0., 0));

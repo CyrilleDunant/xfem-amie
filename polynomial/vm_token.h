@@ -299,18 +299,17 @@ class PositionOperation : public GeometryOperation
 	std::vector<Segment> s ;
 	Point w ;
 public:
-	PositionOperation(Segment s_ ) 
+	PositionOperation(const Segment & s_ ) 
 	{
 		Point vector(-s_.vector().y, s_.vector().x) ;
 		w=( s_.midPoint()+vector*10.) ;
 		s.push_back(s_)  ;
 	}
 	
-	PositionOperation(std::vector<Segment> s_ ) 
+	PositionOperation(const std::vector<Segment> & s_ ) 
 	{
 		for(size_t i = 0 ; i < s_.size() ; i++)
 		{
-
 			s.push_back(s_[i])  ;
 		}			
 		Point vector(-s_[0].vector().y, s_[0].vector().x) ;
@@ -350,7 +349,7 @@ class LineDistanceOperation : public GeometryOperation
 {
 	Line l ;
 public:
-		LineDistanceOperation(const Line & l_ ) : l(l_)
+	LineDistanceOperation(const Line & l_ ) : l(l_)
 	{
 	}
 	
