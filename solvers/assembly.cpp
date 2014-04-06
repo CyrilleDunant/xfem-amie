@@ -727,7 +727,6 @@ bool Assembly::make_final()
 // 				{
 // 
 // 					map->insert(std::make_pair(ids[j], ids[j])) ;
-// 
 // 	
 // 					for(size_t k = j+1 ; k< ids.size() ;k++)
 // 					{

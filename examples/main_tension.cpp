@@ -705,7 +705,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA,TOP, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA,BOTTOM)) ;
 
-	F.setSamplingNumber(atoi(argv[1])) ;
+	F.setSamplingNumber(atof(argv[1])) ;
 // 	F.setSamplingFactor(&rebarinternal, .5) ;
 	
 // 	F.addRefinementZone(new Circle(.02, 0., 0.)) ;

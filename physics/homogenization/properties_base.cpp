@@ -532,10 +532,10 @@ Material Material::operator*(const std::string & s)
 		{
 			if(dec < 1.)
 			{
-				f += dec * atoi(&c) ;
+				f += dec * atof(&c) ;
 				dec *= 0.1 ;
 			} else {
-				f = f*10 + atoi(&c) ;
+				f = f*10 + atof(&c) ;
 			}
 			valid = true ;
 		}

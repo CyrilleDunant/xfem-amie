@@ -664,7 +664,7 @@ int main( int argc, char *argv[] )
 	F.addFeature( &baserightbulk,&rightbottomvoidbulk) ;
 
 
-	if ( atoi( argv[2] ) )
+	if ( atof( argv[2] ) )
 	{
 		haveStirrups = true ;
 		F.addFeature( nullptr, &samplestirrupbulk, stirruplayer, psi ) ;
@@ -717,7 +717,7 @@ int main( int argc, char *argv[] )
 	
 	F.setSamplingFactor( &rebar2, 4 ) ;
 	F.setSamplingFactor( &rebar3, 4 ) ;
-	F.setSamplingNumber( atoi( argv[1] ) ) ;
+	F.setSamplingNumber( atof( argv[1] ) ) ;
 	
 	F.setSamplingRestriction(SAMPLE_NO_RESTRICTION);
 

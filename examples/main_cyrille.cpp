@@ -906,7 +906,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(imposeddispright) ;
 	F.addBoundaryCondition(imposeddisptop) ;
 
-	samplingnumber = atoi(argv[1]);
+	samplingnumber = atof(argv[1]);
 	F.setSamplingNumber(samplingnumber) ;
 	F.setOrder(LINEAR) ;
 	F.setMaxIterationsPerStep(800) ;

@@ -645,146 +645,9 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	return ret ;
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones( int n, std::vector<Inclusion * > & incs , FeatureTree &F )
-{
-	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
-	aggregateArea = 0 ;
-	double radius = 0.000005 ;
-
-	for( size_t i = 0 ; i < incs.size() ; i++ )
-	{
-		if( incs[i]->getRadius() < .001 )
-		{
-			aggregateArea += incs[i]->area() ;
-
-			for( int j = 0 ; j < n ; j++ )
-			{
-
-				Point pos( ( 2.*rand() / RAND_MAX - 1. ), ( 2.*rand() / RAND_MAX - 1. ) ) ;
-				pos /= pos.norm() ;
-				pos *= ( 2.*rand() / RAND_MAX - 1. ) * ( incs[i]->getRadius() - 0.00003 ) ;
-				Point center = incs[i]->getCenter() + pos ;
-
-				bool alone  = true ;
-
-				for( size_t k = 0 ; k < ret.size() ; k++ )
-				{
-					if( squareDist( center, ret[k].first->Circle::getCenter() ) < ( radius * 60. + radius * 60. ) * ( radius * 60. + radius * 60. ) )
-					{
-						alone = false ;
-						break ;
-					}
-				}
-
-				if( alone )
-				{
-					ExpansiveZone *z = new ExpansiveZone( incs[i], radius, center.x, center.y, gel ) ;
-					ret.push_back( std::make_pair( z, incs[i] ) ) ;
-				}
-			}
-		}
-	}
-
-	for( size_t i = 0 ; i < ret.size() ; i++ )
-	{
-		ret[i].first->setRadius( radius ) ;
-		F.addFeature( ret[i].second, ret[i].first ) ;
-	}
-
-	std::cout << "initial Reacted Area = " << M_PI *radius *radius *ret.size() << " in " << ret.size() << " zones" << std::endl ;
-	std::cout << "Reactive aggregate Area = " << aggregateArea << std::endl ;
-	return ret ;
-}
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > generateInclusionsAndPores( size_t n, double fraction, double E_agg, double nu, Feature *father, FeatureTree *F )
-{
-// 	srandom(time(nullptr)) ;
-	size_t nombre_de_pores = static_cast<size_t>( round( n * fraction ) ) ;
-	size_t nombre_d_inclusions = static_cast<size_t>( round( n * ( 1. - fraction ) ) ) ;
-
-	std::pair<std::vector<Inclusion * >, std::vector<Pore * > > ret ;
-	ret.first = std::vector<Inclusion * >() ;
-	ret.second = std::vector<Pore * >() ;
-	double v = 0 ;
-	std::vector<Circle *> cercles ;
-
-	for( size_t j = 0 ; j < n ; j++ )
-	{
-
-		double radius = .0005 + .0025 * rand() / RAND_MAX ;
-
-		Point center = Point(
-		                   ( 2.*rand() / RAND_MAX - 1. ) * ( .08 - 2.*radius - 0.00001 ),
-		                   ( 2.*rand() / RAND_MAX - 1. ) * ( .02 - 2.*radius - 0.00001 )
-		               );
-		bool alone  = true ;
-
-		for( size_t k = 0 ; k < cercles.size() ; k++ )
-		{
-			if( squareDist( center, cercles[k]->getCenter() ) < ( radius + cercles[k]->getRadius() + 0.00001 ) * ( radius + cercles[k]->getRadius() + 0.00001 ) )
-			{
-				alone = false ;
-				break ;
-			}
-		}
-
-		if( alone )
-		{
-			cercles.push_back( new Circle( radius, center ) ) ;
-			v += M_PI * radius * radius ;
-		}
-		else
-			j-- ;
-
-	}
-
-	for( size_t j = 0 ; j < nombre_d_inclusions ; j++ )
-	{
-		Vector imp( double( 0 ), 3 ) ;
-		imp[0] = 0.005 ;
-		imp[1] = 0.005 ;
-		Inclusion *temp = new Inclusion( cercles[j]->getRadius(), cercles[j]->getCenter() ) ;
-		ret.first.push_back( temp ) ;
-// 		(*ret.first.rbegin())->setBehaviour(new StiffnessAndFracture(*tensor, new MohrCoulomb(1000000, -10000000))) ;
-		( *ret.first.rbegin() )->setBehaviour( new WeibullDistributedStiffness( E_agg, nu, SPACE_TWO_DIMENSIONAL, -8000000, 1000000 ) ) ;
-		F->addFeature( father, temp ) ;
-	}
-
-	for( size_t j = 0 ; j < nombre_de_pores ; j++ )
-	{
-		Pore *temp = new Pore( cercles[j + nombre_d_inclusions]->getRadius(), cercles[j + nombre_d_inclusions]->getCenter() ) ;
-		ret.second.push_back( temp ) ;
-		F->addFeature( father, temp ) ;
-	}
-
-	for( size_t k = 0 ; k < cercles.size() ; k++ )
-	{
-		delete cercles[k] ;
-	}
-
-	std::cout << "initial aggregate volume was : " << v << std::endl ;
-	aggregateArea = v ;
-	return ret ;
-}
-
-
 int main( int argc, char *argv[] )
 {
-// 	Matrix mat(4,4) ;
-// 	
-// 	mat[0][0] = 1 ;
-// 	mat[1][1] = 2 ;
-// 	mat[2][2] = 3 ;
-// 	mat[3][3] = 4 ;
-// 	
-// 	std::vector<std::pair<Vector, double> > eig = deflate(mat) ;
-// 	for(size_t i = 0 ; i < eig.size() ; i++)
-// 	{
-// 		for(size_t j = 0 ; j < eig[i].first.size() ; j++)
-// 			std::cout << eig[i].first[j] << ", " ;
-// 		std::cout << " : " << eig[i].second << std::endl ;
-// 	}
-// 	exit(0) ;
+
 	nzones = atof( argv[1] ) ;
 	double dmax = atof( argv[2] ) ;
 
@@ -979,55 +842,10 @@ int main( int argc, char *argv[] )
 	}
 	F.setSamplingFactor(&sample, 2.);
 	F.setOrder( LINEAR ) ;
-// 	F.useMultigrid = true ;
 //
 	step() ;
 
-	/*	glutInit(&argc, argv) ;
-		glutInitDisplayMode(GLUT_RGBA) ;
-		glutInitWindowSize(600, 600) ;
-		glutReshapeFunc(reshape) ;
-		glutCreateWindow("coucou !") ;
 
-		int submenu = glutCreateMenu(Menu) ;
-
-		glutAddMenuEntry(" Displacements ", ID_DISP);
-		glutAddMenuEntry(" Strain (s) xx ", ID_STRAIN_XX);
-		glutAddMenuEntry(" Strain (s) yy ", ID_STRAIN_YY);
-		glutAddMenuEntry(" Strain (s) xy ", ID_STRAIN_XY);
-		glutAddMenuEntry(" Stress (e) xx ", ID_STRESS_XX);
-		glutAddMenuEntry(" Stress (e) yy ", ID_STRESS_YY);
-		glutAddMenuEntry(" Stress (e) xy ", ID_STRESS_XY);
-		glutAddMenuEntry(" Elements      ", ID_ELEM);
-		glutAddMenuEntry(" Stiffness     ", ID_STIFNESS);
-		glutAddMenuEntry(" Von Mises     ", ID_VON_MISES);
-		glutAddMenuEntry(" Princ. angle  ", ID_ANGLE);
-		glutAddMenuEntry(" Enrichment    ", ID_ENRICHMENT);
-
-		glutCreateMenu(Menu) ;
-
-	 	glutAddMenuEntry(" Step          ", ID_NEXT);
-		glutAddMenuEntry(" Step time     ", ID_NEXT_TIME);
-		glutAddMenuEntry(" Zoom in       ", ID_ZOOM);
-		glutAddMenuEntry(" Zoom out      ", ID_UNZOOM);
-		glutAddMenuEntry(" Amplify       ", ID_AMPLIFY);
-		glutAddMenuEntry(" Deamplify     ", ID_DEAMPLIFY);
-		glutAddSubMenu(  " Display       ", submenu);
-		glutAddMenuEntry(" Quit          ", ID_QUIT) ;
-
-
-		glutAttachMenu(GLUT_RIGHT_BUTTON) ;
-
-		glClearColor(0.0, 0.0, 0.0, 0.0);
-		glShadeModel(GL_SMOOTH);
-
-		glutDisplayFunc(Display) ;
-		glutMainLoop() ;
-
-	// 	delete dt ;
-
-		for(size_t i = 0 ; i < inclusions.size() ; i++)
-			delete inclusions[i] ;*/
 
 	return 0 ;
 }

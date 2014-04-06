@@ -2856,6 +2856,7 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 	if(isVolumic)
 		return VirtualMachine().ieval(Gradient(shape) * data, gp, Jinv, v)  ;
 	Vector ret(0., normal.size()) ;
+		
 	if(normal.size() == 2)
 	{
 		ret[0] = data[0]*normal[0]+data[2]*normal[1] ;

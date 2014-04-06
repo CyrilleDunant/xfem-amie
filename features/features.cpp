@@ -3356,7 +3356,7 @@ void FeatureTree::updateElementBehaviours()
 void FeatureTree::enrich()
 {
 	enrichmentChange = false ;
-	lastEnrichmentId = lastNodeId ;
+	lastEnrichmentId = getNodes().size() ;
 	coarseLastEnrichmentId.clear();
 
 	if( useMultigrid )
@@ -3464,7 +3464,7 @@ void FeatureTree::assemble()
 				}
 				
 			}
-			K->setMaxDof( getNodes().size() ) ;
+			K->setMaxDof( std::max(getNodes().size(),lastEnrichmentId) ) ;
 			std::cerr << " ...done." << std::endl ;
 		}
 

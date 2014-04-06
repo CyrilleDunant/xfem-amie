@@ -3576,14 +3576,35 @@ Point Segment::normal() const
 
 Point Segment::normal(const Point & inside) const
 {
-	Point d = (inside-s) ;
-	Point n = vec^d ;
-	n = n^vec ;
-	if(n*d > 0)
-		return n/n.norm() ;
+	bool sameSide = isOnTheSameSide(inside, mid+normal(), f, s) ;
+	double sign = 1. ;
+	if(!sameSide)
+		sign = -1 ;
 	
-	return n/-n.norm() ;
+	double n = norm();
+	if(n > POINT_TOLERANCE_2D)
+		return Point(-vec.y*sign, vec.x*sign)/n ;
+	
+	return Point(0, 0) ;
 
+}
+
+Vector Segment::normalv(const Point & p) const 
+{
+	bool sameSide = isOnTheSameSide(p, mid+normal(), f, s) ;
+	double sign = 1. ;
+	if(!sameSide)
+		sign = -1 ;
+	double n = norm();
+	if(n > POINT_TOLERANCE_2D)
+	{
+		Vector ret(2) ;
+		ret[0] = -vec.y/n ;
+		ret[1] = vec.x/n ;
+		return ret*sign ;
+	}
+	
+	return Vector(0., 2) ;
 }
 
 Segment::Segment(const Point & p0, const Point & p1)

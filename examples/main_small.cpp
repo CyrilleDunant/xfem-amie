@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 	
     F.addFeature(&samplers, &inc) ;
 // 	F.addFeature(&samplers, inc0) ;
-    F.setSamplingNumber(atoi(argv[1])) ;
+    F.setSamplingNumber(atof(argv[1])) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT_BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_RIGHT_BACK)) ;
 // 	

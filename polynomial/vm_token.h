@@ -318,7 +318,7 @@ public:
 	virtual void eval(double * a, double * b, double * c) const
 	{
 		Point test(*a,*b) ;
-		size_t intersections = 0 ;
+		int intersections = 0 ;
 		for(size_t i = 0 ; i < s.size() ; i++)
 		{
 			if(s[i].intersects(test, w))

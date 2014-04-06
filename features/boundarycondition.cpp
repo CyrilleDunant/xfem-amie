@@ -299,7 +299,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 				  					
 					a->addForceOn( XI, forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
@@ -379,7 +379,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 					
 					a->addForceOn( XI, forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
@@ -449,16 +449,16 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				  v.push_back(TIME_VARIABLE) ;
 				}
 				
-				Point normal = edge.normal() ;
+				Point normal = edge.normal(e->getCenter()) ;
 				
-				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
-				double sign = 1. ;
-				if(!sameSide)
-					sign = -1 ;
-				double nangle = atan2(normal.y*sign, normal.x*sign) ;
-				Vector normalv(2) ; 
-				normalv[0] = normal.x*sign ; 
-				normalv[1] = normal.y*sign ;
+// 				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
+// 				double sign = 1. ;
+// 				if(!sameSide)
+// 					sign = -1 ;
+				double nangle = atan2(normal.y, normal.x) ;
+// 				Vector normalv(2) ; 
+// 				normalv[0] = normal.x*sign ; 
+// 				normalv[1] = normal.y*sign ;
 
 				Vector imposedx( 3 ) ;
 				imposedx[0] = data ;
@@ -479,7 +479,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, normalv ) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter()) ) ;
 
 					a->addForceOn( XI,  forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
@@ -931,7 +931,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, std::abs(edge.normalv())) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1015,7 +1015,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false,  std::abs(edge.normalv())) ;
 					
 //					std::cout << "constant\t" << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 
@@ -1102,7 +1102,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false,  std::abs(edge.normalv())) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1447,7 +1447,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -1542,7 +1542,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 				
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;

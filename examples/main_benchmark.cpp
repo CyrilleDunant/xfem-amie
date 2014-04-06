@@ -186,11 +186,11 @@ int main(int argc, char *argv[])
 
 	BenchmarkMicrostructure micro = S1 ;//getMicrostructure(std::string(argv[1])) ;
 	BenchmarkPhenomenon pheno = ELASTICITY ;//getPhenomenon(std::string(argv[2])) ;
-	int order = 1; //atoi(argv[3]) ;
+	int order = 1; //atof(argv[3]) ;
 	if(order < 1 || order > 2) { order = 1 ; }
 	double scale = 100.;//atof(argv[4]) ;
 	prop = 3;//atof(argv[5]) ;
-	int sampling = 1000;//atoi(argv[6]) ;
+	int sampling = 1000;//atof(argv[6]) ;
 	double length = getLength(micro) ;
 
 	double size = scale*length ;

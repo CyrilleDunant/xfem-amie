@@ -435,6 +435,14 @@ void step(size_t nsteps)
 		}
 		strfile.close();
 		
+			MultiTriangleWriter writerm( "displacements_enrichment", "displacements_enrichment", nullptr ) ;
+		writerm.reset( featureTree ) ;
+		writerm.getField( STRAIN_FIELD ) ;
+		writerm.getField( REAL_STRESS_FIELD ) ;
+		writerm.append() ;
+		writerm.writeSvg(50, true) ;
+		exit(0) ;
+		
 		if(true)
 		{
 			std::stringstream filename ;
@@ -454,7 +462,7 @@ void step(size_t nsteps)
 			writer.getField(TWFT_STIFFNESS) ;
 			writer.getField(TWFT_IMPOSED_STRESS_NORM) ;
 			writer.getField(TWFT_DAMAGE) ;
-			writer.write() ;
+			writer.writeSvg(100., true) ;
 		}
 		
 		if(!go_on)
@@ -477,13 +485,21 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 	
-	Point * a = new Point(-0.02,0) ;//MY
-	Point * b = new Point(0.02,0) ;//MY
+	Point * a = new Point(-0.2,0) ;//MY
+	Point * b = new Point(0.2,0) ;//MY
 	BranchedCrack * Crack1 = new BranchedCrack( a,  b);//MY
+	Crack1->setEnrichementRadius(0.005);
+	
+	
+// 	Vector e(0.,3) ;
+// 	ExpansiveZone inc(&sample,.03, 0, 0, Material::cauchyGreen(std::make_pair(E_paste*4,nu), true,SPACE_TWO_DIMENSIONAL), e) ;
+	
 	F.addFeature(&sample, Crack1);//MY
-	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
+// 	F.addFeature(&sample, &inc);
+// 	sample.setBehaviour(new OrthotropicStiffness(E_paste, E_paste*.5,  E_paste*.5/(2.*1-nu*0.5),  nu, M_PI*.15)) ;
+	sample.setBehaviour(new ElasticOnlyPasteBehaviour(E_paste, nu)) ;
 
- 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA , TOP, -1e6)) ;
+ 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;
@@ -503,7 +519,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_RIGHT)) ;
 
 
-	F.setSamplingNumber(atoi(argv[1])) ;
+	F.setSamplingNumber(atof(argv[1])) ;
 
 	F.setOrder(LINEAR) ;
 

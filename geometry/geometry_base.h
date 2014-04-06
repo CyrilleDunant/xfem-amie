@@ -1074,6 +1074,8 @@ public:
 		
 		return Vector(0., 2) ;
 	}
+	Vector normalv(const Point & p) const ;
+	
 	
 	/** \brief Return a normal to the segment. The argument gives the "inside" of the Segment*/
 	Point normal(const Point & inside) const ;
