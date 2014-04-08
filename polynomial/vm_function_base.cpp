@@ -1559,7 +1559,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(true)
+		hasGeoOp(false)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1573,6 +1573,7 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
+	geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr) ;
 	geo_op[byteCode.size()-1] = new LineDistanceOperation(l) ;
 	initialiseAdresses();
 }
@@ -1582,7 +1583,8 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
-		ptID (nullptr)
+		ptID (nullptr),
+		hasGeoOp(false)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1596,6 +1598,7 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
 	hasGeoOp = true ;
+	geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr) ;
 	geo_op[byteCode.size()-1] = new PointDistanceBinaryOperation(l) ;
 }
 
@@ -1604,7 +1607,8 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 		e_diff(false),
 		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
 		dofID(-1),
-		ptID (nullptr)
+		ptID (nullptr),
+		hasGeoOp(false)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1619,7 +1623,7 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 10 ;
-	
+	geo_op.resize(HEAP_SIZE,(GeometryOperation *)nullptr) ;
 	geo_op[byteCode.size()-1] = new PointDistanceTrinaryOperation(l) ;
 }
 
@@ -2054,7 +2058,6 @@ Function Function::operator*(const Function &f) const
 			}
 		}
 	}
-	ret.hasGeoOp = f.hasGeoOp ;
 	
 	return ret ;
 }
@@ -2083,7 +2086,6 @@ Function Function::operator/(const Function &f) const
 			}
 		}
 	}
-	ret.hasGeoOp = f.hasGeoOp ;
 	
 	return ret ;
 }
@@ -2113,8 +2115,6 @@ Function Function::operator+(const Function &f) const
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
 		(*(ret.derivative))[i] = newderivatives[i] ;
 	
-	ret.hasGeoOp = f.hasGeoOp ;
-
 	return ret ;
 }
 	
@@ -2406,13 +2406,6 @@ Function Function::operator-(const Function &f) const
 	
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
 		(*(ret.derivative))[i] = newderivatives[i] ;
-	
-	ret.hasGeoOp = f.hasGeoOp ;
-	if(f.hasGeoOp)
-		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-	for(size_t i = 0 ; i < f.byteCode.size() ; i++)
-		if(f.geo_op[i])
-				ret.geo_op[i] = f.geo_op[i]->getCopy() ;
 		
 	return ret ;
 
@@ -2422,17 +2415,7 @@ Function Function::operator*(const double a) const
 {
 
 	Function ret(*this) ;
-	
 
-	if(hasGeoOp)
-	{
-		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-		for(size_t i = 0 ; i < byteCode.size() ; i++)
-		{
-			if(geo_op[i])
-				ret.geo_op[i] = geo_op[i]->getCopy() ;
-		}
-	}
 	
 	ret.values.push_back(a) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_TIMES);
@@ -2450,7 +2433,6 @@ Function Function::operator*(const double a) const
 			ret.d( (const Variable)i) *= a;
 		}
 	}
-	ret.hasGeoOp = hasGeoOp ;
 	return ret ;
 }
 
@@ -2460,16 +2442,6 @@ Function Function::operator/(const double a) const
 	Function ret(*this) ;
 	ret.values.push_back(a) ;
 
-	if(hasGeoOp)
-	{
-		if(hasGeoOp)
-			ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-		for(size_t i = 0 ; i < byteCode.size() ; i++)
-		{
-			if(geo_op[i])
-				ret.geo_op[i] = geo_op[i]->getCopy() ;
-		}
-	}
 	ret.byteCode.push_back(TOKEN_OPERATION_DIVIDES);
 	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
@@ -2492,17 +2464,8 @@ Function Function::operator/(const double a) const
 Function Function::operator+(const double a) const
 {
 	Function ret(*this) ;
+	
 	ret.values.push_back(a) ;
-	if(hasGeoOp)
-		ret.geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
-	if(hasGeoOp)
-	{
-		for(size_t i = 0 ; i < byteCode.size() ; i++)
-		{
-			if(geo_op[i])
-				ret.geo_op[i] = geo_op[i]->getCopy() ;
-		}
-	}
 	ret.byteCode.push_back(TOKEN_OPERATION_PLUS);
 	ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
 	ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
@@ -2559,8 +2522,7 @@ Function  Function::operator^(const int a) const
 
 void Function::operator*=(const Function &f) 
 {
-	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+	
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	std::vector<Function *> newderivatives ;
 	if(n > 0)
@@ -2580,8 +2542,6 @@ void Function::operator*=(const Function &f)
 	adress_a[(byteCode.size()-1)*4+2] = 8 ;
 	adress_a[(byteCode.size()-1)*4+1] = 9 ;
 	adress_a[(byteCode.size()-1)*4] = 8 ;
-	 
-	hasGeoOp = hasGeoOp  || f.hasGeoOp ;	
 	
 	setNumberOfDerivatives(newderivatives.size());
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
@@ -2591,8 +2551,6 @@ void Function::operator*=(const Function &f)
 
 void Function::operator/=(const Function &f)  
 {
-	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2616,13 +2574,10 @@ void Function::operator/=(const Function &f)
 	setNumberOfDerivatives(newderivatives.size());
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
 		(*derivative)[i] = newderivatives[i] ;
-	hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator+=(const Function &f) 
 {
-	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2648,13 +2603,11 @@ void Function::operator+=(const Function &f)
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
 		(*derivative)[i] = newderivatives[i] ;
 	
-  hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator-=(const Function &f)  
 {
-	if(f.hasGeoOp && !hasGeoOp)
-		geo_op.resize(HEAP_SIZE, (GeometryOperation*)nullptr);
+
 	std::vector<Function *> newderivatives ;
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
@@ -2679,7 +2632,6 @@ void Function::operator-=(const Function &f)
 	for(size_t i = 0 ; i < newderivatives.size() ; i++)
 		(*derivative)[i] = newderivatives[i] ;
 	
-	hasGeoOp = hasGeoOp  || f.hasGeoOp ;
 }
 
 void Function::operator*=(const double a) 

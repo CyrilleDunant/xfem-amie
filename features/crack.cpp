@@ -20,9 +20,10 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	if(father->in(*a))
 		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
 	if(father->in(*b))
-		tips.push_back(std::make_pair(b, atan2(b->y-a->y, b->x-a->x))) ;
+		tips.push_back(std::make_pair(b, atan2(a->y-b->y, a->x-b->x))) ;
 
 	changed = false ;
+	isUpdated = false ;
 
 	enrichementRadius = 0.00075 ;
 	
@@ -50,14 +51,15 @@ BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(nullptr),
 	}
 	branches.push_back ( this ) ;
 
-	tips.push_back(std::make_pair(boundingPoints[0], atan2(boundingPoints[0]->y-boundingPoints[1]->y, boundingPoints[0]->x-boundingPoints[1]->x))) ;
+	tips.push_back(std::make_pair(boundingPoints[0], -atan2(boundingPoints[0]->y-boundingPoints[1]->y, boundingPoints[0]->x-boundingPoints[1]->x))) ;
 // 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
 // 		tips.back().second = - M_PI ; 
-	tips.push_back(std::make_pair(boundingPoints[1], atan2(boundingPoints[1]->y-boundingPoints[0]->y, boundingPoints[1]->x-boundingPoints[0]->x))) ;
+	tips.push_back(std::make_pair(boundingPoints[1], -atan2(boundingPoints[1]->y-boundingPoints[0]->y, boundingPoints[1]->x-boundingPoints[0]->x))) ;
 // 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
 // 		tips.back().second = - M_PI ; 
 
-	changed = true ;
+	changed = false ;
+	isUpdated = false ;
 
 	enrichementRadius = 0.00075 ;
 }
@@ -327,6 +329,9 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 	
 	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( &c ) ;
 	std::vector<DelaunayTriangle *> ring ;
+	if(disk.size() == 0)
+		return std::make_pair(0., 0.) ;
+	
 	if(disk.size() == 1)
 	{
 		influenceRadius = disk[0]->getRadius() ;
@@ -668,11 +673,91 @@ const std::vector<SegmentedLine *> & BranchedCrack::getBranches() const
 
 void BranchedCrack::enrichTips(size_t & startid, Mesh<DelaunayTriangle,DelaunayTreeItem> * dt)
 {
-	return ;
 	for(size_t i =  0 ; i < tips.size(); i++)
 	{
 		enrichTip(startid, dt, tips[i]) ;
 	}
+}
+
+Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
+{
+// 	return Function("1") ;
+
+// if(t->getOrder() == QUADRATIC)
+// {
+// 	TriElement father(QUADRATIC) ;
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(0) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(2) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(3);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(4) + 0.25*father.getShapeFunction(3)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(2)+father.getShapeFunction(3)+father.getShapeFunction(4) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+// 	{
+// 		return father.getShapeFunction(0) + father.getShapeFunction(5) + father.getShapeFunction(4) + 0.25*father.getShapeFunction(1) +0.25*father.getShapeFunction(3);
+// 	}
+// 	
+// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+// 	{
+// 		return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(2) + 0.25*father.getShapeFunction(3) + 0.25*father.getShapeFunction(5);
+// 	}
+// }
+
+
+	TriElement father(LINEAR) ;
+// 	Function f ;
+// 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+// 	{
+// 		if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
+// 			f += father.getShapeFunction(i) ;
+// 	}
+// 	return f ;
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return father.getShapeFunction(2) ;
+	}
+	
+	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(0) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+	{
+		return 1-father.getShapeFunction(1) ;
+	}
+	
+	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+	{
+		return 1-father.getShapeFunction(2) ;
+	}
+	
+	return Function("1") ;
 }
 
 Function getBlendingFunction(const Circle * eps, const DelaunayTriangle * t)
@@ -696,17 +781,17 @@ Function getBlendingFunction(const Circle * eps, const DelaunayTriangle * t)
 	
 	if(!eps->in(*t->first)  && eps->in(*t->second)  && eps->in(*t->third) )
 	{
-		return 1-father.getShapeFunction(0) ;
+		return 1.-father.getShapeFunction(0) ;
 	}
 	
 	if(eps->in(*t->first)  && !eps->in(*t->second)  && eps->in(*t->third) )
 	{
-		return 1-father.getShapeFunction(1) ;
+		return 1.-father.getShapeFunction(1) ;
 	}
 	
 	if(eps->in(*t->first)  && eps->in(*t->second)  && !eps->in(*t->third) )
 	{
-		return 1-father.getShapeFunction(2) ;
+		return 1.-father.getShapeFunction(2) ;
 	}
 	
 	return Function() ;
@@ -718,12 +803,13 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
-	double angle = tip.second ;
+	double angle = tip.second-M_PI*.5;
 	TriElement father (triangles[0]->getOrder()) ;
-	
+	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	
 	for(size_t  i = 0 ; i < triangles.size() ; i++)
 	{
+		
 // 		if(!triangles[i]->in(*(tip.first)))
 // 			continue ;
 		enrichmentMap.insert(triangles[i]) ;
@@ -769,7 +855,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 
 		Function theta_alt = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
 		Function r_alt = Function(*tip.first, triangles[i]);//f_sqrt ( (x_alt^2)  + (y_alt^2) );
-
+		
 
 		Function x_ = x_alt ; //f_curvilinear_x(getPrimitive(), (tip.first == getHead()), x, y) ; 
 		Function y_ = y_alt ; //f_curvilinear_y(getPrimitive(), (tip.first == getHead()), x, y) ; 
@@ -777,71 +863,197 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 
 		Function theta = f_atan2 ( y_, x_ );
 		
-		Function f0 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 );
-		Function f1 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 );
-		Function f2 = f_sqrt ( r_alt ) *f_sin ( theta_alt/2 ) *f_sin ( theta_alt );
-		Function f3 = f_sqrt ( r_alt ) *f_cos ( theta_alt/2 ) *f_sin ( theta_alt );
-		
+		Function f0 = f_sqrt ( r_alt ) *f_sin ( theta_alt*.5 ) ;
+		Function f1 = f_sqrt ( r_alt ) *f_cos ( theta_alt*.5 ) ;
+		Function f2 = f_sqrt ( r_alt ) *f_sin ( theta_alt*.5 ) *f_sin ( theta_alt ) ;
+		Function f3 = f_sqrt ( r_alt ) *f_cos ( theta_alt*.5 ) *f_sin ( theta_alt ) ;
+		f0.setNumberOfDerivatives(0);
+		f1.setNumberOfDerivatives(0);
+		f2.setNumberOfDerivatives(0);
+		f3.setNumberOfDerivatives(0);
 		bool hinted = false ;
 		int pcount = 0 ;
 		
-		Function blend = getBlendingFunction(&epsilon, triangles[i]) ;
-		if(epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->first))
-			blend = Function("1") ;
+// 		Function blend = getBlendingFunction(&epsilon, triangles[i]) ;
+// 		if(epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->second) && epsilon.in(*triangles[i]->third))
+			Function blend = Function("1") ;
 		
-		for(size_t p = 0 ; p < triangles[i]->getBoundingPoints().size() ;p++)
+// 		if(triangles[i]->in(*tip.first))
+// 		{
+// 			for(double k = 0 ; k < 1 ; k+=0.01)
+// 			{
+// 				for(double l = 0 ; l < 1 ; l+=0.01)
+// 				{
+// 					if(k+l < 1)
+// 						std::cout << vm.eval(f0, k, l) << "   " << std::flush ;
+// 					else
+// 						std::cout << 0 << "   " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			for(double k = 0 ; k < 1 ; k+=0.01)
+// 			{
+// 				for(double l = 0 ; l < 1 ; l+=0.01)
+// 				{
+// 					if(k+l < 1)
+// 						std::cout << vm.eval(f1, k, l) << "   " << std::flush ;
+// 					else
+// 						std::cout << 0 << "   " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			for(double k = 0 ; k < 1 ; k+=0.01)
+// 			{
+// 				for(double l = 0 ; l < 1 ; l+=0.01)
+// 				{
+// 					if(k+l < 1)
+// 						std::cout << vm.eval(f2, k, l) << "   " << std::flush ;
+// 					else
+// 						std::cout << 0 << "   " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			for(double k = 0 ; k < 1 ; k+=0.01)
+// 			{
+// 				for(double l = 0 ; l < 1 ; l+=0.01)
+// 				{
+// 					if(k+l < 1)
+// 						std::cout << vm.eval(f3, k, l) << "   " << std::flush ;
+// 					else
+// 						std::cout << 0 << "   " << std::flush ;
+// 				}
+// 				std::cout << std::endl ;
+// 			}
+// 			exit(0) ;
+// 		}
+		
+
+		if(epsilon.in(*triangles[i]->first))
 		{
-			if(epsilon.in(triangles[i]->getBoundingPoint(p)))
+			pcount++ ;
+			int usedId = 0 ;
+			if(done.find(triangles[i]->first) == done.end())
 			{
-				pcount++ ;
-				int usedId = 0 ;
-				if(done.find(&triangles[i]->getBoundingPoint(p)) == done.end())
-				{
-					done[&triangles[i]->getBoundingPoint(p)] = lastId ;
-					usedId = lastId ;
-					lastId += 4 ;
-				}
-				else
-				{
-					usedId = done[&triangles[i]->getBoundingPoint(p)] ;
-				}
-				Point pt = triangles[i]->inLocalCoordinates( triangles[i]->getBoundingPoint(p)) ;
-				Function f = triangles[i]->getShapeFunction(p)* ( f0 - vm.eval ( f0,  pt) )*blend ;
-				if(!hinted)
-				{
-					f.setIntegrationHint ( hint ) ;
-					hinted = true ;
-				}
-				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
-				f.setDofID ( usedId ) ;
-				triangles[i]->setEnrichment (  f , static_cast<SegmentedLine *>(this)  ) ;
-				
-				f = triangles[i]->getShapeFunction(p)* ( f1 - vm.eval ( f1, pt ) )*blend ;
-				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
-				f.setDofID ( usedId+1 ) ;
-				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
-				
-				f = triangles[i]->getShapeFunction(p)* ( f2 - vm.eval ( f2, pt ) )*blend ;
-				f.setPoint ( &triangles[i]->getBoundingPoint(p)) ;
-				f.setDofID ( usedId+2 ) ;
-				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
-				
-				f = triangles[i]->getShapeFunction(p)* ( f3 - vm.eval ( f3, pt ) )*blend ;
-				f.setPoint (&triangles[i]->getBoundingPoint(p) ) ;
-				f.setDofID ( usedId+3 ) ;
-				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
-				
-// 				f = shapefunc[p]* ( f4 - vm.eval ( f4, pointLocal[p] ) ) ;
-// 				f.setPoint ( currentPoint[p]) ;
-// 				f.setDofID ( usedId+4 ) ;
-// 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
-// 				
-// 				f = shapefunc[p]* ( f5 - vm.eval ( f5, pointLocal[p] ) ) ;
-// 				f.setPoint (currentPoint[p] ) ;
-// 				f.setDofID ( usedId+5 ) ;
-// 				triangles[i]->setEnrichment ( f , static_cast<SegmentedLine *>(this) ) ;
+				done[triangles[i]->first] = lastId ;
+				usedId = lastId ;
+				lastId += 4 ;
 			}
+			else
+			{
+				usedId = done[triangles[i]->first] ;
+			}
+			Point pt = triangles[i]->inLocalCoordinates( *triangles[i]->first) ;
+			Function f = shapefunc[0]* ( f0 - vm.eval ( f0,  pt) ) * blend ;
+			if(!hinted)
+			{
+				f.setIntegrationHint ( hint ) ;
+				hinted = true ;
+			}
+			
+			f.setPoint ( triangles[i]->first) ;
+			f.setDofID ( usedId ) ;
+			triangles[i]->setEnrichment (  f , getPrimitive()  ) ;
+			
+			f = shapefunc[0]* ( f1 - vm.eval ( f1, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->first) ;
+			f.setDofID ( usedId+1 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[0]* ( f2 - vm.eval ( f2, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->first) ;
+			f.setDofID ( usedId+2 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[0]* ( f3 - vm.eval ( f3, pt ) ) * blend ;
+			f.setPoint (triangles[i]->first ) ;
+			f.setDofID ( usedId+3 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
 		}
+		
+		if(epsilon.in(*triangles[i]->second))
+		{
+			pcount++ ;
+			int usedId = 0 ;
+			if(done.find(triangles[i]->second) == done.end())
+			{
+				done[triangles[i]->second] = lastId ;
+				usedId = lastId ;
+				lastId += 4 ;
+			}
+			else
+			{
+				usedId = done[triangles[i]->second] ;
+			}
+			Point pt = triangles[i]->inLocalCoordinates( *triangles[i]->second) ;
+			Function f = shapefunc[1]* ( f0 - vm.eval ( f0,  pt) ) * blend ;
+			if(!hinted)
+			{
+				f.setIntegrationHint ( hint ) ;
+				hinted = true ;
+			}
+			
+			f.setPoint ( triangles[i]->second) ;
+			f.setDofID ( usedId ) ;
+			triangles[i]->setEnrichment (  f , getPrimitive()  ) ;
+			
+			f = shapefunc[1]* ( f1 - vm.eval ( f1, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->second) ;
+			f.setDofID ( usedId+1 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[1]* ( f2 - vm.eval ( f2, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->second) ;
+			f.setDofID ( usedId+2 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[1]* ( f3 - vm.eval ( f3, pt ) ) * blend ;
+			f.setPoint (triangles[i]->second ) ;
+			f.setDofID ( usedId+3 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+		}
+		
+		if(epsilon.in(*triangles[i]->third))
+		{
+			pcount++ ;
+			int usedId = 0 ;
+			if(done.find(triangles[i]->third) == done.end())
+			{
+				done[triangles[i]->third] = lastId ;
+				usedId = lastId ;
+				lastId += 4 ;
+			}
+			else
+			{
+				usedId = done[triangles[i]->third] ;
+			}
+			Point pt = triangles[i]->inLocalCoordinates( *triangles[i]->third) ;
+			Function f = shapefunc[2]* ( f0 - vm.eval ( f0,  pt) ) * blend ;
+			if(!hinted)
+			{
+				f.setIntegrationHint ( hint ) ;
+				hinted = true ;
+			}
+			
+			f.setPoint ( triangles[i]->third) ;
+			f.setDofID ( usedId ) ;
+			triangles[i]->setEnrichment (  f , getPrimitive()  ) ;
+			
+			f = shapefunc[2]* ( f1 - vm.eval ( f1, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->third) ;
+			f.setDofID ( usedId+1 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[2]* ( f2 - vm.eval ( f2, pt ) ) * blend ;
+			f.setPoint ( triangles[i]->third) ;
+			f.setDofID ( usedId+2 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+			
+			f = shapefunc[2]* ( f3 - vm.eval ( f3, pt ) ) * blend ;
+			f.setPoint (triangles[i]->third ) ;
+			f.setDofID ( usedId+3 ) ;
+			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
+		}
+		
 		if(pcount == triangles[i]->getBoundingPoints().size())
 			tipEnrichmentMap.insert(triangles[i]) ;
 		
@@ -930,116 +1142,64 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		
 
 		Function s ( intersectingSegments, e ) ;
+		Function dx = e->getXTransform() ;
+		Function dy = e->getYTransform() ;
+		s.setVariableTransform(XI, dx);
+		s.setVariableTransform(ETA, dy);
+		s.setNumberOfDerivatives(0);
+// 		Function s = f_sign(e->getYTransform()) ;
 
 		int usedId = 0 ;
-		if(done.find(e->first) == done.end())
+		if(done.find(&e->getBoundingPoint(0)) == done.end())
 		{
-			done[e->first] = lastId ;
+			done[&e->getBoundingPoint(0)] = lastId ;
 			usedId = lastId ;
 			lastId++ ;
 		}
 		else
 		{
-			usedId = done[e->first] ;
+			usedId = done[&e->getBoundingPoint(0)] ;
 		}
 
-		Function f = shapefunc[0]* ( s - vm.eval ( s, Point ( 0,1 ) ) ) ;
+		
+		Function f = shapefunc[0]*(s - vm.eval ( s, Point ( 0,1 ) )) ;
 		f.setIntegrationHint ( hint ) ;
-		f.setPoint ( e->first ) ;
+		f.setPoint (&e->getBoundingPoint(0) ) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 		
-		if(done.find(e->second) == done.end())
+		if(done.find(&e->getBoundingPoint(1)) == done.end())
 		{
-				done[e->second] = lastId ;
+				done[&e->getBoundingPoint(1)] = lastId ;
 				usedId = lastId ;
 				lastId++ ;
 		}
 		else
 		{
-			usedId = done[e->second] ;
+			usedId = done[&e->getBoundingPoint(1)] ;
 		}
-		f = shapefunc[1]* ( s - vm.eval ( s, Point ( 0,0 ) ) ) ;
-		f.setPoint ( e->second ) ;
+		f = shapefunc[1]*(s - vm.eval(s, Point(0,0))) ;
+		f.setPoint ( &e->getBoundingPoint(1)) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 
-		if(done.find(e->third) == done.end())
+		if(done.find(&e->getBoundingPoint(2)) == done.end())
 		{
-			done[e->third] = lastId ;
+			done[&e->getBoundingPoint(2)] = lastId ;
 			usedId = lastId ;
 			lastId++ ;
 		}
 		else
 		{
-			usedId = done[e->third] ;
+			usedId = done[&e->getBoundingPoint(2)] ;
 		}
-		f = shapefunc[2] * ( s - vm.eval ( s, Point ( 1,0 ) ) ) ;
+		
+		f = shapefunc[2] *(s - vm.eval(s, Point(1,0)))  ;
 
-		f.setPoint ( e->third ) ;
+		f.setPoint (&e->getBoundingPoint(2) ) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 
-		std::vector<DelaunayTriangle *> toEnrichAlso ;
-		for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
-		{
-			if ( e->getNeighbourhood(j)->isAlive() 
-				&& !line->intersects(static_cast<Triangle *>(e->getNeighbourhood(j))))
-				toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
-		}
-
-
-		for ( size_t j = 0 ; j < toEnrichAlso.size() ; j++ )
-		{
-			DelaunayTriangle * elem = toEnrichAlso[j]  ;
-			if(tipEnrichmentMap.find(elem) != tipEnrichmentMap.end())
-			{
-				continue ;
-			}
-			if(!toEnrichAlso[j]->enrichmentUpdated)
-				toEnrichAlso[j]->clearEnrichment( static_cast<SegmentedLine *>(this)) ;
-			toEnrichAlso[j]->enrichmentUpdated = true ;
-
-			enrichmentMap.insert(elem) ;
-
-			transformed.clear() ;
-
-			for ( size_t k = 0 ; k < intersection.size() ; k++ )
-			{
-				transformed.push_back ( elem->inLocalCoordinates ( intersection[k] ) ) ;
-			}
-
-			Function s_ ( intersectingSegments, elem) ;
-			hint.clear() ;
-
-			if ( done.find(elem->first) != done.end())
-			{
-				Function f = shapefunc[0]* ( s_ - vm.eval ( s_, Point ( 0,1 ) ) ) ;
-				f.setIntegrationHint(hint) ;
-				f.setPoint ( elem->first ) ;
-				f.setDofID ( done[elem->first] ) ;
-				elem->setEnrichment ( f , getPrimitive()) ;
-				
-			}
-
-			if (done.find(elem->second) != done.end())
-			{
-				Function f = shapefunc[1]* ( s_ - vm.eval ( s_, Point ( 0,0 ) ) ) ;
-				f.setIntegrationHint(hint) ;
-				f.setPoint ( elem->second ) ;
-				f.setDofID ( done[elem->second] ) ;
-				elem->setEnrichment ( f , getPrimitive()) ;
-			}
-			
-			if (done.find(elem->third) != done.end())
-			{
-				Function f = shapefunc[2]* ( s_ - vm.eval ( s_, Point ( 1,0 ) ) ) ;
-				f.setIntegrationHint(hint) ;
-				f.setPoint ( elem->third ) ;
-				f.setDofID ( done[elem->third] ) ;
-				elem->setEnrichment ( f , getPrimitive()) ;
-			}
-		}
 	}
 	
 	for(std::map<Point *, size_t>::const_iterator i = done.begin() ; i != done.end() ; ++i)
@@ -1447,6 +1607,7 @@ void BranchedCrack::setEnergyPropagationMethod()
 void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
 	changed = false ;
+	isUpdated = false ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
 	double pdistance = enrichementRadius * .5 ;
@@ -1459,6 +1620,7 @@ void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, Delau
 			{
 				tipsToGrow.push_back(tips[i].first) ;
 				changed = true ;
+				isUpdated = true ;
 				angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
 			}
 		}
@@ -1478,6 +1640,7 @@ void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, Delau
 			{
 				tipsToGrow.push_back(tips[i].first) ;
 				changed = true ;
+				isUpdated = true ;
 				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getCurrentAngle()+M_PI*.5) ;
 			}
 		}

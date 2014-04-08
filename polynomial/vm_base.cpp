@@ -17,8 +17,7 @@ VirtualMachine::VirtualMachine(){ } ;
 
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w) 
 {
-#pragma omp critical
-	{
+
 	size_t size = f.byteCode.size() ;
 	stack.memory.heap[1] = x ;
 	stack.memory.heap[2] = y ;
@@ -32,9 +31,9 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	{
 		stack.memory.heap[f.adress_t[i] ] = eval( f.transform(i),x,y,z,t,u,v,w) ;
 	}
+	if(f.values.size())
+		std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
 	
-	std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
-	  
 	for(size_t i = 0 ; i < size  ; ++i)
 	{
 #define REG_A stack.memory.heap[f.adress_a[i*4]]
@@ -184,7 +183,6 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 			}
 		}
 
-	}
 	}
 	return  stack.memory.heap[8] ;
 	

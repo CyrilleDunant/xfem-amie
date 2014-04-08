@@ -1039,15 +1039,29 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			}
 			case TWFT_ENRICHMENT:
 			{
-				BimaterialInterface * toto = dynamic_cast<BimaterialInterface *>(tri->getBehaviour()) ;
-				double enr = 0. ;
-				if(toto != nullptr)
-					enr = 5. ;
-				double rnd = 0.5*rand()/RAND_MAX ;
-				ret[2] = rnd + tri->getEnrichmentFunctions().size() ;
-				ret[1] = rnd + tri->getEnrichmentFunctions().size() ;
-				ret[0] = rnd + tri->getEnrichmentFunctions().size() ;
+				ret[2] = tri->getEnrichmentFunctions().size() ;
+				ret[1] = tri->getEnrichmentFunctions().size() ;
+				ret[0] = tri->getEnrichmentFunctions().size() ;
 				found = true ;
+				break ;
+			}
+			case TWFT_INTERSECTION:
+			{
+				if(intersection)
+				{
+					bool inter = tri->intersects(intersection) ;
+					ret[2] = inter ;
+					ret[1] = inter ;
+					ret[0] = inter ;
+					found = true ;
+				}
+				else
+				{
+					ret[2] = 0 ;
+					ret[1] = 0 ;
+					ret[0] = 0 ;
+					found = true ;
+				}
 				break ;
 			}
 			case TWFT_CRACKS:
@@ -1325,6 +1339,8 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
 			return 3 ;
 		case TWFT_STIFFNESS_Z:
 			return 3 ;
+		case TWFT_INTERSECTION:
+			return 3 ;
 /*		case TWFT_STRAIN:
 			return 9 ;*/
 		case TWFT_PRINCIPAL_STRAIN:
@@ -1394,6 +1410,8 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
 			return std::string("Principal Strain") ;
 		case TWFT_PRINCIPAL_STRESS:
 			return std::string("Principal Stress") ;
+		case TWFT_INTERSECTION:
+			return std::string("Intersection") ;
 /*		case TWFT_STRAIN_AND_STRESS:
 			return std::string("Strains and Stress") ;
 		case TWFT_STRESS:

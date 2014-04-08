@@ -2236,12 +2236,26 @@ std::vector<DelaunayTriangle *> DelaunayTree::conflicts(const Geometry *g)
 	DelaunayTriangle * origin = nullptr ;
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
-		if(cons[i]->isTriangle && static_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()))
+		if(cons[i]->isTriangle && (static_cast<DelaunayTriangle *>(cons[i])->in(g->getCenter()) || static_cast<DelaunayTriangle *>(cons[i])->intersects(g)))
 		{
 			origin = static_cast<DelaunayTriangle *>(cons[i]) ;
 			break ;
 		}
 	}
+	if(!origin)
+	{
+		std::vector<DelaunayTriangle *> cons = getTriangles(true) ;
+		
+		for(size_t i = 0 ; i < cons.size() ; i++)
+		{
+			if(cons[i]->in(g->getCenter()) || cons[i]->intersects(g))
+			{
+				origin = cons[i] ;
+				break ;
+			}
+		}
+	}
+	
 	
 	return getNeighbouringElementsInGeometry(origin, g) ;
 	
@@ -2449,20 +2463,12 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
 		}
 	}
-	
-//	std::cout << getGaussPoints().gaussPoints.size() ;
-	
-/*	if(behaviour->isViscous())
-	{
-		size_t gp = getGaussPoints().gaussPoints.size() ;
-		Jinv.resize( gp*3 ) ;
-		
-		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
-		{
-			getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
-//			getSecondJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[gp+i], Jinv[gp*2+i]) ;
-		}
-	}*/
+// 	if(getEnrichmentFunctions().size())
+// 	{
+// 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
+// 			std::cout <<  getGaussPoints().gaussPoints[i].first.x << "   " <<  getGaussPoints().gaussPoints[i].first.y << std::endl ; 
+// 		exit(0) ;
+// 	}
 
 	size_t start = 0 ;
 	size_t startEnriched = 0 ;
@@ -2473,9 +2479,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	if(behaviour->isSymmetric())
 	{
+		VirtualMachine vm ;
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{
-			VirtualMachine vm ;
+			
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 			
 			for(size_t j = 0 ; j < i ; j++)
@@ -2492,7 +2499,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			VirtualMachine vm ;
 			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = 0 ; j < i ; j++)
@@ -2506,9 +2512,10 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 	}
 	else
 	{
+		VirtualMachine vm ;
 		for(size_t i = start ; i < getShapeFunctions().size() ; i++)
 		{
-			VirtualMachine vm ;
+			
 			behaviour->apply(getShapeFunction(i), getShapeFunction(i),getGaussPoints(), Jinv, cachedElementaryMatrix[i][i], &vm) ;
 
 			for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
@@ -2523,9 +2530,9 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 			}
 		}
 
+
 		for(size_t i = startEnriched ; i < getEnrichmentFunctions().size() ; i++)
 		{
-			VirtualMachine vm ;
 			behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			
 			for(size_t j = i+1 ; j < getEnrichmentFunctions().size() ; j++)
@@ -2534,6 +2541,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 				behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),getGaussPoints(), Jinv,cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
 			}
 		}
+
 	}
 
 	enrichmentUpdated = false ;
@@ -2859,12 +2867,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 	}
 
 	GaussPointArray gp = getGaussPoints() ; 
-	size_t numberOfRefinements = 4 ;
-	
+	size_t numberOfRefinements = 3 ;
+	if(getEnrichmentFunctions().size() > 3)
+		numberOfRefinements = 5 ;
 	double tol = 1e-8 ;
 	double position_tol = 4.*POINT_TOLERANCE_2D ;
 	VirtualMachine vm ;
-	if(getEnrichmentFunctions().size() > 0 )
+	if(getEnrichmentFunctions().size() > 0)
 	{
 		double originalSum = 0 ;
 		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
@@ -2998,6 +3007,53 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		else
 		{
 	  
+		if( false )
+		{
+			TriElement father(LINEAR) ;
+			
+			int target = 64 ;
+			
+			double npoints = 8 ;
+
+			while(gp_alternative.size() < target)
+			{
+				for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+				{
+					for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+					{
+						Point test = Point(i,j);
+// 							inLocalCoordinates(test).print();
+						if( father.in( test ) )
+						{
+							gp_alternative.push_back( std::make_pair( test, 1. / 2. ) ) ;
+						}
+					}
+				}
+				if(gp_alternative.size() < target)
+				{
+					npoints += 2 ;
+					gp_alternative.clear();
+				}
+				
+			}
+
+			double fsum = 0 ;
+			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+				fsum += gp_alternative[i].second ;
+			for( size_t i = 0 ; i < gp_alternative.size() ; i++ )
+				gp_alternative[i].second *= originalSum/fsum ;
+
+			if( gp.gaussPoints.size() != gp_alternative.size() )
+			{
+				gp.gaussPoints.resize( gp_alternative.size() ) ;
+				std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
+			}
+
+			gp.id = REGULAR_GRID ;
+			setCachedGaussPoints( new GaussPointArray( gp ) ) ;
+			return *getCachedGaussPoints() ;
+		}
+			
 	  
 // 		if(getCachedGaussPoints()->id == REGULAR_GRID)
 // 			return *getCachedGaussPoints() ;
@@ -3148,7 +3204,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 
 	GaussPointArray gp = getGaussPoints() ; 
 	
-	if(getEnrichmentFunctions().size() > 0)
+	if(getEnrichmentFunctions().size() > 0 )
 	{
 		VirtualMachine vm ;
 		double ndivs = 2 ;
@@ -3248,7 +3304,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 	setCachedGaussPoints(new GaussPointArray(gp));
 	return *getCachedGaussPoints();
 }
-
 
 Vector DelaunayTriangle::getNonLinearForces()
 {

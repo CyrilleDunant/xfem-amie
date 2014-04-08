@@ -4605,7 +4605,7 @@ void FeatureTree::stepXfem()
 
 			std::cerr << " ...done. " << std::endl ;
 			
-			#pragma omp parallel for schedule(runtime)
+// 			#pragma omp parallel for schedule(runtime)
 			for( size_t i = 0 ; i < tree.size() ; i++ )
 			{
 				if( tree[i]->isEnrichmentFeature )
@@ -4625,9 +4625,10 @@ void FeatureTree::stepXfem()
 								dynamic_cast<EnrichmentFeature *>( tree[i] )->step( deltaTime, &coarseAssemblies[j]->getForces(), coarseTrees[j] ) ;
 							}
 						}
+						needAssembly = true ;
 					}
 
-					needAssembly = true ;
+					
 				}
 				else if( tree[i]->isUpdated )
 				{
@@ -4643,7 +4644,7 @@ void FeatureTree::stepXfem()
 		else if( is3D() )
 		{
 
-			#pragma omp parallel for schedule(runtime)
+// 			#pragma omp parallel for schedule(runtime)
 			for( size_t i = 0 ; i < tree.size() ; i++ )
 			{
 				if( tree[i]->isEnrichmentFeature )

@@ -3755,17 +3755,28 @@ bool Segment::intersects(const Geometry *g) const
 			bool ret = false ;	
 			std::vector<Point> pts ;
 			std::multimap<double, Point> pt ;
-			for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
+			if( g->getBoundingPoints().size() != 3)
 			{
-				pt.insert(std::make_pair(
-				std::abs(
-				squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()*g->getRadius()), g->getBoundingPoint(i)));
+				for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
+				{
+					pt.insert(std::make_pair(
+					std::abs(
+					squareDist2D(dynamic_cast<const Triangle *>(g)->getCircumCenter(), g->getBoundingPoint(i))-g->getRadius()*g->getRadius()), g->getBoundingPoint(i)));
+				}
+				int count  = 0 ;
+				for(auto i = pt.begin() ; count < 3 ; i++ )
+				{ 
+					count++ ;
+					pts.push_back(i->second);
+				}
 			}
-			auto ptend = pt.begin() ;
-			ptend++ ; ptend++ ; ptend++ ;
-	
-			for(auto i = pt.begin() ; i != ptend ; ++i )
-				pts.push_back(i->second);
+			else
+			{
+				pts.push_back(g->getBoundingPoint(0));
+				pts.push_back(g->getBoundingPoint(1));
+				pts.push_back(g->getBoundingPoint(2));
+			}
+
 
 			if(this->on(pts[0]) || this->on(pts[1]) || this->on(pts[2]))
 				return true ;

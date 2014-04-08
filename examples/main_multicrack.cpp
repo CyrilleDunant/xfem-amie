@@ -147,7 +147,7 @@ bool nothingToAdd = false ;
 bool dlist = false ;
 int count = 0 ;
 double aggregateArea = 0;
-
+BranchedCrack * Crack1 ;
 void step(size_t nsteps)
 {
 	
@@ -437,8 +437,10 @@ void step(size_t nsteps)
 		
 			MultiTriangleWriter writerm( "displacements_enrichment", "displacements_enrichment", nullptr ) ;
 		writerm.reset( featureTree ) ;
-		writerm.getField( STRAIN_FIELD ) ;
+		writerm.setGeometry(Crack1->getPrimitive());
 		writerm.getField( REAL_STRESS_FIELD ) ;
+		writerm.getField( TWFT_INTERSECTION ) ;
+		writerm.getField( TWFT_ENRICHMENT ) ;
 		writerm.append() ;
 		writerm.writeSvg(50, true) ;
 		exit(0) ;
@@ -456,6 +458,7 @@ void step(size_t nsteps)
 	// 		std::cout << filename.str() << std::endl ;
 
 			TriangleWriter writer(filename.str(), featureTree) ;
+			writer.setGeometry(Crack1->getPrimitive());
 			writer.getField(REAL_STRESS_FIELD ) ;
 			writer.getField(STRAIN_FIELD ) ;
 			writer.getField(TWFT_CRITERION) ;
@@ -485,11 +488,10 @@ int main(int argc, char *argv[])
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 	
-	Point * a = new Point(-0.2,0) ;//MY
-	Point * b = new Point(0.2,0) ;//MY
-	BranchedCrack * Crack1 = new BranchedCrack( a,  b);//MY
-	Crack1->setEnrichementRadius(0.005);
-	
+	Point * a = new Point(-0.025,0) ;//MY
+	Point * b = new Point(0.025,0) ;//MY
+	Crack1 = new BranchedCrack( a,  b);//MY
+	Crack1->setEnrichementRadius(0.01);
 	
 // 	Vector e(0.,3) ;
 // 	ExpansiveZone inc(&sample,.03, 0, 0, Material::cauchyGreen(std::make_pair(E_paste*4,nu), true,SPACE_TWO_DIMENSIONAL), e) ;
@@ -500,6 +502,7 @@ int main(int argc, char *argv[])
 	sample.setBehaviour(new ElasticOnlyPasteBehaviour(E_paste, nu)) ;
 
  	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA , TOP, .001)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI , TOP, 0)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(SET_ALONG_ETA , Point(0, -1), -0.001)) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_ETA , Point(0, 1))) ;
 // 	F.addBoundaryCondition(new ProjectionDefinedBoundaryCondition(FIX_ALONG_XI , Point(0, 1))) ;

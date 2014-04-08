@@ -42,7 +42,7 @@ typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
 
 // typedef std::vector<double> Memory ;
-const size_t HEAP_SIZE = 8192 ;
+const size_t HEAP_SIZE = 12000 ;
 
 /** \brief Memory structure for the VirtualMachine. It provides a stack and a heap.
 */
@@ -301,7 +301,7 @@ class PositionOperation : public GeometryOperation
 public:
 	PositionOperation(const Segment & s_ ) 
 	{
-		Point vector(-s_.vector().y, s_.vector().x) ;
+		Point vector = s_.normal(Point(-1000, -1000));
 		w=( s_.midPoint()+vector*10.) ;
 		s.push_back(s_)  ;
 	}
@@ -312,7 +312,7 @@ public:
 		{
 			s.push_back(s_[i])  ;
 		}			
-		Point vector(-s_[0].vector().y, s_[0].vector().x) ;
+		Point vector= s_[0].normal(Point(-1000, -1000));
 		w=( s_[0].midPoint()+vector*10.) ;
 	}
 	virtual void eval(double * a, double * b, double * c) const

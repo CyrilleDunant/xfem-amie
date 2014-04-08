@@ -519,26 +519,13 @@ void Assembly::initialiseElementaryMatrices()
 {
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
-//	std::cerr << "Generating elementary matrices..." << std::flush ;
-// 	bool cannotParallelize = false ;
-// 	for(size_t i = 0 ; i < element2d.size() ; i++)
-// 	{
-// 		if(dynamic_cast<BimaterialInterface *>(element2d[i]->getBehaviour()))
-// 		{
-// 			cannotParallelize = true ;
-// 			break ;
-// 		}
-// 	}
 
-// 	if(true)
-// 	{
 		if(dim == SPACE_TWO_DIMENSIONAL)
 		{
 // 			#pragma omp parallel for
 			for(size_t i = 0 ; i < element2d.size() ; i++)
 			{
-				if(i%10000 == 0)
-					std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
+				std::cerr << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 				if(element2d[i]->getBehaviour())
 				{
 					element2d[i]->getElementaryMatrix() ;
@@ -562,30 +549,6 @@ void Assembly::initialiseElementaryMatrices()
 				}
 			}
 		}
-// 	}
-// 	else
-// 	{
-// 		if(dim == SPACE_TWO_DIMENSIONAL)
-// 		{
-// 			#pragma omp parallel for 
-// 			for(size_t i = 0 ; i < element2d.size() ; i++)
-// 			{
-// 				if(element2d[i]->getBehaviour())
-// 					element2d[i]->getElementaryMatrix() ;
-// 			}
-// 		}
-// 		else if(dim == SPACE_THREE_DIMENSIONAL)
-// 		{
-// 			#pragma omp parallel for 
-// 			for(size_t i = 0 ; i < element3d.size() ; i++)
-// 			{
-// 				if(element3d[i]->getBehaviour())
-// 				{
-// 					element3d[i]->getElementaryMatrix() ;
-// 				}
-// 			}
-// 		}
-// 	}
 
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
@@ -626,8 +589,7 @@ void Assembly::initialiseElementaryMatrices(TriElement * father)
 	for(size_t i = 0 ; i < element2d.size() ; i++)
 	{
 		
-		if(i%10000 == 0)
-			std::cerr << "\rGenerating elementary matrices... triangle " << i << "/" << element2d.size() << std::flush ;
+		std::cerr << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
 		if(element2d[i]->getBehaviour())
 		{
 			element2d[i]->getElementaryMatrix() ;

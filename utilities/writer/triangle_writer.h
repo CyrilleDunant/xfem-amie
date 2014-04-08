@@ -45,6 +45,7 @@ typedef enum
 	TWFT_GRADIENT_AND_FLUX,
 	TWFT_VON_MISES,
 	TWFT_CRACKS,
+	TWFT_INTERSECTION,
 	TWFT_FIELD_TYPE
 } TWFieldType ;
 
@@ -65,15 +66,21 @@ protected:
 	std::map<size_t, FieldType> fieldsOther ;
 	std::map<int, size_t> layerTranslator ;
 	int counter ;
-
+	const Geometry * intersection = nullptr;
 public:
 	
-	 int getCounter() { return counter ; }
-   void nextCounter() 
+	int getCounter() { return counter ; }
+	void nextCounter() 
 	{
 		counter++ ; 
 		filename = base + std::string("_") + itoa(counter) ; 
 	}
+	
+	void setGeometry (const Geometry * in) 
+	{
+		intersection = in ;
+	}
+	
 	/** \brief simple constructor, get immediately the coordinates of the triangles contained in F */
 	TriangleWriter(std::string f, FeatureTree * F = nullptr, int t = 0) ;
 
