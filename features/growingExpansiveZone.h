@@ -36,7 +36,7 @@ public:
 
 	virtual bool moved() const { return changed ; } ;
 	
-	virtual void step(double dt, std::valarray<double> *, const  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *, Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
 
 public:
 	GEO_DERIVED_OBJECT(TimeDependentCircle) ;

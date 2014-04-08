@@ -404,9 +404,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 	
 	
-bool EnrichmentInclusion::interacts(Feature * f, double d) const { return false ;}
-void EnrichmentInclusion::snap(DelaunayTree * dtree) {}
-	
+bool EnrichmentInclusion::interacts(Feature * f, double d) const { return false ;}	
 bool EnrichmentInclusion::inBoundary(const Point v) const {return false ; }
 bool EnrichmentInclusion::inBoundary(const Point *v) const { return false ;}
 	

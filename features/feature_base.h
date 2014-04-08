@@ -299,10 +299,10 @@ public:
 	virtual void enrich(size_t & , Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;
 	
 	/** \brief update enrichment geometry*/
-	virtual void step(double dt, Vector *, const Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { };
+	virtual void step(double dt, Vector *, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) { };
 
 	/** \brief update enrichment geometry*/
-	virtual void step(double dt, Vector *, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { };
+	virtual void step(double dt, Vector *, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { };
 	
 	virtual void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) { } ;
 	virtual void update(Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) { } ;

@@ -229,7 +229,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 }
 
-void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 {
 	TimeDependentEnrichmentInclusion::step(dt, results, dtree) ;
 

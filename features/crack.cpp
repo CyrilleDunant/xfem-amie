@@ -16,7 +16,7 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	boundingPoints[0] = a ;
 	boundingPoints[1] = b ;
 	this->SegmentedLine::center = *a ;
-	scorePropagation = true ;
+	scorePropagation = false ;
 	if(father->in(*a))
 		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
 	if(father->in(*b))
@@ -36,7 +36,7 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 
 BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(nullptr), SegmentedLine(std::valarray<Point * >(2))
 {
-	scorePropagation = true ;
+	scorePropagation = false ;
 	if(a->x < b->x)
 	{
 		boundingPoints[0] = a ;
@@ -1150,53 +1150,53 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 // 		Function s = f_sign(e->getYTransform()) ;
 
 		int usedId = 0 ;
-		if(done.find(&e->getBoundingPoint(0)) == done.end())
+		if(done.find(e->first) == done.end())
 		{
-			done[&e->getBoundingPoint(0)] = lastId ;
+			done[e->first] = lastId ;
 			usedId = lastId ;
 			lastId++ ;
 		}
 		else
 		{
-			usedId = done[&e->getBoundingPoint(0)] ;
+			usedId = done[e->first] ;
 		}
 
 		
 		Function f = shapefunc[0]*(s - vm.eval ( s, Point ( 0,1 ) )) ;
 		f.setIntegrationHint ( hint ) ;
-		f.setPoint (&e->getBoundingPoint(0) ) ;
+		f.setPoint ( e->first ) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 		
-		if(done.find(&e->getBoundingPoint(1)) == done.end())
+		if(done.find(e->second) == done.end())
 		{
-				done[&e->getBoundingPoint(1)] = lastId ;
+				done[e->second] = lastId ;
 				usedId = lastId ;
 				lastId++ ;
 		}
 		else
 		{
-			usedId = done[&e->getBoundingPoint(1)] ;
+			usedId = done[e->second] ;
 		}
 		f = shapefunc[1]*(s - vm.eval(s, Point(0,0))) ;
-		f.setPoint ( &e->getBoundingPoint(1)) ;
+		f.setPoint ( e->second) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 
-		if(done.find(&e->getBoundingPoint(2)) == done.end())
+		if(done.find(e->third) == done.end())
 		{
-			done[&e->getBoundingPoint(2)] = lastId ;
+			done[e->third] = lastId ;
 			usedId = lastId ;
 			lastId++ ;
 		}
 		else
 		{
-			usedId = done[&e->getBoundingPoint(2)] ;
+			usedId = done[e->third] ;
 		}
 		
 		f = shapefunc[2] *(s - vm.eval(s, Point(1,0)))  ;
 
-		f.setPoint (&e->getBoundingPoint(2) ) ;
+		f.setPoint (e->third ) ;
 		f.setDofID ( usedId ) ;
 		e->setEnrichment ( f , getPrimitive() ) ;
 
@@ -1604,7 +1604,7 @@ void BranchedCrack::setEnergyPropagationMethod()
 	scorePropagation = false ;
 }
 
-void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
+void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
 {
 	changed = false ;
 	isUpdated = false ;
@@ -1613,9 +1613,11 @@ void BranchedCrack::step(double dt, Vector* v, Mu::Mesh< DelaunayTriangle, Delau
 	double pdistance = enrichementRadius * .5 ;
 	if(!scorePropagation)
 	{
+		std::cout << "padum !" << std::endl ;
 		for(size_t i = 0 ; i < tips.size() ; i++)
 		{
 			std::pair<double, double> energy  = computeJIntegralAtTip(tips[i], dtree);
+			std::cout << i << "  " << energy.first << "  " << energy.second << std::endl ;
 			if(energy.first*energy.first + energy.second*energy.second > 0)
 			{
 				tipsToGrow.push_back(tips[i].first) ;

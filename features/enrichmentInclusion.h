@@ -48,9 +48,6 @@ public:
 /** \brief return false*/
 	virtual bool interacts(Feature * f, double d) const ;
 
-/** \brief do nothing*/
-	virtual void snap(DelaunayTree * dtree) ;
-	
 /** \brief return false*/
 	virtual bool inBoundary(const Point v) const ;
 

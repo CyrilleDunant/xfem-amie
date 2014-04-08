@@ -346,7 +346,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 //	updated = true ;*/
 }
 	
-void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 {
 	if(dt > POINT_TOLERANCE_2D)
 	{
@@ -573,7 +573,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 }
 
 
-void TimeDependentHomogenisingInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+void TimeDependentHomogenisingInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 {
 	if(dt > POINT_TOLERANCE_2D)
 	{

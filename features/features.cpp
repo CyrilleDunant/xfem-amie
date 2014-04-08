@@ -4602,14 +4602,14 @@ void FeatureTree::stepXfem()
 		if( is2D() )
 		{
 			std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
-
-			std::cerr << " ...done. " << std::endl ;
 			
 // 			#pragma omp parallel for schedule(runtime)
 			for( size_t i = 0 ; i < tree.size() ; i++ )
 			{
 				if( tree[i]->isEnrichmentFeature )
 				{
+					std::cout << "padam !" << std::endl ;
+					
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->step( deltaTime, &K->getForces(), dtree ) ;
 					bool moved = dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() ;
 					enrichmentChange = enrichmentChange || moved;
