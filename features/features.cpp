@@ -3558,7 +3558,7 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 
 Vector FeatureTree::stressFromDisplacements()
 {
-	state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+	state.setStateTo( XFEM_STEPPED, false ) ;
 
 	VirtualMachine vm ;
 	if( dtree)
@@ -3620,7 +3620,7 @@ Vector FeatureTree::stressFromDisplacements()
 const Vector &FeatureTree::getDisplacements( int g, bool stepTree )
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( g == -1 || !useMultigrid )
 		return K->getDisplacements() ;
@@ -3635,7 +3635,7 @@ const Vector &FeatureTree::getDisplacements( int g, bool stepTree )
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTree )
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	VirtualMachine vm ;
 	if( dtree)
@@ -3729,7 +3729,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( int g, bool stepTre
 std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool stepTree )
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 	
 	VirtualMachine vm ;
 
@@ -3818,7 +3818,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer( int g, bool 
 std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool stepTree)
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	VirtualMachine vm ;
 	if( dtree != nullptr )
@@ -3902,7 +3902,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInAllLayers( bool ste
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( int g , bool stepTree)
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != nullptr )
 	{
@@ -3999,7 +3999,7 @@ std::vector<int>FeatureTree:: listLayers() const
 std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool stepTree )
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != nullptr )
 	{
@@ -4071,7 +4071,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<DelaunayTetrahedron *> & tets , bool stepTree)
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 	std::pair<Vector , Vector > stress_strain( Vector( 4 * 3 * tets.size() ), Vector( 4 * 3 * tets.size() ) ) ;
 
 	for( size_t i  = 0 ; i < tets.size() ; i++ )
@@ -4106,7 +4106,7 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux( const std::vector<D
 std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<DelaunayTetrahedron *> & tets, bool stepTree )
 {
 	if(stepTree)
-		state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+		state.setStateTo( XFEM_STEPPED, false ) ;
 	std::pair<Vector , Vector > stress_strain( Vector( tets[0]->getBoundingPoints().size() * 6 * tets.size() ), Vector( tets[0]->getBoundingPoints().size() * 6 * tets.size() ) ) ;
 
 	for( size_t i  = 0 ; i < tets.size() ; i++ )
@@ -4140,7 +4140,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain( const std::vector<D
 
 Vector FeatureTree::strainFromDisplacements()
 {
-	state.setStateTo( BEHAVIOUR_STEPPED, false ) ;
+	state.setStateTo( XFEM_STEPPED, false ) ;
 
 	if( dtree != nullptr )
 	{
@@ -4608,7 +4608,6 @@ void FeatureTree::stepXfem()
 			{
 				if( tree[i]->isEnrichmentFeature )
 				{
-					std::cout << "padam !" << std::endl ;
 					
 					dynamic_cast<EnrichmentFeature *>( tree[i] )->step( deltaTime, &K->getForces(), dtree ) ;
 					bool moved = dynamic_cast<EnrichmentFeature *>( tree[i] )->moved() ;
@@ -5443,6 +5442,14 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 	if( s == SOLVED )
 		return ;
 
+	if( !behaviourStepped )
+	{
+		ft->stepElements();
+		behaviourStepped = true ;
+	}
+	if( s == BEHAVIOUR_STEPPED )
+		return ;
+	
 	if( !xfemStepped )
 	{
 		ft->stepXfem();
@@ -5451,13 +5458,6 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 	if( s == XFEM_STEPPED )
 		return ;
 
-	if( !behaviourStepped )
-	{
-		ft->stepElements();
-		behaviourStepped = true ;
-	}
-	if( s == BEHAVIOUR_STEPPED )
-		return ;
 
 	
 }
@@ -5508,7 +5508,7 @@ bool FeatureTree::step()
 					timec->goToNext = stateConverged ;
 			}
 		}
-		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
+		state.setStateTo( XFEM_STEPPED, true ) ;
  		deltaTime = 0 ;
 		if( solverConverged() )
 		{
@@ -5577,7 +5577,7 @@ bool FeatureTree::stepToCheckPoint()
 		}
 	}
 
-	state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
+	state.setStateTo( XFEM_STEPPED, true ) ;
 	int notConvergedCounts = 0 ;
 	
 	do
@@ -5607,7 +5607,7 @@ bool FeatureTree::stepToCheckPoint()
 			}
 		}
 
-		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
+		state.setStateTo( XFEM_STEPPED, true ) ;
 
 	}while ( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
 	
@@ -5636,7 +5636,7 @@ bool FeatureTree::stepToCheckPoint()
 		scaleBoundaryConditions(downmultiplier);
 		deltaTime = realdt ;
 		elasticStep();
-// 		state.setStateTo( BEHAVIOUR_STEPPED, true ) ;
+// 		state.setStateTo( XFEM_STEPPED, true ) ;
 		if( solverConverged() )
 		{
 			std::cout << ":" << std::flush ;

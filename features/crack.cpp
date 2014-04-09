@@ -16,11 +16,18 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	boundingPoints[0] = a ;
 	boundingPoints[1] = b ;
 	this->SegmentedLine::center = *a ;
+	branches.push_back ( this ) ;
 	scorePropagation = false ;
+	
+	Segment seg1(*a, *b) ;
+	Segment seg0(*b, *a) ;
+	double angle1 = seg1.normal().angle() ;
+	double angle0 = seg0.normal().angle() ;
+	
 	if(father->in(*a))
-		tips.push_back(std::make_pair(a, atan2(a->y-b->y, a->x-b->x))) ;
+		tips.push_back(std::make_pair(boundingPoints[0], angle0)) ;
 	if(father->in(*b))
-		tips.push_back(std::make_pair(b, atan2(a->y-b->y, a->x-b->x))) ;
+		tips.push_back(std::make_pair(boundingPoints[1], angle1)) ;
 
 	changed = false ;
 	isUpdated = false ;
@@ -36,27 +43,20 @@ bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
 
 BranchedCrack::BranchedCrack(Point * a, Point * b) : EnrichmentFeature(nullptr), SegmentedLine(std::valarray<Point * >(2))
 {
-	scorePropagation = false ;
-	if(a->x < b->x)
-	{
-		boundingPoints[0] = a ;
-		boundingPoints[1] = b ;
-		this->SegmentedLine::center = *a ;
-	}
-	else
-	{
-		boundingPoints[0] = a ;
-		boundingPoints[1] = b ;
-		this->SegmentedLine::center = *b ;
-	}
+	boundingPoints[0] = a ;
+	boundingPoints[1] = b ;
+	this->SegmentedLine::center = *a ;
 	branches.push_back ( this ) ;
-
-	tips.push_back(std::make_pair(boundingPoints[0], -atan2(boundingPoints[0]->y-boundingPoints[1]->y, boundingPoints[0]->x-boundingPoints[1]->x))) ;
-// 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
-// 		tips.back().second = - M_PI ; 
-	tips.push_back(std::make_pair(boundingPoints[1], -atan2(boundingPoints[1]->y-boundingPoints[0]->y, boundingPoints[1]->x-boundingPoints[0]->x))) ;
-// 	if(std::abs(tips.back().second - M_PI) < std::numeric_limits<double>::epsilon())
-// 		tips.back().second = - M_PI ; 
+	scorePropagation = false ;
+	
+	Segment seg1(*a, *b) ;
+	Segment seg0(*b, *a) ;
+	
+	double angle1 = seg1.normal().angle() ;
+	double angle0 = seg0.normal().angle() ;
+	
+	tips.push_back(std::make_pair(boundingPoints[0], angle0)) ;
+	tips.push_back(std::make_pair(boundingPoints[1], angle1)) ;
 
 	changed = false ;
 	isUpdated = false ;
@@ -248,7 +248,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	double acount = 0 ;
 	double aangle = 0 ;
 		
-	Point lastDir( cos(tip.second) , sin(tip.second)) ;
+	Point lastDir( sin(tip.second) , cos(tip.second)) ;
 	
 	Circle c(enrichementRadius, *(tip.first)) ;
 	std::vector<DelaunayTriangle*> disk = dtree->getConflictingElements (&c) ;
@@ -314,9 +314,12 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	
 	if ( acount )
 		aangle /= acount ;
-	aangle += M_PI*.25 ;
-	if(std::abs(aangle-tip.second) > M_PI*.5)
-		aangle += M_PI ;
+// 	aangle += M_PI*.25 ;
+// 	if(std::abs(aangle-tip.second) > M_PI*.5)
+// 		aangle += M_PI ;
+// 	std::cout << "!!!" << std::endl ;
+// 	std::cout << aangle << std::endl ;
+// 	std::cout << "!!!" << std::endl ;
 	return aangle ;
 }
 
@@ -324,7 +327,7 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 {
 	Point direction ( cos(tip.second), sin(tip.second)) ;
 	Segment tipSegment ( *(tip.first) , direction) ;
-	Circle c ( enrichementRadius, *(tip.first) ) ;
+	Circle c ( enrichementRadius*.5, *(tip.first) ) ;
 	
 	
 	std::vector<DelaunayTriangle *> disk = dtree->getConflictingElements ( &c ) ;
@@ -425,8 +428,8 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 				Vector T = sigma * stepLengthal ;
 				
 				
-				ilocal0 += ( 0.5*sigma_epsilon*stepLengthal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second  ;
-				ilocal1 += ( 0.5*sigma_epsilon*stepLengthal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second;
+				ilocal0 += ( 0.5*sigma_epsilon*stepLengthal[0] - ( T[0]*epsilon[0][0] + T[1]*epsilon[0][1] ) ) *gaussPoints[k].second ;
+				ilocal1 += ( 0.5*sigma_epsilon*stepLengthal[1] - ( T[0]*epsilon[0][1] + T[1]*epsilon[1][1] ) ) *gaussPoints[k].second ;
 				
 			}
 			freeEnergy0 += ilocal0*gamma[j].first->norm() ;
@@ -465,8 +468,7 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 		}
 	}
 
-	tips.push_back ( std::make_pair(newTip, atan2(newTip->y-fromTip->y, newTip->x-fromTip->x)) ) ;
-
+	tips.push_back ( std::make_pair(newTip, Segment(*fromTip,*newTip).normal().angle()) ) ;
 	
 	std::valarray<Point *> newBP ( branchToExtend->getBoundingPoints().size() +1 ) ;
 	if ( fromHead )
@@ -803,7 +805,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
-	double angle = tip.second-M_PI*.5;
+	double angle = tip.second;
 	TriElement father (triangles[0]->getOrder()) ;
 	std::valarray<Function> shapefunc = TriElement ( LINEAR ).getShapeFunctions() ;
 	
@@ -1611,16 +1613,16 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
 	double pdistance = enrichementRadius * .5 ;
+	std::vector<double> originalAngles ;
 	if(!scorePropagation)
 	{
-		std::cout << "padum !" << std::endl ;
 		for(size_t i = 0 ; i < tips.size() ; i++)
 		{
 			std::pair<double, double> energy  = computeJIntegralAtTip(tips[i], dtree);
-			std::cout << i << "  " << energy.first << "  " << energy.second << std::endl ;
 			if(energy.first*energy.first + energy.second*energy.second > 0)
 			{
 				tipsToGrow.push_back(tips[i].first) ;
+				originalAngles.push_back(tips[i].second);
 				changed = true ;
 				isUpdated = true ;
 				angles.push_back(propagationAngleFromTip(tips[i], dtree)) ;
@@ -1650,8 +1652,13 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 	
 	for(size_t i = 0 ; i < tipsToGrow.size() ; i++)
 	{
-		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x + pdistance * cos(angles[i]),
-																	tipsToGrow[i]->y + pdistance * sin(angles[i]))) ;
+		std::cout << "angle  : " << originalAngles[i] << ", direction =  " << angles[i] << std::endl ;
+		double sign = -1 ;
+		if(originalAngles[i] < 0)
+			sign = 1 ;
+				
+		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x + sign * pdistance * cos(angles[i]),
+																	tipsToGrow[i]->y + sign * pdistance * sin(angles[i]))) ;
 	}
 }
 

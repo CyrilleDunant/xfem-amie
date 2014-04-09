@@ -443,7 +443,6 @@ void step(size_t nsteps)
 		writerm.getField( TWFT_ENRICHMENT ) ;
 		writerm.append() ;
 		writerm.writeSvg(50, true) ;
-		exit(0) ;
 		
 		if(true)
 		{

@@ -46,7 +46,7 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
-	double npores = 1000 ;
+	double npores = 1500 ;
 	double poreArea = 0. ;
 	std::vector<double> radii ; 
 	//p=0.165, u=-5.15, s=0.3
@@ -55,10 +55,10 @@ int main(int argc, char *argv[])
 	
 	//P0=45 - p=0.200, u=-5.35, s=0.4
 	//P0=80 - p=0.175, u=-5.20, s=0.4
-	std::lognormal_distribution<double> distribution(-5.20,0.4) ;
+	std::lognormal_distribution<double> distribution(atof(argv[1]),atof(argv[2])) ;
 	std::default_random_engine generator;
 	
-	double poreFraction = 0.175; 
+	double poreFraction = atof(argv[3]); 
 	double bulk = 13.9 ;
 	double shear = 8.75 ;
 	double E = .33333*(9.*bulk*shear)/(3.*bulk+shear) ;
@@ -100,37 +100,52 @@ int main(int argc, char *argv[])
 //	 Pour le système peu expansif P0=45.45 [MPa]
 //	 Celui expansif P0=80.4 [MPa]
 	
-	double criticalRadius = 15 ;
-	double poresUnderPressure = 0 ;
+	std::vector<GeometryDefinedBoundaryCondition *> boundaryConditions ;
 	for(size_t i = 0 ; i < pores.size() ; i++)
 	{
-		double pressure = atof(argv[1])-200./(pores[i]->getRadius()-1.5) ;
-		
-		if(pressure > 0 && pores[i]->getRadius() > 1.5)
-		{
-			pressure = std::min(200./(pores[i]->getRadius()-1.5), atof(argv[1])) ;
-			ft.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), pressure*1e-3));
-			criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
-			poresUnderPressure += pores[i]->area() ;
-		}
+		boundaryConditions.push_back(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), 0)) ;
+		ft.addBoundaryCondition(boundaryConditions.back()) ;
 	}
+
 	
 	ft.setOrder(LINEAR) ;
 	ft.setSamplingNumber(128);
-	ft.step() ;
-	std::vector<double> apparentStrain = ft.getMacroscopicStrain(s.getPrimitive()) ;
+	std::fstream outfile(argv[4], std::ios::out | std::ios::app) ;
+	outfile << "# p = " << atof(argv[3])<< ", u = " << atof(argv[1]) << ", s = " << atof(argv[2])  << std::endl ;
+	outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
 	
-	std::fstream outfile("p0_rad_frac_dx_dy_ssat80.txt", std::ios::out | std::ios::app) ;
-	outfile<< argv[1] << "   " << criticalRadius << "   "<< poresUnderPressure/poreArea << "   " << apparentStrain[0] << "   " << apparentStrain[1] << std::endl ;
+	for(double p = 10 ; p < 110 ; p+=2)
+	{
+		double criticalRadius = 50 ;
+		double poresUnderPressure = 0 ;
+		for(size_t i = 0 ; i < pores.size() ; i++)
+		{
+			double pressure = p-200./(pores[i]->getRadius()-1.5) ;
+			
+			if(pressure > 0 && pores[i]->getRadius() > 1.5)
+			{
+				pressure = std::min(200./(pores[i]->getRadius()-1.5), p) ;
+				boundaryConditions[i]->setData(pressure*1e-3) ;
+				criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
+				poresUnderPressure += pores[i]->area() ;
+			}
+		}
+		
+		ft.step() ;
+		std::vector<double> apparentStrain = ft.getMacroscopicStrain(s.getPrimitive()) ;
+		outfile<< p << "   " << criticalRadius << "   "<< poresUnderPressure/poreArea << "   " << apparentStrain[0] << "   " << apparentStrain[1] << std::endl ;
+
+		
+		MultiTriangleWriter writerm( "displacements_pores", "displacements_layer", nullptr ) ;
+		writerm.reset( &ft ) ;
+	// 	writerm.getField( PRINCIPAL_STRAIN_FIELD ) ;
+	// 	writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
+		writerm.append() ;
+		writerm.writeSvg(50, true) ;
+		
+	}
 	
-	MultiTriangleWriter writerm( "displacements_pores", "displacements_layer", nullptr ) ;
-	writerm.reset( &ft ) ;
-// 	writerm.getField( PRINCIPAL_STRAIN_FIELD ) ;
-// 	writerm.getField( PRINCIPAL_REAL_STRESS_FIELD ) ;
-	writerm.append() ;
-	writerm.writeSvg(50, true) ;
 	exit(0) ;
-	
 		
   return 0 ;
 }
