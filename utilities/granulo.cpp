@@ -498,27 +498,24 @@ double m;//pente
 }
 
 
-
-
-
 GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> columns)
 {
-    std::cout << "importing file: " << fname << std::endl ;
-    this->filename = fname ;
-    for(int i = 0 ; i < columns.size() ; i++)
-        this->fields.push_back(columns[i]) ;
+	std::cout << "importing file: " << fname << std::endl ;
+	this->filename = fname ;
+	for(int i = 0 ; i < columns.size() ; i++)
+		this->fields.push_back(columns[i]) ;
 
-    std::fstream filereader ;
-    filereader.open(this->filename.c_str(),std::ios::in); 
-    
-    while(!filereader.eof())
-    {
-	double buff ;
-        filereader >> buff ;
-        this->values.push_back(buff) ;
-    }
-    filereader.close() ;
-    std::cout << "done..." << std::endl ;
+	std::fstream filereader ;
+	filereader.open(this->filename.c_str(),std::ios::in); 
+	
+	while(!filereader.eof())
+	{
+		double buff ;
+		filereader >> buff ;
+		this->values.push_back(buff) ;
+	}
+	filereader.close() ;
+	std::cout << "done..." << std::endl ;
 }
 
 bool GranuloFromFile::verifyField(std::vector<std::string> columns)

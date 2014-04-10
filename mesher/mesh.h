@@ -52,7 +52,10 @@ namespace Mu
 			virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g) const
 			{
 				if(!start)
-					std::cout << "nullptr" << std::endl ;
+				{
+// 					std::cout << "nullptr" << std::endl ;
+					return std::vector<ETYPE *>() ;
+				}
 
 				std::set<ETYPE *> to_test ;
 				std::set<ETYPE *> found ;

@@ -614,10 +614,10 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	//     3) the original branch is cut
 	for(size_t k = 0 ; k < toBranch->getBoundingPoints().size()-1 ; k++)
 	{
-		toBranch->getBoundingPoint(k).print() ;
-		toBranch->getBoundingPoint(k+1).print() ;
-		targetSegment.first->print() ;
-		targetSegment.second->print() ;
+// 		toBranch->getBoundingPoint(k).print() ;
+// 		toBranch->getBoundingPoint(k+1).print() ;
+// 		targetSegment.first->print() ;
+// 		targetSegment.second->print() ;
 		if(toBranch->getBoundingPoint(k) == *(targetSegment.first) && toBranch->getBoundingPoint(k+1) == *(targetSegment.second))
 		{
 			std::valarray<Point *> points = toBranch->getBoundingPoints() ;
@@ -803,6 +803,9 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 {
 	Circle epsilon(enrichementRadius, Point(*(tip.first))) ;
 	std::vector<DelaunayTriangle *> triangles = dt->getConflictingElements(&epsilon) ;
+	std::vector<DelaunayTriangle *> test = dt->getConflictingElements(tip.first) ;
+	if(test.empty())
+		return ;
 	std::map<Point *, size_t> done ;
 	VirtualMachine vm ;
 	double angle = tip.second;
@@ -1254,10 +1257,10 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		if(performEnrichment)
 		{
 			
-			if(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end())
-			{
-				continue ;
-			}
+// 			if(tipEnrichmentMap.find(tris[i]) != tipEnrichmentMap.end())
+// 			{
+// 				continue ;
+// 			}
 			
 			
 			if(!tris[i]->enrichmentUpdated)
@@ -1610,6 +1613,7 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 {
 	changed = false ;
 	isUpdated = false ;
+// 	return ;
 	std::vector<Point *> tipsToGrow ; 
 	std::vector<double> angles ; 
 	double pdistance = enrichementRadius * .5 ;
@@ -1652,7 +1656,6 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 	
 	for(size_t i = 0 ; i < tipsToGrow.size() ; i++)
 	{
-		std::cout << "angle  : " << originalAngles[i] << ", direction =  " << angles[i] << std::endl ;
 		double sign = -1 ;
 		if(originalAngles[i] < 0)
 			sign = 1 ;

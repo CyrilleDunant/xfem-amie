@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		double test = 0 ;
 		do{
 			test = distribution(generator) ;
-		}while(test*1000 < .1) ;
+		}while(test*1000 < .05 || test*1000 > 20) ;
 		radii.push_back(test*1000.);
 		poreArea += M_PI*radii.back()*radii.back() ;
 	}
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	Sample s(sampleSide, sampleSide, 0., 0.) ;
 	s.setBehaviour(new ElasticOnlyPasteBehaviour(E, nu, SPACE_TWO_DIMENSIONAL) );
 	
-	pores = placement2D(s.getPrimitive(), pores, 1.5, 0, 100000) ;
+	pores = placement2D(s.getPrimitive(), pores, 2, 0, 100000) ;
 	
 	FeatureTree ft(&s) ;
 	
@@ -109,13 +109,14 @@ int main(int argc, char *argv[])
 
 	
 	ft.setOrder(LINEAR) ;
-	ft.setSamplingNumber(128);
+	ft.setSamplingNumber(192);
 	std::fstream outfile(argv[4], std::ios::out | std::ios::app) ;
 	outfile << "# p = " << atof(argv[3])<< ", u = " << atof(argv[1]) << ", s = " << atof(argv[2])  << std::endl ;
 	outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
-	
-	for(double p = 10 ; p < 110 ; p+=2)
+	outfile.close() ;
+	for(double p = 10 ; p < 110 ; p+=10)
 	{
+		std::fstream outfile(argv[4], std::ios::out | std::ios::app) ;
 		double criticalRadius = 50 ;
 		double poresUnderPressure = 0 ;
 		for(size_t i = 0 ; i < pores.size() ; i++)
@@ -134,7 +135,7 @@ int main(int argc, char *argv[])
 		ft.step() ;
 		std::vector<double> apparentStrain = ft.getMacroscopicStrain(s.getPrimitive()) ;
 		outfile<< p << "   " << criticalRadius << "   "<< poresUnderPressure/poreArea << "   " << apparentStrain[0] << "   " << apparentStrain[1] << std::endl ;
-
+		outfile.close() ;
 		
 		MultiTriangleWriter writerm( "displacements_pores", "displacements_layer", nullptr ) ;
 		writerm.reset( &ft ) ;

@@ -290,7 +290,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 
 	crackedVolume = 0 ;
 	damagedVolume = 0 ;
-	residualError = 10000 ;
+	residualError = 1e9 ;
 	samplingNumber = 0 ;
 	previousSamplingNumber = 0 ;
 
@@ -4631,8 +4631,8 @@ void FeatureTree::stepXfem()
 				}
 				else if( tree[i]->isUpdated )
 				{
-					tree[i]->print() ;
-					std::cout << "update ! " << std::endl ;
+// 					tree[i]->print() ;
+// 					std::cout << "update ! " << std::endl ;
 					needAssembly = true ;
 					needMeshing = true ;
 					reuseDisplacements = false ;
@@ -4667,6 +4667,9 @@ void FeatureTree::stepXfem()
 			}
 		}
 	}
+
+	if(enrichmentChange)
+		residualError = 1e9 ;
 }
 
 bool sortByScore( DelaunayTriangle * tri1, DelaunayTriangle * tri2)
@@ -5287,6 +5290,8 @@ bool FeatureTree::stepElements()
 	}
 	
 	stateConverged = foundCheckPoint && maxScore < maxTolerance ;
+	if(behaviourChange)
+		residualError = 1e9 ;
 	return foundCheckPoint && maxScore < maxTolerance;
 }
 
@@ -5539,10 +5544,12 @@ bool FeatureTree::step()
 			ret = false ;
 			break ;
 		}
-		
-	} while (( behaviourChanged() || !solverConverged() ) && !( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 8 ) ;
+// 		std::cout <<  "\n tataa "<< behaviourChanged() << !solverConverged()  << enrichmentChange << " && " << !( !solverConverged() && !reuseDisplacements ) << " && " << ( notConvergedCounts < 20 ) << std::endl ;
+	} while ( ( behaviourChanged() || !solverConverged() || enrichmentChange) && 
+	         !( !solverConverged() && !reuseDisplacements ) && 
+	          ( notConvergedCounts < 20 ) ) ;
 
-	if(notConvergedCounts >= 8)
+	if(notConvergedCounts >= 20)
 		ret = false ;
 	std::cout << std::endl ;
 	if(ret)
