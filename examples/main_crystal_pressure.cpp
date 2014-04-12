@@ -46,6 +46,15 @@ using namespace Mu ;
 
 int main(int argc, char *argv[])
 {
+	
+	new GranuloFromCumulativePSD("testPSD.txt", 100000, CUMULATIVE_PERCENT) ;
+	
+	std::vector<Inclusion *> incs =PSDGenerator::get2DInclusions(20, 100000, new GranuloFromCumulativePSD("testPSD.txt", 100000, CUMULATIVE_PERCENT), PSDEndCriteria(.01, 0., 10000) ) ;
+// 	for(size_t i = 0 ; i < incs.size() ; i++)
+// 		std::cout << incs[i]->getRadius() << std::endl ;
+	
+	exit(0) ;
+	
 	double npores = 1500 ;
 	double poreArea = 0. ;
 	std::vector<double> radii ; 
@@ -121,11 +130,11 @@ int main(int argc, char *argv[])
 		double poresUnderPressure = 0 ;
 		for(size_t i = 0 ; i < pores.size() ; i++)
 		{
-			double pressure = p-200./(pores[i]->getRadius()-1.5) ;
+			double pressure = p-200./(pores[i]->getRadius()-2) ;
 			
-			if(pressure > 0 && pores[i]->getRadius() > 1.5)
+			if(pressure > 0 && pores[i]->getRadius() > 2)
 			{
-				pressure = std::min(200./(pores[i]->getRadius()-1.5), p) ;
+				pressure = std::min(200./(pores[i]->getRadius()-2), p) ;
 				boundaryConditions[i]->setData(pressure*1e-3) ;
 				criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
 				poresUnderPressure += pores[i]->area() ;

@@ -713,7 +713,7 @@ int main( int argc, char *argv[] )
 
 	
 	
-	std::vector<Feature *> feats  = ParticleSizeDistribution::get2DConcrete(&F, nullptr,  800, dmax*0.5, itzSize, BOLOME_A, CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
+	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  800, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
 	std::vector<Inclusion *> inclusions ;
 	
 	for( size_t i = 0; i < feats.size() ; i++ )

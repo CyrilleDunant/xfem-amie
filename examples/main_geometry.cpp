@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   // psd ends when smallest radius reaches 0.00025 or when 1000 inclusions have been generated
   // covering volume 0.000042
   //std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000042, BOLOME_B, PSDEndCriteria(0.00025, -1, 3200)) ;
-  std::vector<Inclusion3D *> incs = ParticleSizeDistribution::get3DInclusions(0.002, 0.000023104, BOLOME_B, PSDEndCriteria(0.00025, -1, 3200)) ;
+  std::vector<Inclusion3D *> incs = PSDGenerator::get3DInclusions(0.002, 0.000023104, new PSDBolomeB(), PSDEndCriteria(0.00025, -1, 3200)) ;
   // attributes mechanical behaviour to the box and the aggregates
   
 	box.setBehaviour( new ElasticOnlyPasteBehaviour( 12e9, 0.3, SPACE_THREE_DIMENSIONAL ) ) ;

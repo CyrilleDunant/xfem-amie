@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	F.setSamplingFactor(&box, 2.) ;
 
 	ViscoElasticOnlyAggregateBehaviour dagg ;
-	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete(&F, new Viscoelasticity(PURE_ELASTICITY, dagg.param, 0), 500, 0.004, 0.0006, BOLOME_A, CIRCLE, 1., M_PI, 50000, 0.5) ;
+	std::vector<Feature *> feats = PSDGenerator::get2DConcrete(&F, new Viscoelasticity(PURE_ELASTICITY, dagg.param, 0), 500, 0.004, 0.0006, new PSDBolomeA(), CIRCLE, 1., M_PI, 50000, 0.5) ;
 
 	
 	F.setOrder(LINEAR_TIME_LINEAR) ;

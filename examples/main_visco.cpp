@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
 	box.setBehaviour( &paste );
 
-	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), naggregates, 0.015, 0.0001, BOLOME_A) ;	
+	std::vector<Feature *> feats = PSDGenerator::get2DConcrete( &F, new ViscoElasticOnlyAggregateBehaviour(), naggregates, 0.015, 0.0001, new PSDBolomeA()) ;	
 	
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;

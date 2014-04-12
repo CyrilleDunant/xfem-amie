@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 		
 //	box.setBehaviour( new ViscoElasticOnlyPasteBehaviour() );
 	box.setBehaviour( new ViscoDamagePasteBehaviour() );
-	std::vector<Feature *> feats = ParticleSizeDistribution::get2DConcrete( &F, new ViscoDamageAggregateBehaviour(), naggregates, 0.008, 0.0001, BOLOME_A) ;
+	std::vector<Feature *> feats = PSDGenerator::get2DConcrete( &F, new ViscoDamageAggregateBehaviour(), naggregates, 0.008, 0.0001, new PSDBolomeA()) ;
 	
 	std::vector<Inclusion *> aggregates ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 
 	ViscoelasticityAndImposedDeformation * gel = dynamic_cast<ViscoelasticityAndImposedDeformation *>( (new ViscoElasticOnlyGelBehaviour())->getCopy() ) ;
 	
-	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*50, nzones) ;
+	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion*> > zones = PSDGenerator::get2DGrowingExpansiveZonesInAggregates( &F, aggregates, gel, radius, maxGelRadius, nzones*50, nzones) ;
 	
 	std::string name = "asr_creep_stress_450_degree_" ;
 	name.append(argv[1]) ;

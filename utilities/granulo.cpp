@@ -25,32 +25,33 @@
 
 using namespace Mu ;
 
-ParticleSizeDistribution::ParticleSizeDistribution() 
+PSDGenerator::PSDGenerator() 
 {
   
 }
 
-ParticleSizeDistribution * ParticleSizeDistribution::getPSD(PSDType type)
+// ParticleSizeDistribution * ParticleSizeDistribution::getPSD(PSDType type)
+// {
+// 	switch(type)
+// 	{
+// 	  case BOLOME_A:
+// 	    return new PSDBolomeA() ;
+// 	  case BOLOME_B:
+// 	    return new PSDBolomeB() ;
+// 	  case BOLOME_C:
+// 	    return new PSDBolomeC() ;
+// 	  case BOLOME_D:
+// 	    return new PSDBolomeD() ;
+// 	  case PSD_UNIFORM:
+// 			return new ParticleSizeDistribution() ;
+// 	}
+// 	return new ParticleSizeDistribution() ;
+// }
+// 	
+std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass, ParticleSizeDistribution * type, PSDEndCriteria crit) 
 {
-	switch(type)
-	{
-	  case BOLOME_A:
-	    return new PSDBolomeA() ;
-	  case BOLOME_B:
-	    return new PSDBolomeB() ;
-	  case BOLOME_C:
-	    return new PSDBolomeC() ;
-	  case BOLOME_D:
-	    return new PSDBolomeD() ;
-	  case PSD_UNIFORM:
-            return new ParticleSizeDistribution() ;
-	}
-	return new ParticleSizeDistribution() ;
-}
-	
-std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, double mass, PSDType type, PSDEndCriteria crit) 
-{
-	ParticleSizeDistribution * psd = ParticleSizeDistribution::getPSD(type) ;  
+	ParticleSizeDistribution * psd = type ; 
+		
 	std::vector<double> radii ;
 	double diameter = rmax*2. ;
 	double remainingMass = mass ;
@@ -58,15 +59,15 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, 
 	
 	while(!crit.meets(diameter*0.5, remainingFraction, radii.size()))
 	{
-	      radii.push_back(diameter*0.5) ;
-	      remainingMass -= diameter*diameter*M_PI*1./4. ;
-	      if(remainingMass < 0)
-	      {
-		    radii.pop_back() ;
-		    break ;
-	      }
-	      remainingFraction = remainingMass / mass ;
-	      diameter = psd->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
+		radii.push_back(diameter*0.5) ;
+		remainingMass -= diameter*diameter*M_PI*.25 ;
+		if(remainingMass < 0)
+		{
+			radii.pop_back() ;
+			break ;
+		}
+		remainingFraction = remainingMass / mass ;
+		diameter = psd->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
 	}
 	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
 	
@@ -81,15 +82,15 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DInclusions(double rmax, 
 	std::vector<Inclusion *> incs ;
 	for(size_t i = 0 ; i < radii.size() ; i++)
 	{
-	      incs.push_back(new Inclusion(radii[i],0.,0.)) ;
+		incs.push_back(new Inclusion(radii[i],0.,0.)) ;
 	}
 	delete psd ;
 	return incs ;
 }
 
-std::vector<Inclusion3D *> ParticleSizeDistribution::get3DInclusions(double rmax, double mass, PSDType type, PSDEndCriteria crit) 
+std::vector<Inclusion3D *> PSDGenerator::get3DInclusions(double rmax, double mass, ParticleSizeDistribution * type, PSDEndCriteria crit) 
 {
-	ParticleSizeDistribution * psd = ParticleSizeDistribution::getPSD(type) ;  
+	ParticleSizeDistribution * psd = type ;  
 	std::vector<double> radii ;
  	double diameter = rmax*2. ;
 	double remainingMass = mass ;
@@ -122,24 +123,30 @@ std::vector<Inclusion3D *> ParticleSizeDistribution::get3DInclusions(double rmax
 	return incs ;  
 }
 
-std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(double rmax, double width, size_t n, PSDType type) 
+std::vector<Inclusion *> PSDGenerator::get2DMortar(double rmax, double width, size_t n, ParticleSizeDistribution * type) 
 {
-	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(-1, 0.01, n)) ;
+	if(!type)
+		type = new PSDBolomeD() ;
+	return get2DInclusions(rmax, width*width*0.65, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Inclusion *> ParticleSizeDistribution::get2DConcrete(double rmax, double width, size_t n, PSDType type, double percent) 
+std::vector<Inclusion *> PSDGenerator::get2DConcrete(double rmax, double width, size_t n, ParticleSizeDistribution * type, double percent) 
 {
-	return ParticleSizeDistribution::get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
+	if(!type)
+		type = new PSDBolomeA() ;
+	return get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, PSDType type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
+std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, ParticleSizeDistribution * type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
 {
+	if(!type)
+		type = new PSDBolomeA() ;
 	Feature * box = F->getFeature(0) ;
 	double ar = sqrt(box->area()) ;
 	if(placement != nullptr)
 		ar = sqrt(placement->area()) ;
 
-	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DConcrete(rmax, ar, n, type,fraction) ;
+	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
 	std::vector<Feature *> feats ;
 	if(geo == ELLIPSE || geo == TRIANGLE)
 	{
@@ -178,10 +185,12 @@ std::vector<Feature *> ParticleSizeDistribution::get2DConcrete(FeatureTree * F, 
 	return feats ;
 }
 
-std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(FeatureTree * F, Form * behaviour, double rmax, size_t n, PSDType type, size_t tries, size_t seed) 
+std::vector<Inclusion *> PSDGenerator::get2DMortar(FeatureTree * F, Form * behaviour, double rmax, size_t n, ParticleSizeDistribution * type, size_t tries, size_t seed) 
 {
+	if(!type)
+		type = new PSDBolomeD() ;
 	Feature * box = F->getFeature(0) ;
-	std::vector<Inclusion *> inc = ParticleSizeDistribution::get2DMortar(rmax, sqrt(box->area()), n, type) ;
+	std::vector<Inclusion *> inc = get2DMortar(rmax, sqrt(box->area()), n, type) ;
 	std::vector<Feature *> feats ;
 	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
@@ -203,9 +212,9 @@ std::vector<Inclusion *> ParticleSizeDistribution::get2DMortar(FeatureTree * F, 
 	return inc ;
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg) 
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, StiffnessWithImposedDeformation * behaviour, double radius, size_t n, size_t max, int maxPerAgg) 
 {
-  	Feature * box = F->getFeature(0) ;
+	Feature * box = F->getFeature(0) ;
 	Sample * sample = dynamic_cast<Sample *>(box) ;
 	RandomNumber gen ;
   	std::vector<std::pair<ExpansiveZone *, Inclusion *> > ret ;
@@ -275,9 +284,9 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > ParticleSizeDistribution::
 	
 }
 
-std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > ParticleSizeDistribution::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg) 
+std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGenerator::get2DGrowingExpansiveZonesInAggregates(FeatureTree * F, std::vector<Inclusion *> incs, ViscoelasticityAndImposedDeformation * behaviour, Function radius, double rmax, size_t n, size_t max, int maxPerAgg) 
 {
-  	Feature * box = F->getFeature(0) ;
+	Feature * box = F->getFeature(0) ;
 	Sample * sample = dynamic_cast<Sample *>(box) ;
 	RandomNumber gen ;
   	std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > ret ;
@@ -349,15 +358,6 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > Parti
 	
 }
 
-double ParticleSizeDistribution::getNext2DDiameter(double diameter, double, double) 
-{
-	return diameter ;
-}
-
-double ParticleSizeDistribution::getNext3DDiameter(double diameter, double, double) 
-{
-	return diameter ;
-}
 
 double PSDBolomeA::getNext2DDiameter(double diameter, double fraction, double dmax) 
 {
@@ -658,3 +658,115 @@ std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scal
     inc.pop_back() ;
     return inc ;
 }
+
+
+
+GranuloFromCumulativePSD::GranuloFromCumulativePSD(std::string filename, double totalVolume, PSDSpecificationType t) : totalVolume(totalVolume) 
+{ 
+	std::fstream file(filename) ;
+
+	do {
+		double frac ;
+		double rad ;
+		file >> frac >> rad ;
+		fraction.push_back(frac);
+		radius.push_back(rad);
+	}while(!file.eof()) ;
+	fraction.pop_back();
+	radius.pop_back();
+	
+	switch(t)
+	{
+		case CUMULATIVE_PERCENT:
+		{
+			for(size_t i = 0 ; i < fraction.size() ; i++)
+				fraction[i] /= 100. ;
+			break ;
+		}
+		case CUMULATIVE_FRACTION:
+		{
+			break ;
+		}
+		case CUMULATIVE_ABSOLUTE:
+		{
+			double maxv = std::max(fraction.front(), fraction.back()) ;
+			for(size_t i = 0 ; i < fraction.size() ; i++)
+				fraction[i] /= maxv ;
+			break ;
+		}
+		case CUMULATIVE_PERCENT_REVERSE:
+		{
+			for(size_t i = 0 ; i < fraction.size() ; i++)
+				fraction[i] = (100. - fraction[i])/100. ;
+			break ;
+		}
+		case CUMULATIVE_FRACTION_REVERSE:
+		{
+			for(size_t i = 0 ; i < fraction.size() ; i++)
+				fraction[i] = 1. - fraction[i] ;
+			break ;
+		}
+		case CUMULATIVE_ABSOLUTE_REVERSE:
+		{
+			double maxv = std::max(fraction.front(), fraction.back()) ;
+			for(size_t i = 0 ; i < fraction.size() ; i++)
+			{
+				fraction[i] /= maxv ;
+				fraction[i] = 1. - fraction[i] ;
+			}
+			break ;
+		}
+	}
+	
+	if(fraction.back() < fraction.front())
+	{
+		std::reverse(fraction.begin(), fraction.end());
+		std::reverse(radius.begin(), radius.end());
+	}
+
+}
+
+double GranuloFromCumulativePSD::getNext2DDiameter(double diameter, double frac, double dmax)
+{
+
+	if(diameter < 2.*radius.front()+POINT_TOLERANCE_2D)
+	{
+		return 2.*radius.front() ;
+	}
+		
+	for( size_t i = 0  ; i < radius.size()-1 ; i++)
+	{
+		if(fraction[i] > frac )
+		{
+			double df = (frac-fraction[i-1])/(fraction[i]-fraction[i-1]) ;
+			double v = std::max(2.*(radius[i-1]*(1.-df) + radius[i]*df), 2.*radius.front())  ;
+			return v ;
+		}
+	}
+	double df = (frac-fraction[radius.size()-2])/(fraction[radius.size()-1]-fraction[radius.size()-2]) ;
+	double v = std::max(2.*(radius[radius.size()-2]*(1.-df) + radius[radius.size()-1]*df), 2.*radius.front())  ;
+	return v ;
+
+	
+}
+double GranuloFromCumulativePSD::getNext3DDiameter(double diameter, double frac, double dmax)
+{
+	if(diameter < 2.*radius.front()+POINT_TOLERANCE_2D)
+	{
+		return 2.*radius.front() ;
+	}
+		
+	for( size_t i = 0  ; i < radius.size()-1 ; i++)
+	{
+		if(fraction[i] > frac )
+		{
+			double df = (frac-fraction[i-1])/(fraction[i]-fraction[i-1]) ;
+			double v = std::max(2.*(radius[i-1]*(1.-df) + radius[i]*df), 2.*radius.front())  ;
+			return v ;
+		}
+	}
+	double df = (frac-fraction[radius.size()-2])/(fraction[radius.size()-1]-fraction[radius.size()-2]) ;
+	double v = std::max(2.*(radius[radius.size()-2]*(1.-df) + radius[radius.size()-1]*df), 2.*radius.front())  ;
+	return v ;
+}
+

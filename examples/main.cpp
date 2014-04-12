@@ -620,7 +620,7 @@ int main(int argc, char *argv[])
 	double masseInitiale = .00000743*4;
 	double densite = 1.;
 //	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07*4, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
-	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DInclusions(.0025, 4.79263e-07, BOLOME_D, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
+	std::vector<Inclusion *> inclusions = PSDGenerator::get2DInclusions(.0025, 4.79263e-07, new PSDBolomeD(), PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
 
 
 	std::vector<Feature *> feats ;
