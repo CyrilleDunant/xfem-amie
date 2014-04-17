@@ -40,7 +40,8 @@ namespace Mu
 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
 			virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
 			virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
-			virtual void extrude(double dt) { } ;
+			virtual void extrude(double dt) = 0 ;
+			virtual void extrude(const Vector & dt) = 0 ;
 			virtual double getInternalScale() const { return 1. ;} ;
 		public:
 			Mesh() {} ;
@@ -519,6 +520,9 @@ namespace Mu
 			}
 			return ret ; 
 		}
+		
+		virtual void extrude(double dt) { std::cout << "should extrude.." << std::endl  ;} ;
+		virtual void extrude(const Vector & dt) { std::cout << "should extrude.." << std::endl  ;} ;
 		
 		virtual std::vector<Point * > & getAdditionalPoints() {return points ; };
 		virtual const std::vector<Point * > & getAdditionalPoints() const { return points ;};

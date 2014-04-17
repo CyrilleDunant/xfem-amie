@@ -3609,6 +3609,7 @@ Vector Segment::normalv(const Point & p) const
 
 Segment::Segment(const Point & p0, const Point & p1)
 {
+
 	f = p0 ;
 	s = p1 ;
 	mid = (p0+p1)*0.5;
@@ -4341,6 +4342,43 @@ Point Segment::intersection(const Line & l) const
 	Vector fac = m * v ;
 	
 	return f + vec*fac[0];
+}
+
+TriPoint::TriPoint(const Point * p0, const Point * p1, const Point * p2) : point(3) 
+{
+	point[0] = p0 ;
+	point[1] = p1 ;
+	point[2] = p2 ;
+	normal = (*p0-*p1)^(*p2-*p1) ;
+	normal /= normal.norm() ;
+	center = (*p0+*p1+*p2)/3. ;
+}
+
+double TriPoint::area() const
+{
+	return .5*normal.norm() ;
+}
+
+Vector TriPoint::normalv() const
+{
+	Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
+	return ret ;
+}
+	
+Vector TriPoint::normalv(const Point & p) const 
+{
+	bool sameSide = isOnTheSameSide(p, center+normal, first(), second(), third()) ;
+	double sign = 1. ;
+	if(!sameSide)
+		sign = -1 ;
+	double n = normal.norm();
+	if(n > POINT_TOLERANCE_2D)
+	{
+		Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
+		return ret*sign ;
+	}
+	
+	return Vector(0., 3) ;
 }
 
 Point TriPoint::projection(const Point & p) const

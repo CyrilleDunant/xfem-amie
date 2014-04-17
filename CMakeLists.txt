@@ -307,11 +307,11 @@ endif(DEBUG_BUILD EQUAL 1)
 
 add_library (Amie ${ALL_SRC})
 
-add_executable(small examples/main_small.cpp )
-target_link_libraries( small Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(single_sphere examples/main_single_sphere.cpp )
+target_link_libraries( single_sphere Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable(3d  examples/main_3d.cpp  )
-target_link_libraries( 3d Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(3d_asr  examples/main_3d_asr.cpp  )
+target_link_libraries( 3d_asr Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -340,11 +340,11 @@ target_link_libraries( steel Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} )
 add_executable(alain examples/main_alain.cpp )
 target_link_libraries( alain Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable(rag examples/main_rag.cpp )
-target_link_libraries( rag Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(asr examples/main_asr.cpp )
+target_link_libraries( asr Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable(rag_simple examples/main_rag_simple.cpp )
-target_link_libraries( rag_simple Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(asr_simple examples/main_asr_simple.cpp )
+target_link_libraries( asr_simple Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(wedge examples/main_wedge_splitting.cpp )
 target_link_libraries( wedge Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
@@ -361,8 +361,8 @@ target_link_libraries( geometry Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 add_executable(benchmark examples/main_benchmark.cpp )
 target_link_libraries( benchmark Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable(rag_shape examples/main_rag_shape.cpp )
-target_link_libraries( rag_shape Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(asr_shape examples/main_asr_shape.cpp )
+target_link_libraries( asr_shape Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(homogenization examples/main_homogenization.cpp )
 target_link_libraries( homogenization Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})

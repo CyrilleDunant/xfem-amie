@@ -246,32 +246,142 @@ void Star3D::updateNeighbourhood()
 
 }
 
+void DelaunayTree3D::extrude(const Vector & dt)
+{
+	std::map<Point *, std::vector<Point *> > points ;
+	std::map<Point *, Point *> pointsInTetrahedron ;
+	std::map<Point *, std::vector<Point *> >::iterator finder ;
+	
+	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
+	double beginning = tri[0]->getBoundingPoint(0).t ;
+	double end = tri[0]->getBoundingPoint(0).t ;
+	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
+	{
+		if(tri[0]->getBoundingPoint(i).t < beginning)
+			beginning = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).t > end)
+			end = tri[0]->getBoundingPoint(i).t ;
+	}
+	
+	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+	int pointsPerTimePlane = tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * current = &tri[i]->getBoundingPoint(j) ;
+			current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+//			tri[i]->setBoundingPoint(j, current) ;
+		}
+	}
+	
+	
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		{
+			Point * current = &tri[i]->getBoundingPoint(j) ;
+			finder = points.find(current) ;
+			if(finder == points.end())
+			{
+				Point * current = &tri[i]->getBoundingPoint(j) ;
+				current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+					
+				std::vector<Point *> newPoints ;
+				if( j < indexOfLastTimePlane)
+				{
+					if( j < pointsPerTimePlane )
+					{
+						newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
+					}
+					size_t ifirst = newPoints.size() ;
+					for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
+					{
+						Point * next = new Point(current->x, current->y) ;
+						next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
+						next->id = (global_counter++) ;
+						newPoints.push_back(next) ;
+					}
+				}
+				else
+				{
+					size_t jp = j - indexOfLastTimePlane ;
+					Point * previous = &tri[i]->getBoundingPoint(jp) ;
+					std::vector<Point *> previousPoints = points.find(previous)->second ;
+					for(size_t k = 1 ; k < previousPoints.size() ; k++)
+						newPoints.push_back(previousPoints[k]) ;
+					Point * next = new Point(current->x, current->y) ;
+					size_t k = dt.size()-2 ;
+					next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
+					next->id = (global_counter++) ;
+					newPoints.push_back(next) ;					
+				}
+				
+				points.insert(std::pair<Point *, std::vector<Point *> >(current, newPoints)) ;
+			}
+		}
+	}
+	
+	for(size_t i = 0 ; i < tri.size() ; i++)
+	{
+		std::valarray<Point *> newPoints(tri[i]->getBoundingPoints().size()) ;
+		for(size_t k = 1 ; k < dt.size()-1 ; k++)
+		{
+			for(size_t j = 0 ; j < newPoints.size() ; j++)
+			{
+				std::vector<Point *> found = points.find(&tri[i]->getBoundingPoint(j))->second ;
+				newPoints[j] = found[k-1] ;
+			}
+			
+			DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(tri[i]->tree, nullptr, newPoints[0],newPoints[pointsPerTimePlane/4],newPoints[pointsPerTimePlane*2/4],newPoints[pointsPerTimePlane*3/4],newPoints[0]) ;
+			toInsert->setOrder(tri[i]->getOrder()) ;
+			toInsert->setBoundingPoints(newPoints) ;
+			toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
+		}
+	}
+	
+	std::cout << getTetrahedrons().size() << "\t" << tri.size() << std::endl ;
+	
+}
+
+void DelaunayTree3D::addSharedNodes(DelaunayTree3D * dt)
+{
+	std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
+	std::vector<DelaunayTetrahedron *> tets = dt->getTetrahedrons() ;
+	
+	for(size_t i = 0 ; i <  tets.size() ; i++)
+	{
+		std::valarray<Point *> newPoints = tets[i]->getBoundingPoints() ;
+		tet[i]->setBoundingPoints(newPoints) ;
+	}
+}
 
 void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
 {
-	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
+	std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
 
 	if( nodes_per_side > 1 )
 		nodes_per_side = 1 ;
 
 
-	for( size_t i = 0 ; i < tri.size() ; i++ )
+	for( size_t i = 0 ; i < tet.size() ; i++ )
 	{
-		if( tri[i]->volume() < 0 )
-		{
-			for( int j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++ )
-				tri[i]->getBoundingPoint( j ).print() ;
-
-			exit( 0 ) ;
-		}
+// 		if( tet[i]->volume() < 0 )
+// 		{
+// 			for( int j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
+// 				tet[i]->getBoundingPoint( j ).print() ;
+// 
+// 			exit( 0 ) ;
+// 		}
 
 		std::vector<std::pair<Point, Point> > sides ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 0 ), tri[i]->getBoundingPoint( 1 ) ) ) ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 1 ), tri[i]->getBoundingPoint( 2 ) ) ) ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 2 ), tri[i]->getBoundingPoint( 3 ) ) ) ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 3 ), tri[i]->getBoundingPoint( 0 ) ) ) ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 3 ), tri[i]->getBoundingPoint( 1 ) ) ) ;
-		sides.push_back( std::make_pair( tri[i]->getBoundingPoint( 0 ), tri[i]->getBoundingPoint( 2 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 1 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 2 ), tet[i]->getBoundingPoint( 3 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 0 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+		sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
 		std::vector<size_t> positions ;
 
 		if( nodes_per_side )
@@ -321,7 +431,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 			positions.push_back( 2 ) ;
 		}
 
-		tri[i]->visited() = true ;
+		tet[i]->visited() = true ;
 
 		size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
 
@@ -349,28 +459,28 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 					Point proto = a * ( 1. - fraction ) + b * fraction ;
 					Point *foundPoint = nullptr ;
 
-					for( size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++ )
+					for( size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
 					{
-						if( tri[i]->getBoundingPoint( j ) == proto )
+						if( tet[i]->getBoundingPoint( j ) == proto )
 						{
-							foundPoint = &tri[i]->getBoundingPoint( j ) ;
+							foundPoint = &tet[i]->getBoundingPoint( j ) ;
 							break ;
 						}
 					}
 
 					if( !foundPoint )
 					{
-						for( size_t j = 0 ; j < tri[i]->neighbourhood.size() ; j++ )
+						for( size_t j = 0 ; j < tet[i]->neighbourhood.size() ; j++ )
 						{
-							if( tri[i]->getNeighbourhood( j )->visited() )
+							if( tet[i]->getNeighbourhood( j )->visited() )
 							{
 								for( size_t k = 0 ;
-								        k < tri[i]->getNeighbourhood( j )->getBoundingPoints().size() ;
+								        k < tet[i]->getNeighbourhood( j )->getBoundingPoints().size() ;
 								        k++ )
 								{
-									if( tri[i]->getNeighbourhood( j )->getBoundingPoint( k ) == proto )
+									if( tet[i]->getNeighbourhood( j )->getBoundingPoint( k ) == proto )
 									{
-										foundPoint = &tri[i]->getNeighbourhood( j )->getBoundingPoint( k ) ;
+										foundPoint = &tet[i]->getNeighbourhood( j )->getBoundingPoint( k ) ;
 										break ;
 									}
 								}
@@ -416,21 +526,21 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 				exit( 0 ) ;
 			}
 
-		tri[i]->setBoundingPoints( newPoints ) ;
+		tet[i]->setBoundingPoints( newPoints ) ;
 
-		if( tri[i]->volume() < 0 )
-		{
-			for( int j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++ )
-				tri[i]->getBoundingPoint( j ).print() ;
-
-			exit( 0 ) ;
-		}
+// 		if( tet[i]->volume() < 0 )
+// 		{
+// 			for( int j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
+// 				tet[i]->getBoundingPoint( j ).print() ;
+// 
+// 			exit( 0 ) ;
+// 		}
 	}
 
 
-	for( size_t i = 0 ; i < tri.size() ; i++ )
+	for( size_t i = 0 ; i < tet.size() ; i++ )
 	{
-		tri[i]->clearVisited() ;
+		tet[i]->clearVisited() ;
 
 		if( father != nullptr )
 			refresh( father ) ;

@@ -450,6 +450,98 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				}
 				
 				Point normal = edge.normal(e->getCenter()) ;
+				double nangle = atan2(normal.y, normal.x) ;
+
+				Vector imposedx( 3 ) ;
+				imposedx[0] = data ;
+				imposedx[1] = 0;
+				imposedx[2] = 0 ;
+				
+
+				double c = cos (nangle) ;
+				double s = sin (nangle) ;
+				Matrix nrot(3,3) ;
+				nrot[0][0] = c*c ; nrot[0][1] = s*s ; nrot[0][2] = -2.*s*c ;
+				nrot[1][0] = s*s ; nrot[1][1] = c*c ; nrot[1][2] = 2.*s*c ;
+				nrot[2][0] = s*c ; nrot[2][1] = -s*c ; nrot[2][2] = c*c-s*s ;
+
+				Vector istr(0., 3) ;
+
+				istr = nrot*(imposedx) ;
+
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter()) ) ;
+
+					a->addForceOn( XI,  forces[0], id[j] ) ;
+					a->addForceOn( ETA, forces[1], id[j] ) ;
+				}
+
+ 				return ;
+			}
+
+			case SET_TANGENT_STRESS:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ).id )
+						{
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = &e->getBoundingPoint( i ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = &e->getBoundingPoint( i ) ;
+								}
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				Segment edge( *last, *first) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				{
+					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
+					gpe.gaussPoints[i].second *= edge.norm()*.5 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
+				}
+				
+				std::vector<Variable> v( 2 ) ;
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+				
+				Point normal = edge.normal(e->getCenter()) ;
 				
 // 				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
 // 				double sign = 1. ;
@@ -461,8 +553,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 // 				normalv[1] = normal.y*sign ;
 
 				Vector imposedx( 3 ) ;
-				imposedx[0] = data ;
-				imposedx[1] = 0;
+				imposedx[0] = 0 ;
+				imposedx[1] = data;
 				imposedx[2] = 0 ;
 				
 
@@ -1045,10 +1137,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)
@@ -1102,7 +1194,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false,  std::abs(edge.normalv())) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, std::abs(edge.normalv())) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1177,23 +1269,168 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					v.push_back(TIME_VARIABLE) ;
 				}
 				
-				Point normal = edge.normal ;
-				bool sameSide = isOnTheSameSide(e->getCenter(), edge.getCenter()+normal, edge.first(), edge.second(), edge.third()) ;
-				double sign = 1. ;
-				if(data < 0 && sameSide || data > 0 && !sameSide)
-					sign = -1 ;
-				
+				Vector normal = edge.normalv(e->getCenter()) ;
 				Vector imposed( 6 ) ;
-				imposed[0] = data*normal.x*sign ;
-				imposed[1] = data*normal.y*sign ;
-				imposed[2] = data*normal.z*sign ;
+				imposed[0] = data ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
+				
+				Point np(normal[0], normal[1], normal[2]) ;
+				Point np0(-normal[1], normal[0], -normal[2]) ;
+				if(std::abs(normal[1] - normal[0]) < POINT_TOLERANCE_2D)
+					np0 = Point(-normal[2], normal[0], -normal[1]) ;
+				
+				Point np1 = np^np0 ;
+				np0 = np1^np ;
+				
+				double lx = normal[0] ;
+				double ly = np0.x ;
+				double lz = np1.x ;
+				
+				double rx = normal[1] ;
+				double ry = np0.y ;
+				double rz = np1.y ;
+				
+				double tx = normal[2] ;
+				double ty = np0.z ;
+				double tz = np1.y ;
+				
+				Matrix transform(6,6) ;
+				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
+				transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = ry*rz ; 
+				transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = ty*tz ;
+				transform[3][0] = 2.*lx*rx ; transform[3][1] = 2.*ly*ry ; transform[3][5] = 2.*lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
+				transform[4][0] = 2.*lx*tx ; transform[4][1] = 2.*ly*ty ; transform[4][2] = 2.*lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
+				transform[5][0] = 2.*rx*tx ; transform[5][1] = 2.*ry*ty ; transform[5][2] = 2.*rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+				
+				Vector istr(0., 6) ;
+
+				istr = transform*(imposed) ;
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
+					
+					a->addForceOn( XI, forces[0], id[i] ) ;
+					a->addForceOn( ETA, forces[1], id[i] ) ;
+					a->addForceOn( ZETA, forces[2], id[i] ) ;
+				}
+
+				return ;
+			}
+			
+			case SET_TANGENT_STRESS:
+			{
+								if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+				Point* first = nullptr ;
+				Point* middle = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if(id[j] == e->getBoundingPoint( i ).id)
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ).id && (
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+						)
+						{
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!middle)
+									  middle = &e->getBoundingPoint( i ) ;
+								else
+									last = &e->getBoundingPoint( i ) ;
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j] == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				TriPoint edge( first, middle, last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+
+				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+				{
+					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				
+				Vector normal = edge.normalv(e->getCenter()) ;
+				Vector imposed( 6 ) ;
+				imposed[0] = 0 ;
+				imposed[1] = data ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				
+				Point np(normal[0], normal[1], normal[2]) ;
+				Point np0(-normal[1], normal[0], -normal[2]) ;
+				if(std::abs(normal[1] - normal[0]) < POINT_TOLERANCE_2D)
+					np0 = Point(-normal[2], normal[0], -normal[1]) ;
+				
+				Point np1 = np^np0 ;
+				np0 = np1^np ;
+				
+				double lx = normal[0] ;
+				double ly = np0.x ;
+				double lz = np1.x ;
+				
+				double rx = normal[1] ;
+				double ry = np0.y ;
+				double rz = np1.y ;
+				
+				double tx = normal[2] ;
+				double ty = np0.z ;
+				double tz = np1.y ;
+				
+				Matrix transform(6,6) ;
+				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
+				transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = ry*rz ; 
+				transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = ty*tz ;
+				transform[3][0] = 2.*lx*rx ; transform[3][1] = 2.*ly*ry ; transform[3][5] = 2.*lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
+				transform[4][0] = 2.*lx*tx ; transform[4][1] = 2.*ly*ty ; transform[4][2] = 2.*lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
+				transform[5][0] = 2.*rx*tx ; transform[5][1] = 2.*ry*ty ; transform[5][2] = 2.*rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+				
+				Vector istr(0., 6) ;
+
+				istr = transform*(imposed) ;
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -1366,6 +1603,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				return ;
 			}				
+			
 			case SET_STRESS_XI:
 			{
 				if ( e->getBehaviour()->fractured() )
@@ -1654,6 +1892,109 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
  				return ;
 			}
 			
+			case SET_TANGENT_STRESS:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+				Point* first = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if ( id[j] == e->getBoundingPoint( i ) )
+						{
+							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!last)
+								{
+									  last = &e->getBoundingPoint( i ) ;
+								}
+								else
+								{
+									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
+										  last = &e->getBoundingPoint( i ) ;
+								}
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+					
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				Segment edge( *first, *last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					gpe.gaussPoints[j].second *= edge.norm()*.5 ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
+				
+
+				std::vector<Variable> v( 2 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+				  v.push_back(TIME_VARIABLE) ;
+				}
+
+				Point normal = edge.normal() ;
+				
+				bool sameSide = isOnTheSameSide(e->getCenter(), edge.midPoint()+normal, edge.first(), edge.second()) ;
+				double sign = 1. ;
+				if(!sameSide)
+					sign = -1 ;
+				double nangle = atan2(normal.y*sign, normal.x*sign) ;
+				Vector normalv(2) ; 
+				normalv[0] = normal.x*sign ; 
+				normalv[1] = normal.y*sign ;
+
+				Vector imposedx( 3 ) ;
+				imposedx[0] = 0;
+				imposedx[1] = VirtualMachine().eval(data, edge.midPoint()) ;
+				imposedx[2] = 0 ;
+				
+
+				double c = cos (nangle) ;
+				double s = sin (nangle) ;
+				Matrix nrot(3,3) ;
+				nrot[0][0] = c*c ; nrot[0][1] = s*s ; nrot[0][2] = -2.*s*c ;
+				nrot[1][0] = s*s ; nrot[1][1] = c*c ; nrot[1][2] = 2.*s*c ;
+				nrot[2][0] = s*c ; nrot[2][1] = -s*c ; nrot[2][2] = c*c-s*s ;
+
+				Vector istr(0., 3) ;
+
+				istr = nrot*(imposedx) ;
+				
+				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normalv) ;
+					
+					a->addForceOn( XI, forces[0], id[j].id ) ;
+					a->addForceOn( ETA, forces[1], id[j].id ) ;
+				}
+				
+ 				return ;
+			}
+			
 			case SET_FLUX_ETA:
 			{
 				if ( e->getBehaviour()->fractured() )
@@ -1698,7 +2039,6 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				return ;
 			}
 			
-
 			default:
 				break;
 		}
@@ -1806,10 +2146,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ))
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ) && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)
@@ -1833,7 +2173,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				if(!last)
 					return ;
 				
-				
 				TriPoint edge( first, middle, last) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
 				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
@@ -1852,6 +2191,8 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					v.push_back(TIME_VARIABLE) ;
 				}
+				
+				
 				Vector imposed( 6 ) ;
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
@@ -1870,7 +2211,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 			}
 
 			case SET_STRESS_ETA:
-
 			{
 				if ( e->getBehaviour()->fractured() )
 					return ;
@@ -2103,7 +2443,8 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				return ;
 			}
-			case SET_NORMAL_STRESS:
+			
+			case SET_TANGENT_STRESS:
 			{
 				if ( e->getBehaviour()->fractured() )
 					return ;
@@ -2120,10 +2461,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ))
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ) && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)
@@ -2168,23 +2509,168 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					v.push_back(TIME_VARIABLE) ;
 				}
 				
-				Point normal = edge.normal ;
-				bool sameSide = isOnTheSameSide(e->getCenter(), edge.getCenter()+normal, edge.first(), edge.second(), edge.third()) ;
-				double sign = 1. ;
-				if(vm.eval( data, id[i] ) < 0 && sameSide || vm.eval( data, id[i] ) > 0 && !sameSide)
-					sign = -1 ;
-				
+				Vector normal = edge.normalv(e->getCenter()) ;
 				Vector imposed( 6 ) ;
-				imposed[0] = vm.eval( data, id[i] )*normal.x*sign ;
-				imposed[1] = vm.eval( data, id[i] )*normal.y*sign ;
-				imposed[2] = vm.eval( data, id[i] )*normal.z*sign ;
+				imposed[0] = 0 ;
+				imposed[1] = vm.eval( data, id[i] ) ;
+				imposed[2] = 0 ;
 				imposed[3] = 0 ;
 				imposed[4] = 0 ;
 				imposed[5] = 0 ;
+				
+				Point np(normal[0], normal[1], normal[2]) ;
+				Point np0(-normal[1], normal[0], -normal[2]) ;
+				if(std::abs(normal[1] - normal[0]) < POINT_TOLERANCE_2D)
+					np0 = Point(-normal[2], normal[0], -normal[1]) ;
+				
+				Point np1 = np^np0 ;
+				np0 = np1^np ;
+				
+				double lx = normal[0] ;
+				double ly = np0.x ;
+				double lz = np1.x ;
+				
+				double rx = normal[1] ;
+				double ry = np0.y ;
+				double rz = np1.y ;
+				
+				double tx = normal[2] ;
+				double ty = np0.z ;
+				double tz = np1.y ;
+				
+				Matrix transform(6,6) ;
+				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
+				transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = ry*rz ; 
+				transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = ty*tz ;
+				transform[3][0] = 2.*lx*rx ; transform[3][1] = 2.*ly*ry ; transform[3][5] = 2.*lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
+				transform[4][0] = 2.*lx*tx ; transform[4][1] = 2.*ly*ty ; transform[4][2] = 2.*lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
+				transform[5][0] = 2.*rx*tx ; transform[5][1] = 2.*ry*ty ; transform[5][2] = 2.*rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+				
+				Vector istr(0., 6) ;
+
+				istr = transform*(imposed) ;
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, edge.normalv()) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
+					
+					a->addForceOn( XI, forces[0], id[i].id ) ;
+					a->addForceOn( ETA, forces[1], id[i].id ) ;
+					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+				}
+
+				return ;
+			}
+			
+			case SET_NORMAL_STRESS:
+			{
+				if ( e->getBehaviour()->fractured() )
+					return ;
+
+				std::vector<Function> shapeFunctions ;
+				Point* first = nullptr ;
+				Point* middle = nullptr ;
+				Point* last = nullptr ;
+
+				for ( size_t j = 0 ; j < id.size() ; j++ )
+				{
+					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+					{
+						if(id[j] == e->getBoundingPoint( i ))
+						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
+						if ( id[j] == e->getBoundingPoint( i ) && (
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+						)
+						{
+							if(!first)
+								first = &e->getBoundingPoint( i ) ;
+							else
+							{
+								if(!middle)
+									  middle = &e->getBoundingPoint( i ) ;
+								else
+									last = &e->getBoundingPoint( i ) ;
+							}
+						}
+					}
+					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+					{
+						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
+					}
+				}
+				
+				if(!last)
+					return ;
+				
+				
+				TriPoint edge( first, middle, last) ;
+				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
+				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+
+				for(size_t j = 0 ; j < gpe.gaussPoints.size() ; j++)
+				{
+					gpe.gaussPoints[j].first = e->inLocalCoordinates( gpe.gaussPoints[j].first ) ;
+					e->getInverseJacobianMatrix( gpe.gaussPoints[j].first, Jinve[j]) ;
+				}
+
+				std::vector<Variable> v( 3 ) ;
+
+				v[0] = XI ;
+				v[1] = ETA ;
+				v[2] = ZETA ;
+				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+				{
+					v.push_back(TIME_VARIABLE) ;
+				}
+				
+				Vector normal = edge.normalv(e->getCenter()) ;
+				Vector imposed( 6 ) ;
+				imposed[0] = vm.eval( data, id[i] ) ;
+				imposed[1] = 0 ;
+				imposed[2] = 0 ;
+				imposed[3] = 0 ;
+				imposed[4] = 0 ;
+				imposed[5] = 0 ;
+				
+				Point np(normal[0], normal[1], normal[2]) ;
+				Point np0(-normal[1], normal[0], -normal[2]) ;
+				if(std::abs(normal[1] - normal[0]) < POINT_TOLERANCE_2D)
+					np0 = Point(-normal[2], normal[0], -normal[1]) ;
+					
+				Point np1 = np^np0 ;
+				np0 = np1^np ;
+				
+				double lx = normal[0] ;
+				double ly = np0.x ;
+				double lz = np1.x ;
+				
+				double rx = normal[1] ;
+				double ry = np0.y ;
+				double rz = np1.y ;
+				
+				double tx = normal[2] ;
+				double ty = np0.z ;
+				double tz = np1.y ;
+				Matrix transform(6,6) ;
+				
+				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
+				transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = ry*rz ; 
+				transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = ty*tz ;
+				transform[3][0] = 2.*lx*rx ; transform[3][1] = 2.*ly*ry ; transform[3][5] = 2.*lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
+				transform[4][0] = 2.*lx*tx ; transform[4][1] = 2.*ly*ty ; transform[4][2] = 2.*lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
+				transform[5][0] = 2.*rx*tx ; transform[5][1] = 2.*ry*ty ; transform[5][2] = 2.*rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+				
+				Vector istr(0., 6) ;
+
+				istr = transform*(imposed) ;
+
+				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+				{
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;

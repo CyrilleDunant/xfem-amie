@@ -257,11 +257,10 @@ public:
 class GranuloFromCumulativePSD : public ParticleSizeDistribution
 {
 private:
-	double totalVolume ;
 	std::vector<double> fraction ;
 	std::vector<double> radius ;
 public:
-	GranuloFromCumulativePSD(std::string filename, double totalVolume, PSDSpecificationType t) ;
+	GranuloFromCumulativePSD(std::string filename, PSDSpecificationType t) ;
 	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;

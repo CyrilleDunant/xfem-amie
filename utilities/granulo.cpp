@@ -69,16 +69,16 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 		remainingFraction = remainingMass / mass ;
 		diameter = psd->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
 	}
-	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
+// 	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
 	
 	std::sort(radii.begin(), radii.end()) ;
 	std::reverse(radii.begin(), radii.end());
 	
-	if(!radii.empty())
-	{
-		std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
-		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
-	}
+// 	if(!radii.empty())
+// 	{
+// 		std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
+// 		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
+// 	}
 	std::vector<Inclusion *> incs ;
 	for(size_t i = 0 ; i < radii.size() ; i++)
 	{
@@ -108,13 +108,13 @@ std::vector<Inclusion3D *> PSDGenerator::get3DInclusions(double rmax, double mas
 	      remainingFraction = remainingMass / mass ;
 	      diameter = psd->getNext3DDiameter(diameter, remainingFraction, rmax*2.) ;
 	} 
-	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
+// 	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
 
 	std::sort(radii.begin(), radii.end()) ;
 	std::reverse(radii.begin(), radii.end());
 	
-	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
-	std::cout << radii.size() << " particles generated, filling a volume of " << mass-remainingMass << std::endl ;
+// 	std::cout << "rmin = " << radii[radii.size()-1] << "\t" << "rmax = " << radii[0] << std::endl ;
+// 	std::cout << radii.size() << " particles generated, filling a volume of " << mass-remainingMass << std::endl ;
 	
 	std::vector<Inclusion3D *> incs ;
 	for(size_t i = 0 ; i < radii.size() ; i++)
@@ -661,7 +661,7 @@ std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scal
 
 
 
-GranuloFromCumulativePSD::GranuloFromCumulativePSD(std::string filename, double totalVolume, PSDSpecificationType t) : totalVolume(totalVolume) 
+GranuloFromCumulativePSD::GranuloFromCumulativePSD(std::string filename, PSDSpecificationType t) 
 { 
 	std::fstream file(filename) ;
 
@@ -738,12 +738,12 @@ double GranuloFromCumulativePSD::getNext2DDiameter(double diameter, double frac,
 	{
 		if(fraction[i] > frac )
 		{
-			double df = (frac-fraction[i-1])/(fraction[i]-fraction[i-1]) ;
+			double df = (exp(frac)-exp(fraction[i-1]))/(exp(fraction[i])-exp(fraction[i-1])) ;
 			double v = std::max(2.*(radius[i-1]*(1.-df) + radius[i]*df), 2.*radius.front())  ;
 			return v ;
 		}
 	}
-	double df = (frac-fraction[radius.size()-2])/(fraction[radius.size()-1]-fraction[radius.size()-2]) ;
+	double df = (exp(frac)-exp(fraction[radius.size()-2]))/(exp(fraction[radius.size()-1])-exp(fraction[radius.size()-2])) ;
 	double v = std::max(2.*(radius[radius.size()-2]*(1.-df) + radius[radius.size()-1]*df), 2.*radius.front())  ;
 	return v ;
 

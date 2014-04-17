@@ -520,12 +520,10 @@ void DelaunayTree::extrude(double dt)
 		toInsert->setBoundingPoints(newPoints) ;
 		toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
 	}
-	for(size_t j = 0 ; j < tri[0]->getBoundingPoints().size() ; j++)
-		tri[0]->getBoundingPoint(j).print() ;
 }
 
 
-void DelaunayTree::extrude(Vector dt)
+void DelaunayTree::extrude(const Vector & dt)
 {
 	std::map<Point *, std::vector<Point *> > points ;
 	std::map<Point *, Point *> pointsInTriangle ;

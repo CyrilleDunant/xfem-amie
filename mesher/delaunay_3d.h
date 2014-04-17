@@ -391,6 +391,8 @@ public:
 
 	virtual void extrude(double dt) ;
 	
+	virtual void extrude(const Vector & dt) ;
+	
 	/** \brief Get the list of triangles in conflict with a given geometry.
 	 * 
 	 * @param g test geometry.
@@ -412,6 +414,7 @@ public:
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = nullptr) ; 
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = nullptr) ;
+	void addSharedNodes(DelaunayTree3D * dt) ;
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	
 	void refresh(const TetrahedralElement *father) ;

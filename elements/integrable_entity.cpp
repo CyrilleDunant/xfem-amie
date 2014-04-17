@@ -18,6 +18,12 @@ size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t 
 {
 	switch(f)
 	{
+		case VON_MISES_STRAIN_FIELD :
+		case VON_MISES_REAL_STRESS_FIELD :
+		case VON_MISES_EFFECTIVE_STRESS_FIELD :
+		case PRINCIPAL_ANGLE_FIELD :
+			return 1 ;
+	
 		case DISPLACEMENT_FIELD :
 		case ENRICHED_DISPLACEMENT_FIELD :
 		case SPEED_FIELD :
@@ -55,6 +61,7 @@ size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t 
 			return dim == SPACE_THREE_DIMENSIONAL ? 6*blocks : 3*blocks ;
 	  
 	}
+	std::cout << f << " non-existing field !" << std::endl ;
 	exit(0) ;
 	return 0 ;
 }
@@ -2859,14 +2866,20 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 		
 	if(normal.size() == 2)
 	{
-		ret[0] = data[0]*normal[0]+data[2]*normal[1] ;
-		ret[1] = data[2]*normal[0]+data[1]*normal[1] ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		{
+			ret[0] += (data[0]*normal[0]+data[2]*normal[1])*gp.gaussPoints[i].second ;
+			ret[1] += (data[2]*normal[0]+data[1]*normal[1])*gp.gaussPoints[i].second ;
+		}
 	}
 	else
 	{
-		ret[0] = data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2] ;
-		ret[1] = data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2] ;
-		ret[2] = data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1] ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		{
+			ret[0] += (data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2])*gp.gaussPoints[i].second ;
+			ret[1] += (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2])*gp.gaussPoints[i].second ;
+			ret[2] += (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1])*gp.gaussPoints[i].second ;
+		}
 	}
 	return ret * VirtualMachine().ieval(shape, gp) ;
 }
@@ -2890,14 +2903,20 @@ Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, si
 	Vector ret(0., normal.size()) ;
 	if(normal.size() == 2)
 	{
-		ret[0] = g[0][0]*normal[0]+g[2][0]*normal[1] ;
-		ret[1] = g[1][0]*normal[1]+g[2][0]*normal[1] ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		{
+			ret[0] += (g[0][i]*normal[0]+g[2][i]*normal[1])*gp.gaussPoints[i].second ;
+			ret[1] += (g[1][i]*normal[1]+g[2][i]*normal[1])*gp.gaussPoints[i].second ;
+		}
 	}
 	else
 	{
-		ret[0] = g[0][0]*normal[0]+g[3][0]*normal[1]+g[4][0]*normal[2] ;
-		ret[1] = g[1][0]*normal[1]+g[3][0]*normal[0]+g[5][0]*normal[2] ;
-		ret[2] = g[2][0]*normal[2]+g[4][0]*normal[0]+g[5][0]*normal[1] ;
+		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
+		{
+			ret[0] += (g[0][i]*normal[0]+g[3][i]*normal[1]+g[4][i]*normal[2])*gp.gaussPoints[i].second ;
+			ret[1] += (g[1][i]*normal[1]+g[3][i]*normal[0]+g[5][i]*normal[2])*gp.gaussPoints[i].second ;
+			ret[2] += (g[2][i]*normal[2]+g[4][i]*normal[0]+g[5][i]*normal[1])*gp.gaussPoints[i].second ;
+		}
 	}
 	return ret * VirtualMachine().ieval(shape, gp) ;
 }

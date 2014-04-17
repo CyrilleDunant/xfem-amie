@@ -35,20 +35,20 @@ void OrthotropicStiffness::setAngle(double angle)
 	else
 	{
 		double lx = cos(angle) ;
-		double ly = sin(angle) ;
+		double ly = 0 ;
 		double lz = 0 ;
-		double rx = -sin(angle) ;
-		double ry = cos(angle) ;
+		double rx = cos(angle) ;
+		double ry = 0 ;
 		double rz = 0 ;
-		double tx = 0 ;
+		double tx = cos(angle) ;
 		double ty = 0 ;
 		double tz = 0 ;
-		transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = 2.*ly*lz ;
-		transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = 2.*ry*rz ; 
-		transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = 2.*ty*tz ;
-		transform[3][0] = lx*rx ; transform[3][1] = ly*ry ; transform[3][5] = lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
-		transform[4][0] = lx*tx ; transform[4][1] = ly*ty ; transform[4][2] = lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
-		transform[5][0] = rx*tx ; transform[5][1] = ry*ty ; transform[5][2] = rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
+		transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
+		transform[1][0] = rx*rx ; transform[1][1] = ry*ry ; transform[1][2] = rz*rz ; transform[1][3] = rx*ry ; transform[1][4] = rx*rz ; transform[1][5] = ry*rz ; 
+		transform[2][0] = tx*tx ; transform[2][1] = ty*ty ; transform[2][2] = tz*tz ; transform[2][3] = tx*ty ; transform[2][4] = tx*tz ; transform[2][5] = ty*tz ;
+		transform[3][0] = 2.*lx*rx ; transform[3][1] = 2.*ly*ry ; transform[3][5] = 2.*lz*rz ; transform[3][3] = lx*ry+ly*rx ; transform[3][4] = lz*rx+lx*rz ; transform[3][5] = ly*rz+lz*ry ;
+		transform[4][0] = 2.*lx*tx ; transform[4][1] = 2.*ly*ty ; transform[4][2] = 2.*lz*tz ; transform[4][3] = tx*ly+ly*lx ; transform[4][4] = tz*lx+tx*lz ; transform[4][5] = ty*lz+tz*ly ;
+		transform[5][0] = 2.*rx*tx ; transform[5][1] = 2.*ry*ty ; transform[5][2] = 2.*rz*tz ; transform[5][3] = rx*ty+ry*tx ; transform[5][4] = rz*tx+rx*tz ; transform[5][5] = ry*tz+rz*ty ;
 		transformt = transform.transpose() ;
 		transformset = true ;
 	}

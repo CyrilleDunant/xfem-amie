@@ -127,9 +127,6 @@ protected:
 	Grid3D * grid3d ;
 	double initialValue ;
 	
-	std::vector<Mesh<DelaunayTriangle, DelaunayTreeItem> *> coarseTrees ;
-	std::vector<Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *> coarseTrees3D ;
-	
 	/** \brief  Contains the mesh in the form of a delaunay tree. 
 	 * The mesh is generated with linear triangles, and when it is final, midpoints are added and 
 	 * projected. No operations should add midpoints before meshing is complete.
@@ -157,9 +154,7 @@ protected:
 	size_t previousSamplingNumber ;
 	size_t maxitPerStep ;
 	size_t lastNodeId ;
-	std::vector<size_t> coarseLastNodeId ;
 	size_t lastEnrichmentId ;
-	std::vector<size_t> coarseLastEnrichmentId ;
 	
 	bool renumbered ;
 	bool needAssembly ;
@@ -189,7 +184,6 @@ protected:
 	/** \brief  Assembly used for the generation of the stiffness matrix and the solving of the problem.
 	 */
 	Assembly * K ;
-	std::vector<Assembly *> coarseAssemblies ;
 	
 	//Assembly2D
 	/** \brief  Order to which Elements should be brought once all operations are accomplished.
@@ -414,7 +408,6 @@ public:
 	double crackedVolume ;
 	double damagedVolume ;
 	double averageDamage;
-	bool useMultigrid;
 	bool foundCheckPoint ;
 	
 public:
@@ -513,6 +506,7 @@ public:
 	
 	const Vector & getDisplacements(int g = -1, bool stepTree = true)  ;
 	
+	Vector getDisplacements(Point * pt,  int g = -1, bool stepTree = true)  ;
 	
 	/** \brief  Refine the mesh around the features.
 	 * 

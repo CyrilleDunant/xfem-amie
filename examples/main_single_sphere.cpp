@@ -168,10 +168,6 @@ int main(int argc, char *argv[])
 
 	FeatureTree F(&samplers) ;
 	featureTree = &F ;
-	Matrix d0(3,3) ;
-	d0[0][0] = 1 ;
-	d0[1][1] = 1 ;
-	d0[2][2] = 1 ;
 
 	Matrix m0(6,6) ;
 	m0[0][0] = 1. - nu ; m0[0][1] = nu ; m0[0][2] = nu ;
@@ -193,44 +189,21 @@ int main(int argc, char *argv[])
 	m1[5][5] = 0.5 - nu ;
 	m1 *= E/((1.+nu)*(1.-2.*nu)) ;
 
-	Matrix d1(3,3) ;
-	d1[0][0] = 1e2 ;
-	d1[1][1] = 1e2 ;
-	d1[2][2] = 1e2 ;
 
-	double itzSize = 0.000001;
-	int inclusionNumber = 0 ; //48000*2 ;
 
-//	std::vector<Inclusion3D *> inclusions = GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-// 	std::vector<Inclusion3D *> inclusions = ParticleSizeDistribution::get3DInclusions(0.0025, 5.44e-5, BOLOME_A, PSDEndCriteria(-1, 0.0001, inclusionNumber)) ;
-//	GranuloBolome(5.44e-05, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-// 	if(inclusionNumber)
-// 		itzSize = inclusions[inclusions.size()-1]->getRadius() ;
-// 	for(size_t i = 0; i < inclusions.size() ; i++)
-// 		delete inclusions[i] ;
-// 
-// 	inclusions = GranuloBolome(3.84e-05/1.8, 1, BOLOME_A)(true, .0025, .0001, inclusionNumber, itzSize);
-
-// 	std::vector<Feature *> feats ;
-// 	for(size_t i = 0; i < inclusions.size() ; i++)
-// 		feats.push_back(inclusions[i]) ;
-
-// 	int nAgg = 6000 ;
 	
 	MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
 	StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
 	Stiffness * s = new Stiffness(m0) ;
 	Stiffness * ss = new Stiffness(m1) ;
 
-	samplers.setBehaviour(new /*WeibullDistributed*/Stiffness(m0/*,0.1*/)) ;
-// 	samplers.setBehaviour(new Laplacian(d0)) ;
+	samplers.setBehaviour(new Stiffness(m0)) ;
 	Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
-	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-// 	Inclusion3D inc(100, 200, 200, 200) ;
-// 	OctahedralInclusion * inc0 = new OctahedralInclusion(208.40029238347645, 200, 200, 200) ;
+// 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
+	Inclusion3D inc(100, 200, 200, 200) ;
+	
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
-// 	inc.setBehaviour(new Stiffness(m1*4)) ;
-// 	inc0->setBehaviour(new Laplacian(d1)) ;
+	inc.setBehaviour(new Stiffness(m1*4)) ;
 	
 	
     F.addFeature(&samplers, &inc) ;
@@ -259,7 +232,7 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	step() ;
 // 	delete dt ;

@@ -47,11 +47,9 @@ using namespace Mu ;
 int main(int argc, char *argv[])
 {
 	
-	new GranuloFromCumulativePSD("testPSD.txt", 100000, CUMULATIVE_PERCENT) ;
-	
-	std::vector<Inclusion *> incs =PSDGenerator::get2DInclusions(20, 100000, new GranuloFromCumulativePSD("testPSD.txt", 100000, CUMULATIVE_PERCENT), PSDEndCriteria(.01, 0., 10000) ) ;
-// 	for(size_t i = 0 ; i < incs.size() ; i++)
-// 		std::cout << incs[i]->getRadius() << std::endl ;
+	std::vector<Inclusion *> incs =PSDGenerator::get2DInclusions(20, 100000, new GranuloFromCumulativePSD("testPSD.txt", CUMULATIVE_PERCENT), PSDEndCriteria(.01, 0., 10000) ) ;
+	for(size_t i = 0 ; i < incs.size() ; i++)
+		std::cout << incs[i]->getRadius() << std::endl ;
 	
 	exit(0) ;
 	

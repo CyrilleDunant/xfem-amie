@@ -683,26 +683,15 @@ struct TriPoint
 	std::vector<TriPoint *> neighbour ;
 	
 	/** \brief constructor from three points */
-	TriPoint(const Point * p0, const Point * p1, const Point * p2) : point(3) 
-	{
-		point[0] = p0 ;
-		point[1] = p1 ;
-		point[2] = p2 ;
-		normal = (*p0-*p1)^(*p2-*p1) ;
-		normal /= normal.norm() ;
-		center = (*p0+*p1+*p2)/3. ;
-	}
+	TriPoint(const Point * p0, const Point * p1, const Point * p2) ;
 	
 	/** \brief return area of the triangle*/
-	double area() const
-	{
-		return .5*normal.norm() ;
-	}
+	double area() const;
 	
-	Vector normalv() const
-	{
-		Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
-	}
+	Vector normalv() const;
+	
+	Vector normalv(const Point & p) const ;
+	
 	const Point & getCenter() const { return center ;} ;
 	const Point & first() const {return *point[0] ;} ;
 	const Point & second() const {return *point[1] ;} ;

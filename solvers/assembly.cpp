@@ -880,8 +880,7 @@ bool Assembly::make_final()
 					}
 				}
 			}
-
-				
+			
 			max = map->rbegin()->first +1;
 			size_t realDofs = max ;
 			for(size_t i = 0 ; i < multipliers.size() ; i++)
