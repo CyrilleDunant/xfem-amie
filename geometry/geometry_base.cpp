@@ -4356,7 +4356,7 @@ TriPoint::TriPoint(const Point * p0, const Point * p1, const Point * p2) : point
 
 double TriPoint::area() const
 {
-	return .5*normal.norm() ;
+	return .5* ((*point[0]-*point[1])^(*point[2]-*point[1])).norm() ;
 }
 
 Vector TriPoint::normalv() const

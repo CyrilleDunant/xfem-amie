@@ -2764,7 +2764,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
 
 	std::valarray<Matrix> Jinv( Matrix( 3, 3 ),  getGaussPoints().gaussPoints.size() ) ;
 
-	if(moved && false)
+	if(moved )
 	{
 		for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
 		{

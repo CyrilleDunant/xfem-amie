@@ -1002,7 +1002,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
 					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
-				
 
 				std::vector<Variable> v( 3 ) ;
 
@@ -1221,10 +1220,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(id[j] == e->getBoundingPoint( i ).id)
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).id && (
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)
@@ -1296,7 +1295,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				
 				double tx = normal[2] ;
 				double ty = np0.z ;
-				double tz = np1.y ;
+				double tz = np1.z ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -1309,11 +1308,10 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				Vector istr(0., 6) ;
 
 				istr = transform*(imposed) ;
-
+				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
-					
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
 					a->addForceOn( ZETA, forces[2], id[i] ) ;
@@ -1414,7 +1412,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				
 				double tx = normal[2] ;
 				double ty = np0.z ;
-				double tz = np1.y ;
+				double tz = np1.z ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -1430,7 +1428,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
 					a->addForceOn( XI, forces[0], id[i] ) ;
 					a->addForceOn( ETA, forces[1], id[i] ) ;
@@ -2536,7 +2534,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				
 				double tx = normal[2] ;
 				double ty = np0.z ;
-				double tz = np1.y ;
+				double tz = np1.z ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -2552,7 +2550,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
 					a->addForceOn( XI, forces[0], id[i].id ) ;
 					a->addForceOn( ETA, forces[1], id[i].id ) ;
@@ -2654,7 +2652,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				
 				double tx = normal[2] ;
 				double ty = np0.z ;
-				double tz = np1.y ;
+				double tz = np1.z ;
 				Matrix transform(6,6) ;
 				
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;

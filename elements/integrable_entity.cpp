@@ -2866,20 +2866,14 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 		
 	if(normal.size() == 2)
 	{
-		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-		{
-			ret[0] += (data[0]*normal[0]+data[2]*normal[1])*gp.gaussPoints[i].second ;
-			ret[1] += (data[2]*normal[0]+data[1]*normal[1])*gp.gaussPoints[i].second ;
-		}
+		ret[0] = (data[0]*normal[0]+data[2]*normal[1]) ;
+		ret[1] = (data[2]*normal[0]+data[1]*normal[1]) ;
 	}
 	else
 	{
-		for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-		{
-			ret[0] += (data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2])*gp.gaussPoints[i].second ;
-			ret[1] += (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2])*gp.gaussPoints[i].second ;
-			ret[2] += (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1])*gp.gaussPoints[i].second ;
-		}
+		ret[0] = (data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2]) ;
+		ret[1] = (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2]) ;
+		ret[2] = (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1]) ;
 	}
 	return ret * VirtualMachine().ieval(shape, gp) ;
 }
