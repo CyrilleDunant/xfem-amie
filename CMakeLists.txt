@@ -376,8 +376,8 @@ target_link_libraries( tripoint Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 add_executable(visco examples/main_visco.cpp )
 target_link_libraries( visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
-add_executable(rag_visco examples/main_rag_visco.cpp )
-target_link_libraries( rag_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+add_executable(asr_visco examples/main_asr_visco.cpp )
+target_link_libraries( asr_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
