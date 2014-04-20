@@ -41,38 +41,15 @@
 #include <time.h>
 
 
-
 using namespace Mu ;
 
 FeatureTree *featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
-std::vector<bool> cracked ;
 
-double E_min = 10;
-double E_max = 0;
-
-double x_max = 0 ;
-double y_max = 0 ;
-
-double x_min = 0 ;
-double y_min = 0 ;
-
-double timepos = 0.00 ;
-int nzones = 0.10 ;
 double placed_area = 0 ;
-
-double stress = 15e6 ;
-
 double restraintDepth = 0.01 ;
 
 Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
-
-bool firstRun = true ;
-
-std::vector<DelaunayTriangle *> tris__ ;
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
@@ -83,18 +60,6 @@ std::vector<std::pair<double, double> > apparent_extension ;
 std::vector<double> cracked_volume ;
 std::vector<double> damaged_volume ;
 
-Vector b( 0 ) ;
-Vector x( 0 ) ;
-Vector sigma( 0 ) ;
-Vector sigma11( 0 ) ;
-Vector sigma22( 0 ) ;
-Vector sigma12( 0 ) ;
-Vector epsilon( 0 ) ;
-Vector epsilon11( 0 ) ;
-Vector epsilon22( 0 ) ;
-Vector epsilon12( 0 ) ;
-Vector vonMises( 0 ) ;
-Vector angle( 0 ) ;
 
 double nu = 0.3 ;
 double E_agg = 58.9e9 ;
@@ -102,9 +67,6 @@ double E_paste = 12e9 ;
 
 int totit = 1 ;
 
-double factor = 200 ;
-bool nothingToAdd = false ;
-int count = 0 ;
 double aggregateArea = 0;
 
 GelBehaviour * gel = new GelBehaviour() ;
@@ -115,7 +77,6 @@ void step()
 	int nsteps = 320;
 	int nstepstot = 320;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
-// 	fastForward(4, 10) ;
 
 	for( size_t i = 0 ; i < nsteps ; i++ )
 	{
@@ -128,292 +89,14 @@ void step()
 			damaged_volume.push_back( featureTree->damagedVolume ) ;
 		}
 
-		//
-		//
-		triangles = featureTree->getElements2D() ;
+		std::vector<DelaunayTriangle *> triangles = featureTree->getElements2D() ;
 
-		x.resize( featureTree->getDisplacements().size() ) ;
-		x = featureTree->getDisplacements() ;
-		sigma.resize( triangles.size()*triangles[0]->getBoundingPoints().size() * 3 ) ;
-		epsilon.resize( triangles.size()*triangles[0]->getBoundingPoints().size() * 3 ) ;
-
-		// 	sigma = F.strainFromDisplacements() ;
-		// 	epsilon = F.stressFromDisplacements() ;
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
-		sigma.resize( sigma_epsilon.first.size() ) ;
-		sigma = sigma_epsilon.first ;
-		epsilon.resize( sigma_epsilon.second.size() ) ;
-		epsilon = sigma_epsilon.second ;
-
-		sigma11.resize( sigma.size() / 3 ) ;
-		sigma22.resize( sigma.size() / 3 ) ;
-		sigma12.resize( sigma.size() / 3 ) ;
-		epsilon11.resize( sigma.size() / 3 ) ;
-		epsilon22.resize( sigma.size() / 3 ) ;
-		epsilon12.resize( sigma.size() / 3 ) ;
-		vonMises.resize( sigma.size() / 3 ) ;
-		angle.resize( sigma.size() / 3 ) ;
+		Vector x = featureTree->getDisplacements() ;
 
 		std::cout << "unknowns :" << x.size() << std::endl ;
 
-		cracked.clear() ;
 
 		int npoints = triangles[0]->getBoundingPoints().size() ;
-
-		double area = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_xy = 0;
-		double avg_s_xx = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double e_xx_max = 0 ;
-		double e_xx_min = 0 ;
-		double e_yy_max = 0 ;
-		double e_yy_min = 0 ;
-		double ex_count = 0 ;
-		double avg_e_xx_nogel = 0;
-		double avg_e_yy_nogel = 0;
-		double avg_e_xy_nogel = 0;
-		double avg_s_xx_nogel = 0;
-		double avg_s_yy_nogel = 0;
-		double avg_s_xy_nogel = 0;
-		double nogel_area = 0 ;
-		
-		double e_xx_max_count = 0 ;
-		double e_xx_min_count = 0 ;
-		double e_yy_max_count = 0 ;
-		double e_yy_min_count = 0 ;
-
-		for( size_t k = 0 ; k < triangles.size() ; k++ )
-		{
-			/*		bool in = !triangles[k]->getEnrichmentFunctions().empty() ;*/
-			bool in = false ;
-
-			for( size_t m = 0 ; m < tris__.size() ; m++ )
-			{
-				if( triangles[k] == tris__[m] )
-				{
-					in = true ;
-					break ;
-				}
-			}
-
-			cracked.push_back( in ) ;
-
-
-
-			if( !in /*&& !triangles[k]->getBehaviour()->fractured()*/ && baseGeometry.in( triangles[k]->getCenter() ) )
-			{
-
-				for( size_t p = 0 ; p < triangles[k]->getBoundingPoints().size() ; p++ )
-				{
-					if( x[triangles[k]->getBoundingPoint( p ).id * 2] > x_max )
-						x_max = x[triangles[k]->getBoundingPoint( p ).id * 2];
-
-					if( x[triangles[k]->getBoundingPoint( p ).id * 2] < x_min )
-						x_min = x[triangles[k]->getBoundingPoint( p ).id * 2];
-
-					if( x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] > y_max )
-						y_max = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1];
-
-					if( x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] < y_min )
-						y_min = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1];
-
-					if( triangles[k]->getBoundingPoint( p ).x > baseGeometry.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
-					{
-//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).id * 2] )
-						e_xx_max += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
- 						e_xx_max_count++ ;
-					}
-
-					if( triangles[k]->getBoundingPoint( p ).x < -baseGeometry.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
-					{
-//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).id * 2] )
-						e_xx_min += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
- 						e_xx_min_count++ ;
-
-// 						ex_count++ ;
-					}
-
-					if( triangles[k]->getBoundingPoint( p ).y > baseGeometry.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
-					{
-//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-						e_yy_max += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
- 						e_yy_max_count++ ;
-// 						ex_count++ ;
-					}
-
-					if( triangles[k]->getBoundingPoint( p ).y < -baseGeometry.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
-					{
-// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-						e_yy_min += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
- 						e_yy_min_count++ ;
-
-// 						ex_count++ ;
-					}
-				}
-
-				area += triangles[k]->area() ;
-
-				if( triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
-				{
-					if( !triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] > E_max )
-						E_max = triangles[k]->getBehaviour()->param[0][0] ;
-
-					if( !triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] < E_min )
-						E_min = triangles[k]->getBehaviour()->param[0][0] ;
-				}
-
-				sigma11[k * npoints] = sigma[k * npoints * 3];
-				sigma22[k * npoints] = sigma[k * npoints * 3 + 1];
-				sigma12[k * npoints] = sigma[k * npoints * 3 + 2];
-				sigma11[k * npoints + 1] = sigma[k * npoints * 3 + 3];
-				sigma22[k * npoints + 1] = sigma[k * npoints * 3 + 4];
-				sigma12[k * npoints + 1] = sigma[k * npoints * 3 + 5];
-				sigma11[k * npoints + 2] = sigma[k * npoints * 3 + 6];
-				sigma22[k * npoints + 2] = sigma[k * npoints * 3 + 7];
-				sigma12[k * npoints + 2] = sigma[k * npoints * 3 + 8];
-
-				if( npoints > 3 )
-				{
-					sigma11[k * npoints + 3] = sigma[k * npoints * 3 + 9];
-					sigma22[k * npoints + 3] = sigma[k * npoints * 3 + 10];
-					sigma12[k * npoints + 3] = sigma[k * npoints * 3 + 11];
-					sigma11[k * npoints + 4] = sigma[k * npoints * 3 + 12];
-					sigma22[k * npoints + 4] = sigma[k * npoints * 3 + 13];
-					sigma12[k * npoints + 4] = sigma[k * npoints * 3 + 14];
-					sigma11[k * npoints + 5] = sigma[k * npoints * 3 + 15];
-					sigma22[k * npoints + 5] = sigma[k * npoints * 3 + 16];
-					sigma12[k * npoints + 5] = sigma[k * npoints * 3 + 17];
-				}
-
-				epsilon11[k * npoints] = epsilon[k * npoints * 3];
-				epsilon22[k * npoints] = epsilon[k * npoints * 3 + 1];
-				epsilon12[k * npoints] = epsilon[k * npoints * 3 + 2];
-				epsilon11[k * npoints + 1] = epsilon[k * npoints * 3 + 3];
-				epsilon22[k * npoints + 1] = epsilon[k * npoints * 3 + 4];
-				epsilon12[k * npoints + 1] = epsilon[k * npoints * 3 + 5];
-				epsilon11[k * npoints + 2] = epsilon[k * npoints * 3 + 6];
-				epsilon22[k * npoints + 2] = epsilon[k * npoints * 3 + 7];
-				epsilon12[k * npoints + 2] = epsilon[k * npoints * 3 + 8];
-
-				if( npoints > 3 )
-				{
-					epsilon11[k * npoints + 3] = epsilon[k * npoints * 3 + 9];
-					epsilon22[k * npoints + 3] = epsilon[k * npoints * 3 + 10];
-					epsilon12[k * npoints + 3] = epsilon[k * npoints * 3 + 11];
-					epsilon11[k * npoints + 4] = epsilon[k * npoints * 3 + 12];
-					epsilon22[k * npoints + 4] = epsilon[k * npoints * 3 + 13];
-					epsilon12[k * npoints + 4] = epsilon[k * npoints * 3 + 14];
-					epsilon11[k * npoints + 5] = epsilon[k * npoints * 3 + 15];
-					epsilon22[k * npoints + 5] = epsilon[k * npoints * 3 + 16];
-					epsilon12[k * npoints + 5] = epsilon[k * npoints * 3 + 17];
-				}
-
-				for( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
-				{
-					Vector vm0(0., 3) ;
-					triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-	
-					Vector agl(0., 1) ;
-					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
-				}
-
-				double ar = triangles[k]->area() ;
-
-				for( size_t l = 0 ; l < npoints ; l++ )
-				{
-					avg_e_xx += ( epsilon11[k * npoints + l] / npoints ) * ar;
-					avg_e_yy += ( epsilon22[k * npoints + l] / npoints ) * ar;
-					avg_e_xy += ( epsilon12[k * npoints + l] / npoints ) * ar;
-					avg_s_xx += ( sigma11[k * npoints + l] / npoints ) * ar;
-					avg_s_yy += ( sigma22[k * npoints + l] / npoints ) * ar;
-					avg_s_xy += ( sigma12[k * npoints + l] / npoints ) * ar;
-				}
-
-				if( triangles[k]->getEnrichmentFunctions().size() == 0 )
-				{
-					for( size_t l = 0 ; l < npoints ; l++ )
-					{
-						avg_e_xx_nogel += ( epsilon11[k * npoints + l] / npoints ) * ar;
-						avg_e_yy_nogel += ( epsilon22[k * npoints + l] / npoints ) * ar;
-						avg_e_xy_nogel += ( epsilon12[k * npoints + l] / npoints ) * ar;
-						avg_s_xx_nogel += ( sigma11[k * npoints + l] / npoints ) * ar;
-						avg_s_yy_nogel += ( sigma22[k * npoints + l] / npoints ) * ar;
-						avg_s_xy_nogel += ( sigma12[k * npoints + l] / npoints ) * ar;
-
-					}
-
-					nogel_area += ar ;
-				}
-
-			}
-			else
-			{
-				sigma11[k * npoints] = 0 ;
-				sigma22[k * npoints] = 0 ;
-				sigma12[k * npoints] = 0 ;
-				sigma11[k * npoints + 1] = 0 ;
-				sigma22[k * npoints + 1] = 0 ;
-				sigma12[k * npoints + 1] = 0 ;
-				sigma11[k * npoints + 2] = 0 ;
-				sigma22[k * npoints + 2] = 0 ;
-				sigma12[k * npoints + 2] = 0 ;
-
-				if( npoints > 3 )
-				{
-					sigma11[k * npoints + 3] = 0 ;
-					sigma22[k * npoints + 3] = 0 ;
-					sigma12[k * npoints + 3] = 0 ;
-					sigma11[k * npoints + 4] = 0 ;
-					sigma22[k * npoints + 4] = 0 ;
-					sigma12[k * npoints + 4] = 0 ;
-					sigma11[k * npoints + 5] = 0 ;
-					sigma22[k * npoints + 5] = 0 ;
-					sigma12[k * npoints + 5] = 0 ;
-				}
-
-				epsilon11[k * npoints] = 0 ;
-				epsilon22[k * npoints] = 0 ;
-				epsilon12[k * npoints] = 0 ;
-				epsilon11[k * npoints + 1] = 0 ;
-				epsilon22[k * npoints + 1] = 0 ;
-				epsilon12[k * npoints + 1] = 0 ;
-				epsilon11[k * npoints + 2] = 0 ;
-				epsilon22[k * npoints + 2] = 0 ;
-				epsilon12[k * npoints + 2] = 0 ;
-
-				if( npoints > 3 )
-				{
-					epsilon11[k * npoints + 3] = 0 ;
-					epsilon22[k * npoints + 3] = 0 ;
-					epsilon12[k * npoints + 3] = 0 ;
-					epsilon11[k * npoints + 4] = 0 ;
-					epsilon22[k * npoints + 4] = 0 ;
-					epsilon12[k * npoints + 4] = 0 ;
-					epsilon11[k * npoints + 5] = 0 ;
-					epsilon22[k * npoints + 5] = 0 ;
-					epsilon12[k * npoints + 5] = 0 ;
-				}
-
-				for( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
-				{
-					vonMises[k * triangles[k]->getBoundingPoints().size() + l]  = 0 ;
-					angle[k * triangles[k]->getBoundingPoints().size() + l]  = 0 ;
-				}
-			}
-		}
-
-		int tsize = 0 ;
-
-		for( size_t j = 0 ; j < triangles.size() ; j++ )
-		{
-			if( triangles[j]->getBehaviour()->type != VOID_BEHAVIOUR )
-				tsize++ ;
-		}
 
 		std::string filename( "triangles" ) ;
 
@@ -436,49 +119,69 @@ void step()
 		writer.getField( TWFT_DAMAGE ) ;
 
 		writer.write() ;
-		e_xx_max /= e_xx_max_count ;
-		e_xx_min /= e_xx_min_count ;
-		e_yy_max /= e_yy_max_count ;
-		e_yy_min /= e_yy_min_count ;
 
+		double volume = 0 ;
+		double xavg = 0 ;
+		double yavg = 0 ;
+		for(size_t k = 0 ; k < triangles.size() ; k++)
+		{
+			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
+			{
+
+				if(baseGeometry.in(triangles[k]->getCenter()))
+				{				
+					double ar = triangles[k]->area() ;
+					volume += ar ;
+					for(size_t l = 0 ; l < npoints ;l++)
+					{
+						xavg += x[triangles[k]->getBoundingPoint(l).id*2]*ar/npoints ;
+						yavg += x[triangles[k]->getBoundingPoint(l).id*2+1]*ar/npoints ;
+					}
+				}
+			}
+		}
+			
+		xavg /= volume ;
+		yavg /= volume ;
+		std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
+		std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+		std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
+		Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
+		Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
+		
 		std::cout << std::endl ;
-		std::cout << "max value :" << x_max << std::endl ;
-		std::cout << "min value :" << x_min << std::endl ;
-		std::cout << "max sigma11 :" << sigma11.max() << std::endl ;
-		std::cout << "min sigma11 :" << sigma11.min() << std::endl ;
-		std::cout << "max sigma12 :" << sigma12.max() << std::endl ;
-		std::cout << "min sigma12 :" << sigma12.min() << std::endl ;
-		std::cout << "max sigma22 :" << sigma22.max() << std::endl ;
-		std::cout << "min sigma22 :" << sigma22.min() << std::endl ;
+		std::cout << "max value :" << x.max() << std::endl ;
+		std::cout << "min value :" << x.min() << std::endl ;
+		std::cout << "avg x value :" << xavg << std::endl ;
+		std::cout << "avg y value :" << xavg << std::endl ;
 
-		std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-		std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-		std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-		std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-		std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-		std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
+		std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
+		std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
+		std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
+		std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
+		std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
+		std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+		
+		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
+		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+		std::cout << "max epsilon12 :" << etempm.second[3] << std::endl ;
+		std::cout << "min epsilon12 :" << etempm.first[3]  << std::endl ;
+		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+		
+		std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
+		std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
+		
+		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+		std::cout << "average sigma12 : " << stemp[3] << std::endl ;
+		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
+		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
+		std::cout << "average epsilon12 : " << etemp[3] << std::endl ;
+		
+		std::cout << std::endl ;
 
-		std::cout << "max von Mises :" << vonMises.max() << std::endl ;
-		std::cout << "min von Mises :" << vonMises.min() << std::endl ;
 
-		std::cout << "average sigma11 : " << avg_s_xx / area << std::endl ;
-		std::cout << "average sigma22 : " << avg_s_yy / area << std::endl ;
-		std::cout << "average sigma12 : " << avg_s_xy / area << std::endl ;
-		std::cout << "average epsilon11 : " << avg_e_xx / area << std::endl ;
-		std::cout << "average epsilon22 : " << avg_e_yy / area << std::endl ;
-		std::cout << "average epsilon12 : " << avg_e_xy / area << std::endl ;
-
-		std::cout << "average sigma11 (no gel): " << avg_s_xx_nogel / nogel_area << std::endl ;
-		std::cout << "average sigma22 (no gel): " << avg_s_yy_nogel / nogel_area << std::endl ;
-		std::cout << "average sigma12 (no gel): " << avg_s_xy_nogel / nogel_area << std::endl ;
-		std::cout << "average epsilon11 (no gel): " << avg_e_xx_nogel / nogel_area << std::endl ;
-		std::cout << "average epsilon22 (no gel): " << avg_e_yy_nogel / nogel_area << std::endl ;
-		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel / nogel_area << std::endl ;
-
-		std::cout << "apparent extension (x) " << (e_xx_max - e_xx_min)/sample.width() << std::endl ;
-		std::cout << "apparent extension (y) " << (e_yy_max - e_yy_min)/sample.width() << std::endl ;
-
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
 		if( go_on )
 		{
 			featureTree->forceEnrichmentChange();
@@ -496,10 +199,8 @@ void step()
 
 			for( size_t z = 0 ; z < zones.size() ; z++ )
 			{
-
 				zones[z].first->setRadius( zones[z].first->getRadius() + delta_r ) ;
 
-				// 		zones[z].first->reset() ;
 				if( zones[z].second == current )
 				{
 					current_area += zones[z].first->area() ;
@@ -530,12 +231,13 @@ void step()
 			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in " << stopped_reaction << " aggs." << std::endl ;
 
 
+			std::vector<double> macro_strain = featureTree->getMacroscopicStrain(&baseGeometry) ;
 			if( go_on )
 			{
-				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, avg_e_xx / area ) ) ;
-				expansion_stress_xx.push_back( std::make_pair( ( avg_e_xx_nogel ) / ( nogel_area ), ( avg_s_xx_nogel ) / ( nogel_area ) ) ) ;
-				expansion_stress_yy.push_back( std::make_pair( ( avg_e_yy_nogel ) / ( nogel_area ), ( avg_s_yy_nogel ) / ( nogel_area ) ) ) ;
-				apparent_extension.push_back( std::make_pair((e_xx_max - e_xx_min)/sample.width(), (e_yy_max - e_yy_min)/sample.width() ) ) ;
+				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, macro_strain[0]) ) ;
+				expansion_stress_xx.push_back( std::make_pair( etemp[0], stemp[0] ) ) ;
+				expansion_stress_yy.push_back( std::make_pair( etemp[1], stemp[1] ) ) ;
+				apparent_extension.push_back( std::make_pair(macro_strain[0], macro_strain[1]) ) ;
 			}
 
 		}
@@ -648,7 +350,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 int main( int argc, char *argv[] )
 {
 
-	nzones = atof( argv[1] ) ;
+	int nzones = atof( argv[1] ) ;
 	double dmax = atof( argv[2] ) ;
 
 	Matrix m0_agg( 3, 3 ) ;
