@@ -67,7 +67,7 @@ Sample notch(nullptr,nwidth, nnotch, 0.0, length - depth - nnotch*0.5) ;
 int main(int argc, char *argv[])
 {
 //	 omp_set_schedule(omp_sched_static, 60) ;
-//	omp_set_num_threads(1) ;
+	omp_set_num_threads(4) ;
 
 //	srandom((int) atof(argv[3])) ;
 	FeatureTree F(&box) ;
@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(totaltime/100.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
 	size_t seed = atof(argv[3]) ;
-	ViscoElasticOnlyPasteBehaviour pastenodamage(20e9) ;
+	ShortTermViscoElasticOnlyPasteBehaviour pastenodamage(16e9,0.3,5.) ;
+	ShortTermViscoElasticOnlyPasteBehaviour virtualpastenodamage(16e9,0.3,2.5) ;
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
@@ -107,27 +108,28 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone( &refinement5 ) ;
 // 	F.addRefinementZone( &refinement6 ) ;
 	
-	ViscoDamagePasteBehaviour paste ;
+	ShortTermViscoDamagePasteBehaviour paste(16e9,0.3,2.5) ;
 	paste.freeblocks = 0 ;
 	if(argv[2] == std::string("strain"))
 	{
-		paste.up = 0.00025 ;
+		paste.ctype = STRAIN_CRITERION ;
+		paste.up = 0.00035 ;
 	}
 	if(argv[2] == std::string("stress"))
 	{
 		paste.ctype = STRESS_CRITERION ;
-		paste.up = 0.000184 ;
+		paste.up = 0.0002 ;
 	}
 	if(argv[2] == std::string("mixed"))
 	{
 		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.00025 ;
-		paste.stressFraction = 0.8 ;
+		paste.up = 0.0002 ;
+		paste.stressFraction = 0.714 ;
 	}
 	paste.materialRadius = 0.002 ;
 
 	if(argv[2] == std::string("elastic"))
-		box.setBehaviour( &pastenodamage ) ;
+		box.setBehaviour( &virtualpastenodamage ) ;
 	else
 		box.setBehaviour( &paste ) ;
 
@@ -135,7 +137,7 @@ int main(int argc, char *argv[])
 	notch.setBehaviour( new VoidForm() ) ;
 
 	ViscoElasticOnlyAggregateBehaviour agg ;
-	agg.freeblocks = 0 ;
+	agg.freeblocks = -1 ;
 
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
@@ -184,7 +186,7 @@ int main(int argc, char *argv[])
 	
 	F.step() ;
 	F.getAssembly()->setEpsilon(1e-8) ;
- 	Vector x = F.getAverageField(STRAIN_FIELD) ;
+	Vector x = F.getAverageField(STRAIN_FIELD) ;
  	Vector y = F.getAverageField(REAL_STRESS_FIELD) ;
 //	std::cout << 0. << "\t" << x[0] << "\t" << y[0] << std::endl ;
 
@@ -205,9 +207,11 @@ int main(int argc, char *argv[])
 	double totaldisp = 0.;
 	bool goOn = true ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
+	std::cout << y[0] << std::endl ;
 
-	while(speed*F.getCurrentTime() <= 0.0005)
+	while(speed*F.getCurrentTime() <= 0.0005 && y[0] > -1.)
 	{
+		std::cout << y[0] << std::endl ;
 		if(goOn)
 		{
 			i++ ;
@@ -254,10 +258,12 @@ int main(int argc, char *argv[])
 			}
 		}
 
- 		x = F.getAverageField(STRAIN_FIELD, -1, -1) ;
- 		y = F.getAverageField(REAL_STRESS_FIELD, -1, -1) ;
-		out << trg[0]->getBoundingPoint(0).t << "\t" << trg[0]->getBoundingPoint(0).t*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
-
+		if(goOn)
+		{
+	 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
+	 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
+			out << trg[0]->getBoundingPoint(3).t << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
+		}
 	}
 	
 //	F.getAssembly()->print() ;

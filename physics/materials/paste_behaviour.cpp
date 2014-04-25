@@ -83,6 +83,18 @@ Form * ViscoElasticOnlyPasteBehaviour::getCopy() const
 	return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, branches,0,freeblocks) ;
 }
 
+Form * ShortTermViscoElasticOnlyPasteBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. - variability + variability*weib ;
+
+	Matrix C0 = param*factor ;
+	Matrix C1 = C0*e_1 ;
+	Matrix E1 = C1*0.002 ;
+	
+	return new Viscoelasticity(GENERALIZED_KELVIN_VOIGT, C0, C1, E1) ;
+}
+
 ViscoDamagePasteBehaviour::ViscoDamagePasteBehaviour(double E, double nu, double e1, double e2 , double up_, double r, SpaceDimensionality dim) : PasteBehaviour(E, nu, up_,0.,0., dim), e_1(e1), e_2(e2), freeblocks(0), ctype(STRAIN_CRITERION)
 {
 	materialRadius = r ;
@@ -128,6 +140,45 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
 	copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
 	copy->getDamageModel()->setThresholdDamageDensity(0.8) ;
+	copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
+	return copy ;
+
+}
+
+
+Form * ShortTermViscoDamagePasteBehaviour::getCopy() const 
+{
+	double weib = RandomNumber().weibull(1,5) ;
+	double factor = 1. - variability + variability*weib ;
+
+	Matrix C0 = param*factor ;
+	Matrix C1 = C0*e_1 ;
+	Matrix E1 = C1*0.002 ;
+	
+	
+	ViscoelasticityAndFracture * copy ;
+// 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
+	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
+
+	switch(ctype)
+	{
+		case STRAIN_CRITERION:
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			break ;
+		case STRESS_CRITERION:
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			break ;
+		case MIXED_CRITERION:
+			double k = 1. + C0[0][0]/C1[0][0];
+//			std::cout << k << std::endl ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
+			break ;
+	}
+	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
+	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
+	copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
+	copy->getDamageModel()->setThresholdDamageDensity(0.85) ;
 	copy->getDamageModel()->setNeedGlobalMaximumScore(true) ;
 	return copy ;
 

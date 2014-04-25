@@ -123,6 +123,13 @@ namespace Mu
 		virtual Form * getCopy() const ;
 	} ;
 
+	struct ShortTermViscoElasticOnlyPasteBehaviour : public ViscoElasticOnlyPasteBehaviour
+	{
+		ShortTermViscoElasticOnlyPasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) : ViscoElasticOnlyPasteBehaviour(E, nu, e1,e2,dim) { } ;
+		
+		virtual Form * getCopy() const ;
+	} ;
+
 	typedef enum
 	{
 		STRAIN_CRITERION,
@@ -139,6 +146,13 @@ namespace Mu
 		double stressFraction ;
 		
 		ViscoDamagePasteBehaviour(double E=15e9, double nu = 0.3, double e1=0.3, double e2=0.37, double up = 0.0003, double r  = 0.00018, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		
+		virtual Form * getCopy() const ;
+	} ;
+
+	struct ShortTermViscoDamagePasteBehaviour : public ViscoDamagePasteBehaviour
+	{
+		ShortTermViscoDamagePasteBehaviour(double E = 12e9, double nu = 0.3, double e1 = 0.3, double e2 = 0.3,double r  = 0.00018,  SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) : ViscoDamagePasteBehaviour(E, nu, e1,e2,r,dim) { } ;
 		
 		virtual Form * getCopy() const ;
 	} ;
