@@ -16,11 +16,11 @@ namespace Mu
 {
 	struct PasteBehaviour : public WeibullDistributedStiffness
 	{
-	    // ultimate tensile strength: 12 MPa which is 3 * 4 MPa (instantaneous stress)
+	    // ultimate tensile strength: 20 MPa which is 5 * 4 MPa (instantaneous stress)
 		double up ;
 		double yield ;
 		double c ;
-		PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 0.001, double yield = 0.001, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 0.001666, double yield = 0.001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
@@ -102,7 +102,6 @@ namespace Mu
 		virtual double getDiffusionCoefficient(double stauration, ElementState & currentState) ;
 		
 	} ;
-	
 	
 	struct ElasticOnlyPasteBehaviour : public PasteBehaviour
 	{

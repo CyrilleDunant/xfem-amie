@@ -3951,8 +3951,11 @@ void FeatureTree::solve()
 	double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
 	std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
 
+	gettimeofday( &time0, nullptr );
+	std::cerr << "Applying coundary conditions... " << std::flush ;
 	for( size_t i = 0 ; i < boundaryCondition.size() ; ++i )
 	{
+		std::cerr << "\rApplying coundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
 		if( dtree )
 		{
 			boundaryCondition[i]->apply( K, dtree ) ;
@@ -3963,6 +3966,9 @@ void FeatureTree::solve()
 			boundaryCondition[i]->apply( K, dtree3D ) ;
 		}
 	}
+	gettimeofday( &time1, nullptr );
+	delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cerr << "\rApplying coundary conditions... " << boundaryCondition.size() << "/" << boundaryCondition.size() << "...done  Time (s) " << delta / 1e6 << std::endl  ;
 
 	needAssembly = true ;
 

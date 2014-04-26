@@ -3521,33 +3521,36 @@ GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition
 
 void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
-	std::vector<DelaunayTriangle *> elements = t->getElements() ;
-	double tol = domain->getRadius() * .001 ;
-
-
-	for ( size_t i = 0 ; i < elements.size() ; ++i )
+	if(cache2d.empty())
 	{
-		if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-			continue ;
+		std::vector<DelaunayTriangle *> elements = t->getConflictingElements(domain) ;
+		double tol = domain->getRadius() * .001 ;
 
-		std::vector<Point> id  ;
 
-		for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
-			 Point test = elements[i]->getBoundingPoint( j ) ;
-			 domain->project(&test);
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+				continue ;
 
-			if ( squareDist2D(test, elements[i]->getBoundingPoint( j )) < tol*tol )
+			std::vector<Point> id  ;
+
+			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				id.push_back( elements[i]->getBoundingPoint( j ) ) ;
-			}
-		}
-		if(!id.empty())
-		{
-			cache2d.push_back(elements[i]);
-			cache.push_back(id);
-		}
+				Point test = elements[i]->getBoundingPoint( j ) ;
+				domain->project(&test);
 
+				if ( squareDist2D(test, elements[i]->getBoundingPoint( j )) < tol*tol )
+				{
+					id.push_back( elements[i]->getBoundingPoint( j ) ) ;
+				}
+			}
+			if(!id.empty())
+			{
+				cache2d.push_back(elements[i]);
+				cache.push_back(id);
+			}
+
+		}
 	}
 	
 	for(size_t i = 0 ; i < cache2d.size() ; i++)
@@ -3568,11 +3571,13 @@ void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<Delaunay
 
 void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-	std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
-	double tol = domain->getRadius() * .001 ;
+
+
 
 	if(cache3d.empty())
-	{
+	{	
+		std::vector<DelaunayTetrahedron *> elements = t->getConflictingElements(domain) ;
+		double tol = domain->getRadius() * .001 ;
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
 			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )

@@ -18,8 +18,8 @@ namespace Mu
 		double up ;
 		double yield ;
 		double c ;
-		//Yield 20 MPa
-		AggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.0008, double yield = 0.00033, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		//Yield 30 MPa
+		AggregateBehaviour(double E=59e9, double nu=0.3, double up = 0.0012, double yield = 0.00044, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

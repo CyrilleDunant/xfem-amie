@@ -260,7 +260,7 @@ private:
 	std::vector<double> fraction ;
 	std::vector<double> radius ;
 public:
-	GranuloFromCumulativePSD(std::string filename, PSDSpecificationType t) ;
+	GranuloFromCumulativePSD(const std::string & filename, PSDSpecificationType t, double factor = 1., double cutOffUp = -1, double cutOffDown = -1) ;
 	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
@@ -273,7 +273,7 @@ private:
 	std::vector<double> values ;
 
 public:
-	GranuloFromFile(std::string fname, std::vector<std::string> columns) ;
+	GranuloFromFile(const std::string & fname, std::vector<std::string> columns) ;
 	int numberOfField() {return this->fields.size() ; } ;
 	bool verifyField(std::vector<std::string> columns) ;
 	int getFieldNumber(std::string column) ;

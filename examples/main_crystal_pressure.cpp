@@ -47,46 +47,42 @@ using namespace Mu ;
 int main(int argc, char *argv[])
 {
 	
-	std::vector<Inclusion *> incs =PSDGenerator::get2DInclusions(20, 100000, new GranuloFromCumulativePSD("testPSD.txt", CUMULATIVE_PERCENT), PSDEndCriteria(.01, 0., 10000) ) ;
-	for(size_t i = 0 ; i < incs.size() ; i++)
-		std::cout << incs[i]->getRadius() << std::endl ;
+	std::fstream psdfile(argv[1]) ;
+	double thresholdRadius = 30. ;
+	if(argc > 3)
+		thresholdRadius = atof(argv[3]) ;
+	double maxRadius ;
+	double poreFraction ;
+	double waterLayerDepth = 1.5 ;
+	double factor = 1000. ;
+	double minRadius = waterLayerDepth*.25 ;
 	
-	exit(0) ;
+	psdfile >> poreFraction >>  maxRadius;
+	while(!psdfile.eof())
+	{
+		double dummy ;
+		psdfile >> poreFraction >> dummy ;
+	}
+	poreFraction /= 100. ;
+	maxRadius = std::min(maxRadius*factor, thresholdRadius) ;
 	
-	double npores = 1500 ;
-	double poreArea = 0. ;
-	std::vector<double> radii ; 
-	//p=0.165, u=-5.15, s=0.3
-	//p=0.205, u=-5.00, s=0.4
-	//p=0.240, u=-4.80, s=0.7
-	
-	//P0=45 - p=0.200, u=-5.35, s=0.4
-	//P0=80 - p=0.175, u=-5.20, s=0.4
-	std::lognormal_distribution<double> distribution(atof(argv[1]),atof(argv[2])) ;
-	std::default_random_engine generator;
-	
-	double poreFraction = atof(argv[3]); 
+	std::vector<Inclusion *> incs = PSDGenerator::get2DInclusions(maxRadius, maxRadius*maxRadius*M_PI*25., new GranuloFromCumulativePSD(argv[1], CUMULATIVE_ABSOLUTE_REVERSE, 1000., maxRadius, minRadius), PSDEndCriteria(.1, 0., 50000) ) ;
 	double bulk = 13.9 ;
 	double shear = 8.75 ;
 	double E = .33333*(9.*bulk*shear)/(3.*bulk+shear) ;
 	double nu = (3.*bulk-2.*shear)/(2.*(3.*bulk+shear)) ;
 	
-	for(size_t i = 0 ; i < npores ; i++)
-	{
-		double test = 0 ;
-		do{
-			test = distribution(generator) ;
-		}while(test*1000 < .05 || test*1000 > 20) ;
-		radii.push_back(test*1000.);
-		poreArea += M_PI*radii.back()*radii.back() ;
-	}
 	
-	std::sort(radii.begin(), radii.end()) ;
-	std::reverse(radii.begin(), radii.end());
+	std::cout << "maxr = " << maxRadius << ", porefrac = " << poreFraction << std::endl ;
 	
 	std::vector<Feature *> pores ;
-	for(size_t i = 0 ; i < npores ; i++)
-		pores.push_back(new Pore(radii[i], 0., 0.));
+	double poreArea = 0 ;
+	for(size_t i = 0 ; i < incs.size() ; i++)
+	{
+		pores.push_back(incs[i]);
+		incs[i]->setBehaviour(new VoidForm()) ;
+		poreArea += incs[i]->area() ;
+	}
 
 	
 	double sampleSide = sqrt(poreArea/poreFraction) ;
@@ -94,7 +90,7 @@ int main(int argc, char *argv[])
 	Sample s(sampleSide, sampleSide, 0., 0.) ;
 	s.setBehaviour(new ElasticOnlyPasteBehaviour(E, nu, SPACE_TWO_DIMENSIONAL) );
 	
-	pores = placement2D(s.getPrimitive(), pores, 2, 0, 100000) ;
+	pores = placement2D(s.getPrimitive(), pores, waterLayerDepth*4., 0, 2000000) ;
 	
 	FeatureTree ft(&s) ;
 	
@@ -117,22 +113,22 @@ int main(int argc, char *argv[])
 	
 	ft.setOrder(LINEAR) ;
 	ft.setSamplingNumber(192);
-	std::fstream outfile(argv[4], std::ios::out | std::ios::app) ;
-	outfile << "# p = " << atof(argv[3])<< ", u = " << atof(argv[1]) << ", s = " << atof(argv[2])  << std::endl ;
+	std::fstream outfile(argv[2], std::ios::out | std::ios::app) ;
+	outfile << "# psd = " << argv[1] << ", outfile = " << argv[2]  << std::endl ;
 	outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
 	outfile.close() ;
 	for(double p = 10 ; p < 110 ; p+=10)
 	{
-		std::fstream outfile(argv[4], std::ios::out | std::ios::app) ;
-		double criticalRadius = 50 ;
+		std::fstream outfile(argv[2], std::ios::out | std::ios::app) ;
+		double criticalRadius = thresholdRadius ;
 		double poresUnderPressure = 0 ;
 		for(size_t i = 0 ; i < pores.size() ; i++)
 		{
-			double pressure = p-200./(pores[i]->getRadius()-2) ;
+			double pressure = p-200./(pores[i]->getRadius()-waterLayerDepth) ;
 			
-			if(pressure > 0 && pores[i]->getRadius() > 2)
+			if(pressure > 0 && pores[i]->getRadius() > waterLayerDepth)
 			{
-				pressure = std::min(200./(pores[i]->getRadius()-2), p) ;
+				pressure = std::min(200./(pores[i]->getRadius()-waterLayerDepth), p) ;
 				boundaryConditions[i]->setData(pressure*1e-3) ;
 				criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
 				poresUnderPressure += pores[i]->area() ;
@@ -152,8 +148,6 @@ int main(int argc, char *argv[])
 		writerm.writeSvg(50, true) ;
 		
 	}
-	
-	exit(0) ;
 		
   return 0 ;
 }

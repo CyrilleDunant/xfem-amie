@@ -56,8 +56,8 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 	double diameter = rmax*2. ;
 	double remainingMass = mass ;
 	double remainingFraction = 1. ;
-	
-	while(!crit.meets(diameter*0.5, remainingFraction, radii.size()))
+	int tries = 0 ;
+	while(!crit.meets(diameter*0.5, remainingFraction, tries++))
 	{
 		radii.push_back(diameter*0.5) ;
 		remainingMass -= diameter*diameter*M_PI*.25 ;
@@ -95,8 +95,9 @@ std::vector<Inclusion3D *> PSDGenerator::get3DInclusions(double rmax, double mas
  	double diameter = rmax*2. ;
 	double remainingMass = mass ;
 	double remainingFraction = 1. ;
+	int tries = 0 ;
 	
-	while(!crit.meets(diameter*0.5, remainingFraction, radii.size()))
+	while(!crit.meets(diameter*0.5, remainingFraction, tries++))
 	{
 	      radii.push_back(diameter*0.5) ;
 	      remainingMass -= diameter*diameter*diameter*M_PI*1./6. ;
@@ -498,7 +499,7 @@ double m;//pente
 }
 
 
-GranuloFromFile::GranuloFromFile(std::string fname, std::vector<std::string> columns)
+GranuloFromFile::GranuloFromFile(const std::string & fname, std::vector<std::string> columns)
 {
 	std::cout << "importing file: " << fname << std::endl ;
 	this->filename = fname ;
@@ -661,19 +662,49 @@ std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scal
 
 
 
-GranuloFromCumulativePSD::GranuloFromCumulativePSD(std::string filename, PSDSpecificationType t) 
+GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename, PSDSpecificationType t, double factor, double cutOffUp, double cutOffDown) 
 { 
 	std::fstream file(filename) ;
 
+	if(!file.is_open())
+	{
+		std::cout << "file " << filename << " doesn't exist!" << std::endl ;
+		exit(0) ;
+	}
+	
+	double maxfrac = 0 ;
+	double minfrac = 100 ;
 	do {
 		double frac ;
 		double rad ;
 		file >> frac >> rad ;
-		fraction.push_back(frac);
-		radius.push_back(rad);
+		if((cutOffUp > 0 && rad*factor <= cutOffUp || cutOffUp < 0)  && 
+			 (cutOffDown > 0 && rad*factor >= cutOffDown || cutOffDown < 0)
+		)
+		{
+			fraction.push_back(frac);
+			radius.push_back(rad*factor);
+			maxfrac = std::max(maxfrac, frac) ;
+			minfrac = std::min(minfrac, frac) ;
+		}
+
 	}while(!file.eof()) ;
+	
 	fraction.pop_back();
 	radius.pop_back();
+	
+	if(cutOffUp > 0  || cutOffDown > 0)
+	{
+		if(t == CUMULATIVE_PERCENT)
+			t = CUMULATIVE_ABSOLUTE ;
+		if(t == CUMULATIVE_PERCENT_REVERSE)
+			t = CUMULATIVE_ABSOLUTE_REVERSE ;
+	}
+	
+	for(size_t i = 0 ; i < fraction.size() ; i++)
+	{
+		fraction[i] -= minfrac ;
+	}
 	
 	switch(t)
 	{
@@ -717,13 +748,16 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(std::string filename, PSDSpec
 			break ;
 		}
 	}
-	
 	if(fraction.back() < fraction.front())
 	{
 		std::reverse(fraction.begin(), fraction.end());
 		std::reverse(radius.begin(), radius.end());
 	}
-
+// 	for( size_t i = 0  ; i < radius.size() ; i++)
+// 		std::cout << fraction[i] << "  " << radius[i] << std::endl ;
+// 	
+// 	exit(0) ;
+	
 }
 
 double GranuloFromCumulativePSD::getNext2DDiameter(double diameter, double frac, double dmax)
