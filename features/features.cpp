@@ -3952,10 +3952,13 @@ void FeatureTree::solve()
 	std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
 
 	gettimeofday( &time0, nullptr );
+	
 	std::cerr << "Applying coundary conditions... " << std::flush ;
 	for( size_t i = 0 ; i < boundaryCondition.size() ; ++i )
 	{
-		std::cerr << "\rApplying coundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
+		if(i%20 == 0)
+			std::cerr << "\rApplying coundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
+		
 		if( dtree )
 		{
 			boundaryCondition[i]->apply( K, dtree ) ;

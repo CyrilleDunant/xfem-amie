@@ -3340,7 +3340,7 @@ bool Line::intersects(const Geometry *g) const
 			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
 			          +(p.z-g->getCenter().z)*(p.z-g->getCenter().z)
 			          -g->getRadius()*g->getRadius() ;
-			double delta = b*b - 4*a*c ;
+			double delta = b*b - 4.*a*c ;
 			
 			return delta >= 0 ;
 		}
@@ -5201,38 +5201,35 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 //		return false ;
 
 //	Point centre ;
-	Point centre = (test+f0+f1)*.3333333333333333333333333 ;
-	Point f0_(f0-centre) ;
-	Point f1_(f1-centre) ;
-	Point test_(test-centre) ;
-	double scale = sqrt(4.*POINT_TOLERANCE_2D)/(std::max(std::max(f0_.norm(), f1_.norm()), test_.norm())) ;
+	Point centre(test.x+f0.x+f1.x, test.y+f0.y+f1.y, test.z+f0.z+f1.z) ;
+	centre *=.3333333333333333333333333 ;
+	Point f0_(f0.x-centre.x, f0.y-centre.y, f0.z-centre.z) ;
+	Point f1_(f1.x-centre.x, f1.y-centre.y, f1.z-centre.z) ;
+	Point test_(test.x-centre.x, test.y-centre.y, test.z-centre.z) ;
+	double scale = sqrt(4.*POINT_TOLERANCE_2D/(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
 	f0_   *= scale ;
 	f1_   *= scale ;
 	test_ *= scale ;
 //	if (std::abs(signedAlignement(test_, f0_, f1_)) > 2.*POINT_TOLERANCE)
 //		return false ;
 
-	Point a(f0_-f1_) ;
-	Point b(f0_-test_) ;
-	Point c(f1_-test_) ;
-
-	double na = a.norm() ;
-	double nb = b.norm() ;
-	double nc = c.norm() ;
+	double na = sqrt((f0_.x-f1_.x)*(f0_.x-f1_.x)+(f0_.y-f1_.y)*(f0_.y-f1_.y)+(f0_.z-f1_.z)*(f0_.z-f1_.z)) ;
+	double nb = sqrt((f0_.x-test_.x)*(f0_.x-test_.x)+(f0_.y-test_.y)*(f0_.y-test_.y)+(f0_.z-test_.z)*(f0_.z-test_.z)) ;
+	double nc = sqrt((f1_.x-test_.x)*(f1_.x-test_.x)+(f1_.y-test_.y)*(f1_.y-test_.y)+(f1_.z-test_.z)*(f1_.z-test_.z)) ;
 	
 	if(na >= nb && na >= nc)
 	{
-		Line l(f0_,(f1_-f0_)/na) ;
+		Line l(f0_,Point((f1_.x-f0_.x)/na,(f1_.y-f0_.y)/na,(f1_.z-f0_.z)/na)) ;
 		Sphere s(POINT_TOLERANCE_2D, test_) ;
 		return l.intersects(&s) ;
 	}
 	if(nb >= na && nb >= nc)
 	{
-		Line l(f0_,(test_-f0_)/nb) ;
+		Line l(f0_,Point((test_.x-f0_.x)/nb,(test_.y-f0_.y)/nb,(test_.z-f0_.z)/nb)) ;
 		Sphere s(POINT_TOLERANCE_2D, f1_) ;
 		return l.intersects(&s) ;
 	}
-	Line l(f1_,(test_-f1_)/nc) ;
+	Line l(f1_,Point((test_.x-f1_.x)/nc,(test_.y-f1_.y)/nc,(test_.z-f1_.z)/nc)) ;
 	Sphere s(POINT_TOLERANCE_2D, f0_) ;
 	return l.intersects(&s) ;
 } 
@@ -5247,15 +5244,13 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 {
 	int count = 0 ;
 	Point centre = (**(pts)+f0+f1+f2)*.25 ;
-	Mu::Point A(f1-f0) ;
-	Mu::Point B(f2-f0) ;
-	Point normal = (A^B)*renorm ;
+	Point normal = (Point(f1.x-f0.x,f1.y-f0.y,f1.z-f0.z)^Point(f2.x-f0.x,f2.y-f0.y,f2.z-f0.z))*renorm ;
 	
-	Point f0_(f0*renorm-centre*renorm) ;
-	Point f1_(f1*renorm-centre*renorm) ;
-	Point f2_(f2*renorm-centre*renorm) ;
+	Point f0_(f0.x*renorm-centre.x*renorm,f0.y*renorm-centre.y*renorm,f0.z*renorm-centre.z*renorm) ;
+	Point f1_(f1.x*renorm-centre.x*renorm,f1.y*renorm-centre.y*renorm,f1.z*renorm-centre.z*renorm) ;
+	Point f2_(f2.x*renorm-centre.x*renorm,f2.y*renorm-centre.y*renorm,f2.z*renorm-centre.z*renorm) ;
 	
-	Point AB = (f0_-f1_)^(f2_-f1_) ;
+	Point AB = Point(f0_.x-f1_.x,f0_.y-f1_.y,f0_.z-f1_.z)^Point(f2_.x-f1_.x,f2_.y-f1_.y,f2_.z-f1_.z) ;
 	for(size_t i = 0 ; i < numpoints ; i++)
 	{
 		Point test_(**(pts+i)*renorm-centre*renorm) ;
@@ -5270,11 +5265,8 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 		if(c0*c0 > POINT_TOLERANCE_3D)
 			continue ;
 		
-		Point a(test_) ; a += normal ;
-		Point b(test_) ; b -= normal ;
-
-		double c1 = AB*(f2_-a) ; 
-		double c2 = AB*(f2_-b) ;
+		double c1 = AB.x*(f2_.x-test_.x-normal.x)+AB.y*(f2_.y-test_.y-normal.y)+AB.z*(f2_.z-test_.z-normal.z) ;
+		double c2 = AB.x*(f2_.x-test_.x+normal.x)+AB.y*(f2_.y-test_.y+normal.y)+AB.z*(f2_.z-test_.z+normal.z) ; 
 
 		bool positive = c0 > 0 || c1 > 0 || c2 > 0 ;
 		bool negative = c0 < 0 || c1 < 0 || c2 < 0 ;
@@ -5288,11 +5280,11 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm)  
 {
 
-	Point centre = (test+f0+f1+f2)*.25*renorm ;
-	Point f0_(f0*renorm-centre) ;
-	Point f1_(f1*renorm-centre) ;
-	Point f2_(f2*renorm-centre) ;
-	Point test_(test*renorm-centre) ;
+	Point centre = (test+f0+f1+f2)*.25 ;
+	Point f0_(f0.x*renorm-centre.x*renorm,f0.y*renorm-centre.y*renorm,f0.z*renorm-centre.z*renorm) ;
+	Point f1_(f1.x*renorm-centre.x*renorm,f1.y*renorm-centre.y*renorm,f1.z*renorm-centre.z*renorm) ;
+	Point f2_(f2.x*renorm-centre.x*renorm,f2.y*renorm-centre.y*renorm,f2.z*renorm-centre.z*renorm) ;
+	Point test_(test.x*renorm-centre.x*renorm,test.y*renorm-centre.y*renorm,test.z*renorm-centre.z*renorm) ;
 	
 	if(test_ == f1_)
 		return true ;
@@ -5301,20 +5293,16 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	if(test_ == f2_)
 		return true ;
 		
-	Mu::Point A(f1_-f0_) ;
-	Mu::Point B(f2_-f0_) ; 
-	Mu::Point C(f2_-test_) ;
-
 	double c0 = signedCoplanarity(test_, f0_, f1_, f2_) ;
 	double c02 = c0*c0 ;
 	if(c02 > POINT_TOLERANCE_3D)
 		return false ;
 
-	Point normal = A^B ;
+	Point normal = Point(f1_.x-f0_.x,f1_.y-f0_.y,f1_.z-f0_.z)^Point(f2_.x-f0_.x,f2_.y-f0_.y,f2_.z-f0_.z) ;
 //	normal /= scale ;
 	
-	Point a(test_) ; a += normal ;
-	Point b(test_) ; b -= normal ;
+	Point a(test_.x+normal.x,test_.y+normal.y,test_.z+normal.z) ; 
+	Point b(test_.x-normal.x,test_.y-normal.y,test_.z-normal.z) ; 
 
 	double c1 = signedCoplanarity(a, f0_, f1_, f2_) ;
 	double c2 = signedCoplanarity(b, f0_, f1_, f2_) ;

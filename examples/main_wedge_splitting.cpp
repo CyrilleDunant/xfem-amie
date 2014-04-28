@@ -67,7 +67,7 @@ Sample notch(nullptr,nwidth, nnotch, 0.0, length - depth - nnotch*0.5) ;
 int main(int argc, char *argv[])
 {
 //	 omp_set_schedule(omp_sched_static, 60) ;
-	omp_set_num_threads(4) ;
+// 	omp_set_num_threads(4) ;
 
 //	srandom((int) atof(argv[3])) ;
 	FeatureTree F(&box) ;

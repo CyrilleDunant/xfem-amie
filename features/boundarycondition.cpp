@@ -433,14 +433,19 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				Segment edge( *last, *first) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
-				std::valarray<Matrix> Jinve(gpe.gaussPoints.size()) ;
+				
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
 					gpe.gaussPoints[i].second *= edge.norm()*.5 ;
-					e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
 				}
-				
+				std::valarray<Matrix> Jinve(Jinv[0], gpe.gaussPoints.size()) ;
+				if(e->isMoved())
+				{
+					for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
+						e->getInverseJacobianMatrix( gpe.gaussPoints[i].first, Jinve[i]) ;
+				}
+					
 				std::vector<Variable> v( 2 ) ;
 				v[0] = XI ;
 				v[1] = ETA ;
@@ -3571,8 +3576,6 @@ void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<Delaunay
 
 void GeometryDefinedSurfaceBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-
-
 
 	if(cache3d.empty())
 	{	

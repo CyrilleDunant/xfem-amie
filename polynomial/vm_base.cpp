@@ -31,8 +31,11 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 	{
 		stack.memory.heap[f.adress_t[i] ] = eval( f.transform(i),x,y,z,t,u,v,w) ;
 	}
-	if(f.values.size())
-		std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
+	
+	for(size_t i = 0 ; i < f.values.size(); i++)
+		stack.memory.heap[HEAP_SIZE-f.values.size()+i] = f.values[f.values.size()-1-i] ;
+// 	if(f.values.size())
+// 		std::reverse_copy(f.values.begin(),f.values.end(),&stack.memory.heap[HEAP_SIZE-f.values.size()] ) ; 
 	
 	for(size_t i = 0 ; i < size  ; ++i)
 	{

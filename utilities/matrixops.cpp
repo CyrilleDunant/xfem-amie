@@ -483,32 +483,27 @@ Mu::Matrix inverse2x2Matrix(const Mu::Matrix &s)
 void invert2x2Matrix(Mu::Matrix &s)
 {
 	
-	if(std::abs(s[0][0]) < 1e-16)
+	if(std::abs(s.array()[0]) < 1e-16)
 	{
-		double a = s[0][0] ;
-		double b = s[0][1] ;
-		double c = s[1][0] ;
-		double d = s[1][1] ;
+		double a = s.array()[0] ;
+		double b = s.array()[1] ;
+		double c = s.array()[2] ;
+		double d = s.array()[3] ;
 		double dt = 1./(a*d-b*c) ;
-		s[0][0] = d ;
-		s[0][1] = -b ;
-		s[1][0] = -c ;
-		s[1][1] = a ;
-		s *= dt ;
+		s.array()[0] = d*dt ;
+		s.array()[1] = -b*dt ;
+		s.array()[2] = -c*dt ;
+		s.array()[3] = a*dt ;
 		return ;
 	}
 	
-	double r1 = 1./s[0][0] ;
-	double r2 = s[1][0] * r1 ;
-	double r3 = r1* s[0][1] ;
-	double r4 = s[1][0] * r3 ;
-	double r5 = r4 - s[1][1] ;
-	double r6 = 1./r5 ;
-	s[0][1] = r3*r6 ;
-	s[1][0] = r6*r2 ;
-	double r7 = r3*s[1][0] ;
-	s[0][0] = r1-r7 ;
-	s[1][1] = -r6 ;
+	double r1 = 1./s.array()[0] ;
+	double r3 = r1* s.array()[1] ;
+	double r6 = 1./(s.array()[2] * r3 - s.array()[3]) ;
+	s.array()[1] = r3*r6 ;
+	s.array()[2] = r6*s.array()[2] * r1 ;
+	s.array()[0] = r1-r3*s.array()[2] ;
+	s.array()[3] = -r6 ;
 
 }
 
