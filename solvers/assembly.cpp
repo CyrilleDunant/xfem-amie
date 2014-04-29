@@ -1291,9 +1291,10 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			{
 				if((*duplicate).type != SET_FORCE_XI)
 					return ;
-				val += (*duplicate).value ;
-				multipliers.erase(duplicate) ;
+				(*duplicate).value += val;
+				return ;
 			}
+			
 			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof)) ;
 			multipliers.back().type = SET_FORCE_XI ;
 			break ;
@@ -1305,8 +1306,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			{
 				if((*duplicate).type != SET_FORCE_ETA)
 					return ;
-				val += (*duplicate).value ;
-				multipliers.erase(duplicate) ;
+				(*duplicate).value += val;
+				return ;
 			}
 			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+1)) ;
 			multipliers.back().type = SET_FORCE_ETA ;
@@ -1319,8 +1320,8 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
 			{
 				if((*duplicate).type != SET_FORCE_ZETA)
 					return ;
-				val += (*duplicate).value ;
-				multipliers.erase(duplicate) ;
+				(*duplicate).value += val;
+				return ;
 			}
 			multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
 			multipliers.back().type = SET_FORCE_ZETA ;
@@ -1370,8 +1371,8 @@ void Assembly::addForceOnIndexedAxis(int axis, double val, size_t id)
 	{
 		if((*duplicate).type != SET_FORCE_INDEXED_AXIS)
 			return ;
-		val += (*duplicate).value ;
-		multipliers.erase(duplicate) ;
+		(*duplicate).value += val;
+		return ;
 	}
 
 	multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+axis)) ;
