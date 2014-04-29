@@ -363,19 +363,8 @@ Point Point::operator+(const Vector &p) const
 
 Point Point::operator/(const double p) const 
 {
-	Point ret((*this)) ;
 	double inv = 1./p ;
-	
-	#ifdef HAVE_SSE3
-	__m128d temp = _mm_load1_pd(&inv) ;
-	ret.vecxy = _mm_mul_pd(ret.vecxy, temp) ;
-	ret.veczt = _mm_mul_pd(ret.veczt, temp) ;
-	#else 
-	ret.x *= inv ;
-	ret.y *= inv ;
-	ret.z *= inv ;
-	ret.t *= inv ;
-	#endif
+	Point ret(x*inv, y*inv,z*inv, t*inv) ;
 	ret.id = id ;
 	return ret ; 
 }
@@ -481,26 +470,36 @@ double Point::operator*(const Vector &p) const
 }
 
 
-Point Point::operator^(const Point &p) const
-{
-	Point ret ;
+// Point Point::operator^(const Point &p) const
+// {
+// 	Point ret ;
+// 
+// 	ret.x = y*p.z - z*p.y ; //fma(y,p.z,  -z*p.y) ;
+// 	ret.y = z*p.x - x*p.z ;//fma(z,p.x , -x*p.z) ;
+// 	ret.z = x*p.y - y*p.x ; //fma(x,p.y , -y*p.x) ;
+// 	
+// 	ret.id = std::max(id, p.id) ;
+// 	return ret ;
+// }
 
-	ret.x = y*p.z - z*p.y ; //fma(y,p.z,  -z*p.y) ;
-	ret.y = z*p.x - x*p.z ;//fma(z,p.x , -x*p.z) ;
-	ret.z = x*p.y - y*p.x ; //fma(x,p.y , -y*p.x) ;
-	
-	ret.id = std::max(id, p.id) ;
-	return ret ;
+// Point Point::operator^(const Vector &p) const
+// {
+// 	Point ret ;
+// 	ret.x = y*p[2] - z*p[1] ;
+// 	ret.y = z*p[0] - x*p[2] ;
+// 	ret.z = x*p[1] - y*p[0] ;
+// 	ret.id = id;
+// 	return ret ;
+// }
+
+PtP Point::operator^(const Point &p) const 
+{
+	return PtP(*this,p) ;
 }
 
-Point Point::operator^(const Vector &p) const
-{
-	Point ret ;
-	ret.x = y*p[2] - z*p[1] ;
-	ret.y = z*p[0] - x*p[2] ;
-	ret.z = x*p[1] - y*p[0] ;
-	ret.id = id;
-	return ret ;
+PtV Point::operator^(const Vector &p) const 
+{ 
+	return PtV(*this,p) ;
 }
 
 
@@ -3031,7 +3030,7 @@ bool ConvexPolygon::isTrigoOriented()  const
 			- *boundingPoints[(i)%boundingPoints.size()] ;
 		Point v_1 = *boundingPoints[(i+2)%boundingPoints.size()] 
 			- *boundingPoints[(i+1)%boundingPoints.size()] ;
-		if((v_0^v_1).z < 0 )
+		if((v_0^v_1).getZ() < 0 )
 			return false ;
 	}
 	
@@ -3599,9 +3598,9 @@ Vector Segment::normalv(const Point & p) const
 	if(n > POINT_TOLERANCE_2D)
 	{
 		Vector ret(2) ;
-		ret[0] = -vec.y/n ;
-		ret[1] = vec.x/n ;
-		return ret*sign ;
+		ret[0] = -vec.y/n*sign ;
+		ret[1] = vec.x/n*sign ;
+		return ret ;
 	}
 	
 	return Vector(0., 2) ;
@@ -3624,8 +3623,8 @@ double Segment::norm() const
 std::valarray<std::pair<Point, double> > Segment::getGaussPoints(bool timeDependent) const
 {
 	std::valarray< std::pair<Point, double> > gp(2+2*timeDependent) ;
-	Point a = f*0.788675134594813+ s*(1.-0.788675134594813) ;
-	Point b = s*0.788675134594813+ f*(1.-0.788675134594813) ;
+	Point a( f.x*0.788675134594813+ s.x*(1.-0.788675134594813),f.y*0.788675134594813+ s.y*(1.-0.788675134594813)) ;
+	Point b( s.x*0.788675134594813+ f.x*(1.-0.788675134594813),s.y*0.788675134594813+ f.y*(1.-0.788675134594813)) ;
 //	double n = norm() ;
 	if(!timeDependent)
 	{
@@ -4484,9 +4483,8 @@ bool Segment::intersects(const TriPoint &g) const
 	
 	Point dir = first() - second();        
 	Point w0 = second() - *g.point[0];
-	Point n = u ^ v ;
-	double a = -(n*w0) ;
-	double b = n*dir;
+	double a = -((u ^ v)*w0) ;
+	double b = (u ^ v)*dir;
 	if (std::abs(b) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D) 
 	{
 		if (std::abs(a) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D) 
@@ -4588,10 +4586,10 @@ bool isInTriangle(const Point & test, const Point&  p0, const Point & p1, const 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, double norm) 
 {
-	Point frontier(f1*norm-f0*norm) ;
-	Point yes(witness*norm-f0*norm) ;
-	Point perhaps(test*norm-f0*norm) ;
-	return (frontier^yes).z*(frontier^perhaps).z > -POINT_TOLERANCE_2D ;
+	Point frontier(f1.x*norm-f0.x*norm,f1.y*norm-f0.y*norm,f1.z*norm-f0.z*norm) ;
+	Point yes(witness.x*norm-f0.x*norm,witness.y*norm-f0.y*norm,witness.z*norm-f0.z*norm) ;
+	Point perhaps(test.x*norm-f0.x*norm,test.y*norm-f0.y*norm,test.z*norm-f0.z*norm) ;
+	return (frontier^yes).getZ()*(frontier^perhaps).getZ() > -POINT_TOLERANCE_2D ;
 }
 
 bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, const Point *f1, double norm) 
@@ -4602,12 +4600,12 @@ bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2, double renorm) 
 {
-	Point f2test((f2-test)*renorm) ;
-	Point f1test((f1-test)*renorm) ;
-	Point f0test((f0-test)*renorm) ;
-	Point f2witness((f2-witness)*renorm) ;
-	Point f1witness((f1-witness)*renorm) ;
-	Point f0witness((f0-witness)*renorm) ;
+	Point f2test((f2.x-test.x)*renorm,(f2.y-test.y)*renorm,(f2.z-test.z)*renorm) ;
+	Point f1test((f1.x-test.x)*renorm,(f1.y-test.y)*renorm,(f1.z-test.z)*renorm) ;
+	Point f0test((f0.x-test.x)*renorm,(f0.y-test.y)*renorm,(f0.z-test.z)*renorm) ;
+	Point f2witness((f2.x-witness.x)*renorm,(f2.y-witness.y)*renorm,(f2.z-witness.z)*renorm) ;
+	Point f1witness((f1.x-witness.x)*renorm,(f1.y-witness.y)*renorm,(f1.z-witness.z)*renorm) ;
+	Point f0witness((f0.x-witness.x)*renorm,(f0.y-witness.y)*renorm,(f0.z-witness.z)*renorm) ;
 	return ((f2test.x*(f1test.y*f0test.z - f0test.y*f1test.z)-f2test.y*(f1test.x*f0test.z - f0test.x*f1test.z)+f2test.z*(f1test.x*f0test.y - f0test.x*f1test.y))*(f2witness.x*(f1witness.y*f0witness.z - f0witness.y*f1witness.z)-f2witness.y*(f1witness.x*f0witness.z - f0witness.x*f1witness.z)+f2witness.z*(f1witness.x*f0witness.y - f0witness.x*f1witness.y)) > 0) ;
 }
 

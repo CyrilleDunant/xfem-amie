@@ -617,20 +617,20 @@ double Tetrahedron::area() const
 	Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
 	Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
 	
-	return 0.5*(((s0.vector()^s1.vector())).norm()+
-	             ((s0.vector()^s2.vector())).norm()+
-	             ((s1.vector()^s2.vector())).norm()+
-	             (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+	return 0.5*((s0.vector()^s1.vector()).norm()+
+	             (s0.vector()^s2.vector()).norm()+
+	             (s1.vector()^s2.vector()).norm()+
+	             ((s1.vector()-s0.vector())^s2.vector()-s0.vector()).norm());
 	}
 	else
 	{
 		Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
 		Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
 		Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
-		return 0.5*(((s0.vector()^s1.vector())).norm()+
-	             ((s0.vector()^s2.vector())).norm()+
-	             ((s1.vector()^s2.vector())).norm()+
-	             (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+		return 0.5*((s0.vector()^s1.vector()).norm()+
+	             (s0.vector()^s2.vector()).norm()+
+	             (s1.vector()^s2.vector()).norm()+
+	             ((s1.vector()-s0.vector())^s2.vector()-s0.vector()).norm());
 	}
 }
 

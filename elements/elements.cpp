@@ -1957,7 +1957,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
 		
 		c1 *= -1. ;
 		
-		t1 = t2 * ((Matrix) (c1 * Jinv)) ;
+		t1 = t2 * (c1 * Jinv) ;
 	}
 }
 

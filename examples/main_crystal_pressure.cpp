@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	std::fstream psdfile(argv[1]) ;
 	double thresholdRadius = 30. ;
 	if(argc > 3)
-		thresholdRadius = std::min(atof(argv[3]), 30.) ;
+		thresholdRadius = std::max(atof(argv[3]), 30.) ;
 	double maxRadius ;
 	double poreFraction ;
 	double waterLayerDepth = 1.5 ;

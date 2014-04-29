@@ -460,6 +460,9 @@ typedef enum
 class Segment ;
 class ConvexPolygon ;
 
+struct PtP ;
+struct PtV ;
+
 /** \brief Four dimensionnal point. Storage of the coordinates makes use of the processors's vector extensions*/
 struct Point
 {
@@ -535,6 +538,7 @@ struct Point
 	void setX(double v) ;
 	void setY(double v) ;
 	void setZ(double v) ;
+	double getZ() {return z ;} ;
 	void setT(double v) ;
 
 	void set(double v, double vv) ;
@@ -585,10 +589,10 @@ struct Point
 	double operator*(const Vector &p) const ;
 	
 	/** \brief cross-product*/
-	Point operator^(const Point &p) const ;
+	PtP operator^(const Point &p) const ;
 	
 	/** \brief cross-product*/
-	Point operator^(const Vector &p) const ;
+	PtV operator^(const Vector &p) const;
 	
 	void operator+=(const Point &p) ;
 	void operator-=(const Point &p) ;
@@ -671,6 +675,76 @@ struct Point
 	/** \brief access x, y, z or t*/
 	double operator[](size_t i) const ;
 	
+} ;
+
+struct PtP
+{
+	const Point & f ;
+	const Point & s ;
+	PtP(const Point & f, const Point & s) :f(f), s(s) {};
+	
+	operator const Point() const 
+	{
+		Point ret( f.y*s.z - f.z*s.y, f.z*s.x - f.x*s.z, f.x*s.y - f.y*s.x) ;
+		ret.id = std::max(f.id, s.id) ;
+		return ret ;
+	};
+	
+	double operator *(const Point & p) const 
+	{
+		return (f.y*s.z - f.z*s.y)*p.x + (f.z*s.x - f.x*s.z)*p.y + (f.x*s.y - f.y*s.x)*p.z ;
+	}
+	
+	Point operator * (const double & d) const 
+	{
+		Point ret(d*(f.y*s.z - f.z*s.y), d*(f.z*s.x - f.x*s.z), d*(f.x*s.y - f.y*s.x)) ;
+		ret.id = std::max(f.id, s.id) ;
+		return ret ;
+	}
+	Point operator / (const double & d) const 
+	{
+		Point ret((f.y*s.z - f.z*s.y)/d, (f.z*s.x - f.x*s.z)/d, (f.x*s.y - f.y*s.x)/d) ;
+		ret.id = std::max(f.id, s.id) ;
+		return ret ;
+	}
+	
+	Point operator - (const Point & p) const 
+	{
+		Point ret(f.y*s.z - f.z*s.y-p.x, f.z*s.x - f.x*s.z-p.y, f.x*s.y - f.y*s.x -p.z) ;
+		ret.id = std::max(f.id, s.id) ;
+		return ret ;
+	}
+	
+	Point operator + (const Point & p) const 
+	{
+		Point ret(f.y*s.z - f.z*s.y + p.x, f.z*s.x - f.x*s.z + p.y, f.x*s.y - f.y*s.x + p.z) ;
+		ret.id = std::max(f.id, s.id) ;
+		return ret ;
+	}
+	
+	double norm() const
+	{
+		return sqrt( (f.y*s.z - f.z*s.y) * (f.y*s.z - f.z*s.y) + ( f.z*s.x - f.x*s.z) *  ( f.z*s.x - f.x*s.z) + ( f.x*s.y - f.y*s.x ) * ( f.x*s.y - f.y*s.x )) ;
+	}
+	
+	double getZ() const
+	{
+		return f.x*s.y - f.y*s.x ;
+	}
+} ;
+
+struct PtV
+{
+	const Point & f ;
+	const Vector & s ;
+	PtV(const Point & f, const Vector & s) :f(f), s(s) { };
+	
+	operator const Point() const 
+	{
+		Point ret( f.y*s[2] - f.z*s[1],f.z*s[0] - f.x*s[2],f.x*s[1] - f.y*s[0]) ;
+		ret.id = f.id ;
+		return ret ;
+	};
 } ;
 
 /** \brief light class for 3D triangle-line intersection computation*/

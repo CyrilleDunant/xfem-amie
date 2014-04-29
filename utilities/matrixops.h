@@ -214,7 +214,7 @@ public:
 	Vector &array() {return *v ;}
 	
 	/** \brief Return the array of values, stored in row-major fashion*/
-	Vector array() const {return *v ;}
+	const Vector & array() const {return *v ;}
 	
 	void print() const ;
 
@@ -255,6 +255,8 @@ struct MtMtM
 	/** \brief constructor, initialise the references necessary for the computation*/
 	MtMtM(const Matrix &mm, const Matrix &mmm, const Matrix &mmmm) : first(mm), second(mmm), third(mmmm) { }
 	
+	Matrix operator *(const double & d) const ;
+	
 	/** \brief cast operator, compute the operation*/
 	operator const Matrix() const;
 } ;
@@ -269,7 +271,9 @@ struct MtM
 	MtM(const Matrix &mm, const Matrix &mmm) : first(mm), second(mmm) { }
 	
 	/** \brief Construct a Matrix-Matrix-Matrix multiplication*/
-	MtMtM operator *(const Matrix &mm) { return MtMtM(first, second, mm) ; }
+	MtMtM operator *(const Matrix &mm) const { return MtMtM(first, second, mm) ; }
+	
+	Matrix operator *(const double & d) const ;
 	
 	/** \brief cast operator, compute the operation*/
 	operator const Matrix() const;
@@ -311,6 +315,24 @@ inline const Mu::Matrix matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &
 	return ret ;
 }
 
+inline const Mu::Matrix matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1 , const double & d)
+{
+	assert(m0.numCols() == m1.numRows()) ;
+	
+	Mu::Matrix ret(m0.numRows(), m1.numCols()) ;
+	
+	for(size_t i = 0 ; i < m0.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < m1.numCols() ; j++)
+		{
+			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) )*d ;
+		}
+	}
+	return ret ;
+}
+
 /** \brief Perform a Matrix-Matrix-Matrix multiplication*/
 inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2 )
 {
@@ -325,6 +347,25 @@ inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, cons
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
 				ret[i][k] += r_ij*m2[j][k] ;
+		}
+	}
+	
+	return ret ;
+}
+
+inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2 , const double & d)
+{
+	Mu::Matrix ret(m0.numRows(), m2.numCols()) ;
+	
+	for(size_t i = 0 ; i < m0.numRows() ; i++)
+	{
+		for(size_t j = 0 ; j < m1.numCols() ; j++)
+		{
+			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
+			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
+			for(size_t k = 0 ; k < m2.numCols() ; k++)
+				ret[i][k] += r_ij*m2[j][k]*d ;
 		}
 	}
 	

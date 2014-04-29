@@ -737,7 +737,7 @@ double Triangle::area() const
 	Segment s0(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3)) ;
 	Segment s1(getBoundingPoint(0), getBoundingPoint(2*pointsInTimePlane/3)) ;
 
-	return 0.5*std::abs((s0.vector()^s1.vector()).z) ;
+	return 0.5*std::abs((s0.vector()^s1.vector()).getZ()) ;
 }
 
 

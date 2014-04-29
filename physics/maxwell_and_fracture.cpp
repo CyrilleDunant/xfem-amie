@@ -251,7 +251,7 @@ void GeneralizedIterativeMaxwellAndFracture::preProcess( double timeStep, Elemen
 	
 	param = r0 ;
 	for(size_t i = 0 ; i < branches.size() ; i++)
-		param += (Matrix) (branches[i]->param*(1.-branches[i]->coeff_unext)) ;
+		param += branches[i]->param*(1.-branches[i]->coeff_unext) ;
 		
 	currentState.getParent()->behaviourUpdated = true ;	
 //	std::cout << param[0][0] << " " ;

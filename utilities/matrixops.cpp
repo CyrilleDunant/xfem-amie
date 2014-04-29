@@ -297,6 +297,11 @@ MtMtM::operator const Matrix() const
 	return matrix_matrix_matrix_multiply(first, second, third) ;
 }
 
+Matrix MtMtM::operator *(const double & d) const
+{
+	return matrix_matrix_matrix_multiply(first, second, third, d) ;
+}
+
 Matrix &Matrix::operator +=(const Matrix &m)
 {
 	(*v) += m.array() ;
@@ -424,6 +429,11 @@ void Matrix::print() const
 MtM::operator const Matrix() const
 {
 	return matrix_multiply(first, second) ;
+}
+
+Matrix MtM::operator *(const double & d) const
+{
+	return matrix_multiply(first, second, d) ;
 }
 
 

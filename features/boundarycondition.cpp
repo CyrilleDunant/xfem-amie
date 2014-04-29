@@ -433,11 +433,11 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				Segment edge( *last, *first) ;
 				GaussPointArray gpe(edge.getGaussPoints(e->getOrder() >= CONSTANT_TIME_LINEAR), -1) ;
-				
+				double enorm = edge.norm()*.5 ;
 				for(size_t i = 0 ; i < gpe.gaussPoints.size() ; i++)
 				{
 					gpe.gaussPoints[i].first = e->inLocalCoordinates( gpe.gaussPoints[i].first ) ;
-					gpe.gaussPoints[i].second *= edge.norm()*.5 ;
+					gpe.gaussPoints[i].second *= enorm ;
 				}
 				std::valarray<Matrix> Jinve(Jinv[0], gpe.gaussPoints.size()) ;
 				if(e->isMoved())
@@ -450,12 +450,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				v[0] = XI ;
 				v[1] = ETA ;
 				if(e->getOrder() >= CONSTANT_TIME_LINEAR)
-				{
 				  v.push_back(TIME_VARIABLE) ;
-				}
 				
-				Point normal = edge.normal(e->getCenter()) ;
-				double nangle = atan2(normal.y, normal.x) ;
+				Vector normalv = edge.normalv(e->getCenter()) ;
+				double nangle = atan2(normalv[1], normalv[0]) ;
 
 				Vector imposedx( 3 ) ;
 				imposedx[0] = data ;
@@ -476,7 +474,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter()) ) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[j], gpe, Jinve, v, false, normalv ) ;
 
 					a->addForceOn( XI,  forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
