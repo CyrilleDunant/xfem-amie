@@ -532,12 +532,12 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f,const Point&p,  const doubl
 	return ret ;
 }
 
-double VirtualMachine::deval(const Function &f,  const Point&p, const Point x, const double eps, bool normed )
+double VirtualMachine::deval(const Function &f,  const Point&p, const Point & x, const double eps, bool normed )
 {
 	return deval(f, p, x.x, x.y, x.z, eps, normed) ;
 }
 
-Matrix VirtualMachine::deval(const FunctionMatrix &f,  const Point&p, const Point x, const double eps, bool normed )
+Matrix VirtualMachine::deval(const FunctionMatrix &f,  const Point&p, const Point & x, const double eps, bool normed )
 {
 	return deval(f, p, x.x, x.y, x.z, eps, normed) ;
 }
@@ -1122,12 +1122,12 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v_,  const 
 	return ret ;
 }
 
-double VirtualMachine::deval(const Function &f, const Variable v, const Point p, const Point p_, const double eps)
+double VirtualMachine::deval(const Function &f, const Variable v, const Point & p, const Point & p_, const double eps)
 {
 	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
 }
 
-Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v, const Point p, const Point p_, const double eps)
+Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v, const Point & p, const Point & p_, const double eps)
 {
 	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
 }

@@ -2426,7 +2426,9 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p)
 	std::vector<DelaunayTreeItem3D *> ret  ;
 
 	std::pair< std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > cons;
-	std::valarray<bool> visitedItems( false, tree.size() ) ;
+	if(visitedItems.size() != tree.size())
+		visitedItems.resize(tree.size()) ;
+	visitedItems = false ;
 	this->tree[0]->conflicts( visitedItems, cons, p ) ;
 
 	if( cons.first.empty() || cons.second.empty() )

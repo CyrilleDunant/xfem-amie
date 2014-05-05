@@ -37,7 +37,6 @@ It defines the structure: an item has a neighbourhood, father, sons and stepsons
 */
 class DelaunayTreeItem
 {
-	
 protected:
 	bool dead ; //!< Marker. is false when the item is isVertex the current triangulation no more.
 
@@ -328,7 +327,7 @@ class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
 friend class FeatureTree ;
 friend class Geometry ;
-	
+	std::valarray<bool> visitedItems ;
 protected:
 	size_t global_counter ;
 	bool neighbourhood ;
@@ -386,7 +385,7 @@ public:
 	 * @param p Point to check.
 	 * @return the list of triangles in conflict with p. A triangle is in conflict if the point is tricly in the circumcircle.
 	 */
-	std::vector<DelaunayTreeItem *> conflicts( const Point *p) const ;
+	std::vector<DelaunayTreeItem *> conflicts( const Point *p)  ;
 	
 	/** \brief Get the list of triangles in conflict with a given geometry.
 	 * 

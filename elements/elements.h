@@ -90,7 +90,7 @@ public:
 	void setEnrichment(const Function & p, const Geometry * g) ;
 	virtual Point inLocalCoordinates(const Point & p) const  = 0;
 	
-	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const = 0 ;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) = 0 ;
 	
 	virtual Vector getNonLinearForces() = 0 ;
 		
@@ -118,6 +118,7 @@ protected :
 	std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 	std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
 	std::valarray< Function > * shapefunc ;
+	std::vector<Matrix> cachedJinv ;
 	bool isFather ;
 protected :
 	
@@ -138,14 +139,14 @@ public:
 	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	virtual void clearElementaryMatrix() { cachedElementaryMatrix.resize(0);cachedViscousElementaryMatrix.resize(0) ; } ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix(Vector * state)  ;
-	virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2) const ;
-	virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) const ;
+	virtual void getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2)  ;
+	virtual void getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) ;
 	
 	Function jacobian() const ;
 	
 	double  jacobianAtPoint(const Point & p) const ;
 	
-	void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
+	void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
 	
 	const GaussPointArray & getGaussPoints();
 
@@ -231,7 +232,7 @@ public:
 
 	virtual void setEnrichment(const Function &  p, Geometry * g) ;
 	
-	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const ;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
 		
 	virtual const PointArray & getBoundingPoints() const = 0;
 	virtual PointArray & getBoundingPoints() = 0;
@@ -273,7 +274,7 @@ public:
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
-	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) const;
+	virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual std::valarray< Function > & getShapeFunctions() ;
 	virtual Vector getNonLinearForces() ;

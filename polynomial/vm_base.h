@@ -177,7 +177,7 @@ This method is used internally to compute the numerical differential of a set of
 @param p_ Point givint the last three coordinates at which to evaluate.
 @param eps is the epsilon used to perform the numerical differential.
 */
-	double deval(const Function &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
+	double deval(const Function &f, const Variable v, const Point & p, const Point & p_ = Point(), const double eps= default_derivation_delta)  ;
 
 /** \brief Evaluate df/dv at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
 @param f FunctionMatrix to evaluate.
@@ -186,7 +186,7 @@ This method is used internally to compute the numerical differential of a set of
 @param p_ Point givint the last three coordinates at which to evaluate.
 @param eps is the epsilon used to perform the numerical differential.
 */
-	Matrix deval(const FunctionMatrix &f, const Variable v, const Point p, const Point p_ = Point(), const double eps= default_derivation_delta)  ;
+	Matrix deval(const FunctionMatrix &f, const Variable v, const Point & p, const Point & p_ = Point(), const double eps= default_derivation_delta)  ;
 	
 /** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p.x, p.y, p.z)\f$ at (x, y, z, t). 
 This is the directional derivative.
@@ -222,7 +222,7 @@ This is the directional derivative.
 * @param eps is the epsilon used to perform the numerical differential.
 * @param normed normalise the direction vector if set to true.
 */
-	double deval(const Function &f,  const Point&p_, const Point p, const double eps= default_derivation_delta, bool normed = false)  ;
+	double deval(const Function &f,  const Point&p_, const Point & p, const double eps= default_derivation_delta, bool normed = false)  ;
 
 /** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p_.x, p_.y, p_.z) \f$ at (p.x, p.y, p.z, p.t). 
 This is the directional derivative.
@@ -232,7 +232,7 @@ This is the directional derivative.
 * @param eps is the epsilon used to perform the numerical differential.
 * @param normed normalise the direction vector if set to true.
 */
-	Matrix deval(const FunctionMatrix &f,  const Point&p_, const Point p, const double eps = default_derivation_delta, bool normed = false)  ;
+	Matrix deval(const FunctionMatrix &f,  const Point&p_, const Point & p, const double eps = default_derivation_delta, bool normed = false)  ;
 
 /** \brief Evaluate d²f/d(v_0v_1) at (x, y, z, t, u, v, w).
 @param f Function to evaluate.

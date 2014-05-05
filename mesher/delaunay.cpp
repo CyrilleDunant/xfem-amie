@@ -2199,26 +2199,28 @@ void DelaunayTree::insert(Point *p)
 
 
 
-std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) const
+std::vector<DelaunayTreeItem *> DelaunayTree::conflicts( const Point *p) 
 {
 	std::vector<DelaunayTreeItem *> cons ;
-	std::valarray<bool> visited(false, this->tree.size()) ;
+	if(visitedItems.size() != tree.size())
+		visitedItems.resize(tree.size()) ;
+	visitedItems = false ;
 	
-	tree[0]->conflicts(visited,cons,p) ;
+	tree[0]->conflicts(visitedItems,cons,p) ;
 
 	for(size_t i = 0 ; i < plane.size() ; i++)
 	{
 	
-		if(!visited[plane[i]->index])
+		if(!visitedItems[plane[i]->index])
 		{
-			plane[i]->conflicts(visited, cons,p) ;
+			plane[i]->conflicts(visitedItems, cons,p) ;
 			
 			
 			for(size_t j = 0 ; j < plane[i]->neighbour.size() ; j++)
 			{
-				if(!visited[plane[i]->neighbour[j]])
+				if(!visitedItems[plane[i]->neighbour[j]])
 				{
-					plane[i]->getNeighbour(j)->conflicts(visited, cons,p) ;
+					plane[i]->getNeighbour(j)->conflicts(visitedItems, cons,p) ;
 				}
 			}
 		}

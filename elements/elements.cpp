@@ -1871,7 +1871,7 @@ double coeffDeriv3(int X, int Y, int T)
 
 
 	
-void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2) const 
+void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2)  
 {
 	#warning second jacobian matrices not implemented for spatial-only elements
 
@@ -1961,7 +1961,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
 	}
 }
 
-void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3) const 
+void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2, Matrix & t3)  
 {
 	#warning third jacobian matrices not implemented for spatial-only elements
 
@@ -2498,10 +2498,18 @@ dxxxdX(x,y,t,X) += tj1(t,T)*tj1(y,Y)*dXXdxx(Y,T,u,v)*tj3(x,u,v,X) ;
 }
 
 	
-void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
+void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) 
 {
 	if(order < CONSTANT_TIME_LINEAR)
 	{
+		if(!isMoved() && !cachedJinv.empty())
+		{
+			if(ret.isNull())
+				ret.resize(2,2) ;
+			ret.array() = cachedJinv[0].array() ;
+			return ;
+		}
+		
 		if(ret.isNull())
 			ret.resize(2,2) ;
 		
@@ -2535,12 +2543,22 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ;
 		invert2x2Matrix(ret) ;
+		if(cachedJinv.empty() && !isMoved())
+			cachedJinv.push_back(ret) ;
 		delete father ;
 // 		ret.print() ;
 // 		exit(0) ;
 	}
 	else
 	{
+		if(!isMoved() && !cachedJinv.empty())
+		{
+			if(ret.isNull())
+				ret.resize(3,3) ;
+			ret.array() = cachedJinv[0].array() ;
+			return ;
+		}
+		
 		if(ret.isNull() || ret.size() != 9)
 			ret.resize(3,3) ;
 
@@ -2584,7 +2602,9 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
 		ret[2][0] = xdtau ;  ret[2][1] = ydtau ; ret[2][2] = tdtau;
 
 		invert3x3Matrix(ret) ;
-		
+		if(cachedJinv.empty() && !isMoved())
+			cachedJinv.push_back(ret) ;
+			
 // 		ret.print() ;
 // 		exit(0) ;
 		
@@ -4119,7 +4139,7 @@ Function  & ElementaryVolume::getShapeFunction(size_t i)
 }
 
 
-void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
+void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) 
 {
 	if(order < CONSTANT_TIME_LINEAR)
 	{
@@ -4179,7 +4199,7 @@ void ElementaryVolume::getInverseJacobianMatrix(const Point & p, Matrix & ret) c
 
 }
 
-void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) const
+void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret) 
 {
 	if(getOrder() < CONSTANT_TIME_LINEAR)
 	{

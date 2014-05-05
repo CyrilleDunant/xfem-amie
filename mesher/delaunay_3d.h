@@ -339,6 +339,8 @@ class DelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 friend class FeatureTree ;
 friend class Geometry ;
 	
+std::valarray<bool> visitedItems ;
+
 protected:
 	double internalScale ;
 	size_t global_counter ;

@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	poreFraction /= 100. ;
 	maxRadius = std::min(maxRadius*factor, thresholdRadius) ;
 	
-	std::vector<Inclusion *> incs = PSDGenerator::get2DInclusions(maxRadius, maxRadius*maxRadius*M_PI*25., new GranuloFromCumulativePSD(argv[1], CUMULATIVE_ABSOLUTE_REVERSE, 1000., maxRadius, minRadius), PSDEndCriteria(.1, 0., 50000) ) ;
+	std::vector<Inclusion *> incs = PSDGenerator::get2DInclusions(maxRadius, maxRadius*maxRadius*M_PI*50., new GranuloFromCumulativePSD(argv[1], CUMULATIVE_ABSOLUTE_REVERSE, 1000., maxRadius, minRadius), PSDEndCriteria(.1, 0., 50000) ) ;
 	double bulk = 13.9 ;
 	double shear = 8.75 ;
 	double E = .33333*(9.*bulk*shear)/(3.*bulk+shear) ;
