@@ -877,7 +877,6 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::vector
 
  void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & toTest,  std::vector<DelaunayTreeItem *> & ret,const Point *p)
 {
-// 	print() ;
 
 	if(visitedItems[index])
 		return  ;
@@ -886,8 +885,6 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visitedItems, std::vector
 	if(!inCircumCircle(*p))
 		return  ;
 	
-// 	std::cerr << "stepsons" << std::endl ;
-// 	Point center = (*first+*second+*third)/3. ;
 	for (size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
 		bool limit = false ;
@@ -1909,8 +1906,11 @@ void DelaunayRoot::conflicts( std::valarray<bool> & visitedItems, std::vector<De
 
 	visitedItems[index] = true ;
 	
+// #pragma omp parallel for
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
+// 		std::valarray<bool> localVisitedItems = visitedItems ;
+// 		std::vector<DelaunayTreeItem *> localret ;
 		if(!visitedItems[getSon(i)->index])
 		{
 			std::vector<DelaunayTreeItem *> toTest ;
@@ -1923,9 +1923,12 @@ void DelaunayRoot::conflicts( std::valarray<bool> & visitedItems, std::vector<De
 					toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
 				}
 				toTest = tempToTest ;
-				
 			}
 		}
+// 		#pragma omp critical
+// 		{
+// 			ret.insert(ret.end(), localret.begin(), localret.end());
+// 		}
 	}
 }
 

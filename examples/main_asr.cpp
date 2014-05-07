@@ -458,8 +458,8 @@ int main( int argc, char *argv[] )
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
 
-		//width are 6544984695	10226538586	14726215564      done: 11
-		//length are 5113269293	26179938780	40906154344      next: 13
+		//width are 6544984695	10226538586	14726215564      done: 11 13 10
+		//length are 5113269293	26179938780	40906154344      next: 33
 
 
 		double fact = atof( argv[3] ) ;

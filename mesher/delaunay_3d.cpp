@@ -12,9 +12,10 @@
 //
 
 #include "delaunay_3d.h"
+#include <omp.h>
 #include <limits>
 
-#define DEBUG
+// #define DEBUG
 // #undef DEBUG
 
 using namespace Mu ;
@@ -581,7 +582,7 @@ size_t DelaunayTree3D::numPoints() const
 	return this->global_counter ;
 }
 
-void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTetrahedron * >, std::vector< DelaunayTreeItem3D * > > & ret, const Mu::Geometry *g )
+void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >  & ret, const Mu::Geometry *g )
 {
 
 	if( visitedItems[index] )
@@ -590,8 +591,6 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pa
 	}
 
 	visitedItems[index] = true ;
-
-	ret.second.push_back( this ) ;
 
 
 	if(
@@ -671,7 +670,7 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pa
 
 	if( isAlive() && isTetrahedron() )
 	{
-		ret.first.push_back( static_cast<DelaunayTetrahedron *>( this ) ) ;
+		ret.push_back( static_cast<DelaunayTetrahedron *>( this ) ) ;
 	}
 
 	for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
@@ -705,7 +704,7 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pa
 }
 
 
-void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std::vector<DelaunayTreeItem3D *> & toTest,  std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > & ret, const Geometry *g )
+void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std::vector<DelaunayTreeItem3D *> & toTest,  std::vector<DelaunayTreeItem3D *>  & ret, const Geometry *g )
 {
 	if( visitedItems[index] )
 	{
@@ -713,8 +712,6 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std
 	}
 
 	visitedItems[index] = true ;
-
-	ret.second.push_back( this ) ;
 
 
 	if(
@@ -794,7 +791,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std
 
 	if( isAlive() && isTetrahedron() )
 	{
-		ret.first.push_back( static_cast<DelaunayTetrahedron *>( this ) ) ;
+		ret.push_back( static_cast<DelaunayTetrahedron *>( this ) ) ;
 	}
 
 	for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
@@ -830,7 +827,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std
 
 
 
-void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTreeItem3D * >, std::vector< DelaunayTreeItem3D * > >&ret, const Mu::Point *p )
+void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > &ret, const Mu::Point *p )
 {
 
 	if( visitedItems[index] )
@@ -840,7 +837,6 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pa
 
 	visitedItems[index] = true ;
 
-	ret.second.push_back( this ) ;
 
 	for( size_t i  = 0 ;  i < stepson.size() ; i++ )
 	{
@@ -877,60 +873,103 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::pa
 
 	if( isAlive() )
 	{
-		ret.first.push_back( this ) ;
+		ret.push_back( this ) ;
 	}
 
 
 }
 
-void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::pair< std::vector< DelaunayTreeItem3D * >, std::vector< DelaunayTreeItem3D * > >& ret, const Mu::Point *p )
+void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p )
 {
-	if( visited() )
+	if(visitedItems[index])
+		return  ;
+
+	visitedItems[index] = true ;
+
+	if(!inCircumSphere(*p))
+		return  ;
+	
+	for ( size_t i  = 0 ;  i < stepson.size() ; i++)
 	{
-		return ;
-	}
-
-	visited() = true ;
-
-	ret.second.push_back( this ) ;
-
-	for( size_t i  = 0 ;  i < stepson.size() ; i++ )
-	{
-		if( ( !visitedItems[stepson[i]] && getStepson( i )->inCircumSphere( *p ) ) )
+		bool limit = false ;
+		if(!visitedItems[stepson[i]])
 		{
-			toTest.push_back( getStepson( i ) ) ;
+			if(getStepson(i)->isTetrahedron() && !getStepson(i)->isDeadTetrahedron())
+			{
+				DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getStepson(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+			if(getStepson(i)->isDeadTetrahedron())
+			{
+				DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getStepson(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+			
+			if( (getStepson(i)->inCircumSphere(*p)) || limit) 
+			{
+				toTest.push_back(getStepson(i)) ;
+			}
+		}
+	}
+	
+	for (size_t i  = 0 ;  i < son.size() ; i++)
+	{
+		bool limit = false ;
+		if(!visitedItems[son[i]])
+		{
+			if(getSon(i)->isTetrahedron() && !getSon(i)->isDeadTetrahedron())
+			{
+				DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getSon(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+			if(getSon(i)->isDeadTetrahedron())
+			{
+				DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getSon(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+			
+			if( (getSon(i)->inCircumSphere(*p)) || limit)
+			{
+				toTest.push_back(getSon(i)) ;
+			}
 		}
 	}
 
-	for( size_t i  = 0 ;  i < son.size() ; i++ )
+	if(isAlive())
 	{
-
-		if( ( !visitedItems[son[i]] && getSon( i )->inCircumSphere( *p ) ) )
+		ret.push_back(this) ;
+	}
+	
+	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
+	{
+		
+		bool limit = false ;
+		if(!visitedItems[neighbour[i]])
 		{
-			toTest.push_back( getSon( i ) ) ;
+			if(getNeighbour(i)->isTetrahedron() && !getNeighbour(i)->isDeadTetrahedron())
+			{
+				DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getNeighbour(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+			if(getNeighbour(i)->isDeadTetrahedron())
+			{
+				DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getNeighbour(i)) ;
+				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
+					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
+			}
+	// 		limit = true ;
+			if( (getNeighbour(i)->inCircumSphere(*p)) || limit)
+			{
+				toTest.push_back(getNeighbour(i)) ;
+			}
 		}
 	}
-
-	if( !inCircumSphere( *p ) )
-	{
-		return ;
-	}
-
-	for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
-	{
-
-		if( ( !visitedItems[neighbour[i]] && getNeighbour( i )->inCircumSphere( *p ) ) )
-		{
-			toTest.push_back( getNeighbour( i ) ) ;
-		}
-	}
-
-
-
-	if( isAlive() )
-	{
-		ret.first.push_back( this ) ;
-	}
+	
 }
 
 
@@ -1227,7 +1266,7 @@ bool DelaunayTetrahedron::hasVertexByID( const std::valarray<Point *> * p ) cons
 }
 
 DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron *parent ) : DelaunayTreeItem3D( *parent ),
-	x( parent->getCircumCenter().x ), y( parent->getCircumCenter().y ), z( parent->getCircumCenter().z ),
+	center( parent->getCircumCenter() ),
 	radius( parent->getRadius() )
 {
 	index = parent->index ;
@@ -1258,6 +1297,17 @@ DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron *parent ) 
 }
 
 DelaunayDeadTetrahedron::~DelaunayDeadTetrahedron() { } ;
+
+const Point * DelaunayDeadTetrahedron::getCircumCenter() const
+{
+	return &center ;
+}
+
+double DelaunayDeadTetrahedron::getRadius() const
+{
+	return radius ;
+}
+
 
 
 std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D *t )
@@ -1389,57 +1439,57 @@ std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D
 bool DelaunayDeadTetrahedron::inCircumSphere( const Point &p ) const
 {
 	
-	if( p.x > x + 1.001 * radius )
+	if( p.x > center.x + 1.001 * radius )
 		return false ;
 
-	if( p.x < x - 1.001 * radius )
+	if( p.x < center.x - 1.001 * radius )
 		return false ;
 
-	if( p.y > y + 1.001 * radius )
+	if( p.y > center.y + 1.001 * radius )
 		return false ;
 
-	if( p.y < y - 1.001 * radius )
+	if( p.y < center.y - 1.001 * radius )
 		return false ;
 
-	if( p.z > z + 1.001 * radius )
+	if( p.z > center.z + 1.001 * radius )
 		return false ;
 
-	if( p.z < z - 1.001 * radius )
+	if( p.z < center.z - 1.001 * radius )
 		return false ;
 
 	Point pr = p*tree->getInternalScale()  ;
 	double d = sqrt( 
-	( x*tree->getInternalScale()  - pr.x ) * ( x*tree->getInternalScale() - pr.x ) + 
-	( y*tree->getInternalScale()  - pr.y ) * ( y*tree->getInternalScale() - pr.y ) + 
-	( z*tree->getInternalScale()  - pr.z ) * ( z*tree->getInternalScale() - pr.z ) ) ;
+	( center.x*tree->getInternalScale()  - pr.x ) * ( center.x*tree->getInternalScale() - pr.x ) + 
+	( center.y*tree->getInternalScale()  - pr.y ) * ( center.y*tree->getInternalScale() - pr.y ) + 
+	( center.z*tree->getInternalScale()  - pr.z ) * ( center.z*tree->getInternalScale() - pr.z ) ) ;
 	return  d - radius*tree->getInternalScale()  < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere( const Point &p ) const
 {
-	if( p.x > x + 1.001 * radius )
+	if( p.x > center.x + 1.001 * radius )
 		return false ;
 
-	if( p.x < x - 1.001 * radius )
+	if( p.x < center.x - 1.001 * radius )
 		return false ;
 
-	if( p.y > y + 1.001 * radius )
+	if( p.y > center.y + 1.001 * radius )
 		return false ;
 
-	if( p.y < y - 1.001 * radius )
+	if( p.y < center.y - 1.001 * radius )
 		return false ;
 
-	if( p.z > z + 1.001 * radius )
+	if( p.z > center.z + 1.001 * radius )
 		return false ;
 
-	if( p.z < z - 1.001 * radius )
+	if( p.z < center.z - 1.001 * radius )
 		return false ;
 
 	Point pr = p*tree->getInternalScale()  ;
 	double d = sqrt( 
-	( x*tree->getInternalScale()  - pr.x ) * ( x*tree->getInternalScale() - pr.x ) + 
-	( y*tree->getInternalScale()  - pr.y ) * ( y*tree->getInternalScale() - pr.y ) + 
-	( z*tree->getInternalScale()  - pr.z ) * ( z*tree->getInternalScale() - pr.z ) ) ;
+	( center.x*tree->getInternalScale()  - pr.x ) * ( center.x*tree->getInternalScale() - pr.x ) + 
+	( center.y*tree->getInternalScale()  - pr.y ) * ( center.y*tree->getInternalScale() - pr.y ) + 
+	( center.z*tree->getInternalScale()  - pr.z ) * ( center.z*tree->getInternalScale() - pr.z ) ) ;
 	return  std::abs( d - radius*tree->getInternalScale()  ) < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
@@ -2042,11 +2092,12 @@ DelaunayRoot3D::DelaunayRoot3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t
 	makeNeighbours( pl3, pl1 ) ;
 	makeNeighbours( pl3, pl2 ) ;
 
-	addSon( tet ) ;
+	
 	addSon( pl0 ) ;
 	addSon( pl1 ) ;
 	addSon( pl2 ) ;
 	addSon( pl3 ) ;
+	addSon( tet ) ;
 
 	kill( p0 ) ;
 }
@@ -2092,13 +2143,13 @@ void DelaunayRoot3D::insert( std::vector<DelaunayTreeItem3D *>& ret, Point *p, S
 
 
 
-void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTetrahedron * >, std::vector< DelaunayTreeItem3D * > >&ret, const Mu::Geometry *g )
+void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems,  std::vector< DelaunayTreeItem3D * > &ret, const Mu::Geometry *g )
 {
 	visited() = true ;
 
 	for( size_t i  = 0 ;  i < son.size() ; i++ )
 	{
-		std::pair<std::vector<DelaunayTetrahedron *>, std::vector<DelaunayTreeItem3D *> > temp  ;
+		std::vector<DelaunayTreeItem3D *>  temp  ;
 		std::vector<DelaunayTreeItem3D *> toTest ;
 		getSon( i )->flatConflicts( visitedItems, toTest, temp, g ) ;
 
@@ -2114,8 +2165,7 @@ void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::pair< 
 			toTest = tempToTest ;
 		}
 
-		ret.first.insert( ret.first.end(), temp.first.begin(), temp.first.end() ) ;
-		ret.second.insert( ret.second.end(), temp.second.begin(), temp.second.end() ) ;
+		ret.insert( ret.end(), temp.begin(), temp.end() ) ;
 	}
 
 // 	visited() = true ;
@@ -2131,42 +2181,43 @@ void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::pair< 
 }
 
 
-void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::pair< std::vector< DelaunayTreeItem3D * >, std::vector< DelaunayTreeItem3D * > >& ret, const Mu::Point *p )
+void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p )
 {
 
-// 	visited() = true ;
-//
-// 	for (size_t i  = 0 ;  i < son.size() ; i++)
-// 	{
-// 		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-// 		std::vector<DelaunayTreeItem3D *> toTest ;
-// 		getSon(i)->flatConflicts(toTest, temp,p) ;
-// 		while(!toTest.empty())
-// 		{
-// 			std::vector<DelaunayTreeItem3D *> tempToTest ;
-// 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
-// 			{
-// 				toTest[j]->flatConflicts(tempToTest, temp,p) ;
-// 			}
-//
-// 			toTest = tempToTest ;
-// 		}
-//
-// 		ret.first.insert(ret.first.end(),temp.first.begin(), temp.first.end()) ;
-// 		ret.second.insert(ret.second.end(),temp.second.begin(), temp.second.end()) ;
-// 	}
-
+	visited() = true ;
 	visitedItems[index] = true ;
-
-	for( size_t i  = 0 ;  i < son.size() ; i++ )
+// #pragma omp parallel for
+	for (size_t i  = 0 ;  i < 4 ; i++)
 	{
-		std::pair<std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp  ;
-		getSon( i )->conflicts( visitedItems, temp, p ) ;
-		ret.first.insert( ret.first.end(), temp.first.begin(), temp.first.end() ) ;
-		ret.second.insert( ret.second.end(), temp.second.begin(), temp.second.end() ) ;
+		std::vector< DelaunayTreeItem3D * >  localret ;
+		std::vector<DelaunayTreeItem3D *> toTest ;
+		getSon(i)->flatConflicts(visitedItems,toTest,localret,p) ;
+		while(!toTest.empty())
+		{
+			std::vector<DelaunayTreeItem3D *> tempToTest ;
+			for(size_t j  = 0 ;  j < toTest.size() ; j++)
+			{
+				if(toTest[j] != getSon(4))
+					toTest[j]->flatConflicts(visitedItems,tempToTest,localret,p) ;
+			}
+			toTest = tempToTest ;
+		}
+		
+// 		#pragma omp critical
+		ret.insert(ret.end(), localret.begin(), localret.end()) ;
 	}
-
-	return  ;
+	
+	std::vector<DelaunayTreeItem3D *> toTest ;
+	getSon(4)->flatConflicts(visitedItems,toTest,ret,p) ;
+	while(!toTest.empty())
+	{
+		std::vector<DelaunayTreeItem3D *> tempToTest ;
+		for(size_t j  = 0 ;  j < toTest.size() ; j++)
+		{
+			toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
+		}
+		toTest = tempToTest ;
+	}
 }
 
 Star3D::Star3D( std::vector<DelaunayTreeItem3D *> *t, const Point *p ) :  treeitem( *t ), creator( p )
@@ -2229,10 +2280,10 @@ DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 	
 	DelaunayRoot3D *root = new DelaunayRoot3D( this, p0, p1, p2, p3 ) ;
 
+	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 0 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 1 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 2 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 3 ) ) ) ;
-	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 4 ) ) ) ;
 	
 
 }
@@ -2264,23 +2315,9 @@ DelaunayTree3D::~DelaunayTree3D()
 
 }
 
-void DelaunayTree3D::insert( Point *p )
+void DelaunayTree3D::addElements(std::vector<DelaunayTreeItem3D *> & cons, Point * p)
 {
-
-	std::vector<DelaunayTreeItem3D *> cons = this->conflicts( p ) ;
-	neighbourhood = false ;
-
-	for( size_t i = 0 ; i < cons.size() ; i++ )
-	{
-		if( cons[i]->isVertex( p ) )
-		{
-			cons[i]->print() ;
-			p->print() ;
-			std::cout << "vertex collision" << std::endl ;
-			return ;
-		}
-	}
-
+	
 	p->id = this->global_counter ;
 
 	this->global_counter++ ;
@@ -2411,6 +2448,27 @@ void DelaunayTree3D::insert( Point *p )
 
 // //
 	delete s ;
+}
+
+void DelaunayTree3D::insert( Point *p )
+{
+
+	std::vector<DelaunayTreeItem3D *> cons = conflicts( p ) ;
+	neighbourhood = false ;
+
+	for( size_t i = 0 ; i < cons.size() ; i++ )
+	{
+		if( cons[i]->isVertex( p ) )
+		{
+			cons[i]->print() ;
+			p->print() ;
+			std::cout << "vertex collision" << std::endl ;
+			return ;
+		}
+	}
+	
+	addElements(cons, p) ;
+
 // 	print() ;
 }
 
@@ -2422,31 +2480,25 @@ Star3D::~Star3D()
 
 std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p)
 {
-
-	std::vector<DelaunayTreeItem3D *> ret  ;
-
-	std::pair< std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > cons;
+	std::vector<DelaunayTreeItem3D *> cons;
 	if(visitedItems.size() != tree.size())
 		visitedItems.resize(tree.size()) ;
 	visitedItems = false ;
 	this->tree[0]->conflicts( visitedItems, cons, p ) ;
 
-	if( cons.first.empty() || cons.second.empty() )
+	if( cons.empty() )
 	{
 		for( size_t i = 0 ; i < space.size() ; i++ )
 		{
 
-			std::pair< std::vector<DelaunayTreeItem3D *>, std::vector<DelaunayTreeItem3D *> > temp ;
+			std::vector<DelaunayTreeItem3D *>  temp ;
 			space[i]->conflicts( visitedItems, temp, p ) ;
 
-			cons.first.insert( cons.first.end(), temp.first.begin(), temp.first.end() ) ;
-			cons.second.insert( cons.second.end(), temp.second.begin(), temp.second.end() ) ;
+			cons.insert( cons.end(), temp.begin(), temp.end() ) ;
 		}
 	}
 
-	ret.insert( ret.end(), cons.first.begin(), cons.first.end() ) ;
-
-	return ret ;
+	return cons ;
 }
 
 void DelaunayTree3D::purge()
