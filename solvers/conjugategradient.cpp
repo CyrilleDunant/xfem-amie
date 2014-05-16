@@ -28,6 +28,7 @@ ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Ve
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
+	eps = std::max(1e-9, eps) ;
 	size_t Maxit ;
 	if(maxit != -1)
 		Maxit = maxit ;
@@ -94,8 +95,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	p = z ;
 	q = A*p ;
 	
-	double last_rho = parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart) ;
-	double pq = parallel_inner_product(&q[rowstart], &p[rowstart], vsize-rowstart);
+	double last_rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
+	double pq = parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
 	double alpha = last_rho/pq ;
 	
 	#pragma omp parallel for schedule(static) if (vsize > 10000)
@@ -128,7 +129,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	{
 		P->precondition(r,z) ;
 
-		rho = parallel_inner_product(&r[rowstart], &z[rowstart], vsize-rowstart) ;
+		rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
 
 		beta = rho/last_rho ;
 
@@ -138,7 +139,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			p[i] = p[i]*beta+z[i] ;
 
 		assign(q, A*p, rowstart, colstart) ;
-		pq =  parallel_inner_product(&q[rowstart], &p[rowstart], vsize-rowstart);
+		pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
 		alpha = rho/pq;
 	
 		if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)

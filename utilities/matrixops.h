@@ -231,7 +231,25 @@ std::vector<std::pair<Vector, double> > deflate(const Mu::Matrix & m) ;
 * @param v1 pointer to the start of the second vector
 * @param size size of the vectors
 */
-inline double parallel_inner_product(const double * __restrict__ v0, const double * __restrict__ v1, int size)
+inline double parallel_inner_product(const double *  v0, const double *  v1, int size)
+{
+	double result = 0 ;
+	#pragma omp parallel
+	{
+		int chunksize = size/(2*omp_get_num_threads()) ;
+		#pragma omp for reduction(+:result) schedule(static,chunksize)
+		for(int i = 0 ; i < size ; ++i)
+			result = result + *(v0+i)* *(v1+i) ;
+	}
+	return result ;
+} ;
+
+/** \brief perform the inner product of two vector of doubles
+* @param v0 Pointer to the start of the first vector
+* @param v1 pointer to the start of the second vector
+* @param size size of the vectors
+*/
+inline double parallel_inner_product_restricted(const double * __restrict__ v0, const double * __restrict__ v1, int size)
 {
 	double result = 0 ;
 	#pragma omp parallel

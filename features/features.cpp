@@ -5110,6 +5110,7 @@ std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, do
 		double dxmc = 0 ;
 		double dym = 0;
 		double dymc = 0 ;
+		std::set<int> doneIds ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -5120,24 +5121,28 @@ std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, do
 					Point test(elements[i]->getBoundingPoint(j)) ;
 					
 					base->project(&test);
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x+size_x*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x+size_x*.5)) < tol && doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
 					{
 						dxp += disps[2*elements[i]->getBoundingPoint(j).id] ;
 						dxpc++ ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y+size_y*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y+size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
 					{
 						dyp += disps[2*elements[i]->getBoundingPoint(j).id+1] ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
 						dypc++ ;
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
 					{
 						dxm += disps[2*elements[i]->getBoundingPoint(j).id] ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
 						dxmc++ ;
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
 					{
 						dym += disps[2*elements[i]->getBoundingPoint(j).id+1] ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
 						dymc++ ;
 					}
 				}
@@ -5165,6 +5170,7 @@ std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, do
 		double dymc = 0 ;
 		double dzm = 0;
 		double dzmc = 0 ;
+		std::set<int> doneIds ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
@@ -5173,34 +5179,40 @@ std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, do
 				{
 					Point test(elements[i]->getBoundingPoint(j)) ;
 					base->project(&test);
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
 					{
 						dxp = disps[3*elements[i]->getBoundingPoint(j).id] ;
 						dxpc++ ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id);
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol&& doneIds.find(3*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
 					{
 						dyp = disps[3*elements[i]->getBoundingPoint(j).id+1] ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id+1);
 						dypc++ ;
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).z - (base->getCenter().z-size_z*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).z - (base->getCenter().z-size_z*.5)) < tol&& doneIds.find(3*elements[i]->getBoundingPoint(j).id+2) == doneIds.end())
 					{
 						dzp = disps[3*elements[i]->getBoundingPoint(j).id+2] ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id+2);
 						dzpc++ ;
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol&& doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
 					{
 						dxm = disps[3*elements[i]->getBoundingPoint(j).id] ;
 						dxmc++ ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id);
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol&& doneIds.find(3*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
 					{
 						dym = disps[3*elements[i]->getBoundingPoint(j).id+1] ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id+1);
 						dymc++ ;
 					}
-					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().z-size_z*.5)) < tol)
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().z-size_z*.5)) < tol&& doneIds.find(3*elements[i]->getBoundingPoint(j).id+2) == doneIds.end())
 					{
 						dzm = disps[3*elements[i]->getBoundingPoint(j).id+2] ;
+						doneIds.insert(3*elements[i]->getBoundingPoint(j).id+2);
 						dzmc++ ;
 					}
 				}
@@ -5211,6 +5223,256 @@ std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, do
 		ret.push_back((dxp/dxpc-dxm/dxmc)/size_x);
 		ret.push_back((dyp/dypc-dym/dymc)/size_y);
 		ret.push_back((dzp/dzpc-dzm/dzmc)/size_z);
+	}
+	
+	return ret ;
+}
+
+std::vector<double> FeatureTree::getCutMacroscopicStrain(const Geometry * base, double tol, double cut) 
+{
+	Vector disps = getDisplacements() ;
+	std::vector<double> ret ;
+	if(!disps.size())
+		return ret ;
+	if(is2D())
+	{
+		double size_x = dynamic_cast<const Rectangle *>(base)->width() ;
+		double size_y = dynamic_cast<const Rectangle *>(base)->height() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		std::vector<double> dxp ;
+		std::vector<double> dyp ;
+		std::vector<double> dxm ;
+		std::vector<double> dym ;
+		std::set<int> doneIds ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+				{
+					
+					Point test(elements[i]->getBoundingPoint(j)) ;
+					
+					base->project(&test);
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x+size_x*.5)) < tol && doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxp.push_back(disps[2*elements[i]->getBoundingPoint(j).id]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y+size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
+					{
+						dyp.push_back(disps[2*elements[i]->getBoundingPoint(j).id+1]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxm.push_back(disps[2*elements[i]->getBoundingPoint(j).id]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
+					{
+						dym.push_back(disps[2*elements[i]->getBoundingPoint(j).id+1]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
+					}
+				}
+			}
+		}
+		std::sort(dxp.begin(), dxp.end()) ;
+		std::sort(dxm.begin(), dxm.end()) ;
+		std::sort(dyp.begin(), dyp.end()) ;
+		std::sort(dym.begin(), dym.end()) ;
+		double xpmax = dxp[dxp.size()*cut]; 
+		double xpmin = dxp[dxp.size()*(1.-cut)];
+		double xmmax = dxm[dxm.size()*cut]; 
+		double xmmin = dxm[dxm.size()*(1.-cut)];
+		double ypmax = dyp[dyp.size()*cut]; 
+		double ypmin = dyp[dyp.size()*(1.-cut)];
+		double ymmax = dym[dym.size()*cut]; 
+		double ymmin = dym[dym.size()*(1.-cut)];
+		
+		double dxpv = 0;
+		double dxpc = 0;
+		double dxmv = 0;
+		double dxmc = 0;
+		double dypv = 0;
+		double dypc = 0;
+		double dymv = 0;
+		double dymc = 0;
+		
+		for(size_t i = 0 ; i < dxp.size() ; i++)
+		{
+			if(dxp[i] > xpmin && dxp[i] < xpmax )
+			{
+				dxpv += dxp[i] ;
+				dxpc++ ;
+			}
+		}
+		for(size_t i = 0 ; i < dxm.size() ; i++)
+		{
+			if(dxm[i] > xmmin && dxm[i] < xmmax )
+			{
+				dxmv += dxm[i] ;
+				dxmc++ ;
+			}
+		}
+
+		for(size_t i = 0 ; i < dyp.size() ; i++)
+		{
+			if(dyp[i] > ypmin && dyp[i] < ypmax )
+			{
+				dypv += dyp[i] ;
+				dypc++ ;
+			}
+		}
+		for(size_t i = 0 ; i < dym.size() ; i++)
+		{
+			if(dym[i] > ymmin && dym[i] < ymmax )
+			{
+				dymv += dym[i] ;
+				dymc++ ;
+			}
+		}
+		
+		ret.push_back((dxpv/dxpc-dxmv/dxmc)/size_x);
+		ret.push_back((dypv/dypc-dymv/dymc)/size_y);
+	}
+	else
+	{
+		double size_x = dynamic_cast<const Hexahedron *>(base)->getXSize() ;
+		double size_y = dynamic_cast<const Hexahedron *>(base)->getYSize() ;
+		double size_z = dynamic_cast<const Hexahedron *>(base)->getZSize() ;
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
+		std::vector<double> dxp ;
+		std::vector<double> dyp ;
+		std::vector<double> dzp ;
+		std::vector<double> dxm ;
+		std::vector<double> dym ;
+		std::vector<double> dzm ;
+		std::set<int> doneIds ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+				{
+					Point test(elements[i]->getBoundingPoint(j)) ;
+					base->project(&test);
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxp.push_back(disps[3*elements[i]->getBoundingPoint(j).id]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dyp.push_back(disps[3*elements[i]->getBoundingPoint(j).id+1]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).z - (base->getCenter().z-size_z*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dzp.push_back(disps[3*elements[i]->getBoundingPoint(j).id+2]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxm.push_back(disps[3*elements[i]->getBoundingPoint(j).id]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dym.push_back(disps[3*elements[i]->getBoundingPoint(j).id+1]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().z-size_z*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dzm.push_back(disps[3*elements[i]->getBoundingPoint(j).id+2]) ;
+					}
+				}
+			}
+		}
+		
+		std::sort(dxp.begin(), dxp.end()) ;
+		std::sort(dxm.begin(), dxm.end()) ;
+		std::sort(dyp.begin(), dyp.end()) ;
+		std::sort(dym.begin(), dym.end()) ;
+		std::sort(dzp.begin(), dzp.end()) ;
+		std::sort(dzm.begin(), dzm.end()) ;
+		
+		double xpmax = dxp[dxp.size()*cut]; 
+		double xpmin = dxp[dxp.size()*(1.-cut)];
+		double xmmax = dxm[dxm.size()*cut]; 
+		double xmmin = dxm[dxm.size()*(1.-cut)];
+		double ypmax = dyp[dyp.size()*cut]; 
+		double ypmin = dyp[dyp.size()*(1.-cut)];
+		double ymmax = dym[dym.size()*cut]; 
+		double ymmin = dym[dym.size()*(1.-cut)];
+		double zpmax = dzp[dzp.size()*cut]; 
+		double zpmin = dzp[dzp.size()*(1.-cut)];
+		double zmmax = dzm[dzm.size()*cut]; 
+		double zmmin = dzm[dzm.size()*(1.-cut)];
+		
+		double dxpv = 0;
+		double dxpc = 0;
+		double dxmv = 0;
+		double dxmc = 0;
+		double dypv = 0;
+		double dypc = 0;
+		double dymv = 0;
+		double dymc = 0;
+		double dzpv = 0;
+		double dzpc = 0;
+		double dzmv = 0;
+		double dzmc = 0;
+		
+		for(size_t i = 0 ; i < dxp.size() ; i++)
+		{
+			if(dxp[i] > xpmin && dxp[i] < xpmax )
+			{
+				dxpv += dxp[i] ;
+				dxpc++ ;
+			}
+		}
+		for(size_t i = 0 ; i < dxm.size() ; i++)
+		{
+			if(dxm[i] > xmmin && dxm[i] < xmmax )
+			{
+				dxmv += dxm[i] ;
+				dxmc++ ;
+			}
+		}
+
+		for(size_t i = 0 ; i < dyp.size() ; i++)
+		{
+			if(dyp[i] > ypmin && dyp[i] < ypmax )
+			{
+				dypv += dyp[i] ;
+				dypc++ ;
+			}
+		}
+		for(size_t i = 0 ; i < dym.size() ; i++)
+		{
+			if(dym[i] > ymmin && dym[i] < ymmax )
+			{
+				dymv += dym[i] ;
+				dymc++ ;
+			}
+		}
+		
+		for(size_t i = 0 ; i < dzp.size() ; i++)
+		{
+			if(dzp[i] > zpmin && dzp[i] < zpmax )
+			{
+				dzpv += dzp[i] ;
+				dzpc++ ;
+			}
+		}
+		for(size_t i = 0 ; i < dym.size() ; i++)
+		{
+			if(dzm[i] > zmmin && dym[i] < zmmax )
+			{
+				dzmv += dzm[i] ;
+				dzmc++ ;
+			}
+		}
+		
+		
+		ret.push_back((dxpv/dxpc-dxmv/dxmc)/size_x);
+		ret.push_back((dypv/dypc-dymv/dymc)/size_y);
+		ret.push_back((dzpv/dzpc-dzmv/dzmc)/size_z);
 	}
 	
 	return ret ;

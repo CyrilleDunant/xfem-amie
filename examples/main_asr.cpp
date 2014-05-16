@@ -231,7 +231,7 @@ void step()
 			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in " << stopped_reaction << " aggs." << std::endl ;
 
 
-			std::vector<double> macro_strain = featureTree->getMacroscopicStrain(&baseGeometry) ;
+			std::vector<double> macro_strain = featureTree->getCutMacroscopicStrain(&baseGeometry) ;
 			if( go_on )
 			{
 				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, macro_strain[0]) ) ;

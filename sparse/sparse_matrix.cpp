@@ -566,7 +566,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 			while (localEnd < end) 
 			{
 				int localStart = std::min(rowstart+t*chunksize,end)  ;
-				localEnd = std::min(localStart+chunksize,end) ;
+				int localEnd = std::min(localStart+chunksize,end) ;
 				t++ ;
 				#pragma omp task firstprivate(localStart,localEnd)
 				{
