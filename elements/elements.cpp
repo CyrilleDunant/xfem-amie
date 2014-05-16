@@ -2551,13 +2551,13 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	}
 	else
 	{
-		if(!isMoved() && !cachedJinv.empty())
-		{
-			if(ret.isNull())
-				ret.resize(3,3) ;
-			ret.array() = cachedJinv[0].array() ;
-			return ;
-		}
+// 		if(!isMoved() && !cachedJinv.empty())
+// 		{
+// 			if(ret.isNull())
+// 				ret.resize(3,3) ;
+// 			ret.array() = cachedJinv[0].array() ;
+// 			return ;
+// 		}
 		
 		if(ret.isNull() || ret.size() != 9)
 			ret.resize(3,3) ;
