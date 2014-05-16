@@ -555,6 +555,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 	#pragma omp parallel for schedule(static)
 	for (int i = 0 ; i < end ; i++)
 		ret[i] = 0;
+	
 	#pragma omp parallel
 	{
 		int nthreads = omp_get_num_threads() ;
@@ -566,7 +567,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 			while (localEnd < end) 
 			{
 				int localStart = std::min(rowstart+t*chunksize,end)  ;
-				int localEnd = std::min(localStart+chunksize,end) ;
+				localEnd = std::min(localStart+chunksize,end) ;
 				t++ ;
 				#pragma omp task firstprivate(localStart,localEnd)
 				{

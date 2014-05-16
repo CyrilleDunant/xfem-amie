@@ -153,8 +153,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			r[i] -= q[i]*alpha ;
 			x[i] += p[i]*alpha ;
 		}
-
-
 		
 		if(nit%256 == 0)
 		{
