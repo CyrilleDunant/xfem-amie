@@ -16,6 +16,7 @@
 #include "sliceiters.h"
 #include <vector>
 #include <numeric>
+#include <omp.h>
 
 
 #include <assert.h>
@@ -230,7 +231,19 @@ std::vector<std::pair<Vector, double> > deflate(const Mu::Matrix & m) ;
 * @param v1 pointer to the start of the second vector
 * @param size size of the vectors
 */
-double parallel_inner_product(const double * v0, const double * v1, int size) ;
+inline double parallel_inner_product(const double * __restrict__ v0, const double * __restrict__ v1, int size)
+{
+	double result = 0 ;
+	#pragma omp parallel
+	{
+		int chunksize = size/(2*omp_get_num_threads()) ;
+		#pragma omp for reduction(+:result) schedule(static,chunksize)
+		for(int i = 0 ; i < size ; ++i)
+			result = result + *(v0+i)* *(v1+i) ;
+	}
+	return result ;
+} ;
+
 
 /** \brief Structure used for Matrix-Vector multiplication, minimising temporaries*/
 struct MtV

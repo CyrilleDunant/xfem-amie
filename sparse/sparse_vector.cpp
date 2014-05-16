@@ -19,7 +19,7 @@
 using namespace Mu ;
 
 
-SparseVector::SparseVector(Vector & v, std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : val(v), idx(i), length(l), start(s), stride(st), index(ind)
+SparseVector::SparseVector(Vector & val, std::valarray<unsigned int> & idx , const size_t length , const size_t start, const size_t index, const size_t stride) : val(val), idx(idx), length(length), start(start), stride(stride), index(index)
 {
 	zero = 0 ;
 }
@@ -47,7 +47,6 @@ double & SparseVector::operator [](const size_t i)
 	return (std::binary_search(__start__, __end__, i/stride)) ?  val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] :  zero ;
 
 }
-
 
 Vector SparseVector::operator *(const Vector &v) const
 {
@@ -119,7 +118,6 @@ Matrix SparseVector::operator *(const SparseVector &v) const
 
 }
 
-
 Vector SparseVector::operator +(const Vector &v) const
 {
 	Vector ret(v) ;
@@ -132,8 +130,7 @@ Vector SparseVector::operator +(const Vector &v) const
 	return ret ;
 }
 
-
-ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : val(v), idx(i), length(l), start(s), stride(st), index(ind)
+ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : array(v), column_index(i), length(l), start(s), stride(st), index(ind)
 {
 }
 
@@ -142,8 +139,8 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 	size_t mstart = start ;
 	if(colstart)
 	{
-		const unsigned int * __start__       = &idx[start] ;
-		const unsigned int * __end__         = &idx[start+length] ;
+		const unsigned int * __start__       = &column_index[start] ;
+		const unsigned int * __end__         = &column_index[start+length] ;
 		const unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, colstart/stride) ;
 		const unsigned int offset            = i_index_pointer - __start__ ;
 		
@@ -158,14 +155,14 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 		{
 			for(unsigned int j = mstart ; j < length+start ; j++)
 			{
-				*dest += v[idx[j]]*val[j*2] ;
+				*dest += v[column_index[j]]*array[j*2] ;
 			}
 			return ;
 		}
 		case 2:
 		{
-			const double * array_iterator = &val[mstart*2*2] ;
-			const double * vec_iterator = &v[idx[mstart]*2] ;
+			const double * array_iterator = &array[mstart*2*2] ;
+			const double * vec_iterator = &v[column_index[mstart]*2] ;
 			for(unsigned int j = mstart ; j < length+start ; j++ )
 			{
 				*dest     += *array_iterator*(*vec_iterator);
@@ -173,16 +170,16 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*dest     += *(array_iterator+2)*(*(vec_iterator +1)) ;
 				*(dest+1) += *(array_iterator+3)*(*(vec_iterator +1)) ;
 				array_iterator+=4 ;
-				if(j+1 < idx.size())
-					vec_iterator += idx[j+1]*stride-idx[j]*stride ;
+				if(j+1 < column_index.size())
+					vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
 			}
 			return ;
 		}
 		
 		case 3:
 		{
-			const double * array_iterator = &val[mstart*3*4] ;
-			const double * vec_iterator = &v[idx[mstart]*3] ;
+			const double * array_iterator = &array[mstart*3*4] ;
+			const double * vec_iterator = &v[column_index[mstart]*3] ;
 			for(unsigned int j = mstart ; j < length+start ;j++)
 			{
 				*dest     += *array_iterator     * (*vec_iterator);
@@ -195,8 +192,8 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+1) += *(array_iterator+9 ) * (*(vec_iterator + 2));
 				*(dest+2) += *(array_iterator+10) * (*(vec_iterator + 2));
 				array_iterator+=12 ;
-				if(j+1 < idx.size())
-					vec_iterator += idx[j+1]*stride-idx[j]*stride ;
+				if(j+1 < column_index.size())
+					vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
 			}
 			return ;
 		}
@@ -204,41 +201,41 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 		{
 			const int colLength = 6  ;
 			#ifdef HAVE_SSE3
-			const __m128d * array_iterator = (__m128d*)&val[mstart*36] ;
+			const __m128d * array_iterator = (__m128d*)&array[mstart*36] ;
 // 			#pragma omp parallel for schedule(runtime)
 			for(unsigned int j = mstart ; j < length+start ; j++)
 			{
-				__m128d vval =  _mm_set1_pd(v[idx[j]*stride]) ;
+				__m128d vval =  _mm_set1_pd(v[column_index[j]*stride]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*array_iterator, vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+1), vval))) ;
 				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+2), vval))) ;
 				
-				vval =  _mm_set1_pd(v[idx[j]*stride+1]) ;
+				vval =  _mm_set1_pd(v[column_index[j]*stride+1]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+3,) vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+4), vval))) ;
 				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+5), vval))) ;
 				
-				vval =  _mm_set1_pd(v[idx[j]*stride+2]) ;
+				vval =  _mm_set1_pd(v[column_index[j]*stride+2]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+6), vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+7), vval))) ;
 				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+8), vval))) ;
 				
-				vval =  _mm_set1_pd(v[idx[j]*stride+3]) ;
+				vval =  _mm_set1_pd(v[column_index[j]*stride+3]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+9), vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+10), vval))) ;
 				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+11), vval))) ;
 				
-				vval =  _mm_set1_pd(v[idx[j]*stride+4]) ;
+				vval =  _mm_set1_pd(v[column_index[j]*stride+4]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+12), vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+13), vval))) ;
 				_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+14), vval))) ;
 				
-				vval =  _mm_set1_pd(v[idx[j]*stride+5]) ;
+				vval =  _mm_set1_pd(v[column_index[j]*stride+5]) ;
 
 				_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+15), vval))) ;
 				_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+16), vval))) ;
@@ -246,12 +243,12 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				array_iterator +=18 ;
 			}
 			#else
-			const double * array_iterator0 = &val[mstart*36] ;
-			const double * array_iterator1 = &val[mstart*36+1] ;
+			const double * array_iterator0 = &array[mstart*36] ;
+			const double * array_iterator1 = &array[mstart*36+1] ;
 // 			#pragma omp parallel for schedule(runtime)
 			for(unsigned int j = mstart ; j < length+start ; j++)
 			{
-				double vval =  v[idx[j]*6] ;
+				double vval =  v[column_index[j]*6] ;
 
 				*(dest) += *array_iterator0 * vval ;
 				*(dest+1) += *array_iterator1 * vval ;
@@ -262,7 +259,7 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+4) += *(array_iterator0+4) * vval ;
 				*(dest+5) += *(array_iterator1+4) * vval ;
 				
-				vval =  v[idx[j]*6+1] ;
+				vval =  v[column_index[j]*6+1] ;
 
 				*(dest) += *(array_iterator0+6) * vval ;
 				*(dest+1) += *(array_iterator1+6) * vval ;
@@ -273,7 +270,7 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+4) += *(array_iterator0+10) * vval ;
 				*(dest+5) += *(array_iterator1+10) * vval ;
 				
-				vval =  v[idx[j]*6+2] ;
+				vval =  v[column_index[j]*6+2] ;
 
 				*(dest) += *(array_iterator0+12) * vval ;
 				*(dest+1) += *(array_iterator1+12) * vval ;
@@ -284,7 +281,7 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+4) += *(array_iterator0+16) * vval ;
 				*(dest+5) += *(array_iterator1+16) * vval ;
 				
-				vval =  v[idx[j]*6+3] ;
+				vval =  v[column_index[j]*6+3] ;
 
 				*(dest) += *(array_iterator0+18) * vval ;
 				*(dest+1) += *(array_iterator1+18) * vval ;
@@ -295,7 +292,7 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+4) += *(array_iterator0+22) * vval ;
 				*(dest+5) += *(array_iterator1+22) * vval ;
 				
-				vval =  v[idx[j]*6+4] ;
+				vval =  v[column_index[j]*6+4] ;
 
 				*(dest) += *(array_iterator0+24) * vval ;
 				*(dest+1) += *(array_iterator1+24) * vval ;
@@ -306,7 +303,7 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 				*(dest+4) += *(array_iterator0+28) * vval ;
 				*(dest+5) += *(array_iterator1+28) * vval ;
 				
-				vval =  v[idx[j]*6+5] ;
+				vval =  v[column_index[j]*6+5] ;
 
 				*(dest) += *(array_iterator0+30) * vval ;
 				*(dest+1) += *(array_iterator1+30) * vval ;
@@ -325,13 +322,13 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 		default:
 		{
 			unsigned int colLength = stride+stride%2 ;
-			const double * array_iterator0 = &val[mstart*colLength*stride] ;
-			const double * array_iterator1 = &val[mstart*colLength*stride+1] ;
+			const double * array_iterator0 = &array[mstart*colLength*stride] ;
+			const double * array_iterator1 = &array[mstart*colLength*stride+1] ;
 			for(unsigned int j = mstart ; j < length+start ; j++)
 			{
 				for(size_t c = 0 ; c < stride ; c++)
 				{
-					const double vval =  v[idx[j]*stride+c] ;
+					const double vval =  v[column_index[j]*stride+c] ;
 					for(size_t i = 0 ; i != colLength ; i+=2)
 					{
 						*(dest+i) += *array_iterator0 * vval ;
@@ -346,34 +343,32 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 	}
 }
 
-
-
 Vector ConstSparseVector::operator *(const Vector &v) const
 {
 	if(stride == 2)
 	{
 	#ifdef HAVE_SSE3
 		Vector ret(0., 2) ;
-		const __m128d * array_iterator = (__m128d*)&val[start*4] ;
-		const double * vec_iterator = &v[idx[start]*2] ;
+		const __m128d * array_iterator = (__m128d*)&array[start*4] ;
+		const double * vec_iterator = &v[column_index[start]*2] ;
 		for(unsigned int j = start ; j != length+start && j+1 != length+start; j++)
 		{
 			
 			_mm_store_pd(&ret[0],  _mm_add_pd( _mm_load_pd(&ret[0]), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1)))))) ;
 			array_iterator+=2 ;
-			vec_iterator += idx[j+1]*2-idx[j]*2 ;
+			vec_iterator += column_index[j+1]*2-column_index[j]*2 ;
 			
 		}
 	#else
 		Vector ret(0., 2) ;
-		const double * array_iterator0 = &val[start*4] ;
-		const double * array_iterator1 = &val[start*4+1] ;
-		const double * array_iterator2 = &val[start*4+2] ;
-		const double * array_iterator3 = &val[start*4+3] ;
+		const double * array_iterator0 = &array[start*4] ;
+		const double * array_iterator1 = &array[start*4+1] ;
+		const double * array_iterator2 = &array[start*4+2] ;
+		const double * array_iterator3 = &array[start*4+3] ;
 		for(unsigned int j = start ; j != length+start ; j++)
 		{
-			ret[0] += *array_iterator0*v[idx[j]*2]+*array_iterator2*v[idx[j]*2+1] ;
-			ret[1] += *array_iterator1*v[idx[j]*2]+*array_iterator3*v[idx[j]*2+1] ;
+			ret[0] += *array_iterator0*v[column_index[j]*2]+*array_iterator2*v[column_index[j]*2+1] ;
+			ret[1] += *array_iterator1*v[column_index[j]*2]+*array_iterator3*v[column_index[j]*2+1] ;
 			array_iterator0+=4 ;
 			array_iterator1+=4 ;
 			array_iterator2+=4 ;
@@ -386,12 +381,12 @@ Vector ConstSparseVector::operator *(const Vector &v) const
 	const int colLength = stride + stride%2 ;
 	Vector ret(0., colLength) ;
 	#ifdef HAVE_SSE3
-	const __m128d * array_iterator = (__m128d*)&val[start*colLength*stride] ;
+	const __m128d * array_iterator = (__m128d*)&array[start*colLength*stride] ;
 	for(unsigned int j = start ; j != length+start ; j++)
 	{
 		for(size_t c = 0 ; c < stride ; c++)
 		{
-			const __m128d vval =  _mm_set1_pd(v[idx[j]*stride+c]) ;
+			const __m128d vval =  _mm_set1_pd(v[column_index[j]*stride+c]) ;
 			for(int i = 0 ; i != colLength ; i+=2)
 			{
 				_mm_store_pd(&ret[i],  _mm_add_pd( _mm_load_pd(&ret[i]), _mm_mul_pd(*array_iterator, vval))) ;
@@ -400,13 +395,13 @@ Vector ConstSparseVector::operator *(const Vector &v) const
 		}
 	}
 	#else
-	const double * array_iterator0 = &val[start*colLength*stride] ;
-	const double * array_iterator1 = &val[start*colLength*stride+1] ;
+	const double * array_iterator0 = &array[start*colLength*stride] ;
+	const double * array_iterator1 = &array[start*colLength*stride+1] ;
 	for(unsigned int j = start ; j != length+start ; j++)
 	{
 		for(size_t c = 0 ; c < stride ; c++)
 		{
-			const double vval =  v[idx[j]*stride+c] ;
+			const double vval =  v[column_index[j]*stride+c] ;
 			for(size_t i = 0 ; i != colLength ; i+=2)
 			{
 				ret[i] += *array_iterator0 * vval ;
@@ -431,9 +426,9 @@ Matrix ConstSparseVector::operator *(const SparseVector& v) const
 	size_t j = 0 ; 
 	while(i < length && j < v.length)
 	{
-		if(idx[start+i] > v.idx[v.start+ j])
+		if(column_index[start+i] > v.idx[v.start+ j])
 			j++ ;
-		else if(idx[start+i] < v.idx[v.start+ j])
+		else if(column_index[start+i] < v.idx[v.start+ j])
 			i++ ;
 		else
 		{
@@ -442,7 +437,7 @@ Matrix ConstSparseVector::operator *(const SparseVector& v) const
 			{
 				for(size_t l = 0 ; l < stride ; l++)
 				{
-					ret[k][l] += val[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
+					ret[k][l] += array[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
 				}
 			}
 			i++ ;
@@ -463,9 +458,9 @@ Matrix ConstSparseVector::operator *(const ConstSparseVector& v) const
 	size_t j = 0 ; 
 	while(i < length && j < v.length)
 	{
-		if(idx[start+i] > v.idx[v.start+ j])
+		if(column_index[start+i] > v.column_index[v.start+ j])
 			j++ ;
-		else if(idx[start+i] < v.idx[v.start+ j])
+		else if(column_index[start+i] < v.column_index[v.start+ j])
 			i++ ;
 		else
 		{
@@ -474,7 +469,7 @@ Matrix ConstSparseVector::operator *(const ConstSparseVector& v) const
 			{
 				for(size_t l = 0 ; l < stride ; l++)
 				{
-					ret[k][l] += val[start*blocksize+i*blocksize+colLength*k+l]*v.val[v.start*blocksize+j*blocksize + idx++] ;
+					ret[k][l] += array[start*blocksize+i*blocksize+colLength*k+l]*v.array[v.start*blocksize+j*blocksize + idx++] ;
 				}
 			}
 			i++ ;
@@ -488,7 +483,7 @@ Matrix ConstSparseVector::operator *(const ConstSparseVector& v) const
 void ConstSparseVector::print() const
 {
 	for(size_t j = 0 ; j < length ; j++)
-		std::cout << idx[start + j] << " -> " << val[start + j] << std::endl ;
+		std::cout << column_index[start + j] << " -> " << array[start + j] << std::endl ;
 }
 
 Vector ConstSparseVector::operator +(const Vector& v) const
@@ -497,8 +492,8 @@ Vector ConstSparseVector::operator +(const Vector& v) const
 	
 	for(size_t j = start ; j < length+start ; j++)
 	{
-		size_t index = idx[j] ;
-		ret[index] += val[j] ; 
+		size_t index = column_index[j] ;
+		ret[index] += array[j] ; 
 	}
 	
 	return ret ;

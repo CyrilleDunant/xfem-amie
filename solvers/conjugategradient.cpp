@@ -20,6 +20,7 @@
 #include "eigenvalues.h"
 #include <limits>
 #include <sys/time.h>
+#include <omp.h>
 
 using namespace Mu ;
 
@@ -97,7 +98,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double pq = parallel_inner_product(&q[rowstart], &p[rowstart], vsize-rowstart);
 	double alpha = last_rho/pq ;
 	
-	#pragma omp parallel for schedule(runtime) if (vsize > 10000)
+	#pragma omp parallel for schedule(static) if (vsize > 10000)
 	for(size_t i = rowstart ; i < vsize ; i++)
 	{
 		r[i] -= q[i]*alpha ;
@@ -107,7 +108,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	//****************************************
 	
 	assign(r, A*x-b, rowstart, colstart) ;
-	#pragma omp parallel for schedule(runtime) if (vsize > 10000)
+	#pragma omp parallel for schedule(static) if (vsize > 10000)
 	for(size_t i = rowstart ; i < vsize ; i++)
 			r[i] *= -1 ;
 
@@ -119,8 +120,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		return true ;
 	}
-	timeval time0, time1 ;
-	gettimeofday(&time0, nullptr);
+	double t0 = omp_get_wtime() ;
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double rho = 0 ;
 	double beta = 0 ;
@@ -133,7 +133,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		beta = rho/last_rho ;
 
 		
-		#pragma omp parallel for schedule(runtime) if (vsize > 10000)
+		#pragma omp parallel for schedule(static) if (vsize > 10000)
 		for(size_t i = rowstart ; i < vsize ; i++)
 			p[i] = p[i]*beta+z[i] ;
 
@@ -146,7 +146,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			last_rho = 0 ;
 			break ;
 		}
-		#pragma omp parallel for schedule(runtime) if (vsize > 10000)
+		#pragma omp parallel for schedule(static) if (vsize > 10000)
 		for(size_t i = rowstart ; i < vsize ; i++)
 		{
 			r[i] -= q[i]*alpha ;
@@ -155,14 +155,14 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 
 		
-		if(nit%32 == 0)
+		if(nit%256 == 0)
 		{
 			assign(r, A*x-b, rowstart, rowstart) ;
-			#pragma omp parallel for schedule(runtime) if (vsize > 10000)
+			#pragma omp parallel for schedule(static) if (vsize > 10000)
 			for(size_t i = rowstart ; i < vsize ; i++)
 				r[i] *= -1 ;
 		}
-		if(	verbose && nit%128 == 0)
+		if( verbose && nit%256 == 0 )
 		{
 			std::cerr << sqrt(rho) << std::endl  ;
 		}
@@ -171,9 +171,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		last_rho = rho ;
 		nit++ ;
 	}
-	gettimeofday(&time1, nullptr);
-	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cerr << "mflops: "<< nit*((2.+2./32.)*A.array.size()+(4+1./32.)*p.size())/delta << std::endl ;
+	double delta = (omp_get_wtime() - t0)*1e6 ;
+	std::cerr << "mflops: "<< nit*((2.+2./256.)*A.array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
 	assign(r,A*x-b, rowstart, rowstart) ;
 	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;

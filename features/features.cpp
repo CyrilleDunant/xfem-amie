@@ -4723,19 +4723,28 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 // 				xfemStepped <<
 // 				featureStepped <<  std::endl ;
 
+	
 	if( !sampled )
 	{
+		double t0 = omp_get_wtime() ;
 		ft->sample();
 		sampled = true ;
+		std::cerr << "... time to sample (s) " << omp_get_wtime()-t0 << std::endl ;
 	}
+	
 	if( s == SAMPLED )
 		return ;
 
+	
 	if( !meshed )
 	{
+		double t0 = omp_get_wtime() ;
 		ft->generateElements();
 		meshed = true ;
+		std::cerr << "... time to mesh (s) " << omp_get_wtime()-t0 << std::endl ;
 	}
+	
+	
 	if( s == MESHED )
 		return ;
 

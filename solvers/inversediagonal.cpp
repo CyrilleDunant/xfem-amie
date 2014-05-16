@@ -44,7 +44,7 @@ InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix
 
 void  InverseLumpedDiagonal::precondition(const Vector &v, Vector & t) 
 {
-	for(size_t i = 0 ; i < t.size() ; i++)
+	for(size_t i = 0 ; i < v.size() ; i++)
 		t[i]=v[i]*diagonal[i] ;
 }
 
@@ -64,7 +64,7 @@ InverseDiagonal::InverseDiagonal(const CoordinateIndexedSparseMatrix &A) : diago
 
 void  InverseDiagonal::precondition(const Vector &v, Vector & t) 
 {
-#pragma omp parallel for schedule(runtime) if (t.size() > 10000)
+	#pragma omp parallel for schedule(static) if (t.size() > 10000)
 	for(size_t i = 0 ; i < v.size() ; i++)
 		t[i]=v[i]*diagonal[i] ;
 }
@@ -80,7 +80,7 @@ void InverseDiagonalSquared::precondition(const Vector &v, Vector & t)
 {
 	double * ti = &t[0] ;
 	const double * vi = &v[0] ;
-#pragma omp parallel for schedule(runtime) if (t.size() > 10000)
+	#pragma omp parallel for schedule(static) if (t.size() > 10000)
 	for(int d = 0 ; d < diagonal->size() ; ++d)
 		*(ti++)=(*vi++)*(*diagonal)[d] ;
 }

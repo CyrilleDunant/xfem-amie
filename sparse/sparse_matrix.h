@@ -121,6 +121,7 @@ public:
  * @param columnIndex the column indes of every value to be sotred in the matrix.
  */
 	CoordinateIndexedSparseMatrix(const std::valarray<unsigned int> & rowSize, const std::valarray<unsigned int> & columnIndex, size_t stride) ;
+	
 	~CoordinateIndexedSparseMatrix() ;
 	
 	/** \brief Return the sparse row of index i. 
@@ -174,6 +175,218 @@ As there are no warranty all members of the diagonal are non-0, there is no warr
 
 /** \brief Compute the infinity norm of the matrix: \f$ |\max A_{ij}|\f$*/
 	double infinityNorm() const ;
+	
+	inline void inner_product(const double* __restrict__ v, double* __restrict__ dest, const size_t rowstart, const size_t colstart, const size_t index) const
+	{
+		size_t length = row_size[index/stride] ;
+		size_t start = accumulated_row_size[index/stride] ;
+		
+		size_t mstart = start ;
+		if(colstart)
+		{
+			const unsigned int * __start__       = &column_index[start] ;
+			const unsigned int * __end__         = &column_index[start+length] ;
+			const unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, colstart/stride) ;
+			const unsigned int offset            = i_index_pointer - __start__ ;
+			
+			mstart = (start <= start+offset && start+offset < start+length) ? (start+offset) : start+length;
+		}
+	// 		mstart = start ;std::max(mstart,start) ;
+	// 		
+	// 		
+		switch(stride)
+		{
+			case 1:
+			{
+				for(unsigned int j = mstart ; j < length+start ; j++)
+				{
+					*dest += v[column_index[j]]*array[j*2] ;
+				}
+				return ;
+			}
+			case 2:
+			{
+				const double * array_iterator = &array[mstart*2*2] ;
+				const double * vec_iterator = v + column_index[mstart]*2 ;
+				for(unsigned int j = mstart ; j < length+start ; j++ )
+				{
+					*dest     += *array_iterator*(*vec_iterator);
+					*(dest+1) += *(array_iterator+1)*(*vec_iterator) ;
+					*dest     += *(array_iterator+2)*(*(vec_iterator +1)) ;
+					*(dest+1) += *(array_iterator+3)*(*(vec_iterator +1)) ;
+					array_iterator+=4 ;
+					if(j+1 < column_index.size())
+						vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
+				}
+				return ;
+			}
+			
+			case 3:
+			{
+				const double * array_iterator = &array[mstart*3*4] ;
+				const double * vec_iterator = v + column_index[mstart]*3 ;
+				for(unsigned int j = mstart ; j < length+start ;j++)
+				{
+					*dest     += *array_iterator     * (*vec_iterator);
+					*(dest+1) += *(array_iterator+1) * (*vec_iterator);
+					*(dest+2) += *(array_iterator+2) * (*vec_iterator);
+					*dest     += *(array_iterator+4) * (*(vec_iterator + 1)) ;
+					*(dest+1) += *(array_iterator+5) * (*(vec_iterator + 1)) ;
+					*(dest+2) += *(array_iterator+6) * (*(vec_iterator + 1)) ;
+					*dest     += *(array_iterator+8 ) * (*(vec_iterator + 2));
+					*(dest+1) += *(array_iterator+9 ) * (*(vec_iterator + 2));
+					*(dest+2) += *(array_iterator+10) * (*(vec_iterator + 2));
+					array_iterator+=12 ;
+					if(j+1 < column_index.size())
+						vec_iterator += column_index[j+1]*stride-column_index[j]*stride ;
+				}
+				return ;
+			}
+			case 6 :
+			{
+				const int colLength = 6  ;
+				#ifdef HAVE_SSE3
+				const __m128d * array_iterator = (__m128d*)&array[mstart*36] ;
+	// 			#pragma omp parallel for schedule(runtime)
+				for(unsigned int j = mstart ; j < length+start ; j++)
+				{
+					__m128d vval =  _mm_set1_pd(*(v+column_index[j]*stride)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*array_iterator, vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+1), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+2), vval))) ;
+					
+					vval =  _mm_set1_pd(*(v+column_index[j]*stride+1)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+3,) vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+4), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+5), vval))) ;
+					
+					vval =  _mm_set1_pd(*(v+column_index[j]*stride+2)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+6), vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+7), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+8), vval))) ;
+					
+					vval =  _mm_set1_pd(*(v+column_index[j]*stride+3)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+9), vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+10), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+11), vval))) ;
+					
+					vval =  _mm_set1_pd(*(v+column_index[j]*stride+4)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+12), vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+13), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+14), vval))) ;
+					
+					vval =  _mm_set1_pd(*(v+column_index[j]*stride+5)) ;
+
+					_mm_store_pd((dest),  _mm_add_pd( _mm_load_pd((dest)), _mm_mul_pd(*(array_iterator+15), vval))) ;
+					_mm_store_pd((dest+2),  _mm_add_pd( _mm_load_pd((dest+2)), _mm_mul_pd(*(array_iterator+16), vval))) ;
+					_mm_store_pd((dest+4),  _mm_add_pd( _mm_load_pd((dest+4)), _mm_mul_pd(*(array_iterator+17), vval))) ;
+					array_iterator +=18 ;
+				}
+				#else
+				const double * array_iterator0 = &array[mstart*36] ;
+				const double * array_iterator1 = &array[mstart*36+1] ;
+	// 			#pragma omp parallel for schedule(runtime)
+				for(unsigned int j = mstart ; j < length+start ; j++)
+				{
+					double vval =  *(v+column_index[j]*6) ;
+
+					*(dest) += *array_iterator0 * vval ;
+					*(dest+1) += *array_iterator1 * vval ;
+					
+					*(dest+2) += *(array_iterator0+2) * vval ;
+					*(dest+3) += *(array_iterator1+2) * vval ;
+					
+					*(dest+4) += *(array_iterator0+4) * vval ;
+					*(dest+5) += *(array_iterator1+4) * vval ;
+					
+					vval =  *(v+column_index[j]*6+1) ;
+
+					*(dest) += *(array_iterator0+6) * vval ;
+					*(dest+1) += *(array_iterator1+6) * vval ;
+					
+					*(dest+2) += *(array_iterator0+8) * vval ;
+					*(dest+3) += *(array_iterator1+8) * vval ;
+					
+					*(dest+4) += *(array_iterator0+10) * vval ;
+					*(dest+5) += *(array_iterator1+10) * vval ;
+					
+					vval =  *(v+column_index[j]*6+2) ;
+
+					*(dest) += *(array_iterator0+12) * vval ;
+					*(dest+1) += *(array_iterator1+12) * vval ;
+					
+					*(dest+2) += *(array_iterator0+14) * vval ;
+					*(dest+3) += *(array_iterator1+14) * vval ;
+					
+					*(dest+4) += *(array_iterator0+16) * vval ;
+					*(dest+5) += *(array_iterator1+16) * vval ;
+					
+					vval =  *(v+column_index[j]*6+3) ;
+
+					*(dest) += *(array_iterator0+18) * vval ;
+					*(dest+1) += *(array_iterator1+18) * vval ;
+					
+					*(dest+2) += *(array_iterator0+20) * vval ;
+					*(dest+3) += *(array_iterator1+20) * vval ;
+					
+					*(dest+4) += *(array_iterator0+22) * vval ;
+					*(dest+5) += *(array_iterator1+22) * vval ;
+					
+					vval = *(v+column_index[j]*6+4) ;
+
+					*(dest) += *(array_iterator0+24) * vval ;
+					*(dest+1) += *(array_iterator1+24) * vval ;
+					
+					*(dest+2) += *(array_iterator0+26) * vval ;
+					*(dest+3) += *(array_iterator1+26) * vval ;
+					
+					*(dest+4) += *(array_iterator0+28) * vval ;
+					*(dest+5) += *(array_iterator1+28) * vval ;
+					
+					vval =  *(v+column_index[j]*6+5) ;
+
+					*(dest) += *(array_iterator0+30) * vval ;
+					*(dest+1) += *(array_iterator1+30) * vval ;
+					
+					*(dest+2) += *(array_iterator0+32) * vval ;
+					*(dest+3) += *(array_iterator1+32) * vval ;
+					
+					*(dest+4) += *(array_iterator0+34) * vval ;
+					*(dest+5) += *(array_iterator1+34) * vval ;
+					array_iterator0 += 36 ;
+					array_iterator1 += 36 ;
+				}
+				#endif
+				return ;
+			}
+			default:
+			{
+				unsigned int colLength = stride+stride%2 ;
+				const double * array_iterator0 = &array[mstart*colLength*stride] ;
+				const double * array_iterator1 = &array[mstart*colLength*stride+1] ;
+				for(unsigned int j = mstart ; j < length+start ; j++)
+				{
+					for(size_t c = 0 ; c < stride ; c++)
+					{
+						const double vval =  *(v+column_index[j]*stride+c) ;
+						for(size_t i = 0 ; i != colLength ; i+=2)
+						{
+							*(dest+i) += *array_iterator0 * vval ;
+							*(dest+i+1) += *array_iterator1 * vval ;
+							array_iterator0 += 2 ;
+							array_iterator1 += 2 ;
+						}
+					}
+				}
+				return ;
+			}
+		}
+	}
 	
 } ;
 

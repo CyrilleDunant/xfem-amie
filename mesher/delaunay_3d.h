@@ -129,7 +129,7 @@ public:
 	virtual  void conflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
 	virtual  void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
 	virtual void flatConflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
-	virtual void flatConflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p) ;
+	virtual void flatConflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
 
 	virtual void print() const = 0 ;
 

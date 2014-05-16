@@ -343,6 +343,7 @@ public:
 
 } ;
 
+
 /** \brief Sparse Vector implementation. 
  * The sparse vector implementation is not intended to be used as a standalone class. Instead it behaves as a row of a
  * CoordinateIndexedSparseMatrix. As such a matrix is stored in blocks, the sparse vector holds references to a group 
@@ -354,8 +355,8 @@ public:
 struct ConstSparseVector
 {
 public:
-	const Vector & val ;
-	const std::valarray<unsigned int> & idx ;
+	const Vector & array ;
+	const std::valarray<unsigned int> & column_index ;
 	const size_t length ;
 	const size_t start ;
 	const size_t stride ;
@@ -377,13 +378,13 @@ public:
 	 */
 	inline double operator [](const size_t i) const
 	{
-		const unsigned int * __start__       = &idx[start] ;
-		const unsigned int * __end__         = &idx[start+length] ;
+		const unsigned int * __start__       = &column_index[start] ;
+		const unsigned int * __end__         = &column_index[start+length] ;
 		const unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
 		unsigned int offset            = i_index_pointer - __start__ ;
 		unsigned int colLength = stride+stride%2 ;
 		return(std::binary_search(__start__, __end__, i/stride)) ?
-			 val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] : 0 ;
+			 array[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] : 0 ;
 	}
 	
 	/** \brief simultaneously compute a number of dot products equal to the block size.
@@ -422,10 +423,10 @@ inline void reverseInnerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Ve
 {
 	int stride = v0.stride ;
 	int delta = stride+stride%2 ;
-	for(size_t j = v0.length+v0.start-1 ; v0.idx[j] > start   ; --j)
+	for(size_t j = v0.length+v0.start-1 ; v0.column_index[j] > start   ; --j)
 	{
 		for(int i = 0 ; i < stride ; i++)
-			t += v1[v0.idx[j]*stride+i]*v0.val[j*stride*delta+i*delta] ;
+			t += v1[v0.column_index[j]*stride+i]*v0.array[j*stride*delta+i*delta] ;
 	}
 	t+=toAdd ;
 } ;
@@ -435,10 +436,10 @@ inline void innerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & 
 {
 	int stride = v0.stride ;
 	int delta = stride+stride%2 ;
-	for(size_t j =  v0.start; v0.idx[j] < end ; ++j)
+	for(size_t j =  v0.start; v0.column_index[j] < end ; ++j)
 	{
 		for(int i = 0 ; i < stride ; i++)
-			t += v1[v0.idx[j]*stride+i]*v0.val[j*stride*delta+i*delta] ;
+			t += v1[v0.column_index[j]*stride+i]*v0.array[j*stride*delta+i*delta] ;
 	}
 	t+=toAdd ;
 } ;
@@ -453,9 +454,9 @@ inline double innerProduct(const Mu::ConstSparseVector & v0, Mu::ConstSparseVect
 	size_t j = 0 ; 
 	while(i < v0.length && j < v1.length)
 	{
-		if(v0.idx[v0.start+i] > v1.idx[v1.start+ j] || v0.idx[v0.start+i] < s/v0.stride)
+		if(v0.column_index[v0.start+i] > v1.column_index[v1.start+ j] || v0.column_index[v0.start+i] < s/v0.stride)
 			j++ ;
-		else if(v0.idx[v0.start+i] < v1.idx[v1.start+ j]|| v1.idx[v1.start+j] < s/v0.stride)
+		else if(v0.column_index[v0.start+i] < v1.column_index[v1.start+ j]|| v1.column_index[v1.start+j] < s/v0.stride)
 			i++ ;
 		else
 		{
@@ -464,7 +465,7 @@ inline double innerProduct(const Mu::ConstSparseVector & v0, Mu::ConstSparseVect
 			{
 				for(size_t l = 0 ; l < v0.stride ; l++)
 				{
-					ret[k][l] += v0.val[v0.start*blocksize+i*blocksize+colLength*k+l]*v1.val[v1.start*blocksize+j*blocksize + idx++] ;
+					ret[k][l] += v0.array[v0.start*blocksize+i*blocksize+colLength*k+l]*v1.array[v1.start*blocksize+j*blocksize + idx++] ;
 				}
 			}
 			i++ ;

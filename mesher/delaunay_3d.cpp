@@ -879,8 +879,11 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::ve
 
 }
 
-void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p )
+void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p, int threadid )
 {
+	if(threadid >= 0 && index%(threadid+1) != 0)
+		return ;
+	
 	if(visitedItems[index])
 		return  ;
 
@@ -889,8 +892,18 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std
 	if(!inCircumSphere(*p))
 		return  ;
 	
+// 	std::vector< DelaunayTreeItem3D * > toteststepson ;
+// 	std::vector< DelaunayTreeItem3D * > totestson ;
+// 	std::vector< DelaunayTreeItem3D * > totestneighbour ;
+	
+// #pragma omp parallel
+// {
+// 	#pragma omp sections
+// 	{
+// 	#pragma omp section 
+// 	{
 	for ( size_t i  = 0 ;  i < stepson.size() ; i++)
-	{
+	{	
 		bool limit = false ;
 		if(!visitedItems[stepson[i]])
 		{
@@ -913,7 +926,10 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std
 			}
 		}
 	}
+// 	}
 	
+// 	#pragma omp section 
+// 	{
 	for (size_t i  = 0 ;  i < son.size() ; i++)
 	{
 		bool limit = false ;
@@ -931,22 +947,19 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std
 				limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius()) 
 					< 20000.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D ;
 			}
-			
+// 			
 			if( (getSon(i)->inCircumSphere(*p)) || limit)
 			{
 				toTest.push_back(getSon(i)) ;
 			}
 		}
 	}
-
-	if(isAlive())
-	{
-		ret.push_back(this) ;
-	}
+// 	}
 	
+// 	#pragma omp section 
+// 	{
 	for (size_t i  = 0 ;  i < neighbour.size() ; i++)
 	{
-		
 		bool limit = false ;
 		if(!visitedItems[neighbour[i]])
 		{
@@ -969,7 +982,22 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std
 			}
 		}
 	}
+// 	}
+// 	}
+// 	}
+
+// 	std::cout << "end task " << totestson.size() << ", "<< toteststepson.size()<< ", " << totestneighbour.size()<< std::endl ;
+// 	if(!totestson.empty())
+// 		toTest.insert(toTest.end(), totestson.begin(), totestson.end());
+// 	if(!toteststepson.empty())
+// 		toTest.insert(toTest.end(), toteststepson.begin(), toteststepson.end());
+// 	if(!totestneighbour.empty())
+// 		toTest.insert(toTest.end(), totestneighbour.begin(), totestneighbour.end());
 	
+	if(isAlive())
+	{
+		ret.push_back(this) ;
+	}
 }
 
 
@@ -2092,12 +2120,12 @@ DelaunayRoot3D::DelaunayRoot3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t
 	makeNeighbours( pl3, pl1 ) ;
 	makeNeighbours( pl3, pl2 ) ;
 
-	
+	addSon( tet ) ;
 	addSon( pl0 ) ;
 	addSon( pl1 ) ;
 	addSon( pl2 ) ;
 	addSon( pl3 ) ;
-	addSon( tet ) ;
+	
 
 	kill( p0 ) ;
 }
@@ -2186,38 +2214,25 @@ void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::vector
 
 	visited() = true ;
 	visitedItems[index] = true ;
-// #pragma omp parallel for
-	for (size_t i  = 0 ;  i < 4 ; i++)
+
+	for (size_t i  = 0 ;  i < 5 ; i++)
 	{
-		std::vector< DelaunayTreeItem3D * >  localret ;
 		std::vector<DelaunayTreeItem3D *> toTest ;
-		getSon(i)->flatConflicts(visitedItems,toTest,localret,p) ;
+
+		getSon(i)->flatConflicts(visitedItems,toTest,ret,p) ;
+
 		while(!toTest.empty())
 		{
 			std::vector<DelaunayTreeItem3D *> tempToTest ;
 			for(size_t j  = 0 ;  j < toTest.size() ; j++)
 			{
-				if(toTest[j] != getSon(4))
-					toTest[j]->flatConflicts(visitedItems,tempToTest,localret,p) ;
+				toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
 			}
 			toTest = tempToTest ;
 		}
-		
-// 		#pragma omp critical
-		ret.insert(ret.end(), localret.begin(), localret.end()) ;
+
 	}
-	
-	std::vector<DelaunayTreeItem3D *> toTest ;
-	getSon(4)->flatConflicts(visitedItems,toTest,ret,p) ;
-	while(!toTest.empty())
-	{
-		std::vector<DelaunayTreeItem3D *> tempToTest ;
-		for(size_t j  = 0 ;  j < toTest.size() ; j++)
-		{
-			toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
-		}
-		toTest = tempToTest ;
-	}
+
 }
 
 Star3D::Star3D( std::vector<DelaunayTreeItem3D *> *t, const Point *p ) :  treeitem( *t ), creator( p )
@@ -2280,10 +2295,10 @@ DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 	
 	DelaunayRoot3D *root = new DelaunayRoot3D( this, p0, p1, p2, p3 ) ;
 
-	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 0 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 1 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 2 ) ) ) ;
 	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 3 ) ) ) ;
+	space.push_back( static_cast<DelaunayDemiSpace *>( root->getSon( 4 ) ) ) ;
 	
 
 }

@@ -46,7 +46,7 @@ using namespace Mu ;
 FeatureTree *featureTree ;
 
 double placed_area = 0 ;
-double restraintDepth = 0.01 ;
+double restraintDepth = 0 ; //0.01 ;
 
 Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
@@ -457,8 +457,8 @@ int main( int argc, char *argv[] )
 		voidright->isVirtualFeature = true ;
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
-
-		//width are 6544984695	10226538586	14726215564      done: 11 13 10
+                
+		//width are  6544984695	10226538586	14726215564      done: 11 13 10
 		//length are 5113269293	26179938780	40906154344      next: 33
 
 

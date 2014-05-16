@@ -97,7 +97,6 @@ CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<
 	}
 }
 
-
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(const std::valarray<unsigned int> &rs, const std::valarray<unsigned int> &ci, size_t s) : stride(s), array(0., ci.size()*stride*(stride+stride%2)),column_index(ci),row_size(rs), accumulated_row_size(rs.size())
 {
 // 	accumulated_row_size[1] = row_size[0] ;
@@ -481,15 +480,20 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlu
 
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ;
-	
 	ret = c.ve ;
-	if(rowstart)
-		ret[ std::slice(0,rowstart,1) ] = 0. ;
-
+	
 	#pragma omp parallel for schedule(static)
+	for (int i = rowstart ; i <end ; i++)
+		ret[i] = c.ve[i];
+	
+	#pragma omp parallel for schedule(static)
+	for (int i = 0 ; i <rowstart ; i++)
+		ret[i] = 0;
+	
+	#pragma omp parallel for schedule(static) 
 	for (int i = rowstart ; i < end ; i+=stride)
 	{
-		c.co.sm[i].inner_product(c.co.ve, &ret[i], rowstart,  colstart);
+		c.co.sm[i].inner_product(c.co.ve, &ret[0] + i, rowstart,  colstart);
 	}
 } ;
 
@@ -499,15 +503,44 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	size_t stride = c.co.sm.stride ;
 	int end = c.co.sm.row_size.size()*stride ; 
 	const Vector & ve = c.co.ve ;
-	ret = -c.ve ;
-	if(rowstart)
-		ret[ std::slice(0,rowstart,1) ] = 0. ;
-	double * begin = &ret[0] ;
-	int i ;
+	
 	#pragma omp parallel for schedule(static)
-	for (int i = rowstart ; i <end ; i+=stride)
+	for (int i = 0 ; i <rowstart ; i++)
+		ret[i] = 0;
+	
+	#pragma omp parallel for schedule(static)
+	for (int i = rowstart ; i <end ; i++)
+		ret[i] = -c.ve[i];
+		
+// 	#pragma omp parallel for schedule(static) 
+// 	for (int i = rowstart ; i <end ; i+=stride)
+// 	{
+// 		c.co.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
+// // 		c.co.sm[i].inner_product(ve, &ret[0] + i, rowstart, colstart);
+// 	}
+	
+	#pragma omp parallel
 	{
-		c.co.sm[i].inner_product(ve, begin+i, rowstart, colstart);
+		int nthreads = omp_get_num_threads() ;
+		int chunksize = (end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride;
+		int localEnd = 0 ;
+		int t = 0 ;
+		#pragma omp single
+		{
+			while (localEnd < end) 
+			{
+				int localStart = std::min(rowstart+t*chunksize,end)  ;
+				localEnd = std::min(localStart+chunksize,end) ;
+				t++ ;
+				#pragma omp task firstprivate(localStart,localEnd)
+				{
+					for (int i = localStart ; i < localEnd; i+=stride)
+					{
+						c.co.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
+					}
+				}
+			}
+		}
 	}
 
 } ;
@@ -518,16 +551,32 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 	size_t stride = c.sm.stride ;
 	int end = c.sm.row_size.size()*stride ;
 	const Vector & ve = c.ve ;
-	ret = 0. ;
-
-	double * begin = &ret[0] ;
-	int i ;
+	
 	#pragma omp parallel for schedule(static)
-	for (i = rowstart ; i < end; i+=stride)
+	for (int i = 0 ; i < end ; i++)
+		ret[i] = 0;
+	#pragma omp parallel
 	{
-		c.sm[i].inner_product(ve, begin+i, rowstart, colstart);
+		int nthreads = omp_get_num_threads() ;
+		int chunksize = (end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride;
+		int localEnd = 0 ;
+		int t = 0 ;
+		#pragma omp single
+		{
+			while (localEnd < end) 
+			{
+				int localStart = std::min(rowstart+t*chunksize,end)  ;
+				localEnd = std::min(localStart+chunksize,end) ;
+				t++ ;
+				#pragma omp task firstprivate(localStart,localEnd)
+				{
+					for (int i = localStart ; i < localEnd; i+=stride)
+					{
+						c.sm.inner_product(&ve[0], &ret[0] + i, rowstart, colstart, i) ;
+					}
+				}
+			}
+		}
 	}
 	
-	if(rowstart)
-		ret[ std::slice(0,rowstart,1) ] = 0. ;
 } ;
