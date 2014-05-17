@@ -46,9 +46,9 @@ using namespace Mu ;
 FeatureTree *featureTree ;
 
 double placed_area = 0 ;
-double restraintDepth = 0 ; //0.01 ;
 
-Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
+
+
 Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
@@ -281,7 +281,7 @@ void step()
 		          << std::endl ;
 }
 
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously( int n, std::vector<Inclusion * > & incs , FeatureTree &F )
+std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomogeneously( int n, std::vector<Inclusion * > & incs , FeatureTree &F, const Rectangle & sample )
 {
 	double radiusFraction = 10 ;
 	double radius = 0.00001 ;
@@ -352,6 +352,13 @@ int main( int argc, char *argv[] )
 
 	int nzones = atof( argv[1] ) ;
 	double dmax = atof( argv[2] ) ;
+	double fact = atof( argv[3] ) ;
+	double fact0 = atof(argv[4]) ;
+	
+	double restraintDepth = 0.01 ;
+	if(fact0 < 10 && fact < 10)
+		restraintDepth = 0 ;
+	Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
 
 	Matrix m0_agg( 3, 3 ) ;
 	m0_agg[0][0] = E_agg / ( 1 - nu * nu ) ;
@@ -458,32 +465,41 @@ int main( int argc, char *argv[] )
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
                 
-		//width are  6544984695	10226538586	14726215564      done: 11 13 10
-		//length are 5113269293	26179938780	40906154344      next: 33
-
-
-		double fact = atof( argv[3] ) ;
-		double fact0 = atof(argv[4]) ;
-
+		//width are  6544984695	10226538586	14726215564      done: 11 13 10 20 
+		//length are 5113269293	26179938780	40906154344      next: 12
 
 		Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
-		blocktop->setBehaviour(/* new VoidForm()*/new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+		if(fact0 > 10)
+			blocktop->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+		else
+			blocktop->setBehaviour(new VoidForm()) ;
 		
 		F.addFeature( nullptr, blocktop );
 		F.setSamplingFactor(blocktop, 0.5);
 
 		Sample *blockbottom = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - restraintDepth * .25 ) ;
-		blockbottom->setBehaviour( /*new VoidForm()*/new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+		if(fact0 > 10)
+			blockbottom->setBehaviour(new OrthotropicStiffness(fact0*1e-4, fact0, fact0*1e-4*fact0/(fact0+fact0),  0.1, 0.) ) ;
+		else
+			blockbottom->setBehaviour(new VoidForm()) ;
+		
 		F.addFeature( nullptr, blockbottom );
 		F.setSamplingFactor(blockbottom, 0.5);
 
 		Sample *blockleft = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y ) ;
-		blockleft->setBehaviour( new OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.)) ;
+		if(fact > 10)
+			blockleft->setBehaviour(new OrthotropicStiffness(fact*1e-4, fact, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+		else
+			blockleft->setBehaviour(new VoidForm()) ;
+		
 		F.addFeature( nullptr, blockleft );
 		F.setSamplingFactor(blockleft, 0.5);
 
 		Sample *blockright = new Sample( nullptr, restraintDepth * .5, sample.height() - restraintDepth, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y ) ;
-		blockright->setBehaviour(new  OrthotropicStiffness(fact, fact*1e-4, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+		if(fact > 10)
+			blockright->setBehaviour(new OrthotropicStiffness(fact*1e-4, fact, fact*1e-4*fact/(fact+fact),  0.1, 0.) ) ;
+		else
+			blockright->setBehaviour(new VoidForm()) ;
 		F.addFeature( nullptr, blockright );
 		F.setSamplingFactor(blockright, 0.5);
 	}
@@ -524,7 +540,7 @@ int main( int argc, char *argv[] )
 
 	Circle cercle( .5, 0, 0 ) ;
 
-	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F ) ;
+	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
 	F.setSamplingNumber( 128 ) ;
 
 	if( restraintDepth > 0 )
