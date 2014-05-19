@@ -3273,7 +3273,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 			err = std::abs(newTest.array()-test.array()).max()/std::abs(err0) ;
 			if(err0 < 0)
 				err0 = err ;
-			if(err < 1e-6 || ndivs >= 128)
+			if(err < 1e-8 || ndivs >= 128)
 			{
 				if(moved)
 				{
