@@ -118,6 +118,11 @@ void OrthotropicStiffness::apply(const Function & p_i, const Function & p_j, con
 
 }
 
+Matrix OrthotropicStiffness::getTensor(const Point& p, IntegrableEntity* e , int g ) const
+{
+	return param ;
+}
+
 bool OrthotropicStiffness::fractured() const
 {
 	return false ;

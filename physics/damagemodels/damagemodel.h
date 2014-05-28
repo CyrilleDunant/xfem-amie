@@ -20,12 +20,8 @@ namespace Mu
 {
 
 	typedef enum{
-		DISSIPATIVE_MAX,
-		DISSIPATIVE_MIN,
-		DISSIPATIVE_CENTER,
-		CONSERVATIVE_MAX,
-		CONSERVATIVE_MIN,
-		CONSERVATIVE_CENTER,
+		DISSIPATIVE,
+		CONSERVATIVE
 	} ConvergenceType ;
 
 	struct PointState
@@ -108,6 +104,7 @@ protected:
 	bool alternate ;
 	bool needGlobalMaximumScore ;
 
+	double iterationNumber ;
 public:
 	
 	bool isNull ;

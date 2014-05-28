@@ -598,8 +598,9 @@ public:
 	std::pair<Vector, Vector> getFieldMinMax( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 	
 	/** \brief Assuming the base sample is a rectangle, this computed the apparent macro strain based on the displacement along the border */
-	std::vector<double> getMacroscopicStrain(const Geometry * base, double tol =0.001)  ;
-	std::vector<double> getCutMacroscopicStrain(const Geometry * base, double tol =0.001, double cut = .99)  ;
+	std::vector<double> getMacroscopicStrain(const Geometry * base, double tol = 0.001)  ;
+	std::vector<double> getCutMacroscopicStrain(const Geometry * base, double tol = 0.001, double cut = .99)  ;
+	std::vector<double> getMedianMacroscopicStrain(const Geometry * base, double tol = 0.001) ;
 	
 	std::vector<Point *> getNodes(int g = -1) ;
 	

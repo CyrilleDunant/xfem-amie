@@ -208,7 +208,7 @@ class RectangularInclusion :  public OrientedRectangle,  public Feature
 {
 public:
 	
-	/** \brief construct a triangular inclusion from three points
+	/** \brief construct a rectangular inclusion from three points
 	 * 
 	 * @param father father feature
 	 * @param a first vertex
@@ -218,7 +218,7 @@ public:
 	 */
 	RectangularInclusion(Feature *father, const Point & a, const Point & b, const Point & c, const Point & d) ;
 	
-	/** \brief construct a triangular inclusion from three points
+	/** \brief construct a rectangular inclusion from three points
 	 * 
 	 * @param a first vertex
 	 * @param b second vertex

@@ -522,7 +522,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 	#pragma omp parallel
 	{
 		int nthreads = omp_get_num_threads() ;
-		int chunksize = (end-rowstart)/nthreads - ((end-rowstart)/nthreads)%stride;
+		int chunksize = std::max((end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride, stride);
 		int localEnd = 0 ;
 		int t = 0 ;
 		#pragma omp single
@@ -559,7 +559,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 	#pragma omp parallel
 	{
 		int nthreads = omp_get_num_threads() ;
-		int chunksize = (end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride;
+		int chunksize = std::max((end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride, stride);
 		int localEnd = 0 ;
 		int localStart = rowstart ;
 		#pragma omp single

@@ -1877,7 +1877,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
 
 	if(order >= CONSTANT_TIME_LINEAR)
 	{
-		Matrix Jinv ;
+		Matrix Jinv(3,3) ;
 		this->getInverseJacobianMatrix(p, Jinv) ;
 		
 		t2.resize(6,6) ;
@@ -4075,7 +4075,7 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
 		std::vector<size_t> dofs = getDofIds() ;
 
 
-		Matrix J ;
+		Matrix J(3,3) ;
 		getInverseJacobianMatrix( gp.gaussPoints[0].first, J ) ;
 		Jinv.resize( gp.gaussPoints.size(), J) ;
 

@@ -47,6 +47,8 @@ namespace Mu
 		
 		OrthotropicStiffness(const OrthotropicStiffness * source) ;
 		
+    virtual Matrix getTensor(const Point& p, IntegrableEntity* e = nullptr, int g = -1) const;
+		
 		void setAngle(double) ;
 		void setStiffness(double E_1, double E_2, double G, double nu) ;
 		void setStiffness(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3, double nu) ;

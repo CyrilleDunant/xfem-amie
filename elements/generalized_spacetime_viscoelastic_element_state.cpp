@@ -205,7 +205,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(Fie
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		double w = gp.gaussPoints[i].second ;
-		Matrix Jinv ;
+		Matrix Jinv(3,3) ;
 		parent->getInverseJacobianMatrix( gp.gaussPoints[i].first, Jinv ) ;
 		
 		if( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
@@ -684,7 +684,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
@@ -743,7 +743,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					z_zeta += f_zeta * z ;
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(4,4);
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
@@ -824,7 +824,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv(3,3) ;
+				Matrix Jinv(4,4) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{
@@ -1001,7 +1001,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * displacements[j * totaldof + 1] ;
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -1039,7 +1039,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					z_zeta += f_zeta * z ;
 				}
 
-				Matrix Jinv( 3, 3 ) ;
+				Matrix Jinv( 4, 4 ) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
@@ -1096,7 +1096,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{
@@ -1426,7 +1426,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{
@@ -1573,7 +1573,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * displacements[j * totaldof + 1] ;
 				}
 				
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -1672,7 +1672,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
 				}
 
-				Matrix Jinv ;
+				Matrix Jinv(3,3) ;
 				parent->getInverseJacobianMatrix( p_, Jinv ) ;
 				for(size_t i = 0 ; i < blocks ; i++)
 				{

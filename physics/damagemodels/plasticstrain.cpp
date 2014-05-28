@@ -53,7 +53,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 	if(!es)
 	{
 		es = &s ;
-		setConvergenceType(DISSIPATIVE_CENTER);
+		setConvergenceType(DISSIPATIVE);
 	}
 	
 	if(!param)

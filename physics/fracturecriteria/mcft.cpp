@@ -530,20 +530,25 @@ double NonLocalMCFT::grade( ElementState &s )
 		double tcrit0 = -1 ;
 		double ccrit1 = -1 ;
 		double tcrit1 = -1 ;
-		if(firstCompression && cpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus)
+		if(firstCompression && 
+			cpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus && 
+			std::abs(cstress) > std::abs(POINT_TOLERANCE_2D*downVal))
 		{
-			ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
+			ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, tstrain, cstress, tstress) ;
 			if(ccrit0 > 0)
 				firstMet = true ;
 		}
-		else if(tpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus)
+		else if(tpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus && 
+			std::abs(tstress) > std::abs(POINT_TOLERANCE_2D*upVal))
 		{
-			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
+			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, cstrain, cstress) ;
 			if(tcrit0 > 0)
 				firstMet = true ;
 		}
 		double c0 = std::max(ccrit0, tcrit0) ;
-		if(secondCompression && cpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus)
+		if(secondCompression && 
+			cpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus &&
+			std::abs(cstress) > std::abs(POINT_TOLERANCE_2D*downVal))
 		{
 			ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
 			if(ccrit1 > 0)
@@ -551,7 +556,8 @@ double NonLocalMCFT::grade( ElementState &s )
 				secondMet = true ;
 			}
 		}
-		else if(tpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus)
+		else if(tpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus && 
+			std::abs(tstress) > std::abs(POINT_TOLERANCE_2D*upVal))
 		{
 			tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
 			if(tcrit1 > 0)
@@ -560,23 +566,52 @@ double NonLocalMCFT::grade( ElementState &s )
 			}
 		}
 		double c1 = std::max(ccrit1, tcrit1) ;
-		if(c0 > c1)
+		if(c0 > c1 && firstMet == true && secondMet == true)
 		{
 			firstMet = true ;
 			secondMet = false ;
 		}
-		else if(c1 > c0)
+		else if(c1 > c0 && firstMet == true && secondMet == true)
 		{
 			firstMet = false ;
 			secondMet = true ;
 		}
-// 		std::cout <<"\n"<< cstress << "  " << tstress << "  "<< ccrit0 << "  "<< tcrit0 << "  "<< tcrit1 << "  "<< ccrit1 << std::endl ;
+		if(firstMet && secondMet)
+		{
+			std::cout <<"\n"<< s.getParent()->getBehaviour()->getDamageModel()->getState()[0] << "  " 
+			<< s.getParent()->getBehaviour()->getDamageModel()->getState()[1] << "  "
+			<< s.getParent()->getBehaviour()->getDamageModel()->getState()[2] << "  "
+			<< s.getParent()->getBehaviour()->getDamageModel()->getState()[3] << "  "<< std::endl ;
+			std::cout <<"\n"<< cstress << "  " << tstress << "  "<< cstrain << "  " << tstrain << "  "<< ccrit0 << "  "<< tcrit0 << "  "<< ccrit1 << "  "<< tcrit1  << std::endl ;
+			exit(0) ;
+		}
 // 		std::cout << s.getParent()->getBehaviour()->getDamageModel()->getState()[1] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[0] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[2] << "  " << s.getParent()->getBehaviour()->getDamageModel()->getState()[3] << "  " << std::endl ;
 		return std::max(c0, c1) ;
 	}
 	else if (s.getParent()->getBehaviour()->getDamageModel()->getState().size() == 2)
 	{
 		double cpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[1]) ;
+		double tpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
+		double ccrit = -1 ;
+		double tcrit = -1 ;
+
+		if(firstTension && tpseudoYoung > POINT_TOLERANCE_2D)
+		{
+			tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
+			firstMet = true ;
+		}
+
+		if(secondCompression && cpseudoYoung > POINT_TOLERANCE_2D)
+		{
+			ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
+			secondMet = true ;
+		}
+
+		return std::max(ccrit,tcrit) ;
+	}
+	else
+	{
+		double cpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
 		double tpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
 		double ccrit = -1 ;
 		double tcrit = -1 ;

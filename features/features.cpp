@@ -5060,15 +5060,17 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 	VirtualMachine vm ;
 	if(is2D())
 	{
-		std::vector<DelaunayTriangle *> elements = this->getElements2D( grid ) ;
+		std::vector<DelaunayTriangle *> elements = getElements2D( grid ) ;
 		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
-		avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
+		avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
+		buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ; 
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
 			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 			{
 				elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
+
 				avg += buffer * elements[i]->area() ;
 				volume += elements[i]->area() ;
 			}
@@ -5076,9 +5078,10 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> elements = this->getElements3D( grid ) ;
+		std::vector<DelaunayTetrahedron *> elements = getElements3D( grid ) ;
 		size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
-		avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; 
+		avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; 
+		buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ; 
 		avg = 0 ; buffer = 0 ;
 		for(size_t i = 0 ; i < elements.size() ; i++)
 		{
@@ -5239,6 +5242,7 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain(const Geometry * base, 
 		double size_x = dynamic_cast<const Rectangle *>(base)->width() ;
 		double size_y = dynamic_cast<const Rectangle *>(base)->height() ;
 		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		tol = .05*std::min(size_x, size_y) ;
 		std::vector<double> dxp ;
 		std::vector<double> dyp ;
 		std::vector<double> dxm ;
@@ -5477,6 +5481,153 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain(const Geometry * base, 
 	
 	return ret ;
 }
+
+std::vector<double> FeatureTree::getMedianMacroscopicStrain(const Geometry * base, double tol) 
+{
+	Vector disps = getDisplacements() ;
+	std::vector<double> ret ;
+	if(!disps.size())
+		return ret ;
+	if(is2D())
+	{
+		double size_x = dynamic_cast<const Rectangle *>(base)->width() ;
+		double size_y = dynamic_cast<const Rectangle *>(base)->height() ;
+		std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
+		tol = .05*std::min(size_x, size_y) ;
+		std::vector<double> dxp ;
+		std::vector<double> dyp ;
+		std::vector<double> dxm ;
+		std::vector<double> dym ;
+		std::set<int> doneIds ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+				{
+					
+					Point test(elements[i]->getBoundingPoint(j)) ;
+					
+					base->project(&test);
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x+size_x*.5)) < tol && doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxp.push_back(disps[2*elements[i]->getBoundingPoint(j).id]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y+size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
+					{
+						dyp.push_back(disps[2*elements[i]->getBoundingPoint(j).id+1]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxm.push_back(disps[2*elements[i]->getBoundingPoint(j).id]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id);
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol&& doneIds.find(2*elements[i]->getBoundingPoint(j).id+1) == doneIds.end())
+					{
+						dym.push_back(disps[2*elements[i]->getBoundingPoint(j).id+1]) ;
+						doneIds.insert(2*elements[i]->getBoundingPoint(j).id+1);
+					}
+				}
+			}
+		}
+		std::sort(dxp.begin(), dxp.end()) ;
+		std::sort(dxm.begin(), dxm.end()) ;
+		std::sort(dyp.begin(), dyp.end()) ;
+		std::sort(dym.begin(), dym.end()) ;
+		
+		double dxpv = dxp[dxp.size()/2];
+		double dxpc = 1;
+		double dxmv = dxm[dxm.size()/2];
+		double dxmc = 1;
+		double dypv = dyp[dyp.size()/2];
+		double dypc = 1;
+		double dymv = dym[dym.size()/2] ;
+		double dymc = 1;
+		
+		
+		ret.push_back((dxpv/dxpc-dxmv/dxmc)/size_x);
+		ret.push_back((dypv/dypc-dymv/dymc)/size_y);
+	}
+	else
+	{
+		double size_x = dynamic_cast<const Hexahedron *>(base)->getXSize() ;
+		double size_y = dynamic_cast<const Hexahedron *>(base)->getYSize() ;
+		double size_z = dynamic_cast<const Hexahedron *>(base)->getZSize() ;
+		std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
+		std::vector<double> dxp ;
+		std::vector<double> dyp ;
+		std::vector<double> dzp ;
+		std::vector<double> dxm ;
+		std::vector<double> dym ;
+		std::vector<double> dzm ;
+		std::set<int> doneIds ;
+		for(size_t i = 0 ; i < elements.size() ; i++)
+		{
+			if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+			{
+				for(size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++)
+				{
+					Point test(elements[i]->getBoundingPoint(j)) ;
+					base->project(&test);
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxp.push_back(disps[3*elements[i]->getBoundingPoint(j).id]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dyp.push_back(disps[3*elements[i]->getBoundingPoint(j).id+1]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).z - (base->getCenter().z-size_z*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dzp.push_back(disps[3*elements[i]->getBoundingPoint(j).id+2]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).x - (base->getCenter().x-size_x*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dxm.push_back(disps[3*elements[i]->getBoundingPoint(j).id]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().y-size_y*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dym.push_back(disps[3*elements[i]->getBoundingPoint(j).id+1]) ;
+					}
+					if(dist(test, elements[i]->getBoundingPoint(j)) < tol && std::abs(elements[i]->getBoundingPoint(j).y - (base->getCenter().z-size_z*.5)) < tol && doneIds.find(3*elements[i]->getBoundingPoint(j).id) == doneIds.end())
+					{
+						dzm.push_back(disps[3*elements[i]->getBoundingPoint(j).id+2]) ;
+					}
+				}
+			}
+		}
+		
+		std::sort(dxp.begin(), dxp.end()) ;
+		std::sort(dxm.begin(), dxm.end()) ;
+		std::sort(dyp.begin(), dyp.end()) ;
+		std::sort(dym.begin(), dym.end()) ;
+		std::sort(dzp.begin(), dzp.end()) ;
+		std::sort(dzm.begin(), dzm.end()) ;
+		
+		
+		double dxpv = dxp[dxp.size()/2];
+		double dxpc = 1;
+		double dxmv = dxm[dxm.size()/2];
+		double dxmc = 1;
+		double dypv = dyp[dyp.size()/2];
+		double dypc = 1;
+		double dymv = dym[dym.size()/2] ;
+		double dymc = 1;
+		double dzpv = dzp[dzp.size()/2];
+		double dzpc = 1;
+		double dzmv = dzm[dzm.size()/2] ;
+		double dzmc = 1;
+		
+		ret.push_back((dxpv/dxpc-dxmv/dxmc)/size_x);
+		ret.push_back((dypv/dypc-dymv/dymc)/size_y);
+		ret.push_back((dzpv/dzpc-dzmv/dzmc)/size_z);
+	}
+	
+	return ret ;
+}
+
 
 Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri ) 
 {

@@ -34,7 +34,7 @@ energyIndexed(false),
 noEnergyUpdate(true), 
 mesh2d(nullptr), mesh3d(nullptr), 
 stable(true), checkpoint(true), inset(false),inIteration(false),
-scoreTolerance(.33e-2),
+scoreTolerance(1e-3),
 initialScore(1),
 cachedInfluenceRatio(1),
 currentAngle(0),
@@ -162,7 +162,6 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		if(m == EFFECTIVE_STRESS)
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t) ;
-			currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -189,7 +188,7 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		else
 		{
 			s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t) ;
-			currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+			
 			stra = tmpstra*factors[0] ;
 			str = tmpstr*factors[0] ;
 
@@ -214,9 +213,10 @@ std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(
 		}
 		
 
-
+		
 		str /= sumFactors ;
 		stra /= sumFactors ;
+		currentAngle = -0.5*atan2( 2.*stra[2],  stra[0] -  stra[1] ) ;
 
 		return std::make_pair(str, stra) ;
 
@@ -956,7 +956,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr, &vm, 0, t);
-				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
+				
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -984,7 +984,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			{
 				double iteratorValue = factors[0] ;
 				s.getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstra,tmpstr, &vm, 0, t);
-				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
 				sumFactors += factors[0] ;
@@ -1016,6 +1015,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 			stra[0] += stra0 ;
 			stra[1] += stra1 ;
 			stra[2] += stra2 ;
+			currentAngle = -0.5*atan2( 2.*stra[2],  stra[0] -  stra[1] ) ;
 
 			str /= sumFactors ;
 			stra /= sumFactors ;
@@ -1068,7 +1068,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				double iteratorValue = factors[0] ;
 				static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(s).getEssentialAverageFields(EFFECTIVE_STRESS_FIELD,tmpstr,tmpstra,tmpstrar,&vm,t) ;
 
-				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 				strar = tmpstra*factors[0] ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
@@ -1103,7 +1102,6 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				static_cast<GeneralizedSpaceTimeViscoElasticElementState &>(s).getEssentialAverageFields(REAL_STRESS_FIELD,tmpstr,tmpstra,tmpstrar,&vm,t) ;
 
 				
-				currentAngle = -0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ) ;
 				strar = tmpstra*factors[0] ;
 				stra = tmpstra*factors[0] ;
 				str = tmpstr*factors[0] ;
@@ -1148,7 +1146,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				strFromStrain[i] = strFromFullStrain[i] ;
 				straFromStrain[i] = stra[i] ;
 			}
-			
+			currentAngle = -0.5*atan2( 2.*straFromStrain[2],  straFromStrain[0] -  straFromStrain[1] ) ;
 			return std::make_pair(strFromStrain, straFromStrain) ;
 		}
 
@@ -1676,7 +1674,7 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		{
 			cache.clear();
 		}
-		double overlap = (smoothingType == QUARTIC_COMPACT)?3.:3. ;
+		double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
 		Circle epsilon( std::max(physicalCharacteristicRadius, testedTri->getRadius()*2. )*overlap+testedTri->getRadius(),testedTri->getCenter()) ;
 		if(!testedTri->tree)
 			return ;
@@ -1721,7 +1719,6 @@ void FractureCriterion::initialiseCache(const ElementState & s)
 		if(cache.empty())
 			cache.push_back(testedTri->index);
 		
-		size_t cachesize = cache.size() ;
 		initialiseFactors(s);
 
 	}
@@ -2132,8 +2129,9 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 				}
 			}
 
+			initialScore = 1. ;
 			if(thresholdScore > 0 && s.getParent()->getState().getDeltaTime() > POINT_TOLERANCE_2D)
-				initialScore = std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
+				initialScore = 1. ;//std::max(1.+thresholdScore, POINT_TOLERANCE_2D) ;
 			double minscore = thresholdScore ;
 			double maxscore = 0 ;
 			bool foundmaxscore = false ;
@@ -2187,11 +2185,10 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 			for(size_t i = 0 ; i < proximitySet.size() ; i++)
 				static_cast<DelaunayTriangle *>((*mesh2d)[proximitySet[i]])->getBehaviour()->getFractureCriterion()->inIteration = true ;
 			
-			return std::make_pair(minscore - maxscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - minscore/* - scoreTolerance*initialScore*/) ;
+			return std::make_pair(minscore - maxscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - minscore /*- scoreTolerance*initialScore*/) ;
 		}
 		else if (inset)
 		{
-//			std::cout << "a" << std::flush ;
 			checkpoint = false ;
 			DelaunayTriangle * ci = static_cast<DelaunayTriangle *>((*mesh2d)[damagingSet[0]]) ;
 			double maxscore = 0 ;
@@ -2201,7 +2198,6 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 			}
 			maxModeInNeighbourhood = ci->getBehaviour()->getDamageModel()->getMode() ;
 			maxAngleShiftInNeighbourhood = ci->getBehaviour()->getDamageModel()->getAngleShift() ;
-//			std::cout << "c" << std::flush ;
 			
 			for(size_t i = 1 ; i < damagingSet.size() ; i++)
 			{
@@ -2215,7 +2211,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 				maxAngleShiftInNeighbourhood = std::max(maxAngleShiftInNeighbourhood, ci->getBehaviour()->getDamageModel()->getAngleShift()) ;
 
 			}
-//			std::cout << "d" << std::flush ;
+
 
 			double minscore = 0 ;
 			if(!proximitySet.empty())
@@ -2236,7 +2232,7 @@ std::pair<double, double> FractureCriterion::setChange(const ElementState &s, do
 					}
 				}
 			}
-//			std::cout << "b" << std::endl ;
+
 			return std::make_pair(maxscore - minscore /*+ scoreTolerance*2.*initialScore*/, thresholdScore - maxscore /*- scoreTolerance*initialScore*/) ;
 		}
 	}

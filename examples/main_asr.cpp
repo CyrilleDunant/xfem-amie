@@ -164,8 +164,8 @@ void step()
 		
 		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
 		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
-		std::cout << "max epsilon12 :" << etempm.second[3] << std::endl ;
-		std::cout << "min epsilon12 :" << etempm.first[3]  << std::endl ;
+		std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
+		std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
 		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
 		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
 		
@@ -174,10 +174,10 @@ void step()
 		
 		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
 		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-		std::cout << "average sigma12 : " << stemp[3] << std::endl ;
+		std::cout << "average sigma12 : " << stemp[2] << std::endl ;
 		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
 		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
-		std::cout << "average epsilon12 : " << etemp[3] << std::endl ;
+		std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
 		
 		std::cout << std::endl ;
 
@@ -231,7 +231,7 @@ void step()
 			std::cout << "reacted Area : " << reactedArea << ", reaction stopped in " << stopped_reaction << " aggs." << std::endl ;
 
 
-			std::vector<double> macro_strain = featureTree->getCutMacroscopicStrain(&baseGeometry) ;
+			std::vector<double> macro_strain = featureTree->getMedianMacroscopicStrain(&baseGeometry) ;
 			if( go_on )
 			{
 				expansion_reaction.push_back( std::make_pair( reactedArea / placed_area, macro_strain[0]) ) ;
@@ -465,7 +465,7 @@ int main( int argc, char *argv[] )
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
                 
-		//width are  6544984695	10226538586	14726215564      done: 11 13 10 20 
+		//width are  6544984695	10226538586	14726215564      done: 11 13 10 20 12
 		//length are 5113269293	26179938780	40906154344      next: 12
 
 		Sample *blocktop = new Sample( nullptr, sample.width() - restraintDepth, restraintDepth * .5, sample.getCenter().x, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + restraintDepth * .25 ) ;
@@ -541,7 +541,7 @@ int main( int argc, char *argv[] )
 	Circle cercle( .5, 0, 0 ) ;
 
 	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-	F.setSamplingNumber( 128 ) ;
+	F.setSamplingNumber( 164 ) ;
 
 	if( restraintDepth > 0 )
 	{
