@@ -78,6 +78,28 @@ public:
 
 };
 
+class SpaceTimeNonLocalLinearSofteningMaximumStrain : public SpaceTimeNonLocalMaximumStrain
+{
+protected:
+	PointArray testPoints ;
+public:
+	double yieldstrain ;
+	
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+	SpaceTimeNonLocalLinearSofteningMaximumStrain(double up, double mstr, double lim, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : SpaceTimeNonLocalMaximumStrain(up, mstr, mirroring, delta_x, delta_y, delta_z),yieldstrain(lim) { } ;
+
+	virtual ~SpaceTimeNonLocalLinearSofteningMaximumStrain() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+	virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalLinearSofteningMaximumStrain(*this) ; }
+
+	virtual double grade(ElementState &s)  ;
+
+};
+
 class SpaceTimeNonLocalMaximumStress : public MaximumStrain
 {
 protected:

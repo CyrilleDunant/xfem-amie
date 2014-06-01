@@ -70,11 +70,62 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 	{
 		metInTension = true ;
 //		std::cout << upVal << "\t" << maxStrainAfter  << "\t" << maxStrainBefore << std::endl ;
-		return  1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore) ;
+		return  std::min(1.,1. - (upVal - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
 	return -1.+ maxStrainAfter/upVal;
 	
 	
+}
+
+double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
+{
+	if( s.getParent()->getBehaviour()->fractured() )
+		return -1 ;
+
+
+	double ret = -1. ;
+
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+
+	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
+	Point after( (stateAfter.second).max(), (stateAfter.first).max()/1e6 ) ;
+	Segment history(before, after) ;
+	Line current(history) ;
+
+	Point x0( upVal, maxstress/1e6 ) ;
+	Point x1( yieldstrain, 0. ) ;
+	Line behaviour(Segment(x0, x1)) ;
+
+	metInCompression = false ;
+	metInTension = false ;
+	
+	Point t = behaviour.intersection(current) ;
+
+
+	if(t.x < after.x)
+	{
+		if(history.on(t))
+		{
+			metInTension = true ;
+			ret =  std::min(1.,1. - (t.x - before.x) / (after.x - before.x)) ;
+		}else
+		ret = -1. + std::min(before.x,after.x)/yieldstrain ;
+	}
+	else
+		ret = -1.+ after.x/t.x;
+	
+	if(false)//ret > 0)
+	{
+	before.print() ;
+	after.print() ;
+/*	x0.print() ;
+	x1.print() ;*/
+	t.print() ;
+	std::cout << ret << std::endl ;
+	}	
+
+	return ret ;
 }
 
 double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
