@@ -4028,7 +4028,6 @@ void FeatureTree::stepXfem()
 					if( moved )
 					{
 						reuseDisplacements = false ;
-
 						needAssembly = true ;
 					}
 
@@ -4245,6 +4244,14 @@ bool FeatureTree::stepElements()
 					}
 				}
 				
+				#pragma omp parallel for
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getDamageModel())
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint(foundCheckPoint) ;
+				}
+				
+				
 				if(!behaviourChange)
 				{
 					for( size_t i = 0 ; i < elements.size() ; i++ )
@@ -4260,32 +4267,21 @@ bool FeatureTree::stepElements()
 			
 			if( !elastic && foundCheckPoint )
 			{
+				needAssembly = true ;
 				std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
 				maxScore = -1. ;
 				maxTolerance = 1 ;
-// 				double maxs = -1 ;
-// 				double maxtol = 1 ;
-// 				#pragma omp parallel lastshared(maxs,maxtol)
-// 				{
-// 
-// 				  #pragma omp for nowait 
-				  for( size_t i = 0 ; i < elements.size() ; i++ )
-				  {
-					  if( elements[i]->getBehaviour()->getFractureCriterion() )
-					  {
-						  //std::cout << "." << std::flush ;
-						  elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-						  maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
-						  maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
-	
-					  }
-				  }
-// 				  #pragma omp critical
-// 				  {
-// 				    maxScore = std::max(maxScore, maxs) ;
-// 				    maxTolerance = std::max(maxTolerance, maxtol) ;
-// 				  }
-// 				}
+
+				for( size_t i = 0 ; i < elements.size() ; i++ )
+				{
+					if( elements[i]->getBehaviour()->getFractureCriterion() )
+					{
+						elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
+						maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+						maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
+
+					}
+				}
 				
 				std::cout << maxScore << "]" << std::flush ;
 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE_2D)
@@ -4302,13 +4298,13 @@ bool FeatureTree::stepElements()
 					else
 					{
 						std::cout << "negative time step: setting to 0..." << std::endl ;
-						this->moveFirstTimePlanes( 0., elements) ;
+						moveFirstTimePlanes( 0., elements) ;
 					}	
 				}
 
 				if(maxScore > 1.-POINT_TOLERANCE_2D)
 				{
-					this->moveFirstTimePlanes( 0., elements) ;
+					moveFirstTimePlanes( 0., elements) ;
 				}
 				
 				
@@ -4322,7 +4318,7 @@ bool FeatureTree::stepElements()
 // 				}
 
 			    
-				#pragma omp parallel for schedule(runtime)
+				#pragma omp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4377,7 +4373,7 @@ bool FeatureTree::stepElements()
 			//the behaviour updates might depend on the global state of the
 			//simulation.
  			std::cerr << " stepping through elements... " << std::flush ;
-//#pragma omp parallel for schedule(runtime)
+			#pragma omp parallel for
 			for( size_t i = 0 ; i < elements.size() ; i++ )
 			{
 				if( i % 1000 == 0 )
@@ -4396,7 +4392,6 @@ bool FeatureTree::stepElements()
 				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					
 					if( i % 500 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
@@ -4464,6 +4459,7 @@ bool FeatureTree::stepElements()
 
 				std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 				
+				#pragma omp parallel for
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
 					if( i % 1000 == 0 )
@@ -4474,8 +4470,11 @@ bool FeatureTree::stepElements()
 						elements[i]->getBehaviour()->getDamageModel()->postProcess() ;
 						if(elements[i]->getBehaviour()->changed())
 						{
-							needAssembly = true ;
-							behaviourChange = true ;
+							#pragma omp critical
+							{
+								needAssembly = true ;
+								behaviourChange = true ;
+							}
 						}
 					}
 				}
@@ -4863,13 +4862,16 @@ bool FeatureTree::step()
 	}
 
 	bool ret = true ;
-	size_t it = 1 ;
+	size_t it = 0 ;
 	int notConvergedCounts = 0 ;
+	int betweenCheckpointCount = 0 ;
+	int maxBetweenCheckPoints = 1 ;
 	
 //	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+	bool needexit = false ;
 	do
 	{
-		if(it == 2)
+		if(it == 1)
 		{
 			for(size_t k = 0 ; k < boundaryCondition.size() ; k++)
 			{
@@ -4879,11 +4881,15 @@ bool FeatureTree::step()
 			}
 		}
 		state.setStateTo( XFEM_STEPPED, true ) ;
+
  		deltaTime = 0 ;
 		if( solverConverged() )
 		{
 			std::cout << "." << std::flush ;
 			notConvergedCounts = 0 ;
+			if(!foundCheckPoint)
+				betweenCheckpointCount++ ;
+			maxBetweenCheckPoints = std::max(betweenCheckpointCount, maxBetweenCheckPoints) ;
 		}
 		else
 		{
@@ -4896,23 +4902,29 @@ bool FeatureTree::step()
 			K->clear() ;
 		}
 		
-		if(++it > maxitPerStep && foundCheckPoint)
+		if(needexit && foundCheckPoint && it%maxBetweenCheckPoints == 0)
+			break ;
+		
+		if( it > maxitPerStep && foundCheckPoint)
 		{
 			ret = false ;
-			break ;
+			needexit = true ;
 		}
-// 		std::cout <<  "\n tataa "<< behaviourChanged() << !solverConverged()  << enrichmentChange << " && " << !( !solverConverged() && !reuseDisplacements ) << " && " << ( notConvergedCounts < 20 ) << std::endl ;
+		++it ;
+		
 	} while ( ( behaviourChanged() || !solverConverged() || enrichmentChange) && 
 	         !( !solverConverged() && !reuseDisplacements ) && 
-	          ( notConvergedCounts < 20 ) ) ;
+	          ( notConvergedCounts < 20 ) && 
+	          it && it%maxBetweenCheckPoints == 0
+					) ;
 
 	if(notConvergedCounts >= 20)
 		ret = false ;
 	std::cout << std::endl ;
 	if(ret)
 		setDeltaTime(realDeltaTime) ;
-	std::cout << it-1 << "/" << maxitPerStep << "." << std::flush ;
-	damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && (it <= maxitPerStep) ;	
+	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+	damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && (it < maxitPerStep) ;	
 
 	return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
 }

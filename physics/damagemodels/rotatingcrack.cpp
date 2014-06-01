@@ -37,7 +37,7 @@ RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )
 	alternating = false ;
 	alternate = true ;
 	postprocheck = false ;
-	ctype = CONSERVATIVE ;
+// 	ctype = CONSERVATIVE ;
 	stiff = new OrthotropicStiffness(E,E,E/(1.-nu*nu),nu, 0.) ;
 }
 
@@ -260,12 +260,12 @@ void RotatingCrack::postProcess()
 		if(postprocheck )
 		{
 			postprocheck = false ;
-// 			stiff->setAngle( std::abs(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle())+M_PI*.5) ;
-			Vector a(1) ;
-			Point c(1./3., 1./3.) ;
-			es->getField( PRINCIPAL_ANGLE_FIELD, c, a, true) ;
-// 			std::cout << a[0] << "  " << fs << "  "<< ss << std::endl ;
-			stiff->setAngle(a[0]) ;
+			stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+// 			Vector a(1) ;
+// 			Point c(1./3., 1./3.) ;
+// 			es->getField( PRINCIPAL_ANGLE_FIELD, c, a, true) ;
+// // 			std::cout << a[0] << "  " << fs << "  "<< ss << std::endl ;
+// 			stiff->setAngle(a[0]) ;
 		}
 		stiff->setStiffness(E_0, E_1, G, nunu) ;
 	}

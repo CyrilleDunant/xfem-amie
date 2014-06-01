@@ -198,7 +198,7 @@ void step(size_t nsteps)
 			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				if(go_on)
-					dfile <<  triangles[k]->getCenter().x << "  "<< triangles[k]->getBehaviour()->getDamageCriterion()->getState().max() << "  " ;
+					dfile <<  triangles[k]->getCenter().x << "  "<< triangles[k]->getBehaviour()->getDamageModel()->getState().max() << "  " ;
 				double ar = triangles[k]->area() ;
 				volume += ar ;
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ;l++)
@@ -226,29 +226,29 @@ void step(size_t nsteps)
 		std::cout << "avg x value :" << xavg << std::endl ;
 		std::cout << "avg y value :" << xavg << std::endl ;
 
-		std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
-		std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
-		std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
-		std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
-		std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
-		std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+		std::cout << "max sigma11 :" << stempm.second[0]/1e6  << std::endl ;
+		std::cout << "min sigma11 :" << stempm.first[0]/1e6   << std::endl ;
+		std::cout << "max sigma12 :" << stempm.second[2]/1e6  << std::endl ;
+		std::cout << "min sigma12 :" << stempm.first[2]/1e6   << std::endl ;
+		std::cout << "max sigma22 :" << stempm.second[1]/1e6  << std::endl ;
+		std::cout << "min sigma22 :" << stempm.first[1]/1e6   << std::endl ;
 		
-		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
-		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
-		std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
-		std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
-		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
-		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+		std::cout << "max epsilon11 :" << etempm.second[0]*1e6 << std::endl ;
+		std::cout << "min epsilon11 :" << etempm.first[0]*1e6  << std::endl ;
+		std::cout << "max epsilon12 :" << etempm.second[2]*1e6 << std::endl ;
+		std::cout << "min epsilon12 :" << etempm.first[2]*1e6  << std::endl ;
+		std::cout << "max epsilon22 :" << etempm.second[1]*1e6 << std::endl ;
+		std::cout << "min epsilon22 :" << etempm.first[1]*1e6  << std::endl ;
 		
-		std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
-		std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
+		std::cout << "max von Mises :" << vmm.second[0]/1e6 << std::endl ;
+		std::cout << "min von Mises :" << vmm.first[0]/1e6 << std::endl ;
 		
-		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-		std::cout << "average sigma12 : " << stemp[2] << std::endl ;
-		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
-		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
-		std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
+		std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
+		std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
+		std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
+		std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
+		std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
+		std::cout << "average epsilon12 : " << etemp[2]*1e6 << std::endl ;
 		
 		std::cout << std::endl ;
 
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
 	t1.isVirtualFeature = true ;
 	
 	Sample r0(mradius*.25, samplef.height(),samplef.getCenter().x, samplef.getCenter().y) ;
-	r0.setBehaviour(new ConcreteBehaviour( E_paste, nu, compressionCrit*.95,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )) ;
+	r0.setBehaviour(new ConcreteBehaviour( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )) ;
 	dynamic_cast<ConcreteBehaviour *>(r0.getBehaviour())->materialRadius = mradius ;
 	r0.isVirtualFeature = true ;
 	r0.setBehaviourSource(&samplef);
@@ -339,8 +339,8 @@ int main(int argc, char *argv[])
 // 	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
 // 	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));
 	
-	t0.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.95,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
-	t1.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.95,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
+	t0.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
+	t1.setBehaviour(  new ConcreteBehaviour( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ));
 	
 // 	F.addFeature(&samplef, &t0);
 // 	F.addFeature(&samplef, &t1);
