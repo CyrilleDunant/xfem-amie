@@ -4914,8 +4914,7 @@ bool FeatureTree::step()
 		
 	} while ( ( behaviourChanged() || !solverConverged() || enrichmentChange) && 
 	         !( !solverConverged() && !reuseDisplacements ) && 
-	          ( notConvergedCounts < 20 ) && 
-	          it && it%maxBetweenCheckPoints == 0
+	          ( notConvergedCounts < 20 ) 
 					) ;
 
 	if(notConvergedCounts >= 20)
