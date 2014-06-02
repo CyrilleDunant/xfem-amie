@@ -152,12 +152,15 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	}
 
 	
-
+	range[1] = std::max(range[1], range[3]) ;
+	range[3] = range[1] ;
 	return std::make_pair( getState(),  range) ;
 }
 
 Matrix RotatingCrack::apply( const Matrix &m, const Point & p , const IntegrableEntity * e , int g ) const
 {
+	
+	
 	return stiff->getTensor(Point())*factor ;
 }
 
@@ -190,6 +193,9 @@ void  RotatingCrack::computeDelta(const ElementState &s)
 // 		secondTension = false ;
 		range[2] = getState()[2] ;
 	}
+	
+	range[1] = std::max(range[1], range[3]) ;
+	range[3] = range[1] ;
 	
 	delta = (range-state).max() ;
 }
@@ -238,7 +244,8 @@ void RotatingCrack::postProcess()
 		double E_1 = E ;
 		double fs = firstTension  ? getState()[0] : getState()[1] ;
 		double ss = secondTension ? getState()[2] : getState()[3] ;
-
+// 		std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << "  " << firstTension << "  " << secondTension << "  " << fs << "  "<< ss << std::endl ;
+		
 		E_0 *=  1. - fs  ;
 		E_1 *=  1. - ss  ;
 
@@ -260,11 +267,16 @@ void RotatingCrack::postProcess()
 		if(postprocheck )
 		{
 			postprocheck = false ;
-			stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+// 			if(secondMet && secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() > 0|| firstMet && firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() < 0 )
+// 				stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+// 			else
+				stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+				
+// 			std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << "  " << firstTension << firstMet << "  " << secondTension << secondMet << std::endl ;
 // 			Vector a(1) ;
 // 			Point c(1./3., 1./3.) ;
 // 			es->getField( PRINCIPAL_ANGLE_FIELD, c, a, true) ;
-// // 			std::cout << a[0] << "  " << fs << "  "<< ss << std::endl ;
+			
 // 			stiff->setAngle(a[0]) ;
 		}
 		stiff->setStiffness(E_0, E_1, G, nunu) ;

@@ -262,9 +262,9 @@ void DamageModel::step( ElementState &s , double maxscore)
 				state[i] = std::min(state[i], 1.) ;
 // 			
 			
-// 			for(size_t i = 0 ; i <  states.size() ; i++)
-// 				states[i].print() ;
-// 			exit(0) ;
+			for(size_t i = 0 ; i <  states.size() ; i++)
+				states[i].print() ;
+			exit(0) ;
 			converged = true ;
 			alternate = true ;
 			trialRatio = 0 ;
