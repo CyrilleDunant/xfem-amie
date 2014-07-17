@@ -139,8 +139,8 @@ Vector epsilon12(0) ;
 Vector vonMises(0) ; 
 Vector angle(0) ; 
 
-// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, RIGHT,0) ;
+// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
 
 double factor = 25 ;
 MinimumAngle cri(M_PI/6.) ;
@@ -177,8 +177,8 @@ void step(size_t nsteps)
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
 			count++ ;
-// 			loadr->setData(loadr->getData()+6e-6) ;
-			loadr->setData(loadr->getData()-1e-5) ;
+			loadr->setData(loadr->getData()+6e-6) ;
+// 			loadr->setData(loadr->getData()-1e-5) ;
 			
 // 			loadt->setData(0) ;
 		}
@@ -310,8 +310,8 @@ int main(int argc, char *argv[])
 	double E_paste = 30e9 ;
 	
 
-	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-// 	Sample samplef(0.6, 0.3,  0.3, 0.15) ;
+// 	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
+	Sample samplef(0.6, 0.3,  0.3, 0.15) ;
 
 	FeatureTree F(&samplef) ;
 	featureTree = &F ;

@@ -50,8 +50,6 @@ PSDGenerator::PSDGenerator()
 // 	
 std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass, ParticleSizeDistribution * type, PSDEndCriteria crit) 
 {
-	ParticleSizeDistribution * psd = type ; 
-		
 	std::vector<double> radii ;
 	double diameter = rmax*2. ;
 	double remainingMass = mass ;
@@ -67,7 +65,7 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 			break ;
 		}
 		remainingFraction = remainingMass / mass ;
-		diameter = psd->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
+		diameter = type->getNext2DDiameter(diameter, remainingFraction, rmax*2.) ;
 	}
 // 	crit.print(diameter*0.5, remainingFraction, radii.size()) ;
 	
@@ -84,7 +82,6 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 	{
 		incs.push_back(new Inclusion(radii[i],0.,0.)) ;
 	}
-	delete psd ;
 	return incs ;
 }
 
@@ -671,27 +668,49 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 		std::cout << "file " << filename << " doesn't exist!" << std::endl ;
 		exit(0) ;
 	}
-	
+	bool foundZeroFrac = false ;
+	double zeroFracRad = 0 ;
 	double maxfrac = 0 ;
 	double minfrac = 100 ;
 	do {
 		double frac ;
 		double rad ;
 		file >> frac >> rad ;
+		
 		if((cutOffUp > 0 && rad*factor <= cutOffUp || cutOffUp < 0)  && 
-			 (cutOffDown > 0 && rad*factor >= cutOffDown || cutOffDown < 0)
+			 (cutOffDown > 0 && rad*factor >= cutOffDown || cutOffDown < 0) 
 		)
 		{
-			fraction.push_back(frac);
-			radius.push_back(rad*factor);
-			maxfrac = std::max(maxfrac, frac) ;
-			minfrac = std::min(minfrac, frac) ;
+			if(frac < 1e-13 )
+			{
+				foundZeroFrac = true ;
+				zeroFracRad = std::max(rad*factor, zeroFracRad) ;
+				minfrac = std::min(minfrac, frac) ;
+			}
+			else
+			{
+				fraction.push_back(frac);
+				radius.push_back(rad*factor);
+				maxfrac = std::max(maxfrac, frac) ;
+				minfrac = std::min(minfrac, frac) ;
+			}
 		}
-
 	}while(!file.eof()) ;
 	
 	fraction.pop_back();
 	radius.pop_back();
+	
+	//collate possible list of zero-radius or fraction
+	if(radius.front() > radius.back())
+	{
+		fraction.push_back(0);
+		radius.push_back(zeroFracRad);
+	}
+	else
+	{
+		fraction.insert(fraction.begin(), 0.);
+		radius.insert(radius.begin(), zeroFracRad) ;
+	}
 	
 	if(cutOffUp > 0  || cutOffDown > 0)
 	{

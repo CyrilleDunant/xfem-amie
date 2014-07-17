@@ -4722,7 +4722,7 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 // 				xfemStepped <<
 // 				featureStepped <<  std::endl ;
 
-	
+#ifdef HAVE_OMP
 	if( !sampled )
 	{
 		double t0 = omp_get_wtime() ;
@@ -4730,11 +4730,18 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		sampled = true ;
 		std::cerr << "... time to sample (s) " << omp_get_wtime()-t0 << std::endl ;
 	}
+#else
+	if( !sampled )
+	{
+		ft->sample();
+		sampled = true ;
+	}
+#endif
 	
 	if( s == SAMPLED )
 		return ;
 
-	
+#ifdef HAVE_OMP
 	if( !meshed )
 	{
 		double t0 = omp_get_wtime() ;
@@ -4742,7 +4749,13 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 		meshed = true ;
 		std::cerr << "... time to mesh (s) " << omp_get_wtime()-t0 << std::endl ;
 	}
-	
+#else
+	if( !meshed )
+	{
+		ft->generateElements();
+		meshed = true ;
+	}
+#endif
 	
 	if( s == MESHED )
 		return ;
@@ -4902,7 +4915,7 @@ bool FeatureTree::step()
 			K->clear() ;
 		}
 		
-		if(needexit && foundCheckPoint && it%maxBetweenCheckPoints == 0)
+		if(needexit && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
 			break ;
 		
 		if( it > maxitPerStep && foundCheckPoint)
@@ -6261,9 +6274,9 @@ void FeatureTree::generateElements()
 	double pointDensity = 0 ;
 
 	if( is2D() )
-		pointDensity = .2 * sqrt( tree[0]->area() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ) ) ;
+		pointDensity = sqrt( tree[0]->area() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ) ) ;
 	else
-		pointDensity = .2 * pow( tree[0]->volume() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ), .33333333333 ) ;
+		pointDensity = pow( tree[0]->volume() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ), .33333333333 ) ;
 
 	std::cout << "space meshed with " << pointDensity << " points per unit length" << std::endl ;
 

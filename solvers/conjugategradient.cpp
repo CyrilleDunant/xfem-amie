@@ -121,7 +121,11 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		return true ;
 	}
+#ifdef HAVE_OMP
 	double t0 = omp_get_wtime() ;
+#else
+	double t0 = 0 ;
+#endif
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double rho = 0 ;
 	double beta = 0 ;
@@ -170,7 +174,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		last_rho = rho ;
 		nit++ ;
 	}
+#ifdef HAVE_OMP
 	double delta = (omp_get_wtime() - t0)*1e6 ;
+#else
+	double delta = 1 ;
+#endif
+	
 	std::cerr << "mflops: "<< nit*((2.+2./256.)*A.array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
 	assign(r,A*x-b, rowstart, rowstart) ;

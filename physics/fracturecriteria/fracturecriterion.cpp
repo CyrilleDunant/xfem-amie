@@ -882,10 +882,6 @@ Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalcul
 	return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
 }
 
-#ifndef _OPENMP_
-	int omp_get_max_threads() { return 1 ; }
-	int omp_get_thread_num() { return 0 ; }
-#endif
 
 std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementState &s , StressCalculationMethod m, double t)
 {
@@ -938,13 +934,23 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				
 				#pragma omp parallel
 				{
+#ifdef HAVE_OPENMP
 					std::valarray<Vector> tmpstrap(tmpstra, omp_get_num_threads()) ;
 					std::valarray<Vector> tmpstrp(tmpstr, omp_get_num_threads()) ;
 					std::valarray<VirtualMachine> vmp(vm,omp_get_num_threads()) ;
+#else
+					std::valarray<Vector> tmpstrap(tmpstra, 1) ;
+					std::valarray<Vector> tmpstrp(tmpstr, 1) ;
+					std::valarray<VirtualMachine> vmp(vm,1) ;
+#endif
 					#pragma omp for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) 
 					for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 					{
+#ifdef HAVE_OPENMP
 						size_t thread = omp_get_thread_num() ;
+#else
+						size_t thread = 0 ;
+#endif
 						DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 						if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() && !ci->getBehaviour()->fractured())
 						{
@@ -970,13 +976,23 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 
 				#pragma omp parallel
 				{
+#ifdef HAVE_OPENMP
 					std::valarray<Vector> tmpstrap(tmpstra, omp_get_num_threads()) ;
 					std::valarray<Vector> tmpstrp(tmpstr, omp_get_num_threads()) ;
 					std::valarray<VirtualMachine> vmp(vm,omp_get_num_threads()) ;
+#else
+					std::valarray<Vector> tmpstrap(tmpstra, 1) ;
+					std::valarray<Vector> tmpstrp(tmpstr, 1) ;
+					std::valarray<VirtualMachine> vmp(vm,1) ;
+#endif
 					#pragma omp for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) 
 					for( size_t i = 1 ; i < physicalcache.size() ; i++ )
 					{
+#ifdef HAVE_OPENMP
 						size_t thread = omp_get_thread_num() ;
+#else
+						size_t thread = 0 ;
+#endif
 						DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( ( *mesh2d )[physicalcache[i]] ) ;
 						if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource() && !ci->getBehaviour()->fractured() )
 						{
@@ -1152,11 +1168,16 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				
 				std::vector<Vector> tmpstrat ;
 				std::vector<Vector> tmpstrt ;
+#ifdef HAVE_OPENMP
 				for(size_t i = 0 ; i < omp_get_max_threads() ; i++)
 				{
 					tmpstrat.push_back(Vector(0., vlength));
 					tmpstrt.push_back(Vector(0., vlength));
 				}
+#else
+				tmpstrat.push_back(Vector(0., vlength));
+				tmpstrt.push_back(Vector(0., vlength));
+#endif
 				
 				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) firstprivate(tmpstrat,tmpstrt)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
@@ -1165,7 +1186,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 					if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
 					{
 						double correction = 1. ; //ci->getBehaviour()->getDamageModel()->getState().max() < .999 ;
+#ifdef HAVE_OPENMP
 						int tnum = omp_get_thread_num() ;
+#else
+						int tnum = 0 ;
+#endif
 						ci->getState().getAverageField(STRAIN_FIELD,EFFECTIVE_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum],&vm, 0, t);
 					
 						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
@@ -1196,11 +1221,16 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 				
 				std::vector<Vector> tmpstrat ;
 				std::vector<Vector> tmpstrt ;
+#ifdef HAVE_OPENMP
 				for(size_t i = 0 ; i < omp_get_max_threads() ; i++)
 				{
 					tmpstrat.push_back(Vector(0., vlength));
 					tmpstrt.push_back(Vector(0., vlength));
 				}
+#else
+				tmpstrat.push_back(Vector(0., vlength));
+				tmpstrt.push_back(Vector(0., vlength));
+#endif
 				
 				#pragma omp parallel for reduction(+:stra0,stra1,stra2,str0,str1,str2,sumFactors) firstprivate(tmpstrat,tmpstrt)
 				for( size_t i = 1 ; i < physicalcache.size() ; i++ )
@@ -1212,7 +1242,11 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
 	// 					if(ci->getBehaviour()->getDamageModel())
 	// 						correction = ci->getBehaviour()->getDamageModel()->getState().max() < .95 ;
 							
+#ifdef HAVE_OPENMP
 						int tnum = omp_get_thread_num() ;
+#else
+						int tnum = 0 ;
+#endif
 						ci->getState().getAverageField(STRAIN_FIELD,REAL_STRESS_FIELD, tmpstrat[tnum],tmpstrt[tnum],&vm, 0, t);
 					
 						stra0 += tmpstrat[tnum][0]*factors[i]*correction ;
