@@ -571,7 +571,6 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & 
 		int chunksize = std::max((end-rowstart)/(2*nthreads) - ((end-rowstart)/(2*nthreads))%stride, stride);
 		int localEnd = 0 ;
 		int t = 0 ;
-// 		int localStart = rowstart ;
 		#pragma omp single
 		{
 			while (localEnd < end) 

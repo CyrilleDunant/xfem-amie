@@ -2843,7 +2843,6 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 	if(isVolumic)
 		return VirtualMachine().ieval(Gradient(shape) * data, gp, Jinv, v)  ;
 	Vector ret(0., normal.size()) ;
-		
 	if(normal.size() == 2)
 	{
 		ret[0] = (data[0]*normal[0]+data[2]*normal[1]) ;
@@ -2855,12 +2854,12 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 		ret[1] = (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2]) ;
 		ret[2] = (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1]) ;
 	}
+
 	return ret * VirtualMachine().ieval(shape, gp) ;
 }
 
 Vector Form::getForcesFromAppliedStress( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic , const Vector& normal) 
 {
-
 	VirtualMachine vm ;
 	
 	size_t n = e->getBoundingPoints().size() ;
