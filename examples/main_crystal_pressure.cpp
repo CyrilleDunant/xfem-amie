@@ -103,13 +103,13 @@ int main(int argc, char *argv[])
   
 //   Pour le système peu expansif P0=45.45 [MPa]
 //   Celui expansif P0=80.4 [MPa]
-  
+  std::valarray<bool> done(false, pores.size()) ;
   std::vector<GeometryDefinedBoundaryCondition *> boundaryConditions ;
-  for(size_t i = 0 ; i < pores.size() ; i++)
-  {
-    boundaryConditions.push_back(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), 0)) ;
-    ft.addBoundaryCondition(boundaryConditions.back()) ;
-  }
+//   for(size_t i = 0 ; i < pores.size() ; i++)
+//   {
+//     boundaryConditions.push_back(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), 0)) ;
+//     ft.addBoundaryCondition(boundaryConditions.back()) ;
+//   }
 
   
   ft.setOrder(LINEAR) ;
@@ -129,6 +129,12 @@ int main(int argc, char *argv[])
       
       if(pressure > 0 && pores[i]->getRadius() > waterLayerDepth)
       {
+				if(!done[i])
+				{
+					boundaryConditions.push_back(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, static_cast<Geometry *>(pores[i]), 0)) ;
+					ft.addBoundaryCondition(boundaryConditions.back()) ;
+					done[i] = true ;
+				}
         pressure = std::min(shapeFactor/(pores[i]->getRadius()-waterLayerDepth), p) ;
         boundaryConditions[i]->setData(pressure*1e-3) ;
         criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
