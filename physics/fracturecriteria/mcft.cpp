@@ -454,12 +454,11 @@ std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double 
 	return std::make_pair(sigma_nn, sigma_nt) ;
 }
 
-double NonLocalMCFT::grade( ElementState &s )
+double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 {
 	if(!initialised)
 		initialise(s);
-// 	std::pair<Vector, Vector> stressStrain = smoothedPrincipalStressAndStrain(s, REAL_STRESS) ;
-	std::pair<Vector, Vector> sstrain = smoothedStressAndStrain(s, REAL_STRESS) ;
+	std::pair<Vector, Vector> sstrain = smoothedStressAndStrain(s, REAL_STRESS, t) ;
 	Vector first = toPrincipal(sstrain.first) ;
 	Vector second = toPrincipal(sstrain.second) ;
 	
@@ -468,13 +467,11 @@ double NonLocalMCFT::grade( ElementState &s )
 	if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() > .1)
 		crackstress = stressOnCrack(s, downVal) ;
 		
-	double tstrain = second.max();//stressStrain.second.max() ; //
-	double cstrain = second.min();//stressStrain.second.min();  //
-// 	double sfactor = factors[0]/std::accumulate(&factors[0], &factors[factors.size()],double(0)) ;
-// 	if(std::max(crackstress.first, 0.) > POINT_TOLERANCE_2D ||  std::min(crackstress.second, 0.) > POINT_TOLERANCE_2D)
-// 		std::cout << "\n"<< std::max(crackstress.first, 0.) << "   " << std::min(crackstress.second, 0.) << std::endl ;
-	double tstress = first.max(); //-std::max(std::abs(crackstress.first), 0.);   //first.max();//std::min(first.max()-2.*std::max(crackstress.first, 0.), first.max());// 
-	double cstress = first.min();//+std::min(std::abs(crackstress.second), 0.);   //first.min();//std::max(first.min()+2.*std::min(crackstress.second, 0.), first.min());// 
+	double tstrain = second.max();
+	double cstrain = second.min();
+
+	double tstress = first.max();
+	double cstress = first.min();
 
 	
 	
@@ -640,6 +637,11 @@ double NonLocalMCFT::grade( ElementState &s )
 	return tcrit ;
 }
 
+double NonLocalMCFT::grade( ElementState &s )
+{
+	return gradeAtTime(s, 0) ;
+}
+
 double NonLocalMCFT::getTensileLimit(const ElementState & s) const 
 {
 	double maxTension = upVal;
@@ -692,5 +694,24 @@ Material NonLocalMCFT::toMaterial()
 	Material mat ;
 	return mat ;
 }
+
+NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMCFT(down, youngModulus, charDistance, r , mirroring, delta_x, delta_y, delta_z) { } ;
+
+NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { };
+
+double NonLocalSpaceTimeMCFT::grade(ElementState &s)
+{
+	// the order is because the compressiveness of the behaviour is determined at the begining of the step
+	double gradeAfter = gradeAtTime(s, 1) ;
+	double gradeBefore = gradeAtTime(s, -1) ;
+	
+	if(gradeAfter < 0)
+		return -1 ;
+	if(gradeBefore > 0)
+		return 1 ;
+	
+	return 2.*gradeBefore/(gradeBefore-gradeAfter) -1 ;
+}
+
 
 }

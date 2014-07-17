@@ -25,7 +25,7 @@ typedef enum
 
 class NonLocalMCFT : public FractureCriterion
 {
-
+protected:
 	double getBareConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
 	double getRebarConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress, double value = 342, double deltaCriterion = 0) ; //Bentz model 342
 	double getConcreteTensileCriterion(const ElementState & s, double pseudoYoung, double tstrain, double tstress) ;
@@ -97,11 +97,21 @@ public:
  * @param s ElementState to consider
 */
 	virtual double grade(ElementState &s)  ;
+	double gradeAtTime(ElementState &s, double t) ;
 
 	virtual Material toMaterial() ;
 	
 	virtual double getTensileLimit(const ElementState & s) const ;
 };
+
+class NonLocalSpaceTimeMCFT : public NonLocalMCFT
+{
+public:
+	NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r = UPPER_BOUND, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	virtual ~NonLocalSpaceTimeMCFT();
+	
+	virtual double grade(ElementState &s)  ;
+} ;
 
 }
 

@@ -195,12 +195,12 @@ int main(int argc, char *argv[])
 
 	samplers.setBehaviour(new Stiffness(m0)) ;
 	Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ; 
-// 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-	Inclusion3D inc(100, 200, 200, 200) ;
+	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
+// 	Inclusion3D inc(100, 200, 200, 200) ;
 	
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 // 	inc.setBehaviour(new Stiffness(m1*4)) ;
-	inc.setBehaviour(new VoidForm()) ;
+// 	inc.setBehaviour(new VoidForm()) ;
 	
 	
     F.addFeature(&samplers, &inc) ;

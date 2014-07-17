@@ -681,19 +681,19 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 			 (cutOffDown > 0 && rad*factor >= cutOffDown || cutOffDown < 0) 
 		)
 		{
-			if(frac < 1e-13 )
-			{
-				foundZeroFrac = true ;
-				zeroFracRad = std::max(rad*factor, zeroFracRad) ;
-				minfrac = std::min(minfrac, frac) ;
-			}
-			else
-			{
+// 			if(frac < 1e-13 )
+// 			{
+// 				foundZeroFrac = true ;
+// 				zeroFracRad = std::max(rad*factor, zeroFracRad) ;
+// 				minfrac = std::min(minfrac, frac) ;
+// 			}
+// 			else
+// 			{
 				fraction.push_back(frac);
 				radius.push_back(rad*factor);
 				maxfrac = std::max(maxfrac, frac) ;
 				minfrac = std::min(minfrac, frac) ;
-			}
+// 			}
 		}
 	}while(!file.eof()) ;
 	
@@ -701,16 +701,16 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 	radius.pop_back();
 	
 	//collate possible list of zero-radius or fraction
-	if(radius.front() > radius.back())
-	{
-		fraction.push_back(0);
-		radius.push_back(zeroFracRad);
-	}
-	else
-	{
-		fraction.insert(fraction.begin(), 0.);
-		radius.insert(radius.begin(), zeroFracRad) ;
-	}
+// 	if(radius.front() > radius.back())
+// 	{
+// 		fraction.push_back(0);
+// 		radius.push_back(zeroFracRad);
+// 	}
+// 	else
+// 	{
+// 		fraction.insert(fraction.begin(), 0.);
+// 		radius.insert(radius.begin(), zeroFracRad) ;
+// 	}
 	
 	if(cutOffUp > 0  || cutOffDown > 0)
 	{
