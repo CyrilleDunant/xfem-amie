@@ -49,8 +49,11 @@ int main(int argc, char *argv[])
   
   std::fstream psdfile(argv[1]) ;
   double thresholdRadius = 30. ;
+	double minPressure = 10 ;
   if(argc > 3)
     thresholdRadius = std::max(atof(argv[3]), 30.) ;
+	if(argc > 4)
+		minPressure = atof(argv[4]) ;
   double maxRadius ;
   double poreFraction ;
   double waterLayerDepth = 1.5 ;
@@ -115,10 +118,13 @@ int main(int argc, char *argv[])
   ft.setOrder(LINEAR) ;
   ft.setSamplingNumber(192);
   std::fstream outfile(argv[2], std::ios::out | std::ios::app) ;
-  outfile << "# psd = " << argv[1] << ", outfile = " << argv[2]  << std::endl ;
-  outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
-  outfile.close() ;
-  for(double p = 10 ; p < 110 ; p+=10)
+	if(argc > 4)
+	{
+		outfile << "# psd = " << argv[1] << ", outfile = " << argv[2]  << std::endl ;
+		outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
+		outfile.close() ;
+	}
+  for(double p = minPressure ; p < 110 ; p+=10)
   {
     std::fstream outfile(argv[2], std::ios::out | std::ios::app) ;
     double criticalRadius = thresholdRadius ;
