@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
   ft.setOrder(LINEAR) ;
   ft.setSamplingNumber(192);
   std::fstream outfile(argv[2], std::ios::out | std::ios::app) ;
-	if(argc > 4)
+	if(argc <= 4)
 	{
 		outfile << "# psd = " << argv[1] << ", outfile = " << argv[2]  << std::endl ;
 		outfile << "# P0  R_crit  Vol  dx  dy \n" << std::endl ;
