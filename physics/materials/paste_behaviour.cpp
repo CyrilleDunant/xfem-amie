@@ -278,7 +278,7 @@ Form * HydratingMechanicalCementPaste::getCopy() const
 
 void HydratingMechanicalCementPaste::step(double timestep, ElementState & currentState, double maxscore)
 {
-	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(diffusionTree->get2DMesh()->getTree()[dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index]) ;
+	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(diffusionTree->get2DMesh()->getInTree(dynamic_cast<DelaunayTriangle *>(currentState.getParent())->index)) ;
 	Vector saturation = diffusionElement->getState().getDisplacements() ;
 	double effectiveSaturation = (saturation[0]+saturation[1]+saturation[2])/3. ;
 	double doh = dynamic_cast<HydratingDiffusionCementPaste *>(diffusionElement->getBehaviour())->getDegreeOfHydration() ;

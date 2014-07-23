@@ -111,8 +111,6 @@ protected:
 	
 	SamplingRestrictionType samplingRestriction ;
 	
-	void duplicate2DMeshPoints() ;
-	void duplicate3DMeshPoints() ;
 	std::vector<double> cachedVolumes ;
 	std::vector<Point *> extraPoints ; 
 	std::vector<Point *> nodes ;

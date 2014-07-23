@@ -27,12 +27,13 @@ namespace Mu
 		std::vector<Geometry *> domains ;
 		std::vector<DelaunayTree *> meshes ;
 		std::vector<Point *> additionalPoints ;
+		std::vector<DelaunayTreeItem *> tree ;
 		int global_counter ;
 	public:
-		virtual std::vector<DelaunayTreeItem *> & getTree() = 0;
-		virtual const std::vector<DelaunayTreeItem *> & getTree() const = 0 ;
-		virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
-		virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
+		virtual std::vector<DelaunayTreeItem *> & getTree() ;
+		virtual const std::vector<DelaunayTreeItem *> & getTree() const;
+		virtual std::vector<Point * > & getAdditionalPoints()  ;
+		virtual const std::vector<Point * > & getAdditionalPoints() const  ;
 		virtual void extrude(double dt);
 		virtual void extrude(const Vector & dt) ;
 		virtual double getInternalScale() const { return 1. ;} ;
@@ -43,10 +44,10 @@ namespace Mu
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 
-		virtual void setElementOrder(Order o, double dt = 0.) = 0;
+		virtual void setElementOrder(Order o, double dt = 0.) ;
 		virtual void insert(Point *) ;
 
-		virtual const size_t & getLastNodeId() const = 0;
+		virtual const size_t & getLastNodeId() const {return global_counter ;};
 	} ;
 } ;
 

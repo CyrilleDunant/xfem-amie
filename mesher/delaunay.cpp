@@ -41,8 +41,7 @@ DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t
 	index = 0 ;
 	if(t)
 	{
-		index = t->getTree().size() ;
-		t->getTree().push_back(this) ;
+		index = t->addToTree(this) ;
 	}
 }
 	
@@ -1050,22 +1049,22 @@ void DelaunayTriangle::addNeighbourhood(DelaunayTriangle * t)
 
 DelaunayTriangle * DelaunayTriangle::getNeighbourhood(size_t i) const
 {
-	return static_cast<DelaunayTriangle *>(tree->getTree()[neighbourhood[i]]) ;
+	return static_cast<DelaunayTriangle *>(tree->getInTree(neighbourhood[i])) ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getNeighbour(size_t i) const
 {
-	return tree->getTree()[neighbour[i]] ;
+	return tree->getInTree(neighbour[i]) ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getSon(size_t i) const
 {
-	return tree->getTree()[son[i]] ;
+	return tree->getInTree(son[i]) ;
 }
 
 DelaunayTreeItem * DelaunayTreeItem::getStepson(size_t i) const
 {
-	return tree->getTree()[stepson[i]] ;
+	return tree->getInTree(stepson[i]) ;
 }
 
 void DelaunayTreeItem::addStepson(DelaunayTreeItem * s)

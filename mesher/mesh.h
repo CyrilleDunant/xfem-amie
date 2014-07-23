@@ -36,8 +36,10 @@ namespace Mu
 			std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, std::pair<ETYPE *, std::vector<double> > > > cache ;
 			std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
 		public:
-			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
-			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
+// 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
+// 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
+			virtual size_t addToTree(EABSTRACTTYPE * toAdd) = 0 ;
+			virtual EABSTRACTTYPE * getInTree(int index) = 0 ;
 			virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
 			virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
 			virtual void extrude(double dt) = 0 ;
@@ -640,9 +642,19 @@ namespace Mu
 		}
 		
 		virtual const size_t & getLastNodeId() const { return global_counter ; }
+		virtual size_t addToTree(EABSTRACTTYPE * toAdd)
+		{
+			tree.push_back(toAdd) ;
+			return tree.size() -1 ;
+		}
 		
-		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
-		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }
+		virtual EABSTRACTTYPE * getInTree(int index) 
+		{
+			return tree[std::abs(index)] ;
+		}
+		
+// 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
+// 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }
 	} ;
 } ;
 

@@ -191,12 +191,19 @@ void ParallelDelaunayTree::insert(Point * p)
 		for(size_t j = 0 ; j < newElems[i].size() ; j++)
 		{
 			elementMap[i][newElems[i][j]->index] = newElems[i][j]->index ;
-			for(size_t k = i+1 ; k < newElems.size() ; k++)
+			if(!domains[i]->in(newElems[i][j]->first) || !domains[i]->in(newElems[i][j]->second) || !domains[i]->in(newElems[i][j]->third))
 			{
-				for(size_t l = 0 ; l < newElems[k].size() ; l++)
+				elementMap[i][newElems[i][j]->index] *= -1 ;
+			}
+			else
+			{
+				for(size_t k = i+1 ; k < newElems.size() ; k++)
 				{
-					if(*newElems[i][j]->first == *newElems[k][l]->first && *newElems[i][j]->second == *newElems[k][l]->second && *newElems[i][j]->third == *newElems[k][l]->third)
-						elementMap[i][newElems[i][j]->index] *= -1 ;
+					for(size_t l = 0 ; l < newElems[k].size() ; l++)
+					{
+						if(*newElems[i][j]->first == *newElems[k][l]->first && *newElems[i][j]->second == *newElems[k][l]->second && *newElems[i][j]->third == *newElems[k][l]->third)
+							elementMap[i][newElems[i][j]->index] *= -1 ;
+					}
 				}
 			}
 		}
@@ -208,17 +215,23 @@ void ParallelDelaunayTree::insert(Point * p)
 
 std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements() 
 {
-	std::vector<DelaunayTriangle *> tris ;
+	std::vector<std::vector<DelaunayTriangle *>> tris(meshes.size()) ;
+	
+	#pragma omp parallel for
 	for(size_t i = 0 ; i < meshes.size() ;  i++)
 	{
 		std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
 		for(size_t j = 0 ; j < tmp.size() ;  j++)
 		{
 			if(elementMap[i][tmp[j]->index] >= 0)
-				tris.push_back(tmp[j]);
+				tris[i].push_back(tmp[j]);
 		}
-		
 	}
+	
+	std::vector<DelaunayTriangle *> ret ;
+	for(size_t i = 0 ; i < tris.size() ;  i++)
+		ret.insert(ret.end(), tris[i].begin(), tris[i].end());
+	
 	return tris ;
 }
 
@@ -226,78 +239,99 @@ void ParallelDelaunayTree::setElementOrder(Order o, double dt )
 {
 	#pragma omp parallel for
 	for(size_t i = 0 ; i < meshes.size() ;  i++)
+	{
+		meshes[i]->global_counter = global_counter ;
 		meshes[i]->setElementOrder(o, dt) ;
-	
-	additionalPoints = meshes[0]->getAdditionalPoints() ;
-	for(size_t i = 0 ; i < additionalPoints.size() ;  i++)
-	{
-		additionalPoints[i]->id = global_counter++ ;
 	}
-	meshes[0]->getAdditionalPoints().clear() ;
-	for(size_t i = 1 ; i < meshes.size() ;  i++)
+	int initial_global_counter = global_counter ;
+	for(size_t i = 0 ; i < meshes.size() ;  i++)
 	{
-		for(size_t j = 0 ; j < additionalPoints.size() ;  j++)
+		std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
+		for(size_t j = 0 ; j < tmp.size() ;  j++)
 		{
-			if(meshes[i]->additionalPoints)
+			if(elementMap[i][tmp[j]->index] >= 0)
+			{
+				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
+				{
+					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+				}
+			}
 		}
 	}
-	
-// 	std::valarray<std::vector<DelaunayTriangle *> > boundaries(meshes.size()) ;
-// 	#pragma omp parallel for
-// 	for(size_t i = 0 ; i < meshes.size() ; i++)
-// 	{
-// 		std::vector<DelaunayTriangle *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
-// 		for(size_t j = 0 ; j < tmpConflicts.size() ;j++)
-// 		{
-// 			if(!(domains[i]->in(tmpConflicts[j]->first) && domains[i]->in(tmpConflicts[j]->second)&& domains[i]->in(tmpConflicts[j]->third)))
-// 				boundaries[i].push_back(tmpConflicts[j]) ;
-// 		}
-// 	}
-// 	std::vector<DelaunayTriangle *> trueBounds ;
-// 	for(size_t i = 0 ; i < boundaries.size() ; i++)
-// 	{
-// 		for(size_t j = i+1 ; j < boundaries.size() ; j++)
-// 		{
-// 			if(boundaries[i]->first->id == boundaries[j]->first->id &&
-// 				 boundaries[i]->second->id == boundaries[j]->second->id &&
-// 				 boundaries[i]->third->id == boundaries[j]->third->id
-// 			)
-// 			{
-// 				bool already = false ;
-// 				for(size_t k = 0 ; k < trueBounds.size() ; k++)
-// 				{
-// 					if(boundaries[i]->first->id == trueBounds[k]->first->id &&
-// 				     boundaries[i]->second->id == trueBounds[k]->second->id &&
-// 				     boundaries[i]->third->id == trueBounds[k]->third->id)
-// 					{
-// 						already = true ;
-// 						break ;
-// 					}
-// 				}
-// 				if(!already)
-// 				{
-// 					trueBounds.push_back(boundaries[i]);
-// 					break ;
-// 				}
-// 			}
-// 		}
-// 	}
-// 	
-// 	std::vector<Point * > extraPoints ;
-// 	for()
 }
 
 void ParallelDelaunayTree::extrude(double dt)
 {
 	#pragma omp parallel for
 	for(size_t i = 0 ; i < meshes.size() ;  i++)
+	{
+		meshes[i]->global_counter = global_counter ;
 		meshes[i]->extrude(dt) ;
+	}
+	
+	int initial_global_counter = global_counter ;
+	for(size_t i = 0 ; i < meshes.size() ;  i++)
+	{
+		std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
+		for(size_t j = 0 ; j < tmp.size() ;  j++)
+		{
+			if(elementMap[i][tmp[j]->index] >= 0)
+			{
+				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
+				{
+					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+				}
+			}
+		}
+	}
 }
 
 void ParallelDelaunayTree::extrude(const Vector & dt)
 {
 	#pragma omp parallel for
 	for(size_t i = 0 ; i < meshes.size() ;  i++)
+	{
+		meshes[i]->global_counter = global_counter ;
 		meshes[i]->extrude(dt) ;
+	}
+	
+	int initial_global_counter = global_counter ;
+	for(size_t i = 0 ; i < meshes.size() ;  i++)
+	{
+		std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
+		for(size_t j = 0 ; j < tmp.size() ;  j++)
+		{
+			if(elementMap[i][tmp[j]->index] >= 0)
+			{
+				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
+				{
+					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+				}
+			}
+		}
+	}
+}
+
+std::vector<Point * > & ParallelDelaunayTree::getAdditionalPoints() 
+{ 
+	return additionalPoints ; 
+}
+
+const std::vector<Point * > & ParallelDelaunayTree::getAdditionalPoints() const 
+{
+	return additionalPoints ; 
+}
+
+std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree()
+{
+	return tree ;
+}
+
+const std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree() const
+{
+	return tree ;
 }
 

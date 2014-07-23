@@ -336,6 +336,17 @@ protected:
 	
 public:
 	
+	virtual size_t addToTree(DelaunayTreeItem * toAdd)
+	{
+		tree.push_back(toAdd);
+		return tree.size()-1 ;
+	}
+	
+	virtual DelaunayTreeItem * getInTree(int index) 
+	{
+		return tree[std::abs(index)] ;
+	}
+	
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ;};
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
@@ -354,8 +365,8 @@ public:
 	{
 		return conflicts(g) ;
 	}
-	virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
-	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
+// 	virtual std::vector<DelaunayTreeItem *> & getTree() { return tree ;}
+// 	virtual const std::vector<DelaunayTreeItem *> & getTree() const { return tree ;}
 	
 	virtual void extrude(double dt) ;
 	void extrude(const Vector & dt) ;

@@ -123,8 +123,8 @@ typedef enum{
 		
 	public:
 		std::vector<unsigned int> cache ;
-		std::vector<DelaunayTreeItem *>  *mesh2d ;
-		std::vector<DelaunayTreeItem3D *>  *mesh3d ;
+		Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
+		Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
 		
 		double getEnergyDamageDifferential()  const {return energyDamageDifferential ;}
 		double getCriterionDamageDifferential()  const {return criterionDamageDifferential ;}

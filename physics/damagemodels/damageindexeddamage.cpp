@@ -39,7 +39,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
 // 			if(e->getCache()[i]->getBehaviour()->getFractureCriterion()->met(e->getCache()[i]->getState()))
-				totry.push_back(static_cast<DelaunayTriangle *>((*e->mesh2d)[e->getCache()[i]])) ;
+				totry.push_back(static_cast<DelaunayTriangle *>(e->mesh2d->getInTree(e->getCache()[i]))) ;
 		}
 		
 		while(!totry.empty() && remnantEnergy > 0)
@@ -81,7 +81,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		
 		for(size_t i = 0 ; i < e->getCache().size() ; i++)
 		{
-			DelaunayTriangle * tri = static_cast<DelaunayTriangle *>( (*e->mesh2d)[e->getCache()[i]] ) ;
+			DelaunayTriangle * tri = static_cast<DelaunayTriangle *>( e->mesh2d->getInTree(e->getCache()[i]) ) ;
 			double dedd =tri->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
 			double a = tri->area() ;
 			deavg += dedd*a ;
@@ -129,7 +129,7 @@ void IndexedLinearDamage::computeDelta(const ElementState & s)
 	for(size_t i = 0 ; i < e->getCache().size() ; i++)
 	{
 		// 			if(e->getCache()[i]->getBehaviour()->getFractureCriterion()->met(e->getCache()[i]->getState()))
-		totry.push_back(static_cast<DelaunayTriangle *>((*e->mesh2d)[e->getCache()[i]])) ;
+		totry.push_back(static_cast<DelaunayTriangle *>(e->mesh2d->getInTree(e->getCache()[i]))) ;
 	}
 	
 	while(!totry.empty() && remnantEnergy > 0)
@@ -172,7 +172,7 @@ void IndexedLinearDamage::computeDelta(const ElementState & s)
 	
 	for(size_t i = 0 ; i < e->getCache().size() ; i++)
 	{
-		DelaunayTriangle * tri = static_cast<DelaunayTriangle *>( (*e->mesh2d)[e->getCache()[i]] ) ;
+		DelaunayTriangle * tri = static_cast<DelaunayTriangle *>( e->mesh2d->getInTree(e->getCache()[i]) ) ;
 		double dedd =tri->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() ;
 		double a = tri->area() ;
 		deavg += dedd*a ;

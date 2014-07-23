@@ -46,8 +46,7 @@ DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeIt
 
 	if( t )
 	{
-		index = t->getTree().size() ;
-		t->getTree().push_back( this ) ;
+		index = t->addToTree(this) ;
 	}
 }
 
@@ -1078,22 +1077,22 @@ void DelaunayTetrahedron::addNeighbourhood( DelaunayTetrahedron *t )
 
 DelaunayTetrahedron *DelaunayTetrahedron::getNeighbourhood( size_t i ) const
 {
-	return static_cast<DelaunayTetrahedron *>( tree->getTree()[neighbourhood[i]] ) ;
+	return static_cast<DelaunayTetrahedron *>( tree->getInTree(neighbourhood[i]) ) ;
 }
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getNeighbour( size_t i ) const
 {
-	return tree->getTree()[neighbour[i]] ;
+	return tree->getInTree(neighbour[i]) ;
 }
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getSon( size_t i ) const
 {
-	return tree->getTree()[son[i]] ;
+	return tree->getInTree(son[i]) ;
 }
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getStepson( size_t i ) const
 {
-	return tree->getTree()[stepson[i]] ;
+	return tree->getInTree(stepson[i]) ;
 }
 
 
@@ -1178,7 +1177,7 @@ void DelaunayTreeItem3D::removeStepson( DelaunayTreeItem3D *t )
 void DelaunayTreeItem3D::setStepfather( DelaunayTreeItem3D *s )
 {
 	if( stepfather != -1 )
-		tree->getTree()[stepfather]->removeStepson( this ) ;
+		tree->getInTree(stepfather)->removeStepson( this ) ;
 
 	stepfather = s->index ;
 	addNeighbour( s ) ;
@@ -1187,7 +1186,7 @@ void DelaunayTreeItem3D::setStepfather( DelaunayTreeItem3D *s )
 void DelaunayTreeItem3D::setFather( DelaunayTreeItem3D *s )
 {
 	if( father != -1 )
-		tree->getTree()[father]->removeSon( this ) ;
+		tree->getInTree(father)->removeSon( this ) ;
 
 	father = s->index ;
 }
@@ -1753,11 +1752,11 @@ void DelaunayDemiSpace::merge( DelaunayDemiSpace *p )
 				stepson = newstepson ;
 				p->getStepson( i )->stepfather = index ;
 
-				this->addNeighbour( p->getStepson( i ) ) ;
+				addNeighbour( p->getStepson( i ) ) ;
 				p->getStepson( i )->addNeighbour( this ) ;
 			}
 
-			tree->getTree()[p->father]->addSon( this ) ;
+			tree->getInTree(p->father)->addSon( this ) ;
 			p->addSon( this ) ;
 			p->kill( first ) ;
 		}

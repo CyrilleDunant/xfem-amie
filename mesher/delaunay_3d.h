@@ -379,8 +379,19 @@ public:
 	
 	virtual ~DelaunayTree3D() ;
 	
-	virtual std::vector<DelaunayTreeItem3D *> & getTree() { return tree ;}
-	virtual const std::vector<DelaunayTreeItem3D *> & getTree() const { return tree ;}
+	virtual size_t addToTree(DelaunayTreeItem3D * it)
+	{
+		tree.push_back(it);
+		return tree.size()-1;
+	}
+	
+	virtual DelaunayTreeItem3D * getInTree(int index) 
+	{
+		return tree[std::abs(index)] ;
+	}
+	
+// 	virtual std::vector<DelaunayTreeItem3D *> & getTree() { return tree ;}
+// 	virtual const std::vector<DelaunayTreeItem3D *> & getTree() const { return tree ;}
 	void insert( Point *p) ;
 	void insert( Segment *s) ;
 	
