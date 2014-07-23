@@ -77,7 +77,10 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 			}
 			else if (f.byteCode[i] ==  TOKEN_OPERATION_DIVIDES)
 			{
-				REG_C = REG_A/REG_B ;
+				if(std::abs(REG_B) > 1e-14)
+					REG_C = REG_A/REG_B ;
+				else
+					REG_C = REG_A*1e14 ;
 			}
 			else if (f.byteCode[i] ==  TOKEN_OPERATION_INPLACE_MINUS)
 			{
@@ -85,7 +88,10 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 			}
 			else 
 			{
-				REG_A /= REG_B ;
+				if(std::abs(REG_B) > 1e-14)
+					REG_A /= REG_B ;
+				else
+					REG_A *= 1e14 ;
 			}
 			continue ;
 		}

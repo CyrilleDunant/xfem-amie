@@ -175,7 +175,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		nit++ ;
 	}
 #ifdef HAVE_OMP
-	double delta = (omp_get_wtime() - t0)*1e6 ;
+	double delta = std::max((omp_get_wtime() - t0)*1e6, 1e-14) ;
 #else
 	double delta = 1 ;
 #endif

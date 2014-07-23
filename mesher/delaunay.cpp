@@ -484,6 +484,7 @@ void DelaunayTree::extrude(double dt)
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 		{
 			Point * next = new Point(tri[i]->getBoundingPoint(j).x, tri[i]->getBoundingPoint(j).y) ;
+			additionalPoints.push_back(next);
 			next->t = tri[i]->getBoundingPoint(j).t ;
 			next->t = end + dt * (next->t - beginning) / (end - beginning) ;
 			bool increment = true ;
@@ -576,6 +577,7 @@ void DelaunayTree::extrude(const Vector & dt)
 					for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
 					{
 						Point * next = new Point(current->x, current->y) ;
+						additionalPoints.push_back(next);
 						next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
 						next->id = (global_counter++) ;
 						newPoints.push_back(next) ;
@@ -2115,10 +2117,6 @@ void DelaunayTree::insert(Point *p)
 	{
 		if(cons[i]->isVertex(p)) 
 		{
-// 			cons[i]->print() ;
-// 			p->print() ;
-// 			std::cerr << "Vertex collision !" << std::endl ;
-//			exit(0) ;
 			return ;
 		}
 	}
@@ -2167,8 +2165,8 @@ void DelaunayTree::insert(Point *p)
 	for(size_t i = 0 ; i < ret.size() ; i++)
 	{
 		ret[i]->clearVisited() ;
-
 	}
+	
 	for(size_t i = 0 ; i < cons.size() ; i++)
 	{
 		cons[i]->clearVisited() ;

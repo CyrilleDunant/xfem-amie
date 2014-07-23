@@ -4878,7 +4878,7 @@ bool FeatureTree::step()
 	size_t it = 0 ;
 	int notConvergedCounts = 0 ;
 	int betweenCheckpointCount = 0 ;
-	int maxBetweenCheckPoints = 1 ;
+	int maxBetweenCheckPoints = 2 ;
 	
 //	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
 	bool needexit = false ;

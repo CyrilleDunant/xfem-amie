@@ -31,5 +31,20 @@ ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p
 
 void ParallelDelaunayTree3D::insert(Point * p)
 {
+	for
+	std::vector<DelaunayTreeItem3D *> cons = conflicts( p ) ;
+	neighbourhood = false ;
+
+	for( size_t i = 0 ; i < cons.size() ; i++ )
+	{
+		if( cons[i]->isVertex( p ) )
+		{
+			cons[i]->print() ;
+			p->print() ;
+			std::cout << "vertex collision" << std::endl ;
+			return ;
+		}
+	}
 	
+	addElements(cons, p) ;
 }

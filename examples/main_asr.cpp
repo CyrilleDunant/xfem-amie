@@ -74,8 +74,8 @@ GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
-	int nsteps = 320;
-	int nstepstot = 320;
+	int nsteps = 30;
+	int nstepstot = 30;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 
 	for( size_t i = 0 ; i < nsteps ; i++ )
@@ -405,7 +405,7 @@ int main( int argc, char *argv[] )
 
 	double itzSize = 0.00002;
 //	int inclusionNumber = 1 ;
- 	int inclusionNumber = 4096 ;
+ 	int inclusionNumber = 8172 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 //
 // // 	if(inclusionNumber)
@@ -422,7 +422,7 @@ int main( int argc, char *argv[] )
 
 	
 	
-	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  800, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
+	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
 	std::vector<Inclusion *> inclusions ;
 	
 	for( size_t i = 0; i < feats.size() ; i++ )
@@ -438,7 +438,7 @@ int main( int argc, char *argv[] )
 
 	if( !feats.empty() )
 		std::cout << "n = " << feats.size() << ", largest r = " << feats.front()->getRadius() - itzSize
-		          << ", smallest r =" << feats.back()->getRadius() - itzSize << std::endl ;
+		          << ", smallest r =" << feats.back()->getRadius() - itzSize << ", ratio = " << (feats.front()->getRadius() - itzSize) / (feats.back()->getRadius() - itzSize) <<std::endl ;
 
 	sample.setBehaviour( new PasteBehaviour()) ;
 	
@@ -452,18 +452,22 @@ int main( int argc, char *argv[] )
 		voidtop->isVirtualFeature = true ;
 		voidtop->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidtop );
+		F.setSamplingFactor(voidtop, .5);
 		Sample *voidbottom = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x - ( sample.width() - restraintDepth )*.5 - restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
 		voidbottom->isVirtualFeature = true ;
 		voidbottom->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidbottom );
+		F.setSamplingFactor(voidbottom, .5);
 		Sample *voidleft = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y + ( sample.height() - restraintDepth )*.5 + 0.0025 ) ;
 		voidleft->isVirtualFeature = true ;
 		voidleft->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidleft );
+		F.setSamplingFactor(voidleft, .5);
 		Sample *voidright = new Sample( nullptr, restraintDepth * .5, restraintDepth * .5, sample.getCenter().x + ( sample.width() - restraintDepth )*.5 + restraintDepth * .25, sample.getCenter().y - ( sample.height() - restraintDepth )*.5 - 0.0025 ) ;
 		voidright->isVirtualFeature = true ;
 		voidright->setBehaviour( new VoidForm() );
 		F.addFeature( &sample, voidright );
+		F.setSamplingFactor(voidright, .5);
                 
 		//width are  6544984695	10226538586	14726215564      done: 11 13 10 20 12
 		//length are 5113269293	26179938780	40906154344      next: 12
@@ -541,7 +545,7 @@ int main( int argc, char *argv[] )
 	Circle cercle( .5, 0, 0 ) ;
 
 	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-	F.setSamplingNumber( 164 ) ;
+	F.setSamplingNumber( 80 ) ;
 
 	if( restraintDepth > 0 )
 	{
