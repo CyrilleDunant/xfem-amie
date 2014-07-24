@@ -199,8 +199,8 @@ int main(int argc, char *argv[])
 	Inclusion3D inc(100, 200, 200, 200) ;
 	
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
-	inc.setBehaviour(new Stiffness(m1*4)) ;
-// 	inc.setBehaviour(new VoidForm()) ;
+// 	inc.setBehaviour(new Stiffness(m1*4)) ;
+	inc.setBehaviour(new VoidForm()) ;
 	
 	
     F.addFeature(&samplers, &inc) ;
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-	F.setOrder(LINEAR) ;
+	F.setOrder(QUADRATIC) ;
 
 	step() ;
 // 	delete dt ;

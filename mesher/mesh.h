@@ -380,7 +380,8 @@ namespace Mu
 			{
 				
 			}
-			virtual const size_t & getLastNodeId() const = 0;
+			
+			virtual size_t getLastNodeId() const = 0;
 	} ;
 	
 	template<class ETYPE, class EABSTRACTTYPE>
@@ -641,7 +642,7 @@ namespace Mu
 		{
 		}
 		
-		virtual const size_t & getLastNodeId() const { return global_counter ; }
+		virtual size_t getLastNodeId() const { return global_counter ; }
 		virtual size_t addToTree(EABSTRACTTYPE * toAdd)
 		{
 			tree.push_back(toAdd) ;

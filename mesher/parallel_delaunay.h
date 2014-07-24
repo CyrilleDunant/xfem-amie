@@ -36,7 +36,7 @@ namespace Mu
 		virtual const std::vector<Point * > & getAdditionalPoints() const  ;
 		virtual void extrude(double dt);
 		virtual void extrude(const Vector & dt) ;
-		virtual double getInternalScale() const { return 1. ;} ;
+		virtual double getInternalScale() const { return meshes[0]->getInternalScale() ;} ;
 	public:
 		ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<Geometry *> & domains) ;
 		virtual ~ParallelDelaunayTree() {} ;
@@ -47,7 +47,7 @@ namespace Mu
 		virtual void setElementOrder(Order o, double dt = 0.) ;
 		virtual void insert(Point *) ;
 
-		virtual const size_t & getLastNodeId() const {return global_counter ;};
+		virtual size_t getLastNodeId() const {return global_counter ;};
 	} ;
 } ;
 

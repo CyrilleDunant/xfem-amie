@@ -30,6 +30,7 @@ class SamplingCriterion ;
 class DelaunayTriangle ;
 class TriElement ;
 class DelaunayTree ;
+class ParallelDelaunayTree ;
 
 /*! \brief Base class of the delaunay tree. 
 
@@ -326,6 +327,7 @@ public:
 class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
 friend class FeatureTree ;
+friend class ParallelDelaunayTree ;
 friend class Geometry ;
 	std::valarray<bool> visitedItems ;
 protected:
@@ -373,7 +375,7 @@ public:
 	
 public:
 
-	const size_t & getLastNodeId() const {return global_counter ;}  ;
+	size_t getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayDemiPlane *> plane ;
 	
 	DelaunayTree( Point * p0,  Point *p1,  Point *p2) ;

@@ -27,7 +27,7 @@ ParallelDelaunayTree::ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, c
 	global_counter = 0 ;
 	for(size_t i = 0 ; i < domains.size() ; i++)
 	{
-		meshes.push_back(new DelaunayTree(p0, p1, p2, p3));
+		meshes.push_back(new DelaunayTree(p0, p1, p2));
 		elementMap.push_back(std::vector<int>());
 	}
 }
@@ -46,8 +46,11 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
 				conflicts[i].push_back(tmpConflicts[j]) ;
 		}
 	}
-
-	return conflicts ;
+	std::vector<DelaunayTriangle *> ret = conflicts[0] ;
+	for(size_t i = 1 ; i < conflicts.size() ; i++)
+		ret.insert(ret.end(), conflicts[i].begin(), conflicts[i].end());
+	
+	return ret ;
 }
 
 std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(const Geometry  * p) 
@@ -65,7 +68,11 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
 		}
 	}
 
-	return conflicts ;
+	std::vector<DelaunayTriangle *> ret = conflicts[0] ;
+	for(size_t i = 1 ; i < conflicts.size() ; i++)
+		ret.insert(ret.end(), conflicts[i].begin(), conflicts[i].end());
+	
+	return ret ;
 }
 
 void ParallelDelaunayTree::insert(Point * p)
@@ -80,7 +87,7 @@ void ParallelDelaunayTree::insert(Point * p)
 		{
 			std::cout << "Failed insertion : in nothing !" << std::endl ;
 			exit(0) ;
-			return ;
+			continue ;
 		}
 		
 		meshes[i]->neighbourhood = false ;
@@ -90,22 +97,22 @@ void ParallelDelaunayTree::insert(Point * p)
 		{
 			if(cons[j]->isVertex(p)) 
 			{
-				return ;
+				continue ;
 			}
 			
 			if(!allout)
 			{
-				allout = allout && !domains[i]->in(cons[j]->getCenter()) && !domains[i]->in(cons[j]->first) && !domains[i]->in(cons[j]->second) && !domains[i]->in(cons[j]->third) ;
+				allout = allout && !domains[i]->in(*cons[j]->first) && !domains[i]->in(*cons[j]->second) && !domains[i]->in(*cons[j]->third) ;
 				for(size_t k = 0 ; k < cons[j]->neighbour.size() ; k++)
 				{
-					if(domains[i]->in(cons[j]->getNeighbour(k)->first) || domains[i]->in(cons[j]->getNeighbour(k)->second) || domains[i]->in(cons[j]->getNeighbour(k)->third) || domains[i]->in(cons[j]->getNeighbour(k)->getCenter()))
+					if(domains[i]->in(*cons[j]->getNeighbour(k)->first) || domains[i]->in(*cons[j]->getNeighbour(k)->second) || domains[i]->in(*cons[j]->getNeighbour(k)->third) )
 						allout = false ;
 				}
 			}
 		}
 		
 		if(allout)
-			return ;
+			continue ;
 		
 		Star * s = new Star(&cons, p) ;
 		
@@ -137,11 +144,11 @@ void ParallelDelaunayTree::insert(Point * p)
 		
 		if(weGotPlanes)
 		{
-			for(int k = 0 ; k< (int)plane.size()-1 ; k++)
+			for(int k = 0 ; k< (int)meshes[i]->plane.size()-1 ; k++)
 			{
-				for(int j = k ; j< (int)plane.size() ; j++)
+				for(int j = k ; j< (int)meshes[i]->plane.size() ; j++)
 				{
-					meshes[i]->plane[j]->merge(plane[k]) ;
+					meshes[i]->plane[j]->merge(meshes[i]->plane[k]) ;
 				}
 			}
 		}
@@ -163,7 +170,7 @@ void ParallelDelaunayTree::insert(Point * p)
 		}
 		std::vector<DelaunayDemiPlane *> * hull = meshes[i]->getConvexHull() ;
 		meshes[i]->plane.clear() ;
-		meshes[i]->plane.insert(plane.end(), hull->begin(), hull->end()) ;
+		meshes[i]->plane.insert(meshes[i]->plane.end(), hull->begin(), hull->end()) ;
 
 		for(size_t j = 0 ; j < cons.size() ; j++)
 		{
@@ -191,7 +198,7 @@ void ParallelDelaunayTree::insert(Point * p)
 		for(size_t j = 0 ; j < newElems[i].size() ; j++)
 		{
 			elementMap[i][newElems[i][j]->index] = newElems[i][j]->index ;
-			if(!domains[i]->in(newElems[i][j]->first) || !domains[i]->in(newElems[i][j]->second) || !domains[i]->in(newElems[i][j]->third))
+			if(!domains[i]->in(*newElems[i][j]->first) || !domains[i]->in(*newElems[i][j]->second) || !domains[i]->in(*newElems[i][j]->third))
 			{
 				elementMap[i][newElems[i][j]->index] *= -1 ;
 			}
@@ -232,7 +239,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
 	for(size_t i = 0 ; i < tris.size() ;  i++)
 		ret.insert(ret.end(), tris[i].begin(), tris[i].end());
 	
-	return tris ;
+	return ret ;
 }
 
 void ParallelDelaunayTree::setElementOrder(Order o, double dt )

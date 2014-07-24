@@ -372,7 +372,7 @@ public:
 	
 	std::vector<DelaunayTreeItem3D *> tree ;
 public:
-	const size_t & getLastNodeId() const {return global_counter ;}  ;
+	size_t getLastNodeId() const {return global_counter ;}  ;
 	std::vector<DelaunayDemiSpace *> space ;
 	
 	DelaunayTree3D ( Point * p0,  Point *p1,  Point *p2, Point *p3) ;
