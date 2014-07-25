@@ -253,14 +253,14 @@ void DelaunayTree3D::extrude(const Vector & dt)
 	std::map<Point *, std::vector<Point *> >::iterator finder ;
 	
 	std::vector<DelaunayTetrahedron *> tri = getTetrahedrons() ;
-	double beginning = tri[0]->getBoundingPoint(0).t ;
-	double end = tri[0]->getBoundingPoint(0).t ;
+	double beginning = tri[0]->getBoundingPoint(0).getT() ;
+	double end = tri[0]->getBoundingPoint(0).getT() ;
 	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
 	{
-		if(tri[0]->getBoundingPoint(i).t < beginning)
-			beginning = tri[0]->getBoundingPoint(i).t ;
-		if(tri[0]->getBoundingPoint(i).t > end)
-			end = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).getT() < beginning)
+			beginning = tri[0]->getBoundingPoint(i).getT() ;
+		if(tri[0]->getBoundingPoint(i).getT() > end)
+			end = tri[0]->getBoundingPoint(i).getT() ;
 	}
 	
 	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
@@ -271,7 +271,7 @@ void DelaunayTree3D::extrude(const Vector & dt)
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 		{
 			Point * current = &tri[i]->getBoundingPoint(j) ;
-			current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+			current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 //			tri[i]->setBoundingPoint(j, current) ;
 		}
 	}
@@ -286,7 +286,7 @@ void DelaunayTree3D::extrude(const Vector & dt)
 			if(finder == points.end())
 			{
 				Point * current = &tri[i]->getBoundingPoint(j) ;
-				current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+				current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 					
 				std::vector<Point *> newPoints ;
 				if( j < indexOfLastTimePlane)
@@ -298,9 +298,9 @@ void DelaunayTree3D::extrude(const Vector & dt)
 					size_t ifirst = newPoints.size() ;
 					for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
 					{
-						Point * next = new Point(current->x, current->y) ;
-						next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
-						next->id = (global_counter++) ;
+						Point * next = new Point(current->getX(), current->getY()) ;
+						next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+						next->setId(global_counter++) ;
 						newPoints.push_back(next) ;
 					}
 				}
@@ -311,10 +311,10 @@ void DelaunayTree3D::extrude(const Vector & dt)
 					std::vector<Point *> previousPoints = points.find(previous)->second ;
 					for(size_t k = 1 ; k < previousPoints.size() ; k++)
 						newPoints.push_back(previousPoints[k]) ;
-					Point * next = new Point(current->x, current->y) ;
+					Point * next = new Point(current->getX(), current->getY()) ;
 					size_t k = dt.size()-2 ;
-					next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
-					next->id = (global_counter++) ;
+					next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+					next->setId(global_counter++) ;
 					newPoints.push_back(next) ;					
 				}
 				
@@ -449,8 +449,8 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 
 				if( time_planes > 1 )
 				{
-					a.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
-					b.t = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+					a.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+					b.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
 				}
 
 				for( size_t node = 0 ; node < nodes_per_side + 2 ; node++ )
@@ -503,7 +503,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 						{
 							additionalPoints.push_back( new Point( proto ) ) ;
 							newPoints[positions[current] + plane * nodes_per_plane]  = additionalPoints.back() ;
-							newPoints[positions[current] + plane * nodes_per_plane]->id = global_counter++ ;
+							newPoints[positions[current] + plane * nodes_per_plane]->getId() = global_counter++ ;
 						}
 
 						done[positions[current] + plane * nodes_per_plane] = true ;
@@ -1287,7 +1287,7 @@ bool DelaunayDemiSpace::isVertex( const Point *p ) const
 
 bool DelaunayTetrahedron::isVertexByID( const Point *p ) const
 {
-	return ( p->id == first->id || p->id == second->id || p->id == third->id || p->id == fourth->id ) ;
+	return ( p->getId() == first->getId() || p->getId() == second->getId() || p->getId() == third->getId() || p->getId() == fourth->getId() ) ;
 }
 
 
@@ -1295,7 +1295,7 @@ bool DelaunayTetrahedron::hasVertexByID( const std::valarray<Point *> * p ) cons
 {
 	for( size_t i = 0 ; i < p->size() ; i++ )
 	{
-		if( ( *p )[i]->id == first->id || ( *p )[i]->id == second->id || ( *p )[i]->id == third->id || ( *p )[i]->id == fourth->id )
+		if( ( *p )[i]->getId() == first->getId() || ( *p )[i]->getId() == second->getId() || ( *p )[i]->getId() == third->getId() || ( *p )[i]->getId() == fourth->getId() )
 			return true ;
 	}
 
@@ -1476,57 +1476,57 @@ std::vector< Point *> DelaunayDeadTetrahedron::commonSurface( DelaunayTreeItem3D
 bool DelaunayDeadTetrahedron::inCircumSphere( const Point &p ) const
 {
 	
-	if( p.x > center.x + 1.001 * radius )
+	if( p.getX() > center.getX() + 1.001 * radius )
 		return false ;
 
-	if( p.x < center.x - 1.001 * radius )
+	if( p.getX() < center.getX() - 1.001 * radius )
 		return false ;
 
-	if( p.y > center.y + 1.001 * radius )
+	if( p.getY() > center.getY() + 1.001 * radius )
 		return false ;
 
-	if( p.y < center.y - 1.001 * radius )
+	if( p.getY() < center.getY() - 1.001 * radius )
 		return false ;
 
-	if( p.z > center.z + 1.001 * radius )
+	if( p.getZ() > center.getZ() + 1.001 * radius )
 		return false ;
 
-	if( p.z < center.z - 1.001 * radius )
+	if( p.getZ() < center.getZ() - 1.001 * radius )
 		return false ;
 
 	Point pr = p*tree->getInternalScale()  ;
 	double d = sqrt( 
-	( center.x*tree->getInternalScale()  - pr.x ) * ( center.x*tree->getInternalScale() - pr.x ) + 
-	( center.y*tree->getInternalScale()  - pr.y ) * ( center.y*tree->getInternalScale() - pr.y ) + 
-	( center.z*tree->getInternalScale()  - pr.z ) * ( center.z*tree->getInternalScale() - pr.z ) ) ;
+	( center.getX()*tree->getInternalScale()  - pr.getX() ) * ( center.getX()*tree->getInternalScale() - pr.getX() ) + 
+	( center.getY()*tree->getInternalScale()  - pr.getY() ) * ( center.getY()*tree->getInternalScale() - pr.getY() ) + 
+	( center.getZ()*tree->getInternalScale()  - pr.getZ() ) * ( center.getZ()*tree->getInternalScale() - pr.getZ() ) ) ;
 	return  d - radius*tree->getInternalScale()  < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
 bool DelaunayDeadTetrahedron::onCircumSphere( const Point &p ) const
 {
-	if( p.x > center.x + 1.001 * radius )
+	if( p.getX() > center.getX() + 1.001 * radius )
 		return false ;
 
-	if( p.x < center.x - 1.001 * radius )
+	if( p.getX() < center.getX() - 1.001 * radius )
 		return false ;
 
-	if( p.y > center.y + 1.001 * radius )
+	if( p.getY() > center.getY() + 1.001 * radius )
 		return false ;
 
-	if( p.y < center.y - 1.001 * radius )
+	if( p.getY() < center.getY() - 1.001 * radius )
 		return false ;
 
-	if( p.z > center.z + 1.001 * radius )
+	if( p.getZ() > center.getZ() + 1.001 * radius )
 		return false ;
 
-	if( p.z < center.z - 1.001 * radius )
+	if( p.getZ() < center.getZ() - 1.001 * radius )
 		return false ;
 
 	Point pr = p*tree->getInternalScale()  ;
 	double d = sqrt( 
-	( center.x*tree->getInternalScale()  - pr.x ) * ( center.x*tree->getInternalScale() - pr.x ) + 
-	( center.y*tree->getInternalScale()  - pr.y ) * ( center.y*tree->getInternalScale() - pr.y ) + 
-	( center.z*tree->getInternalScale()  - pr.z ) * ( center.z*tree->getInternalScale() - pr.z ) ) ;
+	( center.getX()*tree->getInternalScale()  - pr.getX() ) * ( center.getX()*tree->getInternalScale() - pr.getX() ) + 
+	( center.getY()*tree->getInternalScale()  - pr.getY() ) * ( center.getY()*tree->getInternalScale() - pr.getY() ) + 
+	( center.getZ()*tree->getInternalScale()  - pr.getZ() ) * ( center.getZ()*tree->getInternalScale() - pr.getZ() ) ) ;
 	return  std::abs( d - radius*tree->getInternalScale()  ) < POINT_TOLERANCE_3D * radius*tree->getInternalScale()  ;
 }
 
@@ -1575,10 +1575,10 @@ bool DelaunayTetrahedron::normalisedIn( const Point &p ) const
 void DelaunayDeadTetrahedron::print() const
 {
 
-	std::cout << "(" << first->x << ", " << first->y << ", " << first->z << ") " ;
-	std::cout << "(" << second->x << ", " << second->y << ", " << second->z << ") " ;
-	std::cout << "(" << third->x << ", " << third->y << ", " << third->z << ") " ;
-	std::cout << "(" << fourth->x << ", " << fourth->y << ", " << fourth->z << ") " ;
+	std::cout << "(" << first->getX() << ", " << first->getY() << ", " << first->getZ() << ") " ;
+	std::cout << "(" << second->getX() << ", " << second->getY() << ", " << second->getZ() << ") " ;
+	std::cout << "(" << third->getX() << ", " << third->getY() << ", " << third->getZ() << ") " ;
+	std::cout << "(" << fourth->getX() << ", " << fourth->getY() << ", " << fourth->getZ() << ") " ;
 	std::cout <<  ":: " << isAlive() << std::endl ;
 }
 
@@ -1775,22 +1775,22 @@ void DelaunayDemiSpace::merge( DelaunayDemiSpace *p )
 
 bool DelaunayTetrahedron::inCircumSphere( const Point &p ) const
 {
-	if( p.x > circumCenter.x + 1.001 * radius )
+	if( p.getX() > circumCenter.getX() + 1.001 * radius )
 		return false ;
 
-	if( p.x < circumCenter.x - 1.001 * radius )
+	if( p.getX() < circumCenter.getX() - 1.001 * radius )
 		return false ;
 
-	if( p.y > circumCenter.y + 1.001 * radius )
+	if( p.getY() > circumCenter.getY() + 1.001 * radius )
 		return false ;
 
-	if( p.y < circumCenter.y - 1.001 * radius )
+	if( p.getY() < circumCenter.getY() - 1.001 * radius )
 		return false ;
 
-	if( p.z > circumCenter.z + 1.001 * radius )
+	if( p.getZ() > circumCenter.getZ() + 1.001 * radius )
 		return false ;
 
-	if( p.z < circumCenter.z - 1.001 * radius )
+	if( p.getZ() < circumCenter.getZ() - 1.001 * radius )
 		return false ;
 
 	double d = dist( circumCenter*tree->getInternalScale(), p*tree->getInternalScale() ) ;
@@ -1799,22 +1799,22 @@ bool DelaunayTetrahedron::inCircumSphere( const Point &p ) const
 
 bool DelaunayTetrahedron::onCircumSphere( const Point &p ) const
 {
-	if( p.x > circumCenter.x + 1.001 * radius )
+	if( p.getX() > circumCenter.getX() + 1.001 * radius )
 		return false ;
 
-	if( p.x < circumCenter.x - 1.001 * radius )
+	if( p.getX() < circumCenter.getX() - 1.001 * radius )
 		return false ;
 
-	if( p.y > circumCenter.y + 1.001 * radius )
+	if( p.getY() > circumCenter.getY() + 1.001 * radius )
 		return false ;
 
-	if( p.y < circumCenter.y - 1.001 * radius )
+	if( p.getY() < circumCenter.getY() - 1.001 * radius )
 		return false ;
 
-	if( p.z > circumCenter.z + 1.001 * radius )
+	if( p.getZ() > circumCenter.getZ() + 1.001 * radius )
 		return false ;
 
-	if( p.z < circumCenter.z - 1.001 * radius )
+	if( p.getZ() < circumCenter.getZ() - 1.001 * radius )
 		return false ;
 
 	double d = dist( circumCenter*tree->getInternalScale(), p*tree->getInternalScale() ) ;
@@ -1921,17 +1921,17 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point
 void DelaunayTetrahedron::print() const
 {
 
-	std::cout << "(" << first->x << ", " << first->y << ", " << first->z << ", " << first->id << ") " ;
-	std::cout << "(" << second->x << ", " << second->y << ", " << second->z << ", " << second->id << ") " ;
-	std::cout << "(" << third->x << ", " << third->y << ", " << third->z << ", " << third->id << ") " ;
-	std::cout << "(" << fourth->x << ", " << fourth->y << ", " << fourth->z << ", " << fourth->id << ") " ;
+	std::cout << "(" << first->getX() << ", " << first->getY() << ", " << first->getZ() << ", " << first->getId() << ") " ;
+	std::cout << "(" << second->getX() << ", " << second->getY() << ", " << second->getZ() << ", " << second->getId() << ") " ;
+	std::cout << "(" << third->getX() << ", " << third->getY() << ", " << third->getZ() << ", " << third->getId() << ") " ;
+	std::cout << "(" << fourth->getX() << ", " << fourth->getY() << ", " << fourth->getZ() << ", " << fourth->getId() << ") " ;
 	std::cout <<  ":: " << isAlive() << std::endl ;
 }
 
 // void DelaunayTetrahedron::displace(std::valarray<double> * eps)
 // {
-// 	(*eps)[first->id*2]+=(*eps)[first->id*2] ;
-// 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
+// 	(*eps)[first->getId()*2]+=(*eps)[first->getId()*2] ;
+// 	(*eps)[first->getId()*2+1]+=(*eps)[first->getId()*2+1] ;
 // }
 
 DelaunayDemiSpace::DelaunayDemiSpace( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t, DelaunayTreeItem3D *father,  Point   *_one,  Point   *_two, Point   *_three, Point   *p,  Point *c ) : DelaunayTreeItem3D( t, father, c )
@@ -1959,30 +1959,30 @@ DelaunayDemiSpace::DelaunayDemiSpace( Mesh<DelaunayTetrahedron, DelaunayTreeItem
 
 bool DelaunayDemiSpace::inCircumSphere( const Point &p ) const
 {
-	double planeConst = first->x * tree->getInternalScale() * pseudonormal.x + 
-	                    first->y * tree->getInternalScale() * pseudonormal.y + 
-	                    first->z * tree->getInternalScale() * pseudonormal.z ;
-	double signedDistP = p.x * tree->getInternalScale() * pseudonormal.x + 
-	                     p.y * tree->getInternalScale() * pseudonormal.y + 
-	                     p.z * tree->getInternalScale() * pseudonormal.z - planeConst;
-	double signedDistF = fourth->x * tree->getInternalScale() * pseudonormal.x + 
-	                     fourth->y * tree->getInternalScale()* pseudonormal.y + 
-	                     fourth->z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	double planeConst = first->getX() * tree->getInternalScale() * pseudonormal.getX() + 
+	                    first->getY() * tree->getInternalScale() * pseudonormal.getY() + 
+	                    first->getZ() * tree->getInternalScale() * pseudonormal.getZ() ;
+	double signedDistP = p.getX() * tree->getInternalScale() * pseudonormal.getX() + 
+	                     p.getY() * tree->getInternalScale() * pseudonormal.getY() + 
+	                     p.getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
+	double signedDistF = fourth->getX() * tree->getInternalScale() * pseudonormal.getX() + 
+	                     fourth->getY() * tree->getInternalScale()* pseudonormal.getY() + 
+	                     fourth->getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
 	return signedDistF * signedDistP < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D || isCoplanar( &p, first, second, third,tree->getInternalScale() );
 
 }
 
 bool DelaunayDemiSpace::onCircumSphere( const Point &p ) const
 {
-	double planeConst = first->x*tree->getInternalScale() * pseudonormal.x + 
-	                    first->y*tree->getInternalScale() * pseudonormal.y + 
-	                    first->z*tree->getInternalScale() * pseudonormal.z ;
-	double signedDistP = p.x * pseudonormal.x * tree->getInternalScale() + 
-	                     p.y * tree->getInternalScale() * pseudonormal.y + 
-	                     p.z * tree->getInternalScale() * pseudonormal.z - planeConst;
-	double signedDistF = fourth->x * tree->getInternalScale() * pseudonormal.x + 
-	                     fourth->y * tree->getInternalScale() * pseudonormal.y + 
-	                     fourth->z * tree->getInternalScale() * pseudonormal.z - planeConst;
+	double planeConst = first->getX()*tree->getInternalScale() * pseudonormal.getX() + 
+	                    first->getY()*tree->getInternalScale() * pseudonormal.getY() + 
+	                    first->getZ()*tree->getInternalScale() * pseudonormal.getZ() ;
+	double signedDistP = p.getX() * pseudonormal.getX() * tree->getInternalScale() + 
+	                     p.getY() * tree->getInternalScale() * pseudonormal.getY() + 
+	                     p.getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
+	double signedDistF = fourth->getX() * tree->getInternalScale() * pseudonormal.getX() + 
+	                     fourth->getY() * tree->getInternalScale() * pseudonormal.getY() + 
+	                     fourth->getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
 	return std::abs( signedDistP ) < POINT_TOLERANCE_3D*tree->getInternalScale() ;
 
 }
@@ -2057,9 +2057,9 @@ void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *
 
 void DelaunayDemiSpace::print() const
 {
-	std::cout << "###############(" << first->x << ", " << first->y << ", " << first->z << ") (" <<
-	          second->x << ", " << second->y << ", " << second->z << ") (" <<
-	          third->x << ", " << third->y << ", " << third->z << ")" << "X (" << fourth->x << ", " << fourth->y << ", " << fourth->z << ") :: " << isAlive()  << std::endl ;
+	std::cout << "###############(" << first->getX() << ", " << first->getY() << ", " << first->getZ() << ") (" <<
+	          second->getX() << ", " << second->getY() << ", " << second->getZ() << ") (" <<
+	          third->getX() << ", " << third->getY() << ", " << third->getZ() << ")" << "X (" << fourth->getX() << ", " << fourth->getY() << ", " << fourth->getZ() << ") :: " << isAlive()  << std::endl ;
 }
 
 void makeNeighbours( DelaunayTreeItem3D *t0, DelaunayTreeItem3D *t1 )
@@ -2292,10 +2292,10 @@ DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 	
 	internalScale = 400000000./maxDist ;
 	
-	p0->id = 0 ;
-	p1->id = 1 ;
-	p2->id = 2 ;
-	p3->id = 3;
+	p0->setId(0)  ;
+	p1->setId(1)  ;
+	p2->setId(2)  ;
+	p3->setId(3) ;
 	
 // 	*p0 *= internalScale ;
 // 	*p1 *= internalScale ;
@@ -2342,7 +2342,7 @@ DelaunayTree3D::~DelaunayTree3D()
 void DelaunayTree3D::addElements(std::vector<DelaunayTreeItem3D *> & cons, Point * p)
 {
 	
-	p->id = this->global_counter ;
+	p->getId() = this->global_counter ;
 
 	this->global_counter++ ;
 
@@ -3076,14 +3076,14 @@ void DelaunayTree3D::extrude(double dt)
 	std::map<Point *, Point *> points ;
 	
 	std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
-	double beginning = tet[0]->getBoundingPoint(0).t ;
-	double end = tet[0]->getBoundingPoint(0).t ;
+	double beginning = tet[0]->getBoundingPoint(0).getT() ;
+	double end = tet[0]->getBoundingPoint(0).getT() ;
 	for(size_t i = 1 ; i < tet[0]->getBoundingPoints().size() ; i++)
 	{
-		if(tet[0]->getBoundingPoint(i).t < beginning)
-			beginning = tet[0]->getBoundingPoint(i).t ;
-		if(tet[0]->getBoundingPoint(i).t > end)
-			end = tet[0]->getBoundingPoint(i).t ;
+		if(tet[0]->getBoundingPoint(i).getT() < beginning)
+			beginning = tet[0]->getBoundingPoint(i).getT() ;
+		if(tet[0]->getBoundingPoint(i).getT() > end)
+			end = tet[0]->getBoundingPoint(i).getT() ;
 	}
 	
 	int indexOfLastTimePlane = (tet[0]->timePlanes()-1)*tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
@@ -3093,18 +3093,18 @@ void DelaunayTree3D::extrude(double dt)
 	{
 		for(size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++)
 		{
-			Point * next = new Point(tet[i]->getBoundingPoint(j).x, tet[i]->getBoundingPoint(j).y, tet[i]->getBoundingPoint(j).z) ;
-			next->t = tet[i]->getBoundingPoint(j).t ;
-			next->t = end + dt * (next->t - beginning) / (end - beginning) ;
+			Point * next = new Point(tet[i]->getBoundingPoint(j).getX(), tet[i]->getBoundingPoint(j).getY(), tet[i]->getBoundingPoint(j).getZ()) ;
+			next->getT() = tet[i]->getBoundingPoint(j).getT() ;
+			next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
 			bool increment = true ;
-			if(next->t == end)
+			if(next->getT() == end)
 			{			
 				next = &tet[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
 				increment = false ;
 			}
 			if(increment && !points.find(&tet[i]->getBoundingPoint(j))->second)
 			{
-				next->id = (global_counter++) ;
+				next->setId(global_counter++) ;
 			}
 			points.insert(std::pair<Point *, Point *>(&tet[i]->getBoundingPoint(j), next)) ;
 		}
@@ -3404,7 +3404,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 	if( getEnrichmentFunctions().size() > 0  )
 	{
-		if( getCachedGaussPoints()->id == REGULAR_GRID )
+		if( getCachedGaussPoints()->getId() == REGULAR_GRID )
 			return *getCachedGaussPoints() ;
 
 		std::vector<std::pair<Point, double> > gp_alternative ;
@@ -3492,7 +3492,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 				std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
 			}
 
-			gp.id = REGULAR_GRID ;
+			gp.getId() = REGULAR_GRID ;
 			setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 			return *getCachedGaussPoints() ;
 		}
@@ -3650,7 +3650,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 		{
 			gp.gaussPoints.resize( gp_alternative.size() ) ;
 			std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
-			gp.id = -1 ;
+			gp.getId() = -1 ;
 		}
 	}
 //	std::cout << "." << std::flush ;

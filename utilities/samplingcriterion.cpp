@@ -47,23 +47,23 @@ MinimumAngle::~MinimumAngle()
 	
 bool MinimumAngle::meetsCriterion(const DelaunayTriangle * t)  
 {
-	Point v0 = Point(t->second->x - t->first->x, t->second->y - t->first->y) ;
-	Point v1 = Point(t->third->x - t->second->x, t->third->y - t->second->y) ;
-	Point v2 = Point(t->first->x - t->third->x, t->first->y - t->third->y) ;
+	Point v0 = Point(t->second->getX() - t->first->getX(), t->second->getY() - t->first->getY()) ;
+	Point v1 = Point(t->third->getX() - t->second->getX(), t->third->getY() - t->second->getY()) ;
+	Point v2 = Point(t->first->getX() - t->third->getX(), t->first->getY() - t->third->getY()) ;
 	std::vector<double> ang;
 	ang.push_back(
 	               asin(
-	                     ( v0.x*v1.y - v0.y*v1.x )/( v0.norm()*v1.norm() )
+	                     ( v0.getX()*v1.getY() - v0.getY()*v1.getX() )/( v0.norm()*v1.norm() )
 	                   )
 	             ) ;
 	ang.push_back(
 	               asin(
-	                     ( v1.x*v2.y - v1.y*v2.x )/( v1.norm()*v2.norm() )
+	                     ( v1.getX()*v2.getY() - v1.getY()*v2.getX() )/( v1.norm()*v2.norm() )
 	                   )
 	             ) ;
 	ang.push_back(
 	               asin(
-	                     ( v2.x*v0.y - v2.y*v0.x )/( v2.norm()*v0.norm() )
+	                     ( v2.getX()*v0.getY() - v2.getY()*v0.getX() )/( v2.norm()*v0.norm() )
 	                   )
 	             ) ;
 	
@@ -143,17 +143,17 @@ std::vector<Point> MinimumAngle::suggest(const DelaunayTriangle * t) const
 // 	
 // 	Point center;
 // 	
-// 	double xmin = center.x;
-// 	double xmax = center.x;
-// 	double ymin = center.y;
-// 	double ymax = center.y;
+// 	double xmin = center.getX();
+// 	double xmax = center.getX();
+// 	double ymin = center.getY();
+// 	double ymax = center.getY();
 // 	for(size_t i = 0 ; i < points.size() ; i++)
 // 	{
 // 		center+= *points[i]/points.size() ;
-// 		xmin = std::min(xmin, points[i]->x) ;
-// 		xmax = std::max(xmax, points[i]->x) ;
-// 		ymin = std::min(ymin, points[i]->y) ;
-// 		ymax = std::max(ymax, points[i]->y) ;
+// 		xmin = std::min(xmin, points[i]->getX()) ;
+// 		xmax = std::max(xmax, points[i]->getX()) ;
+// 		ymin = std::min(ymin, points[i]->getY()) ;
+// 		ymax = std::max(ymax, points[i]->getY()) ;
 // 	}
 // 	
 // 	double radiusx = xmax-xmin ;
@@ -238,21 +238,21 @@ std::vector<Point> MinimumAngle::suggest(const DelaunayTriangle * t) const
 // 		{
 // 			newPoints[j]+=speed[j] ;
 // 			
-// 			while(newPoints[j].x >= xmax )
+// 			while(newPoints[j].getX() >= xmax )
 // 			{
-// 				newPoints[j].x -= radiusx ;
+// 				newPoints[j].getX() -= radiusx ;
 // 			}
-// 			while(newPoints[j].x <= xmin)
+// 			while(newPoints[j].getX() <= xmin)
 // 			{
-// 				newPoints[j].x += radiusx ;
+// 				newPoints[j].getX() += radiusx ;
 // 			}
-// 			while(newPoints[j].y >= ymax)
+// 			while(newPoints[j].getY() >= ymax)
 // 			{
-// 				newPoints[j].y -= radiusy ;
+// 				newPoints[j].getY() -= radiusy ;
 // 			}
-// 			while(newPoints[j].y <= ymin)
+// 			while(newPoints[j].getY() <= ymin)
 // 			{
-// 				newPoints[j].y += radiusy ;
+// 				newPoints[j].getY() += radiusy ;
 // 			}
 // 		}
 // 		
@@ -292,9 +292,9 @@ MaximumLength::~MaximumLength()
 	
 bool MaximumLength::meetsCriterion(const DelaunayTriangle * t) 
 {
-	Point v0 = Point(t->second->x - t->first->x, t->second->y - t->first->y) ;
-	Point v1 = Point(t->third->x - t->second->x, t->third->y - t->second->y) ;
-	Point v2 = Point(t->first->x - t->third->x, t->first->y - t->third->y) ;
+	Point v0 = Point(t->second->getX() - t->first->getX(), t->second->getY() - t->first->getY()) ;
+	Point v1 = Point(t->third->getX() - t->second->getX(), t->third->getY() - t->second->getY()) ;
+	Point v2 = Point(t->first->getX() - t->third->getX(), t->first->getY() - t->third->getY()) ;
 	
 	std::vector<double> len;
 	len.push_back(v0.norm()) ;

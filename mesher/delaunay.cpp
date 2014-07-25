@@ -378,8 +378,8 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 				
 				if(time_planes> 1)
 				{
-					a.t = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
-					b.t = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
+					a.getT() = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
+					b.getT() = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
 				}
 				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
@@ -428,7 +428,7 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 						{
 							additionalPoints.push_back(new Point(proto) ) ;
 							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = additionalPoints.back();
-							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
 						}
 						
 						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
@@ -465,14 +465,14 @@ void DelaunayTree::extrude(double dt)
 	std::map<Point *, Point *> points ;
 	
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
-	double beginning = tri[0]->getBoundingPoint(0).t ;
-	double end = tri[0]->getBoundingPoint(0).t ;
+	double beginning = tri[0]->getBoundingPoint(0).getT() ;
+	double end = tri[0]->getBoundingPoint(0).getT() ;
 	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
 	{
-		if(tri[0]->getBoundingPoint(i).t < beginning)
-			beginning = tri[0]->getBoundingPoint(i).t ;
-		if(tri[0]->getBoundingPoint(i).t > end)
-			end = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).getT() < beginning)
+			beginning = tri[0]->getBoundingPoint(i).getT() ;
+		if(tri[0]->getBoundingPoint(i).getT() > end)
+			end = tri[0]->getBoundingPoint(i).getT() ;
 	}
 	
 	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
@@ -482,12 +482,12 @@ void DelaunayTree::extrude(double dt)
 	{
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 		{
-			Point * next = new Point(tri[i]->getBoundingPoint(j).x, tri[i]->getBoundingPoint(j).y) ;
+			Point * next = new Point(tri[i]->getBoundingPoint(j).getX(), tri[i]->getBoundingPoint(j).getY()) ;
 			additionalPoints.push_back(next);
-			next->t = tri[i]->getBoundingPoint(j).t ;
-			next->t = end + dt * (next->t - beginning) / (end - beginning) ;
+			next->getT() = tri[i]->getBoundingPoint(j).getT() ;
+			next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
 			bool increment = true ;
-			if(next->t == end)
+			if(next->getT() == end)
 			{			
 				next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
 				increment = false ;
@@ -495,7 +495,7 @@ void DelaunayTree::extrude(double dt)
 			}
 			if(increment && !points.find(&tri[i]->getBoundingPoint(j))->second)
 			{
-				next->id = (global_counter++) ;
+				next->setId(global_counter++) ;
 			}
 			points.insert(std::pair<Point *, Point *>(&tri[i]->getBoundingPoint(j), next)) ;
 		}
@@ -530,14 +530,14 @@ void DelaunayTree::extrude(const Vector & dt)
 	std::map<Point *, std::vector<Point *> >::iterator finder ;
 	
 	std::vector<DelaunayTriangle *> tri = getTriangles() ;
-	double beginning = tri[0]->getBoundingPoint(0).t ;
-	double end = tri[0]->getBoundingPoint(0).t ;
+	double beginning = tri[0]->getBoundingPoint(0).getT() ;
+	double end = tri[0]->getBoundingPoint(0).getT() ;
 	for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
 	{
-		if(tri[0]->getBoundingPoint(i).t < beginning)
-			beginning = tri[0]->getBoundingPoint(i).t ;
-		if(tri[0]->getBoundingPoint(i).t > end)
-			end = tri[0]->getBoundingPoint(i).t ;
+		if(tri[0]->getBoundingPoint(i).getT() < beginning)
+			beginning = tri[0]->getBoundingPoint(i).getT() ;
+		if(tri[0]->getBoundingPoint(i).getT() > end)
+			end = tri[0]->getBoundingPoint(i).getT() ;
 	}
 	
 	int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
@@ -548,7 +548,7 @@ void DelaunayTree::extrude(const Vector & dt)
 		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
 		{
 			Point * current = &tri[i]->getBoundingPoint(j) ;
-			current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+			current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 //			tri[i]->setBoundingPoint(j, current) ;
 		}
 	}
@@ -563,7 +563,7 @@ void DelaunayTree::extrude(const Vector & dt)
 			if(finder == points.end())
 			{
 				Point * current = &tri[i]->getBoundingPoint(j) ;
-				current->t = dt[0]+(dt[1]-dt[0])*(current->t - beginning)/(end-beginning) ;
+				current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 					
 				std::vector<Point *> newPoints ;
 				if( j < indexOfLastTimePlane)
@@ -575,10 +575,10 @@ void DelaunayTree::extrude(const Vector & dt)
 					size_t ifirst = newPoints.size() ;
 					for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
 					{
-						Point * next = new Point(current->x, current->y) ;
+						Point * next = new Point(current->getX(), current->getY()) ;
 						additionalPoints.push_back(next);
-						next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
-						next->id = (global_counter++) ;
+						next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+						next->setId(global_counter++) ;
 						newPoints.push_back(next) ;
 					}
 				}
@@ -589,10 +589,10 @@ void DelaunayTree::extrude(const Vector & dt)
 					std::vector<Point *> previousPoints = points.find(previous)->second ;
 					for(size_t k = 1 ; k < previousPoints.size() ; k++)
 						newPoints.push_back(previousPoints[k]) ;
-					Point * next = new Point(current->x, current->y) ;
+					Point * next = new Point(current->getX(), current->getY()) ;
 					size_t k = dt.size()-2 ;
-					next->t = dt[k]+(dt[k+1]-dt[k])*(current->t-beginning)/(end-beginning) ;
-					next->id = (global_counter++) ;
+					next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+					next->setId(global_counter++) ;
 					newPoints.push_back(next) ;					
 				}
 				
@@ -1180,9 +1180,9 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
 	
 	isPlane = false ;
 	isTriangle = true ;
-	assert(first->id > -1) ;
-	assert(second->id > -1) ;
-	assert(third->id > -1) ;
+	assert(first->getId() > -1) ;
+	assert(second->getId() > -1) ;
+	assert(third->getId() > -1) ;
 }
 
 DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(nullptr, nullptr, nullptr), TriElement(), neighbourhood(0)
@@ -1238,13 +1238,13 @@ const Point * DelaunayDeadTriangle::getCircumCenter() const
 
 bool DelaunayDeadTriangle::onCircumCircle(const Point & p) const
 {
-	if(p.x > center.x+1.01*radius)
+	if(p.getX() > center.getX()+1.01*radius)
 		return false ;
-	if(p.x < center.x-1.01*radius)
+	if(p.getX() < center.getX()-1.01*radius)
 		return false ;
-	if(p.y > center.y+1.01*radius)
+	if(p.getY() > center.getY()+1.01*radius)
 		return false ;
-	if(p.y < center.y-1.01*radius)
+	if(p.getY() < center.getY()-1.01*radius)
 		return false ;
 
 	double d = squareDist2D(center, p) ;
@@ -1255,13 +1255,13 @@ bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
 {
 
 
-	if(p.x > center.x+1.01*radius)
+	if(p.getX() > center.getX()+1.01*radius)
 		return false ;
-	if(p.x < center.x-1.01*radius)
+	if(p.getX() < center.getX()-1.01*radius)
 		return false ;
-	if(p.y > center.y+1.01*radius)
+	if(p.getY() > center.getY()+1.01*radius)
 		return false ;
-	if(p.y < center.y-1.01*radius)
+	if(p.getY() < center.getY()-1.01*radius)
 		return false ;
 
 
@@ -1294,9 +1294,9 @@ bool DelaunayDeadTriangle::in( const Point & p) const
 void DelaunayDeadTriangle::print() const
 {
 
-	std::cout << "(" << first->x << ", " << first->y <<  ") " ;
-	std::cout << "(" << second->x << ", " << second->y <<  ") " ;
-	std::cout << "(" << third->x << ", " << third->y <<  ") " ;
+	std::cout << "(" << first->getX() << ", " << first->getY() <<  ") " ;
+	std::cout << "(" << second->getX() << ", " << second->getY() <<  ") " ;
+	std::cout << "(" << third->getX() << ", " << third->getY() <<  ") " ;
 	std::cout <<  ":: "<< isAlive() << std::endl ;
 }
 	
@@ -1369,7 +1369,7 @@ inline bool DelaunayTriangle::hasVertexByID(const std::valarray<Point *> * p) co
 {
 	for(size_t i = 0 ; i < p->size() ; i++)
 	{
-		if((*p)[i]->id == first->id || (*p)[i]->id == second->id || (*p)[i]->id == third->id)
+		if((*p)[i]->getId() == first->getId() || (*p)[i]->getId() == second->getId() || (*p)[i]->getId() == third->getId())
 			return true ;
 	}
 	return false ;
@@ -1546,13 +1546,13 @@ std::pair< Point*,  Point*> DelaunayTriangle::nearestEdge(const Point & p) const
 
 bool DelaunayTriangle::inCircumCircle(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.getX() > circumCenter.getX()+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.getX() < circumCenter.getX()-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.getY() > circumCenter.getY()+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.getY() < circumCenter.getY()-1.0001*radius)
 		return false ;
 	
 	double d = dist(circumCenter, p) ;
@@ -1561,13 +1561,13 @@ bool DelaunayTriangle::inCircumCircle(const Point &p) const
 
 bool DelaunayTriangle::onCircumCircle(const Point &p) const 
 {
-	if(p.x > circumCenter.x+1.0001*radius)
+	if(p.getX() > circumCenter.getX()+1.0001*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.0001*radius)
+	if(p.getX() < circumCenter.getX()-1.0001*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.0001*radius)
+	if(p.getY() > circumCenter.getY()+1.0001*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.0001*radius)
+	if(p.getY() < circumCenter.getY()-1.0001*radius)
 		return false ;
 	
 	double d = dist(getCircumCenter(), p) ;
@@ -1617,7 +1617,7 @@ void DelaunayTriangle::print() const
 {
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		std::cout << "(" << getBoundingPoint(i).x <<  ";" << getBoundingPoint(i).y <<") " ;
+		std::cout << "(" << getBoundingPoint(i).getX() <<  ";" << getBoundingPoint(i).getY() <<") " ;
 	}
 	std::cout <<  ":: "<< isAlive() << std::endl ;
 }
@@ -1625,8 +1625,8 @@ void DelaunayTriangle::print() const
 
 // void DelaunayTriangle::displace(Vector * eps)
 // {
-// 	(*eps)[first->id*2]+=(*eps)[first->id*2] ;
-// 	(*eps)[first->id*2+1]+=(*eps)[first->id*2+1] ;
+// 	(*eps)[first->getId()*2]+=(*eps)[first->getId()*2] ;
+// 	(*eps)[first->getId()*2+1]+=(*eps)[first->getId()*2+1] ;
 // }
 
 DelaunayDemiPlane::DelaunayDemiPlane(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point  * _begin,  Point  * _end,  Point  * p,  Point * c) : DelaunayTreeItem(t, father, c)
@@ -1637,7 +1637,7 @@ DelaunayDemiPlane::DelaunayDemiPlane(Mesh<DelaunayTriangle, DelaunayTreeItem> *t
 	dead = false ;
 	vector =(*second)- (*first) ;
 	Point pseudonormal = (*third) - (*first);
-	direction = (vector.x*pseudonormal.y - vector.y*pseudonormal.x) ;
+	direction = (vector.getX()*pseudonormal.getY() - vector.getY()*pseudonormal.getX()) ;
 	isPlane =true ;
 	isTriangle = false ;
 }
@@ -1649,12 +1649,12 @@ std::pair< Point*,  Point*> DelaunayDemiPlane::nearestEdge(const Point & p) cons
 	
 bool DelaunayDemiPlane::inCircumCircle(const Point &p) const
 {
-	return fma(vector.x,(p.y - first->y), - vector.y*(p.x - first->x)) * direction < -POINT_TOLERANCE_2D ;
+	return fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction < -POINT_TOLERANCE_2D ;
 }
 
 bool DelaunayDemiPlane::onCircumCircle(const Point &p) const
 {
-	return std::abs(fma(vector.x,(p.y - first->y), - vector.y*(p.x - first->x)) * direction) < POINT_TOLERANCE_2D || isAligned(p, *first, *second);
+	return std::abs(fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction) < POINT_TOLERANCE_2D || isAligned(p, *first, *second);
 }
 	
 bool DelaunayDemiPlane::isVertex(const Point *p) const
@@ -1786,8 +1786,8 @@ void DelaunayDemiPlane::insert(std::vector<DelaunayTreeItem *> & ret, Point *p, 
 
 void DelaunayDemiPlane::print() const 
 {
-	std::cerr << "###############(" << first->x << ", " << first->y << ") (" <<
-		second->x << ", " << second->y << ")" << "X (" << third->x << ", " << third->y << ") :: " << isAlive()  << std::endl ;
+	std::cerr << "###############(" << first->getX() << ", " << first->getY() << ") (" <<
+		second->getX() << ", " << second->getY() << ")" << "X (" << third->getX() << ", " << third->getY() << ") :: " << isAlive()  << std::endl ;
 }
 
 void makeNeighbours(DelaunayTreeItem *t0, DelaunayTreeItem *t1 ) 
@@ -1981,7 +1981,7 @@ DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
 {
 	neighbourhood = false ;
 	this->global_counter = 3;
-	p0->id = 0 ; p1->id = 1 ; p2->id = 2 ;
+	p0->setId(0) ; p1->setId(1)  ; p2->setId(2);
 	DelaunayRoot *root = new DelaunayRoot( this, p0, p1, p2) ;
 	plane.push_back(static_cast<DelaunayDemiPlane *>(root->getSon(1))) ;
 	plane.push_back(static_cast<DelaunayDemiPlane *>(root->getSon(2))) ;
@@ -2056,7 +2056,7 @@ void DelaunayTree::insertIf( Point *p, std::vector<SamplingCriterion *> v, doubl
 			}
 			else
 			{
-				p->id =this->global_counter++ ;
+				p->setId(this->global_counter++) ;
 			}
 		}
 	}
@@ -2131,7 +2131,7 @@ void DelaunayTree::insert(Point *p)
 		}
 	}
 	
-	p->id = this->global_counter++ ;
+	p->setId(this->global_counter++) ;
 
 	Star * s = new Star(&cons, p) ;
 	
@@ -2477,7 +2477,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 // 	if(getEnrichmentFunctions().size())
 // 	{
 // 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
-// 			std::cout <<  getGaussPoints().gaussPoints[i].first.x << "   " <<  getGaussPoints().gaussPoints[i].first.y << std::endl ; 
+// 			std::cout <<  getGaussPoints().gaussPoints[i].first.getX() << "   " <<  getGaussPoints().gaussPoints[i].first.getY() << std::endl ; 
 // 		exit(0) ;
 // 	}
 
@@ -2829,10 +2829,10 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 // 						if(go)
 // 						{
 // 							to_add.push_back(new Point(test)) ;
-// 							if(to_add.back()->x< 0)
-// 								to_add.back()->x = 0 ;
-// 							if(to_add.back()->y < 0)
-// 								to_add.back()->y = 0 ;
+// 							if(to_add.back()->getX()< 0)
+// 								to_add.back()->getX() = 0 ;
+// 							if(to_add.back()->getY() < 0)
+// 								to_add.back()->getY() = 0 ;
 // 						}
 // 					}
 // 				}
@@ -2860,7 +2860,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 			
 			if(go)
 			{
-				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j).x, getEnrichmentFunction(i).getIntegrationHint(j).y)) ;
+				to_add.push_back(new Point(getEnrichmentFunction(i).getIntegrationHint(j).getX(), getEnrichmentFunction(i).getIntegrationHint(j).getY())) ;
 			}
 		}
 	}
@@ -2894,7 +2894,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		if( order >= CONSTANT_TIME_LINEAR )
 		{
 		  
- 		if(getCachedGaussPoints()->id == REGULAR_GRID)
+ 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)
  			return *getCachedGaussPoints() ;
 		  
 			int npoints = 128 ;
@@ -2929,11 +2929,11 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 				Function ytr = tris[i]->getYTransform() ;
 				for(size_t j = 0 ; j < gpl.gaussPoints.size() ; j++)
 				{
-					Point c(vm.eval(xtr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y), vm.eval(ytr,gpl.gaussPoints[j].first.x, gpl.gaussPoints[j].first.y)) ;
+					Point c(vm.eval(xtr,gpl.gaussPoints[j].first.getX(), gpl.gaussPoints[j].first.getY()), vm.eval(ytr,gpl.gaussPoints[j].first.getX(), gpl.gaussPoints[j].first.getY())) ;
 					double ar = 2.*tris[i]->area() ;
-					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0,-1), gpl.gaussPoints[j].second*ar*1./3.));
-					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0, 0), gpl.gaussPoints[j].second*ar*4./3.));
-					gp_alternative.push_back(std::make_pair(Point(c.x,c.y,0, 1), gpl.gaussPoints[j].second*ar*1./3.));
+					gp_alternative.push_back(std::make_pair(Point(c.getX(),c.getY(),0,-1), gpl.gaussPoints[j].second*ar*1./3.));
+					gp_alternative.push_back(std::make_pair(Point(c.getX(),c.getY(),0, 0), gpl.gaussPoints[j].second*ar*4./3.));
+					gp_alternative.push_back(std::make_pair(Point(c.getX(),c.getY(),0, 1), gpl.gaussPoints[j].second*ar*1./3.));
 
 				}
 				
@@ -3060,13 +3060,13 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 				std::copy( gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0] );
 			}
 
-			gp.id = REGULAR_GRID ;
+			gp.getId() = REGULAR_GRID ;
 			setCachedGaussPoints( new GaussPointArray( gp ) ) ;
 			return *getCachedGaussPoints() ;
 		}
 			
 	  
-// 		if(getCachedGaussPoints()->id == REGULAR_GRID)
+// 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)
 // 			return *getCachedGaussPoints() ;
 		
 
@@ -3185,7 +3185,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 		{
 			gp.gaussPoints.resize(gp_alternative.size()) ;
 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-			gp.id = REGULAR_GRID ;
+			gp.getId() = REGULAR_GRID ;
 		}
 
 	}
@@ -3195,8 +3195,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 // 		Circle c(0.1,0.,0.) ;
 // 		if(this->intersects(&c))
 // 		{
-// 		double x = getCenter().x ;
-// 		double y = getCenter().y ;
+// 		double x = getCenter().getX() ;
+// 		double y = getCenter().getY() ;
 // 		std::cout << std::sqrt(x*x+y*y) << "\t" ;
 // 		getCenter().print() ;
 // 		}
@@ -3221,7 +3221,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 		double ndivs = 2 ;
 
 
-// 		if(getCachedGaussPoints()->id == REGULAR_GRID)
+// 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)
 // 			return *getCachedGaussPoints() ;
 		
 		std::vector<std::pair<Point, double> > gp_alternative ;
@@ -3273,7 +3273,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
 			
 			gp.gaussPoints.resize(gp_alternative.size()) ;
 			std::copy(gp_alternative.begin(), gp_alternative.end(), &gp.gaussPoints[0]);
-			gp.id = REGULAR_GRID ;
+			gp.getId() = REGULAR_GRID ;
 			
 			Jinv.resize(gp.gaussPoints.size(), J) ;
 			newTest = test ;

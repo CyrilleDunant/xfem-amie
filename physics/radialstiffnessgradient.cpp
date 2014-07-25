@@ -43,7 +43,7 @@ void RadialStiffnessGradient::transform(ElementarySurface * e)
 {
 	Function x = e->getXTransform() ;
 	Function y = e->getYTransform() ;
-	r = f_sqrt(((x-centre.x)^2)+((y-centre.y)^2)) -r_int;
+	r = f_sqrt(((x-centre.getX())^2)+((y-centre.getY())^2)) -r_int;
 }
 
 void RadialStiffnessGradient::setFractureCriterion(FractureCriterion * crit)
@@ -107,7 +107,7 @@ Matrix RadialStiffnessGradient::getTensor(const Point & p, IntegrableEntity * e,
 		}
 	}
 	
-	return dfunc.apply(vm.eval(C, p.x, p.y)) ;
+	return dfunc.apply(vm.eval(C, p.getX(), p.getY())) ;
 }
 
 void RadialStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const

@@ -40,15 +40,15 @@ const double & LineScalarField::getScale() const
 
 double LineScalarField::operator() (double x) const
 {
-	double indexLow = floor((x-offset.x)*(values.size()-1)/scale) ;
-	double indexHigh = ceil((x-offset.x)*(values.size()-1)/scale) ;
+	double indexLow = floor((x-offset.getX())*(values.size()-1)/scale) ;
+	double indexHigh = ceil((x-offset.getX())*(values.size()-1)/scale) ;
 	if(indexLow < 0)
 		return 0. ;
 	if(indexHigh >= values.size())
 		return 0. ;
 
-	double xlow = indexLow/(values.size()-1)*scale + offset.x;
-	double xhigh = indexHigh/(values.size()-1)*scale + offset.x;
+	double xlow = indexLow/(values.size()-1)*scale + offset.getX();
+	double xhigh = indexHigh/(values.size()-1)*scale + offset.getX();
 	
 	return ((x-xlow)*values[indexHigh] + (xhigh-x)*values[indexLow])/(xhigh-xlow) ;
 }
@@ -84,8 +84,8 @@ double SurfaceScalarField::operator() (double x, double y) const
 	
 	double scale = values[0].getScale() ;
 	Point offset = values[0].getOffset() ;
-	double indexLow = floor((y-offset.y)*(values.size()-1)/scale) ;
-	double indexHigh = ceil((y-offset.y)*(values.size()-1)/scale) ;
+	double indexLow = floor((y-offset.getY())*(values.size()-1)/scale) ;
+	double indexHigh = ceil((y-offset.getY())*(values.size()-1)/scale) ;
 	
 	if(indexLow < 0)
 		return 0. ;
@@ -95,8 +95,8 @@ double SurfaceScalarField::operator() (double x, double y) const
 	double xlow = values[indexLow](x) ;
 	double xhigh = values[indexHigh](x) ;
 	
-	double ylow = indexLow/(values.size()-1)*scale + offset.y;
-	double yhigh = indexHigh/(values.size()-1)*scale + offset.y;
+	double ylow = indexLow/(values.size()-1)*scale + offset.getY();
+	double yhigh = indexHigh/(values.size()-1)*scale + offset.getY();
 	
 	return ((y-ylow)*xhigh + (yhigh-y)*xlow)/(yhigh-ylow) ;
 }
@@ -131,8 +131,8 @@ double VolumeScalarField::operator() (double x, double y, double z) const
 	
 	double scale = values[0].getScale() ;
 	Point offset = values[0].getOffset() ;
-	double indexLow = floor((z-offset.z)*(values.size()-1)/scale) ;
-	double indexHigh = ceil((z-offset.z)*(values.size()-1)/scale) ;
+	double indexLow = floor((z-offset.getZ())*(values.size()-1)/scale) ;
+	double indexHigh = ceil((z-offset.getZ())*(values.size()-1)/scale) ;
 	
 	if(indexLow < 0)
 		return 0. ;
@@ -142,8 +142,8 @@ double VolumeScalarField::operator() (double x, double y, double z) const
 	double xylow = values[indexLow](x,y) ;
 	double xyhigh = values[indexHigh](x,y) ;
 	
-	double zlow = indexLow/(values.size()-1)*scale + offset.z;
-	double zhigh = indexHigh/(values.size()-1)*scale + offset.z;
+	double zlow = indexLow/(values.size()-1)*scale + offset.getZ();
+	double zhigh = indexHigh/(values.size()-1)*scale + offset.getZ();
 	
 	return ((z-zlow)*xyhigh + (zhigh-z)*xylow)/(zhigh-zlow) ;
 }

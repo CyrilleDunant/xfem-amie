@@ -3,45 +3,45 @@
 
 using namespace Mu ;
 
-TimeDependentCircle::TimeDependentCircle(Function r, const Point & c): Circle(0., c.x, c.y), radius_t(r)
+TimeDependentCircle::TimeDependentCircle(Function r, const Point & c): Circle(0., c.getX(), c.getY()), radius_t(r)
 {
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
-	center.t = c.t ;
+	center.getT() = c.getT() ;
 	linear = false ;
 	constant = false ;
 }
 
 
-TimeDependentCircle::TimeDependentCircle(Function r, Point * c): Circle(0., c->x, c->y), radius_t(r)
+TimeDependentCircle::TimeDependentCircle(Function r, Point * c): Circle(0., c->getX(), c->getY()), radius_t(r)
 {
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
-	center.t = c->t ;
+	center.getT() = c->getT() ;
 	linear = false ;
 	constant = false ;
 }
 
-TimeDependentCircle::TimeDependentCircle(double r0, double rate, const Point & c): Circle(r0, c.x, c.y), radius_t("t")
+TimeDependentCircle::TimeDependentCircle(double r0, double rate, const Point & c): Circle(r0, c.getX(), c.getY()), radius_t("t")
 {
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
-	double t1 = c.t - r0/rate ;
+	double t1 = c.getT() - r0/rate ;
 	radius_t -= t1 ;
 	radius_t *= rate ;
-	center.t = t1 ;
+	center.getT() = t1 ;
 	linear = true ;
 	constant = false ;
 }
 
-TimeDependentCircle::TimeDependentCircle(double r0, double rate, Point * c): Circle(r0, c->x, c->y), radius_t("t")
+TimeDependentCircle::TimeDependentCircle(double r0, double rate, Point * c): Circle(r0, c->getX(), c->getY()), radius_t("t")
 {
 	gType = TIME_DEPENDENT_CIRCLE ;
 	time_planes = 2 ;
-	double t1 = c->t - r0/rate ;
+	double t1 = c->getT() - r0/rate ;
 	radius_t -= t1 ;
 	radius_t *= rate ;
-	center.t = t1 ;
+	center.getT() = t1 ;
 	linear = true ;
 	constant = false ;
 }
@@ -56,7 +56,7 @@ double TimeDependentCircle::radiusAtTime(const Point& p) const
 Circle TimeDependentCircle::circleAtTime(const Point& p) const
 {
 	Point c = center ;
-	c.t = p.t ;
+	c.getT() = p.getT() ;
 	return Circle( radiusAtTime(p), c) ;
 }
 
@@ -68,24 +68,24 @@ double TimeDependentCircle::radiusAtTime(Point * p) const
 Circle TimeDependentCircle::circleAtTime( Point * p) const
 {
 	Point c = center ;
-	c.t = p->t ;
+	c.getT() = p->getT() ;
 	return Circle( radiusAtTime(p), center) ;
 }
 
 
 bool TimeDependentCircle::in(const Point& v) const
 {
-	if(v.t < center.t)
+	if(v.getT() < center.getT())
 		return false ;
 	return circleAtTime(v).in(v) ;
 }
 
 void TimeDependentCircle::project(Point* p) const
 {
-	if(p->t < center.t) 
+	if(p->getT() < center.getT()) 
 	{
-		p->x = center.x ;
-		p->y = center.y ;
+		p->getX() = center.getX() ;
+		p->getY() = center.getY() ;
 		return ;
 	}
 

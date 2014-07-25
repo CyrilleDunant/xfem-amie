@@ -124,11 +124,11 @@ double aggregateArea = 0;
 
 std::vector<double> energy ;
 SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(nullptr, nullptr, 
-																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y - sample.height()/2), 
-																	  new Point(sample.getCenter().x - sample.width()/2, sample.getCenter().y + sample.height()/2), 
-																	  new Point(sample.getCenter().x + sample.width()/2, sample.getCenter().y + sample.height()/2), nullptr)) ;
-Point *pa = new Point(sample.getCenter().x - 2, sample.getCenter().y) ;
-Point *pb = new Point(sample.getCenter().x + 2, sample.getCenter().y) ;
+																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() - sample.height()/2), 
+																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() + sample.height()/2), 
+																	  new Point(sample.getCenter().getX() + sample.width()/2, sample.getCenter().getY() + sample.height()/2), nullptr)) ;
+Point *pa = new Point(sample.getCenter().getX() - 2, sample.getCenter().getY()) ;
+Point *pb = new Point(sample.getCenter().getX() + 2, sample.getCenter().getY()) ;
 
 BranchedCrack * crack0 = new BranchedCrack(pa, pb) ;
 
@@ -157,8 +157,8 @@ Vector origYdisps1 ;
 // 	Segment ab(*pa, *pb) ;
 // 	Segment cd(*pc, *pd) ;
 // 	Point inter = ab.intersection(cd) ;
-// 	pi->x = inter.x ;
-// 	pi->y = inter.y ;
+// 	pi->getX() = inter.getX() ;
+// 	pi->getY() = inter.getY() ;
 // 	crack0->branch(pi, newTips);
 // 	std::cout << "setup equivalent elements...  " << std::flush ;
 // 	crack0->setEnrichementRadius(sample.height()*0.0001) ;
@@ -169,7 +169,7 @@ Vector origYdisps1 ;
 // 	supertris[0]->getState().initialize() ;
 // 	supertris[0]->refresh(father) ;
 // 	for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
-// 		supertris[0]->getBoundingPoint(k).id = k ;
+// 		supertris[0]->getBoundingPoint(k).getId() = k ;
 // 	mesh->getLastNodeId()  =  supertris[0]->getBoundingPoints().size()+1;
 // 	
 // 	crack0->enrich(mesh->getLastNodeId(), mesh);
@@ -209,7 +209,7 @@ void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy)
 	ls->clearParameterValues();
 	for(auto i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
 	{
-		ls->setParameterValue(i->first->id, x[i->second->id*2+xy]);
+		ls->setParameterValue(i->first->getId(), x[i->second->getId()*2+xy]);
 	}
 }
 
@@ -231,8 +231,8 @@ void setupLeastSquares()
 	int indexj = 0 ;
 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
 	{
-		origXdisps0[indexj] = x[(*i)->id*2] ;
-		origYdisps0[indexj] = x[(*i)->id*2+1] ;
+		origXdisps0[indexj] = x[(*i)->getId()*2] ;
+		origYdisps0[indexj] = x[(*i)->getId()*2+1] ;
 		std::vector<double> interp = supertris[0]->getState().getInterpolatingFactors(*(*i), false) ;
 		
 		for(size_t j = 0 ; j < interp.size() ; j++)
@@ -278,11 +278,11 @@ void setupLeastSquares()
 // 
 // 		indexj++ ;
 // 		if(!isnan(dispx))
-// 			distancex += std::abs(dispx-x[(*i)->id*2]) ;
+// 			distancex += std::abs(dispx-x[(*i)->getId()*2]) ;
 // 		else
 // 			distancex += 1e6 ;
 // 		if(!isnan(dispy))
-// 			distancey += std::abs(dispy-x[(*i)->id*2+1])  ;
+// 			distancey += std::abs(dispy-x[(*i)->getId()*2+1])  ;
 // 		else
 // 			distancey += 1e6 ;
 // 	}
@@ -295,30 +295,30 @@ void setupLeastSquares()
 // 	enrichedEquivalentElements() ;
 // 
 // 	std::vector<double *> vars ;
-// 	vars.push_back( &pa->y) ;
-// 	vars.push_back( &pb->y) ;
-// 	vars.push_back( &pc->x) ;
-// 	vars.push_back( &pd->x) ;
-// 	vars.push_back( &pi->x) ;
-// 	vars.push_back( &pi->y) ;
+// 	vars.push_back( &pa->getY()) ;
+// 	vars.push_back( &pb->getY()) ;
+// 	vars.push_back( &pc->getX()) ;
+// 	vars.push_back( &pd->getX()) ;
+// 	vars.push_back( &pi->getX()) ;
+// 	vars.push_back( &pi->getY()) ;
 // 	
 // 	std::vector<std::pair<double, double> > limits ;
-// 	limits.push_back(std::make_pair(sample.getCenter().y-sample.height()/2.1, sample.getCenter().y+sample.height()/2.1)) ;
-// 	limits.push_back(std::make_pair(sample.getCenter().y-sample.height()/2.1, sample.getCenter().y+sample.height()/2.1)) ;
-// 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2.1, sample.getCenter().x+sample.width()/2.1)) ;
-// 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2.1, sample.getCenter().x+sample.width()/2.1)) ;
-// 	limits.push_back(std::make_pair(sample.getCenter().x-sample.width()/2, sample.getCenter().x+sample.width()/2)) ;
-// 	limits.push_back(std::make_pair(sample.getCenter().x-sample.height()/2, sample.getCenter().x+sample.height()/2)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getY()-sample.height()/2.1, sample.getCenter().getY()+sample.height()/2.1)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getY()-sample.height()/2.1, sample.getCenter().getY()+sample.height()/2.1)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.width()/2.1, sample.getCenter().getX()+sample.width()/2.1)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.width()/2.1, sample.getCenter().getX()+sample.width()/2.1)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.width()/2, sample.getCenter().getX()+sample.width()/2)) ;
+// 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.height()/2, sample.getCenter().getX()+sample.height()/2)) ;
 // 	
 // 	GeneticAlgorithmOptimizer ga( vars, limits, &distanceBetweenMeshes) ;
 // 	ga.optimize(1e-12, 60, 150,  .1, .1) ;
 // 
-// 	pa->y = ga.getValues()[0].second ;
-// 	pb->y = ga.getValues()[1].second ;
-// 	pc->x = ga.getValues()[2].second ;
-// 	pd->x = ga.getValues()[3].second ;
-// 	pi->x = ga.getValues()[4].second ;
-// 	pi->y = ga.getValues()[5].second ;
+// 	pa->getY() = ga.getValues()[0].second ;
+// 	pb->getY() = ga.getValues()[1].second ;
+// 	pc->getX() = ga.getValues()[2].second ;
+// 	pd->getX() = ga.getValues()[3].second ;
+// 	pi->getX() = ga.getValues()[4].second ;
+// 	pi->getY() = ga.getValues()[5].second ;
 // 	crack0->enrich(mesh->getLastNodeId(), mesh);
 // 	
 // 	crack0->print();
@@ -336,7 +336,7 @@ void setupLeastSquares()
 // 	int indexj = 0 ;
 // 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
 // 	{
-// 		std::cout << (*i)->x << "  " << (*i)->y << "  " << x[(*i)->id*2] << "  "<< x[(*i)->id*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
+// 		std::cout << (*i)->getX() << "  " << (*i)->getY() << "  " << x[(*i)->getId()*2] << "  "<< x[(*i)->getId()*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
 // 		indexj++ ;
 // 	}
 // 	
@@ -431,17 +431,17 @@ void step()
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > 0.0799)
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
+						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
+						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
+						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
+						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(triangles[k]->getBoundingPoint(p).getX() > 0.0799)
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+						e_xx+=x[triangles[k]->getBoundingPoint(p).getId()*2] ;
 						ex_count++ ;
 					}
 				}

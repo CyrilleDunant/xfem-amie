@@ -78,7 +78,7 @@ void BranchedCrack::branch(Point* fromTip, const std::vector<Point *> & newTip)
 	std::map<double, Point *> sortedNewTips ;
 	for(std::vector<Point * >::const_iterator j = newTip.begin() ; j !=newTip.end() ; ++j)
 	{
-		double angle = atan2((*j)->y-fromTip->y, (*j)->x-fromTip->x) ;
+		double angle = atan2((*j)->getY()-fromTip->getY(), (*j)->getX()-fromTip->getX()) ;
 		tips.push_back ( std::make_pair(*j, angle) ) ;
 		sortedNewTips[angle] = *j ;
 	}
@@ -173,8 +173,8 @@ void BranchedCrack::branch ( Point* fromTip, Point * newTip0, Point * newTip1 )
 			break ;
 		}
 	}
-	tips.push_back ( std::make_pair(newTip0, atan2(newTip0->y-fromTip->y, newTip0->x-fromTip->x)) ) ;
-	tips.push_back ( std::make_pair(newTip1, atan2(newTip1->y-fromTip->y, newTip1->x-fromTip->x)) ) ;
+	tips.push_back ( std::make_pair(newTip0, atan2(newTip0->getY()-fromTip->getY(), newTip0->getX()-fromTip->getX())) ) ;
+	tips.push_back ( std::make_pair(newTip1, atan2(newTip1->getY()-fromTip->getY(), newTip1->getX()-fromTip->getX())) ) ;
 	std::valarray<Point * > newBranch ( 2 ) ;
 	newBranch[0] = fromTip ;
 	newBranch[1] = newTip0 ;
@@ -290,8 +290,8 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 			for ( size_t j = 0 ; j < current->getBoundingPoints().size() ; j++ )
 			{
 				
-				Point currentDir ( current->getBoundingPoint ( j ).x-tip.first->x,
-				                   current->getBoundingPoint ( j ).y-tip.first->y ) ;
+				Point currentDir ( current->getBoundingPoint ( j ).getX()-tip.first->getX(),
+				                   current->getBoundingPoint ( j ).getY()-tip.first->getY() ) ;
 				
 				if ( ( currentDir*lastDir ) > 0 )
 				{
@@ -407,13 +407,13 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 			
 			
 			Point ln = gamma[j].second->inLocalCoordinates ( n ) ;
-			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.x ; stepLengthal[1] = n.y ;
-			Vector d ( 2 ) ; d[0] = -n.y ;   d[1] = n.x ;
+			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.getX() ; stepLengthal[1] = n.getY() ;
+			Vector d ( 2 ) ; d[0] = -n.getY() ;   d[1] = n.getX() ;
 			double ilocal0 = 0 ;
 			double ilocal1 = 0 ;
 			
 			Point localVector = gamma[j].second->inLocalCoordinates ( tipSegment.vector() ) ;
-			Point localNormal ( -localVector.y, localVector.x ) ;
+			Point localNormal ( -localVector.getY(), localVector.getX() ) ;
 			Vector stress(0., 3) ;
 			Vector strain(0., 3) ;
 			
@@ -851,12 +851,12 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		Function x = triangles[i]->getXTransform() ;
 		Function y = triangles[i]->getYTransform() ;
 
-		double rotatedSingularityX = tip.first->x*cos ( angle ) + tip.first->y*sin ( angle ) ;
-		double rotatedSingularityY = tip.first->y*cos ( angle ) - tip.first->x*sin ( angle ) ;
+		double rotatedSingularityX = tip.first->getX()*cos ( angle ) + tip.first->getY()*sin ( angle ) ;
+		double rotatedSingularityY = tip.first->getY()*cos ( angle ) - tip.first->getX()*sin ( angle ) ;
 		Function rotatedX = x*cos ( angle ) + y*sin ( angle ) ;
 		Function rotatedY = y*cos ( angle ) - x*sin ( angle );
-		Function x_alt = x - tip.first->x ;
-		Function y_alt = y - tip.first->y ;
+		Function x_alt = x - tip.first->getX() ;
+		Function y_alt = y - tip.first->getY() ;
 
 		Function theta_alt = f_atan2 ( rotatedY-rotatedSingularityY, rotatedX-rotatedSingularityX );
 		Function r_alt = Function(*tip.first, triangles[i]);//f_sqrt ( (x_alt^2)  + (y_alt^2) );
@@ -1552,7 +1552,7 @@ void BranchedCrack::print() const
 		
 		for(size_t j = 0 ; j < branches[i]->getBoundingPoints().size() ; j++)
 		{
-			std::cout << "("<< branches[i]->getBoundingPoint(j).x << ", " << branches[i]->getBoundingPoint(j).y << ")" << std::endl ;
+			std::cout << "("<< branches[i]->getBoundingPoint(j).getX() << ", " << branches[i]->getBoundingPoint(j).getY() << ")" << std::endl ;
 		}
 	}
 
@@ -1560,7 +1560,7 @@ void BranchedCrack::print() const
 	std::cout << " tips : " << tips.size() << std::endl;
 	for(size_t i = 0 ; i < tips.size() ; i++)
 	{
-		std::cout << "tip " << i << " : "<< "("<< tips[i].first->x << ", " << tips[i].first->y << ")"<< std::endl ;
+		std::cout << "tip " << i << " : "<< "("<< tips[i].first->getX() << ", " << tips[i].first->getY() << ")"<< std::endl ;
 	}
 	std::cout << " forks : " << forks.size() << std::endl;
 	for(size_t i = 0 ; i < forks.size() ; i++)
@@ -1569,7 +1569,7 @@ void BranchedCrack::print() const
 		
 		for(size_t j = 0 ; j < forks[i]->getBoundingPoints().size() ; j++)
 		{
-			std::cout << "("<< forks[i]->getBoundingPoint(j).x << ", " << forks[i]->getBoundingPoint(j).y << ")" << std::endl ;
+			std::cout << "("<< forks[i]->getBoundingPoint(j).getX() << ", " << forks[i]->getBoundingPoint(j).getY() << ")" << std::endl ;
 		}
 		
 	}
@@ -1660,8 +1660,8 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 		if(originalAngles[i] < 0)
 			sign = 1 ;
 				
-		grow(tipsToGrow[i], new Point(tipsToGrow[i]->x + sign * pdistance * cos(angles[i]),
-																	tipsToGrow[i]->y + sign * pdistance * sin(angles[i]))) ;
+		grow(tipsToGrow[i], new Point(tipsToGrow[i]->getX() + sign * pdistance * cos(angles[i]),
+																	tipsToGrow[i]->getY() + sign * pdistance * sin(angles[i]))) ;
 	}
 }
 

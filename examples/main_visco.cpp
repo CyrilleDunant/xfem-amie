@@ -132,11 +132,11 @@ Vector dispOnTop( Vector disp, std::vector<Point *> nodes)
 	size_t count = 0 ;
 	for(size_t i = 0 ; i < nodes.size() ; i++)
 	{
-		if(nodes[i]->t > nodes[0]->t && nodes[i]->y >= 0.0849)
+		if(nodes[i]->getT() > nodes[0]->getT() && nodes[i]->getY() >= 0.0849)
 		{
 			for(size_t j = 0 ; j < 6 ; j++)
 			{
-				top[j] += disp[ nodes[i]->id*6 + j ] ;
+				top[j] += disp[ nodes[i]->getId()*6 + j ] ;
 			}
 			count++ ;
 		}
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 		Vector strain = F.getAverageField(STRAIN_FIELD, -1, -1+2*goOn) ;
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, -1+2*goOn) ;
 		Vector d =  dispOnTop( F.getDisplacements(), nodes) ;
-		summary << trg[0]->getBoundingPoint(0+3*goOn).t << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
+		summary << trg[0]->getBoundingPoint(0+3*goOn).getT() << "\t" << strain[1] << "\t" << stress[1] << "\t" ; 
 //		for(size_t j = 0 ; j < d.size() ; j++)
 //			summary << d[j] << "\t" ;
 		summary <<  areaTensionInPaste( trg ) << "\t" << avgTensileStressInPaste( trg ) << "\t" << maxTensileStressInPaste( trg ) << std::endl ;
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 			tati.append(itoa(i)) ;
 			tati.append("_time=") ;
 			std::stringstream f2str(std::stringstream::in | std::stringstream::out) ;
-			f2str << trg[0]->getBoundingPoint(0+3*goOn).t ; 
+			f2str << trg[0]->getBoundingPoint(0+3*goOn).getT() ; 
 			tati.append(f2str.str()) ;
 //			tati.append(hop) ;
 			TriangleWriter writer(tati, &F, -1+2*((int) goOn)) ;

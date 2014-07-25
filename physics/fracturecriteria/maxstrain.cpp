@@ -103,17 +103,17 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	Point t = behaviour.intersection(current) ;
 
 
-	if(t.x < after.x)
+	if(t.getX() < after.getX())
 	{
 		if(history.on(t))
 		{
 			metInTension = true ;
-			ret =  std::min(1.,1. - (t.x - before.x) / (after.x - before.x)) ;
+			ret =  std::min(1.,1. - (t.getX() - before.getX()) / (after.getX() - before.getX())) ;
 		}else
-		ret = -1. + std::min(before.x,after.x)/yieldstrain ;
+		ret = -1. + std::min(before.getX(),after.getX())/yieldstrain ;
 	}
 	else
-		ret = -1.+ after.x/t.x;
+		ret = -1.+ after.getX()/t.getX();
 	
 	if(false)//ret > 0)
 	{
@@ -166,7 +166,7 @@ SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCri
 	surface = new Ellipse(center, mj, mn) ;
 	surface->sampleBoundingSurface(512) ;
 	base = std::abs(VirtualMachine().eval( surface->getEllipseFormFunction() )) ;
-	upVal = surface->getCenter().x-surface->getMajorRadius() ;
+	upVal = surface->getCenter().getX()-surface->getMajorRadius() ;
 
 }
 
@@ -188,7 +188,7 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	if(stateAfter.second.max() <= POINT_TOLERANCE_2D || stateAfter.first.max() <= POINT_TOLERANCE_2D)
 		return -1 ;
 	
-	if(after.x > surface->getCenter().x/surface->getMinorRadius()+1)
+	if(after.getX() > surface->getCenter().getX()/surface->getMinorRadius()+1)
 	{
 		double maxStressAfter = stateAfter.first.max() ;
 		double maxStressBefore = stateBefore.first.max() ;
@@ -204,7 +204,7 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 		return -1.+ maxStressAfter/maxstress;
 	}
 	
-	if(after.x < surface->getCenter().x/surface->getMinorRadius()-1  || after.y >= surface->getCenter().y/surface->getMajorRadius())
+	if(after.getX() < surface->getCenter().getX()/surface->getMinorRadius()-1  || after.getY() >= surface->getCenter().getY()/surface->getMajorRadius())
 	{
 		double maxStrainAfter = stateAfter.second.max() ;
 		double maxStrainBefore = stateBefore.second.max() ;
@@ -237,7 +237,7 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	}
 	
 	Segment evolution(before,after) ;
-	Circle renormsurf(1.,surface->getCenter().x/surface->getMinorRadius(), surface->getCenter().y/surface->getMajorRadius()) ;
+	Circle renormsurf(1.,surface->getCenter().getX()/surface->getMinorRadius(), surface->getCenter().getY()/surface->getMajorRadius()) ;
 	
 	metInTension = true ;
 

@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
   inclusions  <<  "#radius,x,y,z" << std::endl;
   for (; inc_it != inc_end; ++inc_it) {
     Point & center = (*inc_it)->getCenter();
-    inclusions  << (*inc_it)->getRadius() << "," << center.x << "," << center.y << "," << center.z  << std::endl;
+    inclusions  << (*inc_it)->getRadius() << "," << center.getX() << "," << center.getY() << "," << center.getZ()  << std::endl;
   }
   inclusions.close();
 	
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	    << "$EndMeshFormat" << std::endl;
 
   // tets[i]->getBoundingPoints().size();
-  //   tets[i]->getBoundingPoints(j).id;
+  //   tets[i]->getBoundingPoints(j).getId();
   // tets[i]->getBoundingPoints().size()
 
   for (;it != end; ++it) {
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	    << nodes.size() << std::endl;
   for (unsigned int n = 1; point_it != point_end; ++point_it, ++n) {
     Point & p = **point_it;
-    mesh_file << n << " " << p.x << " " << p.y << " " << p.z << std::endl;
+    mesh_file << n << " " << p.getX() << " " << p.getY() << " " << p.getZ() << std::endl;
   }
   mesh_file << "$EndNodes" << std::endl;
 
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 
   // write results in textfile
   
-  std::ofstream strain_file; strain_file.open("strain.txt");
+  std::ofstream strain_file; strain_file.open("strain.getT()xt");
   strain_file << "STRAIN_FIELD: " << std::endl;
 
   for (size_t i=0; i<strain.size(); ++i){
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 
   strain_file.close();
 
-  std::ofstream stress_file; stress_file.open("stress.txt");
+  std::ofstream stress_file; stress_file.open("stress.getT()xt");
   stress_file << "REAL_STRESS_FIELD: " << std::endl;
 
   for (size_t i=0; i<stress.size(); ++i){

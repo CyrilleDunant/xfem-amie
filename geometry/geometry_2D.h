@@ -35,11 +35,8 @@ public:
 	/** \brief Construct a Triangle from three points*/
 	Triangle( Point *p0,  Point *p1,  Point *p2) ;
 
-	Triangle(XMLTree * xml) ;
 	virtual ~Triangle() { } ;
 
-	virtual XMLTree * toXML() const ;
-	
 	/** \brief Return true if the argument lies in the Circumcenter of this triangle*/
 	virtual bool inCircumCircle(const Point & p) const ;
 	
@@ -117,11 +114,7 @@ public:
 	/** \brief Default constructor. build rectangle from (-1,-1) to (1,1)*/
 	Rectangle() ;
 
-	Rectangle(XMLTree * xml) ;
-
 	virtual ~Rectangle() { } ;
-
-	virtual XMLTree * toXML() const ;
 
 	/** \brief Sample the bounding surface with a given number of sampling points. the points are stored as boundingPoints*/
 	virtual void sampleBoundingSurface(size_t num_points) ;
@@ -189,8 +182,6 @@ public:
 	/** \brief construct a Rectangle from four points. The points will be assumed to be planar*/
 	OrientedRectangle( const Point *p0,  const Point *p1,  const Point *p2,  const Point *p3) ;
 	virtual ~OrientedRectangle() { } ;
-
-	virtual XMLTree * toXML() const ;
 	
 	/** \brief Return true if the argument is in the circumcircle*/
 	virtual bool inCircumCircle(const Point p) const ;
@@ -265,8 +256,6 @@ public:
 	 */
 	Circle(double r, const Point *center) ; 
 	
-	Circle(XMLTree * xml) ;
-	
 	/** \brief Construct a circle.
 	 * 
 	 * @param r radius of the circle to construct.
@@ -275,8 +264,6 @@ public:
 	Circle(double r, const Point & center) ; 
 	virtual ~Circle() { } ;
 
-	virtual XMLTree * toXML() ;
-	
 	/** \brief Sample the bounding Surface.
 	 * 
 	 * num_points Points are placed equidistantly on the surface. The first point is placed at \f$ \theta = 0 \f$.
@@ -370,8 +357,6 @@ public:
 	 */
 	LayeredCircle(double r, const Point center) ; 
 	virtual ~LayeredCircle() { } ;
-
-	virtual XMLTree * toXML() const ;
 	
 	/** \brief Sample the disc.
 	 * 
@@ -402,9 +387,6 @@ public:
 	SegmentedLine(const Point & p0, const Point & p1) ;
 	virtual ~SegmentedLine() { };
 
-	virtual XMLTree * toXML() const {return new XMLTree("segmented line") ; } ;
-
-	
 	/** \brief Sample The bounding surface.
 	 * 
 	 * This function does nothing. It could, however be used to place points between the kinks.
@@ -485,9 +467,6 @@ public:
 	Ellipse(const Ellipse &e) ;
 
 	virtual ~Ellipse() { } ;
-
-	virtual XMLTree * toXML() const ;
-	
 
 	/** \brief Get the norm of the major radius */
 	double getMajorRadius() const {return majorAxis.norm() ; } ;

@@ -174,19 +174,19 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 				ddt = +dt ;*/
 			
 			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
-			A.t += ddt ;
+			A.getT() += ddt ;
 			if(in(A))
 				bin= true ;
 			else
 				bout = true ;
 			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
-			B.t += ddt ;
+			B.getT() += ddt ;
 			if(in(B))
 				bin= true ;
 			else
 				bout = true ;
 			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
-			C.t += ddt ;
+			C.getT() += ddt ;
 			if(in(C))
 				bin= true ;
 			else
@@ -243,8 +243,8 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		//this function returns the distance to the centre
 		Function x("x") ; Function y("y") ;
 
-		Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
-		                           (y-getCenter().y)*(y-getCenter().y)) ;
+		Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
+		                           (y-getCenter().getY())*(y-getCenter().getY())) ;
 					   
 		
 		Function hat = 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
@@ -266,7 +266,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
 				
-				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.x, p.y,p.z,p.t)) ;
+				Function f =  ring[i]->getShapeFunction(j)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
 
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
@@ -293,8 +293,8 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			
 //			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function position = f_sqrt((x-getCenter().x)*(x-getCenter().x) +
-		                           (y-getCenter().y)*(y-getCenter().y)) ;
+			Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
+		                           (y-getCenter().getY())*(y-getCenter().getY())) ;
 			Function hat= 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
 			Function dx = t->getXTransform() ;
 			Function dy = t->getYTransform() ;
@@ -317,7 +317,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
 						Function f ;
-						f =  t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.x, p.y,p.z,p.t)) ;
+						f =  t->getShapeFunction(k)*(hat - VirtualMachine().eval(hat, p.getX(), p.getY(),p.getZ(),p.getT())) ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -461,7 +461,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 	{
 		bool added = false ;
 		double dt = disc[i]->getState().getNodalDeltaTime() ;
-		double t0 = disc[i]->getBoundingPoint(0).t ;
+		double t0 = disc[i]->getBoundingPoint(0).getT() ;
 			
 		bool bin = false ;
 		bool bout = false ;
@@ -477,13 +477,13 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 				ddt = +dt ;*/
 			
 			Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
-			A.t += ddt ;
+			A.getT() += ddt ;
 
 			Point B = disc[i]->getBoundingPoint( nodesIterator[j][1] ) ;
-			B.t += ddt ;
+			B.getT() += ddt ;
 
 			Point C = disc[i]->getBoundingPoint( nodesIterator[j][2] ) ;
-			C.t += ddt ;
+			C.getT() += ddt ;
 
 			Triangle dummy(A,B,C) ;
 	  		if(circleAtTime(A).intersects(&dummy))
@@ -495,8 +495,8 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 		}
 		if(!added)
 		{
-			Point c = disc[i]->getCenter() ; c.t = t0+dt/2 ;
-			Point a = disc[i]->getBoundingPoint(0) ; a.t = t0+dt/2 ;
+			Point c = disc[i]->getCenter() ; c.getT() = t0+dt/2 ;
+			Point a = disc[i]->getBoundingPoint(0) ; a.getT() = t0+dt/2 ;
 			if(in(c) && in(a))
 				inside.push_back(disc[i]) ;
 			else if(in(c))
@@ -540,7 +540,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 				Point D = A ;
 				D += (B-A)*x ;
 				D += (C-A)*y ;
-				D.t = A.t ;
+				D.getT() = A.getT() ;
 				if(in(D))
 					areIn++ ;
 				k++ ;
@@ -560,7 +560,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 		}
 
 //		(homogeneised[ring[i]]->param).print() ;
-		Point c = ring[i]->getCenter() ; c.t = A.t ;
+		Point c = ring[i]->getCenter() ; c.getT() = A.getT() ;
 //		std::cout << (int) dynamic_cast<Viscoelasticity *>(homogeneised[ring[i]])->model ;
 		double factor = ((double) areIn/(double)k) * imposed->param[0][0]/realStiff[0][0] ;
 		Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter())) * factor;

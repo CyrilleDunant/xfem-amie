@@ -76,7 +76,6 @@ namespace Mu
 		
 		virtual ~OrthotropicStiffness() ;
 
-		virtual XMLTree * toXML() { return new XMLTree("orthostiffness",param) ; } ;
 		
 		/** \brief Apply the law.
 		 *

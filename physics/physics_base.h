@@ -30,8 +30,6 @@ namespace Mu
 		
 		LinearForm(bool t = false, bool s = false, size_t numdof = 0 ) ;
 		
-		virtual XMLTree * toXML() {return new XMLTree("linear form") ; } ;
-
 		virtual ~LinearForm()  ;
 		
 		virtual bool fractured() const ; 

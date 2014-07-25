@@ -59,7 +59,7 @@ Matrix LinearStiffnessGradient::getTensor(const Point & p, IntegrableEntity * e,
 			C[i][j] = s*paramAlt[i][j] - (s-1.)*param[i][j];
 		}
 	}
-	return vm.eval(C, p.x, p.y) ;
+	return vm.eval(C, p.getX(), p.getY()) ;
 }
 
 void LinearStiffnessGradient::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const

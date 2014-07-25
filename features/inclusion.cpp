@@ -14,7 +14,6 @@
 #include "inclusion.h"
 #include "../physics/spatially_distributed_stiffness.h"
 #include "../polynomial/vm_base.h"
-#include "../utilities/xml.h"
 #include "../geometry/geometry_base.h"
 
 
@@ -72,22 +71,6 @@ Inclusion::Inclusion(double r, Point center) : Circle(r, center),  Feature(nullp
 Inclusion::Inclusion(Circle c) : Circle(c.getRadius(), c.getCenter()), Feature(nullptr)
 {
 	this->isEnrichmentFeature = false ;
-}
-
-Inclusion::Inclusion(XMLTree *  xml) : Circle(xml->getChild(0)), Feature(nullptr)
-{
-	this->isEnrichmentFeature = false ;
-}
-
-
-XMLTree * Inclusion::toXML()
-{
-	XMLTree * inc = new XMLTree("inclusion") ;
-	XMLTree * c = this->Circle::toXML() ;
-	XMLTree * b = behaviour->toXML() ;
-	inc->addChild(c) ;
-	inc->addChild(b) ;
-	return inc ;
 }
 
 
@@ -354,8 +337,8 @@ bool ITZFeature::in(const Point & p) const
 	double d = -1 ;
 	for(size_t i = 0 ; i < sources.size() ; i++)
 	{
-		Point proj(p.x,p.y) ;
-		Circle r(sources[i]->getRadius(), sources[i]->getCenter().x, sources[i]->getCenter().y-getLength()*0.5) ;
+		Point proj(p.getX(),p.getY()) ;
+		Circle r(sources[i]->getRadius(), sources[i]->getCenter().getX(), sources[i]->getCenter().getY()-getLength()*0.5) ;
 		r.project(&proj) ;
 		if(sources[i]->in(p))
 			return false ;
@@ -371,8 +354,8 @@ Form * ITZFeature::getBehaviour( const Point & p)
 	double d = -1 ;
 	for(size_t i = 0 ; i < sources.size() ; i++)
 	{
-		Point proj(p.x,p.y) ;
-		Circle r(sources[i]->getRadius(), sources[i]->getCenter().x, sources[i]->getCenter().y-getLength()*0.5) ;
+		Point proj(p.getX(),p.getY()) ;
+		Circle r(sources[i]->getRadius(), sources[i]->getCenter().getX(), sources[i]->getCenter().getY()-getLength()*0.5) ;
 		r.project(&proj) ;
 		if(sources[i]->in(p))
 			continue ;

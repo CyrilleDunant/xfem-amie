@@ -11,14 +11,14 @@ StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point 
 	{
 		for(size_t j = 0 ; j < grid.pixels[0].size()+1 ; j++)
 		{
-			points.push_back(new Point(center.x-sizeX*.5 +(sizeX)*i/(grid.pixels.size()), (center.y-sizeY*.5) + (sizeY)*j/(grid.pixels[0].size()))) ;
+			points.push_back(new Point(center.getX()-sizeX*.5 +(sizeX)*i/(grid.pixels.size()), (center.getY()-sizeY*.5) + (sizeY)*j/(grid.pixels[0].size()))) ;
 			if(i != 0 && i!= grid.pixels.size() && j != 0 && j != grid.pixels[0].size())
 			{
 				double dx = .2*(2.*((double)rand()/(double)RAND_MAX)-1.)*(sizeX)/(grid.pixels.size()) ;
 				double dy = .2*(2.*((double)rand()/(double)RAND_MAX)-1.)*(sizeY)/(grid.pixels[0].size()) ;
 				*points[global_counter] += Point(dx, dy) ;
 			}
-			points.back()->id = global_counter++ ;
+			points.back()->getId() = global_counter++ ;
 		}
 	}
 	
@@ -108,13 +108,13 @@ std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	double startX = grid.getX()*.5-grid.getCenter().x + p->x ;
+	double startX = grid.getX()*.5-grid.getCenter().getX() + p->getX() ;
 	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
 	
 	double endX =  startX+.05*grid.getX();
 	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.pixels.size());
 	
-	double startY = grid.getY()*.5-grid.getCenter().y + p->y ;
+	double startY = grid.getY()*.5-grid.getCenter().getY() + p->getY() ;
 	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
 	
 	double endY =  startY+.05*grid.getY();
@@ -150,13 +150,13 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geometry * geo) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	double startX = grid.getX()*.5-grid.getCenter().x + geo->getCenter().x-2.*geo->getRadius() ;
+	double startX = grid.getX()*.5-grid.getCenter().getX() + geo->getCenter().getX()-2.*geo->getRadius() ;
 	int startI = std::max(0., startX/grid.getPixelSize() - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
 	int endI = std::min(endX/grid.getPixelSize() + 2, (double)grid.pixels.size());
 	
-	double startY = grid.getY()*.5-grid.getCenter().y + geo->getCenter().y-2.*geo->getRadius() ;
+	double startY = grid.getY()*.5-grid.getCenter().getY() + geo->getCenter().getY()-2.*geo->getRadius() ;
 	int startJ = std::max(0., startY/grid.getPixelSize() - 2) ;
 		
 	double endY =  startY+2.*geo->getRadius();
@@ -318,8 +318,8 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 				
 				if(time_planes> 1)
 				{
-					a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-					b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+					a.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+					b.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
 				}
 				for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 				{
@@ -368,7 +368,7 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 						{
 							points.push_back(new Point(proto) ) ;
 							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
-							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
+							newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
 						}
 						
 						done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;

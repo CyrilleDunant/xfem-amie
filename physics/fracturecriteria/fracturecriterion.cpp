@@ -75,30 +75,30 @@ double FractureCriterion::smoothedCrackAngle( ElementState &s) const
 // 				factor = std::min(std::abs(ci->getBehaviour()->param[0][0]/s.getParent()->getBehaviour()->param[0][0]),std::abs(s.getParent()->getBehaviour()->param[0][0]/ci->getBehaviour()->param[0][0])) ;
 			
 			double d = ci->getBehaviour()->getDamageModel()->getState().max() ;
-			angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+			angle += atan2(ci->getCenter().getY()-s.getParent()->getCenter().getY(),ci->getCenter().getX()-s.getParent()->getCenter().getX())*area*d ;
 			fact += area*d ;
 			
-			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
-				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				angle += atan2(ci->getCenter().getY()-s.getParent()->getCenter().getY(),ci->getCenter().getX()-s.getParent()->getCenter().getX())*area*d ;
 				fact += area*d ;
 			}
 
-			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 			{
-				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				angle += atan2(ci->getCenter().getY()-s.getParent()->getCenter().getY(),ci->getCenter().getX()-s.getParent()->getCenter().getX())*area*d ;
 				fact += area*d ;
 			}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 			{
-				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				angle += atan2(ci->getCenter().getY()-s.getParent()->getCenter().getY(),ci->getCenter().getX()-s.getParent()->getCenter().getX())*area*d ;
 				fact += area*d ;
 			}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 			{
-				angle += atan2(ci->getCenter().y-s.getParent()->getCenter().y,ci->getCenter().x-s.getParent()->getCenter().x)*area*d ;
+				angle += atan2(ci->getCenter().getY()-s.getParent()->getCenter().getY(),ci->getCenter().getX()-s.getParent()->getCenter().getX())*area*d ;
 				fact += area*d ;
 			}
 		}
@@ -440,14 +440,14 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		}
 		GaussPointArray gp(fintmp, QUINTIC) ;
 		
-		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
 		Function rr = x*x+y*y ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Function smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
 		
 // 		for(double i = -2.*physicalCharacteristicRadius ; i < 2.*physicalCharacteristicRadius ; i += 0.01*physicalCharacteristicRadius)
-// 			std::cout << vm.eval(smooth, i, s.getParent()->getCenter().y) << "  " <<   vm.eval(x, i, s.getParent()->getCenter().y) << "  " <<   vm.eval(y, i, s.getParent()->getCenter().y)<< "  " <<   vm.eval(rrn, i, s.getParent()->getCenter().y)<< std::endl ;
+// 			std::cout << vm.eval(smooth, i, s.getParent()->getCenter().getY()) << "  " <<   vm.eval(x, i, s.getParent()->getCenter().getY()) << "  " <<   vm.eval(y, i, s.getParent()->getCenter().getY())<< "  " <<   vm.eval(rrn, i, s.getParent()->getCenter().getY())<< std::endl ;
 // 		
 // 		exit(0) ;
 		double weight = vm.ieval(smooth, gp) ;
@@ -457,10 +457,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		tmpfactors.push_back(weight);
 		tmpphysicalcache.push_back(dynamic_cast<DelaunayTriangle *>(s.getParent())->index);
 		
-		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -468,10 +468,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().x ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getX() ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -479,10 +479,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -490,10 +490,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getY() ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -519,8 +519,8 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 // 			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
 // 			if(d > farthest)
 // 				farthest = d ;
-			x = ci->getXTransform()-s.getParent()->getCenter().x ;
-			y = ci->getYTransform()-s.getParent()->getCenter().y ;
+			x = ci->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = ci->getYTransform()-s.getParent()->getCenter().getY() ;
 			rr = x*x+y*y ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius ) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -542,10 +542,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			
 			fact += weight ;
 			
-			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+			if( mirroring == MIRROR_X && std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 			{
-				x = ci->getXTransform()*-1 -std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x;
-				y = ci->getYTransform()-s.getParent()->getCenter().y ;
+				x = ci->getXTransform()*-1 -std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX();
+				y = ci->getYTransform()-s.getParent()->getCenter().getY() ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -554,10 +554,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				fact += weight ;
 			}
 
-			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 			{
-				x = ci->getXTransform()-s.getParent()->getCenter().x ;
-				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
+				x = ci->getXTransform()-s.getParent()->getCenter().getX() ;
+				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getY() ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -566,10 +566,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				fact += weight ;
 			}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 			{
-				x = ci->getXTransform()*-1 -std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x;
-				y = ci->getYTransform()-s.getParent()->getCenter().y ;
+				x = ci->getXTransform()*-1 -std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX();
+				y = ci->getYTransform()-s.getParent()->getCenter().getY() ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -578,10 +578,10 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 				fact += weight ;
 			}
 
-			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 			{
-				x = ci->getXTransform()-s.getParent()->getCenter().x ;
-				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
+				x = ci->getXTransform()-s.getParent()->getCenter().getX() ;
+				y = ci->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getY() ;
 				rr = x*x+y*y ;
 				rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 				smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -601,9 +601,9 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
 		
-		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-		Function z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+		Function x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+		Function y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+		Function z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 		Function rr = x*x+y*y+z*z ;
 		Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 		Function smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -615,11 +615,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 		
 		double selfarea = s.getParent()->area() ;
 		double farthest = 0 ;
-		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+		if( mirroring == MIRROR_X && std::abs( s.getParent()->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -627,11 +627,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+		if( mirroring == MIRROR_Y &&  std::abs( s.getParent()->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().x ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getX() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -639,11 +639,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_Z &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+		if( mirroring == MIRROR_Z &&  std::abs( s.getParent()->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = s.getParent()->getXTransform() ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().x ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getX() ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().getZ()  - delta_z )-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -651,11 +651,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			s.getParent()->setOrder(CUBIC) ;
@@ -664,11 +664,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( s.getParent()->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =!compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -676,11 +676,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().x  - delta_x )-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()*-1-std::abs( s.getParent()->getCenter().getX()  - delta_x )-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -688,11 +688,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XZ &&  std::abs( s.getParent()->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().getZ()  - delta_z )-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -700,11 +700,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().y  - delta_y )-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()*-1-std::abs( s.getParent()->getCenter().getY()  - delta_y )-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -712,11 +712,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_YZ &&  std::abs( s.getParent()->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = s.getParent()->getXTransform()-s.getParent()->getCenter().x ;
-			y = s.getParent()->getYTransform()-s.getParent()->getCenter().y ;
-			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().z  - delta_z )-s.getParent()->getCenter().z ;
+			x = s.getParent()->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = s.getParent()->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = s.getParent()->getZTransform()*-1-std::abs( s.getParent()->getCenter().getZ()  - delta_z )-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -742,9 +742,9 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			double d = dist(ci->getCenter(), s.getParent()->getCenter()) ; 
 			if(d > farthest)
 				farthest = d ;
-			x = ci->getXTransform()-s.getParent()->getCenter().x ;
-			y = ci->getYTransform()-s.getParent()->getCenter().y ;
-			z = ci->getZTransform()-s.getParent()->getCenter().z ;
+			x = ci->getXTransform()-s.getParent()->getCenter().getX() ;
+			y = ci->getYTransform()-s.getParent()->getCenter().getY() ;
+			z = ci->getZTransform()-s.getParent()->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(mindist * mindist) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -758,11 +758,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			
 			fact += weight*factor ;
 			
-		if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+		if( mirroring == MIRROR_X && std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
-			y = ci->getYTransform()-ci->getCenter().y ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().getX()  - delta_x )-ci->getCenter().getX() ;
+			y = ci->getYTransform()-ci->getCenter().getY() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -770,11 +770,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+		if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = ci->getXTransform() ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().x ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().getY()  - delta_y )-ci->getCenter().getX() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -782,11 +782,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+		if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
 		{
 			x = ci->getXTransform() ;
-			y = ci->getYTransform()-ci->getCenter().x ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			y = ci->getYTransform()-ci->getCenter().getX() ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().getZ()  - delta_z )-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -794,11 +794,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
-			y = ci->getYTransform()-ci->getCenter().y ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().getX()  - delta_x )-ci->getCenter().getX() ;
+			y = ci->getYTransform()-ci->getCenter().getY() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -806,11 +806,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()-ci->getCenter().x ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().y ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			x = ci->getXTransform()-ci->getCenter().getX() ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().getY()  - delta_y )-ci->getCenter().getY() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -818,11 +818,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()*-1-std::abs( ci->getCenter().x  - delta_x )-ci->getCenter().x ;
-			y = ci->getYTransform()-ci->getCenter().y ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			x = ci->getXTransform()*-1-std::abs( ci->getCenter().getX()  - delta_x )-ci->getCenter().getX() ;
+			y = ci->getYTransform()-ci->getCenter().getY() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -830,11 +830,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()-ci->getCenter().x ;
-			y = ci->getYTransform()-ci->getCenter().y ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			x = ci->getXTransform()-ci->getCenter().getX() ;
+			y = ci->getYTransform()-ci->getCenter().getY() ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().getZ()  - delta_z )-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -842,11 +842,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()-ci->getCenter().x ;
-			y = ci->getYTransform()*-1-std::abs( ci->getCenter().y  - delta_y )-ci->getCenter().y ;
-			z = ci->getZTransform()-ci->getCenter().z ;
+			x = ci->getXTransform()-ci->getCenter().getX() ;
+			y = ci->getYTransform()*-1-std::abs( ci->getCenter().getY()  - delta_y )-ci->getCenter().getY() ;
+			z = ci->getZTransform()-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth =  !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -854,11 +854,11 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 			tmpfactors.back() += weight ;
 			fact += weight ;
 		}
-		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+		if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 		{
-			x = ci->getXTransform()-ci->getCenter().x ;
-			y = ci->getYTransform()-ci->getCenter().y ;
-			z = ci->getZTransform()*-1-std::abs( ci->getCenter().z  - delta_z )-ci->getCenter().z ;
+			x = ci->getXTransform()-ci->getCenter().getX() ;
+			y = ci->getYTransform()-ci->getCenter().getY() ;
+			z = ci->getZTransform()*-1-std::abs( ci->getCenter().getZ()  - delta_z )-ci->getCenter().getZ() ;
 			rr = x*x+y*y+z*z ;
 			rrn = rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
 			smooth = !compact?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
@@ -1403,7 +1403,7 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*2];
 									double ey = tri->getState().getDisplacements()[l*2+1];
 									K.setPoint(ex, ey ,id);
@@ -1467,7 +1467,7 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*3];
 									double ey = tri->getState().getDisplacements()[l*3+1];
 									double ez = tri->getState().getDisplacements()[l*3+2];
@@ -1539,7 +1539,7 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*2];
 									double ey = tri->getState().getDisplacements()[l*2+1];
 									K.setPoint(ex, ey ,id);
@@ -1604,7 +1604,7 @@ double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 						{
 							if(!c.in(tri->getBoundingPoint(k)))
 							{
-								int id = tri->getBoundingPoint(k).id ;
+								int id = tri->getBoundingPoint(k).getId() ;
 								double ex = tri->getState().getDisplacements()[k*3];
 								double ey = tri->getState().getDisplacements()[k*3+1];
 								double ez = tri->getState().getDisplacements()[k*3+2];
@@ -1831,7 +1831,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*2];
 									double ey = tri->getState().getDisplacements()[l*2+1];
 									K.setPoint(ex, ey ,id);
@@ -1898,7 +1898,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*3];
 									double ey = tri->getState().getDisplacements()[l*3+1];
 									double ez = tri->getState().getDisplacements()[l*3+2];
@@ -1973,7 +1973,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 							{
 								for(size_t l = 0 ; l <  tri->getBoundingPoints().size() ; l++)
 								{
-									int id = tri->getBoundingPoint(k).id ;
+									int id = tri->getBoundingPoint(k).getId() ;
 									double ex = tri->getState().getDisplacements()[l*2];
 									double ey = tri->getState().getDisplacements()[l*2+1];
 									K.setPoint(ex, ey ,id);
@@ -2041,7 +2041,7 @@ std::pair<double, double> FractureCriterion::getDeltaEnergyDeltaCriterion(const 
 						{
 							if(!c.in(tri->getBoundingPoint(k)))
 							{
-								int id = tri->getBoundingPoint(k).id ;
+								int id = tri->getBoundingPoint(k).getId() ;
 								double ex = tri->getState().getDisplacements()[k*3];
 								double ey = tri->getState().getDisplacements()[k*3+1];
 								double ez = tri->getState().getDisplacements()[k*3+2];
@@ -2679,47 +2679,47 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 						double a = ci->volume() ;
 						str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 						fact+=d*a ;
-						if(mirroring == MIRROR_X && std::abs(ci->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+						if(mirroring == MIRROR_X && std::abs(ci->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_Y &&  std::abs(ci->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+						if(mirroring == MIRROR_Y &&  std::abs(ci->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_Z &&  std::abs(ci->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
+						if(mirroring == MIRROR_Z &&  std::abs(ci->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XY &&  std::abs(ci->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XY &&  std::abs(ci->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XY &&  std::abs(ci->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XY &&  std::abs(ci->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XZ &&  std::abs(ci->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XZ &&  std::abs(ci->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XZ &&  std::abs(ci->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XZ &&  std::abs(ci->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_YZ &&  std::abs(ci->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_YZ &&  std::abs(ci->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_YZ &&  std::abs(ci->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_YZ &&  std::abs(ci->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=ci->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
@@ -2755,47 +2755,47 @@ void FractureCriterion::computeNonLocalState(ElementState &s, NonLocalSmoothingT
 						double a = (*ci)->volume() ;
 						str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 						fact+=d*a ;
-						if(mirroring == MIRROR_X && std::abs((*ci)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
+						if(mirroring == MIRROR_X && std::abs((*ci)->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_X
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_Y &&  std::abs((*ci)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
+						if(mirroring == MIRROR_Y &&  std::abs((*ci)->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_Y
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_Z &&  std::abs((*ci)->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
+						if(mirroring == MIRROR_Z &&  std::abs((*ci)->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_Y
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XY &&  std::abs((*ci)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XY &&  std::abs((*ci)->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XY &&  std::abs((*ci)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XY &&  std::abs((*ci)->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XZ &&  std::abs((*ci)->getCenter().x  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XZ &&  std::abs((*ci)->getCenter().getX()  - delta_x) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_XZ &&  std::abs((*ci)->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_XZ &&  std::abs((*ci)->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_YZ &&  std::abs((*ci)->getCenter().y  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_YZ &&  std::abs((*ci)->getCenter().getY()  - delta_y) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;
 						}
-						if(mirroring == MIRROR_YZ &&  std::abs((*ci)->getCenter().z  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
+						if(mirroring == MIRROR_YZ &&  std::abs((*ci)->getCenter().getZ()  - delta_z) < physicalCharacteristicRadius) // MIRROR_XY
 						{
 							str +=(*ci)->getBehaviour()->getFractureCriterion()->getScoreAtState() *a*d ;
 							fact+=d*a ;

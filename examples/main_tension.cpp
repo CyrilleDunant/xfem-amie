@@ -198,13 +198,13 @@ void step(size_t nsteps)
 			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 				if(go_on)
-					dfile <<  triangles[k]->getCenter().x << "  "<< triangles[k]->getBehaviour()->getDamageModel()->getState().max() << "  " ;
+					dfile <<  triangles[k]->getCenter().getX() << "  "<< triangles[k]->getBehaviour()->getDamageModel()->getState().max() << "  " ;
 				double ar = triangles[k]->area() ;
 				volume += ar ;
 				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ;l++)
 				{
-					xavg += x[triangles[k]->getBoundingPoint(l).id*2]*ar/ triangles[k]->getBoundingPoints().size() ;
-					yavg += x[triangles[k]->getBoundingPoint(l).id*2+1]*ar/ triangles[k]->getBoundingPoints().size() ;
+					xavg += x[triangles[k]->getBoundingPoint(l).getId()*2]*ar/ triangles[k]->getBoundingPoints().size() ;
+					yavg += x[triangles[k]->getBoundingPoint(l).getId()*2+1]*ar/ triangles[k]->getBoundingPoints().size() ;
 				}
 			}
 		}
@@ -291,7 +291,7 @@ void step(size_t nsteps)
 			writerc.getField( TWFT_DAMAGE ) ;
 			writerc.append() ;
 		}
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
+		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 	}
 
 }
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
 	t0.isVirtualFeature = true ;
 	t1.isVirtualFeature = true ;
 	
-	Sample r0(mradius*.25, samplef.height(),samplef.getCenter().x, samplef.getCenter().y) ;
+	Sample r0(mradius*.25, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY()) ;
 	r0.setBehaviour(new ConcreteBehaviour( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )) ;
 	dynamic_cast<ConcreteBehaviour *>(r0.getBehaviour())->materialRadius = mradius ;
 	r0.isVirtualFeature = true ;

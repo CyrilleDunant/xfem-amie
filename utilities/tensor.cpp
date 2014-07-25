@@ -24,16 +24,16 @@ Tensor::Tensor(const Point & p, std::vector<Variable> v) : order(1), dim(v.size(
 		switch(v[i])
 		{
 		  case XI:
-		    d = p.x ; 
+		    d = p.getX() ; 
 		    break ;
 		  case ETA:
-		    d = p.y ; 
+		    d = p.getY() ; 
 		    break ;
 		  case ZETA:
-		    d = p.z ; 
+		    d = p.getZ() ; 
 		    break ;
 		  case TIME_VARIABLE:
-		    d = p.t ; 
+		    d = p.getT() ; 
 		    break ;
 		}
 		components[i] = d ;

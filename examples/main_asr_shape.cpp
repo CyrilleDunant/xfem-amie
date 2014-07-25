@@ -257,42 +257,42 @@ void step(GeometryType ref, int samplingNumber)
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if( triangles[k]->getBoundingPoint( p ).x > sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
+						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
+						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
+						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
+						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if( triangles[k]->getBoundingPoint( p ).getX() > sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getY()) < .01 )
 					{
-//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).id * 2] )
-						e_xx_max += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).getId() * 2] )
+						e_xx_max += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
  						e_xx_max_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).x < -sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).y) < .01 )
+					if( triangles[k]->getBoundingPoint( p ).getX() < -sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getY()) < .01 )
 					{
-//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).id * 2] )
-						e_xx_min += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).getId() * 2] )
+						e_xx_min += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
  						e_xx_min_count++ ;
 
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).y > sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
+					if( triangles[k]->getBoundingPoint( p ).getY() > sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < .01  )
 					{
-//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-						e_yy_max += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] )
+						e_yy_max += x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
  						e_yy_max_count++ ;
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).y < -sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < .01  )
+					if( triangles[k]->getBoundingPoint( p ).getY() < -sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < .01  )
 					{
-// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] )
-						e_yy_min += x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] )
+						e_yy_min += x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
  						e_yy_min_count++ ;
 
 // 						ex_count++ ;
@@ -611,7 +611,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.getX(), pos.getY(), gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -675,7 +675,7 @@ void generatePoresHomogeneously(int n, int max, std::vector<Inclusion * > & incs
 			}
 		}
 		if (alone)
-			poresToPlace.push_back(new Inclusion(nullptr, radius, pos.x, pos.y)) ;
+			poresToPlace.push_back(new Inclusion(nullptr, radius, pos.getX(), pos.getY())) ;
 	}
 
 
@@ -732,7 +732,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.getX(), pos.getY(), gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<EllipsoidalInclusion *, int> zonesPerIncs ; 
@@ -797,7 +797,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.getX(), pos.getY(), gel)) ;
 	}
 	std::cout << zonesToPlace.size() << " zones generated" << std::endl ;
 	std::map<TriangularInclusion *, int> zonesPerIncs ; 
@@ -864,7 +864,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, gel)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.getX(), pos.getY(), gel)) ;
 	}
 	std::cout << zonesToPlace.size() << std::endl ;
 	std::map<RectangularInclusion *, int> zonesPerIncs ; 
@@ -1216,13 +1216,13 @@ int main(int argc, char *argv[])
 			for(size_t k = 0 ; k < trg[j]->getBoundingPoints().size() ; k++)
 			{
 				Point p = trg[j]->getBoundingPoint(k) ;
-				if(!done[p.id])
+				if(!done[p.getId()])
 				{
-					if(p.x > 0.035*0.999)
-						u_right.push_back(disp[p.id*2]) ;
-					if(p.y > 0.035*0.999)
-						u_top.push_back(disp[p.id*2+1]) ;
-					done[p.id] = true ;
+					if(p.getX() > 0.035*0.999)
+						u_right.push_back(disp[p.getId()*2]) ;
+					if(p.getY() > 0.035*0.999)
+						u_top.push_back(disp[p.getId()*2+1]) ;
+					done[p.getId()] = true ;
 				}
 			}
 		}

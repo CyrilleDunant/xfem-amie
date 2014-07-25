@@ -27,7 +27,7 @@ std::vector<const Geometry *> & Voxel::getFeatures()
 
 bool Voxel::in(const Point & p) const
 {
-	return (p.x >= tlf.x)  && (p.x <= brf.x) && (p.y >= brf.y) && (p.y <= tlf.y) && (p.z >= brb.z) && (p.z <= tlf.z);
+	return (p.getX() >= tlf.getX())  && (p.getX() <= brf.getX()) && (p.getY() >= brf.getY()) && (p.getY() <= tlf.getY()) && (p.getZ() >= brb.getZ()) && (p.getZ() <= tlf.getZ());
 }
 
 void Voxel::coOccuringFeatures(std::vector<const Geometry *> &f , const Geometry * inc) const
@@ -109,7 +109,7 @@ bool Voxel::coOccur(const Geometry * inc) const
 		|| inc->in(trb) 
 		|| inc->in(brb) 
 		|| inc->in(blb) 
-		|| /*Hexahedron(tlf.x-brb.x, tlf.y-brb.y, tlf.z-brb.z, (tlf.x+brb.x)*.5, (tlf.y+brb.y)*.5, (tlf.z+brb.z)*.5).intersects(inc) ||*/ in(inc->getCenter()) ;
+		|| /*Hexahedron(tlf.getX()-brb.getX(), tlf.getY()-brb.getY(), tlf.getZ()-brb.getZ(), (tlf.getX()+brb.getX())*.5, (tlf.getY()+brb.getY())*.5, (tlf.getZ()+brb.getZ())*.5).intersects(inc) ||*/ in(inc->getCenter()) ;
 }
 
 void Voxel::remove(const Geometry * inc)
@@ -145,14 +145,14 @@ void Voxel::refine()
 {
 	if(pixels.empty())
 	{
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.25, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.75, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.25, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
-		pixels.push_back(new Voxel(tlf.x+(trf.x-tlf.x)*.75, blf.y+(tlf.y-blf.y)*.25, tlb.z+(trf.z-tlb.z)*.75, (trf.x-tlf.x)*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.25, blf.getY()+(tlf.getY()-blf.getY())*.75, tlb.getZ()+(trf.getZ()-tlb.getZ())*.25, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.75, blf.getY()+(tlf.getY()-blf.getY())*.75, tlb.getZ()+(trf.getZ()-tlb.getZ())*.25, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.25, blf.getY()+(tlf.getY()-blf.getY())*.25, tlb.getZ()+(trf.getZ()-tlb.getZ())*.25, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.75, blf.getY()+(tlf.getY()-blf.getY())*.25, tlb.getZ()+(trf.getZ()-tlb.getZ())*.25, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.25, blf.getY()+(tlf.getY()-blf.getY())*.75, tlb.getZ()+(trf.getZ()-tlb.getZ())*.75, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.75, blf.getY()+(tlf.getY()-blf.getY())*.75, tlb.getZ()+(trf.getZ()-tlb.getZ())*.75, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.25, blf.getY()+(tlf.getY()-blf.getY())*.25, tlb.getZ()+(trf.getZ()-tlb.getZ())*.75, (trf.getX()-tlf.getX())*.5)) ;
+		pixels.push_back(new Voxel(tlf.getX()+(trf.getX()-tlf.getX())*.75, blf.getY()+(tlf.getY()-blf.getY())*.25, tlb.getZ()+(trf.getZ()-tlb.getZ())*.75, (trf.getX()-tlf.getX())*.5)) ;
 	}
 	else
 		return ;
@@ -272,12 +272,12 @@ Voxel::~Voxel()
 
 bool Voxel::coOccur(const Point & p) const
 {
-	return p.x >= tlf.x-POINT_TOLERANCE_3D 
-	   &&  p.x <= trf.x+POINT_TOLERANCE_3D 
-	   &&  p.y >= blf.y-POINT_TOLERANCE_3D 
-	   &&  p.y <= tlf.y+POINT_TOLERANCE_3D 
-	   &&  p.z >= blb.z-POINT_TOLERANCE_3D 
-	   &&  p.z <= tlf.z+POINT_TOLERANCE_3D;
+	return p.getX() >= tlf.getX()-POINT_TOLERANCE_3D 
+	   &&  p.getX() <= trf.getX()+POINT_TOLERANCE_3D 
+	   &&  p.getY() >= blf.getY()-POINT_TOLERANCE_3D 
+	   &&  p.getY() <= tlf.getY()+POINT_TOLERANCE_3D 
+	   &&  p.getZ() >= blb.getZ()-POINT_TOLERANCE_3D 
+	   &&  p.getZ() <= tlf.getZ()+POINT_TOLERANCE_3D;
 }
 
 int Voxel::computeFillFactor() const
@@ -292,7 +292,7 @@ int Voxel::computeFillFactor() const
 		{
 			for(size_t k = 0 ; k < 10 ; k++)
 			{
-				Point test(blf.x+(double)(i+1)*.1*(brf.x-blf.x), blf.y+(double)(j+1)*.1*(tlf.y-blf.y), blf.y+(double)(k+1)*.1*(tlf.y-blb.y)) ;
+				Point test(blf.getX()+(double)(i+1)*.1*(brf.getX()-blf.getX()), blf.getY()+(double)(j+1)*.1*(tlf.getY()-blf.getY()), blf.getY()+(double)(k+1)*.1*(tlf.getY()-blb.getY())) ;
 				
 				for(size_t l = 0 ; l < features.size() ; l++)
 				{
@@ -328,7 +328,7 @@ std::vector<const Geometry *> & Pixel::getFeatures()
 
 bool Pixel::in(const Point & p) const
 {
-	return (p.x >= tl.x)  && (p.x <= br.x) && (p.y >= br.y) && (p.y <= tl.y);
+	return (p.getX() >= tl.getX())  && (p.getX() <= br.getX()) && (p.getY() >= br.getY()) && (p.getY() <= tl.getY());
 }
 
 void Pixel::refine()
@@ -337,10 +337,10 @@ void Pixel::refine()
 	if(pixels.size() == 0)
 	{
 		pixels.resize(4) ;
-		pixels[0] = Pixel(tl.x+(tr.x-tl.x)*.25, bl.y+(tl.y-bl.y)*.75, (tr.x-tl.x)*.5) ;
-		pixels[1] = Pixel(tl.x+(tr.x-tl.x)*.75, bl.y+(tl.y-bl.y)*.75, (tr.x-tl.x)*.5) ;
-		pixels[2] = Pixel(tl.x+(tr.x-tl.x)*.25, bl.y+(tl.y-bl.y)*.25, (tr.x-tl.x)*.5) ;
-		pixels[3] = Pixel(tl.x+(tr.x-tl.x)*.75, bl.y+(tl.y-bl.y)*.25, (tr.x-tl.x)*.5) ;
+		pixels[0] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
+		pixels[1] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.75, (tr.getX()-tl.getX())*.5) ;
+		pixels[2] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.25, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
+		pixels[3] = Pixel(tl.getX()+(tr.getX()-tl.getX())*.75, bl.getY()+(tl.getY()-bl.getY())*.25, (tr.getX()-tl.getX())*.5) ;
 		
 		for(size_t i = 0 ; i < 4 ; i++)
 		{
@@ -360,7 +360,7 @@ Pixel::~Pixel()
 bool Pixel::coOccur(const Geometry * const inc) const
 {
 	std::vector<Point> bbox = inc->getBoundingBox() ;
-	Rectangle test((tl.x+br.x)*.5, (tl.y+br.y)*.5, tr.x-bl.x, tr.y-bl.y) ;
+	Rectangle test((tl.getX()+br.getX())*.5, (tl.getY()+br.getY())*.5, tr.getX()-bl.getX(), tr.getY()-bl.getY()) ;
 	bool ret = inc->in(tl) 
 		|| inc->in(tr) 
 		|| inc->in(br) 
@@ -381,10 +381,10 @@ bool Pixel::coOccur(const Geometry * const inc) const
 
 bool Pixel::coOccur(const Point & p) const
 {
-	return p.x >= tl.x - POINT_TOLERANCE_2D 
-	   &&  p.x <= tr.x + POINT_TOLERANCE_2D 
-	   &&  p.y >= bl.y - POINT_TOLERANCE_2D 
-	   &&  p.y <= tl.y + POINT_TOLERANCE_2D ;
+	return p.getX() >= tl.getX() - POINT_TOLERANCE_2D 
+	   &&  p.getX() <= tr.getX() + POINT_TOLERANCE_2D 
+	   &&  p.getY() >= bl.getY() - POINT_TOLERANCE_2D 
+	   &&  p.getY() <= tl.getY() + POINT_TOLERANCE_2D ;
 }
 
 void Pixel::remove(const Geometry * inc)
@@ -415,7 +415,7 @@ int Pixel::computeFillFactor() const
 	{
 		for(size_t j = 0 ; j < 10 ; j++)
 		{
-			Point test(bl.x+(double)(i+1)*.1*(br.x-bl.x), bl.y+(double)(j+1)*.1*(tl.y-bl.y)) ;
+			Point test(bl.getX()+(double)(i+1)*.1*(br.getX()-bl.getX()), bl.getY()+(double)(j+1)*.1*(tl.getY()-bl.getY())) ;
 			
 			for(size_t k = 0 ; k < features.size() ; k++)
 			{
@@ -600,13 +600,13 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div, const Point & 
 			for(size_t k = 0 ; k < lengthZ ; k++)
 			{
 				
-// 				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX+psize*.5+center.x,
-// 				                            y*(double)(j)/(double)lengthY+psize*.5+center.y,
-// 				                            z*(double)(k)/(double)lengthZ+psize*.5+center.z,  psize) ;
+// 				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX+psize*.5+center.getX(),
+// 				                            y*(double)(j)/(double)lengthY+psize*.5+center.getY(),
+// 				                            z*(double)(k)/(double)lengthZ+psize*.5+center.getZ(),  psize) ;
 // 				freepixel.push_back(pixels[i][j][k]) ;
-				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX+psize*.5+center.x-x/2.,
-				                            y*(double)(j)/(double)lengthY+psize*.5+center.y-y/2.,
-				                            z*(double)(k)/(double)lengthZ+psize*.5+center.z-z/2.,  psize) ;
+				pixels[i][j][k] = new Voxel(x*(double)(i)/(double)lengthX+psize*.5+center.getX()-x/2.,
+				                            y*(double)(j)/(double)lengthY+psize*.5+center.getY()-y/2.,
+				                            z*(double)(k)/(double)lengthZ+psize*.5+center.getZ()-z/2.,  psize) ;
 				unfilledpixel.push_back(pixels[i][j][k]) ;
 			}
 		}
@@ -618,9 +618,9 @@ Grid3D::Grid3D(double sizeX, double sizeY, double sizeZ, int div, const Point & 
 
 Point Grid3D::randomFreeCenter() const 
 {
-	return Point(x*((double)rand()/(RAND_MAX)-.5)+c.x, 
-	             y*((double)rand()/(RAND_MAX)-.5)+c.y, 
-	             z*((double)rand()/(RAND_MAX)-.5)+c.z) ;
+	return Point(x*((double)rand()/(RAND_MAX)-.5)+c.getX(), 
+	             y*((double)rand()/(RAND_MAX)-.5)+c.getY(), 
+	             z*((double)rand()/(RAND_MAX)-.5)+c.getZ()) ;
 }
 
 Grid3D Grid3D::getGrid(int div) const
@@ -675,19 +675,19 @@ bool Grid3D::add(const Geometry * inc)
 // 	bool ret = true ;
 // 	std::vector<Voxel *> cleanup ;
 // 	
-// 	double startX = .5*x + inc->getCenter().x-inc->getRadius() ;
+// 	double startX = .5*x + inc->getCenter().getX()-inc->getRadius() ;
 // 	int startI = std::max(0., startX/psize - 2) ;
 // 	
 // 	double endX =  startX+2.*inc->getRadius();
 // 	int endI = std::min(endX/psize + 2, (double)lengthX);
 // 	
-// 	double startY = .5*y + inc->getCenter().y-inc->getRadius() ;
+// 	double startY = .5*y + inc->getCenter().getY()-inc->getRadius() ;
 // 	int startJ = std::max(0., startY/psize - 2) ;
 // 	
 // 	double endY =  startY+2.*inc->getRadius();
 // 	int endJ = std::min(endY/psize + 2, (double)lengthY);
 // 	
-// 	double startZ = .5*y + inc->getCenter().z-inc->getRadius() ;
+// 	double startZ = .5*y + inc->getCenter().getZ()-inc->getRadius() ;
 // 	int startK = std::max(0., startZ/psize - 2) ;
 // 	
 // 	double endZ =  startZ+2.*inc->getRadius();
@@ -726,19 +726,19 @@ bool Grid3D::add(const Geometry * inc)
 
 void Grid3D::forceAdd(const Geometry * inc)
 {
-	double startX = .5*x-c.x + inc->getCenter().x-inc->getRadius() ;
+	double startX = .5*x-c.getX() + inc->getCenter().getX()-inc->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*inc->getRadius();
 	int endI = std::min(endX/psize + 2, (double)pixels.size());
 	
-	double startY = .5*y-c.y + inc->getCenter().y-inc->getRadius() ;
+	double startY = .5*y-c.getY() + inc->getCenter().getY()-inc->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+2.*inc->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 	
-	double startZ = .5*z-c.z + inc->getCenter().z-inc->getRadius() ;
+	double startZ = .5*z-c.getZ() + inc->getCenter().getZ()-inc->getRadius() ;
 	int startK = std::max(0., startZ/psize - 2) ;
 	
 	double endZ =  startZ+2.*inc->getRadius();
@@ -781,19 +781,19 @@ bool Grid3D::remove(const Geometry* inc)
 std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 {
 	std::vector<const Geometry *> ret ;
-	double startX = .5*x-c.x + geo->getCenter().x-geo->getRadius() ;
+	double startX = .5*x-c.getX() + geo->getCenter().getX()-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
 	int endI = std::min(endX/psize + 2, (double)pixels.size());
 	
-	double startY = .5*y-c.y + geo->getCenter().y-geo->getRadius() ;
+	double startY = .5*y-c.getY() + geo->getCenter().getY()-geo->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+2.*geo->getRadius();
 	int endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 	
-	double startZ = .5*z-c.z + geo->getCenter().z-geo->getRadius() ;
+	double startZ = .5*z-c.getZ() + geo->getCenter().getZ()-geo->getRadius() ;
 	int startK = std::max(0., startZ/psize - 2) ;
 	
 	double endZ =  startZ+2.*geo->getRadius();
@@ -802,19 +802,19 @@ std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 /*	if(geo->getGeometryType() == TETRAHEDRON)
 	{
 		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(geo) ;
-		startX = .5*x + t->getCircumCenter().x-t->getRadius()*1.1 ;
+		startX = .5*x + t->getCircumCenter().getX()-t->getRadius()*1.1 ;
 		startI = std::max(0., startX/psize - 2) ;
 		
 		endX =  startX+2.2*geo->getRadius();
 		endI = std::min(endX/psize + 2, (double)pixels.size());
 		
-		startY = .5*y + t->getCircumCenter().y-t->getRadius()*1.1 ;
+		startY = .5*y + t->getCircumCenter().getY()-t->getRadius()*1.1 ;
 		startJ = std::max(0., startY/psize - 2) ;
 		
 		endY =  startY+2.2*t->getRadius();
 		endJ = std::min(endY/psize + 2, (double)pixels[0].size());
 		
-		startZ = .5*z + t->getCircumCenter().z-t->getRadius()*1.1 ;
+		startZ = .5*z + t->getCircumCenter().getZ()-t->getRadius()*1.1 ;
 		startK = std::max(0., startZ/psize - 2) ;
 		
 		endZ =  startZ+2.2*t->getRadius();
@@ -852,19 +852,19 @@ std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 std::vector<const Geometry *> Grid3D::coOccur(const Point & p) const 
 {
 	std::vector<const Geometry *> ret ;
-	double startX = x*.5-c.x + p.x ;
+	double startX = x*.5-c.getX() + p.getX() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+.05*x;
 	int endI = std::min(endX/psize + 2, (double)lengthX);
 	
-	double startY = y*.5-c.y + p.y ;
+	double startY = y*.5-c.getY() + p.getY() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+.05*y;
 	int endJ = std::min(endY/psize + 2, (double)lengthY);
 	
-	double startZ = z*.5-c.z + p.z ;
+	double startZ = z*.5-c.getZ() + p.getZ() ;
 	int startK = std::max(0., startZ/psize - 2) ;
 	
 	double endZ =  startZ+.05*z;
@@ -924,8 +924,8 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 	{
 		for(size_t j = 0 ; j < lengthY ; j++)
 		{
-			this->pixels[i][j] = new Pixel(x*(double)(i)/(double)lengthX+psize*.5+center.x-.5*x,
-			                         y*(double)(j)/(double)lengthY+psize*.5+center.y-.5*y, psize) ;
+			this->pixels[i][j] = new Pixel(x*(double)(i)/(double)lengthX+psize*.5+center.getX()-.5*x,
+			                         y*(double)(j)/(double)lengthY+psize*.5+center.getY()-.5*y, psize) ;
 		}
 	}
 }
@@ -933,13 +933,13 @@ Grid::Grid(double sizeX, double sizeY, int div, const Point & center ) : x(sizeX
 std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
 {
 	std::vector<const Geometry *> ret ;
-	double startX = x*.5-c.x + geo->getCenter().x-geo->getRadius() ;
+	double startX = x*.5-c.getX() + geo->getCenter().getX()-geo->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*geo->getRadius();
 	int endI = std::min(endX/psize + 2, (double)lengthX);
 	
-	double startY = y*.5-c.y + geo->getCenter().y-geo->getRadius() ;
+	double startY = y*.5-c.getY() + geo->getCenter().getY()-geo->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 		
 	double endY =  startY+2.*geo->getRadius();
@@ -967,13 +967,13 @@ std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
  std::vector<const Geometry *> Grid::coOccur(const Point & p) const 
 {
 	std::vector<const Geometry *> ret ;
-	double startX = x*.5-c.x + p.x ;
+	double startX = x*.5-c.getX() + p.getX() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+.05*x;
 	int endI = std::min(endX/psize + 2, (double)lengthX);
 	
-	double startY = y*.5-c.y + p.y ;
+	double startY = y*.5-c.getY() + p.getY() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+.05*y;
@@ -1000,13 +1000,13 @@ std::vector<const Geometry *> Grid::coOccur(const Geometry * geo) const
 void Grid::forceAdd(const Geometry * inc)
 {
 	
-	double startX = x*.5-c.x + inc->getCenter().x-inc->getRadius() ;
+	double startX = x*.5-c.getX() + inc->getCenter().getX()-inc->getRadius() ;
 	int startI = std::max(0., startX/psize - 2) ;
 	
 	double endX =  startX+2.*inc->getRadius();
 	int endI = std::min(endX/psize + 2, (double)lengthX);
 	
-	double startY = y*.5-c.y + inc->getCenter().y-inc->getRadius() ;
+	double startY = y*.5-c.getY() + inc->getCenter().getY()-inc->getRadius() ;
 	int startJ = std::max(0., startY/psize - 2) ;
 	
 	double endY =  startY+2.*inc->getRadius();

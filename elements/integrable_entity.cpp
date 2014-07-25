@@ -166,7 +166,7 @@ void IntegrableEntity::applyBoundaryCondition( Assembly *a )
 		}
 		for( size_t i = start ; i < getBoundingPoints().size() ; i++ )
 		{
-			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getBoundingPoint( i ).id,  getShapeFunction( i ), getGaussPoints(), Jinv ) ;
+			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getBoundingPoint( i ).getId(),  getShapeFunction( i ), getGaussPoints(), Jinv ) ;
 			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
 			{
 				if( get2DMesh() )
@@ -2037,7 +2037,7 @@ double ElementState::getDeltaTime() const
 
 double ElementState::getNodalDeltaTime() const
 {
-	return parent->getBoundingPoint(parent->getBoundingPoints().size() -1).t - parent->getBoundingPoint(0).t ;
+	return parent->getBoundingPoint(parent->getBoundingPoints().size() -1).getT() - parent->getBoundingPoint(0).getT() ;
 }
 
 FieldType stressFieldType(StressCalculationMethod m)

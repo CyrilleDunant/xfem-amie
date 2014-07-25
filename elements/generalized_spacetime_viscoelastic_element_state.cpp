@@ -43,7 +43,7 @@ GaussPointArray genEquivalentGaussPointArray2D( TriElement * trg, double time)
 			break ;
 	}
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-		gp.gaussPoints[i].first.t = time ;
+		gp.gaussPoints[i].first.getT() = time ;
 	
 	if(trg->getEnrichmentFunctions().size() > 0)
 	{
@@ -52,7 +52,7 @@ GaussPointArray genEquivalentGaussPointArray2D( TriElement * trg, double time)
 		for(size_t i = 0 ; i < original.gaussPoints.size()/3 ; i++)
 		{
 			gp_alternative.push_back(original.gaussPoints[i*3]);
-			gp_alternative.back().first.t = time ;
+			gp_alternative.back().first.getT() = time ;
 			gp_alternative.back().second /= 1./3. ;
 		}
 
@@ -79,7 +79,7 @@ GaussPointArray genEquivalentGaussPointArray3D( TetrahedralElement * tet, double
 			break ;
 	}
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-		gp.gaussPoints[i].first.t = time ;
+		gp.gaussPoints[i].first.getT() = time ;
 	
 	if(tet->getEnrichmentFunctions().size() > 0)
 	{
@@ -88,7 +88,7 @@ GaussPointArray genEquivalentGaussPointArray3D( TetrahedralElement * tet, double
 		for(size_t i = 0 ; i < original.gaussPoints.size()/3 ; i++)
 		{
 			gp_alternative.push_back(original.gaussPoints[i*3]);
-			gp_alternative.back().first.t = time ;
+			gp_alternative.back().first.getT() = time ;
 			gp_alternative.back().second /= 1./3. ;
 		}
 

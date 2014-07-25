@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 	tata.append(argv[1]) ;
 	tata.append("_") ;
 	tata.append(argv[3]) ;
-	tata.append(".txt") ;
+	tata.append(".getT()xt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
 	double speed = 0.0005/totaltime ;
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 		{
 	 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 	 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-			out << trg[0]->getBoundingPoint(3).t << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
+			out << trg[0]->getBoundingPoint(3).getT() << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 		}
 	}
 	

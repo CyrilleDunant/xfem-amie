@@ -43,7 +43,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
 		return m ;
 	}
 	
-	double i = (p.t + 1.) * state.size() / 2 ;
+	double i = (p.getT() + 1.) * state.size() / 2 ;
 	if(i >= state.size())
 		i = state.size() - 1 ;
 	
@@ -63,7 +63,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 	if(state.size() == 1)
 		return m*(1.-state[0]) ;
 	
-	double i = (p.t + 1.) * state.size() / 2 ;
+	double i = (p.getT() + 1.) * state.size() / 2 ;
 	if(i >= state.size())
 		i = state.size() - 1 ;
 	

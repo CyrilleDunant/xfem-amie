@@ -48,7 +48,7 @@ struct MultiGridStep : public Preconditionner
 		count = 0 ;
 		subsolver = new ConjugateGradient(*A1, b) ;
 // 		subsolver->solve(b, nullptr, 1e-9) ;
-// 		b = subsolver->x ;
+// 		b = subsolver->getX() ;
 		
 // 		for(size_t i = 0 ; i < elements0.size() ; i++)
 // 		{
@@ -100,7 +100,7 @@ struct MultiGridStep : public Preconditionner
 			
 			//extend
 // 			for(size_t i = 0 ; i < elements1.size() ; i++)
-// 				elements1[i]->step(1., &subsolver->x) ;
+// 				elements1[i]->step(1., &subsolver->getX()) ;
 			mesh0->project(mesh1, t, subsolver->x, false) ;
 
 			t = vorig-t ;
@@ -115,8 +115,8 @@ struct MultiGridStep : public Preconditionner
 // 		{
 // 			for(size_t j = 0 ; j < smoothingPoints[i].size() ; j++)
 // 			{
-// 				t[points[i]->id*2] += torig[smoothingPoints[i][j]->id*2]/smoothingPoints[i].size() ;
-// 				t[points[i]->id*2+1] += torig[smoothingPoints[i][j]->id*2+1]/smoothingPoints[i].size() ;
+// 				t[points[i]->getId()*2] += torig[smoothingPoints[i][j]->getId()*2]/smoothingPoints[i].size() ;
+// 				t[points[i]->getId()*2+1] += torig[smoothingPoints[i][j]->getId()*2+1]/smoothingPoints[i].size() ;
 // 			}
 // 		}
 // 		t = t*.25+v*0.75 ;

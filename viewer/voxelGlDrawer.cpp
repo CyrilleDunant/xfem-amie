@@ -149,8 +149,8 @@ void VoxelGLDrawer::mouseReleaseEvent(QMouseEvent *event) {
 void VoxelGLDrawer::mouseMoveEvent(QMouseEvent *event) {
 	if(leftDown)
 	{
-		xtransleft -= mousePosOnLeftClick.x()-event->x() ;
-		ytransleft += mousePosOnLeftClick.y()-event->y() ;
+		xtransleft -= mousePosOnLeftClick.getX()()-event->getX()() ;
+		ytransleft += mousePosOnLeftClick.getY()()-event->getY()() ;
 		emit xTranslationChanged(xtransleft) ;
 		emit yTranslationChanged(ytransleft) ;
 		mousePosOnLeftClick = event->pos() ;
@@ -158,8 +158,8 @@ void VoxelGLDrawer::mouseMoveEvent(QMouseEvent *event) {
 	else if (rightDown)
 	{
 		
-		xangle += (int)round(180.*(float)(mousePosOnRightClick.x()-event->x())/(float)width()) + 360;
-		yangle += (int)round(180.*(float)(mousePosOnRightClick.y()-event->y())/(float)height()) + 360;
+		xangle += (int)round(180.*(float)(mousePosOnRightClick.getX()()-event->getX()())/(float)width()) + 360;
+		yangle += (int)round(180.*(float)(mousePosOnRightClick.getY()()-event->getY()())/(float)height()) + 360;
 
 		xangle%=360 ;
 		yangle%=360 ;

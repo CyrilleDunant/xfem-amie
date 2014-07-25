@@ -215,7 +215,7 @@ void IncrementalKelvinVoight::step(double timestep, ElementState &s)
 
     for(size_t i = 0 ; i < bc.size() ; i++)
     {
-	size_t id = bc[i]->id ;
+	size_t id = bc[i]->getId() ;
 	if(!up[id])
 	{
 	    Vector stress(param.numCols()) ;
@@ -303,7 +303,7 @@ Vector NewmarkNumeroffKelvinVoigt::getImposedStress( const Point &p , Integrable
 			{
 				Function fi = e->getShapeFunction(i) ;
 				Vector mi = vm.ieval( Gradient(fi) * imposedAtGaussPoints, e, v) ;
-				ret += vm.geval( Gradient(fi), e, v, p.x, p.y, p.z, p.t ) * mi ;
+				ret += vm.geval( Gradient(fi), e, v, p.getX(), p.getY(), p.getZ(), p.getT() ) * mi ;
 			}
 			Vector vec(0., imposedAtGaussPoints[0].size()) ;
 			for(size_t i = 0 ; i < vec.size() ; i++)
@@ -462,7 +462,7 @@ Vector ExponentiallyPredictedKelvinVoigt::getImposedStress( const Point &p , Int
 			{
 				Function fi = e->getShapeFunction(i) ;
 				Vector mi = vm.ieval( Gradient(fi) * imposedAtGaussPoints, e, v) ;
-				ret += vm.geval( Gradient(fi), e, v, p.x, p.y, p.z, p.t ) * mi ;
+				ret += vm.geval( Gradient(fi), e, v, p.getX(), p.getY(), p.getZ(), p.getT() ) * mi ;
 			}
 			Vector vec(0., imposedAtGaussPoints[0].size()) ;
 			for(size_t i = 0 ; i < vec.size() ; i++)

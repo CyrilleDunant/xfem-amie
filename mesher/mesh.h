@@ -75,7 +75,7 @@ namespace Mu
 						for(size_t j = 0 ; j < start->getNeighbourhood(i)->timePlanes() ; j++)
 						{
 							Point c = start->getNeighbourhood(i)->getCenter() ;
-							c.t = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() ).t ;
+							c.getT() = start->getNeighbourhood(i)->getBoundingPoint( start->getNeighbourhood(i)->getBoundingPoints().size() * j / start->getNeighbourhood(i)->timePlanes() ).getT() ;
 							if(g->in(c)) 
 							{
 								to_test.insert(start->getNeighbourhood(i)) ;
@@ -256,7 +256,7 @@ namespace Mu
 							{
 								projectionCache.erase(projectionCache.find(*i)) ;
 								for(size_t k = 0 ; k < numDofs ; k++)
-									disps[k] = source[projectionPointCache[(*i)]->id*numDofs+k] ;
+									disps[k] = source[projectionPointCache[(*i)]->getId()*numDofs+k] ;
 							}
 							else
 							{
@@ -265,7 +265,7 @@ namespace Mu
 								{
 									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
 									{
-										int id = coincidentElements.begin()->second->getBoundingPoint(j).id ;
+										int id = coincidentElements.begin()->second->getBoundingPoint(j).getId() ;
 										double d = projectionCache[(*i)].second[j] ;
 										for(size_t k = 0 ; k < numDofs ; k++)
 											disps[k] += source[id*numDofs+k]*d ;
@@ -274,7 +274,7 @@ namespace Mu
 							}
 							
 							for(size_t k = 0 ; k < numDofs ; k++)
-								projection[(*i)->id*numDofs+k] = disps[k] ;
+								projection[(*i)->getId()*numDofs+k] = disps[k] ;
 						}
 						else
 						{
@@ -299,7 +299,7 @@ namespace Mu
 							if(projectionPointCache[(*i)] && source.size())
 							{
 								projectionCache.erase(projectionCache.find(*i)) ;
-								int id = projectionPointCache[(*i)]->id ;
+								int id = projectionPointCache[(*i)]->getId() ;
 								for(size_t k = 0 ; k < numDofs ; k++)
 									disps[k] = source[id*numDofs+k] ;
 							}
@@ -311,7 +311,7 @@ namespace Mu
 									for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
 									{
 										double d = projectionCache[(*i)].second[j] ;
-										int id = coincidentElements.begin()->second->getBoundingPoint(j).id ;
+										int id = coincidentElements.begin()->second->getBoundingPoint(j).getId() ;
 										for(size_t k = 0 ; k < numDofs ; k++)
 											disps[k] += source[id*numDofs+k]*d ;
 									}
@@ -319,7 +319,7 @@ namespace Mu
 							}
 							
 							for(size_t k = 0 ; k < numDofs ; k++)
-									projection[(*i)->id*numDofs+k] = disps[k] ;
+									projection[(*i)->getId()*numDofs+k] = disps[k] ;
 						}
 							
 					}
@@ -351,13 +351,13 @@ namespace Mu
 							for(size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++)
 							{
 								double d = i->second.second[j] ;
-								int id = i->second.first->getBoundingPoint(j).id ;
+								int id = i->second.first->getBoundingPoint(j).getId() ;
 								for(size_t k = 0 ; k < numDofs ; k++)
 									disps[k] += source[id*numDofs+k]*d ;
 							}
 						}
 						for(size_t k = 0 ; k < numDofs ; k++)
-							projection[i->first->id*numDofs+k] = disps[k] ;
+							projection[i->first->getId()*numDofs+k] = disps[k] ;
 						
 					}
 					
@@ -365,7 +365,7 @@ namespace Mu
 					{
 
 						for(size_t k = 0 ; k < numDofs ; k++)
-							projection[j->first->id*numDofs+k] = source[j->second->id*numDofs+k] ;
+							projection[j->first->getId()*numDofs+k] = source[j->second->getId()*numDofs+k] ;
 						
 					}
 					
@@ -415,8 +415,8 @@ namespace Mu
 						
 						if(time_planes> 1)
 						{
-							a.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-							b.t = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+							a.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+							b.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
 						}
 						for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
 						{
@@ -465,7 +465,7 @@ namespace Mu
 								{
 									points.push_back(new Point(proto) ) ;
 									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
-									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->id = global_counter++ ;
+									newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
 								}
 								
 								done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
@@ -496,9 +496,9 @@ namespace Mu
 			tree.push_back(element) ;
 			for(size_t i = 0 ; i < element->getBoundingPoints().size() ; ++i)
 			{
-				if(element->getBoundingPoint(i).id < 0)
-					element->getBoundingPoint(i).id = global_counter ;
-				trans[& (element->getBoundingPoint(i).id)] = global_counter ;
+				if(element->getBoundingPoint(i).getId() < 0)
+					element->getBoundingPoint(i).getId() = global_counter ;
+				trans[& (element->getBoundingPoint(i).getId())] = global_counter ;
 				global_counter++ ;
 			}
 		} ;

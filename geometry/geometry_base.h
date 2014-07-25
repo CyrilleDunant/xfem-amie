@@ -7,7 +7,6 @@
 #ifndef __GEOMETRY_BASE_H_
 #define __GEOMETRY_BASE_H_
 #include "../utilities/matrixops.h"
-#include "../utilities/xml.h"
 
 #ifdef HAVE_SSE3
 #include <pmmintrin.h>
@@ -464,8 +463,9 @@ struct PtP ;
 struct PtV ;
 
 /** \brief Four dimensionnal point. Storage of the coordinates makes use of the processors's vector extensions*/
-struct Point
+class Point
 {
+protected :
 	#ifdef HAVE_SSE3
 	union
 	{
@@ -493,7 +493,7 @@ struct Point
 	
 	/** \brief ID of the point, useful for mesh indexing*/
 	int id ;
-
+public :
 	/** \brief default constructor, coordiantes are nil, and id is -1 */
 	Point();
 	
@@ -527,20 +527,24 @@ struct Point
 	/** \brief copy-constructor.*/
 	Point& operator = (const Point & p) ;
 	
-	/** \brief constructor from a XML tree item*/
-	Point(XMLTree * xml) ;
-
-	/** \brief export to XML.
-	* Data structure is <point><vector> 4 x y z t </vector><id> id </id></point>
-	*/
-	XMLTree * toXML() const;
-	
 	void setX(double v) ;
 	void setY(double v) ;
 	void setZ(double v) ;
-	double getZ() {return z ;} ;
 	void setT(double v) ;
-
+	void setId(int v) {id = v ;} ;
+	
+	const double & getT() const {return t ;} ;
+	double & getT() {return t ;} ;
+	const double & getZ() const {return z ;} ;
+	double & getZ() {return z ;} ;
+	const double & getY() const {return y ;} ;
+	double & getY() {return y ;} ;
+	const double & getX() const {return x ;} ;
+	double & getX() {return x ;} ;
+	
+	const int & getId() const {return id ;} ;
+	int & getId() {return id ;} ;
+	
 	void set(double v, double vv) ;
 	void set(double v, double vv, double vvv) ;
 	void set(double v, double vv, double vvv, double vvvv) ;
@@ -685,51 +689,51 @@ struct PtP
 	
 	operator const Point() const 
 	{
-		Point ret( f.y*s.z - f.z*s.y, f.z*s.x - f.x*s.z, f.x*s.y - f.y*s.x) ;
-		ret.id = std::max(f.id, s.id) ;
+		Point ret( f.getY()*s.getZ() - f.getZ()*s.getY(), f.getZ()*s.getX() - f.getX()*s.getZ(), f.getX()*s.getY() - f.getY()*s.getX()) ;
+		ret.setId(std::max(f.getId(), s.getId()) ) ;
 		return ret ;
 	};
 	
 	double operator *(const Point & p) const 
 	{
-		return (f.y*s.z - f.z*s.y)*p.x + (f.z*s.x - f.x*s.z)*p.y + (f.x*s.y - f.y*s.x)*p.z ;
+		return (f.getY()*s.getZ() - f.getZ()*s.getY())*p.getX() + (f.getZ()*s.getX() - f.getX()*s.getZ())*p.getY() + (f.getX()*s.getY() - f.getY()*s.getX())*p.getZ() ;
 	}
 	
 	Point operator * (const double & d) const 
 	{
-		Point ret(d*(f.y*s.z - f.z*s.y), d*(f.z*s.x - f.x*s.z), d*(f.x*s.y - f.y*s.x)) ;
-		ret.id = std::max(f.id, s.id) ;
+		Point ret(d*(f.getY()*s.getZ() - f.getZ()*s.getY()), d*(f.getZ()*s.getX() - f.getX()*s.getZ()), d*(f.getX()*s.getY() - f.getY()*s.getX())) ;
+		ret.setId(std::max(f.getId(), s.getId()) ) ;
 		return ret ;
 	}
 	Point operator / (const double & d) const 
 	{
-		Point ret((f.y*s.z - f.z*s.y)/d, (f.z*s.x - f.x*s.z)/d, (f.x*s.y - f.y*s.x)/d) ;
-		ret.id = std::max(f.id, s.id) ;
+		Point ret((f.getY()*s.getZ() - f.getZ()*s.getY())/d, (f.getZ()*s.getX() - f.getX()*s.getZ())/d, (f.getX()*s.getY() - f.getY()*s.getX())/d) ;
+		ret.setId(std::max(f.getId(), s.getId()) ) ;
 		return ret ;
 	}
 	
 	Point operator - (const Point & p) const 
 	{
-		Point ret(f.y*s.z - f.z*s.y-p.x, f.z*s.x - f.x*s.z-p.y, f.x*s.y - f.y*s.x -p.z) ;
-		ret.id = std::max(f.id, s.id) ;
+		Point ret(f.getY()*s.getZ() - f.getZ()*s.getY()-p.getX(), f.getZ()*s.getX() - f.getX()*s.getZ()-p.getY(), f.getX()*s.getY() - f.getY()*s.getX() -p.getZ()) ;
+		ret.setId(std::max(f.getId(), s.getId()) ) ;
 		return ret ;
 	}
 	
 	Point operator + (const Point & p) const 
 	{
-		Point ret(f.y*s.z - f.z*s.y + p.x, f.z*s.x - f.x*s.z + p.y, f.x*s.y - f.y*s.x + p.z) ;
-		ret.id = std::max(f.id, s.id) ;
+		Point ret(f.getY()*s.getZ() - f.getZ()*s.getY() + p.getX(), f.getZ()*s.getX() - f.getX()*s.getZ() + p.getY(), f.getX()*s.getY() - f.getY()*s.getX() + p.getZ()) ;
+		ret.setId(std::max(f.getId(), s.getId()) ) ;
 		return ret ;
 	}
 	
 	double norm() const
 	{
-		return sqrt( (f.y*s.z - f.z*s.y) * (f.y*s.z - f.z*s.y) + ( f.z*s.x - f.x*s.z) *  ( f.z*s.x - f.x*s.z) + ( f.x*s.y - f.y*s.x ) * ( f.x*s.y - f.y*s.x )) ;
+		return sqrt( (f.getY()*s.getZ() - f.getZ()*s.getY()) * (f.getY()*s.getZ() - f.getZ()*s.getY()) + ( f.getZ()*s.getX() - f.getX()*s.getZ()) *  ( f.getZ()*s.getX() - f.getX()*s.getZ()) + ( f.getX()*s.getY() - f.getY()*s.getX() ) * ( f.getX()*s.getY() - f.getY()*s.getX() )) ;
 	}
 	
 	double getZ() const
 	{
-		return f.x*s.y - f.y*s.x ;
+		return f.getX()*s.getY() - f.getY()*s.getX() ;
 	}
 } ;
 
@@ -741,8 +745,8 @@ struct PtV
 	
 	operator const Point() const 
 	{
-		Point ret( f.y*s[2] - f.z*s[1],f.z*s[0] - f.x*s[2],f.x*s[1] - f.y*s[0]) ;
-		ret.id = f.id ;
+		Point ret( f.getY()*s[2] - f.getZ()*s[1],f.getZ()*s[0] - f.getX()*s[2],f.getX()*s[1] - f.getY()*s[0]) ;
+		ret.getId() = f.getId() ;
 		return ret ;
 	};
 } ;
@@ -810,8 +814,6 @@ public:
 	Geometry() ;
 	Geometry(size_t numPoints) ;
 	virtual ~Geometry() ;
-
-	virtual XMLTree * toXML() const ;
 	
 	/** \brief Acessor get the bounding points of the geometry*/
 	virtual const PointArray & getBoundingPoints() const = 0;
@@ -905,14 +907,14 @@ public:
 	
 	/** \brief Get the bounding box. 
 	 * The points are topLeft, topRight, bottomRight, bottomLeft or in 3D:
-	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
-	 * center.x+0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
-	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
-	 * center.x+0.5*size_x, center.y-0.5*size_y, center.z-0.5*size_z) ;
-	 * center.x-0.5*size_x, center.y+0.5*size_y, center.z+0.5*size_z) ;
-	 * center.x-0.5*size_x, center.y+0.5*size_y, center.z-0.5*size_z) ;
-	 * center.x-0.5*size_x, center.y-0.5*size_y, center.z+0.5*size_z) ;
-	 * center.x-0.5*size_x, center.y-0.5*size_y, center.z-0.5*size_z) ;
+	 * center.getX()+0.5*size_x, center.getY()+0.5*size_y, center.getZ()+0.5*size_z) ;
+	 * center.getX()+0.5*size_x, center.getY()+0.5*size_y, center.getZ()-0.5*size_z) ;
+	 * center.getX()+0.5*size_x, center.getY()-0.5*size_y, center.getZ()+0.5*size_z) ;
+	 * center.getX()+0.5*size_x, center.getY()-0.5*size_y, center.getZ()-0.5*size_z) ;
+	 * center.getX()-0.5*size_x, center.getY()+0.5*size_y, center.getZ()+0.5*size_z) ;
+	 * center.getX()-0.5*size_x, center.getY()+0.5*size_y, center.getZ()-0.5*size_z) ;
+	 * center.getX()-0.5*size_x, center.getY()-0.5*size_y, center.getZ()+0.5*size_z) ;
+	 * center.getX()-0.5*size_x, center.getY()-0.5*size_y, center.getZ()-0.5*size_z) ;
 	 */
 	virtual std::vector<Point> getBoundingBox() const = 0;
 	
@@ -1064,12 +1066,12 @@ protected:
 	Point vec ;
 	
 public:
-	double * getFirstX() {return &f.x ;}
-	double * getFirstY() {return &f.y ;}
-	double * getFirstZ() {return &f.z ;}
-	double * getSecondX() {return &s.x ;}
-	double * getSecondY() {return &s.y ;}
-	double * getSecondZ() {return &s.z ;}
+	double * getFirstX() {return &f.getX() ;}
+	double * getFirstY() {return &f.getY() ;}
+	double * getFirstZ() {return &f.getZ() ;}
+	double * getSecondX() {return &s.getX() ;}
+	double * getSecondY() {return &s.getY() ;}
+	double * getSecondZ() {return &s.getZ() ;}
 public:
 	
 	/** \brief Constructor. construct a segment from two endpoints*/
@@ -1130,8 +1132,8 @@ public:
 		if(n > POINT_TOLERANCE_2D)
 		{
 			Vector ret(2) ;
-			ret[0] = -vec.y/n ;
-			ret[1] = vec.x/n ;
+			ret[0] = -vec.getY()/n ;
+			ret[1] = vec.getX()/n ;
 			return ret ;
 		}
 		
@@ -1315,7 +1317,6 @@ public:
 	/// Nurb constructor
 	Nurb(std::vector<Point> controlPoint, std::vector<double> weight, std::vector<double> knot);
 
-	virtual XMLTree * toXML() {return new XMLTree("nurb") ; } ;
 	/// Compute degree of the nurb based on the knowledge of the size of knot vector and number of control points
 	int computeDegree(const std::vector<double> &vec,const std::vector<Point> &Pv);
 	
@@ -1413,8 +1414,6 @@ public:
 	/** \brief Constructor. Construct from a pointset*/
 	ConvexPolygon(const PointSet * po) ;
 	virtual ~ConvexPolygon() { } ;
-
-	virtual XMLTree * toXML() {return new XMLTree("convex polygon") ; } ;
 	
 	/** \brief return true if the argument is in the Polygon*/
 //	virtual bool in(const Point & p) const;
@@ -1490,8 +1489,6 @@ public:
 	OrientableCircle() ; 
 	
 	virtual ~OrientableCircle() { } ;
-
-	virtual XMLTree * toXML() const ;
 
 	/** \brief Get points sampling the circle boundary*/
 	virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const;
@@ -1725,7 +1722,7 @@ struct PointLess_Than_x
 {
 	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
 	{
-		return p1.x < p2.x ;
+		return p1.getX() < p2.getX() ;
 	}
 } ;
 
@@ -1734,7 +1731,7 @@ struct PointLess_Than_y
 {
 	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
 	{
-		return p1.y < p2.y ;
+		return p1.getY() < p2.getY() ;
 	}
 } ;
 

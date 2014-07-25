@@ -8,7 +8,6 @@
 #define __GEOMETRY_WITH_EXCLUSION_H_
 #include "geometry_base.h"
 #include "../utilities/matrixops.h"
-#include "../utilities/xml.h"
 
 namespace Mu
 {

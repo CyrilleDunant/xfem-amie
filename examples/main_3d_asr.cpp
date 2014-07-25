@@ -350,7 +350,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 		}
 		
 		if( alone )
-			zonesToPlace.push_back( new ExpansiveZone3D( nullptr, radius, pos.x, pos.y, pos.z, gel ) ) ;
+			zonesToPlace.push_back( new ExpansiveZone3D( nullptr, radius, pos.getX(), pos.getY(), pos.getZ(), gel ) ) ;
 /*		else
 			i-- ;*/
 	}
@@ -404,7 +404,7 @@ int main( int argc, char *argv[] )
 			inclusions.push_back(new Inclusion3D(0.0623*scale,0.075*scale,0.075*scale,0.075*scale)) ;
 		else
 		{
-			std::string file = "sphere_2024.txt" ;
+			std::string file = "sphere_2024.getT()xt" ;
 			std::vector<std::string> columns ;
 			columns.push_back("center_x") ;
 			columns.push_back("center_y") ;

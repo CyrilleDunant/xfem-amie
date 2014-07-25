@@ -37,36 +37,20 @@ std::vector<Point *> Feature::doubleSurfaceSampling()
 		newboundingPoints[i*2] = &getBoundingPoint(i) ;
 		Point * p = new Point(getBoundingPoint(i)*0.5 + getBoundingPoint(i+1)*0.5) ;
 		project(p) ;
-		p->id = -1 ;
+		p->setId(-1) ;
 		newboundingPoints[i*2+1] = p ;
 		ret.push_back(newboundingPoints[i*2+1]) ;
 	}
 	
 	newboundingPoints[(getBoundingPoints().size()-1)*2] = &getBoundingPoint(getBoundingPoints().size()-1) ;
 	newboundingPoints[getBoundingPoints().size()*2-1] = new Point(getBoundingPoint(getBoundingPoints().size()-1)*0.5 + getBoundingPoint(0)*0.5) ;
-	newboundingPoints[getBoundingPoints().size()*2-1]->id = -1 ;
+	newboundingPoints[getBoundingPoints().size()*2-1]->setId(-1) ;
 	project(newboundingPoints[getBoundingPoints().size()*2-1]) ;
 	ret.push_back(newboundingPoints[getBoundingPoints().size()*2-1]) ;
 	
 	dynamic_cast<Geometry *>(this)->setBoundingPoints(newboundingPoints) ;
 	
 	return ret ;
-}
-
-XMLTree * Feature::toXML() const 
-{
-	XMLTree * feat = new XMLTree("feature") ;
-	feat->addChild(static_cast<const Geometry *>(this)->toXML()) ;
-	feat->print(true) ;
-//	feat->addChild(getBehaviour()->toMaterial().toXML()) ;
-	for(size_t i = 0 ; i < m_c.size() ; i++)
-	{
-		const Feature * fi = getChild(i) ;
-		fi->print() ;
-		XMLTree * testi = fi->toXML() ;
-		feat->addChild(testi) ;
-	}
-	return feat ;
 }
 
 

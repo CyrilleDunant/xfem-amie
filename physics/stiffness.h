@@ -35,8 +35,6 @@ namespace Mu
 		Stiffness(const Matrix & rig) ;
 		
 		virtual ~Stiffness() ;
-
-		virtual XMLTree * toXML() { return new XMLTree("stiffness",param) ; } ;
 		
 		/** \brief Apply the law.
 		 *
@@ -88,15 +86,7 @@ namespace Mu
 		*/
 		PseudoPlastic(const Matrix & rig, double E, double limitStrain, double radius) ;
 		
-		
-		
 		virtual ~PseudoPlastic() ;
-
-		virtual XMLTree * toXML() 
-		{ 
-			return new XMLTree("pseudoplastic",param) ; 
-			
-		} ;
 		
 		/** \brief Apply the law.
 		 *

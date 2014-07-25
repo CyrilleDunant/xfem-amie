@@ -106,13 +106,13 @@ void PointParser3D::readData()
 			double x,y,z ;
 //  			file >>  index>> x >> y >> z ;
 			file >> index >> indexPeriodic >> x >> y >> z;
-			Point * p = new Point(x,y,z) ; p->id = index-1 ;
+			Point * p = new Point(x,y,z) ; p->getId() = index-1 ;
 			pointSets->push_back(p) ;
 			this->PeriodicIds.push_back(indexPeriodic-1) ;
 
 	#ifdef DEBUG
-//   			std::cout << "index : " << index << ", x : "<< p->x << ", y : " << p->y << ", z : " << p->z << std::endl ;
- 	    	std::cout << "index : " << index << " indexPeriodic: " << indexPeriodic << ", x : "<< p->x << ", y : " << p->y << ", z : " << p->z << std::endl ;
+//   			std::cout << "index : " << index << ", x : "<< p->getX() << ", y : " << p->getY() << ", z : " << p->getZ() << std::endl ;
+ 	    	std::cout << "index : " << index << " indexPeriodic: " << indexPeriodic << ", x : "<< p->getX() << ", y : " << p->getY() << ", z : " << p->getZ() << std::endl ;
 	#endif		
 		}
 	}

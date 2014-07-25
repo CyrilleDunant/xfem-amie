@@ -168,8 +168,8 @@ void MainWindow::open()
 			{
 				scale = triangledisplay->scale ;
 				limits = triangledisplay->limits ;
-				xpos = triangledisplay->xtransleft ;
-				ypos = triangledisplay->ytransleft ;
+				xpos = triangledisplay->getX()transleft ;
+				ypos = triangledisplay->getY()transleft ;
 			}
 
 			voxeldisplay = nullptr ;
@@ -208,8 +208,8 @@ void MainWindow::open()
 				}
 			}
 
-			triangledisplay->xtransleft = xpos ;
-			triangledisplay->ytransleft = ypos ;
+			triangledisplay->getX()transleft = xpos ;
+			triangledisplay->getY()transleft = ypos ;
 			triangledisplay->scale = scale ;
 			
 			setCentralWidget( triangledisplay );
@@ -344,8 +344,8 @@ void MainWindow::open( const QString &fileName )
 			{
 				scale = triangledisplay->scale ;
 				limits = triangledisplay->limits ;
-				xpos = triangledisplay->xtransleft ;
-				ypos = triangledisplay->ytransleft ;
+				xpos = triangledisplay->getX()transleft ;
+				ypos = triangledisplay->getY()transleft ;
 			}
 
 			int i = buffer.fileInBuffer( fileName ) ;
@@ -381,8 +381,8 @@ void MainWindow::open( const QString &fileName )
 				}
 			}
 
-			triangledisplay->xtransleft = xpos ;
-			triangledisplay->ytransleft = ypos ;
+			triangledisplay->getX()transleft = xpos ;
+			triangledisplay->getY()transleft = ypos ;
 			triangledisplay->scale = scale ;
 			
 			if( triangledisplay == NULL )

@@ -34,7 +34,7 @@ Properties::Properties(Tag t, double v)
 }
 Properties::Properties(const Properties & prop)
 {
-	ptag = prop.tag() ;
+	ptag = prop.getT()ag() ;
 	p = prop.val() ;
 }
 
@@ -343,12 +343,12 @@ double Material::val(const Tag & t, int i) const
 
 bool Material::replace(const Properties & p)
 {
-	if(isSet(p.tag()))
+	if(isSet(p.getT()ag()))
 		return false ;
 
 	for(size_t i = 0 ; i < size() ; i++)
 	{
-		if((*this)[i].is(p.tag()))
+		if((*this)[i].is(p.getT()ag()))
 			(*this)[i].kill() ;
 	}
 	push_back(p) ;
@@ -362,7 +362,7 @@ bool Material::replaceForce(const Properties & p)
 
 	for(size_t i = 0 ; i < size() ; i++)
 	{
-		if((*this)[i].is(p.tag()))
+		if((*this)[i].is(p.getT()ag()))
 			(*this)[i].kill() ;
 	}
 	push_back(p) ;

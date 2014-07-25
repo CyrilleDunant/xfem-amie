@@ -260,7 +260,7 @@ void ParallelDelaunayTree::insert(Point * p)
 		}
 	}
 	
-	p->id = global_counter++ ;
+	p->getId() = global_counter++ ;
 	
 }
 
@@ -304,8 +304,8 @@ void ParallelDelaunayTree::setElementOrder(Order o, double dt )
 			{
 				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
 				{
-					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
-						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+					if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
 				}
 			}
 		}
@@ -331,8 +331,8 @@ void ParallelDelaunayTree::extrude(double dt)
 			{
 				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
 				{
-					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
-						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+					if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
 				}
 			}
 		}
@@ -358,8 +358,8 @@ void ParallelDelaunayTree::extrude(const Vector & dt)
 			{
 				for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
 				{
-					if(tmp[j]->getBoundingPoint(k).id >=initial_global_counter)
-						tmp[j]->getBoundingPoint(k).id = global_counter++ ;
+					if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
+						tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
 				}
 			}
 		}

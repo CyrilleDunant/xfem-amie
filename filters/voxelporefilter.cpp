@@ -157,7 +157,7 @@ void VoxelPoreFilter::read(const char * filename)
 // 				}
 				
 				points.push_back(new Point(7.5*((double)i/r) + xr, 7.5*(double)j/c +yr ,7.5*(double)k/s + zr, -1)) ;
-				(*points.rbegin())->id = index++ ;
+				(*points.rbegin())->setId( index++) ;
 			}
 		}
 	}
@@ -179,7 +179,7 @@ void VoxelPoreFilter::read(const char * filename)
 // 				}
 				
 				points.push_back(new Point(7.5*((double)i/r) + xr, 7.5*(double)j/c +yr ,7.5*(double)k/s + zr, 1)) ;
-				(*points.rbegin())->id = index++ ;
+				(*points.rbegin())->setId( index++) ;
 			}
 		}
 	}
@@ -313,35 +313,35 @@ void VoxelPoreFilter::read(const char * filename)
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(aab)
 					corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(aba)
 					corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(abb)
 					corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(baa)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+j*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 			
 				if(bab)
@@ -349,21 +349,21 @@ void VoxelPoreFilter::read(const char * filename)
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(bba)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(bbb)
 					corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 					
 				if(aaa)
@@ -371,56 +371,56 @@ void VoxelPoreFilter::read(const char * filename)
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 + i*(r+1)*(c+1)+j*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(aab)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(aba)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(abb)
 					corner.push_back(points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +i*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(baa)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(bab)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(bba)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 				if(bbb)
 					corner.push_back(points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 				else
 				{
 					corner.push_back(new Point(*points[points.size()/2 +(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-					(*corner.rbegin())->id = index++ ;
+					(*corner.rbegin())->setId( index++) ;
 				}
 					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, 
 						corner[1], corner[5], corner[4], corner[7],

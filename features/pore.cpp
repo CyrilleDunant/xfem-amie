@@ -88,7 +88,7 @@ void Pore::sample(size_t n)
 	this->Circle::sampleSurface(n) ;
 // 	this->Circle::sampleBoundingSurface(n) ;
 // 	this->inPoints->resize(1) ;
-// 	(*this->inPoints)[0] = new Point(this->center.x, this->center.y) ;
+// 	(*this->inPoints)[0] = new Point(this->center.getX(), this->center.getY()) ;
 }
 
 std::vector<Geometry *> Pore::getRefinementZones(size_t level) const

@@ -24,7 +24,7 @@ GeometryWithExclusion::GeometryWithExclusion::GeometryWithExclusion(Geometry * f
 	
 void GeometryWithExclusion::project(Point * p) const 
 {
-	Point base(p->x, p->y, p->z) ;
+	Point base(p->getX(), p->getY(), p->getZ()) ;
 	Point projOnFather(base) ;
 	father->project(&projOnFather) ;
 	Point proj(projOnFather) ;

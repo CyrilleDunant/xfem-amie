@@ -59,7 +59,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 					{
 						
 						if(squareDist2D(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint(), &TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k)) < POINT_TOLERANCE_2D 
-							  && std::abs(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()->t - TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k).t) < POINT_TOLERANCE_2D )
+							  && std::abs(TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()->getT() - TimeDependentEnrichmentInclusion::cache[i]->getBoundingPoint(k).getT()) < POINT_TOLERANCE_2D )
 						{
 							pointsAndValues[TimeDependentEnrichmentInclusion::cache[i]->getEnrichmentFunction(j).getPoint()] = disp ;
 							break ;
@@ -170,7 +170,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 		if(!added)
 		{
 			Point p = disc[i]->getCenter() ;
-			p.t = VirtualMachine().eval( disc[i]->getTTransform(), 0,0,0,0) ;
+			p.getT() = VirtualMachine().eval( disc[i]->getTTransform(), 0,0,0,0) ;
 			if(getPrimitive()->in(p))
 				inDisc.push_back( disc[i] ) ;
 		}	  

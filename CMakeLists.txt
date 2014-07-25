@@ -157,7 +157,6 @@ utilities/itoa.cpp
 utilities/placement.cpp
 utilities/random.cpp
 utilities/samplingcriterion.cpp
-utilities/xml.cpp
 features/microstructuregenerator.cpp
 utilities/writer/triangle_writer.cpp
 utilities/writer/voxel_writer.cpp

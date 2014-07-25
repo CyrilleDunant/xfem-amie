@@ -232,7 +232,7 @@ void ElementaryVolume::nonLinearStep(double dt, const Vector * displacements)
 // 	std::vector<std::pair<size_t,const Function &> > ret ;
 // 	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 // 	{
-// 		ret.push_back(std::make_pair(getBoundingPoint(i).id, getShapeFunction(i))) ;
+// 		ret.push_back(std::make_pair(getBoundingPoint(i).getId(), getShapeFunction(i))) ;
 // 	}
 // 	for (size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
 // 	{
@@ -248,8 +248,8 @@ const std::vector< size_t > ElementarySurface::getDofIds() const
 
 	for (size_t i = 0 ; i < getShapeFunctions().size() ; i++)
 	{
-		if(getBoundingPoint(i).id >= 0)
-			ret.push_back(getBoundingPoint(i).id) ;
+		if(getBoundingPoint(i).getId() >= 0)
+			ret.push_back(getBoundingPoint(i).getId()) ;
 		else
 			std::cout << "negative point ID, check numbering !" << std::endl ;
 	}
@@ -1659,7 +1659,7 @@ TriElement::TriElement(Order order_ ): moved(false)
 	}
 	
 	for(size_t i = 0 ; i < this->Triangle::getBoundingPoints().size() ; i++)
-		this->Triangle::getBoundingPoint(i).id = -1 ;
+		this->Triangle::getBoundingPoint(i).setId(-1)  ;
 	
 }
 	
@@ -1740,11 +1740,11 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 			double dxi = vm.deval(father.getShapeFunction(i), XI, p) ;
 			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
 			
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
+			xdxi += dxi*getBoundingPoint(i).getX() ;
+			ydxi += dxi*getBoundingPoint(i).getY() ;
 
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
+			xdeta += deta*getBoundingPoint(i).getX() ;
+			ydeta += deta*getBoundingPoint(i).getY() ;
 		}
 		
 		return ydeta*xdxi - ydxi*xdeta ;
@@ -1771,17 +1771,17 @@ double  TriElement::jacobianAtPoint(const Mu::Point& p) const
 			double deta = vm.deval(father.getShapeFunction(i), ETA, p) ;
 			double dtau = vm.deval(father.getShapeFunction(i),TIME_VARIABLE,p) ;
 			
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
-			tdxi += dxi*getBoundingPoint(i).t ;
+			xdxi += dxi*getBoundingPoint(i).getX() ;
+			ydxi += dxi*getBoundingPoint(i).getY() ;
+			tdxi += dxi*getBoundingPoint(i).getT() ;
 
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
-			tdeta += deta*getBoundingPoint(i).t ;
+			xdeta += deta*getBoundingPoint(i).getX() ;
+			ydeta += deta*getBoundingPoint(i).getY() ;
+			tdeta += deta*getBoundingPoint(i).getT() ;
 
-			xdtau += dtau*getBoundingPoint(i).x ;
-			ydtau += dtau*getBoundingPoint(i).y ;
-			tdtau += dtau*getBoundingPoint(i).t ;
+			xdtau += dtau*getBoundingPoint(i).getX() ;
+			ydtau += dtau*getBoundingPoint(i).getY() ;
+			tdtau += dtau*getBoundingPoint(i).getT() ;
 
 		}
 /*		double zdxi = this->getdTTransform(XI, p) ;
@@ -2014,7 +2014,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
 					tj1(a,b) += tn1(a) * tp(b) ;
 					for(int c = 0 ; c < 3 ; c++)
 					{
-						tn3(a,b,c) = vm.dddeval( getShapeFunction(i), var[a], var[b], var[c],p.x,p.y,p.z,p.t) ;
+						tn3(a,b,c) = vm.dddeval( getShapeFunction(i), var[a], var[b], var[c],p.getX(),p.getY(),p.getZ(),p.getT()) ;
 						tn3.threshold(POINT_TOLERANCE_3D) ;
 						tj2(a,b,c) += tn2(a,b)*tp(c)  ;
 						for(int d = 0 ; d < 3 ; d++)
@@ -2311,107 +2311,107 @@ dxxxdX(x,y,t,X) += tj1(t,T)*tj1(y,Y)*dXXdxx(Y,T,u,v)*tj3(x,u,v,X) ;
 			double dtaudeta = vm.ddeval( getShapeFunction(i), TIME_VARIABLE, ETA, p, 100*default_derivation_delta ) ;
 			double dtaudtau = vm.ddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, p, 100*default_derivation_delta ) ;
 			
-			double dxidxidxi = vm.dddeval( getShapeFunction(i), XI, XI, XI, p.x,p.y,p.z,p.t) ;
-			double detadetadeta = vm.dddeval( getShapeFunction(i), ETA, ETA, ETA, p.x,p.y,p.z,p.t) ;
-			double dtaudtaudtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dxidxidxi = vm.dddeval( getShapeFunction(i), XI, XI, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadetadeta = vm.dddeval( getShapeFunction(i), ETA, ETA, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudtaudtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
 			
-			double dxidxideta = vm.dddeval( getShapeFunction(i), XI, XI, ETA, p.x,p.y,p.z,p.t) ;
-			double dxidetadxi = vm.dddeval( getShapeFunction(i), XI, ETA, XI, p.x,p.y,p.z,p.t) ;
-			double detadxidxi = vm.dddeval( getShapeFunction(i), ETA, XI, XI, p.x,p.y,p.z,p.t) ;
-			double dxidxidtau = vm.dddeval( getShapeFunction(i), XI, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double dxidtaudxi = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
-			double dtaudxidxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, XI, p.x,p.y,p.z,p.t) ;
+			double dxidxideta = vm.dddeval( getShapeFunction(i), XI, XI, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidetadxi = vm.dddeval( getShapeFunction(i), XI, ETA, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadxidxi = vm.dddeval( getShapeFunction(i), ETA, XI, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidxidtau = vm.dddeval( getShapeFunction(i), XI, XI, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidtaudxi = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudxidxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
 
-			double detadetadxi = vm.dddeval( getShapeFunction(i), ETA, ETA, XI, p.x,p.y,p.z,p.t) ;
-			double detadxideta = vm.dddeval( getShapeFunction(i), ETA, XI, ETA, p.x,p.y,p.z,p.t) ;
-			double dxidetadeta = vm.dddeval( getShapeFunction(i), XI, ETA, ETA, p.x,p.y,p.z,p.t) ;
-			double detadetadtau = vm.dddeval( getShapeFunction(i), ETA, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double detadtaudeta = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
-			double dtaudetadeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, ETA, p.x,p.y,p.z,p.t) ;
+			double detadetadxi = vm.dddeval( getShapeFunction(i), ETA, ETA, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadxideta = vm.dddeval( getShapeFunction(i), ETA, XI, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidetadeta = vm.dddeval( getShapeFunction(i), XI, ETA, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadetadtau = vm.dddeval( getShapeFunction(i), ETA, ETA, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadtaudeta = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudetadeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
 
-			double dtaudtaudxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
-			double dtaudxidtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double dxidtaudtau = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double dtaudtaudeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
-			double dtaudetadtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double detadtaudtau = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
+			double dtaudtaudxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudxidtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidtaudtau = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudtaudeta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, TIME_VARIABLE, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudetadtau = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadtaudtau = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
 			
-			double dxidetadtau = vm.dddeval( getShapeFunction(i), XI, ETA, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double dxidtaudeta = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, ETA, p.x,p.y,p.z,p.t) ;
-			double detadxidtau = vm.dddeval( getShapeFunction(i), ETA, XI, TIME_VARIABLE, p.x,p.y,p.z,p.t) ;
-			double detadtaudxi = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, XI, p.x,p.y,p.z,p.t) ;
-			double dtaudxideta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, ETA, p.x,p.y,p.z,p.t) ;
-			double dtaudetadxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, XI, p.x,p.y,p.z,p.t) ;
+			double dxidetadtau = vm.dddeval( getShapeFunction(i), XI, ETA, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dxidtaudeta = vm.dddeval( getShapeFunction(i), XI, TIME_VARIABLE, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadxidtau = vm.dddeval( getShapeFunction(i), ETA, XI, TIME_VARIABLE, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double detadtaudxi = vm.dddeval( getShapeFunction(i), ETA, TIME_VARIABLE, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudxideta = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, XI, ETA, p.getX(),p.getY(),p.getZ(),p.getT()) ;
+			double dtaudetadxi = vm.dddeval( getShapeFunction(i), TIME_VARIABLE, ETA, XI, p.getX(),p.getY(),p.getZ(),p.getT()) ;
 
 			
-			j2[0][0] += dxidxi * getBoundingPoint(i).x ;
-			j2[0][1] += dxidxi * getBoundingPoint(i).y ;
-			j2[0][2] += dxidxi * getBoundingPoint(i).t ;
+			j2[0][0] += dxidxi * getBoundingPoint(i).getX() ;
+			j2[0][1] += dxidxi * getBoundingPoint(i).getY() ;
+			j2[0][2] += dxidxi * getBoundingPoint(i).getT() ;
 			
-			j2[1][0] += detadeta * getBoundingPoint(i).x ;
-			j2[1][1] += detadeta * getBoundingPoint(i).y ;
-			j2[1][2] += detadeta * getBoundingPoint(i).t ;
+			j2[1][0] += detadeta * getBoundingPoint(i).getX() ;
+			j2[1][1] += detadeta * getBoundingPoint(i).getY() ;
+			j2[1][2] += detadeta * getBoundingPoint(i).getT() ;
 			
-			j2[2][0] += dtaudtau * getBoundingPoint(i).x ;
-			j2[2][1] += dtaudtau * getBoundingPoint(i).y ;
-			j2[2][2] += dtaudtau * getBoundingPoint(i).t ;
+			j2[2][0] += dtaudtau * getBoundingPoint(i).getX() ;
+			j2[2][1] += dtaudtau * getBoundingPoint(i).getY() ;
+			j2[2][2] += dtaudtau * getBoundingPoint(i).getT() ;
 			
-			j2[3][0] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).x ;
-			j2[3][1] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).y ;
-			j2[3][2] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).t ;
+			j2[3][0] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).getX() ;
+			j2[3][1] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).getY() ;
+			j2[3][2] += 0.5 * (detadxi + dxideta) * getBoundingPoint(i).getT() ;
 
-			j2[4][0] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).x ;
-			j2[4][1] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).y ;
-			j2[4][2] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).t ;
+			j2[4][0] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).getX() ;
+			j2[4][1] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).getY() ;
+			j2[4][2] += 0.5 * (dtaudeta + detadtau) * getBoundingPoint(i).getT() ;
 			
-			j2[5][0] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).x ;
-			j2[5][1] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).y ;
-			j2[5][2] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).t ;
-			
-			
+			j2[5][0] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).getX() ;
+			j2[5][1] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).getY() ;
+			j2[5][2] += 0.5 * (dxidtau + dtaudxi) * getBoundingPoint(i).getT() ;
 			
 			
 			
 			
-			j3[0][0] += dxidxidxi * getBoundingPoint(i).x ;
-			j3[0][1] += dxidxidxi * getBoundingPoint(i).y ;
-			j3[0][2] += dxidxidxi * getBoundingPoint(i).t ;
 			
-			j3[1][0] += detadetadeta * getBoundingPoint(i).x ;
-			j3[1][1] += detadetadeta * getBoundingPoint(i).y ;
-			j3[1][2] += detadetadeta * getBoundingPoint(i).t ;
+			
+			j3[0][0] += dxidxidxi * getBoundingPoint(i).getX() ;
+			j3[0][1] += dxidxidxi * getBoundingPoint(i).getY() ;
+			j3[0][2] += dxidxidxi * getBoundingPoint(i).getT() ;
+			
+			j3[1][0] += detadetadeta * getBoundingPoint(i).getX() ;
+			j3[1][1] += detadetadeta * getBoundingPoint(i).getY() ;
+			j3[1][2] += detadetadeta * getBoundingPoint(i).getT() ;
 
-			j3[2][0] += dtaudtaudtau * getBoundingPoint(i).x ;
-			j3[2][1] += dtaudtaudtau * getBoundingPoint(i).y ;
-			j3[2][2] += dtaudtaudtau * getBoundingPoint(i).t ;
+			j3[2][0] += dtaudtaudtau * getBoundingPoint(i).getX() ;
+			j3[2][1] += dtaudtaudtau * getBoundingPoint(i).getY() ;
+			j3[2][2] += dtaudtaudtau * getBoundingPoint(i).getT() ;
 			
-			j3[3][0] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).x ;
-			j3[3][1] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).y ;
-			j3[3][2] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).t ;
+			j3[3][0] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).getX() ;
+			j3[3][1] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).getY() ;
+			j3[3][2] += (dxidxideta + dxidetadxi + detadxidxi) /3. * getBoundingPoint(i).getT() ;
 			
-			j3[4][0] += (detadetadxi + detadxideta + dxidetadeta) /3. * getBoundingPoint(i).x ;
-			j3[4][1] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).y ;
-			j3[4][2] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).t ;
+			j3[4][0] += (detadetadxi + detadxideta + dxidetadeta) /3. * getBoundingPoint(i).getX() ;
+			j3[4][1] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).getY() ;
+			j3[4][2] += (detadetadxi + detadxideta + dxidetadeta)  /3. * getBoundingPoint(i).getT() ;
 			
-			j3[5][0] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).x ;
-			j3[5][1] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).y ;
-			j3[5][2] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).t ;
+			j3[5][0] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).getX() ;
+			j3[5][1] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).getY() ;
+			j3[5][2] += (detadetadtau + detadtaudeta + dtaudetadeta) /3. * getBoundingPoint(i).getT() ;
 			
-			j3[6][0] += (dtaudtaudeta + dtaudetadtau + detadtaudtau) /3. * getBoundingPoint(i).x ;
-			j3[6][1] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).y ;
-			j3[6][2] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).t ;
+			j3[6][0] += (dtaudtaudeta + dtaudetadtau + detadtaudtau) /3. * getBoundingPoint(i).getX() ;
+			j3[6][1] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).getY() ;
+			j3[6][2] += (dtaudtaudeta + dtaudetadtau + detadtaudtau)  /3. * getBoundingPoint(i).getT() ;
 			
-			j3[7][0] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).x ;
-			j3[7][1] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).y ;
-			j3[7][2] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).t ;
+			j3[7][0] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).getX() ;
+			j3[7][1] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).getY() ;
+			j3[7][2] += (dtaudtaudxi + dtaudxidtau + dxidtaudtau) /3. * getBoundingPoint(i).getT() ;
 			
-			j3[8][0] += (dxidxidtau + dxidtaudxi + dtaudxidxi) /3. * getBoundingPoint(i).x ;
-			j3[8][1] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).y ;
-			j3[8][2] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).t ;
+			j3[8][0] += (dxidxidtau + dxidtaudxi + dtaudxidxi) /3. * getBoundingPoint(i).getX() ;
+			j3[8][1] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).getY() ;
+			j3[8][2] += (dxidxidtau + dxidtaudxi + dtaudxidxi)  /3. * getBoundingPoint(i).getT() ;
 			
-			j3[9][0] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).x ;
-			j3[9][1] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).y ;
-			j3[9][2] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).t ;*/
+			j3[9][0] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).getX() ;
+			j3[9][1] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).getY() ;
+			j3[9][2] += (dxidetadtau + dxidtaudeta + detadxidtau + detadtaudxi + dtaudxideta + dtaudetadxi ) /6. * getBoundingPoint(i).getT() ;*/
 			
 			
 		
@@ -2534,11 +2534,11 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 			double dxi = vm.deval((*functions)[i], XI, p) ;
 			double deta = vm.deval((*functions)[i], ETA, p) ;
 			
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
+			xdxi += dxi*getBoundingPoint(i).getX() ;
+			ydxi += dxi*getBoundingPoint(i).getY() ;
 
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
+			xdeta += deta*getBoundingPoint(i).getX() ;
+			ydeta += deta*getBoundingPoint(i).getY() ;
 		}
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; 
 		ret[1][0] = xdeta ; ret[1][1] = ydeta ;
@@ -2583,17 +2583,17 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 			double deta = vm.deval(getShapeFunction(i), ETA, p, dummy,  10*default_derivation_delta) ;
 			double dtau = vm.deval(getShapeFunction(i),TIME_VARIABLE,p, dummy, 10*default_derivation_delta) ;
 			
- 			xdxi += dxi*getBoundingPoint(i).x ;
- 			ydxi += dxi*getBoundingPoint(i).y ;
-			tdxi += dxi*getBoundingPoint(i).t  ;
+ 			xdxi += dxi*getBoundingPoint(i).getX() ;
+ 			ydxi += dxi*getBoundingPoint(i).getY() ;
+			tdxi += dxi*getBoundingPoint(i).getT()  ;
 
- 			xdeta += deta*getBoundingPoint(i).x ;
- 			ydeta += deta*getBoundingPoint(i).y ;
-			tdeta += deta*getBoundingPoint(i).t  ;
+ 			xdeta += deta*getBoundingPoint(i).getX() ;
+ 			ydeta += deta*getBoundingPoint(i).getY() ;
+			tdeta += deta*getBoundingPoint(i).getT()  ;
 
-			xdtau += dtau*getBoundingPoint(i).x ;
-			ydtau += dtau*getBoundingPoint(i).y ;
-			tdtau += dtau*getBoundingPoint(i).t  ;
+			xdtau += dtau*getBoundingPoint(i).getX() ;
+			ydtau += dtau*getBoundingPoint(i).getY() ;
+			tdtau += dtau*getBoundingPoint(i).getT()  ;
 			
 		}
 		
@@ -2636,20 +2636,20 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 		factor = 2 ;
 	
 	Matrix S(3,3) ;
-	S[0][0] = getBoundingPoint(0).x ; S[0][1] = getBoundingPoint(factor).x ;  S[0][2] = getBoundingPoint(factor*2).x ; 
-	S[1][0] = getBoundingPoint(0).y ; S[1][1] = getBoundingPoint(factor).y ;  S[1][2] = getBoundingPoint(factor*2).y ; 
+	S[0][0] = getBoundingPoint(0).getX() ; S[0][1] = getBoundingPoint(factor).getX() ;  S[0][2] = getBoundingPoint(factor*2).getX() ; 
+	S[1][0] = getBoundingPoint(0).getY() ; S[1][1] = getBoundingPoint(factor).getY() ;  S[1][2] = getBoundingPoint(factor*2).getY() ; 
 	S[2][0] = 1 ; S[2][1] = 1 ;  S[2][2] = 1 ; 
 	
 	Vector v(3) ; 
-	v[0] = p.x ;
-	v[1] = p.y ;
+	v[0] = p.getX() ;
+	v[1] = p.getY() ;
 	v[2] = 1 ;
 	
 	Vector coeff = inverse3x3Matrix( S) * v ;
 	
 
-	double tmin = getBoundingPoint(0).t ;
-	double tmax = getBoundingPoint(getBoundingPoints().size()-1).t ;
+	double tmin = getBoundingPoint(0).getT() ;
+	double tmax = getBoundingPoint(getBoundingPoints().size()-1).getT() ;
 	
 	Point ret ;
 	ret += Point(0,1,0,0)*coeff[0] ;
@@ -2660,27 +2660,27 @@ Point TriElement::inLocalCoordinates(const Point &p) const
 	std::vector<double> instants ;
 	for(size_t i = 0 ; i < timePlanes() ; i++)
 	{
-		instants.push_back(getBoundingPoint( i*getBoundingPoints().size() / timePlanes() ).t) ;
+		instants.push_back(getBoundingPoint( i*getBoundingPoints().size() / timePlanes() ).getT()) ;
 	}
 	if(instants.size() > 1)
 	{
-		if(p.t < instants[1])
+		if(p.getT() < instants[1])
 		{
-			ret.t = -1. + (2./(timePlanes()-1))*(p.t-instants[0])/(instants[1]-instants[0]) ;
+			ret.getT() = -1. + (2./(timePlanes()-1))*(p.getT()-instants[0])/(instants[1]-instants[0]) ;
 			return ret ;
 		}
-		else if(p.t > instants[instants.size()-2])
+		else if(p.getT() > instants[instants.size()-2])
 		{
-			ret.t = 1. - (2./(timePlanes()-1))*(instants[instants.size()-1]-p.t)/(instants[instants.size()-1]-instants[instants.size()-2]) ;
+			ret.getT() = 1. - (2./(timePlanes()-1))*(instants[instants.size()-1]-p.getT())/(instants[instants.size()-1]-instants[instants.size()-2]) ;
 			return ret ;
 		}
 		else
 		{
 			for(size_t i = 1 ; i < instants.size() - 2 ; i++)
 			{
-				if(p.t > instants[i] && p.t < instants[i+1])
+				if(p.getT() > instants[i] && p.getT() < instants[i+1])
 				{
-					ret.t = -1. + 2.*((double) i )/ (timePlanes()-1) + (2./(timePlanes()-1))*(p.t-instants[i])/(instants[i+1]-instants[i]) ;
+					ret.getT() = -1. + 2.*((double) i )/ (timePlanes()-1) + (2./(timePlanes()-1))*(p.getT()-instants[i])/(instants[i+1]-instants[i]) ;
 					return ret ;
 				}
 			}
@@ -3409,80 +3409,80 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 		if(order < QUADRATIC)
 		{
 			Matrix S(4,4) ;
-			S[0][0] = this->getBoundingPoint(2).x;
-			S[0][1] = this->getBoundingPoint(3).x; 
-			S[0][2] = this->getBoundingPoint(0).x ; 
-			S[0][3] = this->getBoundingPoint(1).x ;  
+			S[0][0] = this->getBoundingPoint(2).getX();
+			S[0][1] = this->getBoundingPoint(3).getX(); 
+			S[0][2] = this->getBoundingPoint(0).getX() ; 
+			S[0][3] = this->getBoundingPoint(1).getX() ;  
 		
-			S[1][0] = this->getBoundingPoint(2).y ;
-			S[1][1] = this->getBoundingPoint(3).y;
-			S[1][2] = this->getBoundingPoint(0).y ; 
-			S[1][3] = this->getBoundingPoint(1).y ;  
+			S[1][0] = this->getBoundingPoint(2).getY() ;
+			S[1][1] = this->getBoundingPoint(3).getY();
+			S[1][2] = this->getBoundingPoint(0).getY() ; 
+			S[1][3] = this->getBoundingPoint(1).getY() ;  
 
-			S[2][0] = this->getBoundingPoint(2).z ;
-			S[2][1] = this->getBoundingPoint(3).z;
-			S[2][2] = this->getBoundingPoint(0).z ; 
-			S[2][3] = this->getBoundingPoint(1).z ;  
+			S[2][0] = this->getBoundingPoint(2).getZ() ;
+			S[2][1] = this->getBoundingPoint(3).getZ();
+			S[2][2] = this->getBoundingPoint(0).getZ() ; 
+			S[2][3] = this->getBoundingPoint(1).getZ() ;  
 		
 			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 		
 			Vector v(4) ; 
-			v[0] = p.x ;
-			v[1] = p.y ;
-			v[2] = p.z ;
+			v[0] = p.getX() ;
+			v[1] = p.getY() ;
+			v[2] = p.getZ() ;
 			v[3] = 1 ;
 
 			Vector coeff = inverse4x4Matrix(S) * v ;
 		
 		// 	VirtualMachine vm ;
 
-		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.getT())) ;
 		// 	t.print();
 		// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
 		// 	test.print() ;
 		// 	inLocalCoordinates(test) ;
 		// 	std::cout << std::endl ;
-			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.t); 
+			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.getT()); 
 		}
 		else
 		{
 			Matrix S(4,4) ;
-			S[0][0] = this->getBoundingPoint(4).x;
-			S[0][1] = this->getBoundingPoint(6).x; 
-			S[0][2] = this->getBoundingPoint(0).x ; 
-			S[0][3] = this->getBoundingPoint(2).x ;  
+			S[0][0] = this->getBoundingPoint(4).getX();
+			S[0][1] = this->getBoundingPoint(6).getX(); 
+			S[0][2] = this->getBoundingPoint(0).getX() ; 
+			S[0][3] = this->getBoundingPoint(2).getX() ;  
 		
-			S[1][0] = this->getBoundingPoint(4).y ;
-			S[1][1] = this->getBoundingPoint(6).y;
-			S[1][2] = this->getBoundingPoint(0).y ; 
-			S[1][3] = this->getBoundingPoint(2).y ;  
+			S[1][0] = this->getBoundingPoint(4).getY() ;
+			S[1][1] = this->getBoundingPoint(6).getY();
+			S[1][2] = this->getBoundingPoint(0).getY() ; 
+			S[1][3] = this->getBoundingPoint(2).getY() ;  
 
-			S[2][0] = this->getBoundingPoint(4).z ;
-			S[2][1] = this->getBoundingPoint(6).z;
-			S[2][2] = this->getBoundingPoint(0).z ; 
-			S[2][3] = this->getBoundingPoint(2).z ;  
+			S[2][0] = this->getBoundingPoint(4).getZ() ;
+			S[2][1] = this->getBoundingPoint(6).getZ();
+			S[2][2] = this->getBoundingPoint(0).getZ() ; 
+			S[2][3] = this->getBoundingPoint(2).getZ() ;  
 		
 			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 		
 			Vector v(4) ; 
-			v[0] = p.x ;
-			v[1] = p.y ;
-			v[2] = p.z ;
+			v[0] = p.getX() ;
+			v[1] = p.getY() ;
+			v[2] = p.getZ() ;
 			v[3] = 1 ;
 
 			Vector coeff = inverse4x4Matrix(S) * v ;
 		
-			double time = p.t ;
+			double time = p.getT() ;
 			if(timePlanes() > 1)
 			{
-				double t0 = this->getBoundingPoint(0).t ;
-				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).t ;
-				time = -1 + 2.*( p.t-t0)/(t1-t0) ;
+				double t0 = this->getBoundingPoint(0).getT() ;
+				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).getT() ;
+				time = -1 + 2.*( p.getT()-t0)/(t1-t0) ;
 			}	
 
 		// 	VirtualMachine vm ;
 
-		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.t)) ;
+		// 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.getT())) ;
 		// 	t.print();
 		// 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
 		// 	test.print() ;
@@ -3494,37 +3494,37 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 	else
 	{
 			Matrix S(4,4) ;
-			S[0][0] = this->getBoundingPoint(2).x;
-			S[0][1] = this->getBoundingPoint(3).x; 
-			S[0][2] = this->getBoundingPoint(0).x ; 
-			S[0][3] = this->getBoundingPoint(1).x ;  
+			S[0][0] = this->getBoundingPoint(2).getX();
+			S[0][1] = this->getBoundingPoint(3).getX(); 
+			S[0][2] = this->getBoundingPoint(0).getX() ; 
+			S[0][3] = this->getBoundingPoint(1).getX() ;  
 		
-			S[1][0] = this->getBoundingPoint(2).y ;
-			S[1][1] = this->getBoundingPoint(3).y;
-			S[1][2] = this->getBoundingPoint(0).y ; 
-			S[1][3] = this->getBoundingPoint(1).y ;  
+			S[1][0] = this->getBoundingPoint(2).getY() ;
+			S[1][1] = this->getBoundingPoint(3).getY();
+			S[1][2] = this->getBoundingPoint(0).getY() ; 
+			S[1][3] = this->getBoundingPoint(1).getY() ;  
 
-			S[2][0] = this->getBoundingPoint(2).z ;
-			S[2][1] = this->getBoundingPoint(3).z;
-			S[2][2] = this->getBoundingPoint(0).z ; 
-			S[2][3] = this->getBoundingPoint(1).z ;  
+			S[2][0] = this->getBoundingPoint(2).getZ() ;
+			S[2][1] = this->getBoundingPoint(3).getZ();
+			S[2][2] = this->getBoundingPoint(0).getZ() ; 
+			S[2][3] = this->getBoundingPoint(1).getZ() ;  
 		
 			S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]= 1;
 		
 			Vector v(4) ; 
-			v[0] = p.x ;
-			v[1] = p.y ;
-			v[2] = p.z ;
+			v[0] = p.getX() ;
+			v[1] = p.getY() ;
+			v[2] = p.getZ() ;
 			v[3] = 1 ;
 
 			Vector coeff = inverse4x4Matrix(S) * v ;
 
-			double time = p.t ;
+			double time = p.getT() ;
 			if(timePlanes() > 1)
 			{
-				double t0 = this->getBoundingPoint(0).t ;
-				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).t ;
-				time = -1 + 2.*( p.t-t0)/(t1-t0) ;
+				double t0 = this->getBoundingPoint(0).getT() ;
+				double t1 = this->getBoundingPoint(this->getBoundingPoints().size()-1).getT() ;
+				time = -1 + 2.*( p.getT()-t0)/(t1-t0) ;
 			}	
 
 			return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,time); 
@@ -3537,30 +3537,30 @@ Point HexahedralElement::inLocalCoordinates(const Point& p) const
 	
 	
 	Matrix S(4,4) ;
-	S[0][0] = this->getBoundingPoint(0).x;
-	S[0][1] = this->getBoundingPoint(4).x;
-	S[0][2] = this->getBoundingPoint(2).x;
-	S[0][3]=  this->getBoundingPoint(1).x;
+	S[0][0] = this->getBoundingPoint(0).getX();
+	S[0][1] = this->getBoundingPoint(4).getX();
+	S[0][2] = this->getBoundingPoint(2).getX();
+	S[0][3]=  this->getBoundingPoint(1).getX();
 	
 	
-	S[1][0] = this->getBoundingPoint(0).y;
-	S[1][1] = this->getBoundingPoint(4).y;
-	S[1][2] = this->getBoundingPoint(2).y;
-	S[1][3]=  this->getBoundingPoint(1).y;
+	S[1][0] = this->getBoundingPoint(0).getY();
+	S[1][1] = this->getBoundingPoint(4).getY();
+	S[1][2] = this->getBoundingPoint(2).getY();
+	S[1][3]=  this->getBoundingPoint(1).getY();
 	
 	
-	S[2][0] = this->getBoundingPoint(0).z;
-	S[2][1] = this->getBoundingPoint(4).z;
-	S[2][2] = this->getBoundingPoint(2).z;
-	S[2][3]=  this->getBoundingPoint(1).z;
+	S[2][0] = this->getBoundingPoint(0).getZ();
+	S[2][1] = this->getBoundingPoint(4).getZ();
+	S[2][2] = this->getBoundingPoint(2).getZ();
+	S[2][3]=  this->getBoundingPoint(1).getZ();
 	
 	
 	S[3][0] = 1 ; S[3][1] = 1 ;  S[3][2] = 1 ; S[3][3]=1;
 	
 	Vector v(4) ; 
-	v[0] = p.x ;
-	v[1] = p.y ;
-	v[2] = p.z ;
+	v[0] = p.getX() ;
+	v[1] = p.getY() ;
+	v[2] = p.getZ() ;
 	v[3] = 1 ;
 	
 	Vector coeff = inverse4x4Matrix(S) * v ;
@@ -3864,20 +3864,20 @@ double ElementaryVolume::jacobianAtPoint(const Point & p) const
 // 		TetrahedralElement father(order) ;
 // 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 // 		{
-// 			double dxi = vm.deval(father.getShapeFunction(i), XI, p.x, p.y. p.z) ;
-// 			double deta = vm.deval(father.getShapeFunction(i), ETA, p.x, p.y. p.z) ;
-// 			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p.x, p.y. p.z) ;
-// 			xdxi += dxi*getBoundingPoint(i).x ;
-// 			ydxi += dxi*getBoundingPoint(i).y ;
-// 			zdxi += dxi*getBoundingPoint(i).z ;
+// 			double dxi = vm.deval(father.getShapeFunction(i), XI, p.getX(), p.getY(). p.getZ()) ;
+// 			double deta = vm.deval(father.getShapeFunction(i), ETA, p.getX(), p.getY(). p.getZ()) ;
+// 			double dzeta = vm.deval(father.getShapeFunction(i), ZETA, p.getX(), p.getY(). p.getZ()) ;
+// 			xdxi += dxi*getBoundingPoint(i).getX() ;
+// 			ydxi += dxi*getBoundingPoint(i).getY() ;
+// 			zdxi += dxi*getBoundingPoint(i).getZ() ;
 // 
-// 			xdeta += deta*getBoundingPoint(i).x ;
-// 			ydeta += deta*getBoundingPoint(i).y ;
-// 			zdeta += deta*getBoundingPoint(i).z ;
+// 			xdeta += deta*getBoundingPoint(i).getX() ;
+// 			ydeta += deta*getBoundingPoint(i).getY() ;
+// 			zdeta += deta*getBoundingPoint(i).getZ() ;
 // 
-// 			xdzeta += dzeta*getBoundingPoint(i).x ;
-// 			ydzeta += dzeta*getBoundingPoint(i).y ;
-// 			zdzeta += dzeta*getBoundingPoint(i).z ;
+// 			xdzeta += dzeta*getBoundingPoint(i).getX() ;
+// 			ydzeta += dzeta*getBoundingPoint(i).getY() ;
+// 			zdzeta += dzeta*getBoundingPoint(i).getZ() ;
 // 		}
 		
 		return xdxi*ydeta*zdzeta + zdeta*xdzeta*ydxi + ydzeta*zdxi*xdeta  -
@@ -4038,8 +4038,8 @@ const std::vector< size_t > ElementaryVolume::getDofIds() const
 	std::vector<size_t> ret ;
 	for (size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		if(getBoundingPoint(i).id >= 0)
-			ret.push_back(getBoundingPoint(i).id) ;
+		if(getBoundingPoint(i).getId() >= 0)
+			ret.push_back(getBoundingPoint(i).getId()) ;
 		else
 			std::cout << "negative ID, check numbering !" << std::endl ;
 	}
@@ -4233,17 +4233,17 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 			double dxi = vm.deval((*functions)[i], XI, p) ;
 			double deta = vm.deval((*functions)[i], ETA, p) ;
 			double dzeta = vm.deval((*functions)[i], ZETA, p) ;
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
-			zdxi += dxi*getBoundingPoint(i).z ;
+			xdxi += dxi*getBoundingPoint(i).getX() ;
+			ydxi += dxi*getBoundingPoint(i).getY() ;
+			zdxi += dxi*getBoundingPoint(i).getZ() ;
 
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
-			zdeta += deta*getBoundingPoint(i).z ;
+			xdeta += deta*getBoundingPoint(i).getX() ;
+			ydeta += deta*getBoundingPoint(i).getY() ;
+			zdeta += deta*getBoundingPoint(i).getZ() ;
 
-			xdzeta += dzeta*getBoundingPoint(i).x ;
-			ydzeta += dzeta*getBoundingPoint(i).y ;
-			zdzeta += dzeta*getBoundingPoint(i).z ;
+			xdzeta += dzeta*getBoundingPoint(i).getX() ;
+			ydzeta += dzeta*getBoundingPoint(i).getY() ;
+			zdzeta += dzeta*getBoundingPoint(i).getZ() ;
 		}
 
 		ret[0][0] = xdxi ; ret[0][1] = ydxi ; ret[0][2] = zdxi ; 
@@ -4305,25 +4305,25 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 			double dzeta = vm.deval(getShapeFunction(i), ZETA, p) ;
 			double dtau = vm.deval(getShapeFunction(i), TIME_VARIABLE, p) ;
 			
-			xdxi += dxi*getBoundingPoint(i).x ;
-			ydxi += dxi*getBoundingPoint(i).y ;
-			zdxi += dxi*getBoundingPoint(i).z ;
-			tdxi += dxi*getBoundingPoint(i).t ;
+			xdxi += dxi*getBoundingPoint(i).getX() ;
+			ydxi += dxi*getBoundingPoint(i).getY() ;
+			zdxi += dxi*getBoundingPoint(i).getZ() ;
+			tdxi += dxi*getBoundingPoint(i).getT() ;
 
-			xdeta += deta*getBoundingPoint(i).x ;
-			ydeta += deta*getBoundingPoint(i).y ;
-			zdeta += deta*getBoundingPoint(i).z ;
-			tdeta += deta*getBoundingPoint(i).t ;
+			xdeta += deta*getBoundingPoint(i).getX() ;
+			ydeta += deta*getBoundingPoint(i).getY() ;
+			zdeta += deta*getBoundingPoint(i).getZ() ;
+			tdeta += deta*getBoundingPoint(i).getT() ;
 
-			xdzeta += dzeta*getBoundingPoint(i).x ;
-			ydzeta += dzeta*getBoundingPoint(i).y ;
-			zdzeta += dzeta*getBoundingPoint(i).z ;
-			tdzeta += dzeta*getBoundingPoint(i).t ;
+			xdzeta += dzeta*getBoundingPoint(i).getX() ;
+			ydzeta += dzeta*getBoundingPoint(i).getY() ;
+			zdzeta += dzeta*getBoundingPoint(i).getZ() ;
+			tdzeta += dzeta*getBoundingPoint(i).getT() ;
 			
-			xdtau += dtau*getBoundingPoint(i).x ;
-			ydtau += dtau*getBoundingPoint(i).y ;
-			zdtau += dtau*getBoundingPoint(i).z ;
-			tdtau += dtau*getBoundingPoint(i).t ;
+			xdtau += dtau*getBoundingPoint(i).getX() ;
+			ydtau += dtau*getBoundingPoint(i).getY() ;
+			zdtau += dtau*getBoundingPoint(i).getZ() ;
+			tdtau += dtau*getBoundingPoint(i).getT() ;
 			
 		}
 
@@ -4504,7 +4504,7 @@ Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += basis[i]*points[i]->x ;
+		ret += basis[i]*points[i]->getX() ;
 	}
 	return ret ;
 }
@@ -4517,7 +4517,7 @@ double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += vm.eval(basis[i], p)*points[i]->x ;
+		ret += vm.eval(basis[i], p)*points[i]->getX() ;
 	}
 	return ret ;
 }
@@ -4536,7 +4536,7 @@ Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += basis[i]*points[i]->y ;
+		ret += basis[i]*points[i]->getY() ;
 	}
 	
 	return ret ;
@@ -4550,7 +4550,7 @@ double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += vm.eval(basis[i], p)*points[i]->y ;
+		ret += vm.eval(basis[i], p)*points[i]->getY() ;
 	}
 	return ret ;
 }
@@ -4569,7 +4569,7 @@ Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += basis[i]*points[i]->z ;
+		ret += basis[i]*points[i]->getZ() ;
 
 	}
 
@@ -4583,7 +4583,7 @@ double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += vm.eval(basis[i], p)*points[i]->z ;
+		ret += vm.eval(basis[i], p)*points[i]->getZ() ;
 	}
 	return ret ;
 }
@@ -4601,7 +4601,7 @@ Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	assert(points.size() == basis.size()) ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += basis[i]*points[i]->t ;
+		ret += basis[i]*points[i]->getT() ;
 		
 	}
 
@@ -4615,7 +4615,7 @@ double tTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	VirtualMachine vm ;
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
-		ret += vm.eval(basis[i], p)*points[i]->t ;
+		ret += vm.eval(basis[i], p)*points[i]->getT() ;
 	}
 	return ret ;
 }
@@ -4628,10 +4628,10 @@ Point coordinateTransform(const Point & p, const std::valarray<Mu::Point*> & poi
 	for(size_t i = 0 ; i < points.size() ; i++)
 	{
 		double v = vm.eval(basis[i], p) ;
-		ret.x += v*points[i]->x ;
-		ret.y += v*points[i]->y ;
-		ret.z += v*points[i]->z ;
-		ret.t += v*points[i]->t ;
+		ret.getX() += v*points[i]->getX() ;
+		ret.getY() += v*points[i]->getY() ;
+		ret.getZ() += v*points[i]->getZ() ;
+		ret.getT() += v*points[i]->getT() ;
 	}
 	return ret ;
 }
@@ -4647,7 +4647,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_x += basis[i].d(XI)*points[i]->x ;
+				der_x += basis[i].d(XI)*points[i]->getX() ;
 			}
 
 			return der_x ;
@@ -4659,7 +4659,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_y += basis[i].d(ETA)*points[i]->x ;
+				der_y += basis[i].d(ETA)*points[i]->getX() ;
 			}
 			
 			return der_y ;
@@ -4671,7 +4671,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += basis[i].d(ZETA)*points[i]->x ;
+				der_z += basis[i].d(ZETA)*points[i]->getX() ;
 			}
 			
 			return der_z ;
@@ -4683,7 +4683,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_t += basis[i].d(TIME_VARIABLE)*points[i]->x ;
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->getX() ;
 			}
 			
 			return der_t ;
@@ -4707,7 +4707,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_x += basis[i].d(XI)*points[i]->y ;
+				der_x += basis[i].d(XI)*points[i]->getY() ;
 			}
 			
 			return der_x ;
@@ -4719,7 +4719,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_y += basis[i].d(ETA)*points[i]->y ;
+				der_y += basis[i].d(ETA)*points[i]->getY() ;
 			}
 			
 			return der_y ;
@@ -4731,7 +4731,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += basis[i].d(ZETA)*points[i]->y ;
+				der_z += basis[i].d(ZETA)*points[i]->getY() ;
 			}
 			
 			return der_z ;
@@ -4743,7 +4743,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_t += basis[i].d(TIME_VARIABLE)*points[i]->y ;
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->getY() ;
 			}
 			
 			return der_t ;
@@ -4767,7 +4767,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_x += basis[i].d(XI)*points[i]->z ;
+				der_x += basis[i].d(XI)*points[i]->getZ() ;
 			}
 			
 			return der_x ;
@@ -4779,7 +4779,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_y += basis[i].d(ETA)*points[i]->z ;
+				der_y += basis[i].d(ETA)*points[i]->getZ() ;
 			}
 			
 			return der_y ;
@@ -4791,7 +4791,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += basis[i].d(ZETA)*points[i]->z ;
+				der_z += basis[i].d(ZETA)*points[i]->getZ() ;
 			}
 			
 			return der_z ;
@@ -4803,7 +4803,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_t += basis[i].d(TIME_VARIABLE)*points[i]->t ;
+				der_t += basis[i].d(TIME_VARIABLE)*points[i]->getT() ;
 			}
 			
 			return der_t ;
@@ -4827,7 +4827,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_x += basis[i].d(XI)*points[i]->t ;
+				der_x += basis[i].d(XI)*points[i]->getT() ;
 			}
 			
 			return der_x ;
@@ -4839,7 +4839,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_y += basis[i].d(ETA)*points[i]->t ;
+				der_y += basis[i].d(ETA)*points[i]->getT() ;
 			}
 			
 			return der_y ;
@@ -4851,7 +4851,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += basis[i].d(ZETA)*points[i]->t ;
+				der_z += basis[i].d(ZETA)*points[i]->getT() ;
 			}
 			
 			return der_z ;
@@ -4863,7 +4863,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 			assert(points.size() == basis.size()) ;
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_t += basis[i].d(ZETA)*points[i]->t ;
+				der_t += basis[i].d(ZETA)*points[i]->getT() ;
 			}
 			
 			return der_t ;
@@ -4887,7 +4887,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_x += vm.deval(basis[i],XI,p)*points[i]->x ;
+				der_x += vm.deval(basis[i],XI,p)*points[i]->getX() ;
 			}
 			return der_x ;
 		}
@@ -4898,7 +4898,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_y += vm.deval(basis[i],ETA, p)*points[i]->x ;
+				der_y += vm.deval(basis[i],ETA, p)*points[i]->getX() ;
 			}
 			return der_y ;
 		}
@@ -4909,7 +4909,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_z += vm.deval(basis[i],ZETA,p)*points[i]->x ;
+				der_z += vm.deval(basis[i],ZETA,p)*points[i]->getX() ;
 			}
 			
 			return der_z ;
@@ -4921,7 +4921,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->x ;
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->getX() ;
 			}
 			
 			return der_t ;
@@ -4946,7 +4946,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_x += vm.deval(basis[i],XI,p)*points[i]->y ;
+				der_x += vm.deval(basis[i],XI,p)*points[i]->getY() ;
 			}
 			return der_x ;
 		}
@@ -4957,7 +4957,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_y += vm.deval(basis[i],ETA, p)*points[i]->y ;
+				der_y += vm.deval(basis[i],ETA, p)*points[i]->getY() ;
 			}
 			
 			return der_y ;
@@ -4969,7 +4969,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_z += vm.deval(basis[i],ZETA,p)*points[i]->y ;
+				der_z += vm.deval(basis[i],ZETA,p)*points[i]->getY() ;
 			}
 			
 			return der_z ;
@@ -4982,7 +4982,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->y ;
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->getY() ;
 			}
 			
 			return der_t ;
@@ -5006,7 +5006,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_x += vm.deval(basis[i],XI,p)*points[i]->z ;
+				der_x += vm.deval(basis[i],XI,p)*points[i]->getZ() ;
 			}
 			
 			return der_x ;
@@ -5018,7 +5018,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_y += vm.deval(basis[i],ETA, p)*points[i]->z ;
+				der_y += vm.deval(basis[i],ETA, p)*points[i]->getZ() ;
 			}
 			
 			return der_y ;
@@ -5030,7 +5030,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += vm.deval(basis[i],ZETA,p)*points[i]->z ;
+				der_z += vm.deval(basis[i],ZETA,p)*points[i]->getZ() ;
 			}
 			
 			return der_z ;
@@ -5042,7 +5042,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->z ;
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->getZ() ;
 			}
 			
 			return der_t ;
@@ -5065,7 +5065,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			double der_x = 0;
 			for(size_t i = 0 ; i < basis.size() ; i++)
 			{
-				der_x += vm.deval(basis[i],XI,p)*points[i]->t ;
+				der_x += vm.deval(basis[i],XI,p)*points[i]->getT() ;
 			}
 			return der_x ;
 		}
@@ -5076,7 +5076,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_y += vm.deval(basis[i],ETA, p)*points[i]->t ;
+				der_y += vm.deval(basis[i],ETA, p)*points[i]->getT() ;
 			}
 			
 			return der_y ;
@@ -5088,7 +5088,7 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
-				der_z += vm.deval(basis[i],ZETA,p)*points[i]->t ;
+				der_z += vm.deval(basis[i],ZETA,p)*points[i]->getT() ;
 			}
 			
 			return der_z ;
@@ -5102,8 +5102,8 @@ double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 			for(size_t i = 0 ; i < points.size() ; i++)
 			{
 // 				vm.print(basis[i]) ;
-				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->t ;
-// 				std::cout << der_t << "   " << points[i]->t << std::endl ;
+				der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->getT() ;
+// 				std::cout << der_t << "   " << points[i]->getT() << std::endl ;
 			}
 // 			std::cout << "-----" << std::endl ;
 			return der_t ;

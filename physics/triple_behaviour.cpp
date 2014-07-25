@@ -40,7 +40,7 @@ Matrix TrimaterialInterface::getTensor(const Point & p, IntegrableEntity * e, in
 // 			C[i][j] = f_positivity(domain)*inBehaviour->getTensor(p)[i][j] + f_negativity(domain)*outBehaviour->getTensor(p)[i][j];
 // 		}
 // 	}
-// 	return vm.eval(C, p.x, p.y) ;
+// 	return vm.eval(C, p.getX(), p.getY()) ;
 }
 
 Vector TrimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const

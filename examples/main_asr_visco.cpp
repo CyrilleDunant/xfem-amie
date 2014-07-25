@@ -161,8 +161,8 @@ int main(int argc, char *argv[])
 		}
 		F.intermediateStates.clear() ;*/
 
-		summary << nodes[ nodes.size()-1]->t << "\t" ;
-		double r = VirtualMachine().eval( radius, 0,0,0, nodes[ nodes.size()-1]->t ) ;
+		summary << nodes[ nodes.size()-1]->getT() << "\t" ;
+		double r = VirtualMachine().eval( radius, 0,0,0, nodes[ nodes.size()-1]->getT() ) ;
 		summary << r << "\t" << nzones*r*r*M_PI/aggregatesArea << "\t" ;
 		
 		Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1) ;

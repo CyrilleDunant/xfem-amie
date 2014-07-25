@@ -93,13 +93,13 @@ Vector GeneralizedIterativeMaxwellAndFracture::getImposedStress(const Point & p,
 			{
 				Function ffi = e->getShapeFunction(i) ;
 				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
-				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
+				ret += mi*vm.eval( ffi, p.getX(), p.getY(), p.getZ(), p.getT() ) ;
 			}
 			for(size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++)
 			{
 				Function ffi = e->getEnrichmentFunction(i) ;
 				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
-				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
+				ret += mi*vm.eval( ffi, p.getX(), p.getY(), p.getZ(), p.getT() ) ;
 			}
 			return ret ;
 		}
@@ -121,7 +121,7 @@ std::vector<BoundaryCondition * > GeneralizedIterativeMaxwellAndFracture::getBou
 	Vector istress ;
 	for ( size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++ )
 	{
-		if ( id == s.getParent()->getBoundingPoint( i ).id )
+		if ( id == s.getParent()->getBoundingPoint( i ).getId() )
 		{
 			  Point p = s.getParent()->inLocalCoordinates(s.getParent()->getBoundingPoint(i)) ;
 			  Vector tmp = getImposedStress(p, s.getParent()) ;

@@ -16,7 +16,6 @@
 
 #include "features.h"
 #include "../geometry/level_set.h" 
-#include "../utilities/xml.h"
 
 namespace Mu
 {
@@ -58,10 +57,6 @@ public:
 	Inclusion(double radius, Point center) ;
 
 	Inclusion(Circle c) ;
-
-	Inclusion(XMLTree *  xml) ;
-	
-	virtual XMLTree * toXML() ;
 
 /** \brief do nothing */
 	virtual void addSamplePoints(PointSet * po ) { };

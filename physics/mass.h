@@ -30,8 +30,6 @@ namespace Mu
 		Mass(double rho, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual ~Mass() ;
-
-		virtual XMLTree * toXML() { return new XMLTree("mass",density) ; } ;
 		
 		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 		

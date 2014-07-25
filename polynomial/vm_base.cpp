@@ -205,10 +205,10 @@ Vector VirtualMachine::eval(const Function &f, const GaussPointArray &gp)
 	Vector ret(gp.gaussPoints.size()) ;
 	for(size_t i = 0 ; i < ret.size() ; i++)
 	{
-		ret[i] = eval(f, gp.gaussPoints[i].first.x,
-				 gp.gaussPoints[i].first.y,
-				 gp.gaussPoints[i].first.z,
-				 gp.gaussPoints[i].first.t) ;
+		ret[i] = eval(f, gp.gaussPoints[i].first.getX(),
+				 gp.gaussPoints[i].first.getY(),
+				 gp.gaussPoints[i].first.getZ(),
+				 gp.gaussPoints[i].first.getT()) ;
 	}
 
 	return ret ;
@@ -218,25 +218,25 @@ Vector VirtualMachine::oeval(const Function &f, const GaussPointArray &gp, const
 {
 	Vector ret(gp.gaussPoints.size()) ;
 	for(size_t i = 0 ; i < ret.size() ; i++)
-		ret[i] = eval(f, gp.gaussPoints[i].first.x+offset.x,
-				 gp.gaussPoints[i].first.y+offset.y,
-				 gp.gaussPoints[i].first.z+offset.z,
-				 gp.gaussPoints[i].first.t+offset.t) ;
+		ret[i] = eval(f, gp.gaussPoints[i].first.getX()+offset.getX(),
+				 gp.gaussPoints[i].first.getY()+offset.getY(),
+				 gp.gaussPoints[i].first.getZ()+offset.getZ(),
+				 gp.gaussPoints[i].first.getT()+offset.getT()) ;
 
 	return ret ;
 }
 
 double VirtualMachine::eval(const Function &f, const Point & p, const Point & p_) 
 {
-	return eval(f, p.x, p.y, p.z,p.t,p_.x, p_.y, p_.z) ;
+	return eval(f, p.getX(), p.getY(), p.getZ(),p.getT(),p_.getX(), p_.getY(), p_.getZ()) ;
 }
 
 
 double VirtualMachine::eval(const Function &f, const Point *p, const Point * p_) 
 {
 	if(p_)
-		return eval(f, p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z) ;
-	return eval(f, p->x, p->y, p->z, p->t) ;
+		return eval(f, p->getX(), p->getY(), p->getZ(), p->getT(), p_->getX(), p_->getY(), p_->getZ()) ;
+	return eval(f, p->getX(), p->getY(), p->getZ(), p->getT()) ;
 }
 
 
@@ -504,19 +504,19 @@ Matrix VirtualMachine::eval(const FunctionMatrix &f, const double x, const doubl
 
 Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point & p, const Point & p_) 
 {
-	return eval(f, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z) ;
+	return eval(f, p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ()) ;
 }
 
 Matrix VirtualMachine::eval(const FunctionMatrix &f, const Point * p, const Point *p_) 
 {
 	if(p_)
-		return eval(f, p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z) ;
-	return eval(f, p->x, p->y, p->z, p->t) ;
+		return eval(f, p->getX(), p->getY(), p->getZ(), p->getT(), p_->getX(), p_->getY(), p_->getZ()) ;
+	return eval(f, p->getX(), p->getY(), p->getZ(), p->getT()) ;
 }
 
 double VirtualMachine::deval(const Function &f, const Point&p,  const double x, const double y, const double z, const double t , const double eps , bool normed)
 {
-	double d = deval(f,XI,x,y,z,t,0,0,0,eps)*p.x + deval(f,ETA,x,y,z,t,0,0,0,eps)*p.y + deval(f,ZETA,x,y,z,t,0,0,0,eps)*p.z ;
+	double d = deval(f,XI,x,y,z,t,0,0,0,eps)*p.getX() + deval(f,ETA,x,y,z,t,0,0,0,eps)*p.getY() + deval(f,ZETA,x,y,z,t,0,0,0,eps)*p.getZ() ;
 	if(normed)
 		return d ;
 	else
@@ -540,12 +540,12 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f,const Point&p,  const doubl
 
 double VirtualMachine::deval(const Function &f,  const Point&p, const Point & x, const double eps, bool normed )
 {
-	return deval(f, p, x.x, x.y, x.z, eps, normed) ;
+	return deval(f, p, x.getX(), x.getY(), x.getZ(), eps, normed) ;
 }
 
 Matrix VirtualMachine::deval(const FunctionMatrix &f,  const Point&p, const Point & x, const double eps, bool normed )
 {
-	return deval(f, p, x.x, x.y, x.z, eps, normed) ;
+	return deval(f, p, x.getX(), x.getY(), x.getZ(), eps, normed) ;
 }
 
 Vector VirtualMachine::deval(const Function&f, const Variable v_, const GaussPointArray & gp, const double eps)
@@ -573,34 +573,34 @@ Vector VirtualMachine::deval(const Function&f, const Variable v_, const GaussPoi
 		}
 	case XI : 
 		{
-			volatile double temp = poffset.x+h ;
-			h = temp -poffset.x ;
-			poffset.x = h ;
-			noffset.x = -h ;
+			volatile double temp = poffset.getX()+h ;
+			h = temp -poffset.getX() ;
+			poffset.getX() = h ;
+			noffset.getX() = -h ;
 			break ;
 		}
 	case ETA:
 		{
-			volatile double temp = poffset.y+h ;
-			h = temp -poffset.y ;
-			poffset.y = h ;
-			noffset.y = -h ;
+			volatile double temp = poffset.getY()+h ;
+			h = temp -poffset.getY() ;
+			poffset.getY() = h ;
+			noffset.getY() = -h ;
 			break ;
 		}
 	case ZETA:
 		{
-			volatile double temp = poffset.z+h ;
-			h = temp -poffset.z ;
-			poffset.z = h ;
-			noffset.z = -h ;
+			volatile double temp = poffset.getZ()+h ;
+			h = temp -poffset.getZ() ;
+			poffset.getZ() = h ;
+			noffset.getZ() = -h ;
 			break ;
 		}
 	case TIME_VARIABLE : 
 		{
-			volatile double temp = poffset.t+h ;
-			h = temp -poffset.t ;
-			poffset.t = h ;
-			noffset.t = -h ;
+			volatile double temp = poffset.getT()+h ;
+			h = temp -poffset.getT() ;
+			poffset.getT() = h ;
+			noffset.getT() = -h ;
 			break ;
 		}
 	default:
@@ -615,7 +615,7 @@ Vector VirtualMachine::ddeval(const Function&f, const Variable v_0, const Variab
 	Vector ret(gp.gaussPoints.size());
 	for(size_t i = 0 ; i < ret.size() ; i++)
 	{
-		ret[i] = ddeval(f, v_0, v_1, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, 0, 0, 0, eps ) ;
+		ret[i] = ddeval(f, v_0, v_1, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), 0, 0, 0, eps ) ;
 	}
 	
 	return ret ;
@@ -623,7 +623,7 @@ Vector VirtualMachine::ddeval(const Function&f, const Variable v_0, const Variab
 
 double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Variable v_1,  const Point & p, const double eps) 
 {
-	return ddeval(f, v_0, v_1, p.x,p.y,p.z,p.t, 0., 0., 0., eps) ;
+	return ddeval(f, v_0, v_1, p.getX(),p.getY(),p.getZ(),p.getT(), 0., 0., 0., eps) ;
 }
 
 double VirtualMachine::ddeval(const Function &f, const Variable v_0, const Variable v_1,  const double x, const double y , const double z, const double t, const double u, const double v, const double w, const double eps) 
@@ -974,7 +974,7 @@ Vector VirtualMachine::dddeval(const Function&f, const Variable v_0, const Varia
 	Vector ret(gp.gaussPoints.size());
 	for(size_t i = 0 ; i < ret.size() ; i++)
 	{
-		ret[i] = dddeval(f, v_0, v_1, v_2, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, 0., 0., 0., eps ) ;
+		ret[i] = dddeval(f, v_0, v_1, v_2, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), 0., 0., 0., eps ) ;
 	}	
 	return ret ;
 }
@@ -1130,12 +1130,12 @@ Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v_,  const 
 
 double VirtualMachine::deval(const Function &f, const Variable v, const Point & p, const Point & p_, const double eps)
 {
-	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
+	return deval(f, v, p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(), eps) ;
 }
 
 Matrix VirtualMachine::deval(const FunctionMatrix &f, const Variable v, const Point & p, const Point & p_, const double eps)
 {
-	return deval(f, v, p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z, eps) ;
+	return deval(f, v, p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(), eps) ;
 }
 
 double VirtualMachine::ieval(const Function &f, const GaussPointArray &gp)
@@ -1264,7 +1264,7 @@ Matrix VirtualMachine::gdeval(const GradientDot &f, IntegrableEntity *e, const s
 
 Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const Point& p, bool transpose )
 {
-	return geval(f, m,vars, p.x, p.y, p.z, p.t, transpose) ;
+	return geval(f, m,vars, p.getX(), p.getY(), p.getZ(), p.getT(), transpose) ;
 }
 
 std::valarray<Matrix> VirtualMachine::geval(const Function &f, const std::valarray<Matrix> & m, const std::vector<Variable> & var, const GaussPointArray & gp, bool transpose )
@@ -2405,7 +2405,7 @@ void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vecto
 
 void VirtualMachine::geval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const Point & p, bool transpose, Matrix & ret )
 {
-	geval(f, m, var, p.x, p.y, p.z, p.t, transpose, ret ) ;
+	geval(f, m, var, p.getX(), p.getY(), p.getZ(), p.getT(), transpose, ret ) ;
 }
 
 Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::vector<Variable> & var, const double x, const double y, const double  z, const double  t, bool transpose )
@@ -2983,10 +2983,10 @@ Matrix VirtualMachine::ieval(const GtM &f, IntegrableEntity *e, const std::vecto
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose)*gp.gaussPoints[0].second) ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B += geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B += geval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 	}
 	
 	return B*f.second ;
@@ -2996,11 +2996,11 @@ Matrix VirtualMachine::ieval(const GtML &f, IntegrableEntity *e, const std::vect
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Matrix B (geval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose)*gp.gaussPoints[0].second) ;
 	Matrix ret = B*f.second[0] ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 		ret += B*f.second[i] ;
 	}
 	
@@ -3011,14 +3011,14 @@ Vector VirtualMachine::ieval(const GtVL &f, IntegrableEntity *e, const std::vect
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B = geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ;
+	Matrix B = geval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ;
 	B *= gp.gaussPoints[0].second ;
 //	B.print() ;
 	Vector ret = B*f.second[0] ;
 //	std::cout << gp.gaussPoints.size() << "\t" << f.second.size() << std::endl ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 		ret += B*f.second[i] ;
 	}
 	return ret ;
@@ -3028,12 +3028,12 @@ Vector VirtualMachine::ieval(const GtV &f, IntegrableEntity *e, const std::vecto
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B = geval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ; 
+	Matrix B = geval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ; 
 	B *= gp.gaussPoints[0].second ;
 	Vector ret = B*f.second ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		B = geval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 		B *= gp.gaussPoints[i].second ;
 		ret += B*f.second ;
 	}
@@ -3044,12 +3044,12 @@ Vector VirtualMachine::ieval(const GDtV &f, IntegrableEntity *e, const std::vect
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B = gdeval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ;
+	Matrix B = gdeval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ;
 	B *= gp.gaussPoints[0].second ;
 	Vector ret = B*f.second ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = gdeval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B = gdeval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 		ret += B*f.second ;
 	}
 	return ret ;
@@ -3059,12 +3059,12 @@ Vector VirtualMachine::ieval(const GDtVL &f, IntegrableEntity *e, const std::vec
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B = gdeval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ;
+	Matrix B = gdeval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ;
 	B *= gp.gaussPoints[0].second ;
 	Vector ret = B*f.second[0] ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B = gdeval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B = gdeval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 		ret += B*f.second[i] ;
 	}
 	return ret ;
@@ -3074,10 +3074,10 @@ Matrix VirtualMachine::ieval(const VGtM &f, IntegrableEntity *e, const std::vect
 {
 
 	GaussPointArray gp = e->getGaussPoints() ;
-	Matrix B(gveval(f.first.f, e,var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose)*gp.gaussPoints[0].second) ;
+	Matrix B(gveval(f.first.f, e,var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose)*gp.gaussPoints[0].second) ;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B += geval(f.first.f, e,var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose)*gp.gaussPoints[i].second ;
+		B += geval(f.first.f, e,var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose)*gp.gaussPoints[i].second ;
 	}
 	
 	return B*f.second ;
@@ -3162,16 +3162,16 @@ std::valarray<Matrix> VirtualMachine::ievalDecomposed(const GtMtGD &f, const Gau
   
 	std::valarray<Matrix> ret(Jinv.size()) ;
     
-	Matrix B_ = gdeval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose) ;
-	Matrix B = geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ;
+	Matrix B_ = gdeval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose) ;
+	Matrix B = geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ;
 	
 	Matrix ret_(B*f.second*B_) ;
 	ret[0] = ret_*gp.gaussPoints[0].second ;
 	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
-		B_ = gdeval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
-		B = geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		B_ = gdeval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
+		B = geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 		ret_ = B*f.second*B_ ;
 		ret[i] = ret_*gp.gaussPoints[i].second ;
 //		matrix_matrix_matrix_multiply_and_add(B, f.second, B_, gp.gaussPoints[i].second, ret) ;
@@ -3191,8 +3191,8 @@ std::valarray<Matrix> VirtualMachine::ievalDecomposedDebug(const GtMtGD &f, cons
   
 	std::valarray<Matrix> ret(Jinv.size()) ;
     
-	Matrix B_ = gdeval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose) ;
-	Matrix B = geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose) ;
+	Matrix B_ = gdeval(f.third.f, Jinv[0], var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose) ;
+	Matrix B = geval(f.first.f, Jinv[0], var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose) ;
 	
 	Matrix ret_(B*f.second*B_) ;
 	ret[0] = ret_*gp.gaussPoints[0].second ;
@@ -3209,8 +3209,8 @@ std::valarray<Matrix> VirtualMachine::ievalDecomposedDebug(const GtMtGD &f, cons
 	
 	for(size_t i = 1 ; i  < gp.gaussPoints.size() ; i++)
 	{
-		B_ = gdeval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
-		B = geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		B_ = gdeval(f.third.f, Jinv[i], var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
+		B = geval(f.first.f, Jinv[i], var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 		ret_ = B*f.second*B_ ;
 		ret[i] = ret_*gp.gaussPoints[i].second ;
 		if(std::abs(ret[i][0][0]) > 1)
@@ -3302,23 +3302,23 @@ Matrix VirtualMachine::ieval( const DtGtMtG & d, IntegrableEntity *e, const std:
 Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & vars)
 {
 	GaussPointArray gp_a(gp_);
-	gp_a.id = -1 ;
+	gp_a.getId() = -1 ;
 	GaussPointArray gp_b(gp_);
-	gp_b.id = -1 ;
+	gp_b.getId() = -1 ;
 	switch(d.first.v)
 	{
 		case XI :
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.x += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getX() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.x -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getX() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b(ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3329,14 +3329,14 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.y += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getY() += default_derivation_delta ;
 			}
 			
 			Matrix x_a (ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.y -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getY() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3347,14 +3347,14 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.z += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getZ() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.z -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getZ() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3365,7 +3365,7 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.t += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getT() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
@@ -3373,7 +3373,7 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.t -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getT() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3392,23 +3392,23 @@ Matrix VirtualMachine::ieval(const DtGtMtG & d, const GaussPointArray &gp_, cons
 void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret)
 {
 	GaussPointArray gp_a(gp_);
-	gp_a.id = -1 ;
+	gp_a.getId() = -1 ;
 	GaussPointArray gp_b(gp_);
-	gp_b.id = -1 ;
+	gp_b.getId() = -1 ;
 	switch(d.first)
 	{
 		case XI :
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.x += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getX() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.x -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getX() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b(ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3420,14 +3420,14 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.y += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getY() += default_derivation_delta ;
 			}
 			
 			Matrix x_a (ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.y -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getY() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3439,14 +3439,14 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.z += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getZ() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.z -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getZ() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3457,17 +3457,17 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 	case TIME_VARIABLE :
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.t += default_derivation_delta*10 ;			
+				gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;			
 			std::valarray<Matrix> t_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.t -= default_derivation_delta*10 ;
+				gp_a.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.t -= default_derivation_delta*10 ;			
+				gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;			
 			std::valarray<Matrix> t_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.t += default_derivation_delta*10 ;			
+				gp_b.gaussPoints[i].first.getT() += default_derivation_delta*10 ;			
 			
 			size_t dim = vars.size()-1 ;
 			
@@ -3483,17 +3483,17 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.x += default_derivation_delta/10 ;			
+				gp_a.gaussPoints[i].first.getX() += default_derivation_delta/10 ;			
 			std::valarray<Matrix> x_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.x -= default_derivation_delta/10 ;
+				gp_a.gaussPoints[i].first.getX() -= default_derivation_delta/10 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.x -= default_derivation_delta/10 ;			
+				gp_b.gaussPoints[i].first.getX() -= default_derivation_delta/10 ;			
 			std::valarray<Matrix> x_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.x += default_derivation_delta/10 ;			
+				gp_b.gaussPoints[i].first.getX() += default_derivation_delta/10 ;			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
@@ -3505,17 +3505,17 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.y += default_derivation_delta*10 ;			
+				gp_a.gaussPoints[i].first.getY() += default_derivation_delta*10 ;			
 			std::valarray<Matrix> y_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.y -= default_derivation_delta*10 ;
+				gp_a.gaussPoints[i].first.getY() -= default_derivation_delta*10 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.y -= default_derivation_delta*10 ;			
+				gp_b.gaussPoints[i].first.getY() -= default_derivation_delta*10 ;			
 			std::valarray<Matrix> y_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.y += default_derivation_delta*10 ;			
+				gp_b.gaussPoints[i].first.getY() += default_derivation_delta*10 ;			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
@@ -3532,9 +3532,9 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 			
 				std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
 				for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-					gp_a.gaussPoints[i].first.t += default_derivation_delta*10 ;			
+					gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;			
 				for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-					gp_b.gaussPoints[i].first.t -= default_derivation_delta*10 ;			
+					gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;			
 				for(size_t i = 0 ; i < gp_.gaussPoints.size() ; i++)
 					ret += (domega[i]*Jinv[i][dim][dim] /(20.*default_derivation_delta)) ;
 			}
@@ -3551,23 +3551,23 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const std::valarray<Matrix> &Jinv, const IntegrableEntity * e, const std::vector<Variable> & vars, Matrix & ret)
 {
 	GaussPointArray gp_a(gp_);
-	gp_a.id = -1 ;
+	gp_a.getId() = -1 ;
 	GaussPointArray gp_b(gp_);
-	gp_b.id = -1 ;
+	gp_b.getId() = -1 ;
 	switch(d.first)
 	{
 		case XI :
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.x += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getX() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.x -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getX() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b(ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3579,14 +3579,14 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.y += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getY() += default_derivation_delta ;
 			}
 			
 			Matrix x_a (ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.y -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getY() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3598,14 +3598,14 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
-				gp_a.gaussPoints[i].first.z += default_derivation_delta ;
+				gp_a.gaussPoints[i].first.getZ() += default_derivation_delta ;
 			}
 			
 			Matrix x_a(ieval(d.second, gp_a, Jinv, vars)) ;
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
 			{
-				gp_b.gaussPoints[i].first.z -= default_derivation_delta ;
+				gp_b.gaussPoints[i].first.getZ() -= default_derivation_delta ;
 			}
 			
 			Matrix x_b (ieval(d.second, gp_b, Jinv, vars)) ;
@@ -3616,17 +3616,17 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 	case TIME_VARIABLE :
 		{
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.t += default_derivation_delta*100 ;			
+				gp_a.gaussPoints[i].first.getT() += default_derivation_delta*100 ;			
 			std::valarray<Matrix> t_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.t -= default_derivation_delta*100 ;
+				gp_a.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.t -= default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;			
 			std::valarray<Matrix> t_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.t += default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getT() += default_derivation_delta*100 ;			
 			
 			size_t dim = vars.size()-1 ;
 			
@@ -3642,17 +3642,17 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.x += default_derivation_delta*100 ;			
+				gp_a.gaussPoints[i].first.getX() += default_derivation_delta*100 ;			
 			std::valarray<Matrix> x_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.x -= default_derivation_delta*100 ;
+				gp_a.gaussPoints[i].first.getX() -= default_derivation_delta*100 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.x -= default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getX() -= default_derivation_delta*100 ;			
 			std::valarray<Matrix> x_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.x += default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getX() += default_derivation_delta*100 ;			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
@@ -3664,17 +3664,17 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.y += default_derivation_delta*100 ;			
+				gp_a.gaussPoints[i].first.getY() += default_derivation_delta*100 ;			
 			std::valarray<Matrix> y_a(ievalDecomposed(d.second, gp_a, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.y -= default_derivation_delta*100 ;
+				gp_a.gaussPoints[i].first.getY() -= default_derivation_delta*100 ;
 
 			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.y -= default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getY() -= default_derivation_delta*100 ;			
 			std::valarray<Matrix> y_b (ievalDecomposed(d.second, gp_b, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.y += default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getY() += default_derivation_delta*100 ;			
 			
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
 			{
@@ -3687,9 +3687,9 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 			
 			std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
 			for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-				gp_a.gaussPoints[i].first.t += default_derivation_delta*100 ;			
+				gp_a.gaussPoints[i].first.getT() += default_derivation_delta*100 ;			
 			for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-				gp_b.gaussPoints[i].first.t -= default_derivation_delta*100 ;			
+				gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;			
 			
 			
 			if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE_2D || 
@@ -3700,9 +3700,9 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
 			
 				std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
 				for(size_t i = 0 ; i < gp_a.gaussPoints.size() ; i++)
-					gp_a.gaussPoints[i].first.t += default_derivation_delta*10 ;			
+					gp_a.gaussPoints[i].first.getT() += default_derivation_delta*10 ;			
 				for(size_t i = 0 ; i < gp_b.gaussPoints.size() ; i++)
-					gp_b.gaussPoints[i].first.t -= default_derivation_delta*10 ;			
+					gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*10 ;			
 				for(size_t i = 0 ; i < gp_.gaussPoints.size() ; i++)
 					ret += (domega[i]*Jinv[i][dim][dim] /(20.*default_derivation_delta)) ;
 			}
@@ -3938,16 +3938,16 @@ void VirtualMachine::ieval(const GtMLtGD & f, const GaussPointArray &gp, const s
 double VirtualMachine::ieval(const VGtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
 
-	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose));
-	Matrix B_(gveval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose)) ;
+	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose));
+	Matrix B_(gveval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose)) ;
 
 	Matrix r_  (B*f.second*B_) ;
 	double ret = r_[0][0] * gp.gaussPoints[0].second;
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
-		B_ = gveval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
+		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
+		B_ = gveval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
 		Matrix r_ (B*f.second*B_) ;
 		ret += r_[0][0] * gp.gaussPoints[i].second ;
 	}
@@ -3958,8 +3958,8 @@ double VirtualMachine::ieval(const VGtMtVG &f, const GaussPointArray &gp, const 
 double VirtualMachine::ieval(const VGDtMtVG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
 
-	Matrix B (gvdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose));
-	Matrix B_(gveval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose)) ;
+	Matrix B (gvdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose));
+	Matrix B_(gveval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose)) ;
 
 	Matrix r_  (B*f.second*B_) ;
 
@@ -3967,8 +3967,8 @@ double VirtualMachine::ieval(const VGDtMtVG &f, const GaussPointArray &gp, const
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B  = gvdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
-		B_ = gveval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
+		B  = gvdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
+		B_ = gveval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
 		Matrix r_ (B*f.second*B_) ;
 		ret += r_[0][0] * gp.gaussPoints[i].second ;
 	}
@@ -3979,16 +3979,16 @@ double VirtualMachine::ieval(const VGDtMtVG &f, const GaussPointArray &gp, const
 double VirtualMachine::ieval(const VGtMtVGD &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
 
-	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose));
-	Matrix B_(gvdeval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose)) ;
+	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose));
+	Matrix B_(gvdeval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose)) ;
 
 	Matrix r_  (B*f.second*B_) ;
 	double ret = r_[0][0] * gp.gaussPoints[0].second;
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
-		B_ = gvdeval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
+		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
+		B_ = gvdeval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
 		Matrix r_ (B*f.second*B_) ;
 		ret += r_[0][0] * gp.gaussPoints[i].second ;
 	}
@@ -4004,7 +4004,7 @@ Vector VirtualMachine::ieval(const GtV &f, const GaussPointArray &gp, const std:
 		return Vector(double(0), size) ;
 	}
 	Matrix M ;
-	geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose, M);
+	geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose, M);
 	Vector temp(double(0),f.second.size()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 		temp[i] = f.second[i] ;
@@ -4013,7 +4013,7 @@ Vector VirtualMachine::ieval(const GtV &f, const GaussPointArray &gp, const std:
 	Vector ret = r_ * gp.gaussPoints[0].second;
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		  geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose, M) ;
+		  geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose, M) ;
 		
 		for(size_t j = 0 ; j < temp.size() ; j++)
 		{
@@ -4035,7 +4035,7 @@ Vector VirtualMachine::ieval(const GtVL &f, const GaussPointArray &gp, const std
 		return Vector(double(0), size) ;
 	}
 	Matrix M ;
-	geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose, M);
+	geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose, M);
 	Vector temp(double(0),f.second[0].size()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 		temp[i] = f.second[0][i] ;
@@ -4046,7 +4046,7 @@ Vector VirtualMachine::ieval(const GtVL &f, const GaussPointArray &gp, const std
 
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		 M = geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		 M = geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 		
 		for(size_t j = 0 ; j < temp.size() ; j++)
 		{
@@ -4069,7 +4069,7 @@ Vector VirtualMachine::ieval(const GDtVL &f, const GaussPointArray &gp, const st
 		return Vector(double(0), size) ;
 	}
 	Matrix M ;
-	gdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose, M);
+	gdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose, M);
 	Vector temp(double(0),f.second[0].size()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 		temp[i] = f.second[0][i] ;
@@ -4080,7 +4080,7 @@ Vector VirtualMachine::ieval(const GDtVL &f, const GaussPointArray &gp, const st
 
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		 M = gdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		 M = gdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 		
 		for(size_t j = 0 ; j < temp.size() ; j++)
 		{
@@ -4103,7 +4103,7 @@ Vector VirtualMachine::ieval(const GDtV &f, const GaussPointArray &gp, const std
 		return Vector(double(0), size) ;
 	}
 	Matrix M ;
-	gdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose, M);
+	gdeval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose, M);
 	Vector temp(double(0),f.second.size()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 		temp[i] = f.second[i] ;
@@ -4113,7 +4113,7 @@ Vector VirtualMachine::ieval(const GDtV &f, const GaussPointArray &gp, const std
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
 		  M *= 0 ;
-		  gdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose, M) ;
+		  gdeval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose, M) ;
 		
 // 		for(size_t j = 0 ; j < temp.size() ; j++)
 // 		{
@@ -4129,7 +4129,7 @@ Vector VirtualMachine::ieval(const GDtV &f, const GaussPointArray &gp, const std
 double VirtualMachine::ieval(const VGtV &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
 
-	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose));
+	Matrix B (gveval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose));
 	
 	Vector temp(B.numCols()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
@@ -4140,7 +4140,7 @@ double VirtualMachine::ieval(const VGtV &f, const GaussPointArray &gp, const std
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
+		B  = gveval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
 /*		for(size_t j = 0 ; j < temp.size() ; j++)
 			temp[j] = f.second[i*temp.size()+j] ;*/
 		Vector r_  = B*temp ;
@@ -4226,16 +4226,16 @@ Matrix VirtualMachine::ieval(const GtFMtG &f, IntegrableEntity *e, const std::ve
 
 Matrix VirtualMachine::ieval(const GtFMtG &f, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, const std::vector<Variable> & var)
 {
-	Matrix B(geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.first.transpose));
-	Matrix B_(geval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.x, gp.gaussPoints[0].first.y, gp.gaussPoints[0].first.z, gp.gaussPoints[0].first.t, f.third.transpose)) ;
+	Matrix B(geval(f.first.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.first.transpose));
+	Matrix B_(geval(f.third.f, Jinv[0],var, gp.gaussPoints[0].first.getX(), gp.gaussPoints[0].first.getY(), gp.gaussPoints[0].first.getZ(), gp.gaussPoints[0].first.getT(), f.third.transpose)) ;
 	
 	Matrix r_ (B*eval(f.second,gp.gaussPoints[0].first )*B_) ;
 	Matrix ret(r_ * gp.gaussPoints[0].second);
 	
 	for(size_t i = 1 ; i < gp.gaussPoints.size() ; i++)
 	{
-		B  = geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.first.transpose) ;
-		B_ = geval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.x, gp.gaussPoints[i].first.y, gp.gaussPoints[i].first.z, gp.gaussPoints[i].first.t, f.third.transpose) ;
+		B  = geval(f.first.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.first.transpose) ;
+		B_ = geval(f.third.f, Jinv[i],var, gp.gaussPoints[i].first.getX(), gp.gaussPoints[i].first.getY(), gp.gaussPoints[i].first.getZ(), gp.gaussPoints[i].first.getT(), f.third.transpose) ;
 		Matrix r_ (B*eval(f.second,gp.gaussPoints[i].first )*B_) ;
 		ret += r_ * gp.gaussPoints[i].second ;
 	}

@@ -218,10 +218,10 @@ void step()
 			bool in = false ;
 // 			if(v == 8)
 // 			{
-// 				if(triangles[k]-> getCenter().x < 0.1)
+// 				if(triangles[k]-> getCenter().getX() < 0.1)
 // 				{
 // 					Vector stre = triangles[k]->getState().getStress(triangles[k]-> getCenter()) ;
-// 					std::cout << triangles[k]-> getCenter().y << "  "<< stre[0] << "  " << stre[1] << "  " << stre[2] << std::endl ;
+// 					std::cout << triangles[k]-> getCenter().getY() << "  "<< stre[0] << "  " << stre[1] << "  " << stre[2] << std::endl ;
 // 				}
 // 				if(k == triangles.size()-1)
 // 					exit(0) ;
@@ -231,32 +231,32 @@ void step()
 			{
 				if ( triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
-					if ( x[triangles[k]->getBoundingPoint( p ).id*2] > x_max )
-						x_max = x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2] > x_max )
+						x_max = x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
 
-					if ( x[triangles[k]->getBoundingPoint( p ).id*2] < x_min )
-						x_min = x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2] < x_min )
+						x_min = x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
 
-					if ( x[triangles[k]->getBoundingPoint( p ).id*2 + 1] > y_max )
-						y_max = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2 + 1] > y_max )
+						y_max = x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
 
-					if ( x[triangles[k]->getBoundingPoint( p ).id*2 + 1] < y_min )
-						y_min = x[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2 + 1] < y_min )
+						y_min = x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
 
 					if ( !triangles[k]->getBehaviour()->fractured() )
 					{
-						if ( used.find( &triangles[k]->getBoundingPoint( p ) ) == used.end() && triangles[k]->getBoundingPoint( p ).x <= .15 && triangles[k]->getBoundingPoint( p ).y > sampleHeight*.4999 )
+						if ( used.find( &triangles[k]->getBoundingPoint( p ) ) == used.end() && triangles[k]->getBoundingPoint( p ).getX() <= .15 && triangles[k]->getBoundingPoint( p ).getY() > sampleHeight*.4999 )
 						{
 							used.insert( &triangles[k]->getBoundingPoint( p ) ) ;
-							forceCheck += forces[triangles[k]->getBoundingPoint( p ).id * 2 + 1] ;
+							forceCheck += forces[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
 						}
 
-						if (triangles[k]->getBoundingPoint( p ).y > sampleHeight*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).x) < 0.0001 )
+						if (triangles[k]->getBoundingPoint( p ).getY() > sampleHeight*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < 0.0001 )
 						{
-							e_xx_0 = std::min(e_xx_0,x[triangles[k]->getBoundingPoint( p ).id * 2 + 1]) ;
+							e_xx_0 = std::min(e_xx_0,x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1]) ;
 						}
 
-						if ( triangles[k]->getBoundingPoint( p ).y >= sampleHeight*.5 )
+						if ( triangles[k]->getBoundingPoint( p ).getY() >= sampleHeight*.5 )
 						{
 							e_xx_1 = 0 ;
 // 							ex_count_1++ ;
@@ -266,7 +266,7 @@ void step()
 					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 ), triangles[k]->getBoundingPoint( p ) ) < .1 )
 					{
 						deltacount++ ;
-						delta += x[triangles[k]->getBoundingPoint( p ).id * 2] ;
+						delta += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
 					}
 				}
 			}
@@ -342,7 +342,7 @@ void step()
 // 					triangles[k]->print() ;
 // 					std::cout << vonMises[k*triangles[k]->getBoundingPoints().size()+l] << std::endl ;
 // 					std::cout << vm0[0] << "  " << vm0[1] << std::endl ;
-// 					std::cout << x[triangles[k]->getBoundingPoint(0).id*2] << ", " << x[triangles[k]->getBoundingPoint(0).id*2+1] << "  "<< x[triangles[k]->getBoundingPoint(1).id*2] << ", " << x[triangles[k]->getBoundingPoint(1).id*2+1] << "  "<<  x[triangles[k]->getBoundingPoint(2).id*2] << ", " << x[triangles[k]->getBoundingPoint(2).id*2+1] << std::endl ;
+// 					std::cout << x[triangles[k]->getBoundingPoint(0).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(0).getId()*2+1] << "  "<< x[triangles[k]->getBoundingPoint(1).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(1).getId()*2+1] << "  "<<  x[triangles[k]->getBoundingPoint(2).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(2).getId()*2+1] << std::endl ;
 // 					exit(0) ;
 // 				}
 				
@@ -489,7 +489,7 @@ void step()
 // 		if ( !go_on )
 // 			break ;
 
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
+		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 
 	}
 }
@@ -620,28 +620,28 @@ int main( int argc, char *argv[] )
 	
 	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().y,rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().y,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 	samplebulk.getBehaviour()->setSource(sample.getPrimitive());
 	
 	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
 	sample.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().y,rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().y,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 	
 	
 	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
 	samplestirrupbulk.isVirtualFeature = true ;
 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().y,rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().y,rebarDiametre));
-// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().y,rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
+	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
+// 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 	samplestirrupbulk.getBehaviour()->setSource(sample.getPrimitive());
 
 	int stirruplayer = 1 ;

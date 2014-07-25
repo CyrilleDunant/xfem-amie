@@ -81,22 +81,22 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 	{
 		if(clusters[i].size() > 3)
 		{
-			double cx_bottom = clusters[i][0]->getCenter().x ;
-			double cy_bottom = clusters[i][0]->getCenter().y ;
-			double cx_left = clusters[i][0]->getCenter().x ;
-			double cy_left = clusters[i][0]->getCenter().y ;
+			double cx_bottom = clusters[i][0]->getCenter().getX() ;
+			double cy_bottom = clusters[i][0]->getCenter().getY() ;
+			double cx_left = clusters[i][0]->getCenter().getX() ;
+			double cy_left = clusters[i][0]->getCenter().getY() ;
 			double count = 1 ;
 			for(size_t j = 1 ; j < clusters[i].size() ; j++)
 			{
-				if(clusters[i][j]->getCenter().y < cx_bottom)
+				if(clusters[i][j]->getCenter().getY() < cx_bottom)
 				{
-					cx_bottom = clusters[i][j]->getCenter().x ;
-					cy_bottom = clusters[i][j]->getCenter().y ;
+					cx_bottom = clusters[i][j]->getCenter().getX() ;
+					cy_bottom = clusters[i][j]->getCenter().getY() ;
 				}
-				if(clusters[i][j]->getCenter().x < cx_left)
+				if(clusters[i][j]->getCenter().getX() < cx_left)
 				{
-					cx_left = clusters[i][j]->getCenter().x ;
-					cy_left = clusters[i][j]->getCenter().y ;
+					cx_left = clusters[i][j]->getCenter().getX() ;
+					cy_left = clusters[i][j]->getCenter().getY() ;
 				}
 
 				count++ ;
@@ -119,12 +119,12 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 			
 			for(size_t j = 0 ; j < clusters[i].size() ; j++)
 			{
-				dx_l += clusters[i][j]->getCenter().x - cx_left;
-				dy_l += clusters[i][j]->getCenter().y - cy_left;
-				dx_b += clusters[i][j]->getCenter().x - cx_bottom;
-				dy_b += clusters[i][j]->getCenter().y - cy_bottom;
-				cx += clusters[i][j]->getCenter().x ;
-				cy += clusters[i][j]->getCenter().y ;
+				dx_l += clusters[i][j]->getCenter().getX() - cx_left;
+				dy_l += clusters[i][j]->getCenter().getY() - cy_left;
+				dx_b += clusters[i][j]->getCenter().getX() - cx_bottom;
+				dy_b += clusters[i][j]->getCenter().getY() - cy_bottom;
+				cx += clusters[i][j]->getCenter().getX() ;
+				cy += clusters[i][j]->getCenter().getY() ;
 				d_l += sqrt(dx_l*dx_l+dy_l*dy_l) ;
 				d_b += sqrt(dx_l*dx_l+dy_l*dy_l) ;
 			}

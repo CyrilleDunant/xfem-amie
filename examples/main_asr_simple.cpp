@@ -170,22 +170,22 @@ void step()
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > 0.0199)
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
+						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
+						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
+						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
+						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(triangles[k]->getBoundingPoint(p).getX() > 0.0199)
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+						e_xx+=x[triangles[k]->getBoundingPoint(p).getId()*2] ;
 						ex_count++ ;
 					}
-					if(triangles[k]->getBoundingPoint(p).y > 0.0199)
+					if(triangles[k]->getBoundingPoint(p).getY() > 0.0199)
 					{
-						e_yy+=x[triangles[k]->getBoundingPoint(p).id*2+1] ;
+						e_yy+=x[triangles[k]->getBoundingPoint(p).getId()*2+1] ;
 						ey_count++ ;
 					}
 				}
@@ -408,7 +408,7 @@ void step()
 		
 		std::cout << "apparent extension x" << e_xx/ex_count << std::endl ;
 		std::cout << "apparent extension y" << e_yy/ey_count << std::endl ;
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
+		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 		
 		if (go_on)
 		{
@@ -472,7 +472,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 			if (alone)
 			{
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, gel) ;
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.getX(), center.getY(), gel) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
 			}
 		}
@@ -655,8 +655,8 @@ int main(int argc, char *argv[])
 // // 		inclusions[i]->setBehaviour(new Stiffness(m0_agg)) ;
 // 		double rPlus = inclusions[i]->getRadius()+itzSize/120000. ;
 // 		double rMinus = inclusions[i]->getRadius()-itzSize/120000. ;
-// 		double cx = inclusions[i]->getCenter().x ;
-// 		double cy = inclusions[i]->getCenter().y ;
+// 		double cx = inclusions[i]->getCenter().getX() ;
+// 		double cy = inclusions[i]->getCenter().getY() ;
 // 		ExpansiveRing * er = new ExpansiveRing(&sample, rPlus, rMinus, cx, cy,  m0, a) ;
 // 		reactionRims.push_back(er) ;
 // // 		inclusions[i]->setBehaviour(new StiffnessWithVariableImposedDeformation(m0_agg, a)) ;

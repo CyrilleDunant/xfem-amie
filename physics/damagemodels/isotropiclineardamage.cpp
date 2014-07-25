@@ -83,7 +83,7 @@ Matrix IsotropicLinearDamageRate::apply(const Matrix & m, const Point & p,const 
 	if(fractured())
 		return m*0 ;
 	
-	double ratio = (p.t+1)*.5 ;
+	double ratio = (p.getT()+1)*.5 ;
 	
 	return m*(1.-std::min(initalState[0] + ratio*getState()[0], 1.)) ;
 }
@@ -96,7 +96,7 @@ Matrix IsotropicLinearDamageRate::applyViscous(const Matrix & m, const Point & p
 	if(fraction < 0)
 		return m ;
 	
-	double ratio = (p.t+1)*.5 ;
+	double ratio = (p.getT()+1)*.5 ;
 	
 	return m*(1.-std::min(initalState[0] + ratio*getState()[0], 1.)) ;
 }

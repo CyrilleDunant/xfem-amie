@@ -12,7 +12,6 @@
 #include "inclusion3d.h"
 #include "../physics/physics_base.h"
 #include "../physics/void_form.h"
-#include "../utilities/xml.h"
 
 
 using namespace Mu ;
@@ -42,18 +41,6 @@ void Inclusion3D::setRadius(double newr)
 	Sphere::setRadius(newr);
 	isUpdated = true ;
 }
-
-
-XMLTree * Inclusion3D::toXML()
-{
-	XMLTree * inc = new XMLTree("inclusion3d") ;
-	XMLTree * geom = new XMLTree("geometry") ;
-	XMLTree * c = static_cast<Sphere *>(this)->toXML() ;
-	geom->addChild(c) ;
-	inc->addChild(geom) ;
-	return inc ;
-}
-
 
 bool Inclusion3D::interacts(Feature * f, double d) const 	
 {

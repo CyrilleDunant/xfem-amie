@@ -110,5 +110,5 @@ void Pore3D::sample(size_t n) {
 // 	this->Sphere::sampleSurface(n/4) ;
 // // // 	this->Sphere::sampleSurface((size_t)round(sqrt(n))) ;
 // 	this->inPoints->resize(1) ;
-// 	(*this->inPoints)[0] = new Point(this->center.x, this->center.y, this->center.z) ;
+// 	(*this->inPoints)[0] = new Point(this->center.getX(), this->center.getY(), this->center.getZ()) ;
 }

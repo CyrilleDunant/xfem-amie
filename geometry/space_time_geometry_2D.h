@@ -46,7 +46,7 @@ public:
 	Function getRadiusFunction() const { return radius_t ; }
 	Function getRadiusFunction(Function & time) const ;
 	
-	void setInitialTime( double t) { center.t = t ; }
+	void setInitialTime( double t) { center.getT() = t ; }
 } ;
 
 } ;

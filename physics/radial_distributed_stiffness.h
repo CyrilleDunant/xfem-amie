@@ -15,7 +15,6 @@
 
 #include "physics_base.h"
 #include "../features/inclusion.h"
-#include "../utilities/xml.h"
 
 namespace Mu
 {
@@ -34,12 +33,8 @@ namespace Mu
 		* @param rig Complete expression of the Cauchy-Green Strain Tensor
 		*/
 		RadialDistributedStiffness(std::vector<std::pair<double, Matrix> > rig) ;
-
-		RadialDistributedStiffness(XMLTree * xml) ;
 		
 		virtual ~RadialDistributedStiffness() ;
-
-		virtual XMLTree * toXML() ;
 
 		void setAngle(double a) ;
 		
@@ -70,7 +65,6 @@ namespace Mu
 			RadialInclusion(Feature * f, double r, double x, double y) ;
 			RadialInclusion(double r, Point c) ;
 			RadialInclusion(double r, double x, double y) ;
-			RadialInclusion(XMLTree * xml) ;
 
 			virtual Form * getBehaviour( const Point & p ) ;		
 	} ;	

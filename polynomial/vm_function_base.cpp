@@ -295,9 +295,9 @@ void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> 
 {
 	//this needs to be in to stages, otherwise memory gets accessed too early.
 	Vector * newVal = new Vector(VirtualMachine().eval(*this, gp)) ;
-	if(precalc.find(gp.id) != precalc.end())
-		delete precalc[gp.id] ;
-	precalc[gp.id] = newVal ;
+	if(precalc.find(gp.getId()) != precalc.end())
+		delete precalc[gp.getId()] ;
+	precalc[gp.getId()] = newVal ;
 	std::map<Variable, Vector *> val ;
 	for(size_t i = 0 ; i < var.size() ; i++)
 	{
@@ -305,40 +305,40 @@ void  Function::preCalculate(const GaussPointArray & gp , std::vector<Variable> 
 			val[var[i]] = new Vector(VirtualMachine().deval(*this,var[i] ,gp, eps)) ;
 	}
 
-	if(dprecalc.find(gp.id) != dprecalc.end())
+	if(dprecalc.find(gp.getId()) != dprecalc.end())
 	{
-		for(auto i = dprecalc[gp.id].begin() ;  i != dprecalc[gp.id].end() ; ++i)
+		for(auto i = dprecalc[gp.getId()].begin() ;  i != dprecalc[gp.getId()].end() ; ++i)
 			delete i->second ;
 	}
 
-	dprecalc[gp.id] = val ;
+	dprecalc[gp.getId()] = val ;
 }
 
 void  Function::preCalculate(const GaussPointArray & gp )
 {
-	if(precalc.find(gp.id) != precalc.end())
-		delete precalc[gp.id] ;
-	precalc[gp.id] = new Vector(VirtualMachine().eval(*this, gp)) ;
+	if(precalc.find(gp.getId()) != precalc.end())
+		delete precalc[gp.getId()] ;
+	precalc[gp.getId()] = new Vector(VirtualMachine().eval(*this, gp)) ;
 }
 
 const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp ) const
 {
-	return *(precalc.find(gp.id)->second) ;
+	return *(precalc.find(gp.getId())->second) ;
 }
 
 const Vector & Function::getPrecalculatedValue(const GaussPointArray &gp, Variable v) const
 {
-	return *dprecalc.find(gp.id)->second.find(v)->second ;
+	return *dprecalc.find(gp.getId())->second.find(v)->second ;
 }
 
 bool Function::precalculated(const GaussPointArray & gp) const
 {
-	return (precalc.find(gp.id) != precalc.end()) ;
+	return (precalc.find(gp.getId()) != precalc.end()) ;
 }
 
 bool Function::precalculated(const GaussPointArray & gp, Variable v) const
 {
-	auto precalculatedDerivative = dprecalc.find(gp.id) ;
+	auto precalculatedDerivative = dprecalc.find(gp.getId()) ;
 	return precalculatedDerivative != dprecalc.end() && precalculatedDerivative->second.find(v) != precalculatedDerivative->second.end() ;
 }
 

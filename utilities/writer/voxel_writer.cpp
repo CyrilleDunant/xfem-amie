@@ -116,30 +116,30 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 	
 	for(size_t t = 0 ; t < tris.size() ; t++)
 	{
-		double minx = tris[t]->getCircumCenter().x - tris[t]->getRadius()*1.01 ;
-		double miny = tris[t]->getCircumCenter().y - tris[t]->getRadius()*1.01 ;
-		double minz = tris[t]->getCircumCenter().z - tris[t]->getRadius()*1.01 ;
+		double minx = tris[t]->getCircumCenter().getX() - tris[t]->getRadius()*1.01 ;
+		double miny = tris[t]->getCircumCenter().getY() - tris[t]->getRadius()*1.01 ;
+		double minz = tris[t]->getCircumCenter().getZ() - tris[t]->getRadius()*1.01 ;
 		
-		double maxx = tris[t]->getCircumCenter().x + tris[t]->getRadius()*1.01 ;
-		double maxy = tris[t]->getCircumCenter().y + tris[t]->getRadius()*1.01 ;
-		double maxz = tris[t]->getCircumCenter().z + tris[t]->getRadius()*1.01 ;
+		double maxx = tris[t]->getCircumCenter().getX() + tris[t]->getRadius()*1.01 ;
+		double maxy = tris[t]->getCircumCenter().getY() + tris[t]->getRadius()*1.01 ;
+		double maxz = tris[t]->getCircumCenter().getZ() + tris[t]->getRadius()*1.01 ;
 		
-		for(int i = nVoxelX*(minx-bottom_left.x)/((top_right.x)-(bottom_left.x)) ; i < nVoxelX*(maxx-bottom_left.x)/((top_right.x)-(bottom_left.x)) ; i++)
+		for(int i = nVoxelX*(minx-bottom_left.getX())/((top_right.getX())-(bottom_left.getX())) ; i < nVoxelX*(maxx-bottom_left.getX())/((top_right.getX())-(bottom_left.getX())) ; i++)
 		{
 			if(i >= 0 && i < nVoxelX)
 			{
-				for(int j = nVoxelY*(miny-bottom_left.y)/((top_right.y)-(bottom_left.y)) ; j < nVoxelY*(maxy-bottom_left.y)/((top_right.y)-(bottom_left.y)) ; j++)
+				for(int j = nVoxelY*(miny-bottom_left.getY())/((top_right.getY())-(bottom_left.getY())) ; j < nVoxelY*(maxy-bottom_left.getY())/((top_right.getY())-(bottom_left.getY())) ; j++)
 				{
 					if(j >= 0 && j < nVoxelY)
 					{
-						for(int k = nVoxelZ*(minz-bottom_left.z)/((top_right.z)-(bottom_left.z)) ; k < nVoxelZ*(maxz-bottom_left.z)/((top_right.z)-(bottom_left.z)) ; k++)
+						for(int k = nVoxelZ*(minz-bottom_left.getZ())/((top_right.getZ())-(bottom_left.getZ())) ; k < nVoxelZ*(maxz-bottom_left.getZ())/((top_right.getZ())-(bottom_left.getZ())) ; k++)
 						{
 							if(k >= 0 && k < nVoxelZ)
 							{
 								Point p(bottom_left) ;
-								p.x += ((top_right.x)-(bottom_left.x))*((double)(i))/(double(nVoxelX-1)) ;
-								p.y += ((top_right.y)-(bottom_left.y))*((double)(j))/(double(nVoxelY-1)) ;
-								p.z += ((top_right.z)-(bottom_left.z))*((double)(k))/(double(nVoxelZ-1)) ;
+								p.getX() += ((top_right.getX())-(bottom_left.getX()))*((double)(i))/(double(nVoxelX-1)) ;
+								p.getY() += ((top_right.getY())-(bottom_left.getY()))*((double)(j))/(double(nVoxelY-1)) ;
+								p.getZ() += ((top_right.getZ())-(bottom_left.getZ()))*((double)(k))/(double(nVoxelZ-1)) ;
 								
 								if(tris[t]->in(p) && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
@@ -361,19 +361,19 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 	switch(axis)
 	{
 		case XI:
-			origin.x = pos ;
+			origin.getX() = pos ;
 			xlocal = Point(0.,sy/n,0.) ;
 			ylocal = Point(0.,0.,sz/n) ;
 			break ;
 
 		case ETA:
-			origin.y = pos ;
+			origin.getY() = pos ;
 			xlocal = Point(0.,0.,sz/n) ;
 			ylocal = Point(sx/n,0.,0.) ;
 			break ;
 
 		case ZETA:
-			origin.z = pos ;
+			origin.getZ() = pos ;
 			xlocal = Point(sx/n,0.,0.) ;
 			ylocal = Point(0.,sy/n,0.) ;
 			break ;

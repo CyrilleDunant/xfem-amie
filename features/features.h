@@ -681,7 +681,7 @@ struct PairPointFeatureLess_Than_x
 {
 	bool operator()(std::pair<Point *, Feature *> p1, std::pair<Point *, Feature *> p2)
 	{
-		return p1.first->x < p2.first->x ;
+		return p1.first->getX() < p2.first->getX() ;
 	}
 } ;
 
@@ -690,7 +690,7 @@ struct PairPointFeatureLess_Than_y
 {
 	bool operator()(std::pair<Point *, Feature *> p1, std::pair<Point *, Feature *> p2)
 	{
-		return p1.first->y < p2.first->y ;
+		return p1.first->getY() < p2.first->getY() ;
 	}
 } ;
 
@@ -699,7 +699,7 @@ struct PairPointFeatureLess_Than_z
 {
 	bool operator()(std::pair<Point *, Feature *> p1, std::pair<Point *, Feature *> p2)
 	{
-		return p1.first->z < p2.first->z ;
+		return p1.first->getZ() < p2.first->getZ() ;
 	}
 } ;
 

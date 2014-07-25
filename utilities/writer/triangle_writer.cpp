@@ -758,9 +758,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 					
-					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
-					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
-					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
+					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).getId() ;
+					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).getId() ;
+					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
 					ret[5][iterator] = x[id1 * dof] ;
 					ret[4][iterator] = x[id2 * dof] ;
@@ -787,9 +787,9 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 			{
 				if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
-					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).id ;
-					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).id ;
-					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).id ;
+					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).getId() ;
+					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).getId() ;
+					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
 // 					std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
 					ret[2][iterator] = x[id1  ] ;
@@ -997,12 +997,12 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				size_t n = tri->getBoundingPoints().size()/3 ;
 				if(tri->timePlanes() > 1)
 					n /= tri->timePlanes() ;
-				ret[5] = tri->getBoundingPoint(0).x ;
-				ret[4] = tri->getBoundingPoint(0).y ;
-				ret[3] = tri->getBoundingPoint(n).x ;
-				ret[2] = tri->getBoundingPoint(n).y ;
-				ret[1] = tri->getBoundingPoint(2*n).x ;
-				ret[0] = tri->getBoundingPoint(2*n).y ;
+				ret[5] = tri->getBoundingPoint(0).getX() ;
+				ret[4] = tri->getBoundingPoint(0).getY() ;
+				ret[3] = tri->getBoundingPoint(n).getX() ;
+				ret[2] = tri->getBoundingPoint(n).getY() ;
+				ret[1] = tri->getBoundingPoint(2*n).getX() ;
+				ret[0] = tri->getBoundingPoint(2*n).getY() ;
 				found = true ;
 				break ;
 			}
@@ -1176,9 +1176,9 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				Point A = tri->getBoundingPoint(0) ;
 				Point B = tri->getBoundingPoint(n) ;
 				Point C = tri->getBoundingPoint(2*n) ;
-				Point A_ = tri->inLocalCoordinates(A) ; A_.t = t ;
-				Point B_ = tri->inLocalCoordinates(B) ; B_.t = t ;
-				Point C_ = tri->inLocalCoordinates(C) ; C_.t = t ;
+				Point A_ = tri->inLocalCoordinates(A) ; A_.getT() = t ;
+				Point B_ = tri->inLocalCoordinates(B) ; B_.getT() = t ;
+				Point C_ = tri->inLocalCoordinates(C) ; C_.getT() = t ;
 
 				ret[2] = (tri->getBehaviour()->getTensor( A_ )[0][0]+tri->getBehaviour()->getTensor( A_ )[1][1])*.5 ;
 				ret[1] = (tri->getBehaviour()->getTensor( B_ )[0][0]+tri->getBehaviour()->getTensor( B_ )[1][1])*.5 ;

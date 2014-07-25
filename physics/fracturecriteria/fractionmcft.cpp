@@ -80,28 +80,28 @@ namespace Mu {
 // 			stra += pstrain * d * area;
 // 			fact += area ;
 // 			
-// 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+// 			if( mirroring == MIRROR_X && std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 // 			{
 // 				str += pstress * d * area;
 // 				stra += pstrain * d * area;
 // 				fact += area ;
 // 			}
 // 
-// 			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+// 			if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 // 			{
 // 				str += pstress * d * area;
 // 				stra += pstrain * d * area;
 // 				fact += area ;
 // 			}
 // 
-// 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 			{
 // 				str += pstress * d * area;
 // 				stra += pstrain * d * area;
 // 				fact += area ;
 // 			}
 // 
-// 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 			if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 			{
 // 				str += pstress * d * area;
 // 				stra += pstrain * d * area;
@@ -147,63 +147,63 @@ namespace Mu {
 // 				stra += pstrain * d * volume;
 // 				fact += volume ;
 // 
-// 				if( mirroring == MIRROR_X && std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
+// 				if( mirroring == MIRROR_X && std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_X
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
+// 				if( mirroring == MIRROR_Y &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_Y
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
+// 				if( mirroring == MIRROR_Z &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_Y
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_XY &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().x  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().getX()  - delta_x ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_XZ &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().y  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().getY()  - delta_y ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;
 // 					fact += volume ;
 // 				}
 // 
-// 				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().z  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
+// 				if( mirroring == MIRROR_YZ &&  std::abs( ci->getCenter().getZ()  - delta_z ) < physicalCharacteristicRadius )   // MIRROR_XY
 // 				{
 // 					str += pstress * d * volume;
 // 					stra += pstrain * d * volume;

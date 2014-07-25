@@ -73,7 +73,7 @@ void step()
 				volume += ar ;
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
-					xavg += x[tets[k]->getBoundingPoint(l).id]*ar/npoints ;
+					xavg += x[tets[k]->getBoundingPoint(l).getId()]*ar/npoints ;
 				}
 			}
 		}

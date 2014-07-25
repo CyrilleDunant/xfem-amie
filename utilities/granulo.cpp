@@ -236,7 +236,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.x, pos.y, behaviour)) ;
+			zonesToPlace.push_back(new ExpansiveZone(nullptr, radius, pos.getX(), pos.getY(), behaviour)) ;
 	}
 
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -308,7 +308,7 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGe
 			}
 		}
 		if (alone)
-			zonesToPlace.push_back(new TimeDependentHomogenisingInclusion(nullptr, radius, pos.x, pos.y, behaviour)) ;
+			zonesToPlace.push_back(new TimeDependentHomogenisingInclusion(nullptr, radius, pos.getX(), pos.getY(), behaviour)) ;
 	}
 
 	std::map<Inclusion *, int> zonesPerIncs ; 
@@ -408,40 +408,40 @@ double PSDBolomeD::getNext2DDiameter(double diameter, double fraction, double dm
 	{
 	    Point A(.000150,0.);
 	    Point B(.000315,0.1);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return std::max(15.e-05, (fraction-b)/m/**2./M_PI*/) ;
 	}
 	if (fraction<0.2 && fraction>= 0.1)
 	{
 	    Point A(.000315,0.1);
 	    Point B(.00063,0.2);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m/**2./M_PI*/ ;
 	}
 	if (fraction<0.45 && fraction>= 0.2)
 	{
 	    Point A(.00063,0.2);
 	    Point B(.00125,0.45);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m/**2./M_PI*/ ;
 	}
 	if (fraction<0.7 && fraction>= 0.45)
 	{
 	    Point A(.00125,0.45);
 	    Point B(.0025,0.70);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m/**2./M_PI*/;
 	}
 	if (fraction<1. && fraction>= 0.7)
 	{
 	    Point A(.0025,.7);
 	    Point B(.005,1.);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m/**2./M_PI*/ ;
 	}
 	return 15e-5 ;
@@ -455,40 +455,40 @@ double m;//pente
 	{
 	    Point A(.000150,0.);
 	    Point B(.000315,0.1);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return std::max(7.5e-05, (fraction-b)/m);
 	}
 	if (fraction<0.2 && fraction>= 0.1)
 	{
 	    Point A(.000315,0.1);
 	    Point B(.00063,0.2);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m*.5;
 	}
 	if (fraction<0.45 && fraction> 0.2)
 	{
 	    Point A(.00063,0.2);
 	    Point B(.00125,0.45);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m;
 	}
 	if (fraction<0.7 && fraction> 0.45)
 	{
 	    Point A(.00125,0.45);
 	    Point B(.0025,0.70);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m;
 	}
 	if (fraction<1. && fraction> 0.7)
 	{
 	    Point A(.0025,.7);
 	    Point B(.005,1.);
-	    m= (B.y-A.y)/(B.x-A.x);
-	    b=A.y-(m*A.x);
+	    m= (B.getY()-A.getY())/(B.getX()-A.getX());
+	    b=A.getY()-(m*A.getX());
 	    return (fraction-b)/m;
 	}
 	return 7.5e-5 ;

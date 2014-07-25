@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 		std::vector<Inclusion3D * > inclusions ;
 //		if(micro == S1)
 //		{*/
-			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z)) ;
+			inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
 			inclusions[0]->setBehaviour(behaviour) ;
 			F.addFeature(&sample, inclusions[0]) ;
 /*			std::cout << inclusions[0]->volume() << std::endl ;
@@ -274,13 +274,13 @@ int main(int argc, char *argv[])
 		else if(micro == XS1)
 		{
 			Vector a(6) ; a = 0 ; 
-			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z, m1, a));
+			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(), m1, a));
 		}
 		else
 		{
 			str_micro = "S2024" ;
 		 	int n = 2024 ;
-			std::string file = "sphere_2024.txt" ;
+			std::string file = "sphere_2024.getT()xt" ;
 		 	std::vector<std::string> columns ;
 		 	columns.push_back("center_x") ;
 		 	columns.push_back("center_y") ;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 			{
 				str_micro = "S3200" ;
 				n = 3200 ;
-				file = "sphere_3200.txt" ;
+				file = "sphere_3200.getT()xt" ;
 				columns.clear() ;
 			 	columns.push_back("radius") ;
 			 	columns.push_back("center_x") ;
@@ -310,7 +310,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		str_micro = "O1" ;
-		OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().x, sample.getCenter().y, sample.getCenter().z) ;
+		OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ()) ;
 		oct->setBehaviour(behaviour) ;
 		std::cout << oct->volume() << std::endl ;
 		std::cout << sample.volume() << std::endl ;
@@ -368,9 +368,9 @@ int main(int argc, char *argv[])
 				}
 				for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
 				{
-					if(abs(tets[i]->getBoundingPoint(j).x - length*scale) < POINT_TOLERANCE_3D)
+					if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE_3D)
 					{
-						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).id, 1.e-5)) ;
+						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).getId(), 1.e-5)) ;
 					}
 				}
 			}
@@ -478,7 +478,7 @@ int main(int argc, char *argv[])
 		std::cout << "average gradient33 : " << average_gradient[2]/total_volume << std::endl ;
 		
 		
-		std::string filebench("benchmark.txt") ;
+		std::string filebench("benchmark.getT()xt") ;
 		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
 		out << "DIFFUSION\t" << str_micro << "\t" << "D_inc = " << prop << "\t" ;
@@ -599,7 +599,7 @@ int main(int argc, char *argv[])
 
 		double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
 		
-		std::string filebench("benchmark.txt") ;
+		std::string filebench("benchmark.getT()xt") ;
 /*		std::fstream out ;
 		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
 		out << "ELASTICITY\t" << str_micro ;

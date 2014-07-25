@@ -83,7 +83,7 @@ protected:
 	
 public:
 	PointParser3D(const char* f): Parser(f) { pointSets = new std::vector<Point * >() ; }
-	PointParser3D(): Parser("cord.txt") { pointSets = new std::vector<Point * >() ; } 
+	PointParser3D(): Parser("cord.getT()xt") { pointSets = new std::vector<Point * >() ; } 
 	virtual ~PointParser3D() { delete pointSets ; }
 	
 	virtual void readData() ;
@@ -99,7 +99,7 @@ protected:
 	
 public:
 	PeriodParser(const char* f): Parser(f) { periodSets = new std::vector<std::pair<size_t,std::valarray<int> > >() ; }
-	PeriodParser(): Parser("period.txt") {periodSets = new std::vector<std::pair<size_t,std::valarray<int> > > ; }
+	PeriodParser(): Parser("period.getT()xt") {periodSets = new std::vector<std::pair<size_t,std::valarray<int> > > ; }
 	virtual ~PeriodParser() { delete periodSets ; }
 	
 	virtual void readData() ;
@@ -113,7 +113,7 @@ protected:
 	
 public:
 	TetrahedronParser(const char* f): Parser(f) { tets = new std::vector<std::pair<std::valarray<int>, size_t> >() ; }
-	TetrahedronParser(): Parser("conec.txt") { tets = new std::vector<std::pair<std::valarray<int>, size_t> >  ; } 
+	TetrahedronParser(): Parser("conec.getT()xt") { tets = new std::vector<std::pair<std::valarray<int>, size_t> >  ; } 
 	virtual ~TetrahedronParser() { delete tets ; } 
 	
 	virtual void readData() ;
@@ -127,7 +127,7 @@ protected:
 	
 public:
 	HexahedronParser(const char* f): Parser(f) { hex = new std::vector<std::pair<std::valarray<int>, size_t> >() ; }
-	HexahedronParser(): Parser("conec.txt") { hex = new std::vector<std::pair<std::valarray<int>, size_t> >  ; } 
+	HexahedronParser(): Parser("conec.getT()xt") { hex = new std::vector<std::pair<std::valarray<int>, size_t> >  ; } 
 	virtual ~HexahedronParser() { delete hex ; } 
 	
 	virtual void readData() ;
@@ -155,7 +155,7 @@ public:
 		tri4 = new std::vector<std::valarray<int> >() ;
 		tri5 = new std::vector<std::valarray<int> >() ;
 	}
-	BoundaryParser(): Parser("front.txt") 
+	BoundaryParser(): Parser("front.getT()xt") 
 	{
 		tri0 = new std::vector<std::valarray<int> >() ;
 		tri1 = new std::vector<std::valarray<int> >() ;
@@ -198,7 +198,7 @@ public:
 		carre4 = new std::vector<std::valarray<int> >() ;
 		carre5 = new std::vector<std::valarray<int> >() ;
 	}
-	HexahedronBoundaryParser(): Parser("front.txt") 
+	HexahedronBoundaryParser(): Parser("front.getT()xt") 
 	{
 		carre0 = new std::vector<std::valarray<int> >() ;
 		carre1 = new std::vector<std::valarray<int> >() ;

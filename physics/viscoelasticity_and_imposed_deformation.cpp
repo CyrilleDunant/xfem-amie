@@ -132,9 +132,9 @@ Vector ViscoelasticityAndVariableImposedDeformation::getImposedStrain(const Poin
 	Point q = p ;
 	if(e)
 	{
-		q.x = VirtualMachine().eval(e->getXTransform(), p) ;
-		q.y = VirtualMachine().eval(e->getYTransform(), p) ;
-		q.t = VirtualMachine().eval(e->getTTransform(), p) ;
+		q.getX() = VirtualMachine().eval(e->getXTransform(), p) ;
+		q.getY() = VirtualMachine().eval(e->getYTransform(), p) ;
+		q.getT() = VirtualMachine().eval(e->getTTransform(), p) ;
 	}
 
 	Vector v = imposedStrain ;

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	{
 		if(trg[i]->getBehaviour()->getFractureCriterion())
 		{
-			if(std::abs(trg[i]->getCenter().x) < 0.0002)
+			if(std::abs(trg[i]->getCenter().getX()) < 0.0002)
 			{
 				SpaceTimeNonLocalLinearSofteningMaximumStrain* dam = dynamic_cast<SpaceTimeNonLocalLinearSofteningMaximumStrain *>(trg[i]->getBehaviour()->getFractureCriterion()) ;
 				dam->upVal *= 0.99 ;

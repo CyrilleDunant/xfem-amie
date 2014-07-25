@@ -16,7 +16,7 @@ TwoDCohesiveForces::TwoDCohesiveForces(const IntegrableEntity *s, const Integrab
 {
 	this->time_d = false ;
 	this->type = NON_LINEAR ;
-	this->target = t ;
+	this->getT()arget = t ;
 	this->source = s ;
 	active = false ;
 	startArea = s->area() ;
@@ -88,16 +88,16 @@ void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i,
 			Matrix grad (VirtualMachine().geval(p_i, Jinv[i],v, gp.gaussPoints[i].first, true)) ;
 			Vector force = (Vector)(grad*stress) ;
 				
-			double normalAmplitude = force[0]*normals[0].x + force[1]*normals[0].y;
-			double tangeantAmplitude = -force[0]*normals[0].y + force[1]*normals[0].x;
+			double normalAmplitude = force[0]*normals[0].getX() + force[1]*normals[0].getY();
+			double tangeantAmplitude = -force[0]*normals[0].getY() + force[1]*normals[0].getX();
 				
 			Vector normalForce(2) ;
-			normalForce[0] = normals[0].x*normalAmplitude ;
-			normalForce[1] = normals[0].y*normalAmplitude ;
+			normalForce[0] = normals[0].getX()*normalAmplitude ;
+			normalForce[1] = normals[0].getY()*normalAmplitude ;
 				
 			Vector tangeantForce(2) ;
-			tangeantForce[0] = -normals[0].y*tangeantAmplitude ;
-			tangeantForce[1] = normals[0].x*tangeantAmplitude ;
+			tangeantForce[0] = -normals[0].getY()*tangeantAmplitude ;
+			tangeantForce[1] = normals[0].getX()*tangeantAmplitude ;
 
 			f += normalForce*gp.gaussPoints[i].second ;
 			f += tangeantForce*gp.gaussPoints[i].second ;

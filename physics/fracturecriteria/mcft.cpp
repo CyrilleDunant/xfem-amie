@@ -205,19 +205,19 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	
 // 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 // 	{
-// 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->tensionFailure)
+// 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->getT()ensionFailure)
 // 			return POINT_TOLERANCE_2D ;
 // 	}
 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
-		distanceToRebar = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[0].first) ;
+		distanceToRebar = std::abs(s.getParent()->getCenter().getY() - rebarLocationsAndDiameters[0].first) ;
 		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
 		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
 		{
-			double distanceToRebartest = std::abs(s.getParent()->getCenter().y - rebarLocationsAndDiameters[i].first) ;
+			double distanceToRebartest = std::abs(s.getParent()->getCenter().getY() - rebarLocationsAndDiameters[i].first) ;
 // 			std::cout << rebarLocationsAndDiameters[i].first << "  "<<std::flush ;
 			if( distanceToRebar < rebarLocationsAndDiameters[i].second*7.5*2 && distanceToRebartest < distanceToRebar)
 			{

@@ -35,7 +35,7 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 	boundingPoints[2] = new Point(p2) ;
 
 
-	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
+	if((p0.getZ() == p1.getZ())  && (p0.getZ() == p2.getZ()) &&  (p0.getZ() == 0))
 	{
 		if(!isTrigoOriented())
 		{
@@ -58,53 +58,12 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 
 }
 
-Triangle::Triangle(XMLTree * xml)
-{
-	gType = TRIANGLE ;
-	assert(this->size() == 3) ;
-
-	Point p0(0,1) ;
-	Point p1(0,0) ;
-	Point p2(1,0) ;
-
-	boundingPoints[0] = new Point(0, 1) ;
-	boundingPoints[1] = new Point(0, 0) ;
-	boundingPoints[2] = new Point(1, 0) ;
-
-	if(xml->match("triangle"))
-	{
-		p0 = Point(xml->getChild(0)) ;
-		p1 = Point(xml->getChild(1)) ;
-		p2 = Point(xml->getChild(2)) ;
-
-		boundingPoints[0] = new Point(p0) ;
-		boundingPoints[1] = new Point(p1) ;
-		boundingPoints[2] = new Point(p2) ;
-	}
-
-	computeCenter() ;
-	computeCircumCenter() ;
-
-	radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))/2.);
-	sqradius = radius*radius ;
-
-}
-
 void Triangle::setCenter(const Point & newCenter)
 {
 	Geometry::setCenter(newCenter);
 	computeCircumCenter();
 }
 
-
-XMLTree * Triangle::toXML() const
-{
-	XMLTree * tri = new XMLTree("triangle") ;
-	tri->addChild(boundingPoints[0]->toXML()) ;
-	tri->addChild(boundingPoints[1]->toXML()) ;
-	tri->addChild(boundingPoints[2]->toXML()) ;
-	return tri ;
-}
 
 OrientedRectangle::OrientedRectangle() : ConvexGeometry(4)
 {
@@ -129,7 +88,7 @@ OrientedRectangle::OrientedRectangle( const Point & p0,  const Point & p1,  cons
 	boundingPoints[2] = new Point(p2) ;
 	boundingPoints[3] = new Point(p3) ;
 
-	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
+	if((p0.getZ() == p1.getZ())  && (p0.getZ() == p2.getZ()) &&  (p0.getZ() == 0))
 	{
 		if(!isTrigoOriented())
 		{
@@ -140,7 +99,7 @@ OrientedRectangle::OrientedRectangle( const Point & p0,  const Point & p1,  cons
 	computeCircumCenter() ;
 	computeCenter() ;
 
-	if((p0.z == p1.z)  && (p0.z == p2.z) &&  (p0.z == 0))
+	if((p0.getZ() == p1.getZ())  && (p0.getZ() == p2.getZ()) &&  (p0.getZ() == 0))
 	{
 		if(!this->in(this->getCenter()))
 		{
@@ -163,7 +122,7 @@ OrientedRectangle::OrientedRectangle( const Point *p0,  const Point *p1,  const 
 	boundingPoints[2] = new Point(*p2) ;
 	boundingPoints[3] = new Point(*p3) ;
 
-	if((p0->z == p1->z)  && (p0->z == p2->z) &&  (p0->z == 0))
+	if((p0->getZ() == p1->getZ())  && (p0->getZ() == p2->getZ()) &&  (p0->getZ() == 0))
 	{
 		if(!isTrigoOriented())
 		{
@@ -177,17 +136,6 @@ OrientedRectangle::OrientedRectangle( const Point *p0,  const Point *p1,  const 
 	radius = (squareDist2D(*p1, circumCenter) + squareDist2D(*p0, circumCenter) + squareDist2D(*p2, circumCenter)+squareDist2D(*p3, circumCenter))/4.;
 
 }
-
-XMLTree * OrientedRectangle::toXML() const
-{
-	XMLTree * rect = new XMLTree("oriented rectangle") ;
-	rect->addChild(boundingPoints[0]->toXML()) ;
-	rect->addChild(boundingPoints[1]->toXML()) ;
-	rect->addChild(boundingPoints[2]->toXML()) ;
-	rect->addChild(boundingPoints[3]->toXML()) ;
-	return rect ;
-}
-
 
 void OrientedRectangle::computeCenter()
 {
@@ -211,15 +159,15 @@ Point OrientedRectangle::getCircumCenter() const
 
 std::vector<Point> OrientedRectangle::getBoundingBox() const
 {
-	double maxx = boundingPoints[0]->x ;
-	double minx = boundingPoints[0]->x ;
-	double maxy = boundingPoints[0]->y ;
-	double miny = boundingPoints[0]->y ;
+	double maxx = boundingPoints[0]->getX() ;
+	double minx = boundingPoints[0]->getX() ;
+	double maxy = boundingPoints[0]->getY() ;
+	double miny = boundingPoints[0]->getY() ;
 
 	for(size_t i = boundingPoints.size()/4 ; i < boundingPoints.size() ; i += boundingPoints.size()/4 )
 	{
-		double x = boundingPoints[i]->x ;
-		double y = boundingPoints[i]->y ;
+		double x = boundingPoints[i]->getX() ;
+		double y = boundingPoints[i]->getY() ;
 		if(x > maxx)
 			maxx = x ;
 		if(x < minx)
@@ -241,34 +189,34 @@ std::vector<Point> OrientedRectangle::getBoundingBox() const
 
 void OrientedRectangle::computeCircumCenter()
 {
-	if (fabs(boundingPoints[1]->y-boundingPoints[0]->y) < 20*POINT_TOLERANCE_2D)
+	if (fabs(boundingPoints[1]->getY()-boundingPoints[0]->getY()) < 20*POINT_TOLERANCE_2D)
 	{
-		double m2 = - (boundingPoints[2]->x-boundingPoints[1]->x) / (boundingPoints[2]->y-boundingPoints[1]->y);
-		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
-		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
-		double xc = (boundingPoints[1]->x + boundingPoints[0]->x) / 2.0;
+		double m2 = - (boundingPoints[2]->getX()-boundingPoints[1]->getX()) / (boundingPoints[2]->getY()-boundingPoints[1]->getY());
+		double mx2 = (boundingPoints[1]->getX() + boundingPoints[2]->getX()) / 2.0;
+		double my2 = (boundingPoints[1]->getY() + boundingPoints[2]->getY()) / 2.0;
+		double xc = (boundingPoints[1]->getX() + boundingPoints[0]->getX()) / 2.0;
 		double yc = fma(m2, (xc - mx2), my2);
 
 		circumCenter = Point(xc, yc) ;
 	}
-	else if (fabs(boundingPoints[2]->y-boundingPoints[1]->y) < 20*POINT_TOLERANCE_2D)
+	else if (fabs(boundingPoints[2]->getY()-boundingPoints[1]->getY()) < 20*POINT_TOLERANCE_2D)
 	{
-		double m1 = - (boundingPoints[1]->x-boundingPoints[0]->x) / (boundingPoints[1]->y-boundingPoints[0]->y);
-		double mx1 = (boundingPoints[0]->x + boundingPoints[1]->x) / 2.0;
-		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
-		double xc = (boundingPoints[2]->x + boundingPoints[1]->x) / 2.0;
+		double m1 = - (boundingPoints[1]->getX()-boundingPoints[0]->getX()) / (boundingPoints[1]->getY()-boundingPoints[0]->getY());
+		double mx1 = (boundingPoints[0]->getX() + boundingPoints[1]->getX()) / 2.0;
+		double my1 = (boundingPoints[0]->getY() + boundingPoints[1]->getY()) / 2.0;
+		double xc = (boundingPoints[2]->getX() + boundingPoints[1]->getX()) / 2.0;
 		double yc = fma(m1, (xc - mx1), my1);
 
 		circumCenter = Point(xc, yc) ;
 	}
 	else
 	{
-		double m1 = - (boundingPoints[1]->x-boundingPoints[0]->x) / (boundingPoints[1]->y-boundingPoints[0]->y);
-		double m2 = - (boundingPoints[2]->x-boundingPoints[1]->x) / (boundingPoints[2]->y-boundingPoints[1]->y);
-		double mx1 = (boundingPoints[0]->x + boundingPoints[1]->x) / 2.0;
-		double mx2 = (boundingPoints[1]->x + boundingPoints[2]->x) / 2.0;
-		double my1 = (boundingPoints[0]->y + boundingPoints[1]->y) / 2.0;
-		double my2 = (boundingPoints[1]->y + boundingPoints[2]->y) / 2.0;
+		double m1 = - (boundingPoints[1]->getX()-boundingPoints[0]->getX()) / (boundingPoints[1]->getY()-boundingPoints[0]->getY());
+		double m2 = - (boundingPoints[2]->getX()-boundingPoints[1]->getX()) / (boundingPoints[2]->getY()-boundingPoints[1]->getY());
+		double mx1 = (boundingPoints[0]->getX() + boundingPoints[1]->getX()) / 2.0;
+		double mx2 = (boundingPoints[1]->getX() + boundingPoints[2]->getX()) / 2.0;
+		double my1 = (boundingPoints[0]->getY() + boundingPoints[1]->getY()) / 2.0;
+		double my2 = (boundingPoints[1]->getY() + boundingPoints[2]->getY()) / 2.0;
 		double xc = fma(m1, mx1, fma(- m2 , mx2, my2 - my1)) / (m1 - m2);
 		double yc = fma(m1, (xc - mx1), my1);
 
@@ -352,20 +300,20 @@ void OrientedRectangle::project(Point * p) const
 	switch(i)
 	{
 	case 0:
-		p->x = p0.x ;
-		p->y = p0.y ;
+		p->getX() = p0.getX() ;
+		p->getY() = p0.getY() ;
 		break ;
 	case 1:
-		p->x = p1.x ;
-		p->y = p1.y ;
+		p->getX() = p1.getX() ;
+		p->getY() = p1.getY() ;
 		break ;
 	case 2:
-		p->x = p2.x ;
-		p->y = p2.y ;
+		p->getX() = p2.getX() ;
+		p->getY() = p2.getY() ;
 		break ;
 	case 3:
-		p->x = p3.x ;
-		p->y = p3.y ;
+		p->getX() = p3.getX() ;
+		p->getY() = p3.getY() ;
 		break ;
 	}
 
@@ -396,11 +344,11 @@ bool OrientedRectangle::in(const Point &p) const
 	for (size_t i = 0, j  =  boundingPoints.size()-1; i <  boundingPoints.size(); j = i++)
 	{
 		if (
-			(((boundingPoints[i]->y <= p.y )
-			  && (p.y<boundingPoints[j]->y))
-			 || ((boundingPoints[j]->y <= p.y)
-				 && (p.y<boundingPoints[i]->y)))
-			&& (p.x < (boundingPoints[j]->x - boundingPoints[i]->x) * (p.y - boundingPoints[i]->y) / (boundingPoints[j]->y - boundingPoints[i]->y) + boundingPoints[i]->x))
+			(((boundingPoints[i]->getY() <= p.getY() )
+			  && (p.getY()<boundingPoints[j]->getY()))
+			 || ((boundingPoints[j]->getY() <= p.getY())
+				 && (p.getY()<boundingPoints[i]->getY())))
+			&& (p.getX() < (boundingPoints[j]->getX() - boundingPoints[i]->getX()) * (p.getY() - boundingPoints[i]->getY()) / (boundingPoints[j]->getY() - boundingPoints[i]->getY()) + boundingPoints[i]->getX()))
 			in = !in;
 	}
 
@@ -550,7 +498,7 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 	boundingPoints[2] = p2 ;
 
 
-	if((p0->z == p1->z)  && (p0->z == p2->z) &&  (p0->z == 0))
+	if((p0->getZ() == p1->getZ())  && (p0->getZ() == p2->getZ()) &&  (p0->getZ() == 0))
 	{
 		if(!isTrigoOriented())
 		{
@@ -604,34 +552,34 @@ std::vector<Point> Triangle::getBoundingBox() const
 void Triangle::computeCircumCenter()
 {
 
-	if (std::abs(getBoundingPoint(1).y-getBoundingPoint(0).y) < 100.*POINT_TOLERANCE_2D)
+	if (std::abs(getBoundingPoint(1).getY()-getBoundingPoint(0).getY()) < 100.*POINT_TOLERANCE_2D)
 	{
-		double m2  =  (getBoundingPoint(1).x-getBoundingPoint(2).x ) / (getBoundingPoint(2).y-getBoundingPoint(1).y);
-		double mx2 = (getBoundingPoint(1).x + getBoundingPoint(2).x) ;
-		double my2 = (getBoundingPoint(1).y + getBoundingPoint(2).y) ;
-		double xc  = (getBoundingPoint(1).x + getBoundingPoint(0).x) ;
+		double m2  =  (getBoundingPoint(1).getX()-getBoundingPoint(2).getX() ) / (getBoundingPoint(2).getY()-getBoundingPoint(1).getY());
+		double mx2 = (getBoundingPoint(1).getX() + getBoundingPoint(2).getX()) ;
+		double my2 = (getBoundingPoint(1).getY() + getBoundingPoint(2).getY()) ;
+		double xc  = (getBoundingPoint(1).getX() + getBoundingPoint(0).getX()) ;
 		double yc  = m2 * (xc - mx2) + my2;
 
 		circumCenter.set(xc/2., yc/2.) ;
 	}
-	else if (std::abs(getBoundingPoint(2).y-getBoundingPoint(1).y) < 100.*POINT_TOLERANCE_2D)
+	else if (std::abs(getBoundingPoint(2).getY()-getBoundingPoint(1).getY()) < 100.*POINT_TOLERANCE_2D)
 	{
-		double m1  =  (getBoundingPoint(0).x - getBoundingPoint(1).x ) / (getBoundingPoint(1).y-getBoundingPoint(0).y);
-		double mx1 = (getBoundingPoint(0).x + getBoundingPoint(1).x) ;
-		double my1 = (getBoundingPoint(0).y + getBoundingPoint(1).y) ;
-		double xc  = (getBoundingPoint(2).x + getBoundingPoint(1).x) ;
+		double m1  =  (getBoundingPoint(0).getX() - getBoundingPoint(1).getX() ) / (getBoundingPoint(1).getY()-getBoundingPoint(0).getY());
+		double mx1 = (getBoundingPoint(0).getX() + getBoundingPoint(1).getX()) ;
+		double my1 = (getBoundingPoint(0).getY() + getBoundingPoint(1).getY()) ;
+		double xc  = (getBoundingPoint(2).getX() + getBoundingPoint(1).getX()) ;
 		double yc  = m1 * (xc - mx1) + my1;
 
 		circumCenter.set(xc/2., yc/2.) ;
 	}
 	else
 	{
-		double m1  = (getBoundingPoint(0).x-getBoundingPoint(1).x) / (getBoundingPoint(1).y-getBoundingPoint(0).y);
-		double m2  = (getBoundingPoint(1).x-getBoundingPoint(2).x) / (getBoundingPoint(2).y-getBoundingPoint(1).y);
-		double mx1 = (getBoundingPoint(0).x + getBoundingPoint(1).x) ;
-		double mx2 = (getBoundingPoint(1).x + getBoundingPoint(2).x) ;
-		double my1 = (getBoundingPoint(0).y + getBoundingPoint(1).y) ;
-		double my2 = (getBoundingPoint(1).y + getBoundingPoint(2).y) ;
+		double m1  = (getBoundingPoint(0).getX()-getBoundingPoint(1).getX()) / (getBoundingPoint(1).getY()-getBoundingPoint(0).getY());
+		double m2  = (getBoundingPoint(1).getX()-getBoundingPoint(2).getX()) / (getBoundingPoint(2).getY()-getBoundingPoint(1).getY());
+		double mx1 = (getBoundingPoint(0).getX() + getBoundingPoint(1).getX()) ;
+		double mx2 = (getBoundingPoint(1).getX() + getBoundingPoint(2).getX()) ;
+		double my1 = (getBoundingPoint(0).getY() + getBoundingPoint(1).getY()) ;
+		double my2 = (getBoundingPoint(1).getY() + getBoundingPoint(2).getY()) ;
 		double xc  = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);
 		double yc  = m1 * (xc - mx1) + my1;
 
@@ -641,13 +589,13 @@ void Triangle::computeCircumCenter()
 
 bool Triangle::inCircumCircle(const Point & p) const
 {
-	if(p.x > circumCenter.x+1.01*radius)
+	if(p.getX() > circumCenter.getX()+1.01*radius)
 		return false ;
-	if(p.x < circumCenter.x-1.01*radius)
+	if(p.getX() < circumCenter.getX()-1.01*radius)
 		return false ;
-	if(p.y > circumCenter.y+1.01*radius)
+	if(p.getY() > circumCenter.getY()+1.01*radius)
 		return false ;
-	if(p.y < circumCenter.y-1.01*radius)
+	if(p.getY() < circumCenter.getY()-1.01*radius)
 		return false ;
 
 	if(squareDist2D(circumCenter, p) < .99*sqradius)
@@ -655,36 +603,36 @@ bool Triangle::inCircumCircle(const Point & p) const
 
 	double delta = POINT_TOLERANCE_2D ;
 	Point a(p) ;
-	a.x += delta ;
-	a.y += delta ;
+	a.getX() += delta ;
+	a.getY() += delta ;
 	Point c(p) ;
-	c.x += delta ;
-	c.y -= delta ;
+	c.getX() += delta ;
+	c.getY() -= delta ;
 	Point e(p) ;
-	e.x -= delta ;
-	e.y += delta ;
+	e.getX() -= delta ;
+	e.getY() += delta ;
 	Point g(p) ;
-	g.x -= delta ;
-	g.y -= delta ;
+	g.getX() -= delta ;
+	g.getY() -= delta ;
 
 	return  squareDist2D(circumCenter, a) < sqradius
 			&&  squareDist2D(circumCenter, c) < sqradius
 			&&  squareDist2D(circumCenter, e) < sqradius
 			&&  squareDist2D(circumCenter, g) < sqradius;
-	double x = circumCenter.x -p.x ;
-	double y = circumCenter.y -p.y ;
+	double x = circumCenter.getX() -p.getX() ;
+	double y = circumCenter.getY() -p.getY() ;
 	return  fma(x, x, y*y)< sqradius*(1. - 100.*POINT_TOLERANCE_2D)  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
 {
-	if(p->x > circumCenter.x+1.01*radius)
+	if(p->getX() > circumCenter.getX()+1.01*radius)
 		return false ;
-	if(p->x < circumCenter.x-1.01*radius)
+	if(p->getX() < circumCenter.getX()-1.01*radius)
 		return false ;
-	if(p->y > circumCenter.y+1.01*radius)
+	if(p->getY() > circumCenter.getY()+1.01*radius)
 		return false ;
-	if(p->y < circumCenter.y-1.01*radius)
+	if(p->getY() < circumCenter.getY()-1.01*radius)
 		return false ;
 
 	if(squareDist2D(circumCenter, *p) < .99*sqradius)
@@ -692,24 +640,24 @@ bool Triangle::inCircumCircle(const Point *p) const
 
 	double delta = POINT_TOLERANCE_2D ;
 	Point a(*p) ;
-	a.x += delta ;
-	a.y += delta ;
+	a.getX() += delta ;
+	a.getY() += delta ;
 	Point c(*p) ;
-	c.x += delta ;
-	c.y -= delta ;
+	c.getX() += delta ;
+	c.getY() -= delta ;
 	Point e(*p) ;
-	e.x -= delta ;
-	e.y += delta ;
+	e.getX() -= delta ;
+	e.getY() += delta ;
 	Point g(*p) ;
-	g.x -= delta ;
-	g.y -= delta ;
+	g.getX() -= delta ;
+	g.getY() -= delta ;
 
 	return  squareDist2D(circumCenter, a) < sqradius
 			&&  squareDist2D(circumCenter, c) < sqradius
 			&&  squareDist2D(circumCenter, e) < sqradius
 			&&  squareDist2D(circumCenter, g) < sqradius;
-	double x = circumCenter.x -p->x ;
-	double y = circumCenter.y -p->y ;
+	double x = circumCenter.getX() -p->getX() ;
+	double y = circumCenter.getY() -p->getY() ;
 	return  fma(x, x, y*y) < sqradius*(1. - 100.*POINT_TOLERANCE_2D)  ;
 }
 
@@ -721,17 +669,17 @@ double Triangle::area() const
 // 	{
 // 		Segment s0(*(tri->first), *(tri->second)) ;
 // 		Segment s1(*(tri->first), *(tri->third)) ;
-// 		return 0.5*std::abs((s0.vector()^s1.vector()).z) ;
+// 		return 0.5*std::abs((s0.vector()^s1.vector()).getZ()) ;
 // 	}
 
 // 	assert(this->boundingPoints.size() == 3) ;
 	int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
-// 	if(getBoundingPoint(0).t != 0)
+// 	if(getBoundingPoint(0).getT() != 0)
 // 	{
 // 		pointsInTimePlane = 0 ;
-// 		double init = getBoundingPoint(0).t ;
+// 		double init = getBoundingPoint(0).getT() ;
 // 		int counter = 0 ;
-// 		while(std::abs(getBoundingPoint(counter++).t-init) < POINT_TOLERANCE_2D)
+// 		while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE_2D)
 // 			pointsInTimePlane++ ;
 // 	}
 	Segment s0(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3)) ;
@@ -767,8 +715,8 @@ void Triangle::project(Point * p) const
 // 		if(s.intersects(seg))
 // 		{
 // 			Point t = s.intersection(seg);
-// 			p->x = t.x ;
-// 			p->y = t.y ;
+// 			p->getX() = t.getX() ;
+// 			p->getY() = t.getY() ;
 // 			return ;
 // 		}
 // 	}
@@ -784,8 +732,8 @@ void Triangle::project(Point * p) const
 // 		if(sec.intersects(seg))
 // 		{
 // 			Point t = sec.intersection(seg);
-// 			p->x = t.x ;
-// 			p->y = t.y ;
+// 			p->getX() = t.getX() ;
+// 			p->getY() = t.getY() ;
 // 			return ;
 // 		}
 // 	}
@@ -858,10 +806,10 @@ bool Triangle::in(const Point &p) const
 
 
 	proj = p ;
-	proj.t = getBoundingPoint(0).t ;
+	proj.getT() = getBoundingPoint(0).getT() ;
 
 	Point c = getCenter() ;
-	c.t = proj.t ;
+	c.getT() = proj.getT() ;
 
 	Segment s(proj, c) ;
 
@@ -1044,13 +992,13 @@ Rectangle::Rectangle(double x, double y, const Point &center) :  ConvexGeometry(
 {
 	gType = RECTANGLE ;
 	this->center = center ;
-	topLeft = Point(center.x-0.5*x, center.y+0.5*y) ;
+	topLeft = Point(center.getX()-0.5*x, center.getY()+0.5*y) ;
 	boundingPoints[0] = new Point(topLeft) ;
-	topRight = Point(center.x+0.5*x, center.y+0.5*y) ;
+	topRight = Point(center.getX()+0.5*x, center.getY()+0.5*y) ;
 	boundingPoints[1] = new Point(topRight) ;
-	bottomRight = Point(center.x+0.5*x, center.y-0.5*y) ;
+	bottomRight = Point(center.getX()+0.5*x, center.getY()-0.5*y) ;
 	boundingPoints[2] = new Point(bottomRight) ;
-	bottomLeft =  Point(center.x-0.5*x, center.y-0.5*y) ;
+	bottomLeft =  Point(center.getX()-0.5*x, center.getY()-0.5*y) ;
 	boundingPoints[3] = new Point(bottomLeft) ;
 }
 
@@ -1069,46 +1017,6 @@ Rectangle::Rectangle() :  ConvexGeometry(4), size_y(2), size_x(2)
 
 
 }
-
-Rectangle::Rectangle(XMLTree * xml) : ConvexGeometry(4)
-{
-	gType = RECTANGLE ;
-	this->center = Point(0,0) ;
-	topLeft = Point(-1, 1) ;
-	topRight = Point(1, 1) ;
-	bottomRight = Point(1, -1) ;
-	bottomLeft = Point(-1, -1) ;
-
-	if(xml->match("rectangle")) ;
-	{
-		this->center = Point(xml->getChild(0)->getChild(0)) ;
-		size_x = xml->getChild(1)->buildDouble().second ;
-		size_y = xml->getChild(2)->buildDouble().second ;
-		topLeft = Point(center.x-0.5*size_x, center.y+0.5*size_y) ;
-		topRight = Point(center.x+0.5*size_x, center.y+0.5*size_y) ;
-		bottomRight = Point(center.x+0.5*size_x, center.y-0.5*size_y) ;
-		bottomLeft =  Point(center.x-0.5*size_x, center.y-0.5*size_y) ;
-	}
-
-	boundingPoints[0] = new Point(topLeft) ;
-	boundingPoints[1] = new Point(topRight) ;
-	boundingPoints[2] = new Point(bottomRight) ;
-	boundingPoints[3] = new Point(bottomLeft) ;
-
-}
-
-
-XMLTree * Rectangle::toXML() const
-{
-	XMLTree * rect = new XMLTree("rectangle") ;
-	XMLTree * c = new XMLTree("center") ;
-	c->addChild(this->getCenter().toXML()) ;
-	rect->addChild(c) ;
-	rect->addChild(new XMLTree("x",size_x)) ;
-	rect->addChild(new XMLTree("y",size_y)) ;
-	return rect ;
-}
-
 
 std::vector<Point> Rectangle::getBoundingBox() const
 {
@@ -1137,13 +1045,13 @@ double  Rectangle::getRadius() const
 
 bool Rectangle::in(const Point & p) const
 {
-	if(p.x < getCenter().x - 0.5*width())
+	if(p.getX() < getCenter().getX() - 0.5*width())
 		return false ;
-	if(p.x  > getCenter().x + 0.5*width())
+	if(p.getX()  > getCenter().getX() + 0.5*width())
 		return false ;
-	if(p.y > getCenter().y + 0.5*height())
+	if(p.getY() > getCenter().getY() + 0.5*height())
 		return false ;
-	if(p.y  < getCenter().y - 0.5*height())
+	if(p.getY()  < getCenter().getY() - 0.5*height())
 		return false ;
 
 	return true ;
@@ -1208,31 +1116,31 @@ std::vector<Point> Rectangle::getSamplingBoundingPoints(size_t num_points) const
 		double randy= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == 0 || i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		ret.push_back(Point(center.x-0.5*size_x, center.y + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy)) ;
+		ret.push_back(Point(center.getX()-0.5*size_x, center.getY() + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy)) ;
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX ; i++)
 	{
 		double randx= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongX-1)
 			randx = 0 ;
-		ret.push_back(Point( center.x-0.5*size_x+i*distanceBetweenPointsAlongX+ randx,
-							 getCenter().y-0.5*size_y));
+		ret.push_back(Point( center.getX()-0.5*size_x+i*distanceBetweenPointsAlongX+ randx,
+							 getCenter().getY()-0.5*size_y));
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongY ; i++)
 	{
 		double randy= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		ret.push_back(Point(center.x+0.5*size_x,
-							center.y-0.5*size_y+i*distanceBetweenPointsAlongY+ randy));
+		ret.push_back(Point(center.getX()+0.5*size_x,
+							center.getY()-0.5*size_y+i*distanceBetweenPointsAlongY+ randy));
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX-1 ; i++)
 	{
 		double randx=  0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		assert(2*numberOfPointsAlongY+numberOfPointsAlongX+i-3< num_points) ;
 		ret.push_back(Point(
-						  center.x + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
-						  center.y + 0.5*size_y)) ;
+						  center.getX() + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
+						  center.getY() + 0.5*size_y)) ;
 	}
 
 	return ret ;
@@ -1269,31 +1177,31 @@ void Rectangle::sampleBoundingSurface(size_t num_points)
 		double randy= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == 0 || i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		boundingPoints[i] = new Point(center.x-0.5*size_x, center.y + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy) ;
+		boundingPoints[i] = new Point(center.getX()-0.5*size_x, center.getY() + 0.5*size_y - i*distanceBetweenPointsAlongY+ randy) ;
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX ; i++)
 	{
 		double randx= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongX-1)
 			randx = 0 ;
-		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.x-0.5*size_x + i*distanceBetweenPointsAlongX+ randx,
-				getCenter().y-0.5*size_y);
+		boundingPoints[numberOfPointsAlongY+i-1] = new Point( center.getX()-0.5*size_x + i*distanceBetweenPointsAlongX+ randx,
+				getCenter().getY()-0.5*size_y);
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongY ; i++)
 	{
 		double randy= 0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		if(i == numberOfPointsAlongY-1)
 			randy = 0 ;
-		boundingPoints[numberOfPointsAlongX+numberOfPointsAlongY+i-2] = new Point(center.x+0.5*size_x,
-				center.y-0.5*size_y+i*distanceBetweenPointsAlongY+ randy);
+		boundingPoints[numberOfPointsAlongX+numberOfPointsAlongY+i-2] = new Point(center.getX()+0.5*size_x,
+				center.getY()-0.5*size_y+i*distanceBetweenPointsAlongY+ randy);
 	}
 	for (size_t i = 1 ; i < numberOfPointsAlongX-1 ; i++)
 	{
 		double randx=  0 ;//((2.*rand()/(RAND_MAX+1.0))-1.)*0.22*(size_y/numberOfPointsAlongY) ;
 		assert(2*numberOfPointsAlongY+numberOfPointsAlongX+i-3< num_points) ;
 		boundingPoints[2*numberOfPointsAlongY+numberOfPointsAlongX+i-3] = new Point(
-			center.x + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
-			center.y + 0.5*size_y) ;
+			center.getX() + 0.5*size_x - i*distanceBetweenPointsAlongX +randx ,
+			center.getY() + 0.5*size_y) ;
 	}
 }
 
@@ -1333,8 +1241,8 @@ void Rectangle::sampleSurface(size_t num_points)
 				double randx= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.25*distanceBetweenPointsAlongX ;
 				double randy= ((2.*rand()/(RAND_MAX+1.0))-1.)*0.25*distanceBetweenPointsAlongY ;
 
-				newInPoints.push_back( new Point(center.x - 0.5*size_x + (double)(i+0.66)*distanceBetweenPointsAlongX+(double)((j)%2)*distanceBetweenPointsAlongX*.5-(double)((j+1)%2)*distanceBetweenPointsAlongX*.15+randx,
-												 center.y - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy)) ;
+				newInPoints.push_back( new Point(center.getX() - 0.5*size_x + (double)(i+0.66)*distanceBetweenPointsAlongX+(double)((j)%2)*distanceBetweenPointsAlongX*.5-(double)((j+1)%2)*distanceBetweenPointsAlongX*.15+randx,
+												 center.getY() - 0.5*size_y + (double)(j+1)*distanceBetweenPointsAlongY+ randy)) ;
 			}
 		}
 	}
@@ -1368,32 +1276,6 @@ Circle::Circle(double r, const Point & center)
 	this->sqradius = r*r ;
 }
 
-Circle::Circle(XMLTree * xml)
-{
-	gType = CIRCLE ;
-	this->center = Point(0,0) ;
-	this->radius = 1 ;
-
-	if(xml->match("circle"))
-	{
-		this->center = Point(xml->getChild(0)->getChild(0)) ;
-		this->radius = xml->getChild(1)->buildDouble().second ;
-	}
-
-	this->sqradius = this->radius * this->radius ;
-}
-
-
-XMLTree * Circle::toXML()
-{
-	XMLTree * cir = new XMLTree("circle") ;
-	XMLTree * c = new XMLTree("center") ;
-	c->addChild(this->getCenter().toXML()) ;
-	cir->addChild(c) ;
-	cir->addChild(new XMLTree("radius",radius)) ;
-	return cir ;
-}
-
 
 void Circle::setRadius(double newr)
 {
@@ -1402,14 +1284,14 @@ void Circle::setRadius(double newr)
 
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		getBoundingPoint(i).x = (getBoundingPoint(i).x - center.x)*ratio + center.x ;
-		getBoundingPoint(i).y = (getBoundingPoint(i).y - center.y)*ratio + center.y ;
+		getBoundingPoint(i).getX() = (getBoundingPoint(i).getX() - center.getX())*ratio + center.getX() ;
+		getBoundingPoint(i).getY() = (getBoundingPoint(i).getY() - center.getY())*ratio + center.getY() ;
 	}
 
 	for(size_t i = 0 ; i < getInPoints().size() ; i++)
 	{
-		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
-		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
+		getInPoint(i).getX() = (getInPoint(i).getX() - center.getX())*ratio + center.getX() ;
+		getInPoint(i).getY() = (getInPoint(i).getY() - center.getY())*ratio + center.getY() ;
 	}
 
 	this->radius = newr ;
@@ -1435,7 +1317,7 @@ void Circle::project(Point * p) const
 {
 	if(squareDist2D(p, &getCenter() ) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
 	{
-		p->x +=getRadius() ;
+		p->getX() +=getRadius() ;
 		return ;
 	}
 
@@ -1464,7 +1346,7 @@ std::vector<Point> Circle::getSamplingBoundingPoints(size_t num_points) const
 
 	for (size_t i = 0 ; i< num_points ; i++)
 	{
-		ret.push_back(Point(getRadius()*cos((double)i*angle) + getCenter().x, getRadius()*sin((double)i*angle) + getCenter().y));
+		ret.push_back(Point(getRadius()*cos((double)i*angle) + getCenter().getX(), getRadius()*sin((double)i*angle) + getCenter().getY()));
 	}
 
 	return ret ;
@@ -1486,7 +1368,7 @@ std::vector<Point> Circle::getSamplingBoundingPointsOnArc(size_t num_points, con
 
 	for (double i = 0 ; i< num_points ; i++)
 	{
-		Point newPoint(init.x*cos(i*angle)+init.y*sin(i*angle), -init.x*sin(i*angle)+init.y*cos(i*angle)) ;
+		Point newPoint(init.getX()*cos(i*angle)+init.getY()*sin(i*angle), -init.getX()*sin(i*angle)+init.getY()*cos(i*angle)) ;
 		newPoint+= getCenter() ;
 		ret.push_back(newPoint);
 	}
@@ -1504,8 +1386,8 @@ void Circle::sampleBoundingSurface(size_t num_points)
 	for (size_t i = 0 ; i < num_points ; i++)
 	{
 		double randa= 0;//((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.15*(M_PI/num_points) ;
-		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().x, getRadius()*sin((double)i*angle+randa) + getCenter().y);
-// 		std::cout << "x = " << boundingPoints[i]->x() << ", y = " << boundingPoints[i]->y << std::endl ;
+		boundingPoints[i] = new Point(getRadius()*cos((double)i*angle) + getCenter().getX(), getRadius()*sin((double)i*angle+randa) + getCenter().getY());
+// 		std::cout << "x = " << boundingPoints[i]->getX()() << ", y = " << boundingPoints[i]->getY() << std::endl ;
 	}
 }
 
@@ -1537,7 +1419,7 @@ void Circle::sampleSurface(size_t num_points)
 			{
 				double randa= 0 ; //((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
 				double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)rand()/RAND_MAX*2.-1.0) ;
-				temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().x, (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().y));
+				temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().getX(), (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().getY()));
 			}
 
 			num_points = (size_t)(/*std::max(*/(double)num_points_start*(r/getRadius())/*, (double)8)*/) ;
@@ -1564,13 +1446,13 @@ void Circle::sampleSurface(size_t num_points)
 
 bool Circle::in(const Point & v) const
 {
-	if(v.x < getCenter().x-getRadius()*1.01)
+	if(v.getX() < getCenter().getX()-getRadius()*1.01)
 		return false ;
-	if(v.x > getCenter().x+getRadius()*1.01)
+	if(v.getX() > getCenter().getX()+getRadius()*1.01)
 		return false ;
-	if(v.y < getCenter().y-getRadius()*1.01)
+	if(v.getY() < getCenter().getY()-getRadius()*1.01)
 		return false ;
-	if(v.y > getCenter().y+getRadius()*1.01)
+	if(v.getY() > getCenter().getY()+getRadius()*1.01)
 		return false ;
 
 	return squareDist2D(v, getCenter()) < sqradius ;
@@ -1620,18 +1502,6 @@ LayeredCircle::LayeredCircle(double r, const Point center) : Circle(r, center)
 {
 	radiuses.push_back(r) ;
 }
-
-XMLTree * LayeredCircle::toXML() const
-{
-	XMLTree * circle = new XMLTree("layered circle") ;
-	XMLTree * c = new XMLTree("center") ;
-	c->addChild(this->getCenter().toXML()) ;
-	circle->addChild(c) ;
-	circle->addChild(new XMLTree("radius",radiuses)) ;
-	return circle ;
-}
-
-
 
 void LayeredCircle::sampleSurface(size_t num_points)
 {
@@ -1688,7 +1558,7 @@ void LayeredCircle::sampleSurface(size_t num_points)
 		{
 			double randa= 0 ; //((2.*(double)rand()/(RAND_MAX+1.0))-1.)*0.2*(M_PI/num_points) ;
 			double randr= 0 ; //(.2*r/(numberOfRings+1))*((double)rand()/RAND_MAX*2.-1.0) ;
-			temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().x, (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().y));
+			temp.push_back(new Point((r+randr)*cos((double)(j+0.5*(i))*angle+randa+offset) + getCenter().getX(), (r+randr)*sin((double)(j+0.5*(i))*angle+randa) + getCenter().getY()));
 		}
 
 		num_points = (size_t)((double)num_points_start*(r/getRadius())) ;
@@ -1716,14 +1586,14 @@ void LayeredCircle::setRadius(double newr)
 
 	for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 	{
-		getBoundingPoint(i).x = (getBoundingPoint(i).x - center.x)*ratio + center.x ;
-		getBoundingPoint(i).y = (getBoundingPoint(i).y - center.y)*ratio + center.y ;
+		getBoundingPoint(i).getX() = (getBoundingPoint(i).getX() - center.getX())*ratio + center.getX() ;
+		getBoundingPoint(i).getY() = (getBoundingPoint(i).getY() - center.getY())*ratio + center.getY() ;
 	}
 
 	for(size_t i = 0 ; i < getInPoints().size() ; i++)
 	{
-		getInPoint(i).x = (getInPoint(i).x - center.x)*ratio + center.x ;
-		getInPoint(i).y = (getInPoint(i).y - center.y)*ratio + center.y ;
+		getInPoint(i).getX() = (getInPoint(i).getX() - center.getX())*ratio + center.getX() ;
+		getInPoint(i).getY() = (getInPoint(i).getY() - center.getY())*ratio + center.getY() ;
 	}
 	this->radius = newr ;
 	this->sqradius = newr*newr ;
@@ -1806,8 +1676,8 @@ void SegmentedLine::project(Point *p) const
 		projections[squareDist2D(*p, proj)] = proj ;
 	}
 
-	p->x = projections.begin()->second.x ;
-	p->y = projections.begin()->second.y ;
+	p->getX() = projections.begin()->second.getX() ;
+	p->getY() = projections.begin()->second.getY() ;
 }
 
 void SegmentedLine::sampleSurface(size_t num_points)
@@ -1844,7 +1714,7 @@ Ellipse::Ellipse(Point center, Point a, double b) : majorAxis(a)
 {
 	gType = ELLIPSE ;
 	double b_ = std::min(std::abs(b), 1.) ;
-	this->minorAxis = Point(-a.y*b_, a.x*b_) ;
+	this->minorAxis = Point(-a.getY()*b_, a.getX()*b_) ;
 	this->center = center ;
 }
 
@@ -1859,22 +1729,6 @@ Ellipse::Ellipse(Point center, double a, double b)
 	double b_ = std::min(std::abs(a),std::abs(b)) ;
 	this->majorAxis = Point(a_*dir_x,a_*dir_y) ;
 	this->minorAxis = Point(-b_*dir_y,b_*dir_x) ;
-}
-
-
-XMLTree * Ellipse::toXML() const
-{
-	XMLTree * ell = new XMLTree("ellipse") ;
-	XMLTree * c = new XMLTree("center") ;
-	c->addChild(this->getCenter().toXML()) ;
-//	XMLTree * ax = new XMLTree("major_axis") ;
-//	ax->addChild(this->getMajorAxis().toXML()) ;
-//	XMLTree * ax_ = new XMLTree("minor_axis") ;
-//	ax_->addChild(this->getMinorAxis().toXML()) ;
-	ell->addChild(c) ;
-//	ell->addChild(ax) ;
-//	ell->addChild(ax_) ;
-	return ell ;
 }
 
 
@@ -1915,7 +1769,7 @@ Point Ellipse::project(const Point &p) const
 	{
 		return p+getMajorAxis() ;
 	} else {
-		Point proj(p.x, p.y) ;
+		Point proj(p.getX(), p.getY()) ;
 		this->project(&proj) ;
 		return proj ;
 	}
@@ -1923,19 +1777,19 @@ Point Ellipse::project(const Point &p) const
 
 void Ellipse::project(Point * p) const
 {
-	Point test(p->x,p->y) ;
+	Point test(p->getX(),p->getY()) ;
 	if(test == center)
 	{
-		p->x += getMinorAxis().x ;
-		p->y += getMinorAxis().y ;
+		p->getX() += getMinorAxis().getX() ;
+		p->getY() += getMinorAxis().getY() ;
 		std::cout << "center" << std::endl ;
 		return ;
 	}
 	else
 	{
 		double alpha = majorAxis.angle() ;
-		Point prot((*p-center).x*cos(-alpha)-(*p-center).y*sin(-alpha),
-				   +(*p-center).x*sin(-alpha)+(*p-center).y*cos(-alpha)) ;
+		Point prot((*p-center).getX()*cos(-alpha)-(*p-center).getY()*sin(-alpha),
+				   +(*p-center).getX()*sin(-alpha)+(*p-center).getY()*cos(-alpha)) ;
 
 		Line majL(this->getCenter(), this->getMajorAxis()) ;
 		Line minL(this->getCenter(), this->getMinorAxis()) ;
@@ -1945,18 +1799,18 @@ void Ellipse::project(Point * p) const
 			// case point is colinear to minor axis
 			Point A = center + getMinorAxis() ;
 			Point B = center - getMinorAxis() ;
-			Point pa(p->x-A.x,p->y-A.y)  ;
-			Point pb(p->x-B.x,p->y-B.y)  ;
+			Point pa(p->getX()-A.getX(),p->getY()-A.getY())  ;
+			Point pb(p->getX()-B.getX(),p->getY()-B.getY())  ;
 			if(pa.norm() < pb.norm())
 			{
-				p->x = A.x ;
-				p->y = A.y ;
+				p->getX() = A.getX() ;
+				p->getY() = A.getY() ;
 				return ;
 			}
 			else
 			{
-				p->x = B.x ;
-				p->y = B.y ;
+				p->getX() = B.getX() ;
+				p->getY() = B.getY() ;
 				return ;
 			}
 		}
@@ -1966,18 +1820,18 @@ void Ellipse::project(Point * p) const
 			// case point is colinear to major axis
 			Point C = center + getMajorAxis() ;
 			Point D = center - getMajorAxis() ;
-			Point pc(p->x-C.x,p->y-C.y)  ;
-			Point pd(p->x-D.x,p->y-D.y)  ;
+			Point pc(p->getX()-C.getX(),p->getY()-C.getY())  ;
+			Point pd(p->getX()-D.getX(),p->getY()-D.getY())  ;
 			if(pc.norm() < pd.norm())
 			{
-				p->x = C.x ;
-				p->y = C.y ;
+				p->getX() = C.getX() ;
+				p->getY() = C.getY() ;
 				return ;
 			}
 			else
 			{
-				p->x = D.x ;
-				p->y = D.y ;
+				p->getX() = D.getX() ;
+				p->getY() = D.getY() ;
 				return ;
 			}
 		}
@@ -1991,8 +1845,8 @@ void Ellipse::project(Point * p) const
 		Function x("x") ;
 		Function y("y") ;
 
-		Function dist_x(x*x - x*2*prot.x + prot.x*prot.x) ;
-		Function dist_y(y*y - y*2*prot.y + prot.y*prot.y) ;
+		Function dist_x(x*x - x*2*prot.getX() + prot.getX()*prot.getX()) ;
+		Function dist_y(y*y - y*2*prot.getY() + prot.getY()*prot.getY()) ;
 
 
 		Function dist_p_ell(dist_x + dist_y) ;
@@ -2046,8 +1900,8 @@ void Ellipse::project(Point * p) const
 
 		}
 
-		p->x = this->getPointOnEllipse(found).x ;
-		p->y = this->getPointOnEllipse(found).y ;
+		p->getX() = this->getPointOnEllipse(found).getX() ;
+		p->getY() = this->getPointOnEllipse(found).getY() ;
 
 	}
 
@@ -2129,8 +1983,8 @@ Function Ellipse::getEllipseFormFunction() const
 	double alpha = majorAxis.angle() ;
 	Function x("x") ;
 	Function y("y") ;
-	Function x_((x-center.x)*cos(alpha)-(y-center.y)*sin(-alpha)) ;
-	Function y_((x-center.x)*sin(-alpha)+(y-center.y)*cos(alpha)) ;
+	Function x_((x-center.getX())*cos(alpha)-(y-center.getY())*sin(-alpha)) ;
+	Function y_((x-center.getX())*sin(-alpha)+(y-center.getY())*cos(alpha)) ;
 	double mm0 = (getMajorRadius()*getMajorRadius()) ;
 	double mm1 = (getMinorRadius()*getMinorRadius()) ;
 	return Function(x_*x_/mm0 + y_*y_/mm1 - 1) ;
@@ -2358,8 +2212,8 @@ Ellipse Ellipse::getEllipseInLocalCoordinates() const
 Point Ellipse::toLocalCoordinates(const Point & p) const
 {
 	double alpha = majorAxis.angle() ;
-	Point prot((p-center).x*cos(-alpha)-(p-center).y*sin(-alpha),
-			   +(p-center).x*sin(-alpha)+(p-center).y*cos(-alpha)) ;
+	Point prot((p-center).getX()*cos(-alpha)-(p-center).getY()*sin(-alpha),
+			   +(p-center).getX()*sin(-alpha)+(p-center).getY()*cos(-alpha)) ;
 	return prot ;
 }
 
@@ -2375,10 +2229,10 @@ std::vector<Point> Ellipse::getBoundingBox() const
 	Point C = center - majorAxis - minorAxis ;
 	Point D = center - majorAxis + minorAxis ;
 
-	double minx = std::min(A.x, std::min(B.x, std::min(C.x, D.x))) ;
-	double maxx = std::max(A.x, std::max(B.x, std::max(C.x, D.x))) ;
-	double miny = std::min(A.y, std::min(B.y, std::min(C.y, D.y))) ;
-	double maxy = std::max(A.y, std::max(B.y, std::max(C.y, D.y))) ;
+	double minx = std::min(A.getX(), std::min(B.getX(), std::min(C.getX(), D.getX()))) ;
+	double maxx = std::max(A.getX(), std::max(B.getX(), std::max(C.getX(), D.getX()))) ;
+	double miny = std::min(A.getY(), std::min(B.getY(), std::min(C.getY(), D.getY()))) ;
+	double maxy = std::max(A.getY(), std::max(B.getY(), std::max(C.getY(), D.getY()))) ;
 
 	bbox[0] = Point(minx, maxy) ;
 	bbox[1] = Point(maxx, maxy) ;

@@ -136,7 +136,7 @@ void computeDisplacement()
 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
 		{
 		if(C.in(t[i]->getBoundingPoint(c)))
-			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+			indices.push_back(t[i]->getBoundingPoint(c).getId()) ;
 		}
 	}
 	
@@ -157,7 +157,7 @@ void computeDisplacement()
 // 		for(size_t c = 0 ;  c < t[i]->getBoundingPoints().size() ; c++ )
 // 		{
 // 		if(C.in(t[i]->getBoundingPoint(c)))
-// 			indices.push_back(t[i]->getBoundingPoint(c).id) ;
+// 			indices.push_back(t[i]->getBoundingPoint(c).getId()) ;
 // 		}
 // 	}
 // 	
@@ -177,7 +177,7 @@ void computeDisplacement()
 // 		for(size_t c = 0 ;  c < t0[i]->getBoundingPoints().size() ; c++ )
 // 		{
 // 		if(C0.in(t0[i]->getBoundingPoint(c)))
-// 			indices0.push_back(t0[i]->getBoundingPoint(c).id) ;
+// 			indices0.push_back(t0[i]->getBoundingPoint(c).getId()) ;
 // 		}
 // 	}
 // 	
@@ -295,17 +295,17 @@ void step()
 				{
 					if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
-						if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-							x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-							x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-							y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-							y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-						if(triangles[k]->getBoundingPoint(p).x > .9999)
+						if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
+							x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
+						if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
+							x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
+						if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
+							y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+						if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
+							y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+						if(triangles[k]->getBoundingPoint(p).getX() > .9999)
 						{
-							e_xx=x[triangles[k]->getBoundingPoint(p).id*2] ;
+							e_xx=x[triangles[k]->getBoundingPoint(p).getId()*2] ;
 							ex_count = 1 ;
 						}
 					}
@@ -531,7 +531,7 @@ void step()
 		writer.write() ;
 
 		}
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
+		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 		
 		double delta_r = sqrt(aggregateArea*0.03/((double)zones.size()*M_PI))/nsteps ;
 		double reactedArea = 0 ;
@@ -583,7 +583,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 			}
 			if (alone)
 			{
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, gel) ;
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.getX(), center.getY(), gel) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
 				F.addFeature(incs[i],z) ; 
 			}

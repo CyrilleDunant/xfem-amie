@@ -49,8 +49,8 @@ void VibratingMembrane::enrich(size_t & lastId, Mesh< DelaunayTriangle, Delaunay
 	{
 		Function x = cache[i]->getXTransform() ;
 		Function y = cache[i]->getYTransform() ;
-		Function x_ = x - getCenter().x ;
-		Function y_ = y - getCenter().y ;
+		Function x_ = x - getCenter().getX() ;
+		Function y_ = y - getCenter().getY() ;
 		Function theta = f_atan2 ( y_, x_ );
 		Function r = f_sqrt ( ( x_^2 ) + ( y_^2 ) );
 		
@@ -69,7 +69,7 @@ void VibratingMembrane::enrich(size_t & lastId, Mesh< DelaunayTriangle, Delaunay
 		{
 			Point current = cache[i]->inLocalCoordinates(cache[i]->getBoundingPoint(j)) ; 
 			Point * currentPointer = & cache[i]->getBoundingPoint(j) ;
-			int id = cache[i]->getBoundingPoint(j).id ;
+			int id = cache[i]->getBoundingPoint(j).getId() ;
 			Function f = shapefunc[j]* ( f_01 - vm.eval ( f_01, current) )  ;
 			f.setIntegrationHint ( hint ) ;
 			f.setPoint ( &cache[i]->getBoundingPoint(j) ) ;

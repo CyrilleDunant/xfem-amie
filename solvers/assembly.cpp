@@ -710,7 +710,7 @@ bool Assembly::make_final()
 					std::valarray<unsigned int> ids = multipliers[i].getDofIds() ;
 					for(size_t j = 0 ; j< ids.size() ;j++)
 					{
-						multipliers[i].id = max ;
+						multipliers[i].setId( max ) ;
 						map->insert(std::make_pair( ids[j], multipliers[i].getId())) ;
 						map->insert(std::make_pair( multipliers[i].getId(), ids[j])) ;
 					}
@@ -1501,8 +1501,8 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 		
 // 		GaussSeidel cg(getMatrix(), externalForces) ;
 // 		ret = cg.solve(x0) ;
-// 		displacements.resize(cg.x.size()) ;
-// 		displacements = cg.x ;
+// 		displacements.resize(cg.getX().size()) ;
+// 		displacements = cg.getX() ;
 	}
 	else
 	{
@@ -1708,7 +1708,7 @@ size_t Assembly::getMaxDofID() const
 		{
 			for(size_t j = 0 ; j < element2d[i]->getBoundingPoints().size() ; j++)
 			{
-				max = (element2d[i]->getBoundingPoint(j).id > max ? element2d[i]->getBoundingPoint(j).id : max ) ;
+				max = (element2d[i]->getBoundingPoint(j).getId() > max ? element2d[i]->getBoundingPoint(j).getId() : max ) ;
 			}
 		}
 		return max+1 ;
@@ -1719,7 +1719,7 @@ size_t Assembly::getMaxDofID() const
 		{
 			for(size_t j = 0 ; j < element3d[i]->getBoundingPoints().size() ; j++)
 			{
-				max = (element3d[i]->getBoundingPoint(j).id > max ? element3d[i]->getBoundingPoint(j).id : max ) ;
+				max = (element3d[i]->getBoundingPoint(j).getId() > max ? element3d[i]->getBoundingPoint(j).getId() : max ) ;
 			}
 		}
 		return max+1 ;

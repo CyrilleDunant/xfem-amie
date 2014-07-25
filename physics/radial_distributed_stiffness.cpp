@@ -12,7 +12,6 @@
 //
 
 #include "radial_distributed_stiffness.h"
-#include "../utilities/xml.h"
 #include "physics_base.h"
 #include "stiffness.h"
 
@@ -30,28 +29,6 @@ RadialDistributedStiffness::RadialDistributedStiffness(std::vector<std::pair<dou
 	angle = 0 ;
 } ;
 
-RadialDistributedStiffness::RadialDistributedStiffness(XMLTree * xml) : LinearForm(Matrix(3,3), false, false, 3) 
-{
-	param = Matrix(3,3) ;
-	angle = 0 ;
-
-	if(xml->match("radial distributed stiffness"))
-	{
-		for(size_t i = 0 ; i < xml->nChildren() ; i++)
-		{
-			stiff.push_back(std::make_pair(xml->getChild(i)->buildDouble().second,
-						       xml->getChild(i)->getChild(0)->buildMatrix().second)) ;
-		}
-		param = stiff[0].second ;
-
-	}
-
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() > 9)
-		v.push_back(ZETA);
-
-}
 
 RadialDistributedStiffness::~RadialDistributedStiffness() { } ;
 
@@ -67,19 +44,6 @@ void RadialDistributedStiffness::apply(const Function & p_i, const Function & p_
 bool RadialDistributedStiffness::fractured() const
 {
 	return false ;
-}
-
-XMLTree * RadialDistributedStiffness::toXML()
-{
-	XMLTree * rds = new XMLTree("radial distributed stiffness") ;
-	std::vector<XMLTree *> s ;
-	for(size_t i = 0 ; i < stiff.size() ; i++)
-	{
-		s.push_back(new XMLTree("angle",stiff[i].first)) ;
-		s[i]->addChild(new XMLTree("stiffness",stiff[i].second)) ;
-	}
-	rds->addChild(s) ;
-	return rds ;
 }
 
 void RadialDistributedStiffness::setAngle(double a)
@@ -124,11 +88,6 @@ RadialInclusion::RadialInclusion(double r, Point c) : Circle(r,c), Inclusion(r,c
 
 RadialInclusion::RadialInclusion(double r, double x, double y) : Circle(r,x,y), Inclusion(r,x,y) 
 {
-}
-
-RadialInclusion::RadialInclusion(XMLTree * xml) : Circle(xml->getChild(0)), Inclusion(Circle(xml->getChild(0)))
-{
-	this->setBehaviour(new RadialDistributedStiffness(xml->getChild(1))) ;
 }
 
 Form * RadialInclusion::getBehaviour( const Point & p )

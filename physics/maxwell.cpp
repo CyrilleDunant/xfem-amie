@@ -66,7 +66,7 @@ Vector IterativeMaxwell::getImposedStress(const Point & p, IntegrableEntity * e,
 			{
 				Function ffi = e->getShapeFunction(i) ;
 				Vector mi = vm.ieval( Gradient(ffi) * imposedStressAtGaussPoints, e, v) ;
-				ret += vm.geval( Gradient(ffi), e, v, p.x, p.y, p.z, p.t ) * mi ;
+				ret += vm.geval( Gradient(ffi), e, v, p.getX(), p.getY(), p.getZ(), p.getT() ) * mi ;
 			}
 			return ret ;
 		}
@@ -276,13 +276,13 @@ Vector GeneralizedIterativeMaxwell::getImposedStress(const Point & p, Integrable
 			{
 				Function ffi = e->getShapeFunction(i) ;
 				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
-				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
+				ret += mi*vm.eval( ffi, p.getX(), p.getY(), p.getZ(), p.getT() ) ;
 			}
 			for(size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++)
 			{
 				Function ffi = e->getEnrichmentFunction(i) ;
 				Vector mi = vm.ieval( imposedStressAtGaussPoints, e) ;
-				ret += mi*vm.eval( ffi, p.x, p.y, p.z, p.t ) ;
+				ret += mi*vm.eval( ffi, p.getX(), p.getY(), p.getZ(), p.getT() ) ;
 			}
 			return ret ;
 		}
@@ -304,7 +304,7 @@ std::vector<BoundaryCondition * > GeneralizedIterativeMaxwell::getBoundaryCondit
 	Vector istress ;
 	for ( size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++ )
 	{
-		if ( id == s.getParent()->getBoundingPoint( i ).id )
+		if ( id == s.getParent()->getBoundingPoint( i ).getId() )
 		{
 			  Point p = s.getParent()->inLocalCoordinates(s.getParent()->getBoundingPoint(i)) ;
 			  Vector tmp = getImposedStress(p, s.getParent()) ;

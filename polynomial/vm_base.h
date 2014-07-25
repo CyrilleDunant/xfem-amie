@@ -99,28 +99,28 @@ double eval(const Function &f, const double x = 0, const double y = 0, const dou
 */
 	Matrix eval(const FunctionMatrix &f, const double x = 0 , const double y = 0, const double z = 0,const double t = 0, const double u = 0, const double v = 0, const double w = 0)  ;
 	
-/** \brief Evaluate Function f at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
+/** \brief Evaluate Function f at (p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(),). 
 @param f Function to evaluate.
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
 */
 	double eval(const Function &f, const Point & p, const Point &p_ = Point())  ;
 
-/** \brief Evaluate Function f at (p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z,). 
+/** \brief Evaluate Function f at (p->getX(), p->getY(), p->getZ(), p->getT(), p_->getX(), p_->getY(), p_->getZ(),). 
 @param f Function to evaluate.
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
 */
 	double eval(const Function &f, const Point * p, const Point *p_ = nullptr)  ;
 
-/** \brief Evaluate FunctionMatrix f at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
+/** \brief Evaluate FunctionMatrix f at (p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(),). 
 @param f FunctionMatrix to evaluate.
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
 */
 	Matrix eval(const FunctionMatrix &f, const Point & p, const Point &p_ = Point())  ;
 
-/** \brief Evaluate FunctionMatrix f at (p->x, p->y, p->z, p->t, p_->x, p_->y, p_->z,). 
+/** \brief Evaluate FunctionMatrix f at (p->getX(), p->getY(), p->getZ(), p->getT(), p_->getX(), p_->getY(), p_->getZ(),). 
 @param f FunctionMatrix to evaluate.
 @param p Point giving the first four coordinates at which to evaluate.
 @param p_ Point givint the last three coordinates at which to evaluate.
@@ -170,7 +170,7 @@ This method is used internally to compute the numerical differential of a set of
  */
 	Matrix deval(const FunctionMatrix &f, const Variable v_,  const double x, const double y = 0, const double z = 0,const double t=0, const double u = 0, const double v = 0, const double w = 0, const double eps= default_derivation_delta)  ;
 
-/** \brief Evaluate df/dv at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
+/** \brief Evaluate df/dv at (p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(),). 
 @param f Function to evaluate.
 @param v Variable with respect to which the differential should be calculated
 @param p Point giving the first four coordinates at which to evaluate.
@@ -179,7 +179,7 @@ This method is used internally to compute the numerical differential of a set of
 */
 	double deval(const Function &f, const Variable v, const Point & p, const Point & p_ = Point(), const double eps= default_derivation_delta)  ;
 
-/** \brief Evaluate df/dv at (p.x, p.y, p.z, p.t, p_.x, p_.y, p_.z,). 
+/** \brief Evaluate df/dv at (p.getX(), p.getY(), p.getZ(), p.getT(), p_.getX(), p_.getY(), p_.getZ(),). 
 @param f FunctionMatrix to evaluate.
 @param v Variable with respect to which the differential should be calculated
 @param p Point giving the first four coordinates at which to evaluate.
@@ -188,7 +188,7 @@ This method is used internally to compute the numerical differential of a set of
 */
 	Matrix deval(const FunctionMatrix &f, const Variable v, const Point & p, const Point & p_ = Point(), const double eps= default_derivation_delta)  ;
 	
-/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p.x, p.y, p.z)\f$ at (x, y, z, t). 
+/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p.getX(), p.getY(), p.getZ())\f$ at (x, y, z, t). 
 This is the directional derivative.
 @param f Function to evaluate.
 @param p Direction on which the derivative vector should be projected
@@ -201,7 +201,7 @@ This is the directional derivative.
 */
 	double deval(const Function &f, const Point&p,  const double x, const double y = 0, const double z = 0, const double t = 0,const double eps = default_derivation_delta, bool normed = false)  ;
 
-/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p.x, p.y, p.z) \f$ at (x, y, z, t) for each element of the FunctionMatrix. 
+/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p.getX(), p.getY(), p.getZ()) \f$ at (x, y, z, t) for each element of the FunctionMatrix. 
 This is the directional derivative.
 @param f FunctionMatrix to evaluate.
 @param p Direction on which the derivative vector should be projected
@@ -214,7 +214,7 @@ This is the directional derivative.
 */
 	Matrix deval(const FunctionMatrix &f,const Point&p,  const double x, const double y = 0, const double z = 0, const double t = 0,const double eps= default_derivation_delta, bool normed = false)  ;
 
-/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p_.x, p_.y, p_.z) \f$ at (p.x, p.y, p.z, p.t). 
+/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p_.getX(), p_.getY(), p_.getZ()) \f$ at (p.getX(), p.getY(), p.getZ(), p.getT()). 
 This is the directional derivative.
 @param f Function to evaluate.
 @param p_ Direction on which the derivative vector should be projected
@@ -224,7 +224,7 @@ This is the directional derivative.
 */
 	double deval(const Function &f,  const Point&p_, const Point & p, const double eps= default_derivation_delta, bool normed = false)  ;
 
-/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p_.x, p_.y, p_.z) \f$ at (p.x, p.y, p.z, p.t). 
+/** \brief Evaluate \f$ (df/dx, df/dy, df/dz) \cdot (p_.getX(), p_.getY(), p_.getZ()) \f$ at (p.getX(), p.getY(), p.getZ(), p.getT()). 
 This is the directional derivative.
 @param f FunctionMatrix to evaluate.
 @param p_ Direction on which the derivative vector should be projected
@@ -695,7 +695,7 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */
 	void geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const double x, const double y , const double z , const double t , bool transpose, Matrix & ret) ;
 
-/** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point p.x, p.y, p.z, p.t. 
+/** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point p.getX(), p.getY(), p.getZ(), p.getT(). 
 The result is stored in ret. The version of the function can be used to minimise initialisation of memory.
 Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param f Function the gradient of which should be computed.
@@ -707,7 +707,7 @@ Gradient is the usual \f$ \nabla\otimes \f$ operator.
 */
 	void geval(const Function &f, const Matrix & m, const std::vector<Variable> & vars, const Point &p , bool transpose, Matrix & ret) ;
 
-/** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point p.x, p.y, p.z, p.t. 
+/** \brief Overloaded function to compute the value of the gradient of the Function f using the Matrix m as an inverse Jacobian, with variables defined by vars, at point p.getX(), p.getY(), p.getZ(), p.getT(). 
 Gradient is the usual \f$ \nabla\otimes \f$ operator.
 @param f Function the gradient of which should be computed.
 @param m Inverse Jacobian to use for the computation

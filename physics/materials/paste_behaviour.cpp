@@ -449,7 +449,7 @@ double HydratingDiffusionCementPaste::getDeltadoh(double saturation, ElementStat
 	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
 	
 	double deltaTime = currentState.getNodalDeltaTime() ;
-// 	double currentTime = diffusionElement->getBoundingPoint(0).t + deltaTime*.5;
+// 	double currentTime = diffusionElement->getBoundingPoint(0).getT() + deltaTime*.5;
 	
 	double A1 =-0.347;
 	double A2 = 278.8;

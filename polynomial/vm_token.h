@@ -329,9 +329,9 @@ public:
 		
 		*c =  (intersections & 1) * 2 - 1;
 // 		if(intersections%2 == 1)
-// 		    *context.memory.top_pos = -1 ;
+// 		    *context.memory.getT()op_pos = -1 ;
 // 		else
-// 		    *context.memory.top_pos = 1 ;
+// 		    *context.memory.getT()op_pos = 1 ;
 	}
   virtual GeometryOperation * getCopy() const 
   {
@@ -466,7 +466,7 @@ class PointDistanceBinaryOperation : public GeometryOperation
 	double x0 ;
 	double y0 ;
 public:
-	PointDistanceBinaryOperation(const Point & p ) :  x0(p.x), y0(p.y)
+	PointDistanceBinaryOperation(const Point & p ) :  x0(p.getX()), y0(p.getY())
 	{
 	}
 	
@@ -496,7 +496,7 @@ class PointDistanceTrinaryOperation : public GeometryOperation
 	double y0 ;
 	double z0 ;
 public:
-	PointDistanceTrinaryOperation(const Point & p ) : x0(p.x), y0(p.y), z0(p.z)
+	PointDistanceTrinaryOperation(const Point & p ) : x0(p.getX()), y0(p.getY()), z0(p.getZ())
 	{
 	}
 	
@@ -559,7 +559,7 @@ class AngleBinaryOperation : public GeometryOperation
 	double sangle ;
 	Point pivot ;
 public:
-	AngleBinaryOperation(double a, const Point & p ) :cangle(cos(a)), sangle(sin(a)), pivot(p.x*cos(a)+p.y*sin(a), -p.x*sin(a)+p.y*cos(a))
+	AngleBinaryOperation(double a, const Point & p ) :cangle(cos(a)), sangle(sin(a)), pivot(p.getX()*cos(a)+p.getY()*sin(a), -p.getX()*sin(a)+p.getY()*cos(a))
 	{
 	}
 	
@@ -570,7 +570,7 @@ public:
 		double y =  *b ;
 		double x_t = x*cangle + y*sangle ;
 		double y_t = -x*sangle + y*cangle ;
-		*c = atan2(y_t-pivot.y, x_t-pivot.x) ;
+		*c = atan2(y_t-pivot.getY(), x_t-pivot.getX()) ;
 
 	}
 	

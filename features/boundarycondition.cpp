@@ -140,7 +140,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -187,7 +187,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -236,7 +236,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -321,7 +321,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -401,7 +401,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -496,7 +496,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -550,10 +550,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 // 				double sign = 1. ;
 // 				if(!sameSide)
 // 					sign = -1 ;
-				double nangle = atan2(normal.y, normal.x) ;
+				double nangle = atan2(normal.getY(), normal.getX()) ;
 // 				Vector normalv(2) ; 
-// 				normalv[0] = normal.x*sign ; 
-// 				normalv[1] = normal.y*sign ;
+// 				normalv[0] = normal.getX()*sign ; 
+// 				normalv[1] = normal.getY()*sign ;
 
 				Vector imposedx( 3 ) ;
 				imposedx[0] = 0 ;
@@ -597,7 +597,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -674,7 +674,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 						{
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 							if(!first)
@@ -824,7 +824,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -869,7 +869,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -914,7 +914,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j] == e->getBoundingPoint( i ).id )
+						if ( id[j] == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
@@ -962,9 +962,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if(id[j] == e->getBoundingPoint( i ).id)
+						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
-						if ( id[j] == e->getBoundingPoint( i ).id && (
+						if ( id[j] == e->getBoundingPoint( i ).getId() && (
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
@@ -1047,9 +1047,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if(id[j] == e->getBoundingPoint( i ).id)
+						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
-						if ( id[j] == e->getBoundingPoint( i ).id && (
+						if ( id[j] == e->getBoundingPoint( i ).getId() && (
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
@@ -1129,9 +1129,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if(id[j] == e->getBoundingPoint( i ).id)
+						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
-						if ( id[j] == e->getBoundingPoint( i ).id && (
+						if ( id[j] == e->getBoundingPoint( i ).getId() && (
 								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
 								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
 								squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
@@ -1212,9 +1212,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(!&e->getBoundingPoint( i ))
 							continue ;
 						
-						if(id[j] == e->getBoundingPoint( i ).id)
+						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
-						if ( id[j] == e->getBoundingPoint( i ).id && (
+						if ( id[j] == e->getBoundingPoint( i ).getId() && (
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
 							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
@@ -1273,16 +1273,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				np0 = np1^np ;
 				
 				double lx = normal[0] ;
-				double ly = np0.x ;
-				double lz = np1.x ;
+				double ly = np0.getX() ;
+				double lz = np1.getX() ;
 				
 				double rx = normal[1] ;
-				double ry = np0.y ;
-				double rz = np1.y ;
+				double ry = np0.getY() ;
+				double rz = np1.getY() ;
 				
 				double tx = normal[2] ;
-				double ty = np0.z ;
-				double tz = np1.z ;
+				double ty = np0.getZ() ;
+				double tz = np1.getZ() ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -1321,9 +1321,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if(id[j] == e->getBoundingPoint( i ).id)
+						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
-						if ( id[j] == e->getBoundingPoint( i ).id && (
+						if ( id[j] == e->getBoundingPoint( i ).getId() && (
 		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
 		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
 		  squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
@@ -1390,16 +1390,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				np0 = np1^np ;
 				
 				double lx = normal[0] ;
-				double ly = np0.x ;
-				double lz = np1.x ;
+				double ly = np0.getX() ;
+				double lz = np1.getX() ;
 				
 				double rx = normal[1] ;
-				double ry = np0.y ;
-				double rz = np1.y ;
+				double ry = np0.getY() ;
+				double rz = np1.getY() ;
 				
 				double tx = normal[2] ;
-				double ty = np0.z ;
-				double tz = np1.z ;
+				double ty = np0.getZ() ;
+				double tz = np1.getZ() ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -1436,7 +1436,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 	std::vector<size_t> ids ;
 
 	for ( size_t i = 0 ; i < id.size() ; i++ )
-		ids.push_back( id[i].id );
+		ids.push_back( id[i].getId() );
 
 	apply2DBC( e,gp,Jinv, ids, condition, data, a, axis ) ;
 }
@@ -1446,7 +1446,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 	std::vector<size_t> ids ;
 	
 	for ( size_t i = 0 ; i < id.size() ; i++ )
-		ids.push_back( id[i].id );
+		ids.push_back( id[i].getId() );
 
 	apply3DBC( e, gp, Jinv, ids, condition, data, a, axis ) ;
 }
@@ -1469,23 +1469,23 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				break ;
 
 			case FIX_ALONG_XI:
-				a->setPointAlong( XI, 0, id[i].id ) ;
+				a->setPointAlong( XI, 0, id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_XI:
-				a->setPointAlong( XI, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlong( XI, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case FIX_ALONG_ETA:
-				a->setPointAlong( ETA, 0, id[i].id ) ;
+				a->setPointAlong( ETA, 0, id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_ETA:
-				a->setPointAlong( ETA,  vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlong( ETA,  vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_INDEXED_AXIS:
-				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -1493,7 +1493,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				if ( e->getBehaviour()->fractured() )
 					break ;
 
-				a->setForceOn( XI,  vm.eval( data, id[i] ), id[i].id ) ;
+				a->setForceOn( XI,  vm.eval( data, id[i] ), id[i].getId() ) ;
 
 				break ;
 
@@ -1501,7 +1501,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				if ( e->getBehaviour()->fractured() )
 					break ;
 
-				a->setForceOn( ETA,  vm.eval( data, id[i] ), id[i].id ) ;
+				a->setForceOn( ETA,  vm.eval( data, id[i] ), id[i].getId() ) ;
 
 				break ;
 
@@ -1516,12 +1516,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 					
@@ -1541,8 +1541,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v, true) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
 				}
 				return ;
 			}
@@ -1558,12 +1558,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -1582,8 +1582,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e, gp, Jinv, v, true) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
 				}
 				
 				return ;
@@ -1600,12 +1600,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -1637,7 +1637,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 					
@@ -1672,8 +1672,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 0, 3, shapeFunctions[i], e, gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
 				}
 
 				return ;
@@ -1692,12 +1692,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -1729,7 +1729,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 					
@@ -1767,8 +1767,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 1, 3, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
 				
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
 				}
 
 				return ;
@@ -1808,7 +1808,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 					
@@ -1844,10 +1844,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				double sign = 1. ;
 				if(!sameSide)
 					sign = -1 ;
-				double nangle = atan2(normal.y*sign, normal.x*sign) ;
+				double nangle = atan2(normal.getY()*sign, normal.getX()*sign) ;
 				Vector normalv(2) ; 
-				normalv[0] = normal.x*sign ; 
-				normalv[1] = normal.y*sign ;
+				normalv[0] = normal.getX()*sign ; 
+				normalv[1] = normal.getY()*sign ;
 
 				Vector imposedx( 3 ) ;
 				imposedx[0] = VirtualMachine().eval(data, edge.midPoint()) ;
@@ -1870,8 +1870,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normalv) ;
 					
-					a->addForceOn( XI, forces[0], id[j].id ) ;
-					a->addForceOn( ETA, forces[1], id[j].id ) ;
+					a->addForceOn( XI, forces[0], id[j].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[j].getId() ) ;
 				}
 				
  				return ;
@@ -1911,7 +1911,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 					
@@ -1947,10 +1947,10 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				double sign = 1. ;
 				if(!sameSide)
 					sign = -1 ;
-				double nangle = atan2(normal.y*sign, normal.x*sign) ;
+				double nangle = atan2(normal.getY()*sign, normal.getX()*sign) ;
 				Vector normalv(2) ; 
-				normalv[0] = normal.x*sign ; 
-				normalv[1] = normal.y*sign ;
+				normalv[0] = normal.getX()*sign ; 
+				normalv[1] = normal.getY()*sign ;
 
 				Vector imposedx( 3 ) ;
 				imposedx[0] = 0;
@@ -1973,8 +1973,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normalv) ;
 					
-					a->addForceOn( XI, forces[0], id[j].id ) ;
-					a->addForceOn( ETA, forces[1], id[j].id ) ;
+					a->addForceOn( XI, forces[0], id[j].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[j].getId() ) ;
 				}
 				
  				return ;
@@ -1991,12 +1991,12 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2018,7 +2018,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i].id ) ;
+					a->addForceOn( XI, f, id[i].getId() ) ;
 				}
 
 				return ;
@@ -2047,31 +2047,31 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				break ;
 
 			case FIX_ALONG_XI:
-				a->setPointAlong( XI, 0, id[i].id ) ;
+				a->setPointAlong( XI, 0, id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_XI:
-				a->setPointAlong( XI, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlong( XI, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case FIX_ALONG_ETA:
-				a->setPointAlong( ETA, 0, id[i].id ) ;
+				a->setPointAlong( ETA, 0, id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_ETA:
-				a->setPointAlong( ETA, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlong( ETA, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case FIX_ALONG_ZETA:
-				a->setPointAlong( ZETA, 0, id[i].id ) ;
+				a->setPointAlong( ZETA, 0, id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_ZETA:
-				a->setPointAlong( ZETA, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlong( ZETA, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case SET_ALONG_INDEXED_AXIS:
-				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setPointAlongIndexedAxis( axis, vm.eval( data, id[i] ), id[i].getId() ) ;
 				break ;
 
 			case SET_FORCE_XI:
@@ -2079,7 +2079,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				if ( e->getBehaviour()->fractured() )
 					break ;
 
-				a->setForceOn( XI, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setForceOn( XI, vm.eval( data, id[i] ), id[i].getId() ) ;
 
 				break ;
 
@@ -2087,7 +2087,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				if ( e->getBehaviour()->fractured() )
 					break ;
 
-				a->setForceOn( ETA, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setForceOn( ETA, vm.eval( data, id[i] ), id[i].getId() ) ;
 
 				break ;
 
@@ -2095,7 +2095,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				if ( e->getBehaviour()->fractured() )
 					break ;
 
-				a->setForceOn( ZETA, vm.eval( data, id[i] ), id[i].id ) ;
+				a->setForceOn( ZETA, vm.eval( data, id[i] ), id[i].getId() ) ;
 
 				break ;
 
@@ -2110,12 +2110,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2150,7 +2150,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2186,9 +2186,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 
 //					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
-					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+					a->addForceOn( ZETA, forces[2], id[i].getId() ) ;
 					
 				}
 
@@ -2206,12 +2206,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2245,7 +2245,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2281,9 +2281,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 //					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
 					
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
-					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+					a->addForceOn( ZETA, forces[2], id[i].getId() ) ;
 				}
 //				exit(0) ;
 
@@ -2301,12 +2301,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2341,7 +2341,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2375,9 +2375,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( data, 2, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv()) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
-					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+					a->addForceOn( ZETA, forces[2], id[i].getId() ) ;
 				}
 
 				return ;
@@ -2394,12 +2394,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID())
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2423,7 +2423,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i].id ) ;
+					a->addForceOn( XI, f, id[i].getId() ) ;
 				}
 
 				return ;
@@ -2465,7 +2465,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2512,16 +2512,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				np0 = np1^np ;
 				
 				double lx = normal[0] ;
-				double ly = np0.x ;
-				double lz = np1.x ;
+				double ly = np0.getX() ;
+				double lz = np1.getX() ;
 				
 				double rx = normal[1] ;
-				double ry = np0.y ;
-				double rz = np1.y ;
+				double ry = np0.getY() ;
+				double rz = np1.getY() ;
 				
 				double tx = normal[2] ;
-				double ty = np0.z ;
-				double tz = np1.z ;
+				double ty = np0.getZ() ;
+				double tz = np1.getZ() ;
 				
 				Matrix transform(6,6) ;
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -2539,9 +2539,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
-					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+					a->addForceOn( ZETA, forces[2], id[i].getId() ) ;
 				}
 
 				return ;
@@ -2583,7 +2583,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID() )
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID() )
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2630,16 +2630,16 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				np0 = np1^np ;
 				
 				double lx = normal[0] ;
-				double ly = np0.x ;
-				double lz = np1.x ;
+				double ly = np0.getX() ;
+				double lz = np1.getX() ;
 				
 				double rx = normal[1] ;
-				double ry = np0.y ;
-				double rz = np1.y ;
+				double ry = np0.getY() ;
+				double rz = np1.getY() ;
 				
 				double tx = normal[2] ;
-				double ty = np0.z ;
-				double tz = np1.z ;
+				double ty = np0.getZ() ;
+				double tz = np1.getZ() ;
 				Matrix transform(6,6) ;
 				
 				transform[0][0] = lx*lx ; transform[0][1] = ly*ly ; transform[0][2] = lz*lz ; transform[0][3] = lx*ly ; transform[0][4] = lx*lz ; transform[0][5] = ly*lz ;
@@ -2657,9 +2657,9 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( istr, shapeFunctions[i], gpe, Jinve, v, false, normal) ;
 					
-					a->addForceOn( XI, forces[0], id[i].id ) ;
-					a->addForceOn( ETA, forces[1], id[i].id ) ;
-					a->addForceOn( ZETA, forces[2], id[i].id ) ;
+					a->addForceOn( XI, forces[0], id[i].getId() ) ;
+					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+					a->addForceOn( ZETA, forces[2], id[i].getId() ) ;
 				}
 
 				return ;
@@ -2676,12 +2676,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID())
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2704,7 +2704,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i].id ) ;
+					a->addForceOn( XI, f, id[i].getId() ) ;
 				}
 
 				return ;
@@ -2721,12 +2721,12 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
 					{
-						if ( id[j].id == e->getBoundingPoint( i ).id )
+						if ( id[j].getId() == e->getBoundingPoint( i ).getId() )
 							shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 					}
 					for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
 					{
-						if ( id[j].id == e->getEnrichmentFunction( i ).getDofID())
+						if ( id[j].getId() == e->getEnrichmentFunction( i ).getDofID())
 							shapeFunctions.push_back( e->getEnrichmentFunction( i ) ) ;
 					}
 				}
@@ -2749,7 +2749,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					double f = 0. ;
 					f = vm.ieval( VectorGradient( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v) ;
-					a->addForceOn( XI, f, id[i].id ) ;
+					a->addForceOn( XI, f, id[i].getId() ) ;
 				}
 
 				return ;
@@ -2770,7 +2770,7 @@ void applyVerticalPlaneSections(double topY, double bottomY, Assembly * a, Mesh<
 	{
 		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
 		{
-			if(triangles[i]->getBoundingPoint(j).y <= topY && triangles[i]->getBoundingPoint(j).y >= bottomY)
+			if(triangles[i]->getBoundingPoint(j).getY() <= topY && triangles[i]->getBoundingPoint(j).getY() >= bottomY)
 			{
 				points.push_back(&triangles[i]->getBoundingPoint(j));
 			}
@@ -2782,64 +2782,64 @@ void applyVerticalPlaneSections(double topY, double bottomY, Assembly * a, Mesh<
 	
 	for(size_t i = 0 ; i <  points.size() ; i++)
 	{
-		Point topPoint(points[i]->x, topY) ;
-		Point bottomPoint(points[i]->x, bottomY) ;
+		Point topPoint(points[i]->getX(), topY) ;
+		Point bottomPoint(points[i]->getX(), bottomY) ;
 		DelaunayTriangle * topElement = t->getUniqueConflictingElement(&topPoint) ;
 		DelaunayTriangle * bottomElement = t->getUniqueConflictingElement(&bottomPoint) ;
 		if(topElement && bottomElement)
 		{
 			std::vector<int> idstop ;
 			std::vector<double> coefficientstop ;
-			idstop.push_back(topElement->first->id*2);
-			coefficientstop.push_back(((topElement->second->y-topElement->third->y)*(topPoint.x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topPoint.y-topElement->third->y))
-			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			idstop.push_back(topElement->first->getId()*2);
+			coefficientstop.push_back(((topElement->second->getY()-topElement->third->getY())*(topPoint.getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topPoint.getY()-topElement->third->getY()))
+			/((topElement->second->getY()-topElement->third->getY())*(topElement->first->getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topElement->first->getY()-topElement->third->getY())));
 			
-			idstop.push_back(topElement->second->id*2);
-			coefficientstop.push_back(((topElement->third->y-topElement->first->y)*(topPoint.y-topElement->third->x)
-			+(topElement->first->x-topElement->third->x)*(topPoint.y-topElement->third->y))
-			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			idstop.push_back(topElement->second->getId()*2);
+			coefficientstop.push_back(((topElement->third->getY()-topElement->first->getY())*(topPoint.getY()-topElement->third->getX())
+			+(topElement->first->getX()-topElement->third->getX())*(topPoint.getY()-topElement->third->getY()))
+			/((topElement->second->getY()-topElement->third->getY())*(topElement->first->getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topElement->first->getY()-topElement->third->getY())));
 			
-			idstop.push_back(topElement->third->id*2);
+			idstop.push_back(topElement->third->getId()*2);
 			coefficientstop.push_back(1.-coefficientstop[0]-coefficientstop[1]) ;
 			
 			std::vector<int> idsbot ;
 			std::vector<double> coefficientsbot ;
-			idsbot.push_back(bottomElement->first->id*2);
-			coefficientsbot.push_back(((bottomElement->second->y-bottomElement->third->y)*(bottomPoint.x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomPoint.y-topElement->third->y))
-			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			idsbot.push_back(bottomElement->first->getId()*2);
+			coefficientsbot.push_back(((bottomElement->second->getY()-bottomElement->third->getY())*(bottomPoint.getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomPoint.getY()-topElement->third->getY()))
+			/((bottomElement->second->getY()-bottomElement->third->getY())*(bottomElement->first->getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomElement->first->getY()-bottomElement->third->getY())));
 			
-			idsbot.push_back(bottomElement->second->id*2);
-			coefficientsbot.push_back(((bottomElement->third->y-bottomElement->first->y)*(bottomPoint.x-bottomElement->third->x)
-			+(bottomElement->first->x-bottomElement->third->x)*(bottomPoint.y-bottomElement->third->y))
-			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			idsbot.push_back(bottomElement->second->getId()*2);
+			coefficientsbot.push_back(((bottomElement->third->getY()-bottomElement->first->getY())*(bottomPoint.getX()-bottomElement->third->getX())
+			+(bottomElement->first->getX()-bottomElement->third->getX())*(bottomPoint.getY()-bottomElement->third->getY()))
+			/((bottomElement->second->getY()-bottomElement->third->getY())*(bottomElement->first->getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomElement->first->getY()-bottomElement->third->getY())));
 			
-			idsbot.push_back(bottomElement->third->id*2);
+			idsbot.push_back(bottomElement->third->getId()*2);
 			coefficientsbot.push_back(1.-coefficientsbot[0]-coefficientsbot[1]) ;
 			
 			std::valarray<unsigned int> allids(7) ;
 			Vector coefs(7) ;
 			for(size_t j = 0 ; j < 3 ; j++)
 			{
-				coefficientstop[j] *= (points[i]->y-bottomY)/(topY-bottomY) ;
-				coefficientsbot[j] *= (topY - points[i]->y)/(topY-bottomY) ;
+				coefficientstop[j] *= (points[i]->getY()-bottomY)/(topY-bottomY) ;
+				coefficientsbot[j] *= (topY - points[i]->getY())/(topY-bottomY) ;
 				
 				coefs[j] = coefficientstop[j] ;
 				coefs[j+3] = coefficientsbot[j] ;
 			}
 			coefs[6] = -std::accumulate(&coefs[0], &coefs[6], double(0)) ;
-			allids[0] = topElement->first->id*2 ;
-			allids[1] = topElement->second->id*2 ;
-			allids[2] = topElement->third->id*2 ;
-			allids[3] = bottomElement->first->id*2 ;
-			allids[4] = bottomElement->second->id*2 ;
-			allids[5] = bottomElement->third->id*2 ;
-			allids[6] = points[i]->id*2 ;
+			allids[0] = topElement->first->getId()*2 ;
+			allids[1] = topElement->second->getId()*2 ;
+			allids[2] = topElement->third->getId()*2 ;
+			allids[3] = bottomElement->first->getId()*2 ;
+			allids[4] = bottomElement->second->getId()*2 ;
+			allids[5] = bottomElement->third->getId()*2 ;
+			allids[6] = points[i]->getId()*2 ;
 			a->addMultiplier(LagrangeMultiplier(allids, coefs, 0 ));
 		}
 		
@@ -2858,7 +2858,7 @@ void applyHorizontalPlaneSections(double topX, double bottomX, Assembly * a, Mes
 	{
 		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
 		{
-			if(triangles[i]->getBoundingPoint(j).x <= topX && triangles[i]->getBoundingPoint(j).x >= bottomX)
+			if(triangles[i]->getBoundingPoint(j).getX() <= topX && triangles[i]->getBoundingPoint(j).getX() >= bottomX)
 			{
 				points.push_back(&triangles[i]->getBoundingPoint(j));
 			}
@@ -2870,44 +2870,44 @@ void applyHorizontalPlaneSections(double topX, double bottomX, Assembly * a, Mes
 	
 	for(size_t i = 0 ; i <  points.size() ; i++)
 	{
-		Point topPoint(topX, points[i]->y) ;
-		Point bottomPoint(bottomX, points[i]->y) ;
+		Point topPoint(topX, points[i]->getY()) ;
+		Point bottomPoint(bottomX, points[i]->getY()) ;
 		DelaunayTriangle * topElement = t->getUniqueConflictingElement(&topPoint) ;
 		DelaunayTriangle * bottomElement = t->getUniqueConflictingElement(&bottomPoint) ;
 		if(topElement && bottomElement)
 		{
 			std::vector<int> idstop ;
 			std::vector<double> coefficientstop ;
-			idstop.push_back(topElement->first->id*2+1);
-			coefficientstop.push_back(((topElement->second->y-topElement->third->y)*(topPoint.x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topPoint.y-topElement->third->y))
-			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			idstop.push_back(topElement->first->getId()*2+1);
+			coefficientstop.push_back(((topElement->second->getY()-topElement->third->getY())*(topPoint.getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topPoint.getY()-topElement->third->getY()))
+			/((topElement->second->getY()-topElement->third->getY())*(topElement->first->getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topElement->first->getY()-topElement->third->getY())));
 			
-			idstop.push_back(topElement->second->id*2+1);
-			coefficientstop.push_back(((topElement->third->y-topElement->first->y)*(topPoint.y-topElement->third->x)
-			+(topElement->first->x-topElement->third->x)*(topPoint.y-topElement->third->y))
-			/((topElement->second->y-topElement->third->y)*(topElement->first->x-topElement->third->x)
-			+(topElement->third->x-topElement->second->x)*(topElement->first->y-topElement->third->y)));
+			idstop.push_back(topElement->second->getId()*2+1);
+			coefficientstop.push_back(((topElement->third->getY()-topElement->first->getY())*(topPoint.getY()-topElement->third->getX())
+			+(topElement->first->getX()-topElement->third->getX())*(topPoint.getY()-topElement->third->getY()))
+			/((topElement->second->getY()-topElement->third->getY())*(topElement->first->getX()-topElement->third->getX())
+			+(topElement->third->getX()-topElement->second->getX())*(topElement->first->getY()-topElement->third->getY())));
 			
-			idstop.push_back(topElement->third->id*2+1);
+			idstop.push_back(topElement->third->getId()*2+1);
 			coefficientstop.push_back(1.-coefficientstop[0]-coefficientstop[1]) ;
 			
 			std::vector<int> idsbot ;
 			std::vector<double> coefficientsbot ;
-			idsbot.push_back(bottomElement->first->id*2+1);
-			coefficientsbot.push_back(((bottomElement->second->y-bottomElement->third->y)*(bottomPoint.x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomPoint.y-topElement->third->y))
-			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			idsbot.push_back(bottomElement->first->getId()*2+1);
+			coefficientsbot.push_back(((bottomElement->second->getY()-bottomElement->third->getY())*(bottomPoint.getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomPoint.getY()-topElement->third->getY()))
+			/((bottomElement->second->getY()-bottomElement->third->getY())*(bottomElement->first->getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomElement->first->getY()-bottomElement->third->getY())));
 			
-			idsbot.push_back(bottomElement->second->id*2+1);
-			coefficientsbot.push_back(((bottomElement->third->y-bottomElement->first->y)*(bottomPoint.x-bottomElement->third->x)
-			+(bottomElement->first->x-bottomElement->third->x)*(bottomPoint.y-bottomElement->third->y))
-			/((bottomElement->second->y-bottomElement->third->y)*(bottomElement->first->x-bottomElement->third->x)
-			+(bottomElement->third->x-bottomElement->second->x)*(bottomElement->first->y-bottomElement->third->y)));
+			idsbot.push_back(bottomElement->second->getId()*2+1);
+			coefficientsbot.push_back(((bottomElement->third->getY()-bottomElement->first->getY())*(bottomPoint.getX()-bottomElement->third->getX())
+			+(bottomElement->first->getX()-bottomElement->third->getX())*(bottomPoint.getY()-bottomElement->third->getY()))
+			/((bottomElement->second->getY()-bottomElement->third->getY())*(bottomElement->first->getX()-bottomElement->third->getX())
+			+(bottomElement->third->getX()-bottomElement->second->getX())*(bottomElement->first->getY()-bottomElement->third->getY())));
 			
-			idsbot.push_back(bottomElement->third->id*2+1);
+			idsbot.push_back(bottomElement->third->getId()*2+1);
 			coefficientsbot.push_back(1.-coefficientsbot[0]-coefficientsbot[1]) ;
 			
 			
@@ -2915,20 +2915,20 @@ void applyHorizontalPlaneSections(double topX, double bottomX, Assembly * a, Mes
 			Vector coefs(7) ;
 			for(size_t j = 0 ; j < 3 ; j++)
 			{
-				coefficientstop[j] *= (points[i]->x-bottomX)/(topX-bottomX) ;
-				coefficientsbot[j] *= (topX - points[i]->x)/(topX-bottomX) ;
+				coefficientstop[j] *= (points[i]->getX()-bottomX)/(topX-bottomX) ;
+				coefficientsbot[j] *= (topX - points[i]->getX())/(topX-bottomX) ;
 				
 				coefs[j] = coefficientstop[j] ;
 				coefs[j+3] = coefficientsbot[j] ;
 			}
 			coefs[6] = -std::accumulate(&coefs[0], &coefs[6], double(0)) ;
-			allids[0] = topElement->first->id*2+1 ;
-			allids[1] = topElement->second->id*2+1 ;
-			allids[2] = topElement->third->id*2+1 ;
-			allids[3] = bottomElement->first->id*2+1 ;
-			allids[4] = bottomElement->second->id*2+1 ;
-			allids[5] = bottomElement->third->id*2+1 ;
-			allids[6] = points[i]->id*2+1 ;
+			allids[0] = topElement->first->getId()*2+1 ;
+			allids[1] = topElement->second->getId()*2+1 ;
+			allids[2] = topElement->third->getId()*2+1 ;
+			allids[3] = bottomElement->first->getId()*2+1 ;
+			allids[4] = bottomElement->second->getId()*2+1 ;
+			allids[5] = bottomElement->third->getId()*2+1 ;
+			allids[6] = points[i]->getId()*2+1 ;
 			a->addMultiplier(LagrangeMultiplier(allids, coefs, 0 ));
 		}
 		
@@ -2970,7 +2970,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle, De
 
 		for ( int i = 0 ; i < surface->getBoundingPoints().size() ; i++ )
 		{
-			if ( surface->getBoundingPoint( i ).id == id )
+			if ( surface->getBoundingPoint( i ).getId() == id )
 			{
 				id_.push_back( surface->getBoundingPoint( i ) );
 				apply2DBC( surface,*gp,*Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
@@ -2997,7 +2997,7 @@ void DofDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahedron,
 
 		for ( int i = 0 ; i < volume->getBoundingPoints().size() ; i++ )
 		{
-			if ( volume->getBoundingPoint( i ).id == id )
+			if ( volume->getBoundingPoint( i ).getId() == id )
 			{
 				id_.push_back( volume->getBoundingPoint( i ) );
 				apply3DBC( volume,*gp, *Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
@@ -3039,8 +3039,8 @@ void ElementDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTriangle
 
 		Vector disps(0.,2) ;
 		surface->getState().getField( DISPLACEMENT_FIELD, local, disps, true) ;
-		a->setPointAlong( XI, disps[0], ( *i )->id ) ;
-		a->setPointAlong( ETA, disps[1], ( *i )->id ) ;
+		a->setPointAlong( XI, disps[0], ( *i )->getId() ) ;
+		a->setPointAlong( ETA, disps[1], ( *i )->getId() ) ;
 
 	}
 
@@ -3078,20 +3078,20 @@ void ElementDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetrahed
 
 		Vector disps(0.,3) ;
 		volume->getState().getField( DISPLACEMENT_FIELD, local, disps, true) ;
-		a->setPointAlong( XI, disps[0], ( *i )->id ) ;
-		a->setPointAlong( ETA, disps[1], ( *i )->id ) ;
-		a->setPointAlong( ZETA, disps[2], ( *i )->id ) ;
+		a->setPointAlong( XI, disps[0], ( *i )->getId() ) ;
+		a->setPointAlong( ETA, disps[1], ( *i )->getId() ) ;
+		a->setPointAlong( ZETA, disps[2], ( *i )->getId() ) ;
 	}
 };
 
 bool isInBoundary2D( Point test, Point min, Point max)
 {
-	return (test.x >= min.x && test.x <= max.x && test.y >= min.y && test.y <= max.y) ;
+	return (test.getX() >= min.getX() && test.getX() <= max.getX() && test.getY() >= min.getY() && test.getY() <= max.getY()) ;
 }
 
 bool isInBoundary3D( Point test, Point min, Point max)
 {
-	return (test.x >= min.x && test.x <= max.x && test.y >= min.y && test.y <= max.y && test.z >= min.z && test.z <= max.z) ;
+	return (test.getX() >= min.getX() && test.getX() <= max.getX() && test.getY() >= min.getY() && test.getY() <= max.getY() && test.getZ() >= min.getZ() && test.getZ() <= max.getZ()) ;
 }
 
 
@@ -3101,21 +3101,21 @@ bool isOnBoundary( BoundingBoxPosition pos, Point test, Point min, Point max , d
 	{
 		// 2D edges, 3D planes, 4D time planes
 		case LEFT:
-			return ( std::abs(test.x - min.x) < tol ) ;
+			return ( std::abs(test.getX() - min.getX()) < tol ) ;
 		case RIGHT:
-			return ( std::abs(test.x - max.x) < tol ) ;
+			return ( std::abs(test.getX() - max.getX()) < tol ) ;
 		case BOTTOM:
-			return ( std::abs(test.y - min.y) < tol ) ;
+			return ( std::abs(test.getY() - min.getY()) < tol ) ;
 		case TOP:
-			return ( std::abs(test.y - max.y) < tol ) ;
+			return ( std::abs(test.getY() - max.getY()) < tol ) ;
 		case BACK:
-			return ( std::abs(test.z - min.z) < tol ) ;
+			return ( std::abs(test.getZ() - min.getZ()) < tol ) ;
 		case FRONT:
-			return ( std::abs(test.z - max.z) < tol ) ;
+			return ( std::abs(test.getZ() - max.getZ()) < tol ) ;
 		case BEFORE:
-			return ( std::abs(test.t - min.t) < tol ) ;
+			return ( std::abs(test.getT() - min.getT()) < tol ) ;
 		case AFTER:
-			return ( std::abs(test.t - max.t) < tol ) ;
+			return ( std::abs(test.getT() - max.getT()) < tol ) ;
 		
 		// 2D corners, 3D edges, 4D planes
 		case BOTTOM_LEFT:
@@ -3282,14 +3282,14 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -3298,23 +3298,23 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				if ( elements[i]->getBoundingPoint( j ).x < minx )
-					minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+					minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).x > maxx )
-					maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y < miny )
-					miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+					miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y > maxy )
-					maxy = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t < mint )
-					mint = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+					mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t > maxt )
-					maxt = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).getT() ;
 			  
 			}
 		}
@@ -3394,17 +3394,17 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double minz = elements.front()->getBoundingPoint( 0 ).z ;
-		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		double minz = elements.front()->getBoundingPoint( 0 ).getZ() ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).getZ() ;
 		
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -3413,29 +3413,29 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply( Assembly * a, Mesh<D
 
 			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				if ( elements[i]->getBoundingPoint( j ).x < minx )
-					minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+					minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).x > maxx )
-					maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y < miny )
-					miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+					miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y > maxy )
-					maxy = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z < minz )
-					minz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() < minz )
+					minz = elements[i]->getBoundingPoint( j ).getZ() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z > maxz )
-					maxz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).getZ() ;
 				
-				if ( elements[i]->getBoundingPoint( j ).t < mint )
-					mint = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+					mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t > maxt )
-					maxt = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).getT() ;
 			  
 			}
 		}
@@ -3755,14 +3755,14 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -3771,23 +3771,23 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 
 			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				if ( elements[i]->getBoundingPoint( j ).x < minx )
-					minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+					minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).x > maxx )
-					maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y < miny )
-					miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+					miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y > maxy )
-					maxy = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t < mint )
-					mint = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+					mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t > maxt )
-					maxt = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).getT() ;
 			  
 			}
 		}
@@ -3874,14 +3874,14 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -3892,23 +3892,23 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 			{
 				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 				{
-					if ( elements[i]->getBoundingPoint( j ).x < minx )
-						minx = elements[i]->getBoundingPoint( j ).x ;
+					if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+						minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-					if ( elements[i]->getBoundingPoint( j ).x > maxx )
-						maxx = elements[i]->getBoundingPoint( j ).x ;
+					if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+						maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-					if ( elements[i]->getBoundingPoint( j ).y < miny )
-						miny = elements[i]->getBoundingPoint( j ).y ;
+					if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+						miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-					if ( elements[i]->getBoundingPoint( j ).y > maxy )
-						maxy = elements[i]->getBoundingPoint( j ).y ;
+					if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+						maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-					if ( elements[i]->getBoundingPoint( j ).t < mint )
-						mint = elements[i]->getBoundingPoint( j ).t ;
+					if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+						mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-					if ( elements[i]->getBoundingPoint( j ).t > maxt )
-						maxt = elements[i]->getBoundingPoint( j ).t ;
+					if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+						maxt = elements[i]->getBoundingPoint( j ).getT() ;
 				}
 			}
 		}
@@ -3987,17 +3987,17 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double minz = elements.front()->getBoundingPoint( 0 ).z ;
-		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		double minz = elements.front()->getBoundingPoint( 0 ).getZ() ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).getZ() ;
 		
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -4006,29 +4006,29 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply( Assembly * a, Mes
 
 			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				if ( elements[i]->getBoundingPoint( j ).x < minx )
-					minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+					minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).x > maxx )
-					maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y < miny )
-					miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+					miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y > maxy )
-					maxy = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z < minz )
-					minz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() < minz )
+					minz = elements[i]->getBoundingPoint( j ).getZ() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z > maxz )
-					maxz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).getZ() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t < mint )
-					mint = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+					mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t > maxt )
-					maxt = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).getT() ;
 			  
 			}
 		}
@@ -4112,17 +4112,17 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 			return ;
 		}
 
-		double minx = elements.front()->getBoundingPoint( 0 ).x ;
-		double maxx = elements.front()->getBoundingPoint( 0 ).x ;
+		double minx = elements.front()->getBoundingPoint( 0 ).getX() ;
+		double maxx = elements.front()->getBoundingPoint( 0 ).getX() ;
 
-		double miny = elements.front()->getBoundingPoint( 0 ).y ;
-		double maxy = elements.front()->getBoundingPoint( 0 ).y ;
+		double miny = elements.front()->getBoundingPoint( 0 ).getY() ;
+		double maxy = elements.front()->getBoundingPoint( 0 ).getY() ;
 
-		double minz = elements.front()->getBoundingPoint( 0 ).z ;
-		double maxz = elements.front()->getBoundingPoint( 0 ).z ;
+		double minz = elements.front()->getBoundingPoint( 0 ).getZ() ;
+		double maxz = elements.front()->getBoundingPoint( 0 ).getZ() ;
 		
-		double mint = elements.front()->getBoundingPoint( 0 ).t ;
-		double maxt = elements.front()->getBoundingPoint( 0 ).t ;
+		double mint = elements.front()->getBoundingPoint( 0 ).getT() ;
+		double maxt = elements.front()->getBoundingPoint( 0 ).getT() ;
 		
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
@@ -4131,29 +4131,29 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTetr
 
 			for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
 			{
-				if ( elements[i]->getBoundingPoint( j ).x < minx )
-					minx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+					minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).x > maxx )
-					maxx = elements[i]->getBoundingPoint( j ).x ;
+				if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+					maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y < miny )
-					miny = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+					miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).y > maxy )
-					maxy = elements[i]->getBoundingPoint( j ).y ;
+				if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+					maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z < minz )
-					minz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() < minz )
+					minz = elements[i]->getBoundingPoint( j ).getZ() ;
 
-				if ( elements[i]->getBoundingPoint( j ).z > maxz )
-					maxz = elements[i]->getBoundingPoint( j ).z ;
+				if ( elements[i]->getBoundingPoint( j ).getZ() > maxz )
+					maxz = elements[i]->getBoundingPoint( j ).getZ() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t < mint )
-					mint = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+					mint = elements[i]->getBoundingPoint( j ).getT() ;
 
-				if ( elements[i]->getBoundingPoint( j ).t > maxt )
-					maxt = elements[i]->getBoundingPoint( j ).t ;
+				if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+					maxt = elements[i]->getBoundingPoint( j ).getT() ;
 			  
 			}
 		}

@@ -172,17 +172,17 @@ void step()
 				
 				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).id*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).id*2];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).id*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).id*2+1];
-					if(triangles[k]->getBoundingPoint(p).x > 0.0199)
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
+						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
+						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
+						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
+						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
+					if(triangles[k]->getBoundingPoint(p).getX() > 0.0199)
 					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).id*2] ;
+						e_xx+=x[triangles[k]->getBoundingPoint(p).getId()*2] ;
 						ex_count++ ;
 					}
 				}
@@ -371,7 +371,7 @@ void step()
 		std::cout << "average epsilon12 (no gel): " << avg_e_xy_nogel/nogel_area << std::endl ;
 		
 		std::cout << "apparent extension " << e_xx/ex_count << std::endl ;
-		//(1./epsilon11.x)*( stressMoyenne.x-stressMoyenne.y*modulePoisson);
+		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 		double reactedArea = 0 ;
 		
 		if (tries < tries_limit)
@@ -446,7 +446,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZones(int
 				a[1] = 0.03 ;
 				a[2] = 0.00 ;
 				
-				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.x, center.y, m0, a) ;
+				ExpansiveZone * z = new ExpansiveZone(incs[i], radius, center.getX(), center.getY(), m0, a) ;
 				ret.push_back(std::make_pair(z, incs[i])) ;
 			}
 		}

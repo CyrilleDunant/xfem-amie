@@ -332,9 +332,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		
 		//this function returns the distance to the centre
 // 		Function position(getCenter(),ring[i]) ;
-		Function dx = ring[i]->getXTransform()-getCenter().x ; dx *= dx ;
-		Function dy = ring[i]->getYTransform()-getCenter().y ; dy *= dy ;
-		Function dz = ring[i]->getZTransform()-getCenter().z ; dz *= dz ;
+		Function dx = ring[i]->getXTransform()-getCenter().getX() ; dx *= dx ;
+		Function dy = ring[i]->getYTransform()-getCenter().getY() ; dy *= dy ;
+		Function dz = ring[i]->getZTransform()-getCenter().getZ() ; dz *= dz ;
 		Function position = f_sqrt(dx + dy + dz) ;
 		Function hat = getRadius()-f_abs(position-getRadius());
 // 		hat.setNumberOfDerivatives(0);
@@ -363,7 +363,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			{
 				enriched.insert(that) ;
 				Point p = ring[i]->inLocalCoordinates(ring[i]->getBoundingPoint(j)) ;
-				Function f =  ring[i]->getShapeFunction(j)*(hat - vm.eval(hat, p.x, p.y, p.z)) ;
+				Function f =  ring[i]->getShapeFunction(j)*(hat - vm.eval(hat, p.getX(), p.getY(), p.getZ())) ;
 
 				f.setIntegrationHint(hint) ;
 				f.setPoint(&ring[i]->getBoundingPoint(j)) ;
@@ -386,9 +386,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			
 			t->enrichmentUpdated = true ;
 			bool hinted = false ;
-			Function dx = t->getXTransform()-getCenter().x ; dx *= dx ;
-			Function dy = t->getYTransform()-getCenter().y ; dy *= dy ;
-			Function dz = t->getZTransform()-getCenter().z ; dz *= dz ;
+			Function dx = t->getXTransform()-getCenter().getX() ; dx *= dx ;
+			Function dy = t->getYTransform()-getCenter().getY() ; dy *= dy ;
+			Function dz = t->getZTransform()-getCenter().getZ() ; dz *= dz ;
 			Function position = f_sqrt(dx + dy + dz) ;
 			Function hat = (getRadius()-f_abs(position-getRadius()));
 // 			hat.setNumberOfDerivatives(0);
@@ -402,7 +402,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z))*blend ;
+						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.getX(), p.getY(), p.getZ()))*blend ;
 						if(!hinted)
 						{
 							f.setIntegrationHint(hint) ;
@@ -417,7 +417,7 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 					{
 						enriched.insert(that) ;
 						Point p = t->inLocalCoordinates(t->getBoundingPoint(k)) ;
-						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.x, p.y, p.z))*blend ;
+						Function f = t->getShapeFunction(k)*(hat - vm.eval(hat, p.getX(), p.getY(), p.getZ()))*blend ;
 
 						if(!hinted)
 						{

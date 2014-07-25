@@ -27,13 +27,13 @@ Point::Point() : id(-1)
 }
 
 #ifdef HAVE_SSE3
-Point::Point(const Point & p) : vecxy(p.vecxy), veczt(p.veczt), id(p.id)
+Point::Point(const Point & p) : vecxy(p.vecxy), veczt(p.veczt), id(p.getId())
 {
 }
 #else
 Point::Point(const Point & p) 
 {
-	x = p.x ; y = p.y ; z = p.z ; t = p.t ; id = p.id ;
+	x = p.getX() ; y = p.getY() ; z = p.getZ() ; t = p.getT() ; id = p.getId() ;
 }
 #endif
 
@@ -42,13 +42,13 @@ Point& Point::operator = (const Point & p)
 {
 	vecxy = p.vecxy;
 	veczt = p.veczt; 
-	id = p.id;
+	id = p.getId();
 	return *this ;
 }
 #else
 Point& Point::operator = (const Point & p)
 {
-	x = p.x ; y = p.y ; z = p.z ; t = p.t ; id = p.id ;
+	x = p.getX() ; y = p.getY() ; z = p.getZ() ; t = p.getT() ; id = p.getId() ;
 	return *this ;
 }
 #endif
@@ -86,41 +86,6 @@ Point::Point(double x_, double y_, double z_, double t_): id(-1)
 	#else
 	x= x_ ; y = y_ ; z = z_ ; t = t_ ;
 	#endif
-}
-
-Point::Point(XMLTree * xml)
-{
-	id = -1 ;
-	x = 0 ;
-	y = 0 ;
-	z = 0 ;
-	t = 0 ;
-	if(xml->match("point"))
-	{
-		std::pair<bool, std::vector<double> > coord = xml->getChild(0)->buildVector() ;
-		if(coord.first && (coord.second.size() > 3))
-		{
-			x = coord.second[0] ;
-			y = coord.second[1] ;
-			z = coord.second[2] ;
-			t = coord.second[3] ;
-		}
-		std::pair<bool, double> id_ = xml->getChild(1)->buildDouble() ;
-		if(id_.first)
-			id = id_.second ;
-	}
-}
-
-XMLTree * Point::toXML() const
-{
-	Vector coord(4) ;
-	coord[0] = x; 
-	coord[1] = y; 
-	coord[2] = z; 
-	coord[3] = t; 
-	XMLTree * xml = new XMLTree("point",coord) ;
-	xml->addChild(new XMLTree("id",id)) ;
-	return xml ;
 }
 
 
@@ -191,7 +156,7 @@ void Point::set(const Point & p)
 	vecxy = p.vecxy ;
 	veczt = p.veczt ;
 	#else
-	x = p.x ; y = p.y ; z = p.z ; t = p.t ;
+	x = p.getX() ; y = p.getY() ; z = p.getZ() ; t = p.getT() ;
 	#endif
 }
 
@@ -201,7 +166,7 @@ void Point::set(const Point * p)
 	vecxy = p->vecxy ;
 	veczt = p->veczt ;
 	#else
-	x = p->x ; y = p->y ; z = p->z ; t = p->t ;
+	x = p->getX() ; y = p->getY() ; z = p->getZ() ; t = p->getT() ;
 	#endif
 }
 
@@ -231,13 +196,13 @@ bool Point::operator==(const Point &p) const
 {
 	
 	
-	if(std::abs(p.x-x) > 2.*POINT_TOLERANCE_2D)
+	if(std::abs(p.getX()-x) > 2.*POINT_TOLERANCE_2D)
 		return false ;
-	if(std::abs(p.y-y) > 2.*POINT_TOLERANCE_2D)
+	if(std::abs(p.getY()-y) > 2.*POINT_TOLERANCE_2D)
 		return false ;
-	if(std::abs(p.z-z) > 2.*POINT_TOLERANCE_2D)
+	if(std::abs(p.getZ()-z) > 2.*POINT_TOLERANCE_2D)
 		return false ;
-	if(std::abs(p.t-t) > 2.*POINT_TOLERANCE_2D)
+	if(std::abs(p.getT()-t) > 2.*POINT_TOLERANCE_2D)
 		return false ;
 
 	return dist(p, *this) < POINT_TOLERANCE_2D ;
@@ -248,14 +213,14 @@ bool Point::operator==(const Point &p) const
 // 	return dist((p-mid)/d, (*this-mid)/d) <= POINT_TOLERANCE ;
 	
 // 	double delta = POINT_TOLERANCE ;
-// 	Point a(p) ; a.x += delta ; a.y += delta ; a.z += delta ;
-// 	Point b(p) ; b.x += delta ; b.y += delta; b.z -= delta ;
-// 	Point c(p) ; c.x += delta ; c.y -= delta; c.z += delta ;
-// 	Point d(p) ; d.x += delta ; d.y -= delta; d.z -= delta ;
-// 	Point e(p) ; e.x -= delta ; e.y += delta; e.z += delta ;
-// 	Point f(p) ; f.x -= delta ; f.y += delta; f.z -= delta ;
-// 	Point g(p) ; g.x -= delta ; g.y -= delta; g.z += delta ;
-// 	Point h(p) ; h.x -= delta ; h.y -= delta; h.z -= delta ;
+// 	Point a(p) ; a.getX() += delta ; a.getY() += delta ; a.getZ() += delta ;
+// 	Point b(p) ; b.getX() += delta ; b.getY() += delta; b.getZ() -= delta ;
+// 	Point c(p) ; c.getX() += delta ; c.getY() -= delta; c.getZ() += delta ;
+// 	Point d(p) ; d.getX() += delta ; d.getY() -= delta; d.getZ() -= delta ;
+// 	Point e(p) ; e.getX() -= delta ; e.getY() += delta; e.getZ() += delta ;
+// 	Point f(p) ; f.getX() -= delta ; f.getY() += delta; f.getZ() -= delta ;
+// 	Point g(p) ; g.getX() -= delta ; g.getY() -= delta; g.getZ() += delta ;
+// 	Point h(p) ; h.getX() -= delta ; h.getY() -= delta; h.getZ() -= delta ;
 // 
 // 	return squareDist( &p, this) < POINT_TOLERANCE*POINT_TOLERANCE 
 // 		|| squareDist( &a, this) < POINT_TOLERANCE*POINT_TOLERANCE
@@ -283,12 +248,12 @@ Point Point::operator-(const Point &p) const
 	#ifdef HAVE_SSE3
 	ret.vecxy = _mm_sub_pd(ret.vecxy, p.vecxy) ;
 	ret.veczt = _mm_sub_pd(ret.veczt, p.veczt) ;
-	ret.id = std::max(id, p.id) ;
+	ret.setId( std::max(id, p.getId())) ;
 	#else 
-	ret.x -= p.x ;
-	ret.y -= p.y ;
-	ret.z -= p.z ;
-	ret.t -= p.t ;
+	ret.getX() -= p.getX() ;
+	ret.getY() -= p.getY() ;
+	ret.getZ() -= p.getZ() ;
+	ret.getT() -= p.getT() ;
 	#endif
 	return ret ;
 }
@@ -296,13 +261,13 @@ Point Point::operator-(const Point &p) const
 Point Point::operator-(const Vector &p) const
 {
 	Point ret((*this)) ;
-	ret.x -= p[0] ; 
-	ret.y -= p[1] ; 
+	ret.getX() -= p[0] ; 
+	ret.getY() -= p[1] ; 
 	if(p.size() > 2)
-		ret.z -= p[2] ; 
+		ret.getZ() -= p[2] ; 
 	if(p.size() > 3)
-		ret.t -= p[3] ; 
-	ret.id = id ;
+		ret.getT() -= p[3] ; 
+	ret.setId( id) ;
 	return ret ; 
 }
 
@@ -313,12 +278,12 @@ Point Point::operator+(const Point &p) const
 	ret.vecxy = _mm_add_pd(ret.vecxy, p.vecxy) ;
 	ret.veczt = _mm_add_pd(ret.veczt, p.veczt) ;
 	#else 
-	ret.x += p.x ;
-	ret.y += p.y ;
-	ret.z += p.z ;
-	ret.t += p.t ;
+	ret.getX() += p.getX() ;
+	ret.getY() += p.getY() ;
+	ret.getZ() += p.getZ() ;
+	ret.getT() += p.getT() ;
 	#endif
-	ret.id = std::max(id, p.id) ;
+	ret.getId() = std::max(id, p.getId()) ;
 	return ret ;
 }
 
@@ -328,10 +293,10 @@ void Point::operator+=(const Point &p)
 	vecxy = _mm_add_pd(vecxy, p.vecxy) ;
 	veczt = _mm_add_pd(veczt, p.veczt) ;
 	#else 
-	x += p.x ;
-	y += p.y ;
-	z += p.z ;
-	t += p.t ;
+	x += p.getX() ;
+	y += p.getY() ;
+	z += p.getZ() ;
+	t += p.getT() ;
 	#endif
 }
 
@@ -341,23 +306,23 @@ void Point::operator-=(const Point &p)
 	vecxy = _mm_sub_pd(vecxy, p.vecxy) ;
 	veczt = _mm_sub_pd(veczt, p.veczt) ;
 	#else 
-	x -= p.x ;
-	y -= p.y ;
-	z -= p.z ;
-	t -= p.t ;
+	x -= p.getX() ;
+	y -= p.getY() ;
+	z -= p.getZ() ;
+	t -= p.getT() ;
 	#endif
 }
 
 Point Point::operator+(const Vector &p) const
 {
 	Point ret((*this)) ;
-	ret.x += p[0] ; 
-	ret.y += p[1] ; 
+	ret.getX() += p[0] ; 
+	ret.getY() += p[1] ; 
 	if(p.size() > 2)
-		ret.z += p[2] ; 
+		ret.getZ() += p[2] ; 
 	if(p.size() > 3)
-		ret.t += p[3] ; 
-	ret.id = id ;
+		ret.getT() += p[3] ; 
+	ret.setId( id) ;
 	return ret ; 
 }
 
@@ -365,7 +330,7 @@ Point Point::operator/(const double p) const
 {
 	double inv = 1./p ;
 	Point ret(x*inv, y*inv,z*inv, t*inv) ;
-	ret.id = id ;
+	ret.setId( id) ;
 	return ret ; 
 }
 
@@ -384,22 +349,22 @@ bool Point::operator <(const Point &p) const
 // 	if(p == *this)
 // 		return false ;
 // 	
-	if(x < p.x)
+	if(x < p.getX())
 		return true ;
-	else if(x > p.x)
+	else if(x > p.getX())
 		return false ;
 	
-	if(y < p.y)
+	if(y < p.getY())
 		return true ;
-	else if(y > p.y)
+	else if(y > p.getY())
 		return false ;
 	
-	if(z < p.z)
+	if(z < p.getZ())
 		return true ;
-	else if (z > p.z)
+	else if (z > p.getZ())
 		return false ;
 	
-	if(t < p.t)
+	if(t < p.getT())
 		return true ;
 	
 	return false ;
@@ -411,16 +376,16 @@ bool Point::operator >(const Point &p) const
 		return false ;
 	
 	double tol = POINT_TOLERANCE_2D ;
-	return (y > p.y ) 
-		|| (( std::abs(y - p.y) < tol) 
-		    && (x > p.x)) 
-		|| (( std::abs(y - p.y) < tol) 
-		    && ( std::abs(x - p.x) < tol) 
-		    && (z> p.z)) 
-		||(( std::abs(y - p.y) < tol) 
-		   && ( std::abs(x - p.x) < tol) 
-		   && ( std::abs(z - p.z) < tol) 
-		   && (z> p.z));
+	return (y > p.getY() ) 
+		|| (( std::abs(y - p.getY()) < tol) 
+		    && (x > p.getX())) 
+		|| (( std::abs(y - p.getY()) < tol) 
+		    && ( std::abs(x - p.getX()) < tol) 
+		    && (z> p.getZ())) 
+		||(( std::abs(y - p.getY()) < tol) 
+		   && ( std::abs(x - p.getX()) < tol) 
+		   && ( std::abs(z - p.getZ()) < tol) 
+		   && (z> p.getZ()));
 }
 
 Point Point::operator*(const double p)  const 
@@ -432,12 +397,12 @@ Point Point::operator*(const double p)  const
 	ret.vecxy = _mm_mul_pd(ret.vecxy, temp) ;
 	ret.veczt = _mm_mul_pd(ret.veczt, temp) ;
 	#else
-	ret.x *= p ;
-	ret.y *= p ;
-	ret.z *= p ;
-	ret.t *= p ;
+	ret.getX() *= p ;
+	ret.getY() *= p ;
+	ret.getZ() *= p ;
+	ret.getT() *= p ;
 	#endif
-	ret.id = id;
+	ret.setId( id);
 	return ret ; 
 }
 
@@ -453,7 +418,7 @@ double Point::operator*(const Point &p) const
 	r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
 	return r.val[0] + r.val[1];
 #endif
-	return p.x*x+p.y*y+p.z*z+p.t*t ;
+	return p.getX()*x+p.getY()*y+p.getZ()*z+p.getT()*t ;
 	
 }
 
@@ -474,21 +439,21 @@ double Point::operator*(const Vector &p) const
 // {
 // 	Point ret ;
 // 
-// 	ret.x = y*p.z - z*p.y ; //fma(y,p.z,  -z*p.y) ;
-// 	ret.y = z*p.x - x*p.z ;//fma(z,p.x , -x*p.z) ;
-// 	ret.z = x*p.y - y*p.x ; //fma(x,p.y , -y*p.x) ;
+// 	ret.getX() = y*p.getZ() - z*p.getY() ; //fma(y,p.getZ(),  -z*p.getY()) ;
+// 	ret.getY() = z*p.getX() - x*p.getZ() ;//fma(z,p.getX() , -x*p.getZ()) ;
+// 	ret.getZ() = x*p.getY() - y*p.getX() ; //fma(x,p.getY() , -y*p.getX()) ;
 // 	
-// 	ret.id = std::max(id, p.id) ;
+// 	ret.getId() = std::max(id, p.getId()) ;
 // 	return ret ;
 // }
 
 // Point Point::operator^(const Vector &p) const
 // {
 // 	Point ret ;
-// 	ret.x = y*p[2] - z*p[1] ;
-// 	ret.y = z*p[0] - x*p[2] ;
-// 	ret.z = x*p[1] - y*p[0] ;
-// 	ret.id = id;
+// 	ret.getX() = y*p[2] - z*p[1] ;
+// 	ret.getY() = z*p[0] - x*p[2] ;
+// 	ret.getZ() = x*p[1] - y*p[0] ;
+// 	ret.setId( id);
 // 	return ret ;
 // }
 
@@ -506,102 +471,6 @@ PtV Point::operator^(const Vector &p) const
 PointSet::PointSet() : boundingPoints(0)
 {
 	this->chullEndPos = 0;
-}
-
-XMLTree * Geometry::toXML() const
-{
-	XMLTree * geom = new XMLTree("geometry") ;
-	switch(gType)
-	{
-		case nullptr_GEOMETRY: //done
-		{
-			geom->addChild(new XMLTree("null")) ;
-			break;
-		}
-		case CIRCLE:
-		{
-			geom->addChild(toXML()) ;
-			break;
-		}
-		case LAYERED_CIRCLE:
-		{
-			geom->addChild(static_cast<const LayeredCircle *>(this)->toXML()) ;
-			break;
-		}
-		case TRIANGLE: //done
-		{
-			geom->addChild(static_cast<const Triangle *>(this)->toXML()) ;
-			break;
-		}
-		case RECTANGLE: //done
-		{
-			geom->addChild(static_cast<const Rectangle *>(this)->toXML()) ;
-			break;
-		}
-		case PARALLELOGRAMME:
-		{
-			geom->addChild(new XMLTree("parallelogramme")) ;
-			break;
-		}
-		case CONVEX_POLYGON: //done
-		{
-			geom->addChild(new XMLTree("convex polygon")) ;
-			break;
-		}
-		case SEGMENTED_LINE:
-		{
-			geom->addChild(static_cast<const SegmentedLine *>(this)->toXML()) ;
-			break;
-		}
-		case ORIENTABLE_CIRCLE: //done
-		{
-			geom->addChild(static_cast<const OrientableCircle *>(this)->toXML()) ;
-			break;
-		}
-		case CLOSED_NURB: //done
-		{
-			geom->addChild(new XMLTree("nurb")) ;
-			break;
-		}
-		case TETRAHEDRON:
-		{
-			geom->addChild(static_cast<const Tetrahedron *>(this)->toXML()) ;
-			break;
-		}
-		case HEXAHEDRON:
-		{
-			geom->addChild(static_cast<const Hexahedron *>(this)->toXML()) ;
-			break;
-		}
-		case SPHERE:
-		{
-			geom->addChild(static_cast<const Sphere *>(this)->toXML()) ;
-			break;
-		}
-		case LAYERED_SPHERE:
-		{
-			geom->addChild(new XMLTree("layered sphere")) ;
-			break;
-		}
-		case REGULAR_OCTAHEDRON:
-		{
-			geom->addChild(static_cast<const RegularOctahedron *>(this)->toXML()) ;
-			break;
-		}
-		case ELLIPSE:
-		{
-			geom->addChild(static_cast<const Ellipse *>(this)->toXML()) ;
-			break;
-		}
-		case LEVEL_SET:
-		{
-			geom->addChild(new XMLTree("level set")) ;
-			break;
-		}
-
-	}
-	
-	return nullptr ;
 }
 
 std::vector<Point> Geometry::getBoundingBox() const
@@ -640,36 +509,36 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
 	switch(transformation)
 	{
 		case SCALE:
-			if( p.x < POINT_TOLERANCE_2D || p.y < POINT_TOLERANCE_2D || ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.z < POINT_TOLERANCE_2D) )
+			if( p.getX() < POINT_TOLERANCE_2D || p.getY() < POINT_TOLERANCE_2D || ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE_2D) )
 			{
 				std::cout << "try to scale geometry with factor = 0... do nothing instead" << std::endl ;
 				return ;
 			}
 			if(this->gType == CIRCLE)
 			{
-				dynamic_cast<Circle *>(this)->setRadius( getRadius()*p.x );
+				dynamic_cast<Circle *>(this)->setRadius( getRadius()*p.getX() );
 				return ;
 			}
 			
 			for(size_t i = 0 ; i < inPoints.size() ; i++)
 			{
-				(*inPoints[i]).x = center.x + ((*inPoints[i]).x - center.x) * p.x ;
-				(*inPoints[i]).y = center.y + ((*inPoints[i]).y - center.y) * p.y ;
-				(*inPoints[i]).z = center.z + ((*inPoints[i]).z - center.z) * p.z ;
+				(*inPoints[i]).getX() = center.getX() + ((*inPoints[i]).getX() - center.getX()) * p.getX() ;
+				(*inPoints[i]).getY() = center.getY() + ((*inPoints[i]).getY() - center.getY()) * p.getY() ;
+				(*inPoints[i]).getZ() = center.getZ() + ((*inPoints[i]).getZ() - center.getZ()) * p.getZ() ;
 			}
 			for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
 			{
-				getBoundingPoint(i).x = center.x + (getBoundingPoint(i).x - center.x) * p.x ;
-				getBoundingPoint(i).y = center.y + (getBoundingPoint(i).y - center.y) * p.y ;
-				getBoundingPoint(i).z = center.z + (getBoundingPoint(i).z - center.z) * p.z ;
+				getBoundingPoint(i).getX() = center.getX() + (getBoundingPoint(i).getX() - center.getX()) * p.getX() ;
+				getBoundingPoint(i).getY() = center.getY() + (getBoundingPoint(i).getY() - center.getY()) * p.getY() ;
+				getBoundingPoint(i).getZ() = center.getZ() + (getBoundingPoint(i).getZ() - center.getZ()) * p.getZ() ;
 			}
 			
 			if(gType == ELLIPSE)
 			{
 				Point A = dynamic_cast<Ellipse *>(this)->getMajorAxis() ;
 				Point B = dynamic_cast<Ellipse *>(this)->getMinorAxis() ;
-				A.x *= p.x ; A.y *= p.y ;
-				B.x *= p.x ; B.y *= p.y ;
+				A.getX() *= p.getX() ; A.getY() *= p.getY() ;
+				B.getX() *= p.getX() ; B.getY() *= p.getY() ;
 				dynamic_cast<Ellipse *>(this)->setMajorAxis(A) ;
 				dynamic_cast<Ellipse *>(this)->setMinorAxis(B) ;
 			}
@@ -682,9 +551,9 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
 				return ;
 			}
 		  
-			Matrix rotation = rotationMatrix( p.x, 0) ;
-			rotation *= rotationMatrix( p.y, 1 ) ;
-			rotation *= rotationMatrix( p.z, 2 ) ;
+			Matrix rotation = rotationMatrix( p.getX(), 0) ;
+			rotation *= rotationMatrix( p.getY(), 1 ) ;
+			rotation *= rotationMatrix( p.getZ(), 2 ) ;
 
 			Point c = center ;
 			c *= -1 ;
@@ -893,27 +762,27 @@ bool Plane::intersects(const Geometry *g) const
 	case HEXAHEDRON:
 		{
 			std::vector<Point> bbox = g->getBoundingBox() ;
-			double maxx =  bbox[0].x ;
-			double minx =  bbox[0].x ;
-			double maxy =  bbox[0].y ;
-			double miny =  bbox[0].y ;
-			double maxz =  bbox[0].z ;
-			double minz =  bbox[0].z ;
+			double maxx =  bbox[0].getX() ;
+			double minx =  bbox[0].getX() ;
+			double maxy =  bbox[0].getY() ;
+			double miny =  bbox[0].getY() ;
+			double maxz =  bbox[0].getZ() ;
+			double minz =  bbox[0].getZ() ;
 			
 			for(size_t i = 1 ; i < bbox.size() ; i++)
 			{
-				if(bbox[i].x > maxx)
-					maxx = bbox[i].x ;
-				if(bbox[i].x < minx)
-					minx = bbox[i].x ;
-				if(bbox[i].y > maxy)
-					maxy = bbox[i].y ;
-				if(bbox[i].y < miny)
-					miny = bbox[i].y ;
-				if(bbox[i].z > maxz)
-					maxz = bbox[i].z ;
-				if(bbox[i].z < minz)
-					minz = bbox[i].z ;
+				if(bbox[i].getX() > maxx)
+					maxx = bbox[i].getX() ;
+				if(bbox[i].getX() < minx)
+					minx = bbox[i].getX() ;
+				if(bbox[i].getY() > maxy)
+					maxy = bbox[i].getY() ;
+				if(bbox[i].getY() < miny)
+					miny = bbox[i].getY() ;
+				if(bbox[i].getZ() > maxz)
+					maxz = bbox[i].getZ() ;
+				if(bbox[i].getZ() < minz)
+					minz = bbox[i].getZ() ;
 			}
 			
 			Point corner1 (minx, miny, minz) ;
@@ -1028,27 +897,27 @@ std::vector<Point> Plane::intersection(const Geometry * g) const
 		{
 			std::vector<Point> ret ;
 			std::vector<Point> bbox = g->getBoundingBox() ;
-			double maxx =  bbox[0].x ;
-			double minx =  bbox[0].x ;
-			double maxy =  bbox[0].y ;
-			double miny =  bbox[0].y ;
-			double maxz =  bbox[0].z ;
-			double minz =  bbox[0].z ;
+			double maxx =  bbox[0].getX() ;
+			double minx =  bbox[0].getX() ;
+			double maxy =  bbox[0].getY() ;
+			double miny =  bbox[0].getY() ;
+			double maxz =  bbox[0].getZ() ;
+			double minz =  bbox[0].getZ() ;
 			
 			for(size_t i = 1 ; i < bbox.size() ; i++)
 			{
-				if(bbox[i].x > maxx)
-					maxx = bbox[i].x ;
-				if(bbox[i].x < minx)
-					minx = bbox[i].x ;
-				if(bbox[i].y > maxy)
-					maxy = bbox[i].y ;
-				if(bbox[i].y < miny)
-					miny = bbox[i].y ;
-				if(bbox[i].z > maxz)
-					maxz = bbox[i].z ;
-				if(bbox[i].z < minz)
-					minz = bbox[i].z ;
+				if(bbox[i].getX() > maxx)
+					maxx = bbox[i].getX() ;
+				if(bbox[i].getX() < minx)
+					minx = bbox[i].getX() ;
+				if(bbox[i].getY() > maxy)
+					maxy = bbox[i].getY() ;
+				if(bbox[i].getY() < miny)
+					miny = bbox[i].getY() ;
+				if(bbox[i].getZ() > maxz)
+					maxz = bbox[i].getZ() ;
+				if(bbox[i].getZ() < minz)
+					minz = bbox[i].getZ() ;
 			}
 			
 			Point corner1 (minx, miny, minz) ;
@@ -1146,14 +1015,14 @@ Point Plane::intersection(const Line &l) const
 	}
 	return Point() ;
 	
-// 	if(std::abs(l.origin().x*l.vector().x) > POINT_TOLERANCE)
+// 	if(std::abs(l.origin().getX()*l.vector().getX()) > POINT_TOLERANCE)
 // 	{
-// 		lambda = ( v.x * p.x - v.x*l.origin().x ) / (l.origin().x*l.vector().x) ;
+// 		lambda = ( v.getX() * p.getX() - v.getX()*l.origin().getX() ) / (l.origin().getX()*l.vector().getX()) ;
 // 		return l.origin() + l.vector()*lambda ;
 // 	}
-// 	else if (std::abs(l.origin().y*l.vector().y) > POINT_TOLERANCE)
+// 	else if (std::abs(l.origin().getY()*l.vector().getY()) > POINT_TOLERANCE)
 // 	{
-// 		lambda = ( v.y * p.y - v.y*l.origin().y ) / (l.origin().y*l.vector().y) ;
+// 		lambda = ( v.getY() * p.getY() - v.getY()*l.origin().getY() ) / (l.origin().getY()*l.vector().getY()) ;
 // 		return l.origin() + l.vector()*lambda ;
 // 	}
 // 	else
@@ -1202,11 +1071,11 @@ Line Plane::intersection(const Plane & plane) const
 	Point vec = v^plane.vector() ;
 	double d1 = p*v ;
 	double d2 = plane.vector()*plane.origin() ;
-	if(!((v.x != 0  && plane.vector().y != 0) || (v.y != 0  && plane.vector().x != 0)))
+	if(!((v.getX() != 0  && plane.vector().getY() != 0) || (v.getY() != 0  && plane.vector().getX() != 0)))
 	{
 		Matrix m(2, 2) ;
-		m[0][0] = v.x ; m[0][1] = v.y ;
-		m[1][0] = plane.vector().x ; m[1][1] = plane.vector().y ;
+		m[0][0] = v.getX() ; m[0][1] = v.getY() ;
+		m[1][0] = plane.vector().getX() ; m[1][1] = plane.vector().getY() ;
 		
 		invert2x2Matrix(m) ;
 		
@@ -1216,11 +1085,11 @@ Line Plane::intersection(const Plane & plane) const
 		
 		return Line(Point(xy[0], xy[1], 0), vec) ;
 	}
-	else if(!((v.x != 0  && plane.vector().z != 0) || (v.z != 0  && plane.vector().x != 0)))
+	else if(!((v.getX() != 0  && plane.vector().getZ() != 0) || (v.getZ() != 0  && plane.vector().getX() != 0)))
 	{
 		Matrix m(2, 2) ;
-		m[0][0] = v.x ; m[0][1] = v.z ;
-		m[1][0] = plane.vector().x ; m[1][1] = plane.vector().z ;
+		m[0][0] = v.getX() ; m[0][1] = v.getZ() ;
+		m[1][0] = plane.vector().getX() ; m[1][1] = plane.vector().getZ() ;
 		
 		invert2x2Matrix(m) ;
 		
@@ -1230,11 +1099,11 @@ Line Plane::intersection(const Plane & plane) const
 		
 		return Line(Point(xz[0], 0, xz[1]), vec) ;
 	}
-	else if(!((v.y != 0  && plane.vector().z != 0) || (v.z != 0  && plane.vector().y != 0)))
+	else if(!((v.getY() != 0  && plane.vector().getZ() != 0) || (v.getZ() != 0  && plane.vector().getY() != 0)))
 	{
 		Matrix m(2, 2) ;
-		m[0][0] = v.y ; m[0][1] = v.z ;
-		m[1][0] = plane.vector().x ; m[1][1] = plane.vector().z ;
+		m[0][0] = v.getY() ; m[0][1] = v.getZ() ;
+		m[1][0] = plane.vector().getX() ; m[1][1] = plane.vector().getZ() ;
 		
 		invert2x2Matrix(m) ;
 		
@@ -1288,9 +1157,9 @@ double Geometry::overlapFraction(const Geometry * target) const
 	{
 		double selfin = 0 ;
 		double targin = 0 ;
-		for(double i = c.x-getRadius() ; i < c.x+getRadius() ; i += getRadius()/8.)
+		for(double i = c.getX()-getRadius() ; i < c.getX()+getRadius() ; i += getRadius()/8.)
 		{
-			for(double j = c.y-getRadius() ; j < c.y+getRadius() ; j += getRadius()/8.)
+			for(double j = c.getY()-getRadius() ; j < c.getY()+getRadius() ; j += getRadius()/8.)
 			{
 				Point p(i,j) ;
 				if(in(p))
@@ -1308,11 +1177,11 @@ double Geometry::overlapFraction(const Geometry * target) const
 	{
 		double selfin = 0 ;
 		double targin = 0 ;
-		for(double i = c.x-getRadius() ; i < c.x+getRadius() ; i += getRadius()/8.)
+		for(double i = c.getX()-getRadius() ; i < c.getX()+getRadius() ; i += getRadius()/8.)
 		{
-			for(double j = c.y-getRadius() ; j < c.y+getRadius() ; j += getRadius()/8.)
+			for(double j = c.getY()-getRadius() ; j < c.getY()+getRadius() ; j += getRadius()/8.)
 			{
-				for(double k = c.z-getRadius() ; k < c.z+getRadius() ; k += getRadius()/8.)
+				for(double k = c.getZ()-getRadius() ; k < c.getZ()+getRadius() ; k += getRadius()/8.)
 				{
 					Point p(i,j,k) ;
 					if(in(p))
@@ -1410,13 +1279,13 @@ bool Geometry::intersects(const Geometry *g) const
 			if(g->getGeometryType() == CIRCLE)
 			{
 				double birad = getRadius()+g->getRadius() ;
-				if(getCenter().x + birad < g->getCenter().x)
+				if(getCenter().getX() + birad < g->getCenter().getX())
 					return false ;
-				if(getCenter().x - birad > g->getCenter().x)
+				if(getCenter().getX() - birad > g->getCenter().getX())
 					return false ;
-				if(getCenter().y + birad < g->getCenter().y)
+				if(getCenter().getY() + birad < g->getCenter().getY())
 					return false ;
-				if(getCenter().y - birad > g->getCenter().y)
+				if(getCenter().getY() - birad > g->getCenter().getY())
 					return false ;
 				
 				return squareDist2D( getCenter(), g->getCenter()) < birad*birad ;
@@ -1600,17 +1469,17 @@ bool Geometry::intersects(const Geometry *g) const
 				return true ;
 				
 				double birad = getRadius()+g->getRadius() ;
-// 				if(((getCenter().x + birad < g->getCenter().x) ||
+// 				if(((getCenter().getX() + birad < g->getCenter().getX()) ||
 // 					return false ;
-// 				if(getCenter().x - birad > g->getCenter().x))
+// 				if(getCenter().getX() - birad > g->getCenter().getX()))
 // 					return false ;
-// 				if((getCenter().y + birad < g->getCenter().y) ||
+// 				if((getCenter().getY() + birad < g->getCenter().getY()) ||
 // 					return false ;
-// 				if(getCenter().y - birad > g->getCenter().y))
+// 				if(getCenter().getY() - birad > g->getCenter().getY()))
 // 					return false ;
-// 				if((getCenter().z + birad < g->getCenter().z) ||
+// 				if((getCenter().getZ() + birad < g->getCenter().getZ()) ||
 // 					return false ;
-// 				if(getCenter().z - birad > g->getCenter().z)))
+// 				if(getCenter().getZ() - birad > g->getCenter().getZ())))
 // 					return false ;
 
 				return dist(getCenter(), g->getCenter()) < birad ;
@@ -2185,36 +2054,36 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 			if(g->getGeometryType() == HEXAHEDRON)
 			{
 				std::vector<Point> bbox = g->getBoundingBox() ;
-				double maxx =  bbox[0].x ;
-				double minx =  bbox[0].x ;
-				double maxy =  bbox[0].y ;
-				double miny =  bbox[0].y ;
-				double maxz =  bbox[0].z ;
-				double minz =  bbox[0].z ;
+				double maxx =  bbox[0].getX() ;
+				double minx =  bbox[0].getX() ;
+				double maxy =  bbox[0].getY() ;
+				double miny =  bbox[0].getY() ;
+				double maxz =  bbox[0].getZ() ;
+				double minz =  bbox[0].getZ() ;
 				
 				for(size_t i = 1 ; i < bbox.size() ; i++)
 				{
-					if(bbox[i].x > maxx)
-						maxx = bbox[i].x ;
-					if(bbox[i].x < minx)
-						minx = bbox[i].x ;
-					if(bbox[i].y > maxy)
-						maxy = bbox[i].y ;
-					if(bbox[i].y < miny)
-						miny = bbox[i].y ;
-					if(bbox[i].z > maxz)
-						maxz = bbox[i].z ;
-					if(bbox[i].z < minz)
-						minz = bbox[i].z ;
+					if(bbox[i].getX() > maxx)
+						maxx = bbox[i].getX() ;
+					if(bbox[i].getX() < minx)
+						minx = bbox[i].getX() ;
+					if(bbox[i].getY() > maxy)
+						maxy = bbox[i].getY() ;
+					if(bbox[i].getY() < miny)
+						miny = bbox[i].getY() ;
+					if(bbox[i].getZ() > maxz)
+						maxz = bbox[i].getZ() ;
+					if(bbox[i].getZ() < minz)
+						minz = bbox[i].getZ() ;
 				}
 				
 				
 				
-				if(std::abs(center.x - minx) < getRadius())
+				if(std::abs(center.getX() - minx) < getRadius())
 				{
-					double d = std::abs(center.x - minx) ;
+					double d = std::abs(center.getX() - minx) ;
 					Point v(-1,0,0) ;
-					Point centerOfIntersection(minx, center.y, center.z) ;
+					Point centerOfIntersection(minx, center.getY(), center.getZ()) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
@@ -2222,14 +2091,14 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getY(), center.getZ())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
+					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().getY(), g->getCenter().getZ()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
-						Point candidate(minx, planeIntersection[i].x, planeIntersection[i].y) ;
+						Point candidate(minx, planeIntersection[i].getX(), planeIntersection[i].getY()) ;
  						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2248,26 +2117,26 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 					}
 
 				}
-				if(std::abs(center.x - maxx) < getRadius())
+				if(std::abs(center.getX() - maxx) < getRadius())
 				{
-					double d = std::abs(center.x - maxx) ;
+					double d = std::abs(center.getX() - maxx) ;
 					Point v(1,0,0) ;
-					Point centerOfIntersection(maxx, center.y, center.z) ;
+					Point centerOfIntersection(maxx, center.getY(), center.getZ()) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(round(0.5*radiusOfIntersection/getBoundingPoints().size()/(getRadius()*getRadius())), 3.) ;
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.y, center.z)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getY(), center.getZ())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().y, g->getCenter().z) ;
+					Rectangle planeRect(maxy-miny, maxz-minz, g->getCenter().getY(), g->getCenter().getZ()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
 						
-						Point candidate(maxx, planeIntersection[i].x, planeIntersection[i].y) ;
+						Point candidate(maxx, planeIntersection[i].getX(), planeIntersection[i].getY()) ;
  						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2284,25 +2153,25 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				if(std::abs(center.y - miny) < getRadius())
+				if(std::abs(center.getY() - miny) < getRadius())
 				{
-					double d = std::abs(center.y - miny) ;
+					double d = std::abs(center.getY() - miny) ;
 					Point v(0,-1,0) ;
-					Point centerOfIntersection(center.x, miny, center.z) ;
+					Point centerOfIntersection(center.getX(), miny, center.getZ()) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(round(0.5*radiusOfIntersection/getBoundingPoints().size()/(getRadius()*getRadius())), 3.) ;
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getX(), center.getZ())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
+					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().getX(), g->getCenter().getZ()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
-						Point candidate(planeIntersection[i].x, miny, planeIntersection[i].y) ;
+						Point candidate(planeIntersection[i].getX(), miny, planeIntersection[i].getY()) ;
 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2319,25 +2188,25 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				if(std::abs(center.y - maxy) < getRadius())
+				if(std::abs(center.getY() - maxy) < getRadius())
 				{
-					double d = std::abs(center.y - maxy) ;
+					double d = std::abs(center.getY() - maxy) ;
 					Point v(0,1,0) ;
-					Point centerOfIntersection(center.x, maxy, center.z) ;
+					Point centerOfIntersection(center.getX(), maxy, center.getZ()) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(round(0.5*radiusOfIntersection/getBoundingPoints().size()/(getRadius()*getRadius())), 3.) ;
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.x, center.z)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getX(), center.getZ())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().x, g->getCenter().z) ;
+					Rectangle planeRect(maxx-minx, maxz-minz, g->getCenter().getX(), g->getCenter().getZ()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
-						Point candidate(planeIntersection[i].x, maxy, planeIntersection[i].y) ;
+						Point candidate(planeIntersection[i].getX(), maxy, planeIntersection[i].getY()) ;
 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2354,25 +2223,25 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				if(std::abs(center.z - minz) < getRadius())
+				if(std::abs(center.getZ() - minz) < getRadius())
 				{
-					double d = std::abs(center.z - minz) ;
+					double d = std::abs(center.getZ() - minz) ;
 					Point v(0,0,-1) ;
-					Point centerOfIntersection(center.x, center.y, minz) ;
+					Point centerOfIntersection(center.getX(), center.getY(), minz) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(round(0.5*radiusOfIntersection/getBoundingPoints().size()/(getRadius()*getRadius())), 3.) ;
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getX(), center.getY())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
+					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().getX(), g->getCenter().getY()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
-						Point candidate(planeIntersection[i].x, planeIntersection[i].y, minz) ;
+						Point candidate(planeIntersection[i].getX(), planeIntersection[i].getY(), minz) ;
 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2389,25 +2258,25 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
 							ret.push_back(C.getInPoint(i)) ;
 					}
 				}
-				if(std::abs(center.z - maxz) < getRadius())
+				if(std::abs(center.getZ() - maxz) < getRadius())
 				{
-					double d = std::abs(center.z - maxz) ;
+					double d = std::abs(center.getZ() - maxz) ;
 					Point v(0,0,1) ;
-					Point centerOfIntersection(center.x, center.y, maxz) ;
+					Point centerOfIntersection(center.getX(), center.getY(), maxz) ;
 					double radiusOfIntersection = sqrt(getRadius()*getRadius() - d*d) ;
 					OrientableCircle C(radiusOfIntersection, centerOfIntersection, v) ;
 					
 					size_t num_points = std::max(round(0.5*radiusOfIntersection/getBoundingPoints().size()/(getRadius()*getRadius())), 3.) ;
 					C.sampleSurface(num_points) ;
 					
-					Circle planeCircle(radiusOfIntersection, Point( center.x, center.y)) ;
+					Circle planeCircle(radiusOfIntersection, Point( center.getX(), center.getY())) ;
 					planeCircle.sampleSurface(num_points) ;
-					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().x, g->getCenter().y) ;
+					Rectangle planeRect(maxx-minx, maxy-miny, g->getCenter().getX(), g->getCenter().getY()) ;
 					planeRect.sampleSurface(g->getBoundingPoints().size()/2) ;
 					std::vector<Point> planeIntersection = planeRect.intersection(&planeCircle) ;
 					for(size_t i = 0 ;  i < planeIntersection.size() ; i++)
 					{
-						Point candidate(planeIntersection[i].x, planeIntersection[i].y, maxz) ;
+						Point candidate(planeIntersection[i].getX(), planeIntersection[i].getY(), maxz) ;
 						if(g->in(candidate) && in(candidate))
 							ret.push_back(candidate) ;
 					}
@@ -2598,17 +2467,17 @@ size_t NonConvexGeometry::size() const
 
 double PointSet::x(size_t i) 
 {
-	return boundingPoints[i]->x ; 
+	return boundingPoints[i]->getX() ; 
 }
 
 double PointSet::y(size_t i) 
 { 
-	return boundingPoints[i]->y ; 
+	return boundingPoints[i]->getY() ; 
 }
 
 double PointSet::z(size_t i) 
 { 
-	return boundingPoints[i]->z ; 
+	return boundingPoints[i]->getZ() ; 
 }
 
 void PointSet::setX(size_t i, double vv) 
@@ -2636,24 +2505,24 @@ void PointSet::set(size_t i, double x, double y)
 { 
 	int id = -1 ;
 	if(boundingPoints[i] != nullptr)
-		id = boundingPoints[i]->id ;
+		id = boundingPoints[i]->getId() ;
 	
 	delete boundingPoints[i] ;
 	
 	boundingPoints[i] = new Point(x,y) ; 
-	boundingPoints[i]->id = id ;
+	boundingPoints[i]->setId( id ) ;
 }
 
 void PointSet::set(size_t i, double x, double y, double z) 
 { 
 	int id = -1 ;
 	if(boundingPoints[i] != nullptr)
-		id = boundingPoints[i]->id ;
+		id = boundingPoints[i]->getId() ;
 	
 	delete boundingPoints[i] ;
 	
 	boundingPoints[i] = new Point(x,y,z) ; 
-	boundingPoints[i]->id = id ;
+	boundingPoints[i]->setId( id ) ;
 }
 
 Point * PointSet::operator[](size_t i) 
@@ -2722,8 +2591,8 @@ Point PointSet::computeCenter() const
 	Point ret;
 	for (size_t i = 0 ; i < boundingPoints.size() ; i++)
 	{
-		ret.x += boundingPoints[i]->x/boundingPoints.size() ;
-		ret.y += boundingPoints[i]->y/boundingPoints.size() ;
+		ret.getX() += boundingPoints[i]->getX()/boundingPoints.size() ;
+		ret.getY() += boundingPoints[i]->getY()/boundingPoints.size() ;
 	}
 	return ret ;
 }
@@ -2850,7 +2719,7 @@ WeightedPoint WeightedPoint::operator*(const double & p)  const
 
 WeightedPoint WeightedPoint::operator+(const WeightedPoint &wp)  const
 {
-	return WeightedPoint(x + wp.x, y + wp.y,z + wp.z, w + wp.w); 
+	return WeightedPoint(x + wp.getX(), y + wp.getY(),z + wp.getZ(), w + wp.w); 
 }
 
 WeightedPoint WeightedPoint::operator/(const double p) const 
@@ -2934,7 +2803,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	Point *pivot( (*points)[0] ) ;
 	for(size_t i = 1 ; i < points->size() ; i++)
 	{
-		if (pivot->y < (*points)[i]->y)
+		if (pivot->getY() < (*points)[i]->getY())
 			pivot = (*points)[i] ;
 	}
 	
@@ -2946,7 +2815,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 	{
 		if ((*(*points)[i]) != (*pivot))
 		{
-			double angle = atan2(pivot->y-(*points)[i]->y, pivot->x-(*points)[i]->x) ;
+			double angle = atan2(pivot->getY()-(*points)[i]->getY(), pivot->getX()-(*points)[i]->getX()) ;
 			
 			if(pointSet.find(angle) != pointSet.end())
 			{
@@ -2980,16 +2849,16 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
 		for(size_t j = 0 ; j < temphull.size() ; j++)
 			
 		//! this is a usual cross product of two vectors...
-			if(  ((*i)->y - (*temphull.rbegin())->y)*((*temphull.rbegin())->x - temphull[temphull.size()-2]->x ) - 
-			     ((*i)->x - (*temphull.rbegin())->x)*((*temphull.rbegin())->y - temphull[temphull.size()-2]->y ) > 
+			if(  ((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) - 
+			     ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) > 
 			     POINT_TOLERANCE_2D )
 			{
 				temphull.push_back(*i) ;
 			}	
 		else
 		{
-			while( !(((*i)->y - (*temphull.rbegin())->y)*((*temphull.rbegin())->x - temphull[temphull.size()-2]->x ) - 
-			         ((*i)->x - (*temphull.rbegin())->x)*((*temphull.rbegin())->y -temphull[temphull.size()-2]->y ) > 
+			while( !(((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) - 
+			         ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() -temphull[temphull.size()-2]->getY() ) > 
 			         POINT_TOLERANCE_2D))
 			{
 				temphull.pop_back();
@@ -3097,22 +2966,22 @@ Line::Line()
 
 bool Line::intersects(const Line &l) const
 {
-	return v.x * l.vector().y - v.y * l.vector().x != 0 ;
+	return v.getX() * l.vector().getY() - v.getY() * l.vector().getX() != 0 ;
 }
 
 bool Line::intersects(const Segment &s) const
 {
 	
-	if (std::abs(-v.y * s.vector().x + v.x * s.vector().y) <= std::numeric_limits<double>::epsilon())
+	if (std::abs(-v.getY() * s.vector().getX() + v.getX() * s.vector().getY()) <= std::numeric_limits<double>::epsilon())
 		return false ;
 	
 	Matrix m(2,2) ;
 	Vector vv(2) ;
 	
-	m[0][0] = s.vector().x ; m[0][1] = -v.x ;
-	m[1][0] = s.vector().y ; m[1][1] = -v.y ;
+	m[0][0] = s.vector().getX() ; m[0][1] = -v.getX() ;
+	m[1][0] = s.vector().getY() ; m[1][1] = -v.getY() ;
 	
-	vv[0] = p.x-s.second().x  ; vv[1] = p.y-s.second().y   ; 
+	vv[0] = p.getX()-s.second().getX()  ; vv[1] = p.getY()-s.second().getY()   ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -3145,13 +3014,13 @@ Point Line::intersection(const Line &l) const
 	Matrix myz(2,2) ;
 	Vector vec(2) ;
 	
-	mxy[0][0] = v.x ; mxy[0][1] = -l.vector().x ;  
-	mxy[1][0] = v.y ; mxy[1][1] = -l.vector().y ;   
+	mxy[0][0] = v.getX() ; mxy[0][1] = -l.vector().getX() ;  
+	mxy[1][0] = v.getY() ; mxy[1][1] = -l.vector().getY() ;   
 	
 	if(std::abs(det(mxy)) > POINT_TOLERANCE_3D)
 	{
-		vec[0] = l.origin().x - p.x ; vec[1] = l.origin().y - p.y ; 
-		vec[0] = l.origin().x - p.x ; vec[1] = l.origin().y - p.y ; 
+		vec[0] = l.origin().getX() - p.getX() ; vec[1] = l.origin().getY() - p.getY() ; 
+		vec[0] = l.origin().getX() - p.getX() ; vec[1] = l.origin().getY() - p.getY() ; 
 
 		invert2x2Matrix(mxy) ;
 
@@ -3159,13 +3028,13 @@ Point Line::intersection(const Line &l) const
 		return p + v*fac[0];
 	}
 	
-	mxz[0][0] = v.x ; mxz[0][1] = -l.vector().x ;  
-	mxz[1][0] = v.z ; mxz[1][1] = -l.vector().z ;  
+	mxz[0][0] = v.getX() ; mxz[0][1] = -l.vector().getX() ;  
+	mxz[1][0] = v.getZ() ; mxz[1][1] = -l.vector().getZ() ;  
 	
 	if(std::abs(det(mxz)) > POINT_TOLERANCE_3D)
 	{
-		vec[0] = l.origin().x - p.x ; vec[1] = l.origin().z - p.z ; 
-		vec[0] = l.origin().x - p.x ; vec[1] = l.origin().z - p.z ; 
+		vec[0] = l.origin().getX() - p.getX() ; vec[1] = l.origin().getZ() - p.getZ() ; 
+		vec[0] = l.origin().getX() - p.getX() ; vec[1] = l.origin().getZ() - p.getZ() ; 
 
 		invert2x2Matrix(mxz) ;
 
@@ -3173,13 +3042,13 @@ Point Line::intersection(const Line &l) const
 		return p + v*fac[0];
 	}
 	
-	myz[0][0] = v.y ; myz[0][1] = -l.vector().y ;  
-	myz[1][0] = v.z ; myz[1][1] = -l.vector().z ; 
+	myz[0][0] = v.getY() ; myz[0][1] = -l.vector().getY() ;  
+	myz[1][0] = v.getZ() ; myz[1][1] = -l.vector().getZ() ; 
 	
 	if(std::abs(det(myz)) > POINT_TOLERANCE_3D)
 	{
-		vec[0] = l.origin().y - p.y ; vec[1] = l.origin().z - p.z ; 
-		vec[0] = l.origin().y - p.y ; vec[1] = l.origin().z - p.z ; 
+		vec[0] = l.origin().getY() - p.getY() ; vec[1] = l.origin().getZ() - p.getZ() ; 
+		vec[0] = l.origin().getY() - p.getY() ; vec[1] = l.origin().getZ() - p.getZ() ; 
 
 		invert2x2Matrix(myz) ;
 
@@ -3189,7 +3058,7 @@ Point Line::intersection(const Line &l) const
 	
 	return Point() ;
 	
-// 	vec[0] = l.origin().x - p.x ; vec[1] = l.origin().y - p.y ; 
+// 	vec[0] = l.origin().getX() - p.getX() ; vec[1] = l.origin().getY() - p.getY() ; 
 // 	m.print();
 // 	invert3x3Matrix(m) ;
 // 	m.print();
@@ -3203,10 +3072,10 @@ Point Line::intersection(const Segment &s) const
 	Matrix m(2,2) ;
 	Vector vec(2) ;
 	
-	m[0][0] = v.x ; m[0][1] = -s.vector().x ;
-	m[1][0] = v.y ; m[1][1] = -s.vector().y ;
+	m[0][0] = v.getX() ; m[0][1] = -s.vector().getX() ;
+	m[1][0] = v.getY() ; m[1][1] = -s.vector().getY() ;
 	
-	vec[0] = s.first().x - p.x ; vec[1] = s.first().y - p.y ; 
+	vec[0] = s.first().getX() - p.getX() ; vec[1] = s.first().getY() - p.getY() ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -3223,9 +3092,9 @@ bool Line::intersects(const TriPoint &g) const
 
 	Matrix mat(3,3) ;
 	
-	mat[0][0] = v.x; mat[0][1] = g.point[1]->x-g.point[0]->x; mat[0][2] = g.point[2]->x-g.point[0]->x; 
-	mat[1][0] = v.y; mat[1][1] = g.point[1]->y-g.point[0]->y; mat[1][2] = g.point[2]->y-g.point[0]->y; 
-	mat[2][0] = v.z; mat[2][1] = g.point[1]->z-g.point[0]->z; mat[2][2] = g.point[2]->z-g.point[0]->z; 
+	mat[0][0] = v.getX(); mat[0][1] = g.point[1]->getX()-g.point[0]->getX(); mat[0][2] = g.point[2]->getX()-g.point[0]->getX(); 
+	mat[1][0] = v.getY(); mat[1][1] = g.point[1]->getY()-g.point[0]->getY(); mat[1][2] = g.point[2]->getY()-g.point[0]->getY(); 
+	mat[2][0] = v.getZ(); mat[2][1] = g.point[1]->getZ()-g.point[0]->getZ(); mat[2][2] = g.point[2]->getZ()-g.point[0]->getZ(); 
 	return abs(det(mat)) > POINT_TOLERANCE_3D ;
 
 
@@ -3334,10 +3203,10 @@ bool Line::intersects(const Geometry *g) const
 	case SPHERE:
 		{
 			double a = v.sqNorm() ;
-			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y + (p.z-g->getCenter().z)*v.z)*2. ;
-			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
-			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
-			          +(p.z-g->getCenter().z)*(p.z-g->getCenter().z)
+			double b = ((p.getX()-g->getCenter().getX())*v.getX() + (p.getY()-g->getCenter().getY())*v.getY() + (p.getZ()-g->getCenter().getZ())*v.getZ())*2. ;
+			double c = (p.getX()-g->getCenter().getX())*(p.getX()-g->getCenter().getX())
+			          +(p.getY()-g->getCenter().getY())*(p.getY()-g->getCenter().getY())
+			          +(p.getZ()-g->getCenter().getZ())*(p.getZ()-g->getCenter().getZ())
 			          -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 			
@@ -3360,9 +3229,9 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 		{
 			
 			double a = v.sqNorm() ;
-			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y)*2. ;
-			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
-			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
+			double b = ((p.getX()-g->getCenter().getX())*v.getX() + (p.getY()-g->getCenter().getY())*v.getY())*2. ;
+			double c = (p.getX()-g->getCenter().getX())*(p.getX()-g->getCenter().getX())
+			          +(p.getY()-g->getCenter().getY())*(p.getY()-g->getCenter().getY())
 			          -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 			
@@ -3520,10 +3389,10 @@ std::vector<Point> Line::intersection(const Geometry * g) const
 	case SPHERE:
 		{
 			double a = v.sqNorm() ;
-			double b = ((p.x-g->getCenter().x)*v.x + (p.y-g->getCenter().y)*v.y + (p.z-g->getCenter().z)*v.z)*2. ;
-			double c = (p.x-g->getCenter().x)*(p.x-g->getCenter().x)
-			          +(p.y-g->getCenter().y)*(p.y-g->getCenter().y)
-			          +(p.z-g->getCenter().z)*(p.z-g->getCenter().z)
+			double b = ((p.getX()-g->getCenter().getX())*v.getX() + (p.getY()-g->getCenter().getY())*v.getY() + (p.getZ()-g->getCenter().getZ())*v.getZ())*2. ;
+			double c = (p.getX()-g->getCenter().getX())*(p.getX()-g->getCenter().getX())
+			          +(p.getY()-g->getCenter().getY())*(p.getY()-g->getCenter().getY())
+			          +(p.getZ()-g->getCenter().getZ())*(p.getZ()-g->getCenter().getZ())
 			          -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4*a*c ;
 			
@@ -3568,7 +3437,7 @@ Point Segment::normal() const
 {
 	double n = norm();
 	if(n > POINT_TOLERANCE_2D)
-		return Point(-vec.y, vec.x)/n ;
+		return Point(-vec.getY(), vec.getX())/n ;
 	
 	return Point(0, 0) ;
 }
@@ -3582,7 +3451,7 @@ Point Segment::normal(const Point & inside) const
 	
 	double n = norm();
 	if(n > POINT_TOLERANCE_2D)
-		return Point(-vec.y*sign, vec.x*sign)/n ;
+		return Point(-vec.getY()*sign, vec.getX()*sign)/n ;
 	
 	return Point(0, 0) ;
 
@@ -3598,8 +3467,8 @@ Vector Segment::normalv(const Point & p) const
 	if(n > POINT_TOLERANCE_2D)
 	{
 		Vector ret(2) ;
-		ret[0] = -vec.y/n*sign ;
-		ret[1] = vec.x/n*sign ;
+		ret[0] = -vec.getY()/n*sign ;
+		ret[1] = vec.getX()/n*sign ;
 		return ret ;
 	}
 	
@@ -3623,8 +3492,8 @@ double Segment::norm() const
 std::valarray<std::pair<Point, double> > Segment::getGaussPoints(bool timeDependent) const
 {
 	std::valarray< std::pair<Point, double> > gp(2+2*timeDependent) ;
-	Point a( f.x*0.788675134594813+ s.x*(1.-0.788675134594813),f.y*0.788675134594813+ s.y*(1.-0.788675134594813)) ;
-	Point b( s.x*0.788675134594813+ f.x*(1.-0.788675134594813),s.y*0.788675134594813+ f.y*(1.-0.788675134594813)) ;
+	Point a( f.getX()*0.788675134594813+ s.getX()*(1.-0.788675134594813),f.getY()*0.788675134594813+ s.getY()*(1.-0.788675134594813)) ;
+	Point b( s.getX()*0.788675134594813+ f.getX()*(1.-0.788675134594813),s.getY()*0.788675134594813+ f.getY()*(1.-0.788675134594813)) ;
 //	double n = norm() ;
 	if(!timeDependent)
 	{
@@ -3633,10 +3502,10 @@ std::valarray<std::pair<Point, double> > Segment::getGaussPoints(bool timeDepend
 	}
 	else
 	{
-		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 1) ;
-		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 1) ;
-		gp[2] = std::pair<Point, double>(Point(a.x, a.y, a.z, 0.577350269189626), 1) ;
-		gp[3] = std::pair<Point, double>(Point(b.x, b.y, b.z, 0.577350269189626), 1) ;
+		gp[0] = std::pair<Point, double>(Point(a.getX(), a.getY(), a.getZ(), -0.577350269189626), 1) ;
+		gp[1] = std::pair<Point, double>(Point(b.getX(), b.getY(), b.getZ(), -0.577350269189626), 1) ;
+		gp[2] = std::pair<Point, double>(Point(a.getX(), a.getY(), a.getZ(), 0.577350269189626), 1) ;
+		gp[3] = std::pair<Point, double>(Point(b.getX(), b.getY(), b.getZ(), 0.577350269189626), 1) ;
 	}
 	return gp ;
 }
@@ -3655,21 +3524,21 @@ Segment::~Segment()
 
 void Segment::print() const 
 {
-	std::cout << "[ (" << f.x << ", " << f.y << ") ; (" << s.x << ", " << s.y << ") ]" << std::endl ;
+	std::cout << "[ (" << f.getX() << ", " << f.getY() << ") ; (" << s.getX() << ", " << s.getY() << ") ]" << std::endl ;
 }
 
 bool Segment::intersects(const Line & l) const
 {
-	if (std::abs(-vec.x*l.vector().y+l.vector().x*vec.y) <= std::numeric_limits<double>::epsilon())
+	if (std::abs(-vec.getX()*l.vector().getY()+l.vector().getX()*vec.getY()) <= std::numeric_limits<double>::epsilon())
 		return false ;
 	
 	Matrix m(2,2) ;
 	Vector vv(2) ;
 	
-	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;
-	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;
+	m[0][0] = vec.getX() ; m[0][1] = -l.vector().getX() ;
+	m[1][0] = vec.getY() ; m[1][1] = -l.vector().getY() ;
 	
-	vv[0] = l.origin().x - s.x ; vv[1] = l.origin().y - s.y ; 
+	vv[0] = l.origin().getX() - s.getX() ; vv[1] = l.origin().getY() - s.getY() ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -3701,11 +3570,11 @@ bool Segment::intersects(const Geometry *g) const
 				return true ;
 			
 			Point center(g->getCenter()) ;
-			center.t = s.t ;
+			center.getT() = s.getT() ;
 			Point proj = project(center) ;
 			if(g->in(proj)) { return true ; }
 			center = g->getCenter() ;
-			center.t = f.t ;
+			center.getT() = f.getT() ;
 			proj = project(center) ;
 			if(g->in(proj)) { return true ; }
 			return false ;
@@ -3902,14 +3771,14 @@ bool Segment::intersects(const TriPoint *g) const
 // 	if(isCoplanar(s, *g->point[0],*g->point[1],*g->point[2]))
 // 		return g->in(s) ;
 // 	Vector vec(3) ;
-// 	vec[0] = f.x - g->point[0]->x ;
-// 	vec[1] = f.y - g->point[0]->y ;
-// 	vec[2] = f.z - g->point[0]->z ;
+// 	vec[0] = f.getX() - g->point[0]->getX() ;
+// 	vec[1] = f.getY() - g->point[0]->getY() ;
+// 	vec[2] = f.getZ() - g->point[0]->getZ() ;
 // 
 // 	Matrix mat(3,3) ;
-// 	mat[0][0] = f.x-s.x; mat[0][1] = g->point[1]->x-g->point[0]->x; mat[0][2] = g->point[2]->x-g->point[0]->x; 
-// 	mat[1][0] = f.y-s.y; mat[1][1] = g->point[1]->y-g->point[0]->y; mat[1][2] = g->point[2]->y-g->point[0]->y; 
-// 	mat[2][0] = f.z-s.z; mat[2][1] = g->point[1]->z-g->point[0]->z; mat[2][2] = g->point[2]->z-g->point[0]->z; 
+// 	mat[0][0] = f.getX()-s.getX(); mat[0][1] = g->point[1]->getX()-g->point[0]->getX(); mat[0][2] = g->point[2]->getX()-g->point[0]->getX(); 
+// 	mat[1][0] = f.getY()-s.getY(); mat[1][1] = g->point[1]->getY()-g->point[0]->getY(); mat[1][2] = g->point[2]->getY()-g->point[0]->getY(); 
+// 	mat[2][0] = f.getZ()-s.getZ(); mat[2][1] = g->point[1]->getZ()-g->point[0]->getZ(); mat[2][2] = g->point[2]->getZ()-g->point[0]->getZ(); 
 // 	Vector tuv = inverse3x3Matrix(mat)*vec ;
 // 
 // 	return tuv.max() <=1 && tuv.min() >= 0 &&tuv[1] +tuv[2] <= 1  ;
@@ -4052,20 +3921,20 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case TIME_DEPENDENT_CIRCLE:
 		{
-			Circle c( dynamic_cast<const TimeDependentCircle *>(g)->radiusAtTime(s), g->getCenter().x, g->getCenter().y) ;
+			Circle c( dynamic_cast<const TimeDependentCircle *>(g)->radiusAtTime(s), g->getCenter().getX(), g->getCenter().getY()) ;
 			std::vector<Point> tmp = this->intersection(&c) ;
 			for(size_t i = 0 ; i < tmp.size() ; i++)
-				tmp[i].t = s.t ;
+				tmp[i].getT() = s.getT() ;
 			return tmp ;
 		}
 	case CIRCLE:
 		{
-			double a = vec.x*vec.x + vec.y*vec.y ;
+			double a = vec.getX()*vec.getX() + vec.getY()*vec.getY() ;
 			if(a < POINT_TOLERANCE_2D)
 				return std::vector<Point>(0) ;
-			double dx = s.x-g->getCenter().x ;
-			double dy = s.y-g->getCenter().y ;
-			double b = 2.*(dx*vec.x + dy*vec.y );
+			double dx = s.getX()-g->getCenter().getX() ;
+			double dy = s.getY()-g->getCenter().getY() ;
+			double b = 2.*(dx*vec.getX() + dy*vec.getY() );
 			double c = dx*dx + dy*dy -g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 			
@@ -4142,11 +4011,11 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 		}
 	case SPHERE:
 		{
-			double a = vec.x*vec.x + vec.y*vec.y + vec.z*vec.z;
-			double dx = s.x-g->getCenter().x ;
-			double dy = s.y-g->getCenter().y ;
-			double dz = s.z-g->getCenter().z ;
-			double b = 2.*(dx*vec.x + dy*vec.y + dz*vec.z);
+			double a = vec.getX()*vec.getX() + vec.getY()*vec.getY() + vec.getZ()*vec.getZ();
+			double dx = s.getX()-g->getCenter().getX() ;
+			double dy = s.getY()-g->getCenter().getY() ;
+			double dz = s.getZ()-g->getCenter().getZ() ;
+			double b = 2.*(dx*vec.getX() + dy*vec.getY() + dz*vec.getZ());
 			double c = dx*dx + dy*dy + dz*dz-g->getRadius()*g->getRadius() ;
 			double delta = b*b - 4.*a*c ;
 			
@@ -4194,12 +4063,12 @@ bool Segment::intersects(const Segment & l) const
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
-	if(std::abs(vec.x) < POINT_TOLERANCE_2D && std::abs(l.vector().x) < POINT_TOLERANCE_2D)
+	if(std::abs(vec.getX()) < POINT_TOLERANCE_2D && std::abs(l.vector().getX()) < POINT_TOLERANCE_2D)
 	{
 		return false ;
 	}	
 
-	if(std::abs(vec.y) < POINT_TOLERANCE_2D && std::abs(l.vector().y) < POINT_TOLERANCE_2D)
+	if(std::abs(vec.getY()) < POINT_TOLERANCE_2D && std::abs(l.vector().getY()) < POINT_TOLERANCE_2D)
 	{
 		return false ;
 	}
@@ -4208,10 +4077,10 @@ bool Segment::intersects(const Segment & l) const
 		return false ;
 	}
 
-	m[0][0] = -vec.x ; m[0][1] = l.vector().x ;
-	m[1][0] = -vec.y ; m[1][1] = l.vector().y ;
+	m[0][0] = -vec.getX() ; m[0][1] = l.vector().getX() ;
+	m[1][0] = -vec.getY() ; m[1][1] = l.vector().getY() ;
 
-	v[0] = -l.first().x + f.x ; v[1] = -l.first().y + f.y ; 
+	v[0] = -l.first().getX() + f.getX() ; v[1] = -l.first().getY() + f.getY() ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -4331,10 +4200,10 @@ Point Segment::intersection(const Line & l) const
 	Matrix m(2,2) ;
 	Vector v(2) ;
 	
-	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;
-	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;
+	m[0][0] = vec.getX() ; m[0][1] = -l.vector().getX() ;
+	m[1][0] = vec.getY() ; m[1][1] = -l.vector().getY() ;
 	
-	v[0] = l.origin().x - f.x ; v[1] = l.origin().y - f.y ; 
+	v[0] = l.origin().getX() - f.getX() ; v[1] = l.origin().getY() - f.getY() ; 
 	
 	invert2x2Matrix(m) ;
 	
@@ -4360,7 +4229,7 @@ double TriPoint::area() const
 
 Vector TriPoint::normalv() const
 {
-	Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
+	Vector ret(3) ; ret[0] = normal.getX() ; ret[1] = normal.getY() ;  ret[2] = normal.getZ() ;
 	return ret ;
 }
 	
@@ -4373,7 +4242,7 @@ Vector TriPoint::normalv(const Point & p) const
 	double n = normal.norm();
 	if(n > POINT_TOLERANCE_2D)
 	{
-		Vector ret(3) ; ret[0] = normal.x ; ret[1] = normal.y ;  ret[2] = normal.z ;
+		Vector ret(3) ; ret[0] = normal.getX() ; ret[1] = normal.getY() ;  ret[2] = normal.getZ() ;
 		return ret*sign ;
 	}
 	
@@ -4460,14 +4329,14 @@ std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDepen
 	}
 	else
 	{
-		gp[0] = std::pair<Point, double>(Point(a.x, a.y, a.z, -0.577350269189626), 0.260416666666667*ar) ;
-		gp[1] = std::pair<Point, double>(Point(b.x, b.y, b.z, -0.577350269189626), 0.260416666666667*ar) ;
-		gp[2] = std::pair<Point, double>(Point(c.x, c.y, c.z, -0.577350269189626), 0.260416666666667*ar) ;
-		gp[3] = std::pair<Point, double>(Point(d.x, d.y, d.z, -0.577350269189626), -0.28125*ar) ;
-		gp[4] = std::pair<Point, double>(Point(a.x, a.y, a.z, 0.577350269189626), 0.260416666666667*ar) ;
-		gp[5] = std::pair<Point, double>(Point(b.x, b.y, b.z, 0.577350269189626), 0.260416666666667*ar) ;
-		gp[6] = std::pair<Point, double>(Point(c.x, c.y, c.z, 0.577350269189626), 0.260416666666667*ar) ;
-		gp[7] = std::pair<Point, double>(Point(d.x, d.y, d.z, 0.577350269189626), -0.28125*ar) ;
+		gp[0] = std::pair<Point, double>(Point(a.getX(), a.getY(), a.getZ(), -0.577350269189626), 0.260416666666667*ar) ;
+		gp[1] = std::pair<Point, double>(Point(b.getX(), b.getY(), b.getZ(), -0.577350269189626), 0.260416666666667*ar) ;
+		gp[2] = std::pair<Point, double>(Point(c.getX(), c.getY(), c.getZ(), -0.577350269189626), 0.260416666666667*ar) ;
+		gp[3] = std::pair<Point, double>(Point(d.getX(), d.getY(), d.getZ(), -0.577350269189626), -0.28125*ar) ;
+		gp[4] = std::pair<Point, double>(Point(a.getX(), a.getY(), a.getZ(), 0.577350269189626), 0.260416666666667*ar) ;
+		gp[5] = std::pair<Point, double>(Point(b.getX(), b.getY(), b.getZ(), 0.577350269189626), 0.260416666666667*ar) ;
+		gp[6] = std::pair<Point, double>(Point(c.getX(), c.getY(), c.getZ(), 0.577350269189626), 0.260416666666667*ar) ;
+		gp[7] = std::pair<Point, double>(Point(d.getX(), d.getY(), d.getZ(), 0.577350269189626), -0.28125*ar) ;
 	}
 	
 	
@@ -4539,10 +4408,10 @@ Point Segment::intersection(const Segment &l) const
 	Matrix m(2,2) ;                                                                                                                                              
 	Vector v(2) ;                                                                                                                                                
                                                                                                                                                               
-	m[0][0] = vec.x ; m[0][1] = -l.vector().x ;                                                                                                                  
-	m[1][0] = vec.y ; m[1][1] = -l.vector().y ;                                                                                                                  
+	m[0][0] = vec.getX() ; m[0][1] = -l.vector().getX() ;                                                                                                                  
+	m[1][0] = vec.getY() ; m[1][1] = -l.vector().getY() ;                                                                                                                  
                                                                                                                                                               
-	v[0] = l.second().x - s.x ; v[1] = l.second().y - s.y ;                                                                                                        
+	v[0] = l.second().getX() - s.getX() ; v[1] = l.second().getY() - s.getY() ;                                                                                                        
                                                                                                                                                               
 	invert2x2Matrix(m) ;                                                                                                                                         
                                                                                                                                                               
@@ -4566,14 +4435,14 @@ std::vector<Point> Segment::intersection(const TriPoint &g) const
 		}
 
 	Vector vec(3) ;
-	vec[0] = f.x - g.point[0]->x ;
-	vec[1] = f.y - g.point[0]->y ;
-	vec[2] = f.z - g.point[0]->z ;
+	vec[0] = f.getX() - g.point[0]->getX() ;
+	vec[1] = f.getY() - g.point[0]->getY() ;
+	vec[2] = f.getZ() - g.point[0]->getZ() ;
 
 	Matrix mat(3,3) ;
-	mat[0][0] = f.x-s.x; mat[0][1] = g.point[1]->x-g.point[0]->x; mat[0][2] = g.point[2]->x-g.point[0]->x; 
-	mat[1][0] = f.y-s.y; mat[1][1] = g.point[1]->y-g.point[0]->y; mat[1][2] = g.point[2]->y-g.point[0]->y; 
-	mat[2][0] = f.z-s.z; mat[2][1] = g.point[1]->z-g.point[0]->z; mat[2][2] = g.point[2]->z-g.point[0]->z; 
+	mat[0][0] = f.getX()-s.getX(); mat[0][1] = g.point[1]->getX()-g.point[0]->getX(); mat[0][2] = g.point[2]->getX()-g.point[0]->getX(); 
+	mat[1][0] = f.getY()-s.getY(); mat[1][1] = g.point[1]->getY()-g.point[0]->getY(); mat[1][2] = g.point[2]->getY()-g.point[0]->getY(); 
+	mat[2][0] = f.getZ()-s.getZ(); mat[2][1] = g.point[1]->getZ()-g.point[0]->getZ(); mat[2][2] = g.point[2]->getZ()-g.point[0]->getZ(); 
 	Vector tuv = inverse3x3Matrix(mat)*vec ;
 	ret.push_back(f+ (s-f)*tuv[0]) ;
 	return ret ;
@@ -4586,9 +4455,9 @@ bool isInTriangle(const Point & test, const Point&  p0, const Point & p1, const 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, double norm) 
 {
-	Point frontier(f1.x*norm-f0.x*norm,f1.y*norm-f0.y*norm,f1.z*norm-f0.z*norm) ;
-	Point yes(witness.x*norm-f0.x*norm,witness.y*norm-f0.y*norm,witness.z*norm-f0.z*norm) ;
-	Point perhaps(test.x*norm-f0.x*norm,test.y*norm-f0.y*norm,test.z*norm-f0.z*norm) ;
+	Point frontier(f1.getX()*norm-f0.getX()*norm,f1.getY()*norm-f0.getY()*norm,f1.getZ()*norm-f0.getZ()*norm) ;
+	Point yes(witness.getX()*norm-f0.getX()*norm,witness.getY()*norm-f0.getY()*norm,witness.getZ()*norm-f0.getZ()*norm) ;
+	Point perhaps(test.getX()*norm-f0.getX()*norm,test.getY()*norm-f0.getY()*norm,test.getZ()*norm-f0.getZ()*norm) ;
 	return (frontier^yes).getZ()*(frontier^perhaps).getZ() > -POINT_TOLERANCE_2D ;
 }
 
@@ -4600,19 +4469,19 @@ bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2, double renorm) 
 {
-	Point f2test((f2.x-test.x)*renorm,(f2.y-test.y)*renorm,(f2.z-test.z)*renorm) ;
-	Point f1test((f1.x-test.x)*renorm,(f1.y-test.y)*renorm,(f1.z-test.z)*renorm) ;
-	Point f0test((f0.x-test.x)*renorm,(f0.y-test.y)*renorm,(f0.z-test.z)*renorm) ;
-	Point f2witness((f2.x-witness.x)*renorm,(f2.y-witness.y)*renorm,(f2.z-witness.z)*renorm) ;
-	Point f1witness((f1.x-witness.x)*renorm,(f1.y-witness.y)*renorm,(f1.z-witness.z)*renorm) ;
-	Point f0witness((f0.x-witness.x)*renorm,(f0.y-witness.y)*renorm,(f0.z-witness.z)*renorm) ;
-	return ((f2test.x*(f1test.y*f0test.z - f0test.y*f1test.z)-f2test.y*(f1test.x*f0test.z - f0test.x*f1test.z)+f2test.z*(f1test.x*f0test.y - f0test.x*f1test.y))*(f2witness.x*(f1witness.y*f0witness.z - f0witness.y*f1witness.z)-f2witness.y*(f1witness.x*f0witness.z - f0witness.x*f1witness.z)+f2witness.z*(f1witness.x*f0witness.y - f0witness.x*f1witness.y)) > 0) ;
+	Point f2test((f2.getX()-test.getX())*renorm,(f2.getY()-test.getY())*renorm,(f2.getZ()-test.getZ())*renorm) ;
+	Point f1test((f1.getX()-test.getX())*renorm,(f1.getY()-test.getY())*renorm,(f1.getZ()-test.getZ())*renorm) ;
+	Point f0test((f0.getX()-test.getX())*renorm,(f0.getY()-test.getY())*renorm,(f0.getZ()-test.getZ())*renorm) ;
+	Point f2witness((f2.getX()-witness.getX())*renorm,(f2.getY()-witness.getY())*renorm,(f2.getZ()-witness.getZ())*renorm) ;
+	Point f1witness((f1.getX()-witness.getX())*renorm,(f1.getY()-witness.getY())*renorm,(f1.getZ()-witness.getZ())*renorm) ;
+	Point f0witness((f0.getX()-witness.getX())*renorm,(f0.getY()-witness.getY())*renorm,(f0.getZ()-witness.getZ())*renorm) ;
+	return ((f2test.getX()*(f1test.getY()*f0test.getZ() - f0test.getY()*f1test.getZ())-f2test.getY()*(f1test.getX()*f0test.getZ() - f0test.getX()*f1test.getZ())+f2test.getZ()*(f1test.getX()*f0test.getY() - f0test.getX()*f1test.getY()))*(f2witness.getX()*(f1witness.getY()*f0witness.getZ() - f0witness.getY()*f1witness.getZ())-f2witness.getY()*(f1witness.getX()*f0witness.getZ() - f0witness.getX()*f1witness.getZ())+f2witness.getZ()*(f1witness.getX()*f0witness.getY() - f0witness.getX()*f1witness.getY())) > 0) ;
 }
 
 bool isOnTheSameSide(const Point * test, const Point * witness, const Point * f0, const Point * f1, const Point * f2, double renorm) 
 { 
 	return isOnTheSameSide(*test, *witness, *f0, *f1, *f2, renorm) ;
-// 	return (((f2->x-test->x)*((f1->y-test->y)*(f0->z-test->z) - (f0->y-test->y)*(f1->z-test->z))-(f2->y-test->y)*((f1->x-test->x)*(f0->z-test->z) - (f0->x-test->x)*(f1->z-test->z))+(f2->z-test->z)*((f1->x-test->x)*(f0->y-test->y) - (f0->x-test->x)*(f1->y-test->y)))*((f2->x-witness->x)*((f1->y-witness->y)*(f0->z-witness->z) - (f0->y-witness->y)*(f1->z-witness->z))-(f2->y-witness->y)*((f1->x-witness->x)*(f0->z-witness->z) - (f0->x-witness->x)*(f1->z-witness->z))+(f2->z-witness->z)*((f1->x-witness->x)*(f0->y-witness->y) - (f0->x-witness->x)*(f1->y-witness->y))) > 0) ;
+// 	return (((f2->getX()-test->getX())*((f1->getY()-test->getY())*(f0->getZ()-test->getZ()) - (f0->getY()-test->getY())*(f1->getZ()-test->getZ()))-(f2->getY()-test->getY())*((f1->getX()-test->getX())*(f0->getZ()-test->getZ()) - (f0->getX()-test->getX())*(f1->getZ()-test->getZ()))+(f2->getZ()-test->getZ())*((f1->getX()-test->getX())*(f0->getY()-test->getY()) - (f0->getX()-test->getX())*(f1->getY()-test->getY())))*((f2->getX()-witness->getX())*((f1->getY()-witness->getY())*(f0->getZ()-witness->getZ()) - (f0->getY()-witness->getY())*(f1->getZ()-witness->getZ()))-(f2->getY()-witness->getY())*((f1->getX()-witness->getX())*(f0->getZ()-witness->getZ()) - (f0->getX()-witness->getX())*(f1->getZ()-witness->getZ()))+(f2->getZ()-witness->getZ())*((f1->getX()-witness->getX())*(f0->getY()-witness->getY()) - (f0->getX()-witness->getX())*(f1->getY()-witness->getY()))) > 0) ;
 }
 
 double dist(const Point & v1, const Point & v2)
@@ -4624,7 +4493,7 @@ double dist(const Point & v1, const Point & v2)
 	temp = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	r.vec = _mm_dp_pd(temp, temp, 61) ;
 //	r.vec += _mm_dp_pd(temp, temp, 62) ;
-	double z = vi.veczt.z - v2.veczt.z ;
+	double z = vi.veczt.getZ() - v2.veczt.getZ() ;
 	return sqrt(r.val[0]+ r.val[1] + z*z);
 #elif defined HAVE_SSE3
 //	vecdouble rzt ;
@@ -4633,13 +4502,13 @@ double dist(const Point & v1, const Point & v2)
 // 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	rxy.vec = _mm_sub_pd(v1.vecxy, v2.vecxy) ;
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
-	double z = vi.veczt.z - v2.veczt.z ;
+	double z = vi.veczt.getZ() - v2.veczt.getZ() ;
 	return sqrt(z*z + rxy.val[0]+ rxy.val[1]);
 #else 
-	double x = v1.x-v2.x ;
-	double y = v1.y-v2.y ;
-	double z = v1.z-v2.z ;
-//	double t = v1.t-v2.t ;
+	double x = v1.getX()-v2.getX() ;
+	double y = v1.getY()-v2.getY() ;
+	double z = v1.getZ()-v2.getZ() ;
+//	double t = v1.getT()-v2.getT() ;
 	return sqrt(x*x+y*y+z*z) ;
 #endif
 }
@@ -4663,10 +4532,10 @@ double dist(const Point * v1, const Point * v2)
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
 	return sqrt(rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1]);
 #else 
-	double x = v1->x-v2->x ;
-	double y = v1->y-v2->y ;
-	double z = v1->z-v2->z ;
-	double t = v1->t-v2->t ;
+	double x = v1->getX()-v2->getX() ;
+	double y = v1->getY()-v2->getY() ;
+	double z = v1->getZ()-v2->getZ() ;
+	double t = v1->getT()-v2->getT() ;
 	return sqrt(x*x+y*y+z*z+t*t) ;
 #endif
 }
@@ -4692,10 +4561,10 @@ double squareDist(const  Point &v1, const Point & v2)
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
 	return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
 #else 
-	double x = v1.x-v2.x ;
-	double y = v1.y-v2.y ;
-	double z = v1.z-v2.z ;
-	double t = v1.t-v2.t ;
+	double x = v1.getX()-v2.getX() ;
+	double y = v1.getY()-v2.getY() ;
+	double z = v1.getZ()-v2.getZ() ;
+	double t = v1.getT()-v2.getT() ;
 	return x*x+y*y+z*z+t*t ;
 #endif
 }
@@ -4719,10 +4588,10 @@ double squareDist(const Point *v1, const Point *v2)
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
 	return rzt.val[0]+ rzt.val[1] + rxy.val[0]+ rxy.val[1] ;
 #else 
-	double x = v1->x-v2->x ;
-	double y = v1->y-v2->y ;
-	double z = v1->z-v2->z ;
-	double t = v1->t-v2->t ;
+	double x = v1->getX()-v2->getX() ;
+	double y = v1->getY()-v2->getY() ;
+	double z = v1->getZ()-v2->getZ() ;
+	double t = v1->getT()-v2->getT() ;
 	return x*x+y*y+z*z+t*t ;
 #endif
 }
@@ -4741,8 +4610,8 @@ double squareDist2D(const  Point &v1, const Point & v2)
 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	return rzt.val[0]+ rzt.val[1];
 #else 
-	double x = v1.x-v2.x ;
-	double y = v1.y-v2.y ;
+	double x = v1.getX()-v2.getX() ;
+	double y = v1.getY()-v2.getY() ;
 	return x*x+y*y ;
 #endif
 }
@@ -4761,8 +4630,8 @@ double squareDist2D(const Point *v1, const Point *v2)
 	rzt.vec = _mm_mul_pd(rzt.vec, rzt.vec) ;
 	return rzt.val[0]+ rzt.val[1] ;
 #else 
-	double x = v1->x-v2->x ;
-	double y = v1->y-v2->y ;
+	double x = v1->getX()-v2->getX() ;
+	double y = v1->getY()-v2->getY() ;
 	return x*x+y*y ;
 #endif
 }
@@ -4787,9 +4656,9 @@ double squareDist3D(const  Point &v1, const Point & v2)
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
 	return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
 #else 
-	double x = v1.x-v2.x ;
-	double y = v1.y-v2.y ;
-	double z = v1.z-v2.z ;
+	double x = v1.getX()-v2.getX() ;
+	double y = v1.getY()-v2.getY() ;
+	double z = v1.getZ()-v2.getZ() ;
 	return x*x+y*y+z*z ;
 #endif
 }
@@ -4816,9 +4685,9 @@ double squareDist3D(const Point *v1, const Point *v2)
 	rxy.vec = _mm_mul_pd(rxy.vec, rxy.vec) ;
 	return rzt.val[0]/*+ rzt.val[1]*/ + rxy.val[0]+ rxy.val[1] ;
 #else 
-	double x = v1->x-v2->x ;
-	double y = v1->y-v2->y ;
-	double z = v1->z-v2->z ;
+	double x = v1->getX()-v2->getX() ;
+	double y = v1->getY()-v2->getY() ;
+	double z = v1->getZ()-v2->getZ() ;
 	return x*x+y*y+z*z ;
 #endif
 }
@@ -4829,10 +4698,10 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	Point *pivot = (*points)[0]  ;
 	for(size_t i = 1 ; i < points->size() ; i++)
 	{
-		if (pivot->y < (*points)[i]->y)
+		if (pivot->getY() < (*points)[i]->getY())
 			pivot = (*points)[i] ;
 	}
-	std::cout << "pivot = " << pivot->x << ", " << pivot->y << std::endl ;
+	std::cout << "pivot = " << pivot->getX() << ", " << pivot->getY() << std::endl ;
 	
 	//!then we build a map ordered by the angle to the pivot.
 	
@@ -4842,7 +4711,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	{
 		if ((*(*points)[i]) != (*pivot))
 		{
-			double angle = atan2(pivot->y-(*points)[i]->y, pivot->x-(*points)[i]->x) ;
+			double angle = atan2(pivot->getY()-(*points)[i]->getY(), pivot->getX()-(*points)[i]->getX()) ;
 			
 			if(pointSet.find(angle) != pointSet.end())
 			{
@@ -4866,7 +4735,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	
 	for(auto i = pointSet.begin() ; i!= pointSet.end() ; ++i)
 	{
-		std::cout << "point " <<  i->second->x << ", " <<  i->second->y << std::endl ;
+		std::cout << "point " <<  i->second->getX() << ", " <<  i->second->getY() << std::endl ;
 		orderedset.push_back(i->second) ;
 	}
 	
@@ -4876,27 +4745,27 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	for(auto i = orderedset.begin()+2 ; i != orderedset.end() ; ++i)
 	{
 		for(size_t j = 0 ; j < temphull.size() ; j++)
-			std::cout << "(" << temphull[j]->x << ", " << temphull[j]->y << ")" << std::endl ;
+			std::cout << "(" << temphull[j]->getX() << ", " << temphull[j]->getY() << ")" << std::endl ;
 		
 		//! this is a usual cross product of two vectors...
-		if(  ((*i)->y - (*temphull.rbegin())->y)*((*temphull.rbegin())->x - temphull[temphull.size()-2]->x ) - 
-		     ((*i)->x - (*temphull.rbegin())->x)*((*temphull.rbegin())->y - temphull[temphull.size()-2]->y ) > 
+		if(  ((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) - 
+		     ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) > 
 		     1e-6 )
 		{
 			temphull.push_back(*i) ;
-			std::cout << "new point in hull = " <<  (*i)->x << ", " <<  (*i)->y << std::endl ;
+			std::cout << "new point in hull = " <<  (*i)->getX() << ", " <<  (*i)->getY() << std::endl ;
 		}	
 		else
 		{
-			while( !(((*i)->y - (*temphull.rbegin())->y)*((*temphull.rbegin())->x - temphull[temphull.size()-2]->x ) - 
-			         ((*i)->x - (*temphull.rbegin())->x)*((*temphull.rbegin())->y -temphull[temphull.size()-2]->y ) > 
+			while( !(((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) - 
+			         ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() -temphull[temphull.size()-2]->getY() ) > 
 			         1e-6))
 			{
-				std::cout << "out of the hull = " <<  (*temphull.rbegin())->x << ", " <<  (*temphull.rbegin())->y << std::endl ;
+				std::cout << "out of the hull = " <<  (*temphull.rbegin())->getX() << ", " <<  (*temphull.rbegin())->getY() << std::endl ;
 				temphull.pop_back();
 			}
 			temphull.push_back(*i) ;
-			std::cout << "new point in hull = " <<  (*i)->x << ", " <<  (*i)->y << std::endl ;
+			std::cout << "new point in hull = " <<  (*i)->getX() << ", " <<  (*i)->getY() << std::endl ;
 		}
 		
 		
@@ -4907,7 +4776,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
 	std::copy(temphull.begin(), temphull.end(),hull->begin()) ;
 	
 	for(size_t i = 0 ; i < hull->size() ; i++)
-		std::cout << "(" << (*hull)[i]->x << ", " << (*hull)[i]->y << ")" << std::endl ;
+		std::cout << "(" << (*hull)[i]->getX() << ", " << (*hull)[i]->getY() << ")" << std::endl ;
 	
 	return hull ;
 } 
@@ -4968,34 +4837,22 @@ OrientableCircle::OrientableCircle()
 	this->radius = 1 ;
 }
 
-XMLTree * OrientableCircle::toXML() const
-{
-	XMLTree * circle = new XMLTree("circle") ;
-	XMLTree * c = new XMLTree("center") ;
-	c->addChild(this->getCenter().toXML()) ;
-	XMLTree * n = new XMLTree("normal") ;
-	n->addChild(normal.toXML()) ;
-	circle->addChild(c) ;
-	circle->addChild(n) ;
-	circle->addChild(new XMLTree("radius",radius)) ;
-	return circle ;
-}
 
 std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points) const
 {
-	Vector start(3) ; start[0] = -normal.y*radius ;  start[1] = normal.x*radius ;  start[2] = 0 ; 
+	Vector start(3) ; start[0] = -normal.getY()*radius ;  start[1] = normal.getX()*radius ;  start[2] = 0 ; 
 	std::vector<Point> ret ;
 	if(num_points == 0)
 		return ret ;
 	
 	if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]))
 	{
-		start[0] = 0 ;  start[1] = normal.z*radius ;  start[2] = -normal.y*radius ; 
+		start[0] = 0 ;  start[1] = normal.getZ()*radius ;  start[2] = -normal.getY()*radius ; 
 	}
 	
 	if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
 	{
-		start[0] = normal.z*radius ;  start[1] = 0 ;  start[2] = -normal.x*radius ; 
+		start[0] = normal.getZ()*radius ;  start[1] = 0 ;  start[2] = -normal.getX()*radius ; 
 	}
 	
 	
@@ -5003,9 +4860,9 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
 	
 	double q0 = cos(t) ; 
 	double st = sin(t) ;
-	double q1 = st * normal.x ;
-	double q2 = st * normal.y ;
-	double q3 = st * normal.z ;
+	double q1 = st * normal.getX() ;
+	double q2 = st * normal.getY() ;
+	double q3 = st * normal.getZ() ;
 	
 	Matrix R(3,3) ;
 	
@@ -5017,9 +4874,9 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
 	for(size_t i = 0 ; i < num_points ; i++)
 	{
 		start=R*start ;
-		ret.push_back(Point( start[0] + center.x,
-		                     start[1] + center.y, 
-		                     start[2] + center.z)) ;
+		ret.push_back(Point( start[0] + center.getX(),
+		                     start[1] + center.getY(), 
+		                     start[2] + center.getZ())) ;
 	}
 	
 	return ret ;
@@ -5030,16 +4887,16 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 	if(num_points == 0)
 		return ;
 	
-	Vector start(3) ; start[0] = -normal.y*radius ;  start[1] = normal.x*radius ;  start[2] = 0 ; 
+	Vector start(3) ; start[0] = -normal.getY()*radius ;  start[1] = normal.getX()*radius ;  start[2] = 0 ; 
 	
 	if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]))
 	{
-		start[0] = 0 ;  start[1] = normal.z*radius ;  start[2] = -normal.y*radius ; 
+		start[0] = 0 ;  start[1] = normal.getZ()*radius ;  start[2] = -normal.getY()*radius ; 
 	}
 	
 	if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
 	{
-		start[0] = normal.z*radius ;  start[1] = 0 ;  start[2] = -normal.x*radius ; 
+		start[0] = normal.getZ()*radius ;  start[1] = 0 ;  start[2] = -normal.getX()*radius ; 
 	}
 	
 	
@@ -5047,9 +4904,9 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 		
 	double q0 = cos(t) ; 
 	double st = sin(t) ;
-	double q1 = st * normal.x ;
-	double q2 = st * normal.y ;
-	double q3 = st * normal.z ;
+	double q1 = st * normal.getX() ;
+	double q2 = st * normal.getY() ;
+	double q3 = st * normal.getZ() ;
 		
 	Matrix R(3,3) ;
 		
@@ -5061,9 +4918,9 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
 	for(size_t i = 0 ; i < num_points ; i++)
 	{
 		start=R*start ;
-		boundingPoints[i] = new Point( start[0] + center.x,
-		                           start[1] + center.y, 
-		                           start[2] + center.z) ;
+		boundingPoints[i] = new Point( start[0] + center.getX(),
+		                           start[1] + center.getY(), 
+		                           start[2] + center.getZ()) ;
 	}
 	
 }
@@ -5087,24 +4944,24 @@ void OrientableCircle::sampleSurface(size_t num_points)
 		if(nPoints < 3)
 			break ;
 		
-		Vector start(3) ; start[0] = -normal.y*rad ;  start[1] = normal.x*rad ;  start[2] = 0 ; 
+		Vector start(3) ; start[0] = -normal.getY()*rad ;  start[1] = normal.getX()*rad ;  start[2] = 0 ; 
 		
 		if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
 		{
-			start[0] = 0 ;  start[1] = normal.z*rad ;  start[2] = -normal.y*rad ; 
+			start[0] = 0 ;  start[1] = normal.getZ()*rad ;  start[2] = -normal.getY()*rad ; 
 		}
 		
 		if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
 		{
-			start[0] = normal.z*rad ;  start[1] = 0 ;  start[2] = -normal.x*rad ; 
+			start[0] = normal.getZ()*rad ;  start[1] = 0 ;  start[2] = -normal.getX()*rad ; 
 		}
 		
 		double t = (1./(double)nPoints)*M_PI ;
 		double st = sin(t) ;
 		double q0 = cos(t) ; 
-		double q1 = st * normal.x ;
-		double q2 = st * normal.y ;
-		double q3 = st * normal.z ;
+		double q1 = st * normal.getX() ;
+		double q2 = st * normal.getY() ;
+		double q3 = st * normal.getZ() ;
 		
 		Matrix R(3,3) ;
 		
@@ -5115,9 +4972,9 @@ void OrientableCircle::sampleSurface(size_t num_points)
 		for(size_t i = 0 ; i < nPoints ; i++)
 		{
 			start=R*start ;
-			toAdd.push_back( Point( start[0] + center.x,
-			                        start[1] + center.y, 
-			                        start[2] + center.z)) ;
+			toAdd.push_back( Point( start[0] + center.getX(),
+			                        start[1] + center.getY(), 
+			                        start[2] + center.getZ())) ;
 		}
 		rad -= dr ;
 	}
@@ -5199,11 +5056,11 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 //		return false ;
 
 //	Point centre ;
-	Point centre(test.x+f0.x+f1.x, test.y+f0.y+f1.y, test.z+f0.z+f1.z) ;
+	Point centre(test.getX()+f0.getX()+f1.getX(), test.getY()+f0.getY()+f1.getY(), test.getZ()+f0.getZ()+f1.getZ()) ;
 	centre *=.3333333333333333333333333 ;
-	Point f0_(f0.x-centre.x, f0.y-centre.y, f0.z-centre.z) ;
-	Point f1_(f1.x-centre.x, f1.y-centre.y, f1.z-centre.z) ;
-	Point test_(test.x-centre.x, test.y-centre.y, test.z-centre.z) ;
+	Point f0_(f0.getX()-centre.getX(), f0.getY()-centre.getY(), f0.getZ()-centre.getZ()) ;
+	Point f1_(f1.getX()-centre.getX(), f1.getY()-centre.getY(), f1.getZ()-centre.getZ()) ;
+	Point test_(test.getX()-centre.getX(), test.getY()-centre.getY(), test.getZ()-centre.getZ()) ;
 	double scale = sqrt(4.*POINT_TOLERANCE_2D/(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
 	f0_   *= scale ;
 	f1_   *= scale ;
@@ -5211,23 +5068,23 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 //	if (std::abs(signedAlignement(test_, f0_, f1_)) > 2.*POINT_TOLERANCE)
 //		return false ;
 
-	double na = sqrt((f0_.x-f1_.x)*(f0_.x-f1_.x)+(f0_.y-f1_.y)*(f0_.y-f1_.y)+(f0_.z-f1_.z)*(f0_.z-f1_.z)) ;
-	double nb = sqrt((f0_.x-test_.x)*(f0_.x-test_.x)+(f0_.y-test_.y)*(f0_.y-test_.y)+(f0_.z-test_.z)*(f0_.z-test_.z)) ;
-	double nc = sqrt((f1_.x-test_.x)*(f1_.x-test_.x)+(f1_.y-test_.y)*(f1_.y-test_.y)+(f1_.z-test_.z)*(f1_.z-test_.z)) ;
+	double na = sqrt((f0_.getX()-f1_.getX())*(f0_.getX()-f1_.getX())+(f0_.getY()-f1_.getY())*(f0_.getY()-f1_.getY())+(f0_.getZ()-f1_.getZ())*(f0_.getZ()-f1_.getZ())) ;
+	double nb = sqrt((f0_.getX()-test_.getX())*(f0_.getX()-test_.getX())+(f0_.getY()-test_.getY())*(f0_.getY()-test_.getY())+(f0_.getZ()-test_.getZ())*(f0_.getZ()-test_.getZ())) ;
+	double nc = sqrt((f1_.getX()-test_.getX())*(f1_.getX()-test_.getX())+(f1_.getY()-test_.getY())*(f1_.getY()-test_.getY())+(f1_.getZ()-test_.getZ())*(f1_.getZ()-test_.getZ())) ;
 	
 	if(na >= nb && na >= nc)
 	{
-		Line l(f0_,Point((f1_.x-f0_.x)/na,(f1_.y-f0_.y)/na,(f1_.z-f0_.z)/na)) ;
+		Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
 		Sphere s(POINT_TOLERANCE_2D, test_) ;
 		return l.intersects(&s) ;
 	}
 	if(nb >= na && nb >= nc)
 	{
-		Line l(f0_,Point((test_.x-f0_.x)/nb,(test_.y-f0_.y)/nb,(test_.z-f0_.z)/nb)) ;
+		Line l(f0_,Point((test_.getX()-f0_.getX())/nb,(test_.getY()-f0_.getY())/nb,(test_.getZ()-f0_.getZ())/nb)) ;
 		Sphere s(POINT_TOLERANCE_2D, f1_) ;
 		return l.intersects(&s) ;
 	}
-	Line l(f1_,Point((test_.x-f1_.x)/nc,(test_.y-f1_.y)/nc,(test_.z-f1_.z)/nc)) ;
+	Line l(f1_,Point((test_.getX()-f1_.getX())/nc,(test_.getY()-f1_.getY())/nc,(test_.getZ()-f1_.getZ())/nc)) ;
 	Sphere s(POINT_TOLERANCE_2D, f0_) ;
 	return l.intersects(&s) ;
 } 
@@ -5242,13 +5099,13 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 {
 	int count = 0 ;
 	Point centre = (**(pts)+f0+f1+f2)*.25 ;
-	Point normal = (Point(f1.x-f0.x,f1.y-f0.y,f1.z-f0.z)^Point(f2.x-f0.x,f2.y-f0.y,f2.z-f0.z))*renorm ;
+	Point normal = (Point(f1.getX()-f0.getX(),f1.getY()-f0.getY(),f1.getZ()-f0.getZ())^Point(f2.getX()-f0.getX(),f2.getY()-f0.getY(),f2.getZ()-f0.getZ()))*renorm ;
 	
-	Point f0_(f0.x*renorm-centre.x*renorm,f0.y*renorm-centre.y*renorm,f0.z*renorm-centre.z*renorm) ;
-	Point f1_(f1.x*renorm-centre.x*renorm,f1.y*renorm-centre.y*renorm,f1.z*renorm-centre.z*renorm) ;
-	Point f2_(f2.x*renorm-centre.x*renorm,f2.y*renorm-centre.y*renorm,f2.z*renorm-centre.z*renorm) ;
+	Point f0_(f0.getX()*renorm-centre.getX()*renorm,f0.getY()*renorm-centre.getY()*renorm,f0.getZ()*renorm-centre.getZ()*renorm) ;
+	Point f1_(f1.getX()*renorm-centre.getX()*renorm,f1.getY()*renorm-centre.getY()*renorm,f1.getZ()*renorm-centre.getZ()*renorm) ;
+	Point f2_(f2.getX()*renorm-centre.getX()*renorm,f2.getY()*renorm-centre.getY()*renorm,f2.getZ()*renorm-centre.getZ()*renorm) ;
 	
-	Point AB = Point(f0_.x-f1_.x,f0_.y-f1_.y,f0_.z-f1_.z)^Point(f2_.x-f1_.x,f2_.y-f1_.y,f2_.z-f1_.z) ;
+	Point AB = Point(f0_.getX()-f1_.getX(),f0_.getY()-f1_.getY(),f0_.getZ()-f1_.getZ())^Point(f2_.getX()-f1_.getX(),f2_.getY()-f1_.getY(),f2_.getZ()-f1_.getZ()) ;
 	for(size_t i = 0 ; i < numpoints ; i++)
 	{
 		Point test_(**(pts+i)*renorm-centre*renorm) ;
@@ -5263,8 +5120,8 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 		if(c0*c0 > POINT_TOLERANCE_3D)
 			continue ;
 		
-		double c1 = AB.x*(f2_.x-test_.x-normal.x)+AB.y*(f2_.y-test_.y-normal.y)+AB.z*(f2_.z-test_.z-normal.z) ;
-		double c2 = AB.x*(f2_.x-test_.x+normal.x)+AB.y*(f2_.y-test_.y+normal.y)+AB.z*(f2_.z-test_.z+normal.z) ; 
+		double c1 = AB.getX()*(f2_.getX()-test_.getX()-normal.getX())+AB.getY()*(f2_.getY()-test_.getY()-normal.getY())+AB.getZ()*(f2_.getZ()-test_.getZ()-normal.getZ()) ;
+		double c2 = AB.getX()*(f2_.getX()-test_.getX()+normal.getX())+AB.getY()*(f2_.getY()-test_.getY()+normal.getY())+AB.getZ()*(f2_.getZ()-test_.getZ()+normal.getZ()) ; 
 
 		bool positive = c0 > 0 || c1 > 0 || c2 > 0 ;
 		bool negative = c0 < 0 || c1 < 0 || c2 < 0 ;
@@ -5279,10 +5136,10 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 {
 
 	Point centre = (test+f0+f1+f2)*.25 ;
-	Point f0_(f0.x*renorm-centre.x*renorm,f0.y*renorm-centre.y*renorm,f0.z*renorm-centre.z*renorm) ;
-	Point f1_(f1.x*renorm-centre.x*renorm,f1.y*renorm-centre.y*renorm,f1.z*renorm-centre.z*renorm) ;
-	Point f2_(f2.x*renorm-centre.x*renorm,f2.y*renorm-centre.y*renorm,f2.z*renorm-centre.z*renorm) ;
-	Point test_(test.x*renorm-centre.x*renorm,test.y*renorm-centre.y*renorm,test.z*renorm-centre.z*renorm) ;
+	Point f0_(f0.getX()*renorm-centre.getX()*renorm,f0.getY()*renorm-centre.getY()*renorm,f0.getZ()*renorm-centre.getZ()*renorm) ;
+	Point f1_(f1.getX()*renorm-centre.getX()*renorm,f1.getY()*renorm-centre.getY()*renorm,f1.getZ()*renorm-centre.getZ()*renorm) ;
+	Point f2_(f2.getX()*renorm-centre.getX()*renorm,f2.getY()*renorm-centre.getY()*renorm,f2.getZ()*renorm-centre.getZ()*renorm) ;
+	Point test_(test.getX()*renorm-centre.getX()*renorm,test.getY()*renorm-centre.getY()*renorm,test.getZ()*renorm-centre.getZ()*renorm) ;
 	
 	if(test_ == f1_)
 		return true ;
@@ -5296,11 +5153,11 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	if(c02 > POINT_TOLERANCE_3D)
 		return false ;
 
-	Point normal = Point(f1_.x-f0_.x,f1_.y-f0_.y,f1_.z-f0_.z)^Point(f2_.x-f0_.x,f2_.y-f0_.y,f2_.z-f0_.z) ;
+	Point normal = Point(f1_.getX()-f0_.getX(),f1_.getY()-f0_.getY(),f1_.getZ()-f0_.getZ())^Point(f2_.getX()-f0_.getX(),f2_.getY()-f0_.getY(),f2_.getZ()-f0_.getZ()) ;
 //	normal /= scale ;
 	
-	Point a(test_.x+normal.x,test_.y+normal.y,test_.z+normal.z) ; 
-	Point b(test_.x-normal.x,test_.y-normal.y,test_.z-normal.z) ; 
+	Point a(test_.getX()+normal.getX(),test_.getY()+normal.getY(),test_.getZ()+normal.getZ()) ; 
+	Point b(test_.getX()-normal.getX(),test_.getY()-normal.getY(),test_.getZ()-normal.getZ()) ; 
 
 	double c1 = signedCoplanarity(a, f0_, f1_, f2_) ;
 	double c2 = signedCoplanarity(b, f0_, f1_, f2_) ;

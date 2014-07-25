@@ -12,7 +12,6 @@
 
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
-#include "../utilities/xml.h"
 #include "../physics/homogenization/homogenization_base.h"
 
 namespace Mu
@@ -349,15 +348,17 @@ struct GaussPointArray
 {
 	std::valarray< std::pair<Point, double> > gaussPoints ;
 	int id ;
+	int & getId() {return id ;} 
+	const int & getId() const {return id ;} 
 	GaussPointArray() : gaussPoints(std::make_pair(Point(), 1.),1), id(-2) { } ;
 	GaussPointArray(const std::pair<Point, double> & p) : gaussPoints(p, 1), id(-2) { } ;
-	GaussPointArray(const GaussPointArray & gp) : gaussPoints(gp.gaussPoints), id(gp.id) { } ;
+	GaussPointArray(const GaussPointArray & gp) : gaussPoints(gp.gaussPoints), id(gp.getId()) { } ;
 	GaussPointArray(const std::valarray< std::pair<Point, double> > & array, int i): gaussPoints(array), id(i) { } ;
 	void operator = (const GaussPointArray & gp) 
 	{
 		gaussPoints.resize(gp.gaussPoints.size()) ; 
 		gaussPoints = gp.gaussPoints ; 
-		id = gp.id ;
+		id = gp.getId() ;
 	}
 } ;
 
@@ -500,8 +501,6 @@ public:
 	{
 		return &extra3dMeshes ;
 	}
-	
-	virtual XMLTree * toXML() {return new XMLTree("abstract form") ; } ;
 	
 	virtual bool timeDependent() const
 	{
