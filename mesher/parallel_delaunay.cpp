@@ -91,28 +91,69 @@ void ParallelDelaunayTree::insert(Point * p)
 		}
 		
 		meshes[i]->neighbourhood = false ;
-		bool allout= true ;
 		
-		for(size_t j = 0 ; j < cons.size() ; j++)
+		if(!domains[i]->in(*p))
 		{
-			if(cons[j]->isVertex(p)) 
+			bool allout = true ;
+			for(size_t j = 0 ; j < cons.size() ; j++)
 			{
-				continue ;
-			}
-			
-			if(!allout)
-			{
-				allout = allout && !domains[i]->in(*cons[j]->first) && !domains[i]->in(*cons[j]->second) && !domains[i]->in(*cons[j]->third) ;
+				if(domains[i]->in(*cons[j]->first) || domains[i]->in(*cons[j]->second) || domains[i]->in(*cons[j]->third))
+					allout = false ;
+				
 				for(size_t k = 0 ; k < cons[j]->neighbour.size() ; k++)
 				{
 					if(domains[i]->in(*cons[j]->getNeighbour(k)->first) || domains[i]->in(*cons[j]->getNeighbour(k)->second) || domains[i]->in(*cons[j]->getNeighbour(k)->third) )
 						allout = false ;
 				}
+				
+				if(cons[j]->father)
+				{
+					for(size_t k = 0 ; k < cons[j]->getFather()->son.size() ; k++)
+					{
+						if(domains[i]->in(*cons[j]->getFather()->getSon(k)->first) || 
+							domains[i]->in(*cons[j]->getFather()->getSon(k)->second) || 
+							domains[i]->in(*cons[j]->getFather()->getSon(k)->third) )
+							allout = false ;
+					}
+					for(size_t k = 0 ; k < cons[j]->getFather()->stepson.size() ; k++)
+					{
+						if(domains[i]->in(*cons[j]->getFather()->getStepson(k)->first) || 
+							domains[i]->in(*cons[j]->getFather()->getStepson(k)->second) || 
+							domains[i]->in(*cons[j]->getFather()->getStepson(k)->third) )
+							allout = false ;
+					}
+				}
+				
+				if(cons[j]->stepfather)
+				{
+					for(size_t k = 0 ; k < cons[j]->getStepfather()->son.size() ; k++)
+					{
+						if(cons[j]->getStepfather()->getSon(k))
+						{
+							if(domains[i]->in(*cons[j]->getStepfather()->getSon(k)->first) || 
+								domains[i]->in(*cons[j]->getStepfather()->getSon(k)->second) || 
+								domains[i]->in(*cons[j]->getStepfather()->getSon(k)->third) )
+								allout = false ;
+						}
+					}
+					for(size_t k = 0 ; k < cons[j]->getFather()->stepson.size() ; k++)
+					{
+						if(cons[j]->getStepfather()->getStepson(k))
+						{
+							if(domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->first) || 
+								domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->second) || 
+								domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->third) )
+								allout = false ;
+						}
+					}
+				}
+				
+				if(allout)
+				{
+					continue ;
+				}
 			}
 		}
-		
-		if(allout)
-			continue ;
 		
 		Star * s = new Star(&cons, p) ;
 		
@@ -155,18 +196,18 @@ void ParallelDelaunayTree::insert(Point * p)
 
 		for(size_t j = 0 ; j < ret.size() ; j++)
 		{
-			ret[i]->clearVisited() ;
+			ret[j]->clearVisited() ;
 
 		}
 		for(size_t j = 0 ; j < cons.size() ; j++)
 		{
-			cons[i]->clearVisited() ;
+			cons[j]->clearVisited() ;
 		}
 		
-		for(size_t j = 0 ; i < cons.size() ; j++)
+		for(size_t j = 0 ; j < cons.size() ; j++)
 		{
-			if(!cons[i]->onCircumCircle(*p))
-				cons[i]->kill(p) ;
+			if(!cons[j]->onCircumCircle(*p))
+				cons[j]->kill(p) ;
 		}
 		std::vector<DelaunayDemiPlane *> * hull = meshes[i]->getConvexHull() ;
 		meshes[i]->plane.clear() ;
@@ -208,7 +249,10 @@ void ParallelDelaunayTree::insert(Point * p)
 				{
 					for(size_t l = 0 ; l < newElems[k].size() ; l++)
 					{
-						if(*newElems[i][j]->first == *newElems[k][l]->first && *newElems[i][j]->second == *newElems[k][l]->second && *newElems[i][j]->third == *newElems[k][l]->third)
+						if(*newElems[i][j]->first == *newElems[k][l]->first && 
+							*newElems[i][j]->second == *newElems[k][l]->second && 
+							*newElems[i][j]->third == *newElems[k][l]->third&& 
+							elementMap[i][newElems[i][j]->index] >= 0)
 							elementMap[i][newElems[i][j]->index] *= -1 ;
 					}
 				}

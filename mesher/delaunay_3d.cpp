@@ -1092,9 +1092,19 @@ DelaunayTreeItem3D *DelaunayTreeItem3D::getSon( size_t i ) const
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getStepson( size_t i ) const
 {
-	return tree->getInTree(stepson[i]) ;
+	if(i < stepson.size())
+		return tree->getInTree(stepson[i]) ;
+	return nullptr ;
 }
 
+DelaunayTreeItem3D * DelaunayTreeItem3D::getFather() const 
+{
+	return tree->getInTree(father) ;
+}
+DelaunayTreeItem3D * DelaunayTreeItem3D::getStepfather() const
+{
+	return tree->getInTree(stepfather) ;
+}
 
 void DelaunayTreeItem3D::erase( const Point *p )
 {

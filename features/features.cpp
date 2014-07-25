@@ -6762,8 +6762,8 @@ void FeatureTree::generateElements()
 
 
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * oldDtree = dtree3D ;
-
-		dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first ) ;
+		
+		dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
 		dtree3D->insert( meshPoints[4].first ) ;
 		dtree3D->insert( meshPoints[5].first ) ;
 		dtree3D->insert( meshPoints[6].first ) ;

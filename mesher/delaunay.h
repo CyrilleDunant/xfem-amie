@@ -68,6 +68,9 @@ public:
 	DelaunayTreeItem * getNeighbour(size_t i) const ; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	DelaunayTreeItem * getSon(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	DelaunayTreeItem * getStepson(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem * getFather() const ;
+	DelaunayTreeItem * getStepfather() const;
+	
 	//! Constructor, takes the father and creator point as arguments
 	/*! \a father is the father. Needed for the maintenance of the tree.
 		\a c is the Creator Point. It is useful when building neighbourhood relationships. Also, it allowfor the removal of elements from the tree.

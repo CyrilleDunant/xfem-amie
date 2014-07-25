@@ -1064,7 +1064,18 @@ DelaunayTreeItem * DelaunayTreeItem::getSon(size_t i) const
 
 DelaunayTreeItem * DelaunayTreeItem::getStepson(size_t i) const
 {
-	return tree->getInTree(stepson[i]) ;
+	if(i < stepson.size())
+		return tree->getInTree(stepson[i]) ;
+	return nullptr ;
+}
+
+DelaunayTreeItem * DelaunayTreeItem::getFather() const 
+{
+	return father ;
+}
+DelaunayTreeItem * DelaunayTreeItem::getStepfather() const
+{
+	return stepfather ;
 }
 
 void DelaunayTreeItem::addStepson(DelaunayTreeItem * s)

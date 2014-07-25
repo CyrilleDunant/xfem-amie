@@ -32,6 +32,7 @@ namespace Mu
 class Star3D ;
 class DelaunayTetrahedron ;
 class DelaunayTree3D ;
+class ParallelDelaunayTree3D ;
 
 /*! \brief Base class of the delaunay tree. 
 
@@ -101,6 +102,9 @@ public:
 	DelaunayTreeItem3D * getNeighbour(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	DelaunayTreeItem3D * getSon(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
 	DelaunayTreeItem3D * getStepson(size_t i) const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem3D * getFather() const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	DelaunayTreeItem3D * getStepfather() const; //!< Accessor. returns the i<sup>th</sup> Neighbour. Safe
+	
 	
 	virtual void kill(const Point * p) ; //!< kill and update the neighbourhood (livings do not neighbour the deads).
 	virtual void erase(const Point * p) ;//!< kill and don't update the neighbourhood (do not use).
@@ -134,6 +138,8 @@ public:
 	virtual void print() const = 0 ;
 
 	virtual bool normalisedIn( const Point & p) const  = 0;
+	
+	virtual double getRadius() const = 0 ;
 	
 	size_t numberOfCommonVertices(const DelaunayTreeItem3D * s) const;
 	
@@ -240,7 +246,7 @@ public:
 	{
 		return isOnTheSameSide( &p, third, first, second, fourth, tree->getInternalScale()) ;
 	}
-
+	virtual double getRadius() const {return 1./1e14 ; } ;
 
 	virtual void print() const;
 
@@ -305,6 +311,8 @@ public:
 	{
 		return true ;
 	}
+	
+	virtual double getRadius() const {return 0 ; } ;
 } ;
 
 
@@ -337,6 +345,7 @@ public:
 class DelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
 friend class FeatureTree ;
+friend class ParallelDelaunayTree3D ;
 friend class Geometry ;
 	
 std::valarray<bool> visitedItems ;
@@ -387,7 +396,9 @@ public:
 	
 	virtual DelaunayTreeItem3D * getInTree(int index) 
 	{
-		return tree[std::abs(index)] ;
+		if(std::abs(index) < tree.size())
+			return tree[std::abs(index)] ;
+		return nullptr ;
 	}
 	
 // 	virtual std::vector<DelaunayTreeItem3D *> & getTree() { return tree ;}

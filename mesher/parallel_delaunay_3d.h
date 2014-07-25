@@ -23,27 +23,40 @@ namespace Mu
 	class ParallelDelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 	{
 	protected:
+		std::vector< std::vector<int> > elementMap ; //the negative ids indicate elements not valid for the mesh
 		std::vector<Geometry *> domains ;
 		std::vector<DelaunayTree3D *> meshes ;
+		std::vector<Point *> additionalPoints ;
+		std::vector<DelaunayTreeItem3D *> tree ;
+		int global_counter ;
 	public:
-		virtual std::vector<DelaunayTreeItem3D *> & getTree() = 0;
-		virtual const std::vector<DelaunayTreeItem3D *> & getTree() const = 0 ;
-		virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
-		virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
-		virtual void extrude(double dt) = 0 ;
-		virtual void extrude(const Vector & dt) = 0 ;
-		virtual double getInternalScale() const { return 1. ;} ;
+		virtual std::vector<DelaunayTreeItem3D *> & getTree() ;
+		virtual const std::vector<DelaunayTreeItem3D *> & getTree() const;
+		virtual std::vector<Point * > & getAdditionalPoints()  ;
+		virtual const std::vector<Point * > & getAdditionalPoints() const  ;
+		virtual void extrude(double dt);
+		virtual void extrude(const Vector & dt) ;
+		virtual double getInternalScale() const { return meshes[0]->getInternalScale() ;} ;
 	public:
-		ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2, Point *p3, const std::vector<Geometry *> & domains) ;
+		ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<Geometry *> & domains) ;
 		virtual ~ParallelDelaunayTree3D() {} ;
-		virtual std::vector<DelaunayTetrahedron *> getElements() = 0;
-		virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Point  * p)  = 0;
-		virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Geometry * g) = 0;
+		virtual std::vector<DelaunayTetrahedron *> getElements() ;
+		virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Point  * p) ;
+		virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Geometry * g) ;
 
-		virtual void setElementOrder(Order o, double dt = 0.) = 0;
+		virtual void setElementOrder(Order o, double dt = 0.) ;
 		virtual void insert(Point *) ;
 
-		virtual const size_t & getLastNodeId() const = 0;
+		virtual size_t getLastNodeId() const {return global_counter ;};
+		
+		virtual size_t addToTree(DelaunayTreeItem3D * toAdd)
+		{
+			return 0 ;
+		}
+		
+		virtual DelaunayTreeItem3D * getInTree(int index) 
+		{
+		}
 	} ;
 } ;
 

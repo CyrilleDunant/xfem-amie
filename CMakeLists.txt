@@ -43,6 +43,7 @@ geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
 mesher/parallel_delaunay.cpp 
+mesher/parallel_delaunay_3d.cpp 
 mesher/structuredmesh.cpp 
 physics/fracturecriteria/vonmises.cpp 
 physics/fracturecriteria/fractionmcft.cpp 

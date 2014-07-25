@@ -12,6 +12,7 @@
 #include "../elements/elements.h" 
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
+#include "../mesher/parallel_delaunay_3d.h"
 #include "../mesher/structuredmesh.h"
 #include "../utilities/samplingcriterion.h"
 #include "../utilities/grid.h"

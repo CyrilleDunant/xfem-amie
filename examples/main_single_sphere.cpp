@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 
 	double nu = 0.2 ;
 	double E = 1 ;
-   Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
+  Sample3D samplers(nullptr, 400,400,400,200,200,200) ;
 
 	FeatureTree F(&samplers) ;
 	featureTree = &F ;

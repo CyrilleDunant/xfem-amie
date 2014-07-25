@@ -48,6 +48,15 @@ namespace Mu
 		virtual void insert(Point *) ;
 
 		virtual size_t getLastNodeId() const {return global_counter ;};
+		
+		virtual size_t addToTree(DelaunayTreeItem * toAdd)
+		{
+			return 0 ;
+		}
+		
+		virtual DelaunayTreeItem * getInTree(int index) 
+		{
+		}
 	} ;
 } ;
 
