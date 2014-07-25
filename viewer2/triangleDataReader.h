@@ -53,7 +53,7 @@ public:
 	
 	virtual std::vector< std::valarray<float> > * data()
 	{
-	    std::cerr << file.fileName().getT()oStdString() << std::endl ;
+	    std::cerr << file.fileName().toStdString() << std::endl ;
 		std::vector< std::valarray<float> > * d = new  std::vector< std::valarray<float> >();
 		
 		for(size_t j = 0 ; j < m_numberOfPointsPerTriangle ; j++)

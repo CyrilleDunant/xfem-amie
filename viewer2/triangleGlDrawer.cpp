@@ -24,7 +24,7 @@ void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 	if( event->button() == Qt::LeftButton )
 	{
 		QImage fb = this->grabFrameBuffer() ;
-		QRgb color = fb.pixel(event->getX()(), event->getY()());
+		QRgb color = fb.pixel(event->x(), event->y());
 		
 		
 // 		double prop = (((float)QColor(color).lightness()-15.56339)*1.065)/255. ;
@@ -43,8 +43,8 @@ void TriangleGLDrawer::mouseMoveEvent( QMouseEvent *event )
 {
 	if( leftDown )
 	{
-		xtransleft -= ( int )round( ( float )( mousePosOnLeftClick.getX()() - event->getX()() ) * ( 100000. / ( float )zoom ) ) ;
-		ytransleft += ( int )round( ( float )( mousePosOnLeftClick.getY()() - event->getY()() ) * ( 100000. / ( float )zoom ) ) ;
+		xtransleft -= ( int )round( ( float )( mousePosOnLeftClick.x() - event->x() ) * ( 100000. / ( float )zoom ) ) ;
+		ytransleft += ( int )round( ( float )( mousePosOnLeftClick.y() - event->y() ) * ( 100000. / ( float )zoom ) ) ;
 		emit xTranslationChanged( xtransleft ) ;
 		emit yTranslationChanged( ytransleft ) ;
 		mousePosOnLeftClick = event->pos() ;
