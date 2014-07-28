@@ -1,6 +1,7 @@
 #include "logarithmic_creep.h"
 #include "viscoelasticity.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
+#include "../features/boundarycondition.h"
 
 using namespace Mu ;
 
@@ -87,9 +88,9 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 
     Vector stress(C.numRows()) ; stress = 0 ;
     currentState.getAverageField( REAL_STRESS_FIELD, stress, nullptr, -1, 1) ;
-    Vector principalstress = toPrincipal(stress) ;
+//    Vector principalstress = toPrincipal(stress) ;
 
-    currentStress = std::max(std::abs(principalstress.min()), principalstress.max()) ;
+    currentStress = std::max(std::abs(stress[0]), std::abs(stress[1])) ;
     accumulatedStress += currentStress*timeStep ;
 
 
@@ -100,14 +101,80 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
             visc.array() = 0 ;
         else
             visc *= (1.+accumulatedStress / (tau*currentStress)) ;
+    } else {
+//        std::cout << "h" << std::endl ;
     }
 
     placeMatrixInBlock(visc, 1,1, eta);
-
     isPurelyElastic = (visc.array().max() < POINT_TOLERANCE_2D) ;
-
 
     currentState.getParent()->behaviourUpdated = true ;
 
 }
 
+LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp  ) : LogarithmicCreep(rig), imposed(imp)
+{
+
+}
+
+LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp  ) : LogarithmicCreep(rig, v, e), imposed(imp)
+{
+
+}
+
+Form * LogarithmicCreepWithImposedDeformation::getCopy() const
+{
+    LogarithmicCreepWithImposedDeformation * copy ;
+    if(isPurelyElastic)
+        copy = new LogarithmicCreepWithImposedDeformation( C, imposed ) ;
+    else
+        copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed ) ;
+
+    if(getExtra2dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra2dMeshes())[i]);
+    }
+    if(getExtra3dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra3dMeshes())[i]);
+    }
+    return copy ;
+}
+
+Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(imposed.size())
+        return imposed ;
+    return Vector(0., C.numCols()) ;
+}
+
+Vector LogarithmicCreepWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(imposed.size())
+        return C*imposed ;
+    return Vector(0., C.numCols()) ;
+}
+
+std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+    std::vector<BoundaryCondition * > ret ;
+    if(imposed.size() == 0)
+        return ret ;
+    if(v.size() == 3)
+    {
+        Vector istress = C * imposed   ;
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+    }
+    if(v.size() == 4)
+    {
+        Vector istress = C * imposed ;
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+    }
+    return ret ;
+
+}

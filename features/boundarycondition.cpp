@@ -3,6 +3,7 @@
 
 #include "boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
+#include "../physics/viscoelasticity.h"
 
 using namespace Mu ;
 
@@ -167,10 +168,21 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v, true) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector()) ;
 
 					a->addForceOn( XI, forces[0], id[idit] ) ;
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
+
+					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
+					if(visc)
+					{
+						for(size_t b = 1 ; b < visc->blocks ;  b++)
+						{
+							a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
+							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
+						}
+					}
+
 				}
 
 				return ;
@@ -214,10 +226,21 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
-					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v, true) ;
+					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector()) ;
 					
 					a->addForceOn( XI, forces[0], id[idit] ) ;
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
+	
+					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
+					if(visc)
+					{
+						for(size_t b = 1 ; b < visc->blocks ;  b++)
+						{
+							a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
+							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
+						}
+					}
+
 				}
 				
 				return ;
@@ -1543,6 +1566,16 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					
 					a->addForceOn( XI, forces[0], id[i].getId() ) ;
 					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+
+					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
+					if(visc)
+					{
+						for(size_t b = 1 ; b < visc->blocks ;  b++)
+						{
+							a->addForceOnIndexedAxis( 2*b, -forces[0], id[i].getId() ) ;
+							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[i].getId() ) ;
+						}
+					}
 				}
 				return ;
 			}
@@ -1584,6 +1617,16 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					
 					a->addForceOn( XI, forces[0], id[i].getId() ) ;
 					a->addForceOn( ETA, forces[1], id[i].getId() ) ;
+
+					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
+					if(visc)
+					{
+						for(size_t b = 1 ; b < visc->blocks ;  b++)
+						{
+							a->addForceOnIndexedAxis( 2*b, -forces[0], id[i].getId() ) ;
+							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[i].getId() ) ;
+						}
+					}
 				}
 				
 				return ;

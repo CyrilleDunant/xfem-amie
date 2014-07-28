@@ -608,7 +608,7 @@ Form * Viscoelasticity::getCopy() const
 Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, Function & shape, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic, const Vector & normal) 
 {
  	if(isVolumic)
-	{
+	{	
 		return (VirtualMachine().ieval(GradientDot( shape ) * data, gp, Jinv, v)) ;
 	}
 	return data * VirtualMachine().ieval(Differential( shape, TIME_VARIABLE ), gp, Jinv, v) ;

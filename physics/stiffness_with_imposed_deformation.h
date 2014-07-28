@@ -65,7 +65,7 @@ namespace Mu
 		virtual Vector getImposedStress(const Point & p, IntegrableEntity * e, int g = -1) const ;
 		virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e, int g = -1) const ;
 
-		std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+		virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 		
 		virtual void step(double timestep, ElementState & currentState, double maxScore) ;
 		

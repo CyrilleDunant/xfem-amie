@@ -50,6 +50,28 @@ struct LogarithmicCreep : public Viscoelasticity
 
 } ;
 
+struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
+{
+	// size = 0 indicates no imposed deformation
+	Vector imposed ;
+
+	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp ) ;
+	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp ) ;
+
+    virtual ~LogarithmicCreepWithImposedDeformation() { } ;
+
+	virtual Form * getCopy() const ;
+
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+	virtual bool hasInducedForces() const { return imposed.size()>0 ; }
+
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+ 
+} ;
+
+
 
 } ;
 

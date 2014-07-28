@@ -197,7 +197,6 @@ protected:
 	SpaceDimensionality dim ;
 	bool removeZeroOnlyLines ;
 
-	Vector externalForces ;
 	Vector naturalBoundaryConditionForces ;
 	Vector displacements ;
 	Vector prevDisplacements ;
@@ -216,6 +215,8 @@ public:
 	Assembly() ;
 	
 	virtual ~Assembly() ;
+
+	Vector externalForces ;
 	
 	size_t getMaxDofID() const ; 
 

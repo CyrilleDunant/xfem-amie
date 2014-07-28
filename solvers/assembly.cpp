@@ -364,6 +364,7 @@ void Assembly::setBoundaryConditions()
 				if(multipliers[p].type != SET_FORCE_XI 
 				   &&  multipliers[p].type != SET_FORCE_ETA 
 				   &&  multipliers[p].type != SET_FORCE_ZETA 
+				   &&  multipliers[p].type != SET_FORCE_INDEXED_AXIS 
 				   &&  multipliers[p].type != GENERAL)
 				{
 					int id = multipliers[p].getId() ;
@@ -406,7 +407,8 @@ void Assembly::setBoundaryConditions()
 			{
 				if(multipliers[p].type != SET_FORCE_XI 
 				   &&  multipliers[p].type != SET_FORCE_ETA 
-				   &&  multipliers[p].type != SET_FORCE_ZETA 
+				   &&  multipliers[p].type != SET_FORCE_ZETA
+				   &&  multipliers[p].type != SET_FORCE_INDEXED_AXIS
 				   &&  multipliers[p].type != GENERAL)
 				{
 					int id = multipliers[p].getId() ;

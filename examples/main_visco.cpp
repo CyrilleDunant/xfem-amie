@@ -52,42 +52,55 @@ using namespace Mu ;
 int main(int argc, char *argv[])
 {
     double timestep = 1. ;
-    double appliedLoadEta = -1e6 ;
+    double appliedLoadEta = 0.01 ;
 
     Sample box(nullptr, 0.1,0.1,0.,0.) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(4) ;
+    F.setSamplingNumber(2) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
     F.setDeltaTime(timestep) ;
     F.setMinDeltaTime(timestep*1e-9) ;
 
     ElasticOnlyPasteBehaviour dummy ;
-    LogarithmicCreep creep( dummy.param,dummy.param*2, 10 ) ;
+    Vector alpha(3) ; alpha[0] = 0.01 ; alpha[1] = 0.01 ;
+    LogarithmicCreepWithImposedDeformation creep( dummy.param,dummy.param, 100,alpha ) ;
     box.setBehaviour( &creep );
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 0)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 2)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
 
     F.step() ;
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, appliedLoadEta));
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, appliedLoadEta,1));
 
     std::string filename = "logcreep" ;
     std::ofstream output ;
     output.open( filename.c_str(), std::ios::out ) ;
 
-    while(F.getCurrentTime() < 10000.)
+    int i = 0 ;
+    while(F.getCurrentTime() < 70.)
 	{
-        F.setDeltaTime(++timestep) ;
-        F.setMinDeltaTime(timestep*1e-9) ;
+//        F.setDeltaTime(++timestep) ;
+//        F.setMinDeltaTime(timestep*1e-9) ;
         F.step() ;
 
-        Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1.) ;
-        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+        std::string trgname = filename ;
+        trgname.append("_") ;
+        trgname.append(itoa(++i)) ;
+
+        TriangleWriter writer( trgname, &F, 1) ;
+        writer.getField(STRAIN_FIELD) ;
+        writer.getField(REAL_STRESS_FIELD);
+        writer.write() ;
+
+        Vector strain = F.getAverageField(STRAIN_FIELD, -1, -1.) ;
+        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, -1.) ;
+        std::cout << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" << F.getAssembly()->externalForces[44] << std::endl ;
         output << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << std::endl ;
+
 	}
 
     return 0 ;
