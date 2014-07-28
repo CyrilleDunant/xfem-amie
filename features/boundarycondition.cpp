@@ -380,7 +380,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 				for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
 				{
 					Vector forces = e->getBehaviour()->getForcesFromAppliedStress( imposed, shapeFunctions[j], gpe, Jinve, v, false, edge.normalv(e->getCenter())) ;
-					
+
 					a->addForceOn( XI, forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
 				}

@@ -2442,7 +2442,7 @@ void DelaunayTriangle::refresh(const TriElement * father)
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix() 
 {
 	int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
-	
+
 	if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == dofCount)
 	{
 		return cachedElementaryMatrix ;
@@ -2555,8 +2555,11 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 	}
 
-	enrichmentUpdated = false ;
-	behaviourUpdated = false ;
+	if(!getBehaviour()->isViscous())
+	{
+		enrichmentUpdated = false ;
+		behaviourUpdated = false ;
+	}
 	if(behaviour->hasInducedForces())
 		cachedForces.resize(0) ;
 	

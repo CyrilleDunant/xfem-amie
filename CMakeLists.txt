@@ -70,6 +70,7 @@ physics/damagemodels/rotatingcrack.cpp
 physics/diffusion.cpp 
 physics/mass.cpp 
 physics/laplacian.cpp 
+physics/logarithmic_creep.cpp 
 physics/dual_behaviour.cpp 
 physics/viscoelasticity.cpp 
 physics/viscoelasticity_and_fracture.cpp 
