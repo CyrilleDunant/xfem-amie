@@ -200,6 +200,7 @@ protected:
 	Vector naturalBoundaryConditionForces ;
 	Vector displacements ;
 	Vector prevDisplacements ;
+	Vector externalForces ;
 	Vector nonLinearExternalForces ;
 	CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
 	CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
@@ -216,8 +217,6 @@ public:
 	
 	virtual ~Assembly() ;
 
-	Vector externalForces ;
-	
 	size_t getMaxDofID() const ; 
 
 /** \brief add element to assembly*/
