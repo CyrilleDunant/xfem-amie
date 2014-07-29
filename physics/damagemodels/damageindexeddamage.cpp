@@ -13,7 +13,7 @@
 #include "../../mesher/delaunay.h"
 #include "../../mesher/delaunay_3d.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 IndexedLinearDamage::IndexedLinearDamage(int numDof, double dcost, FractureCriterion * e) : dcost(dcost),e(e)
 {

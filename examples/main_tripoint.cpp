@@ -30,7 +30,7 @@
 #include <limits>
 #include <time.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 

@@ -15,7 +15,7 @@
 #include "homogenization/homogenization_base.h"
 #include "homogenization/composite.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithImposedStress::StiffnessWithImposedStress(const Matrix & rig) : LinearForm(rig, false, false, rig.numRows()/3+1)
 {

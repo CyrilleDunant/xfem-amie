@@ -16,7 +16,7 @@
 
 
 
-namespace Mu
+namespace Amie
 {
 	struct SerialBehaviour : public LinearForm
 	{

@@ -14,7 +14,7 @@
 
 #include "fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Mohr - Coulomb fracture criterion
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

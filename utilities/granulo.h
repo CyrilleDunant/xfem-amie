@@ -22,7 +22,7 @@
 #include "../geometry/geometry_base.h"
 
 
-namespace Mu
+namespace Amie
 {
 
 /**

@@ -18,7 +18,7 @@
 #include "../features/features.h"
 #include "../geometry/geometry_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief A linear Elastic Law (without any fracture model)

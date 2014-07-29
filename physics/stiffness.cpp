@@ -18,7 +18,7 @@
 #include <valarray>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 Stiffness::Stiffness(const Matrix & rig) : LinearForm(rig, false, false, rig.numRows()/3+1) 
 {
@@ -62,7 +62,7 @@ Form * Stiffness::getCopy() const
 }
 
 
-PseudoPlastic::PseudoPlastic(const Mu::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
+PseudoPlastic::PseudoPlastic(const Amie::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
 {
 	stiffness = E ;
 	vm = new NonLocalVonMises(limitStrain, E, radius) ;

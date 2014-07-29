@@ -12,7 +12,7 @@
 #include "artificialfracture.h"
 #include "../../mesher/delaunay.h"
 #include "../../mesher/delaunay_3d.h"
-namespace Mu {
+namespace Amie {
 
 ArtificialFracture::ArtificialFracture( MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 {

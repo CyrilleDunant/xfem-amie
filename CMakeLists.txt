@@ -3,9 +3,13 @@ project(AMIE)
 include(CheckCXXCompilerFlag)
 include (CheckCXXSourceCompiles)
 find_package(OpenMP)
+find_package(MPI)
+
 if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
+    
+include_directories(${MPI_INCLUDE_PATH})
 
 set(ALL_SRC 
 elements/elements.cpp 
@@ -195,6 +199,7 @@ if(BUILD_32 EQUAL 1)
 	message (STATUS "  32 bit build")
 endif(BUILD_32 EQUAL 1)
 
+
 if(DEBUG_BUILD EQUAL 0)
  if(COMPILER_HAS_SSE3)
  	add_definitions("-msse3")
@@ -295,9 +300,14 @@ message (STATUS "  found OpenMP")
 # 	endif()
 endif(OPENMP_FOUND)
 
+if (USE_MPI EQUAL 0)
+    set (MPI_COMPILE_FLAGS "")
+    set (MPI_LINK_FLAGS "")
+endif(USE_MPI EQUAL 0)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
 	add_definitions ( "-std=c++0x" )
-endif()
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(DEBUG_BUILD EQUAL 1)
 	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -funroll-loops)
@@ -307,25 +317,27 @@ else()
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 
+set(ALL_LINK_FLAGS  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS})
+
 add_library (Amie ${ALL_SRC})
 
 add_executable(single_sphere examples/main_single_sphere.cpp )
-target_link_libraries( single_sphere Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( single_sphere Amie ${ALL_LINK_FLAGS} )
 
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
-target_link_libraries( 3d_asr Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
 #add_executable(3d_diffusion  examples/main_3d_diffusion.cpp )
 #target_link_libraries( 3d_diffusion Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(hyd_paste examples/main_hydrating_paste.cpp )
-target_link_libraries( hyd_paste Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
+target_link_libraries( hyd_paste Amie ${ALL_LINK_FLAGS})
 
 add_executable(example examples/main.cpp )
-target_link_libraries( example Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( example Amie ${ALL_LINK_FLAGS})
 
 add_executable(def examples/main_def.cpp )
-target_link_libraries( def Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( def Amie ${ALL_LINK_FLAGS})
 
 #add_executable(detail examples/main_detail.cpp )
 #target_link_libraries( detail Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
@@ -334,60 +346,60 @@ target_link_libraries( def Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
 #target_link_libraries( kill Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m)
 
 add_executable(multicrack examples/main_multicrack.cpp )
-target_link_libraries( multicrack Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} )
+target_link_libraries( multicrack Amie ${ALL_LINK_FLAGS})
 
 add_executable(steel examples/main_steel.cpp )
-target_link_libraries( steel Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} )
+target_link_libraries( steel Amie ${ALL_LINK_FLAGS})
 
 add_executable(alain examples/main_alain.cpp )
-target_link_libraries( alain Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr examples/main_asr.cpp )
-target_link_libraries( asr Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr_simple examples/main_asr_simple.cpp )
-target_link_libraries( asr_simple Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
 
 add_executable(wedge examples/main_wedge_splitting.cpp )
-target_link_libraries( wedge Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( wedge Amie ${ALL_LINK_FLAGS})
 
 #add_executable(ellipse_test examples/main_ellipse_test.cpp )
-#target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+#target_link_libraries( ellipse_test Amie ${GLUT_LIBRARY} -lglut -lGLU${ALL_LINK_FLAGS})
 
 add_executable(thermal_expansion examples/main_thermalexpansion.cpp )
-target_link_libraries( thermal_expansion Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( thermal_expansion Amie ${ALL_LINK_FLAGS})
 
 add_executable(geometry examples/main_geometry.cpp )
-target_link_libraries( geometry Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( geometry Amie ${ALL_LINK_FLAGS} )
 
 add_executable(benchmark examples/main_benchmark.cpp )
-target_link_libraries( benchmark Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( benchmark Amie ${ALL_LINK_FLAGS} )
 
 add_executable(asr_shape examples/main_asr_shape.cpp )
-target_link_libraries( asr_shape Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( asr_shape Amie ${ALL_LINK_FLAGS})
 
 add_executable(homogenization examples/main_homogenization.cpp )
-target_link_libraries( homogenization Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 
 #add_executable(simple examples/main_simple.cpp )
-#target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+#target_link_libraries( simple Amie ${GLUT_LIBRARY} -lglut -lGLU${ALL_LINK_FLAGS})
 
 add_executable(tripoint examples/main_tripoint.cpp )
-target_link_libraries( tripoint Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
 
 add_executable(visco examples/main_visco.cpp )
-target_link_libraries( visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( visco Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr_visco examples/main_asr_visco.cpp )
-target_link_libraries( asr_visco Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
 add_executable(tension examples/main_tension.cpp )
-target_link_libraries( tension Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
 
 add_executable( pore_pressure examples/main_crystal_pressure.cpp )
-target_link_libraries( pore_pressure Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
 
 add_executable( cyrille_test examples/main_cyrille.cpp )
-target_link_libraries( cyrille_test Amie  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS})
+target_link_libraries( cyrille_test Amie ${ALL_LINK_FLAGS})
 
 

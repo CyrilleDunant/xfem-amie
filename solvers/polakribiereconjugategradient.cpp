@@ -15,7 +15,7 @@
 #include "inversediagonal.h"
 #include <limits>
 
-using namespace Mu ;
+using namespace Amie ;
 
 ConjugateGradientWithSecant::ConjugateGradientWithSecant(Assembly * a) : NonLinearSolver(a) { } 
 

@@ -10,7 +10,7 @@
 
 #include "integrable_entity.h"
 
-namespace Mu
+namespace Amie
 {
 
 class GeneralizedSpaceTimeViscoElasticElementState : public ElementState

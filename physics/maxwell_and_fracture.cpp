@@ -5,7 +5,7 @@
 #include "homogenization/composite.h"
 #include "damagemodels/fiberbasedisotropiclineardamage.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 
@@ -83,7 +83,7 @@ Vector GeneralizedIterativeMaxwellAndFracture::getImposedStress(const Point & p,
 	{
 		if(imposedStressAtGaussPoints.size() > 1)
 		{
-			int ga = Mu::isGaussPoint(p, e) ;
+			int ga = Amie::isGaussPoint(p, e) ;
 			if( ga != -1)
 				return imposedStressAtGaussPoints[ga] ;
 		  

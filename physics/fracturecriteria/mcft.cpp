@@ -17,7 +17,7 @@
 #include "../../mesher/delaunay_3d.h"
 #include <set>
 
-namespace Mu
+namespace Amie
 {
 
 
@@ -135,7 +135,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 	return POINT_TOLERANCE_2D ;
 }
 
-double NonLocalMCFT::getRebarConcreteTensileCriterion(const Mu::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
+double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
 {
 	double altUpVal( /*0.66*1e6*pow(std::abs(downVal*1e-6),.33)*/upVal) ;
 	double altTensionCritStrain(altUpVal/youngModulus) ;

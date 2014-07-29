@@ -12,7 +12,7 @@
 
 #include "physics_base.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 LinearForm::LinearForm(const Matrix & p, bool t, bool s, size_t numdof ) : Form(p, t, s, numdof)

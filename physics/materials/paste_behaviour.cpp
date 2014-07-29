@@ -19,7 +19,7 @@
 #include "../damagemodels/spacetimefiberbasedisotropiclineardamage.h"
 #include <cstdio> 
 
-using namespace Mu ;
+using namespace Amie ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {

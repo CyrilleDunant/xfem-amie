@@ -4,7 +4,7 @@
 
 #include "enrichmentInclusion3d.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 EnrichmentInclusion3D::EnrichmentInclusion3D(Feature *father, double radius, double x, double y, double z) : EnrichmentFeature(father), Sphere(radius, x, y, z)
 {
@@ -474,7 +474,7 @@ std::vector<Geometry *> EnrichmentInclusion3D::getRefinementZones( size_t level)
 	return std::vector<Geometry *>(0) ;
 }
 
-void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, const Mesh<Mu::DelaunayTriangle, Mu::DelaunayTreeItem> * dtree) {}
+void EnrichmentInclusion3D::step(double dt, std::valarray<double> *, const Mesh<Amie::DelaunayTriangle, Amie::DelaunayTreeItem> * dtree) {}
 	
 bool EnrichmentInclusion3D::moved() const { return updated ;}
 

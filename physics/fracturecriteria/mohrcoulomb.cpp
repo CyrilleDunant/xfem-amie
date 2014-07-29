@@ -14,7 +14,7 @@
 #include "../../mesher/delaunay_3d.h"
 #include "../damagemodels/damagemodel.h"
 
-namespace Mu
+namespace Amie
 {
 
 MohrCoulomb::MohrCoulomb( double up, double down, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )

@@ -15,7 +15,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief 3D spherical inclusion*/

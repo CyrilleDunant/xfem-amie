@@ -13,7 +13,7 @@
 #include "stiffness_with_variable_imposed_deformation.h"
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithVariableImposedDeformation::StiffnessWithVariableImposedDeformation(const Matrix & rig, Vector imposedDef) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef)
 {	

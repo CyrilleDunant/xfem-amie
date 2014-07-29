@@ -21,7 +21,7 @@
 #include <iomanip> 
 
 
-namespace Mu
+namespace Amie
 {
 
 TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )

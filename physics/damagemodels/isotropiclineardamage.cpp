@@ -11,7 +11,7 @@
 //
 #include "isotropiclineardamage.h"
 
-namespace Mu {
+namespace Amie {
 
 IsotropicLinearDamage::IsotropicLinearDamage() 
 {
@@ -19,7 +19,7 @@ IsotropicLinearDamage::IsotropicLinearDamage()
 	isNull = false ;
 }
 
-std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Amie::ElementState &s)
 {
 	return std::make_pair(state, Vector(1., 1)) ;
 }
@@ -65,7 +65,7 @@ IsotropicLinearDamageRate::IsotropicLinearDamageRate()
 	isNull = false ;
 }
 
-std::pair< Vector, Vector > IsotropicLinearDamageRate::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > IsotropicLinearDamageRate::computeDamageIncrement( Amie::ElementState &s)
 {
 	return std::make_pair(state, Vector(1., 1)) ;
 }

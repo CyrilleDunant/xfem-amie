@@ -11,7 +11,7 @@
 #include "../polynomial/vm_function_base.h"
 #include "../physics/viscoelasticity_and_imposed_deformation.h"
 
-namespace Mu
+namespace Amie
 {
 
 class GrowingExpansiveZone :  public TimeDependentEnrichmentInclusion
@@ -36,7 +36,7 @@ public:
 
 	virtual bool moved() const { return changed ; } ;
 	
-	virtual void step(double dt, std::valarray<double> *, Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *, Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
 
 public:
 	GEO_DERIVED_OBJECT(TimeDependentCircle) ;

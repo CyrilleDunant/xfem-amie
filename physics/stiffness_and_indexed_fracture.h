@@ -21,7 +21,7 @@
 #include "damagemodels/isotropiclineardamage.h"
 #include "homogenization/homogenization_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief A linear Elastic Law with a pluggable fracture criterion

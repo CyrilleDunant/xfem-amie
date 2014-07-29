@@ -13,7 +13,7 @@
 
 #include "samplingcriterion.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 SamplingCriterion::SamplingCriterion()
 {

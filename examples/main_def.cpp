@@ -35,7 +35,7 @@
 #define DEBUG 
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 FeatureTree * featureTree ;
 std::vector<DelaunayTriangle *> triangles ;

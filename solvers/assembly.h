@@ -26,7 +26,7 @@
 #include "../sparse/sparse_matrix.h"
 
 
-namespace Mu
+namespace Amie
 {
 
 class LinearSolver ;
@@ -404,7 +404,7 @@ public:
 	void addForceVector(const Vector & v) ;
 
 /** \brief set boundary condition. Point with ID id has 0 displacement along prescribed axis*/
-	void fixPoint(size_t id, Mu::Variable v) ;
+	void fixPoint(size_t id, Amie::Variable v) ;
 
 /** \brief The two points are the same*/
 	void setPeriodicPoint(size_t id0, size_t id1) ;
@@ -427,10 +427,10 @@ public:
 
 } ;
 
-std::map<std::pair<size_t, size_t>, Mu::Matrix> incompleteCholeskyDecomposition(std::map<std::pair<size_t, size_t>, Mu::Matrix>  & morseMatrix) ;
-Vector operator *(const std::map< std::pair<size_t, size_t>, Mu::Matrix > A , const Vector x) ;
+std::map<std::pair<size_t, size_t>, Amie::Matrix> incompleteCholeskyDecomposition(std::map<std::pair<size_t, size_t>, Amie::Matrix>  & morseMatrix) ;
+Vector operator *(const std::map< std::pair<size_t, size_t>, Amie::Matrix > A , const Vector x) ;
 Vector operator *(const std::map< std::pair<size_t, size_t>, double > A , const Vector x) ;
-std::map< std::pair<size_t, size_t>, Mu::Matrix > operator *(const std::map< std::pair<size_t, size_t>, Mu::Matrix > A , const std::map< std::pair<size_t, size_t>, Mu::Matrix > B) ;
+std::map< std::pair<size_t, size_t>, Amie::Matrix > operator *(const std::map< std::pair<size_t, size_t>, Amie::Matrix > A , const std::map< std::pair<size_t, size_t>, Amie::Matrix > B) ;
 
 #endif
 

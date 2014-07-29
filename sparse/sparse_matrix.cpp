@@ -16,7 +16,7 @@
 #include <omp.h>
 #endif
 #include <sys/time.h>
-using namespace Mu ;
+using namespace Amie ;
 
 
 
@@ -475,7 +475,7 @@ CompositeSparseMatrixTimesVecMinusVecMinusVec CompositeSparseMatrixTimesVecMinus
 	return CompositeSparseMatrixTimesVecMinusVecMinusVec(*this, v) ;
 }
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
+void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.co.sm.stride ;
@@ -497,7 +497,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlu
 	}
 } ;
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
+void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.co.sm.stride ;
@@ -549,7 +549,7 @@ void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMin
 
 } ;
 
-void Mu::assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
+void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.sm.stride ;

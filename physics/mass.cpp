@@ -14,7 +14,7 @@
 #include <valarray>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 Mass::Mass(double rho, SpaceDimensionality dim) : LinearForm(Matrix(3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), false, false, 2+(dim == SPACE_THREE_DIMENSIONAL)), density(rho) 
 {

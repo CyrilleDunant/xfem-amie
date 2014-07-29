@@ -16,7 +16,7 @@
 
 #include "../features/features.h"
 
-namespace Mu
+namespace Amie
 {
 
 

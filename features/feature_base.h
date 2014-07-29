@@ -15,7 +15,7 @@
 #include "../mesher/delaunay_3d.h"
 
 
-namespace Mu
+namespace Amie
 {
 	static const double DEFAULT_BOUNDARY = 1 ;
 	static const size_t DEFAULT_POINTNUMBER = 1000 ;
@@ -207,13 +207,13 @@ public:
 	
 	virtual void print() const { std::cout << "i'm a feature" << std::endl ; } ;
 	
-	virtual const Mu::PointArray & getBoundingPoints() const = 0 ;
-	virtual Mu::PointArray & getBoundingPoints() = 0 ;
+	virtual const Amie::PointArray & getBoundingPoints() const = 0 ;
+	virtual Amie::PointArray & getBoundingPoints() = 0 ;
 	virtual std::vector<Point *> doubleSurfaceSampling() ;
 	virtual const Point & getBoundingPoint(size_t) const = 0 ;
 	virtual Point & getBoundingPoint(size_t)  = 0 ;
-	virtual Mu::PointArray & getInPoints() = 0 ;
-	virtual const Mu::PointArray & getInPoints() const = 0 ;
+	virtual Amie::PointArray & getInPoints() = 0 ;
+	virtual const Amie::PointArray & getInPoints() const = 0 ;
 	virtual const Point & getInPoint(size_t) const = 0 ;
 	virtual Point & getInPoint(size_t) = 0 ;
 	virtual bool in( const Point & ) const = 0 ;

@@ -9,7 +9,7 @@
 #include "../polynomial/vm_base.h" 
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 

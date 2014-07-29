@@ -15,7 +15,7 @@
 #include "../../elements/integrable_entity.h"
 #include "../../mesher/mesh.h"
 
-namespace Mu {
+namespace Amie {
 
 class DelaunayTriangle ;
 class DelaunayTetrahedron ;
@@ -58,7 +58,7 @@ typedef enum{
 	protected:
 
 		std::valarray<unsigned int> physicalcache ;
-		void initialiseFactors(const Mu::ElementState& s) ;
+		void initialiseFactors(const Amie::ElementState& s) ;
 		std::valarray<double> factors ;
 		
 		std::vector<unsigned int> damagingSet ;
@@ -134,12 +134,12 @@ typedef enum{
 		double getMaxScoreInNeighbourhood() const ;
 		
 		FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-		virtual void initialiseCache(const Mu::ElementState& s)
+		virtual void initialiseCache(const Amie::ElementState& s)
  ;
 	
 		virtual ~FractureCriterion();
 		
-		void step(Mu::ElementState& s) ;
+		void step(Amie::ElementState& s) ;
 		void computeNonLocalState(ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
 		bool isAtCheckpoint() const {return checkpoint ;}
 		bool isInDamagingSet() const {return inset ;}

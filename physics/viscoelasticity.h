@@ -14,7 +14,7 @@
 
 #include "physics_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 typedef enum

@@ -13,7 +13,7 @@
 #include "random.h"
 
 
-namespace Mu
+namespace Amie
 {
 
 RandomNumber::RandomNumber() 

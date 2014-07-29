@@ -13,7 +13,7 @@
 #include "nonlocalvonmises.h"
 #include "../../mesher/delaunay.h"
 #include "../damagemodels/damagemodel.h"
-namespace Mu {
+namespace Amie {
 
 NonLocalVonMises::NonLocalVonMises(double thresh, double E, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, threshold(std::abs(thresh)), E(E)

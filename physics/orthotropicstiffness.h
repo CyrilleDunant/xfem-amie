@@ -19,7 +19,7 @@
 #include "homogenization/homogenization_base.h"
 #include "fracturecriteria/nonlocalvonmises.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief A linear Elastic Law

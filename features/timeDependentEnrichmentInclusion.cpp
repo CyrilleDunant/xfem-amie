@@ -12,7 +12,7 @@
 #include "../physics/maxwell.h"
 #include "../physics/void_form.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 TimeDependentEnrichmentInclusion::TimeDependentEnrichmentInclusion(Feature * father, Function & r, double x, double y) : EnrichmentInclusion( father, VirtualMachine().eval(r, Point(0,0,0,0)),x,y), TimeDependentCircle(r,Point(x,y))
 {

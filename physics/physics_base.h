@@ -18,7 +18,7 @@
 #include "../geometry/geometry_base.h"
 #include "../geometry/geometry_2D.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** A Linear Form 

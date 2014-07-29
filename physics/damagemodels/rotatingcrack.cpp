@@ -16,7 +16,7 @@
 #include "../orthotropicstiffness.h"
 #include "../stiffness.h"
 
-namespace Mu
+namespace Amie
 {
 
 RotatingCrack::RotatingCrack( double E, double nu ):  E( E ), nu( nu )

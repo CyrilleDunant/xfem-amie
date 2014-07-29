@@ -8,7 +8,7 @@
 #include "gel_behaviour.h"
 #include "../viscoelasticity_and_imposed_deformation.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 GelBehaviour::GelBehaviour(double E, double nu, double alpha, SpaceDimensionality dim) : StiffnessWithImposedDeformation(E,nu, alpha, dim)
 {

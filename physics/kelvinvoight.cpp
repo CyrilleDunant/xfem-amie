@@ -16,7 +16,7 @@
 #include "../features/boundarycondition.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e, double characteristicTime ) : LinearForm(rig, false, false, rig.numRows()/3+1), eta(e), characteristicTime(characteristicTime)
 {

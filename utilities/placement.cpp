@@ -11,10 +11,10 @@
 #include "../geometry/geometry_base.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 
-double Mu::chiffreAleatoire(double longueur) // fonction qui retourne une valeur aléatoire
+double Amie::chiffreAleatoire(double longueur) // fonction qui retourne une valeur aléatoire
 {
 	double chiffreAleatoire = longueur*(double)rand()/(double)RAND_MAX;
 	return chiffreAleatoire;
@@ -54,7 +54,7 @@ void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistr
 	inc->transform(ROTATE, theta) ;
 }
 
-std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
+std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
 {
 	std::vector<Feature *> ret ;
 	int tries = 0 ;
@@ -125,7 +125,7 @@ std::vector<Feature *> Mu::placement2D(const Geometry* box, std::vector<Feature 
 }
 
 
-std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, std::vector<Geometry *> exclusionZones, bool verbose)
+std::vector<Feature *> Amie::placement(const Geometry * box, std::vector<Feature *> inclusions, int *nombreGranulatsPlaces, int nombreGranulatsDejaPlaces, int triesMax, std::vector<Geometry *> exclusionZones, bool verbose)
 {
 	int tries = 0 ;
 	
@@ -314,7 +314,7 @@ std::vector<Feature *> Mu::placement(const Geometry * box, std::vector<Feature *
 		
 }
 
-std::vector<Mu::EllipsoidalInclusion *> Mu::placement_with_rotation(const Geometry * box, std::vector<EllipsoidalInclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax, bool verbose) 
+std::vector<Amie::EllipsoidalInclusion *> Amie::placement_with_rotation(const Geometry * box, std::vector<EllipsoidalInclusion *> inclusions, int *nombreGranulatsPlaces, int triesMax, bool verbose) 
 {
 	int tries = 0 ;
 	int changeAxis = 0 ;

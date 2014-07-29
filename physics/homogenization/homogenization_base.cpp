@@ -1,7 +1,7 @@
 #include "homogenization_base.h"
 #include "scheme_template.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Properties::Properties()
 {

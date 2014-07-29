@@ -10,7 +10,7 @@
 #include "../geometry/space_time_geometry_2D.cpp"
 #include <typeinfo>
 
-using namespace Mu ;
+using namespace Amie ;
 
 BimaterialInterface::BimaterialInterface(Geometry * in, Form * inbehaviour, Form * outbehaviour) : LinearForm(Matrix(outbehaviour->param), true, true, outbehaviour->getNumberOfDegreesOfFreedom()), inGeometry(in),inBehaviour(inbehaviour), outBehaviour(outbehaviour)  { }
 

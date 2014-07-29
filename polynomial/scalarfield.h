@@ -14,7 +14,7 @@
 #include "../utilities/matrixops.h"
 #include "../geometry/geometry_base.h"
 
-namespace Mu {
+namespace Amie {
 
 /**
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

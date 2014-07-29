@@ -45,7 +45,7 @@
 #include <limits>
 #include <sys/time.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 int main(int argc, char *argv[])
 {

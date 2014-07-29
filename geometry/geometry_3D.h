@@ -10,7 +10,7 @@
 #include<list>
 #include<deque>
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Tetrahedron geometry. Serves as a base for tetrahedral elements.*/

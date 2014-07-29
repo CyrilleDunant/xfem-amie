@@ -17,7 +17,7 @@
 #include <valarray>
 #include <iostream>
 #include "../utilities/matrixops.h"
-namespace Mu
+namespace Amie
 {
 
 /** \brief Sparse Vector implementation. 
@@ -419,7 +419,7 @@ public:
 
 } ;
 
-inline void reverseInnerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
+inline void reverseInnerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
 {
 	int stride = v0.stride ;
 	int delta = stride+stride%2 ;
@@ -432,7 +432,7 @@ inline void reverseInnerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Ve
 } ;
 
 
-inline void innerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t end)
+inline void innerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t end)
 {
 	int stride = v0.stride ;
 	int delta = stride+stride%2 ;
@@ -444,9 +444,9 @@ inline void innerProductAssignAndAdd(const Mu::ConstSparseVector & v0, Vector & 
 	t+=toAdd ;
 } ;
 
-inline double innerProduct(const Mu::ConstSparseVector & v0, Mu::ConstSparseVector & v1, int s)
+inline double innerProduct(const Amie::ConstSparseVector & v0, Amie::ConstSparseVector & v1, int s)
 {
-	Mu::Matrix ret(v0.stride, v0.stride) ;
+	Amie::Matrix ret(v0.stride, v0.stride) ;
 	int colLength = v0.stride+v0.stride%2 ;
 	int blocksize = v0.stride*colLength ;
 	

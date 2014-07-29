@@ -11,7 +11,7 @@
 //
 #include "limitstrains.h"
 
-namespace Mu {
+namespace Amie {
 
 LimitStrains::LimitStrains(double maxdown, double maxup, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	,  maxUpVal(maxup),maxDownVal(maxdown)

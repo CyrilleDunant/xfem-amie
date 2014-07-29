@@ -11,7 +11,7 @@
 #include "vm_function_base.h"
 #include "vm_function_matrix.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct FtF ;

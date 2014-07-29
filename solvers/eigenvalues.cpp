@@ -8,9 +8,9 @@
 
 // using namespace Mu ;
 
-namespace Mu
+namespace Amie
 {
-double largestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
+double largestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sym)
 {
 	srand(0) ;
 	
@@ -36,7 +36,7 @@ double largestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 	return std::inner_product(&x[0], &x[x.size()], &x_[0], double(0)) ;
 }
 
-double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
+double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sym)
 {
 	srand(0) ;
 	if(sym)
@@ -54,7 +54,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 		while ( eps > 1e-6 )
 		{
 			x = A*x_ ;
-			Mu::ConjugateGradient cg(A, x) ;
+			Amie::ConjugateGradient cg(A, x) ;
 			cg.solve(x, nullptr, 1e-14);
 			x = cg.x ;
 			x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
@@ -82,7 +82,7 @@ double smallestEigenValue(const Mu::CoordinateIndexedSparseMatrix & A, bool sym)
 	while ( eps > 1e-5 && it < 30)
 	{
 		x = A*x_ ;
-		Mu::BiConjugateGradientStabilized cg(A, x) ;
+		Amie::BiConjugateGradientStabilized cg(A, x) ;
 		cg.solve(x, nullptr, 1e-14);
 		x = cg.x ;
 		x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;

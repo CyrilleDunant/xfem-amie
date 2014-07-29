@@ -12,7 +12,7 @@
 
 #include "laplacian.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Laplacian::Laplacian(const Matrix & rig) : LinearForm(rig, false, false, 1) 
 {

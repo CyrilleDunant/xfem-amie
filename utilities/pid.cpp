@@ -14,7 +14,7 @@
 #include "pid.h"
 #include <cmath>
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 PidController::PidController(const double & constant, double & var, double &s) : k(constant), p_d(0.3*constant), p_i(constant), control(var), state(s), lastState(state), target(0.), lastCommand(0.), preverror(0.), integralerror(0.), derivativeerror(0.), originalratio(0)

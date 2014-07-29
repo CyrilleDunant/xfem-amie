@@ -46,7 +46,7 @@
 #define DEBUG
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 Sample box(nullptr, 0.08, 0.08,0.0,0.0) ;
 

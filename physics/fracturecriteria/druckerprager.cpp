@@ -13,7 +13,7 @@
 #include "druckerprager.h"
 #include "../../mesher/delaunay.h"
 #include "../damagemodels/plasticstrain.h"
-namespace Mu {
+namespace Amie {
 
 DruckerPrager::DruckerPrager(double downthres,double upthres, double modulus,  double friction, double radius, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z), upthreshold(upthres), downthreshold(downthres), friction(friction), modulus(modulus)
 {

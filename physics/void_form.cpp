@@ -12,7 +12,7 @@
 
 #include "void_form.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 VoidForm::VoidForm() : LinearForm(Matrix(1,1),false, false, 0 )

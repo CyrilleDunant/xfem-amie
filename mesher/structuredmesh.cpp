@@ -2,7 +2,7 @@
 
 #include "structuredmesh.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX,  sizeY,  div, center)
 {

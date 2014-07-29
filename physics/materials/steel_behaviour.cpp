@@ -11,7 +11,7 @@
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 SteelBehaviour::SteelBehaviour(double E, double nu, double tensile, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu,dim, -8*tensile,tensile)
 {

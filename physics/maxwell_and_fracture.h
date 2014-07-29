@@ -18,7 +18,7 @@
 
 
 
-namespace Mu
+namespace Amie
 {	
 	struct GeneralizedIterativeMaxwellAndFracture : public LinearForm
 	{

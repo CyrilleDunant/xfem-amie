@@ -15,7 +15,7 @@
 
 #include "physics_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Linear elastic material with a stiffness gradient.*/

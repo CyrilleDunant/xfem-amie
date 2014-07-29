@@ -42,7 +42,7 @@
 #include <time.h>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 FeatureTree *featureTree ;
 std::vector<DelaunayTetrahedron *> tets ;

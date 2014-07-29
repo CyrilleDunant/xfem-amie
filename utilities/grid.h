@@ -11,7 +11,7 @@
 #include "../geometry/geometry_2D.h"
 #include "../geometry/geometry_3D.h"
 
-namespace Mu
+namespace Amie
 {
 	
 	/** \brief Member of an acess grid. Contains references to finer grid level and/or Feature s*/
@@ -62,7 +62,7 @@ public:
 * @param  ret Vector in which the result should be stored
 * @param inc Geometry to check for overlaps
 */
-	void coOccuringFeatures(std::vector< const Mu::Geometry* >& f, const Mu::Geometry* inc) const ;
+	void coOccuringFeatures(std::vector< const Amie::Geometry* >& f, const Amie::Geometry* inc) const ;
 
 	/** \brief Given a Point, return a list of stored Feature pointers in which the point lies
 *

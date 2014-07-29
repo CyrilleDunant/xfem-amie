@@ -11,7 +11,7 @@
 //
 #include "confinedmohrcoulombwithstrain.h"
 
-namespace Mu {
+namespace Amie {
 
 ConfinedMohrCoulombWithStrainLimit::ConfinedMohrCoulombWithStrainLimit(double up, double down, double strainLimit, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, upVal(up), downVal(down), strainLimit(strainLimit)

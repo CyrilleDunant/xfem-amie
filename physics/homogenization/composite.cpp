@@ -1,7 +1,7 @@
 #include "composite.h"
 #include "../../utilities/matrixops.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Composite::Composite( DelaunayTriangle *tri, std::vector<Feature *> feats ) : Phase( tri )
 {

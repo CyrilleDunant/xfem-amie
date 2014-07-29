@@ -16,7 +16,7 @@
 #include "physics_base.h"
 #include "homogenization/homogenization_base.h" 
 
-namespace Mu
+namespace Amie
 {
 	struct StiffnessWithImposedStress : public LinearForm
 	{

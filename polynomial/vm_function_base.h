@@ -25,7 +25,7 @@
 #include "../utilities/matrixops.h"
 #include "../geometry/geometry_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct GaussPointArray ;
@@ -797,14 +797,14 @@ struct GtM
 	 * @param f Gradient
 	 * @return GtMtG
 	 */
-	GtMtG operator*(const Mu::Gradient & f) const ;
+	GtMtG operator*(const Amie::Gradient & f) const ;
 
 	/** \brief Create a structure for the lazy evaluation of a Gradient * Matrix * GradientDot
 	 * 
 	 * @param f Gradient
 	 * @return GtMtGD
 	 */
-	GtMtGD operator*(const Mu::GradientDot & f) const ;
+	GtMtGD operator*(const Amie::GradientDot & f) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Matrix at list of Gauss Points structure*/
@@ -825,9 +825,9 @@ struct GtML
 	 * @param f Gradient
 	 * @return GtMtG
 	 */
-	GtMLtG operator*(const Mu::Gradient & f) const ;
+	GtMLtG operator*(const Amie::Gradient & f) const ;
 
-	GtMLtGD operator*(const Mu::GradientDot & f) const ;
+	GtMLtGD operator*(const Amie::GradientDot & f) const ;
 
 } ;
 
@@ -849,14 +849,14 @@ struct GDtM
 	 * @param f GradientDot
 	 * @return GDtMtGD
 	 */
-	GDtMtGD operator*(const Mu::GradientDot & f) const ;
+	GDtMtGD operator*(const Amie::GradientDot & f) const ;
 
 	/** \brief Create a structure for the lazy evaluation of a GradientDot * Matrix * Gradient
 	 * 
 	 * @param f Gradient
 	 * @return GDtMtGD
 	 */
-	GDtMtG operator*(const Mu::Gradient & f) const ;
+	GDtMtG operator*(const Amie::Gradient & f) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix */
@@ -877,14 +877,14 @@ struct GDtML
 	 * @param f GradientDot
 	 * @return GDtMtGD
 	 */
-	GDtMLtGD operator*(const Mu::GradientDot & f) const ;
+	GDtMLtGD operator*(const Amie::GradientDot & f) const ;
 
 	/** \brief Create a structure for the lazy evaluation of a GradientDot * Matrix * Gradient
 	 * 
 	 * @param f Gradient
 	 * @return GDtMtGD
 	 */
-	GDtMLtG operator*(const Mu::Gradient & f) const ;
+	GDtMLtG operator*(const Amie::Gradient & f) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix */
@@ -905,7 +905,7 @@ struct GDDtM
 	 * @param f GradientDot
 	 * @return GDtMtGD
 	 */
-	GDDtMtG operator*(const Mu::Gradient & f) const ;
+	GDDtMtG operator*(const Amie::Gradient & f) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDotDot * Matrix */
@@ -926,7 +926,7 @@ struct GDDtML
 	 * @param f GradientDot
 	 * @return GDtMtGD
 	 */
-	GDDtMLtG operator*(const Mu::Gradient & f) const ;
+	GDDtMLtG operator*(const Amie::Gradient & f) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a GradientDot * Matrix * GradientDot */
@@ -1114,9 +1114,9 @@ struct VGtM
 	 * @param f VectorGradient
 	 * @return VGtMtVG
 	 */
-	VGtMtVG operator*(const Mu::VectorGradient & f) const ;
+	VGtMtVG operator*(const Amie::VectorGradient & f) const ;
 
-	VGtMtVGD operator*(const Mu::VectorGradientDot & f) const ;
+	VGtMtVGD operator*(const Amie::VectorGradientDot & f) const ;
 } ;
 
 struct VGDtM
@@ -1126,7 +1126,7 @@ struct VGDtM
 
 	VGDtM(const VectorGradientDot & g, const Matrix & f) : first(g), second(f) { } ;
 
-	VGDtMtVG operator*(const Mu::VectorGradient & d) const ;
+	VGDtMtVG operator*(const Amie::VectorGradient & d) const ;
 } ;
 
 /** \brief Structure for the lazy evaluation of a Gradient * Vector */
@@ -1325,7 +1325,7 @@ struct VGtMtVGD
  * @param f Function
  * @return a new Function
  */
-Mu::Function operator-(const double & a, const Mu::Function &f) ;
+Amie::Function operator-(const double & a, const Amie::Function &f) ;
 
 /** \brief Create a Function from the multiplication of a double to a function
  * 
@@ -1333,7 +1333,7 @@ Mu::Function operator-(const double & a, const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function operator*(const double & a, const Mu::Function &f) ;
+Amie::Function operator*(const double & a, const Amie::Function &f) ;
 
 /** \brief Create a Function from the addition of a Function to a double
  * 
@@ -1341,7 +1341,7 @@ Mu::Function operator*(const double & a, const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function operator+(const double & a, const Mu::Function &f) ;
+Amie::Function operator+(const double & a, const Amie::Function &f) ;
 
 /** \brief Create a Function from the division by a Function of a double
  * 
@@ -1349,35 +1349,35 @@ Mu::Function operator+(const double & a, const Mu::Function &f) ;
  * @param f Function
  * @return a new Function
  */
-Mu::Function operator/(const double & a, const Mu::Function &f) ;
+Amie::Function operator/(const double & a, const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is the square root of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_sqrt(const Mu::Function &f, bool differentiate = true ) ;
+Amie::Function f_sqrt(const Amie::Function &f, bool differentiate = true ) ;
 
 /** \brief Helper function to create a Function which is the exponential of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_exp(const Mu::Function &f) ;
+Amie::Function f_exp(const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is the absolute value of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_abs(const Mu::Function &f, bool differentiate = true) ;
+Amie::Function f_abs(const Amie::Function &f, bool differentiate = true) ;
 
 /**  \brief Helper function to create a Function which is the log of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_log(const Mu::Function &f) ;
+Amie::Function f_log(const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is arc tangeant of the arguments
  * 
@@ -1385,42 +1385,42 @@ Mu::Function f_log(const Mu::Function &f) ;
  * @param f1 Function
  * @return a new Function
  */
-Mu::Function f_atan2(const Mu::Function &f0, const Mu::Function &f1) ;
+Amie::Function f_atan2(const Amie::Function &f0, const Amie::Function &f1) ;
 
 /** \brief Helper function to create a Function which is the sine of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_sin(const Mu::Function &f) ;
+Amie::Function f_sin(const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is the cosine of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_cos(const Mu::Function &f) ;
+Amie::Function f_cos(const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is the sign of the argument
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_sign(const Mu::Function &f) ;
+Amie::Function f_sign(const Amie::Function &f) ;
 
 /** \brief Helper function to create a Function which is 1 if the argument is positive, 0 otherwise
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_positivity(const Mu::Function& f, bool differentiate = true) ;
+Amie::Function f_positivity(const Amie::Function& f, bool differentiate = true) ;
 
 /** \brief Helper function to create a Function which is 1 if the argument is negative, 0 otherwise
  * 
  * @param f Function
  * @return a new Function
  */
-Mu::Function f_negativity(const Mu::Function& f, bool differentiate = true) ;
+Amie::Function f_negativity(const Amie::Function& f, bool differentiate = true) ;
 
 /** \brief  Helper function to create a Function which is the interpolated value between two functions. 0 as an argument will yield the value of the first function and 1 the second, intermediate values will yield the weighted average at that point.
  * 
@@ -1428,7 +1428,7 @@ Mu::Function f_negativity(const Mu::Function& f, bool differentiate = true) ;
  * @param f1 Function
  * @return a new Function
  */
-Mu::Function f_interpolate(const Mu::Function &f0, const Mu::Function &f1) ;
+Amie::Function f_interpolate(const Amie::Function &f0, const Amie::Function &f1) ;
 
 /** \brief Helper function to create a Function which computes the distance between a point, given by the arguments and its pojection on a given Geometry. The coordinates are transformed using the provided functions
  * 
@@ -1437,7 +1437,7 @@ Mu::Function f_interpolate(const Mu::Function &f0, const Mu::Function &f1) ;
  * @param y y transform Function
  * @return a new Function
  */
-Mu::Function f_project(const Mu::Geometry *g, const Mu::Function &x, const Mu::Function &y) ;
+Amie::Function f_project(const Amie::Geometry *g, const Amie::Function &x, const Amie::Function &y) ;
 
 /** \brief Helper function to compute the curvilinear absciss on a SegmentedLine
  *
@@ -1447,7 +1447,7 @@ Mu::Function f_project(const Mu::Geometry *g, const Mu::Function &x, const Mu::F
  * @param y y transform Function
  * @return a new Function
 */
-Mu::Function f_curvilinear_x(const Mu::SegmentedLine * s, bool fromHead,   const Mu::Function &x, const Mu::Function &y) ;
+Amie::Function f_curvilinear_x(const Amie::SegmentedLine * s, bool fromHead,   const Amie::Function &x, const Amie::Function &y) ;
 
 /** \brief Helper function to compute the curvilinear ordinate on a SegmentedLine
  *
@@ -1457,7 +1457,7 @@ Mu::Function f_curvilinear_x(const Mu::SegmentedLine * s, bool fromHead,   const
  * @param y y transform Function
  * @return a new Function
 */
-Mu::Function f_curvilinear_y(const Mu::SegmentedLine * s, bool fromHead,   const Mu::Function &x, const Mu::Function &y) ;
+Amie::Function f_curvilinear_y(const Amie::SegmentedLine * s, bool fromHead,   const Amie::Function &x, const Amie::Function &y) ;
 
 
 #endif

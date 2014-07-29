@@ -15,7 +15,7 @@
 #include "stiffness_and_fracture.h"
 #include "stiffness_with_imposed_deformation.h"
 
-namespace Mu
+namespace Amie
 {
 
 

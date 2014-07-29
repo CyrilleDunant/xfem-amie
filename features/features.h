@@ -30,7 +30,7 @@
 
 
 
-namespace Mu
+namespace Amie
 {
 
 	typedef enum 

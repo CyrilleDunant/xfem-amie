@@ -18,7 +18,7 @@
 #include "../../elements/integrable_entity.h"
 #include "../itoa.h"
 
-namespace Mu
+namespace Amie
 {
 
 typedef enum

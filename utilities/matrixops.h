@@ -34,7 +34,7 @@
 
 typedef std::valarray<double> Vector ;
 
-namespace Mu
+namespace Amie
 {
 
 struct MtM ;
@@ -223,8 +223,8 @@ public:
 
 } ;
 
-std::pair<Vector, double> getLargestEigenValueAndVector(const Mu::Matrix & m) ;
-std::vector<std::pair<Vector, double> > deflate(const Mu::Matrix & m) ;
+std::pair<Vector, double> getLargestEigenValueAndVector(const Amie::Matrix & m) ;
+std::vector<std::pair<Vector, double> > deflate(const Amie::Matrix & m) ;
 
 /** \brief perform the inner product of two vector of doubles
 * @param v0 Pointer to the start of the first vector
@@ -314,48 +314,48 @@ Vector solveSystem(const Matrix & A, const Vector & b, Vector & x) ;
 }
 
 /** \brief Construct a Matrix-Vector multiplication object*/
-inline Mu::MtV operator*(const Mu::Matrix& mm, const Vector& v)
+inline Amie::MtV operator*(const Amie::Matrix& mm, const Vector& v)
 {
-	return Mu::MtV(mm, v) ;
+	return Amie::MtV(mm, v) ;
 }
 
 /** \brief Construct a Matrix-Matrix multiplication object*/
-inline Mu::MtM operator*(const Mu::Matrix& mm, const Mu::Matrix& mmm)
+inline Amie::MtM operator*(const Amie::Matrix& mm, const Amie::Matrix& mmm)
 {
-	return Mu::MtM(mm, mmm) ;
+	return Amie::MtM(mm, mmm) ;
 }
 
 /** \brief Perform a Matrix-Matrix multiplication */
-inline const Mu::Matrix matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1 )
+inline const Amie::Matrix matrix_multiply(const Amie::Matrix &m0, const Amie::Matrix &m1 )
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	
-	Mu::Matrix ret(m0.numRows(), m1.numCols()) ;
+	Amie::Matrix ret(m0.numRows(), m1.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 		}
 	}
 	return ret ;
 }
 
-inline const Mu::Matrix matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1 , const double & d)
+inline const Amie::Matrix matrix_multiply(const Amie::Matrix &m0, const Amie::Matrix &m1 , const double & d)
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	
-	Mu::Matrix ret(m0.numRows(), m1.numCols()) ;
+	Amie::Matrix ret(m0.numRows(), m1.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) )*d ;
 		}
 	}
@@ -363,16 +363,16 @@ inline const Mu::Matrix matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &
 }
 
 /** \brief Perform a Matrix-Matrix-Matrix multiplication*/
-inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2 )
+inline const Amie::Matrix matrix_matrix_matrix_multiply(const Amie::Matrix &m0, const Amie::Matrix &m1, const Amie::Matrix &m2 )
 {
-	Mu::Matrix ret(m0.numRows(), m2.numCols()) ;
+	Amie::Matrix ret(m0.numRows(), m2.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
 				ret[i][k] += r_ij*m2[j][k] ;
@@ -382,16 +382,16 @@ inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, cons
 	return ret ;
 }
 
-inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2 , const double & d)
+inline const Amie::Matrix matrix_matrix_matrix_multiply(const Amie::Matrix &m0, const Amie::Matrix &m1, const Amie::Matrix &m2 , const double & d)
 {
-	Mu::Matrix ret(m0.numRows(), m2.numCols()) ;
+	Amie::Matrix ret(m0.numRows(), m2.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
 				ret[i][k] += r_ij*m2[j][k]*d ;
@@ -402,17 +402,17 @@ inline const Mu::Matrix matrix_matrix_matrix_multiply(const Mu::Matrix &m0, cons
 }
 
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, and assign to already initialised matrix passed as further argument*/
-inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, Mu::Matrix & ret )
+inline void matrix_matrix_matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matrix &m1, const Amie::Matrix &m2, Amie::Matrix & ret )
 {
 	if(&m0 == &ret || &m1 == &ret || &m2 == &ret)
 	{
-		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		Amie::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 				for(size_t k = 0 ; k < m2.numCols() ; k++)
 					r[i][k] += r_ij*m2[j][k] ;
@@ -427,8 +427,8 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
 				ret[i][k] += r_ij*m2[j][k] ;
@@ -438,17 +438,17 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Mu::Matrix &m0, const
 }
 
 /** \brief Perform a Matrix-Matrix-Matrix multiplication, multiply with a factor and add to already initialised matrix passed as further argument*/
-inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, const Mu::Matrix &m2, double f,  Mu::Matrix & ret )
+inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const Amie::Matrix &m1, const Amie::Matrix &m2, double f,  Amie::Matrix & ret )
 {
 	if(&m0 == &ret || &m1 == &ret || &m2 == &ret)
 	{
-		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		Amie::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 				for(size_t k = 0 ; k < m2.numCols() ; k++)
 					r[i][k] += r_ij*m2[j][k]*f ;
@@ -462,8 +462,8 @@ inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
 				ret[i][k] += r_ij*m2[j][k]*f ;
@@ -472,22 +472,22 @@ inline void matrix_matrix_matrix_multiply_and_add(const Mu::Matrix &m0, const Mu
 }
 
 /** \brief Perform a Matrix-Matrix multiplication, and assign to already initialised matrix passed as further argument*/
-inline void matrix_multiply_and_assign(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret) ;
+inline void matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matrix &m1,  Amie::Matrix &ret) ;
 
 /** \brief Perform a Matrix-Matrix multiplication, and add to already initialised matrix passed as further argument*/
-inline void matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1,  Mu::Matrix &ret)
+inline void matrix_multiply_and_add(const Amie::Matrix &m0, const Amie::Matrix &m1,  Amie::Matrix &ret)
 {
 	assert(m0.numCols() == m1.numRows()) ;
 // 	std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
 	if(&m0 == &ret || &m1 == &ret)
 	{
-		Mu::Matrix r(ret.numRows(), ret.numCols()) ;
+		Amie::Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-				const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				r[i][j] += std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			}
 		}
@@ -500,15 +500,15 @@ inline void matrix_multiply_and_add(const Mu::Matrix &m0, const Mu::Matrix &m1, 
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] += std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 		}
 	}
 }
 
 /** \brief Perform a Matrix-Vector multiplication*/
-inline const Vector matrix_vector_multiply(const Mu::Matrix &m, const Vector &v )
+inline const Vector matrix_vector_multiply(const Amie::Matrix &m, const Vector &v )
 {
 	assert(m.numRows() == v.size()) ;
 	
@@ -517,14 +517,14 @@ inline const Vector matrix_vector_multiply(const Mu::Matrix &m, const Vector &v 
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 
-		const Mu::Cslice_iter<double>& ri = m.row(i) ;
+		const Amie::Cslice_iter<double>& ri = m.row(i) ;
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], (double)(0) ) ;
 	}
 	return ret ;
 }
 
 /** \brief Perform a Vector-Matrix multiplication*/
-inline Vector operator*(const Vector &v , const Mu::Matrix &m )
+inline Vector operator*(const Vector &v , const Amie::Matrix &m )
 {
 	assert(m.numCols() == v.size()) ;
 	
@@ -532,7 +532,7 @@ inline Vector operator*(const Vector &v , const Mu::Matrix &m )
 	
 	for(size_t i = 0 ; i < m.numCols() ; i++)
 	{
-		const Mu::Cslice_iter<double>& ri = m.column(i) ;
+		const Amie::Cslice_iter<double>& ri = m.column(i) ;
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], (double)(0) ) ;
 	}
 	return ret ;
@@ -546,46 +546,46 @@ inline Vector operator*(const Vector &v , const Mu::Matrix &m )
 * @param l1 index of the second line
 * @param size of the matrix to produce
 */
-Mu::Matrix swapMatrix(size_t l0, size_t l1, size_t dim = 2) ;
-void swapLines(size_t l0, size_t l1, Mu::Matrix * m) ;
+Amie::Matrix swapMatrix(size_t l0, size_t l1, size_t dim = 2) ;
+void swapLines(size_t l0, size_t l1, Amie::Matrix * m) ;
 
-double trace(const Mu::Matrix & m) ;
+double trace(const Amie::Matrix & m) ;
 
-double secondInvariant(const Mu::Matrix & m) ;
+double secondInvariant(const Amie::Matrix & m) ;
 
-Mu::Matrix identity(size_t i) ;
+Amie::Matrix identity(size_t i) ;
 
 //clever 2x2 Matrix inversion. Thanks the numerical cookbook :)
 
 /** \brief 2x2 matrix inversion*/
-Mu::Matrix inverse2x2Matrix(const Mu::Matrix &s) ;
+Amie::Matrix inverse2x2Matrix(const Amie::Matrix &s) ;
 
 /** \brief in-place 2x2 matrix inversion*/
-void invert2x2Matrix(Mu::Matrix &s) ;
+void invert2x2Matrix(Amie::Matrix &s) ;
 
 /** \brief 3x3 matrix inversion*/
-Mu::Matrix inverse3x3Matrix(const Mu::Matrix &m) ;
+Amie::Matrix inverse3x3Matrix(const Amie::Matrix &m) ;
 
 /** \brief in-place 3x3 matrix inversion*/
-void invert3x3Matrix(Mu::Matrix & m) ;
+void invert3x3Matrix(Amie::Matrix & m) ;
 
 /** \brief 4x4 matrix inversion*/
-Mu::Matrix inverse4x4Matrix(const Mu::Matrix &s) ;
+Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s) ;
 
 /** \brief 6x6 matrix inversion*/
-Mu::Matrix inverse6x6Matrix(const Mu::Matrix &s) ;
+Amie::Matrix inverse6x6Matrix(const Amie::Matrix &s) ;
 
 /** \brief in-place 6x6 matrix inversion*/
-void invert6x6Matrix(Mu::Matrix & m) ;
+void invert6x6Matrix(Amie::Matrix & m) ;
 
 /** \brief compute the determinant of a Matrix, slow*/
-double det(const Mu::Matrix &s) ;
+double det(const Amie::Matrix &s) ;
 
 /** \brief Compute the exp of a Matrix, using series expansion. May not converge*/
-Mu::Matrix exp(const Mu::Matrix&, size_t order = 20) ;
+Amie::Matrix exp(const Amie::Matrix&, size_t order = 20) ;
 
 /** \brief Compute the log of a Matrix using series Expansion, May not converge*/
-Mu::Matrix log(const Mu::Matrix&, size_t order) ;
+Amie::Matrix log(const Amie::Matrix&, size_t order) ;
 
 
 

@@ -12,7 +12,7 @@
 #include "lineardamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 LinearDamage::LinearDamage()
 {

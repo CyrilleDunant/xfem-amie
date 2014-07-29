@@ -27,7 +27,7 @@
 #include <set>
 #include "../elements/integrable_entity.h"
 
-namespace Mu
+namespace Amie
 {
 	template <class ETYPE, class EABSTRACTTYPE>
 	class Mesh
@@ -38,7 +38,7 @@ namespace Mu
 		public:
 // 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
 // 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
-			virtual size_t addToTree(EABSTRACTTYPE * toAdd) = 0 ;
+			virtual int addToTree(EABSTRACTTYPE * toAdd) = 0 ;
 			virtual EABSTRACTTYPE * getInTree(int index) = 0 ;
 			virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
 			virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
@@ -643,7 +643,7 @@ namespace Mu
 		}
 		
 		virtual size_t getLastNodeId() const { return global_counter ; }
-		virtual size_t addToTree(EABSTRACTTYPE * toAdd)
+		virtual int addToTree(EABSTRACTTYPE * toAdd)
 		{
 			tree.push_back(toAdd) ;
 			return tree.size() -1 ;

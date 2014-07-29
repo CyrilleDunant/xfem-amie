@@ -12,7 +12,7 @@
 #include "fractiondamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 FractionLinearDamage::FractionLinearDamage( Matrix remnant, double phi) : remnant(remnant), phi(phi)
 {
@@ -24,7 +24,7 @@ FractionLinearDamage::FractionLinearDamage( Matrix remnant, double phi) : remnan
 	inTension = false ;
 }
 
-std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Amie::ElementState &s)
 {
 	Vector ret= state;
 

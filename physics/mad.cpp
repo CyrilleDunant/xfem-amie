@@ -20,7 +20,7 @@
 
 #include "mad.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 MultipleAggregatingDiscontinuities::MultipleAggregatingDiscontinuities(FeatureTree * ft, DelaunayTriangle * self ,  FractureCriterion * crit) : LinearForm(Matrix(), false, false, 2), featureTree(ft) , self2d(self), self3d(nullptr), leastSquares(nullptr), equivalentCrack(nullptr)
 {

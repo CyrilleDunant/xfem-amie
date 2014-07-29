@@ -14,7 +14,7 @@
 #include "../solvers/assembly.h"
 #include "feature_base.h"
 
-namespace Mu {
+namespace Amie {
 /** \brief Abstract boundary condition object for usage in multigrid solver.
  * 
 */

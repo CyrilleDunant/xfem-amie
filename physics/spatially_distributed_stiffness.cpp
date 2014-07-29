@@ -21,7 +21,7 @@
 #include "../utilities/random.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 SpatiallyDistributedStiffness::SpatiallyDistributedStiffness(const Matrix & rig, const Matrix & pore, double l,double ca, double cb) : LinearForm(rig, true, true, rig.numRows()/3+1), variability(.2), pore(pore)
 {

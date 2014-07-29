@@ -19,7 +19,7 @@
 #include <sstream>
 
 
-namespace Mu
+namespace Amie
 {
 
 VoxelWriter::VoxelWriter(std::string f, int n)  : filename(f), nVoxelX(n), nVoxelY(n), nVoxelZ(n), fullSample(true) { }

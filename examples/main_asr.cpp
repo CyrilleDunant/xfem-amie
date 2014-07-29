@@ -41,7 +41,7 @@
 #include <time.h>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 FeatureTree *featureTree ;
 

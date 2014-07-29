@@ -16,7 +16,7 @@
 #include "physics_base.h"
 #include "stiffness_with_imposed_deformation.h"
 
-namespace Mu
+namespace Amie
 {
 
 	

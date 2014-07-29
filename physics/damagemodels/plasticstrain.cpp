@@ -13,7 +13,7 @@
 #include "../../features/boundarycondition.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), previousTensileImposedStrain(0.,3), imposedStrain(0.,3)
 {

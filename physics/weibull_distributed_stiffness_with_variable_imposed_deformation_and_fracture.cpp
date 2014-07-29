@@ -13,7 +13,7 @@
 #include "weibull_distributed_stiffness_with_variable_imposed_deformation_and_fracture.h"
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 WeibullStiffnessWithVariableImposedDeformationAndFracture::WeibullStiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef), dfunc(),criterion(c)
 {

@@ -18,7 +18,7 @@
 #include "eigenvalues.h"
 #include <valarray>
 #include <sys/time.h>
-using namespace Mu ;
+using namespace Amie ;
 
 
 
@@ -173,7 +173,7 @@ void Assembly::add(ElementarySurface * e, double scale)
 	scales.push_back(scale);
 }
 
-void Mu::Assembly::add(Mu::ElementaryVolume * e, double scale)
+void Amie::Assembly::add(Amie::ElementaryVolume * e, double scale)
 {
 	dim = SPACE_THREE_DIMENSIONAL ;
 	ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -1271,7 +1271,7 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
 	return ;
 }
 
-void Mu::Assembly::addForceVector(const Vector & v)
+void Amie::Assembly::addForceVector(const Vector & v)
 {
 	std::valarray<unsigned int> i(2) ;
 	multipliers.push_back( LagrangeMultiplier(i, v, 0., -1) ) ;
@@ -1430,7 +1430,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 }
 
 
-void Assembly::fixPoint(size_t id, Mu::Variable v)
+void Assembly::fixPoint(size_t id, Amie::Variable v)
 {
 	auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id)) ;
 	if(!(multipliers.empty() || duplicate == multipliers.end()))

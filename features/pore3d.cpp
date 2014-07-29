@@ -15,7 +15,7 @@
 #include "../physics/void_form.h"
 #include "pore.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 Pore3D::Pore3D(Feature *father, double r, double x, double y, double z) : Feature(father), Sphere(r, x, y, z)

@@ -15,7 +15,7 @@
 #include "fracturecriterion.h"
 #include "../../mesher/delaunay_3d.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Maximum strain fracture criterion
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

@@ -14,7 +14,7 @@
 #include "../elements/elements.h"
 #include <string.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 void concatenateFunctions(const Function & src0, const Function & src1, Function & dst)
@@ -454,12 +454,12 @@ DtGtMtG Differential::operator *(const GtMtG & g) const
 	return DtGtMtG(*this, g) ;
 }
 
-GDtMtGD GDtM::operator*(const Mu::GradientDot & f) const
+GDtMtGD GDtM::operator*(const Amie::GradientDot & f) const
 {
 	return GDtMtGD(*this, f) ;
 }
 
-GDtMtG GDtM::operator*(const Mu::Gradient & f) const
+GDtMtG GDtM::operator*(const Amie::Gradient & f) const
 {
 	return GDtMtG(*this, f) ;
 }
@@ -490,17 +490,17 @@ VGtV VectorGradient::operator *(const Vector & f) const
 }
 
 
-VGtMtVG VGtM::operator*(const Mu::VectorGradient & f) const 
+VGtMtVG VGtM::operator*(const Amie::VectorGradient & f) const 
 {
 	return VGtMtVG(first,second, f) ;
 }
 
-VGtMtVGD VGtM::operator*(const Mu::VectorGradientDot & f) const 
+VGtMtVGD VGtM::operator*(const Amie::VectorGradientDot & f) const 
 {
 	return VGtMtVGD(first,second, f) ;
 }
 
-VGDtMtVG VGDtM::operator*(const Mu::VectorGradient & f) const 
+VGDtMtVG VGDtM::operator*(const Amie::VectorGradient & f) const 
 {
 	return VGDtMtVG(first,second, f) ;
 }
@@ -2888,7 +2888,7 @@ Function f_sin(const Function &f)
 }
 
 
-Mu::Function f_sign(const Mu::Function &f)
+Amie::Function f_sign(const Amie::Function &f)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_SIGN);
@@ -2902,7 +2902,7 @@ Mu::Function f_sign(const Mu::Function &f)
 
 
 
-Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
+Amie::Function f_positivity(const Amie::Function &f, bool differentiate)
 {
 	Function ret(f) ;
 	ret.byteCode.push_back(TOKEN_OPERATION_POSITIVITY);
@@ -2943,7 +2943,7 @@ Mu::Function f_positivity(const Mu::Function &f, bool differentiate)
 }
 
 
-Mu::Function f_negativity(const Mu::Function &f, bool differentiate)
+Amie::Function f_negativity(const Amie::Function &f, bool differentiate)
 {
 	Function ret = f ;
 	ret.byteCode.push_back(TOKEN_OPERATION_NEGATIVITY);

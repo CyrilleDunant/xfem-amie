@@ -9,7 +9,7 @@
 
 #include<valarray>
 
-namespace Mu
+namespace Amie
 {
 template<class T>
 class Slice_iter

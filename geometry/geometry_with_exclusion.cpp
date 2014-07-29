@@ -7,7 +7,7 @@
 
 #include "geometry_with_exclusion.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 GeometryWithExclusion::GeometryWithExclusion(Geometry * f, Geometry * e)
 {

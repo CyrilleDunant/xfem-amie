@@ -4,7 +4,7 @@
 #include "../elements/integrable_entity.h"
 #include "homogenization/composite.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 IterativeMaxwell::IterativeMaxwell(const Matrix & rig, double e) : LinearForm(rig, false, false, rig.numRows()/3+1)
@@ -56,7 +56,7 @@ Vector IterativeMaxwell::getImposedStress(const Point & p, IntegrableEntity * e,
 	{
 		if(e->getOrder() > LINEAR)
 		{
-			int ga = Mu::isGaussPoint(p, e) ;
+			int ga = Amie::isGaussPoint(p, e) ;
 			if( ga != -1)
 				return imposedStressAtGaussPoints[ga] ;
 		  
@@ -266,7 +266,7 @@ Vector GeneralizedIterativeMaxwell::getImposedStress(const Point & p, Integrable
 	{
 		if(imposedStressAtGaussPoints.size() > 1)
 		{
-			int ga = Mu::isGaussPoint(p, e) ;
+			int ga = Amie::isGaussPoint(p, e) ;
 			if( ga != -1)
 				return imposedStressAtGaussPoints[ga] ;
 		  

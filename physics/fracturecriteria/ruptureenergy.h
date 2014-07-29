@@ -15,7 +15,7 @@
 
 #include "fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief This FractureCriterion is met when a certain (elastic) Energy density is reached
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

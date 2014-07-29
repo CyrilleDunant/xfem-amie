@@ -12,7 +12,7 @@
 #include "../physics/maxwell.h"
 #include "../physics/void_form.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 EnrichmentInclusion::EnrichmentInclusion(Feature *father, double radius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y)
 {
@@ -440,7 +440,7 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
 	return std::vector<Geometry *>(0) ;
 }
 	
-void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
+void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Amie::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
 	
 bool EnrichmentInclusion::moved() const {  return updated ;}
 

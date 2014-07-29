@@ -11,7 +11,7 @@
 //
 //
 #include "boundedvonmises.h"
-namespace Mu {
+namespace Amie {
 
 BoundedVonMises::BoundedVonMises(double thres, double damageThreshold, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, threshold(thres), dmodel(nullptr), damageThreshold(damageThreshold)

@@ -14,7 +14,7 @@
 
 #include "fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 class DelaunayTriangle ;
 class DelaunayTetrahedron ;

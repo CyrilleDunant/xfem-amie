@@ -11,7 +11,7 @@
 //
 #include "gausseidell.h"
 
-namespace Mu {
+namespace Amie {
 
 GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { };
 

@@ -18,7 +18,7 @@
 #include <valarray>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 void OrthotropicStiffness::setAngle(double angle)
 {

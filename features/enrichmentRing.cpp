@@ -4,7 +4,7 @@
 
 #include "enrichmentRing.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 EnrichmentRing::EnrichmentRing(Feature *father, double radius, double inradius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y), self(inradius, x, y)
 {

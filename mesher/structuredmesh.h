@@ -7,7 +7,7 @@
 #include "delaunay.h"
 #include "../utilities/grid.h"
 
-namespace Mu
+namespace Amie
 {
 	class StructuredMesh : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 	{

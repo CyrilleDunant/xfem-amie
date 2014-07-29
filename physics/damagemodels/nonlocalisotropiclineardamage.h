@@ -14,7 +14,7 @@
 
 #include "damagemodel.h"
 
-namespace Mu {
+namespace Amie {
 
 
 

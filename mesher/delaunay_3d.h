@@ -26,7 +26,7 @@
 #include <bitset>
 #include "mesh.h"
 
-namespace Mu
+namespace Amie
 {
 
 class Star3D ;
@@ -363,7 +363,7 @@ public:
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 
 	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
-	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Mu::Point* p) 
+	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Amie::Point* p) 
 	{
 		std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
 		std::vector<DelaunayTetrahedron*> ret ;
@@ -388,7 +388,7 @@ public:
 	
 	virtual ~DelaunayTree3D() ;
 	
-	virtual size_t addToTree(DelaunayTreeItem3D * it)
+	virtual int addToTree(DelaunayTreeItem3D * it)
 	{
 		tree.push_back(it);
 		return tree.size()-1;
@@ -396,8 +396,8 @@ public:
 	
 	virtual DelaunayTreeItem3D * getInTree(int index) 
 	{
-		if(std::abs(index) < tree.size())
-			return tree[std::abs(index)] ;
+		if( index >= 0 && index < tree.size())
+			return tree[index] ;
 		return nullptr ;
 	}
 	
@@ -441,7 +441,7 @@ public:
 	void addSharedNodes(DelaunayTree3D * dt) ;
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	
-	void addElements(std::vector<DelaunayTreeItem3D *> & cons, Point * p) ;
+	   std::vector< DelaunayTreeItem3D* > addElements(std::vector< Amie::DelaunayTreeItem3D* >& cons, Amie::Point* p) ;
 	void refresh(const TetrahedralElement *father) ;
 	
 	size_t numPoints() const;
@@ -459,6 +459,6 @@ std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > quad(const 
 
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
-void makeNeighbours( Mu::DelaunayTreeItem3D *t0, Mu::DelaunayTreeItem3D *t1 ) ;
+void makeNeighbours( Amie::DelaunayTreeItem3D *t0, Amie::DelaunayTreeItem3D *t1 ) ;
 
 #endif  //__DELAUNAY_3D_H_

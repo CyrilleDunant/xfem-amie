@@ -12,7 +12,7 @@
 #include "anisotropicdamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 AnisotropicLinearDamage::AnisotropicLinearDamage() 
 {

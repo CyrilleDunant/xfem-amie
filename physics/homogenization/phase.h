@@ -6,7 +6,7 @@
 #include "../../mesher/delaunay_3d.h"
 #include "../../elements/integrable_entity.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** Simple class containing basic information about behaviours*/

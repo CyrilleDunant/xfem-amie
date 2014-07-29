@@ -12,7 +12,7 @@
 
 #include "../utilities/writer/triangle_writer.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 FeatureTree * featureTree ;
 

@@ -15,7 +15,7 @@
 #define __PRECONDITIONNERS_H
 #include "../utilities/matrixops.h"
 
-namespace Mu
+namespace Amie
 {
 	
 /** \brief Abstract preconditionner interface*/

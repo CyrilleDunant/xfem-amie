@@ -11,10 +11,10 @@
 #include "../solvers/assembly.h"
 #include "../features/boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
-using namespace Mu ;
+using namespace Amie ;
 
 
-size_t Mu::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t blocks) 
+size_t Amie::fieldTypeElementarySize(FieldType f, SpaceDimensionality dim, size_t blocks) 
 {
 	switch(f)
 	{
@@ -382,7 +382,7 @@ ElementState::ElementState( IntegrableEntity *s )
 // 	this->previousPreviousEnrichedDisplacements.resize(s->getEnrichmentFunctions().size()*ndof) ;
 }
 
-Matrix Mu::makeStressOrStrainMatrix(const Vector & stressOrStrain) 
+Matrix Amie::makeStressOrStrainMatrix(const Vector & stressOrStrain) 
 {
 	if(stressOrStrain.size() == 3)
 	{
@@ -427,7 +427,7 @@ bool isEffectiveStressField(FieldType f)
 	return f == EFFECTIVE_STRESS_FIELD || f == NON_ENRICHED_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD  ;
 }
 
-Vector Mu::toPrincipal(const Vector & stressOrStrain)
+Vector Amie::toPrincipal(const Vector & stressOrStrain)
 {
 	Vector ret(0., 2+(stressOrStrain.size() == 6)) ;
 	if(ret.size() == 2)
@@ -441,7 +441,7 @@ Vector Mu::toPrincipal(const Vector & stressOrStrain)
 	}
 	else if(ret.size() == 3)
 	{
-		Matrix mat = Mu::makeStressOrStrainMatrix(stressOrStrain) ;
+		Matrix mat = Amie::makeStressOrStrainMatrix(stressOrStrain) ;
 		Matrix I( 3, 3 ) ;
 		I[0][0] = 1 ;
 		I[1][1] = 1 ;
@@ -803,7 +803,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 1 ) ;
 					pts[2] = &parent->getBoundingPoint( 2 ) ;
@@ -842,7 +842,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 2 ) ;
 					pts[2] = &parent->getBoundingPoint( 4 ) ;
@@ -891,7 +891,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 1 ) ;
 					pts[2] = &parent->getBoundingPoint( 2 ) ;
@@ -931,7 +931,7 @@ void ElementState::getField( FieldType f, const Point & p, Vector & ret, bool lo
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 2 ) ;
 					pts[2] = &parent->getBoundingPoint( 4 ) ;
@@ -2369,7 +2369,7 @@ void ElementStateWithInternalVariables::setInternalVariableAtGaussPoint(Vector &
 	internalVariablesAtGaussPoints[g][i] = v ;
 }
 
-int Mu::isGaussPoint(const Point & p, IntegrableEntity * e) 
+int Amie::isGaussPoint(const Point & p, IntegrableEntity * e) 
 {
 	if(e)
 	{

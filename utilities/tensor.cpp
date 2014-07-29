@@ -1,6 +1,6 @@
 #include "tensor.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Tensor::Tensor(size_t o, size_t d) : order(o), dim(d) 
 {

@@ -20,7 +20,7 @@
 #define DEBUG
 #undef DEBUG
 
-using namespace Mu ;
+using namespace Amie ;
 
 DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0), tree(t)
 {
@@ -738,7 +738,7 @@ size_t DelaunayTree::numPoints() const
 	return this->global_counter ;
 }
 
-void DelaunayTreeItem::flatConflicts(std::valarray< bool >& visitedItems, std::vector<DelaunayTreeItem *> &toTest, std::vector< DelaunayTriangle* > & ret, const Mu::Geometry* g)
+void DelaunayTreeItem::flatConflicts(std::valarray< bool >& visitedItems, std::vector<DelaunayTreeItem *> &toTest, std::vector< DelaunayTriangle* > & ret, const Amie::Geometry* g)
 {
 	if(visitedItems[index])
 	{
@@ -3375,7 +3375,7 @@ Vector DelaunayTriangle::getNonLinearForces()
 
 DelaunayDeadTriangle::~DelaunayDeadTriangle() { }
 
-std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Mu::quad(const DelaunayTriangle * t)
+std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Amie::quad(const DelaunayTriangle * t)
 {
 	std::vector<DelaunayTriangle* > tris ;
 	std::vector<Point *> points ;

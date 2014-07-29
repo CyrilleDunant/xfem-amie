@@ -16,7 +16,7 @@
 
 
 
-namespace Mu
+namespace Amie
 {
 	struct ParallelBehaviour : public LinearForm
 	{

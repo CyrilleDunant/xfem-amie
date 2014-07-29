@@ -13,7 +13,7 @@
 #include "radialstiffnessgradient.h"
 #include "../elements/elements.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 RadialStiffnessGradient::RadialStiffnessGradient(double E_int, double nu_int, double rint, double E_ext, double nu_ext, double rext, Point c) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), r_ext(rext), r_int(rint), dr(r_ext-r_int), centre(c), dfunc()
 {

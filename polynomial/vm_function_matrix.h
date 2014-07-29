@@ -19,7 +19,7 @@
 #include "../utilities/matrixops.h"
 #include "vm_function_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 
@@ -511,7 +511,7 @@ struct GtFM
 	 * 
 	 * @param f Gradient
 	 */
-	GtFMtG operator*(const Mu::Gradient & f) const ;
+	GtFMtG operator*(const Amie::Gradient & f) const ;
 } ;
 
 
@@ -524,7 +524,7 @@ struct GtFM
  * @param v FunctionVector
  * @return FMtFV
  */
-Mu::FMtFV operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionVector& v);
+Amie::FMtFV operator*(const Amie::FunctionMatrix& mm, const Amie::FunctionVector& v);
 
 
 /** \brief Create a symbolic matrix - symbolic matrix multiplication object of lazy evaluation
@@ -533,7 +533,7 @@ Mu::FMtFV operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionVector& v);
  * @param mmm FunctionMatrix
  * @return FMtFM
  */
-Mu::FMtFM operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionMatrix& mmm);
+Amie::FMtFM operator*(const Amie::FunctionMatrix& mm, const Amie::FunctionMatrix& mmm);
 
 /** \brief Create a symbolic matrix - matrix - symbolic matrix multiplication object of lazy evaluation
  * 
@@ -541,7 +541,7 @@ Mu::FMtFM operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionMatrix& mmm)
  * @param mmm FunctionMatrix
  * @return FMtMtFM
  */
-Mu::FMtMtFM operator*(const Mu::FMtM& mm, const Mu::FunctionMatrix& mmm);
+Amie::FMtMtFM operator*(const Amie::FMtM& mm, const Amie::FunctionMatrix& mmm);
 
 /** \brief Create a symbolic matrix - vector multiplication object of lazy evaluation
  * 
@@ -549,7 +549,7 @@ Mu::FMtMtFM operator*(const Mu::FMtM& mm, const Mu::FunctionMatrix& mmm);
  * @param v Vector
  * @return FMtV
  */
-Mu::FMtV operator*(const Mu::FunctionMatrix& mm, const Vector & v);
+Amie::FMtV operator*(const Amie::FunctionMatrix& mm, const Vector & v);
 
 /** \brief Create a  symbolic matrix - matrix multiplication object of lazy evaluation
  * 
@@ -557,7 +557,7 @@ Mu::FMtV operator*(const Mu::FunctionMatrix& mm, const Vector & v);
  * @param mmm Matrix
  * @return FMtM
  */
-Mu::FMtM operator*(const Mu::FunctionMatrix& mm, const Mu::Matrix& mmm);
+Amie::FMtM operator*(const Amie::FunctionMatrix& mm, const Amie::Matrix& mmm);
 
 /** \brief Create a  matrix - symbolic matrix multiplication object of lazy evaluation
  * 
@@ -565,7 +565,7 @@ Mu::FMtM operator*(const Mu::FunctionMatrix& mm, const Mu::Matrix& mmm);
  * @param mmm FunctionMatrix
  * @return MtFM
  */
-Mu::MtFM operator*(const Mu::Matrix& mm, const Mu::FunctionMatrix& mmm);
+Amie::MtFM operator*(const Amie::Matrix& mm, const Amie::FunctionMatrix& mmm);
 
 /** \brief Perform symbolic matrix - symbolic matrix multiplication
  * 
@@ -574,7 +574,7 @@ Mu::MtFM operator*(const Mu::Matrix& mm, const Mu::FunctionMatrix& mmm);
  * @param m1 FunctionMatrix
  * @return FunctionMatrix
  */
-const Mu::FunctionMatrix ff_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::FunctionMatrix &m1 );
+const Amie::FunctionMatrix ff_matrix_multiply(const Amie::FunctionMatrix &m0, const Amie::FunctionMatrix &m1 );
 
 /** \brief Perform symbolic matrix - matrix multiplication
  * 
@@ -583,7 +583,7 @@ const Mu::FunctionMatrix ff_matrix_multiply(const Mu::FunctionMatrix &m0, const 
  * @param m1 Matrix
  * @return FunctionMatrix
  */
-const Mu::FunctionMatrix fm_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::Matrix &m1 );
+const Amie::FunctionMatrix fm_matrix_multiply(const Amie::FunctionMatrix &m0, const Amie::Matrix &m1 );
 
 /** \brief Perform matrix - symbolic matrix multiplication
  * 
@@ -592,7 +592,7 @@ const Mu::FunctionMatrix fm_matrix_multiply(const Mu::FunctionMatrix &m0, const 
  * @param m1 FunctionMatrix
  * @return FunctionMatrix
  */
-const Mu::FunctionMatrix mf_matrix_multiply(const Mu::Matrix &m0, const Mu::FunctionMatrix &m1 );
+const Amie::FunctionMatrix mf_matrix_multiply(const Amie::Matrix &m0, const Amie::FunctionMatrix &m1 );
 
 /** \brief Perform matrix - symbolic vector multiplication
  * 
@@ -601,7 +601,7 @@ const Mu::FunctionMatrix mf_matrix_multiply(const Mu::Matrix &m0, const Mu::Func
  * @param v FunctionVector
  * @return FunctionMatrix
  */
-const Mu::FunctionVector matrix_fvector_multiply(const Mu::Matrix &m, const Mu::FunctionVector &v );
+const Amie::FunctionVector matrix_fvector_multiply(const Amie::Matrix &m, const Amie::FunctionVector &v );
 
 /** \brief Perform symbolic matrix - vector multiplication
  * The respective dimensions of the objects are not checked
@@ -609,7 +609,7 @@ const Mu::FunctionVector matrix_fvector_multiply(const Mu::Matrix &m, const Mu::
  * @param v Vector
  * @return FunctionVector
  */
-const Mu::FunctionVector fmatrix_vector_multiply(const Mu::FunctionMatrix &m, const Vector &v );
+const Amie::FunctionVector fmatrix_vector_multiply(const Amie::FunctionMatrix &m, const Vector &v );
 
 /** \brief Perform symbolic vector - symbolic matrix multiplication
  * The respective dimensions of the objects are not checked
@@ -617,7 +617,7 @@ const Mu::FunctionVector fmatrix_vector_multiply(const Mu::FunctionMatrix &m, co
  * @param m FunctionMatrix
  * @return FunctionVector
  */
-const Mu::FunctionVector operator*(const Mu::FunctionVector &v , const Mu::FunctionMatrix &m );
+const Amie::FunctionVector operator*(const Amie::FunctionVector &v , const Amie::FunctionMatrix &m );
 
 /** \brief Perform symbolic vector - symbolic matrix multiplication
  * The respective dimensions of the objects are not checked
@@ -625,21 +625,21 @@ const Mu::FunctionVector operator*(const Mu::FunctionVector &v , const Mu::Funct
  * @param m FunctionMatrix
  * @return FunctionVector
  */
-const Mu::FunctionVector operator*(const Vector &v , const Mu::FunctionMatrix &m );
+const Amie::FunctionVector operator*(const Vector &v , const Amie::FunctionMatrix &m );
 
 /** \brief Compute the symbolic inverse of a 2x2 symbolic matrix
  * 
  * @param s FunctionMatrix to invert
  * @return FunctionMatrix
  */
-Mu::FunctionMatrix inverse2x2FunctionMatrix(const Mu::FunctionMatrix s) ;
+Amie::FunctionMatrix inverse2x2FunctionMatrix(const Amie::FunctionMatrix s) ;
 
 /** \brief Compute the symbolic inverse of a 3x3 symbolic matrix
  * 
  * @param m FunctionMatrix to invert
  * @return FunctionMatrix
  */
-Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m) ;
+Amie::FunctionMatrix inverse3x3FunctionMatrix(const Amie::FunctionMatrix m) ;
 
 /** \brief Create a  Gradient - symbolic matrix multiplication object of lazy evaluation
  * 
@@ -647,7 +647,7 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m) ;
  * @param m FunctionMatrix
  * @return GtFM
  */
-Mu::GtFM operator *(const Mu::Gradient & g, const Mu::FunctionMatrix & m) ;
+Amie::GtFM operator *(const Amie::Gradient & g, const Amie::FunctionMatrix & m) ;
 
 
 

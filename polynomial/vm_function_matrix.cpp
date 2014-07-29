@@ -12,7 +12,7 @@
 
 #include "vm_function_matrix.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 FunctionMatrix::FunctionMatrix(size_t x, size_t y)
 {
@@ -231,49 +231,49 @@ FMtMtFM::operator const FunctionMatrix() const
 
 
 //clever 2x2 FunctionMatrix inversion. Thanks the numerical cookbook :)
-Mu::FunctionMatrix inverse2x2FunctionMatrix(const Mu::FunctionMatrix s)
+Amie::FunctionMatrix inverse2x2FunctionMatrix(const Amie::FunctionMatrix s)
 {
 	
 	if(s[0][0].byteCode.size() == 0 || s[1][1].byteCode.size() == 0)
 	{
-		Mu::Matrix swap(2,2) ; swap[0][0] = 0 ; swap[0][1] = 1 ; swap[1][0] = 1 ; swap[1][1] = 0 ;
-		Mu::FunctionMatrix s_ ( s*swap );
+		Amie::Matrix swap(2,2) ; swap[0][0] = 0 ; swap[0][1] = 1 ; swap[1][0] = 1 ; swap[1][1] = 0 ;
+		Amie::FunctionMatrix s_ ( s*swap );
 		
-		Mu::FunctionMatrix ret(2,2) ;
-		Mu::Function r1 = Mu::Function("1")/s_[0][0] ;
-		Mu::Function r2 = s_[1][0] * r1 ;
-		Mu::Function r3 = r1* s_[0][1] ;
-		Mu::Function r4 = s_[1][0] * r3 ;
-		Mu::Function r5 = r4 - s_[1][1] ;
-		Mu::Function r6 =  Mu::Function("1")/r5 ;
+		Amie::FunctionMatrix ret(2,2) ;
+		Amie::Function r1 = Amie::Function("1")/s_[0][0] ;
+		Amie::Function r2 = s_[1][0] * r1 ;
+		Amie::Function r3 = r1* s_[0][1] ;
+		Amie::Function r4 = s_[1][0] * r3 ;
+		Amie::Function r5 = r4 - s_[1][1] ;
+		Amie::Function r6 =  Amie::Function("1")/r5 ;
 		ret[0][1] = r3*r6 ;
 		ret[1][0] = r6*r2 ;
-		Mu::Function r7 = r3*ret[1][0] ;
+		Amie::Function r7 = r3*ret[1][0] ;
 		ret[0][0] = r1-r7 ;
 		ret[1][1] = r6*-1 ;
 		return swap*ret ;
 	}
 	
-	Mu::FunctionMatrix ret(2,2) ;
-	Mu::Function r1 = Mu::Function("1")/s[0][0] ;
-	Mu::Function r2 = s[1][0] * r1 ;
-	Mu::Function r3 = r1* s[0][1] ;
-	Mu::Function r4 = s[1][0] * r3 ;
-	Mu::Function r5 = r4 - s[1][1] ;
-	Mu::Function r6 = Mu::Function("1")/r5 ;
+	Amie::FunctionMatrix ret(2,2) ;
+	Amie::Function r1 = Amie::Function("1")/s[0][0] ;
+	Amie::Function r2 = s[1][0] * r1 ;
+	Amie::Function r3 = r1* s[0][1] ;
+	Amie::Function r4 = s[1][0] * r3 ;
+	Amie::Function r5 = r4 - s[1][1] ;
+	Amie::Function r6 = Amie::Function("1")/r5 ;
 	ret[0][1] = r3*r6 ;
 	ret[1][0] = r6*r2 ;
-	Mu::Function r7 = r3*ret[1][0] ;
+	Amie::Function r7 = r3*ret[1][0] ;
 	ret[0][0] = r1-r7 ;
 	ret[1][1] = r6*-1 ;
 	
 	return ret ;
 }
 
-Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
+Amie::FunctionMatrix inverse3x3FunctionMatrix(const Amie::FunctionMatrix m)
 {
-	Mu::FunctionMatrix m_(m) ;
-	std::vector< Mu::Matrix > swap ;
+	Amie::FunctionMatrix m_(m) ;
+	std::vector< Amie::Matrix > swap ;
 	
 // 	std::cout << m[0][0] << "   " << m[0][1] << "   " << m[0][2] << std::endl ;
 // 	std::cout << m[1][0] << "   " << m[1][1] << "   " << m[1][2] << std::endl ;
@@ -290,7 +290,7 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 				{
 					if(!m_[j][i].byteCode.size() == 0 )
 					{
-						Mu::Matrix temp(swapMatrix(i,j, 3)) ;
+						Amie::Matrix temp(swapMatrix(i,j, 3)) ;
 						swap.push_back(temp) ;
 						m_ = m_* temp ;
 					}
@@ -299,7 +299,7 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 		}
 	}
 	
-	Mu::FunctionMatrix ret(3,3) ;
+	Amie::FunctionMatrix ret(3,3) ;
 	Function r11 = m_[1][1]*m_[2][2]-m_[1][2]*m_[2][1] ;
 	Function r21 = m_[1][2]*m_[2][0]-m_[1][0]*m_[2][2] ;
 	Function r31 = m_[1][0]*m_[2][1]-m_[1][1]*m_[2][0] ;
@@ -317,7 +317,7 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 	ret[2][1] = m_[0][1]*m_[2][0] - m_[0][0]*m_[2][1] ;
 	ret[2][2] = m_[1][1]*m_[0][0] - m_[0][1]*m_[1][0] ;
 	
-	for(std::vector< Mu::Matrix >::reverse_iterator i = swap.rbegin() ; i != swap.rend()  ; ++i )
+	for(std::vector< Amie::Matrix >::reverse_iterator i = swap.rbegin() ; i != swap.rend()  ; ++i )
 	{
 		ret = (*i)*ret ;
 	}
@@ -329,159 +329,159 @@ Mu::FunctionMatrix inverse3x3FunctionMatrix(const Mu::FunctionMatrix m)
 	return ret/det ;
 }
 
-inline Mu::FMtFV operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionVector& v)
+inline Amie::FMtFV operator*(const Amie::FunctionMatrix& mm, const Amie::FunctionVector& v)
 {
-	return Mu::FMtFV(mm, v) ;
+	return Amie::FMtFV(mm, v) ;
 } ;
 
-inline Mu::FMtFM operator*(const Mu::FunctionMatrix& mm, const Mu::FunctionMatrix& mmm)
+inline Amie::FMtFM operator*(const Amie::FunctionMatrix& mm, const Amie::FunctionMatrix& mmm)
 {
-	return Mu::FMtFM(mm, mmm) ;
+	return Amie::FMtFM(mm, mmm) ;
 } ;
 
-inline Mu::FMtMtFM operator*(const Mu::FMtM& mm, const Mu::FunctionMatrix& mmm)
+inline Amie::FMtMtFM operator*(const Amie::FMtM& mm, const Amie::FunctionMatrix& mmm)
 {
-	return Mu::FMtMtFM(mm.first, mm.second, mmm) ;
+	return Amie::FMtMtFM(mm.first, mm.second, mmm) ;
 } ;
 
 
-inline Mu::FMtV operator*(const Mu::FunctionMatrix& mm, const Vector & v)
+inline Amie::FMtV operator*(const Amie::FunctionMatrix& mm, const Vector & v)
 {
-	return Mu::FMtV(mm, v) ;
+	return Amie::FMtV(mm, v) ;
 } ;
 
-inline Mu::FMtM operator*(const Mu::FunctionMatrix& mm, const Mu::Matrix& mmm)
+inline Amie::FMtM operator*(const Amie::FunctionMatrix& mm, const Amie::Matrix& mmm)
 {
-	return Mu::FMtM(mm, mmm) ;
+	return Amie::FMtM(mm, mmm) ;
 } ;
 
-inline Mu::MtFM operator*(const Mu::Matrix& mm, const Mu::FunctionMatrix& mmm)
+inline Amie::MtFM operator*(const Amie::Matrix& mm, const Amie::FunctionMatrix& mmm)
 {
-	return Mu::MtFM(mm, mmm) ;
+	return Amie::MtFM(mm, mmm) ;
 } ;
 
-inline const Mu::FunctionMatrix ff_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::FunctionMatrix &m1 )
+inline const Amie::FunctionMatrix ff_matrix_multiply(const Amie::FunctionMatrix &m0, const Amie::FunctionMatrix &m1 )
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	
-	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	Amie::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<Mu::Function>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<Mu::Function>& cj = m1.column(j) ;
-			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Mu::Function()) ;
+			const Amie::Cslice_iter<Amie::Function>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<Amie::Function>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Amie::Function()) ;
 		}
 	}
 	return ret ;
 }
 
-inline const Mu::FunctionMatrix fm_matrix_multiply(const Mu::FunctionMatrix &m0, const Mu::Matrix &m1 )
+inline const Amie::FunctionMatrix fm_matrix_multiply(const Amie::FunctionMatrix &m0, const Amie::Matrix &m1 )
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	
-	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	Amie::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<Mu::Function>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<double>& cj = m1.column(j) ;
-			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Mu::Function() ) ;
+			const Amie::Cslice_iter<Amie::Function>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Amie::Function() ) ;
 		}
 	}
 	return ret ;
 }
 
-inline const Mu::FunctionMatrix mf_matrix_multiply(const Mu::Matrix &m0, const Mu::FunctionMatrix &m1 )
+inline const Amie::FunctionMatrix mf_matrix_multiply(const Amie::Matrix &m0, const Amie::FunctionMatrix &m1 )
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	
-	Mu::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
+	Amie::FunctionMatrix ret(m0.numRows(), m1.numCols()) ;
 	
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Mu::Cslice_iter<double>& ri = m0.row(i) ;
-			const Mu::Cslice_iter<Mu::Function>& cj = m1.column(j) ;
-			ret[i][j] = std::inner_product(&cj[0], &cj[m0.numCols()], ri, Mu::Function() ) ;
+			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<Amie::Function>& cj = m1.column(j) ;
+			ret[i][j] = std::inner_product(&cj[0], &cj[m0.numCols()], ri, Amie::Function() ) ;
 		}
 	}
 	return ret ;
 }
 
 
-inline const Mu::FunctionVector matrix_fvector_multiply(const Mu::Matrix &m, const Mu::FunctionVector &v )
+inline const Amie::FunctionVector matrix_fvector_multiply(const Amie::Matrix &m, const Amie::FunctionVector &v )
 {
 	assert(m.numRows() == v.size()) ;
 	
-	Mu::FunctionVector ret(v.size()) ;
+	Amie::FunctionVector ret(v.size()) ;
 	
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 		
-		const Mu::Cslice_iter<double>& ri = m.row(i) ;
-		ret[i] = std::inner_product(&v[0], &v[v.size()],ri, Mu::Function() ) ;
+		const Amie::Cslice_iter<double>& ri = m.row(i) ;
+		ret[i] = std::inner_product(&v[0], &v[v.size()],ri, Amie::Function() ) ;
 	}
 	return ret ;
 }
 
-inline const Mu::FunctionVector fmatrix_vector_multiply(const Mu::FunctionMatrix &m, const Vector &v )
+inline const Amie::FunctionVector fmatrix_vector_multiply(const Amie::FunctionMatrix &m, const Vector &v )
 {
 	assert(m.numRows() == v.size()) ;
 	
-	Mu::FunctionVector ret(v.size()) ;
+	Amie::FunctionVector ret(v.size()) ;
 	
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 		
-		const Mu::Cslice_iter<Mu::Function>& ri = m.row(i) ;
-		ret[i] = std::inner_product(ri, ri.end(), &v[0], Mu::Function() ) ;
+		const Amie::Cslice_iter<Amie::Function>& ri = m.row(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0], Amie::Function() ) ;
 	}
 	return ret ;
 }
 
-inline const Mu::FunctionVector operator*(const Mu::FunctionVector &v , const Mu::FunctionMatrix &m )
+inline const Amie::FunctionVector operator*(const Amie::FunctionVector &v , const Amie::FunctionMatrix &m )
 {
 	assert(m.numCols() == v.size()) ;
 	
-	Mu::FunctionVector ret(v.size()) ;
+	Amie::FunctionVector ret(v.size()) ;
 	
 	for(size_t i = 0 ; i < m.numCols() ; i++)
 	{
 		
-		const Mu::Cslice_iter<Mu::Function>& ri = m.column(i) ;
-		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Mu::Function()) ;
+		const Amie::Cslice_iter<Amie::Function>& ri = m.column(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Amie::Function()) ;
 	}
 	return ret ;
 }
 
-inline const Mu::FunctionVector operator*(const Vector &v , const Mu::FunctionMatrix &m )
+inline const Amie::FunctionVector operator*(const Vector &v , const Amie::FunctionMatrix &m )
 {
 	assert(m.numCols() == v.size()) ;
 	
-	Mu::FunctionVector ret(v.size()) ;
+	Amie::FunctionVector ret(v.size()) ;
 	
 	for(size_t i = 0 ; i < m.numCols() ; i++)
 	{
 		
-		const Mu::Cslice_iter<Mu::Function>& ri = m.column(i) ;
-		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Mu::Function()) ;
+		const Amie::Cslice_iter<Amie::Function>& ri = m.column(i) ;
+		ret[i] = std::inner_product(ri, ri.end(), &v[0] , Amie::Function()) ;
 	}
 	return ret ;
 }
 
-GtFMtG GtFM::operator*(const Mu::Gradient & f) const
+GtFMtG GtFM::operator*(const Amie::Gradient & f) const
 {
 	return GtFMtG(this->first, this->second, f) ;
 }
 
-Mu::GtFM operator *(const Mu::Gradient & g, const Mu::FunctionMatrix & m)
+Amie::GtFM operator *(const Amie::Gradient & g, const Amie::FunctionMatrix & m)
 {
-	return Mu::GtFM(g, m) ;
+	return Amie::GtFM(g, m) ;
 }
 

@@ -20,25 +20,25 @@
 #include "../polynomial/vm_base.h"
 #include "../elements/integrable_entity.h"
 
-Mu::Function XTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
-double xTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function YTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
-double yTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function ZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
-double zTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function TTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis) ;
-double tTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Point coordinateTransform(const Mu::Point & p, const Mu::PointArray & points, const std::valarray<Mu::Function > & basis) ;
-Mu::Function dXTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dYTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-Mu::Function dTTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v) ;
-double dXTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dYTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dZTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
-double dTTransform(const Mu::PointArray & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Mu::Point & p ) ;
+Amie::Function XTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
+double xTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
+Amie::Function YTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
+double yTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
+Amie::Function ZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
+double zTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
+Amie::Function TTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
+double tTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
+Amie::Point coordinateTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
+Amie::Function dXTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
+Amie::Function dYTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
+Amie::Function dZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
+Amie::Function dTTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
+double dXTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
+double dYTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
+double dZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
+double dTTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
 
-namespace Mu
+namespace Amie
 {
 
 class ElementarySurface ;
@@ -339,7 +339,7 @@ public:
 	virtual void print()  const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
 	virtual Vector getNonLinearForces() ;
-	virtual std::valarray<std::valarray<Mu::Matrix> > getNonLinearElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Amie::Matrix> > getNonLinearElementaryMatrix() ;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual std::valarray< Function > & getShapeFunctions()  ;
 	bool visited ;
@@ -355,9 +355,9 @@ public:
 
 } ;
 
-void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec) ;
-void burn(std::vector<Mu::HexahedralElement *> & vec) ;
-Mu::GaussPointArray gaussPointSet(Mu::Order order, const Mu::TriElement * t) ;
-Mu::GaussPointArray gaussPointSet(Mu::Order order, const Mu::TetrahedralElement * t) ;
+void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Amie::HexahedralElement *> & vec) ;
+void burn(std::vector<Amie::HexahedralElement *> & vec) ;
+Amie::GaussPointArray gaussPointSet(Amie::Order order, const Amie::TriElement * t) ;
+Amie::GaussPointArray gaussPointSet(Amie::Order order, const Amie::TetrahedralElement * t) ;
 
 #endif // __ELEMENTS_H_

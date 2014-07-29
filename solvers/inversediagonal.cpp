@@ -14,7 +14,7 @@
 #include <limits>
 #include <iostream>
 
-using namespace Mu ;
+using namespace Amie ;
 
 InverseLumpedDiagonal::InverseLumpedDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(0., A.row_size.size()*A.stride)
 {

@@ -15,7 +15,7 @@
 
 #include "solver.h"
 
-namespace Mu 
+namespace Amie 
 {
 	class LinearSolver ;
 /** \brief preconditionned Conjugate Gradient for symmetric systems*/
@@ -29,7 +29,7 @@ namespace Mu
 		Preconditionner * P ;
 		size_t nit ;
 		virtual ~ConjugateGradient() { if(cleanup) delete P ;} ;
-		ConjugateGradient(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
+		ConjugateGradient(const Amie::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
 	} ;
 

@@ -20,7 +20,7 @@
 
 #include <map>
 
-namespace Mu
+namespace Amie
 {
 
 class LevelSet : public Geometry

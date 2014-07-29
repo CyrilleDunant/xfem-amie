@@ -16,7 +16,7 @@
 #include "preconditionners.h"
 #include "../sparse/sparse_matrix.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief Tridiagonal preconditionner*/

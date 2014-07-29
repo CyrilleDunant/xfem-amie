@@ -43,7 +43,7 @@
 #include <limits>
 #include <sys/time.h>
 #define DEBUG
-using namespace Mu ;
+using namespace Amie ;
 
 Sample box(nullptr, 0.02, 0.01,0.,0.) ;
 

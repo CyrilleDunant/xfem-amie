@@ -10,7 +10,7 @@
 #include <iomanip>
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 VirtualMachine::VirtualMachine(){ } ;
 

@@ -17,7 +17,7 @@
 #include "gausseidell.h"
 
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Preconditionner, perform a GS step
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

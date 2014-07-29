@@ -11,7 +11,7 @@
 //
 #include "enrichmentbehaviour.h"
 
-namespace Mu {
+namespace Amie {
 
 EnrichmentBehaviour::EnrichmentBehaviour()
 {

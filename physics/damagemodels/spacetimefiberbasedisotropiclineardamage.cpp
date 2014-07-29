@@ -12,7 +12,7 @@
 #include "spacetimefiberbasedisotropiclineardamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 SpaceTimeFiberBasedIsotropicLinearDamage::SpaceTimeFiberBasedIsotropicLinearDamage(double f, double t, double density)  : fibreFraction(f), timeTolerance(t), visc("x")
 {
@@ -21,7 +21,7 @@ SpaceTimeFiberBasedIsotropicLinearDamage::SpaceTimeFiberBasedIsotropicLinearDama
 	isNull = false ;
 }
 
-std::pair< Vector, Vector > SpaceTimeFiberBasedIsotropicLinearDamage::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > SpaceTimeFiberBasedIsotropicLinearDamage::computeDamageIncrement( Amie::ElementState &s)
 {
 	return std::make_pair(state, Vector(1., 1)) ;
 }

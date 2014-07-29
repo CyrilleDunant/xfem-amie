@@ -12,7 +12,7 @@
 
 #include "linearstiffnessgradient.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 LinearStiffnessGradient::LinearStiffnessGradient(double E_int, double nu_int, double E_ext, double nu_ext, Point l, Point r) : LinearForm(Matrix(3,3), false, true, 2), paramAlt(3,3), left(l), right(r)
 {

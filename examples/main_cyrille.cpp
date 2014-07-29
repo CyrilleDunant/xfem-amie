@@ -54,7 +54,7 @@
 #include <limits>
 #include <time.h> 
 #define DEBUG 
-using namespace Mu ;
+using namespace Amie ;
 using namespace std;
 
 FeatureTree * featureTree ;

@@ -19,7 +19,7 @@
 #include "../elements/elements.h"
 #include "../mesher/delaunay_3d.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Read voxel information from µic. All voxels with value 0 will be used to form a pore network
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

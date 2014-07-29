@@ -5,7 +5,7 @@
 #include "../physics/damagemodels/damagemodel.h"
 #include "../physics/viscoelasticity.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a) : BoundaryCondition( t, d, a ), pos( pos ) { } ;
 

@@ -14,7 +14,7 @@
 
 #include "damagemodel.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Linear Damage model, with different compressive and tensile damage effects
  * This damage allows a better simulation of materials exhibitng different failure behaviour in traction and compression.

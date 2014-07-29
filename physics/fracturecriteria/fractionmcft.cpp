@@ -14,7 +14,7 @@
 #include "../../mesher/delaunay.h"
 #include "../../mesher/delaunay_3d.h"
 
-namespace Mu {
+namespace Amie {
 
 // FractionMCFT::FractionMCFT(double up, double down , Matrix steelCGTensor, double youngModulus, double phi, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 // 	, upVal(up), downVal(down), steelCGTensor(steelCGTensor), phi(phi)

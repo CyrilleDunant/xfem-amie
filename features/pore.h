@@ -15,7 +15,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Pore class. This Feature has a VoidBehaviour by default*/

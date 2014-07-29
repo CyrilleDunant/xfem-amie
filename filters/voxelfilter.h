@@ -18,7 +18,7 @@
 #include "../elements/elements.h"
 #include "../mesher/delaunay_3d.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Voxel reader from µic output
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

@@ -13,7 +13,7 @@
 #include "stiffness_with_kinetics_imposed_deformation.h"
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithKineticsImposedDeformation::StiffnessWithKineticsImposedDeformation(const Matrix & rig, Vector imposedDef, Function k) : StiffnessWithImposedDeformation(rig, imposedDef), kinetics(k)
 {

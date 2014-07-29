@@ -14,7 +14,7 @@
 #include <limits>
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithVariableImposedDeformationAndFracture::StiffnessWithVariableImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * c) : LinearForm(rig, true, false, rig.numRows()/3+1) , imposed(imposedDef),criterion(c)
 {

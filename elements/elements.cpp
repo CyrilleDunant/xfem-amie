@@ -11,7 +11,7 @@
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../utilities/tensor.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 ElementarySurface::~ElementarySurface()
@@ -1722,7 +1722,7 @@ Function TriElement::jacobian() const
 	
 }
 	
-double  TriElement::jacobianAtPoint(const Mu::Point& p) const 
+double  TriElement::jacobianAtPoint(const Amie::Point& p) const 
 {
 //	p.print() ;
 	if(order < CONSTANT_TIME_LINEAR)
@@ -4342,9 +4342,9 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	return Vector(0);
 }
 
- std::valarray<std::valarray<Mu::Matrix> >  HexahedralElement::getNonLinearElementaryMatrix()  
+ std::valarray<std::valarray<Amie::Matrix> >  HexahedralElement::getNonLinearElementaryMatrix()  
 {
-	return std::valarray<std::valarray<Mu::Matrix> >(0);
+	return std::valarray<std::valarray<Amie::Matrix> >(0);
 }
 
 void ElementaryVolume::setBehaviour(Form * f)
@@ -4491,7 +4491,7 @@ Function zeroes(int numberOfDerivatives, int derivationDepth)
 	return ret ;
 }
 
-Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+Function XTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 //	Function ret = zeroes( 4, basis[0].derivationDepth()-1 ) ;
  	Function ret("0") ;
@@ -4510,7 +4510,7 @@ Function XTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 }
 
 
-double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+double xTransform(const Point & p, const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	double ret = 0;
 	
@@ -4522,7 +4522,7 @@ double xTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	return ret ;
 }
 
-Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+Function YTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
 	Function zero("0") ;
@@ -4543,7 +4543,7 @@ Function YTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 }
 
 
-double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+double yTransform(const Point & p, const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	double ret = 0;
 	
@@ -4555,7 +4555,7 @@ double yTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	return ret ;
 }
 
-Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+Function ZTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
 	Function zero("0") ;
@@ -4576,7 +4576,7 @@ Function ZTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
-double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+double zTransform(const Point & p, const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	double ret = 0;
 	
@@ -4588,7 +4588,7 @@ double zTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	return ret ;
 }
 
-Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+Function TTransform(const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	Function ret("0") ;
 	Function zero("0") ;
@@ -4608,7 +4608,7 @@ Function TTransform(const std::valarray<Mu::Point*> & points, const std::valarra
 	return ret ;
 }
 
-double tTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+double tTransform(const Point & p, const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	double ret = 0;
 	
@@ -4620,7 +4620,7 @@ double tTransform(const Point & p, const std::valarray<Mu::Point*> & points, con
 	return ret ;
 }
 
-Point coordinateTransform(const Point & p, const std::valarray<Mu::Point*> & points, const std::valarray<Function > & basis)
+Point coordinateTransform(const Point & p, const std::valarray<Amie::Point*> & points, const std::valarray<Function > & basis)
 {
 	Point ret;
 	
@@ -4636,7 +4636,7 @@ Point coordinateTransform(const Point & p, const std::valarray<Mu::Point*> & poi
 	return ret ;
 }
 
-Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
+Amie::Function dXTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v)
 {
 	switch(v)
 	{
@@ -4696,7 +4696,7 @@ Mu::Function dXTransform(const std::valarray<Mu::Point*> & points ,const std::va
 	}
 }
 
-Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
+Amie::Function dYTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v)
 {
 	switch(v)
 	{
@@ -4756,7 +4756,7 @@ Mu::Function dYTransform(const std::valarray<Mu::Point*> & points ,const std::va
 	}
 }
 
-Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
+Amie::Function dZTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v)
 {
 	switch(v)
 	{
@@ -4816,7 +4816,7 @@ Mu::Function dZTransform(const std::valarray<Mu::Point*> & points ,const std::va
 	}
 }
 
-Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v)
+Amie::Function dTTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v)
 {
 	switch(v)
 	{
@@ -4876,7 +4876,7 @@ Mu::Function dTTransform(const std::valarray<Mu::Point*> & points ,const std::va
 	}
 }
 
-double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Point & p)
+double dXTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p)
 {
 	switch(v)
 	{
@@ -4934,7 +4934,7 @@ double dXTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	}
 }
 
-double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Point & p)
+double dYTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p)
 {
 	switch(v)
 	{
@@ -4995,7 +4995,7 @@ double dYTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	}
 }
 
-double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Point & p)
+double dZTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p)
 {
 	switch(v)
 	{
@@ -5055,7 +5055,7 @@ double dZTransform(const std::valarray<Mu::Point*> & points ,const std::valarray
 	}
 }
 
-double dTTransform(const std::valarray<Mu::Point*> & points ,const std::valarray< Mu::Function> &basis, Mu::Variable v, const Point & p)
+double dTTransform(const std::valarray<Amie::Point*> & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Point & p)
 {
 	switch(v)
 	{
@@ -5365,7 +5365,7 @@ std::vector<int> validNeighbours(int i, int j, int k, int length)
 	return ret ;
 }
 
-void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralElement *> & vec)
+void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Amie::HexahedralElement *> & vec)
 {
 	int length = (int)round(std::pow(vec.size(), 1./3.)) ;
 
@@ -5388,13 +5388,13 @@ void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Mu::HexahedralE
 	}
 }
 
-void burn(std::vector<Mu::HexahedralElement *> & vec)
+void burn(std::vector<Amie::HexahedralElement *> & vec)
 {
 	int length = (int)round(std::pow(vec.size(), 1./3.)) ;
 
 	
-	std::vector<Mu::HexahedralElement *> to_check ;
-	std::vector<Mu::HexahedralElement *> connected ;
+	std::vector<Amie::HexahedralElement *> to_check ;
+	std::vector<Amie::HexahedralElement *> connected ;
 	for(int i = 0 ; i < length ; i++)
 	{
 		for(int j = 0 ; j < length ; j++)
@@ -5412,7 +5412,7 @@ void burn(std::vector<Mu::HexahedralElement *> & vec)
 	
 	while(!to_check.empty())
 	{
-		std::vector<Mu::HexahedralElement *> temp ;
+		std::vector<Amie::HexahedralElement *> temp ;
 		
 		for(size_t i = 0 ; i< to_check.size() ; i++)
 		{

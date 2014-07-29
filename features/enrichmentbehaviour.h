@@ -14,7 +14,7 @@
 
 #include "features.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Enrichment-generating behaviour interface.
 * 

@@ -12,7 +12,7 @@
 
 #include "stiffness_with_time_dependent_imposed_deformation.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithTimeDependentImposedDeformation::StiffnessWithTimeDependentImposedDeformation(const Matrix & rig, Vector imposedDef, Function k) : StiffnessWithImposedDeformation(rig, imposedDef), kinetics(k)
 {

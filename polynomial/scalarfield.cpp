@@ -11,7 +11,7 @@
 //
 #include "scalarfield.h"
 
-namespace Mu {
+namespace Amie {
 
 LineScalarField::LineScalarField(const Vector & vals, Point o, double s): values(vals), offset(o), scale(s)
 {

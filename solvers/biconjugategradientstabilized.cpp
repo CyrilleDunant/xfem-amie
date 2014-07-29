@@ -5,7 +5,7 @@
 
 #include <sys/time.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { }
 

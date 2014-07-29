@@ -22,7 +22,7 @@
 #include <list>
 #include <iostream>
 
-namespace Mu
+namespace Amie
 {
 
 class Star ;
@@ -109,7 +109,7 @@ public:
 	virtual bool onCircumCircle(const Point &p) const = 0 ;
 	virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-	virtual void conflicts(std::valarray< bool >& visitedItems, std::vector< Mu::DelaunayTreeItem* >& ret, const Mu::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+	virtual void conflicts(std::valarray< bool >& visitedItems, std::vector< Amie::DelaunayTreeItem* >& ret, const Amie::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
 	virtual void conflicts(std::valarray< bool >& visitedItems,std::vector<DelaunayTriangle *> &, const Geometry *g) ;
 	void flatConflicts(std::valarray< bool >& visitedItems , std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTriangle *> & ret, const Geometry *g) ;
 	void flatConflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
@@ -341,7 +341,7 @@ protected:
 	
 public:
 	
-	virtual size_t addToTree(DelaunayTreeItem * toAdd)
+	virtual int addToTree(DelaunayTreeItem * toAdd)
 	{
 		tree.push_back(toAdd);
 		return tree.size()-1 ;
@@ -349,13 +349,15 @@ public:
 	
 	virtual DelaunayTreeItem * getInTree(int index) 
 	{
-		return tree[std::abs(index)] ;
+        if(index > -1)
+            return tree[index] ;
+        return nullptr ;
 	}
 	
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ;};
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
-	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Mu::Point* p) 
+	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Amie::Point* p) 
 	{
 		std::vector< DelaunayTreeItem* > targets = conflicts(p) ;
 		std::vector<DelaunayTriangle*> ret ;
@@ -450,6 +452,6 @@ std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > quad(const Del
 } ;
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
-void makeNeighbours( Mu::DelaunayTreeItem *t0, Mu::DelaunayTreeItem *t1 ) ;
+void makeNeighbours( Amie::DelaunayTreeItem *t0, Amie::DelaunayTreeItem *t1 ) ;
 
 #endif  //__DELAUNAY_H_

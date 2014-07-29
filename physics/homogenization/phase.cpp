@@ -6,7 +6,7 @@
 #include "../../utilities/matrixops.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Phase::Phase()
 {

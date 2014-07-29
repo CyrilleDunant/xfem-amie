@@ -11,7 +11,7 @@
 //
 #include "solver.h"
 
-namespace Mu {
+namespace Amie {
 
 Solver::Solver() : colstart(0), rowstart(0)
 {

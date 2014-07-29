@@ -8,7 +8,7 @@
 
 #include "physics_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief A Geometry determined dual behaviour.

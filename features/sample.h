@@ -14,7 +14,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief rectangular Feature with sides aligned to the axes*/

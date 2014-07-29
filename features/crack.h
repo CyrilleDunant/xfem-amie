@@ -14,7 +14,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 
@@ -62,8 +62,8 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-	double propagationAngleFromTip(const std::pair< Mu::Point*, double >& tip,  Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree) ;
-	std::pair<double, double> computeJIntegralAtTip ( std::pair< Mu::Point*, double >& tip,  Mu::Mesh< Mu::DelaunayTriangle, Mu::DelaunayTreeItem >* dtree ) ;
+	double propagationAngleFromTip(const std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree) ;
+	std::pair<double, double> computeJIntegralAtTip ( std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree ) ;
 	std::set<Point *> donePoints ;
 	
 	bool scorePropagation ; 
@@ -166,7 +166,7 @@ public:
 	virtual bool interacts(Feature*, double) const ;
 
 /** \brief Return the vector of geometries in which the mesh should be refined around this Feature*/
-	virtual std::vector<Mu::Geometry*> getRefinementZones(size_t) const ;
+	virtual std::vector<Amie::Geometry*> getRefinementZones(size_t) const ;
 	virtual void print() const ;
 	//	virtual void printFile(const std::string& filename) const;//SB
 
@@ -210,7 +210,7 @@ public:
 
 } ;
 
-bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b) ;
+bool operator ==(const std::pair<Amie::Point*, double> & a, const Amie::Point* b) ;
 
 
 #endif

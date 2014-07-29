@@ -11,7 +11,7 @@
 #include "../mesher/delaunay.h"
 #include "../polynomial/vm_function_base.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 LevelSet::LevelSet()

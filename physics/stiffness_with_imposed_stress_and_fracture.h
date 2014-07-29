@@ -21,7 +21,7 @@
 #include "damagemodels/isotropiclineardamage.h"
 #include "damagemodels/nonlocalisotropiclineardamage.h"
 
-namespace Mu
+namespace Amie
 {
 	struct StiffnessWithImposedStressAndFracture : public LinearForm
 	{

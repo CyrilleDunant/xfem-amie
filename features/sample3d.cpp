@@ -11,7 +11,7 @@
 //
 #include "sample3d.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 

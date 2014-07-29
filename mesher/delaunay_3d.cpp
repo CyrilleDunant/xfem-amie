@@ -18,7 +18,7 @@
 // #define DEBUG
 // #undef DEBUG
 
-using namespace Mu ;
+using namespace Amie ;
 
 DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> *t, DelaunayTreeItem3D *father,  const Point *c ) : stepson( 0 ), neighbour( 0 ), son( 0 )
 {
@@ -581,7 +581,7 @@ size_t DelaunayTree3D::numPoints() const
 	return this->global_counter ;
 }
 
-void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >  & ret, const Mu::Geometry *g )
+void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >  & ret, const Amie::Geometry *g )
 {
 
 	if( visitedItems[index] )
@@ -826,7 +826,7 @@ void DelaunayTreeItem3D::flatConflicts( std::valarray<bool> & visitedItems , std
 
 
 
-void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > &ret, const Mu::Point *p )
+void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > &ret, const Amie::Point *p )
 {
 
 	if( visitedItems[index] )
@@ -878,7 +878,7 @@ void DelaunayTreeItem3D::conflicts( std::valarray< bool >& visitedItems, std::ve
 
 }
 
-void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p, int threadid )
+void DelaunayTreeItem3D::flatConflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p, int threadid )
 {
 	if(threadid >= 0 && index%(threadid+1) != 0)
 		return ;
@@ -1082,7 +1082,7 @@ DelaunayTetrahedron *DelaunayTetrahedron::getNeighbourhood( size_t i ) const
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getNeighbour( size_t i ) const
 {
-	return tree->getInTree(neighbour[i]) ;
+    return tree->getInTree(neighbour[i]) ;
 }
 
 DelaunayTreeItem3D *DelaunayTreeItem3D::getSon( size_t i ) const
@@ -1765,7 +1765,7 @@ void DelaunayDemiSpace::merge( DelaunayDemiSpace *p )
 				addNeighbour( p->getStepson( i ) ) ;
 				p->getStepson( i )->addNeighbour( this ) ;
 			}
-
+            
 			tree->getInTree(p->father)->addSon( this ) ;
 			p->addSon( this ) ;
 			p->kill( first ) ;
@@ -1896,14 +1896,14 @@ void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point
 		if( ins )
 		{
 
-			std::vector< Point *> pp = this->commonSurface( getNeighbour( i ) ) ;
+			std::vector< Point *> pp = commonSurface( getNeighbour( i ) ) ;
 
 			if( Tetrahedron( *p*tree->getInternalScale(), 
 				*pp[0]*tree->getInternalScale(), 
 											 *pp[1]*tree->getInternalScale(), 
 											 *pp[2]*tree->getInternalScale() ).volume() > POINT_TOLERANCE_3D*tree->getInternalScale() )
 			{
-				DelaunayTetrahedron *ss = new DelaunayTetrahedron( this->tree, this, p, pp[0], pp[1], pp[2], p ) ;
+				DelaunayTetrahedron *ss = new DelaunayTetrahedron( tree, this, p, pp[0], pp[1], pp[2], p ) ;
 
 				addSon( ss ) ;
 				getNeighbour( i )->addStepson( ss ) ;
@@ -2180,7 +2180,7 @@ void DelaunayRoot3D::insert( std::vector<DelaunayTreeItem3D *>& ret, Point *p, S
 
 
 
-void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems,  std::vector< DelaunayTreeItem3D * > &ret, const Mu::Geometry *g )
+void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems,  std::vector< DelaunayTreeItem3D * > &ret, const Amie::Geometry *g )
 {
 	visited() = true ;
 
@@ -2218,7 +2218,7 @@ void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems,  std::vecto
 }
 
 
-void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > & ret, const Mu::Point *p )
+void DelaunayRoot3D::conflicts( std::valarray< bool >& visitedItems, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p )
 {
 
 	visited() = true ;
@@ -2339,7 +2339,7 @@ DelaunayTree3D::~DelaunayTree3D()
 
 }
 
-void DelaunayTree3D::addElements(std::vector<DelaunayTreeItem3D *> & cons, Point * p)
+std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<DelaunayTreeItem3D *> & cons, Point * p)
 {
 	
 	p->getId() = this->global_counter ;
@@ -2472,6 +2472,7 @@ void DelaunayTree3D::addElements(std::vector<DelaunayTreeItem3D *> & cons, Point
 
 // //
 	delete s ;
+    return ret ;
 }
 
 void DelaunayTree3D::insert( Point *p )
@@ -3759,12 +3760,12 @@ void DelaunayTree3D::setElementOrder( Order elemOrder, double dt )
 
 
 
-void Mu::DelaunayTreeItem3D::print() const
+void Amie::DelaunayTreeItem3D::print() const
 {
 }
 
 
-std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > Mu::quad( const DelaunayTetrahedron *t )
+std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > Amie::quad( const DelaunayTetrahedron *t )
 {
 	std::vector<DelaunayTetrahedron * > tris ;
 	std::vector<Point *> points ;

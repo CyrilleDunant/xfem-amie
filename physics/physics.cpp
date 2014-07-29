@@ -8,7 +8,7 @@
 #include "../mesher/delaunay.h" 
 #include "../polynomial/vm_base.h" 
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 

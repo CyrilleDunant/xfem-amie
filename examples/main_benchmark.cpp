@@ -38,7 +38,7 @@
 #include <time.h> 
 #include "../utilities/writer/voxel_writer.h"
 #define DEBUG 
-using namespace Mu ;
+using namespace Amie ;
 
 int viewangle = 0 ;
 int viewangle2 = 0 ;

@@ -24,7 +24,7 @@
 
 #include "../features/sample3d.h"
 
-using namespace Mu ;
+using namespace Amie ;
 using namespace std;
 
 FeatureTree * featureTree ;

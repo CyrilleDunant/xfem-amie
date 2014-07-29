@@ -16,7 +16,7 @@
 #include "assembly.h"
 #include "preconditionners.h"
 
-namespace Mu {
+namespace Amie {
 
 class Assembly ;
 

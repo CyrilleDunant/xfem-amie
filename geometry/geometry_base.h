@@ -300,7 +300,7 @@ return this->LevelSet::timePlanes() ;                 \
 
 
 
-namespace Mu
+namespace Amie
 {
 
 static const double POINT_TOLERANCE_2D =  1e-10 ;//std::numeric_limits<double>::epsilon() ;
@@ -1531,7 +1531,7 @@ public:
 } ;
 
 /** \brief Return the triproduct of the three arguments (A ^ B * C)*/
-double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) ;
+double signedAlignement(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1) ;
 
 /** \brief Check the alignment of three points.
  * 
@@ -1540,7 +1540,7 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
  * @param f1 third point.
  * @return true if the points are aligned.
  */
-bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)  ;
+bool isAligned(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1)  ;
 
 /** \brief Check the alignment of three points.
  * 
@@ -1549,27 +1549,27 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
  * @param f1 third point.
  * @return true if the points are aligned.
  */
-bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  ;
+bool isAligned(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1)  ;
 
 /** \brief return true if the four points are coplanar*/
-bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2, double renorm = 1.) ;
+bool isCoplanar(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2, double renorm = 1.) ;
 
 /** \brief return true if the four points are coplanar*/
-bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.) ;
+bool isCoplanar(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm = 1.) ;
 
-int coplanarCount( Mu::Point * const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.) ;
-
-/** \brief Compute a value increasing with decreasing coplanarity of the points*/
-double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+int coplanarCount( Amie::Point * const* pts, int numpoints, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm = 1.) ;
 
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
-double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+double coplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2) ;
 
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
-double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2) ;
+double coplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2) ;
 
 /** \brief Compute a value increasing with decreasing coplanarity of the points*/
-double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2) ;
+double signedCoplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2) ;
+
+/** \brief Compute a value increasing with decreasing coplanarity of the points*/
+double signedCoplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2) ;
 
 /**  \brief Test if a point is in a triangle defined by three points.
  * 
@@ -1579,7 +1579,7 @@ double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::P
  * @param p2 vertex 2.
  * @return true if test is in.
  */
-bool isInTriangle(const Mu::Point &test, const Mu::Point &p0, const Mu::Point &p1, const Mu::Point &p2)  ;
+bool isInTriangle(const Amie::Point &test, const Amie::Point &p0, const Amie::Point &p1, const Amie::Point &p2)  ;
 
 /**  \brief Test wether two points lie on the same demi-plane.
  * 
@@ -1589,7 +1589,7 @@ bool isInTriangle(const Mu::Point &test, const Mu::Point &p0, const Mu::Point &p
  * @param f1 second point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, double norm = 1.)  ;
+bool isOnTheSameSide(const Amie::Point &test, const Amie::Point &witness, const Amie::Point &f0, const Amie::Point &f1, double norm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-plane.
  * 
@@ -1599,7 +1599,7 @@ bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::
  * @param f1 second point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::Point *f0, const Mu::Point *f1, double norm = 1.)  ;
+bool isOnTheSameSide(const Amie::Point *test, const Amie::Point *witness, const Amie::Point *f0, const Amie::Point *f1, double norm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-space.
  * 
@@ -1610,7 +1610,7 @@ bool isOnTheSameSide(const Mu::Point *test, const Mu::Point *witness, const Mu::
   * @param f1 third point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm = 1.)  ;
+bool isOnTheSameSide(const Amie::Point &test, const Amie::Point &witness, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm = 1.)  ;
 
 /**  \brief Test wether two points lie on the same demi-space.
  * 
@@ -1621,7 +1621,7 @@ bool isOnTheSameSide(const Mu::Point &test, const Mu::Point &witness, const Mu::
  * @param f1 third point defining the plane boundary.
  * @return true if both points are on the same side of the demi-plane.
  */
-bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu::Point * f0, const Mu::Point * f1, const Mu::Point * f2, double renorm = 1.)  ;
+bool isOnTheSameSide(const Amie::Point * test, const Amie::Point * witness, const Amie::Point * f0, const Amie::Point * f1, const Amie::Point * f2, double renorm = 1.)  ;
 //bool isAligned(const Point test, const Point f0, const Point f1)  ;
 
 /** \brief Return the distance between two points
@@ -1630,7 +1630,7 @@ bool isOnTheSameSide(const Mu::Point * test, const Mu::Point * witness, const Mu
  * @param v2 second point.
  * @return \f$ \sqrt{(x_0-x_1)^2 + (y_0-y_1)^2} \f$
  */
-double dist(const Mu::Point &v1, const Mu::Point &v2) ;
+double dist(const Amie::Point &v1, const Amie::Point &v2) ;
 
 /** \brief Return the distance between two points
  * 
@@ -1638,19 +1638,19 @@ double dist(const Mu::Point &v1, const Mu::Point &v2) ;
  * @param v2 second point.
  * @return \f$ \sqrt{(x_0-x_1)^2 + (y_0-y_1)^2} \f$
  */
-double dist(const Mu::Point * v1, const Mu::Point * v2) ;
+double dist(const Amie::Point * v1, const Amie::Point * v2) ;
 
 /** \brief Return the convex hull of a set of points.
  * 
  * @param points 
  * @return a convex polygon (all boundary points anti-cockwise-ordered).
  */
-Mu::ConvexPolygon* convexHull(const std::vector<Mu::Point> * points) ;
+Amie::ConvexPolygon* convexHull(const std::vector<Amie::Point> * points) ;
 
 /** \brief Functor for point comparison in STL containers */
 struct PointLessThan
 {
-	bool operator()(Mu::Point * p1, Mu::Point *p2)
+	bool operator()(Amie::Point * p1, Amie::Point *p2)
 	{
 		return *p1 < *p2 ;
 	}
@@ -1662,7 +1662,7 @@ struct PointLessThan
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist(const Mu::Point &v1, const Mu::Point &v2) ;
+double squareDist(const Amie::Point &v1, const Amie::Point &v2) ;
 
 /** \brief Return the square distance between two points
  * 
@@ -1670,7 +1670,7 @@ double squareDist(const Mu::Point &v1, const Mu::Point &v2) ;
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist(const Mu::Point *v1, const Mu::Point *v2) ;
+double squareDist(const Amie::Point *v1, const Amie::Point *v2) ;
 
 /** \brief Return the square distance between two points, 2D case
  * 
@@ -1678,7 +1678,7 @@ double squareDist(const Mu::Point *v1, const Mu::Point *v2) ;
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist2D(const Mu::Point &v1, const Mu::Point &v2) ;
+double squareDist2D(const Amie::Point &v1, const Amie::Point &v2) ;
 
 /** \brief Return the square distance between two points, 2D case
  * 
@@ -1686,7 +1686,7 @@ double squareDist2D(const Mu::Point &v1, const Mu::Point &v2) ;
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist2D(const Mu::Point *v1, const Mu::Point *v2) ;
+double squareDist2D(const Amie::Point *v1, const Amie::Point *v2) ;
 
 /** \brief Return the square distance between two points, 2D case
  * 
@@ -1694,9 +1694,9 @@ double squareDist2D(const Mu::Point *v1, const Mu::Point *v2) ;
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist3D(const Mu::Point &v1, const Mu::Point &v2) ;
+double squareDist3D(const Amie::Point &v1, const Amie::Point &v2) ;
 
-double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C) ;
+double triProduct(const Amie::Point &A, const Amie::Point &B, const Amie::Point &C) ;
 
 /** \brief Return the square distance between two points, 2D case
  * 
@@ -1704,14 +1704,14 @@ double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C) ;
  * @param v2 second point.
  * @return \f$ (x_0-x_1)^2 + (y_0-y_1)^2 \f$
  */
-double squareDist3D(const Mu::Point *v1, const Mu::Point *v2) ;
+double squareDist3D(const Amie::Point *v1, const Amie::Point *v2) ;
 
 /** \brief Functor for point comparison in STL containers */
 struct PointEqTol
 {
 	double tol ;
 	PointEqTol(double t) : tol(t) {}
-	bool operator()(const Mu::Point & m, const Mu::Point & p)
+	bool operator()(const Amie::Point & m, const Amie::Point & p)
 	{
 		return squareDist(m,p) < tol ;
 	}
@@ -1720,7 +1720,7 @@ struct PointEqTol
 /** \brief Functor for point comparison in STL containers */
 struct PointLess_Than_x
 {
-	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
+	bool operator()(const Amie::Point & p1, const Amie::Point & p2) const
 	{
 		return p1.getX() < p2.getX() ;
 	}
@@ -1729,7 +1729,7 @@ struct PointLess_Than_x
 /** \brief Functor for point comparison in STL containers */
 struct PointLess_Than_y
 {
-	bool operator()(const Mu::Point & p1, const Mu::Point & p2) const
+	bool operator()(const Amie::Point & p1, const Amie::Point & p2) const
 	{
 		return p1.getY() < p2.getY() ;
 	}

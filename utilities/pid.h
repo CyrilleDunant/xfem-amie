@@ -14,7 +14,7 @@
 #ifndef __PID_H__
 #define __PID_H__
 
-namespace Mu
+namespace Amie
 {
 
 /**PID Controller.

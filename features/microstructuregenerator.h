@@ -27,7 +27,7 @@
 #include "../geometry/geometry_base.h"
 #include "../utilities/random.h"
 
-namespace Mu
+namespace Amie
 {
 	struct MicrostructureGenerator
 	{

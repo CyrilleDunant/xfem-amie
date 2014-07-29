@@ -16,7 +16,7 @@
 #include "fracturecriteria/mcft.h"
 #include "fracturecriteria/mohrcoulomb.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 StiffnessAndIndexedFracture::StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * crit, double eps) : LinearForm(rig, false, true, rig.numRows()/3+1), eps(eps)

@@ -5,7 +5,7 @@
 #include "damagemodels/damagemodel.h"
 #include "../elements/elements.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 TrimaterialInterface::TrimaterialInterface(Geometry * in,Geometry * out, Form * inbehaviour, Form * midbehaviour, Form * outbehaviour) : LinearForm(Matrix(3,3), true, true, 2), inGeometry(in), outGeometry(out),inBehaviour(inbehaviour),midBehaviour(midbehaviour), outBehaviour(outbehaviour)  { }
 

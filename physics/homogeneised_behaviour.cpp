@@ -32,7 +32,7 @@
 #include "../geometry/geometry_base.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( nullptr ), equivalent( nullptr )
 {

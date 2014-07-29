@@ -13,7 +13,7 @@
 #include "layeredinclusion.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 std::vector<DelaunayTriangle *> LayeredInclusion::getElements2D( FeatureTree * dt) 
 {

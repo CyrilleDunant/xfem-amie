@@ -14,7 +14,7 @@
 #include "stiffness_with_imposed_deformation_and_fracture.h"
 #include "../features/boundarycondition.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.2)
 {

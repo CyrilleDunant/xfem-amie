@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iomanip>
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 
@@ -428,7 +428,7 @@ std::vector<Point> Tetrahedron::getBoundingBox() const
 	return ret ;
 }
 
-const Mu::Point& Tetrahedron::getCircumCenter() const
+const Amie::Point& Tetrahedron::getCircumCenter() const
 {
 	return this->circumCenter ;
 }

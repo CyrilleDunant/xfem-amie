@@ -18,7 +18,7 @@
 
 #include "vm_token.h"
 
-namespace Mu
+namespace Amie
 {
 
 

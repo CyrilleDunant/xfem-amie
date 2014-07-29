@@ -15,5 +15,5 @@
 #include "multigrid.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 

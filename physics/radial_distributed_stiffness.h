@@ -16,7 +16,7 @@
 #include "physics_base.h"
 #include "../features/inclusion.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief A linear Elastic Law

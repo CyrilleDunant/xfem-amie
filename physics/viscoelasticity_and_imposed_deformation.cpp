@@ -2,7 +2,7 @@
 #include "../features/boundarycondition.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 ViscoelasticityAndImposedDeformation::ViscoelasticityAndImposedDeformation( ViscoelasticModel model, const Matrix & rig, int additionnalBlocksAfter, double r ) : Viscoelasticity(model, rig, additionnalBlocksAfter, r), imposedStrain(rig.numRows())
 {

@@ -12,7 +12,7 @@
 #include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../geometry/space_time_geometry_2D.h"
 
-namespace Mu
+namespace Amie
 {
 
 class TimeDependentEnrichmentInclusion : public EnrichmentInclusion, public TimeDependentCircle
@@ -34,7 +34,7 @@ public:
 		std::cout << "I am a time-dependent enriched inclusion" << std::endl ;
 	}
 	
-	virtual void step(double dt, std::valarray<double> *,  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *,  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
 
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 
@@ -63,7 +63,7 @@ public:
 		std::cout << "I am a time-dependent enriched inclusion" << std::endl ;
 	}
 	
-	virtual void step(double dt, std::valarray<double> *,  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *,  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
 
 	void update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 

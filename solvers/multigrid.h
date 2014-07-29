@@ -18,7 +18,7 @@
 #include "gausseidell.h"
 #include "inversediagonal.h"
 
-namespace Mu 
+namespace Amie 
 {
 /** \brief MultiGrid for symmetric systems*/
 	template<class MESH_T, class ETYPE>

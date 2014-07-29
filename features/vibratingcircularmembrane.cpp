@@ -5,7 +5,7 @@
 #include "vibratingcircularmembrane.h"
 #include "../physics/wave.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 VibratingMembrane::VibratingMembrane(Feature *father, double radius, double x, double y, Matrix tensor) : EnrichmentInclusion(father, radius, x, y), cgTensor(tensor)
 {

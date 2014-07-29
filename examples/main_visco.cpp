@@ -47,7 +47,7 @@
 #define DEBUG
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 
         Vector strain = F.getAverageField(STRAIN_FIELD, -1, -1.) ;
         Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, -1.) ;
-        std::cout << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" << F.getAssembly()->externalForces[44] << std::endl ;
+        std::cout << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" << F.getAssembly()->getForces()[44] << std::endl ;
         output << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << std::endl ;
 
 	}

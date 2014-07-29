@@ -15,7 +15,7 @@
 
 #include "solver.h"
 
-namespace Mu 
+namespace Amie 
 {
 
 /** \brief direct solver for lower-triangular system*/
@@ -32,7 +32,7 @@ namespace Mu
 	{
 		Vector d ;
 		virtual ~UpperTriangular() { } ;
-		UpperTriangular(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
+		UpperTriangular(const Amie::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
@@ -42,7 +42,7 @@ namespace Mu
 		const Vector &d ;
 		Vector y ;
 		virtual ~CholeskiDecomposed() { } ;
-		CholeskiDecomposed(const Mu::CoordinateIndexedSparseMatrix& A_, Vector& b_, const Vector& d_) ;
+		CholeskiDecomposed(const Amie::CoordinateIndexedSparseMatrix& A_, Vector& b_, const Vector& d_) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	};
 

@@ -3,7 +3,7 @@
 #include "grid.h"
 #include <set>
 
-using namespace Mu ;
+using namespace Amie ;
 
 Voxel::Voxel()
 {

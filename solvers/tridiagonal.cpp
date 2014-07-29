@@ -12,7 +12,7 @@
 
 #include "tridiagonal.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 TriDiagonal::TriDiagonal(const CoordinateIndexedSparseMatrix &A) : diagonal(A.diagonal()), upper(diagonal.size()-1), c(upper)

@@ -21,7 +21,7 @@
 #include "damagemodels/plasticstrain.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithImposedStressAndFracture::StiffnessWithImposedStressAndFracture(const Matrix & rig, Vector imposedStress, FractureCriterion * c, DamageModel * d) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedStress)
 {

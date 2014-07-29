@@ -51,7 +51,7 @@
 #define DEBUG
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 // see Cecot 2001, p98, for sample dimensions
 

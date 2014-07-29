@@ -1,7 +1,7 @@
 #ifndef PHASE_H
 #define PHASE_H
 
-namespace Mu
+namespace Amie
 {
 
 struct Phase

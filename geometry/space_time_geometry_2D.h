@@ -9,7 +9,7 @@
 #include "geometry_2D.h"
 #include "../polynomial/vm_function_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 class TimeDependentCircle : public Circle

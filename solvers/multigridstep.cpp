@@ -11,7 +11,7 @@
 //
 #include "multigridstep.h"
 
-namespace Mu {
+namespace Amie {
 
 
 

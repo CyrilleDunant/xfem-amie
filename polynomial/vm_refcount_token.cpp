@@ -12,4 +12,4 @@
 
 #include "vm_refcount_token.h"
 
-using namespace Mu ;
+using namespace Amie ;

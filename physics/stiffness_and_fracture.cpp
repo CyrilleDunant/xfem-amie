@@ -19,7 +19,7 @@
 #include "damagemodels/plasticstrain.h"
 #include "damagemodels/fiberbasedisotropiclineardamage.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 StiffnessAndFracture::StiffnessAndFracture(const Matrix & rig, FractureCriterion * crit, DamageModel * d) : LinearForm(rig, false, true, rig.numRows()/3+1)

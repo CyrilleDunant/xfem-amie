@@ -11,7 +11,7 @@
 //
 #include "crackinitiation.h"
 
-namespace Mu {
+namespace Amie {
 
 CrackInitiation::CrackInitiation()
  : EnrichmentBehaviour()

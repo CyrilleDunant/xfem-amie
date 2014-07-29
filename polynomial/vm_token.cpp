@@ -13,7 +13,7 @@
 #include "vm_token.h"
 #include "../elements/elements.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 void InHomogeneousProjectionOperation::eval(double * a, double * b, double * c) const

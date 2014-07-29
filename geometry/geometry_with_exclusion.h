@@ -9,7 +9,7 @@
 #include "geometry_base.h"
 #include "../utilities/matrixops.h"
 
-namespace Mu
+namespace Amie
 {
 class GeometryWithExclusion : public Geometry
 {

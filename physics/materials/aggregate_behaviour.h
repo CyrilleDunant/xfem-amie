@@ -11,7 +11,7 @@
 #include "../weibull_distributed_stiffness.h"
 #include "../../geometry/geometry_base.h"
 
-namespace Mu
+namespace Amie
 {
 	struct AggregateBehaviour : public WeibullDistributedStiffness
 	{

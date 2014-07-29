@@ -11,7 +11,7 @@
 #include "../mesher/delaunay_3d.h"
 #include "features.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 Feature::Feature(Feature * father) : behaviour(nullptr), m_f(father)
@@ -31,7 +31,7 @@ Feature::Feature(Feature * father) : behaviour(nullptr), m_f(father)
 std::vector<Point *> Feature::doubleSurfaceSampling()
 {
 	std::vector<Point *> ret ;
-	Mu::PointArray newboundingPoints(getBoundingPoints().size()*2) ;
+	Amie::PointArray newboundingPoints(getBoundingPoints().size()*2) ;
 	for(size_t i = 0 ; i < getBoundingPoints().size()-1 ; i++)
 	{
 		newboundingPoints[i*2] = &getBoundingPoint(i) ;

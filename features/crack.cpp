@@ -9,7 +9,7 @@
 
 #include <fstream>
 
-using namespace Mu ;
+using namespace Amie ;
 
 BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : EnrichmentFeature(father), SegmentedLine(std::valarray<Point * >(2))
 {
@@ -36,7 +36,7 @@ BranchedCrack::BranchedCrack(Feature *father, Point * a, Point * b) : Enrichment
 	
 }
 
-bool operator ==(const std::pair<Mu::Point*, double> & a, const Mu::Point* b)
+bool operator ==(const std::pair<Amie::Point*, double> & a, const Amie::Point* b)
 {
 	return a.first == b ;
 }
@@ -1514,7 +1514,7 @@ bool BranchedCrack::interacts(Feature* f, double d) const
 	return false ;
 }
 
-std::vector<Mu::Geometry*> BranchedCrack::getRefinementZones(size_t level ) const
+std::vector<Amie::Geometry*> BranchedCrack::getRefinementZones(size_t level ) const
 {
 	std::vector<Geometry *> ret ;
 	

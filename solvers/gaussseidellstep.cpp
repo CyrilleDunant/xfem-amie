@@ -11,7 +11,7 @@
 //
 #include "gaussseidellstep.h"
 
-namespace Mu {
+namespace Amie {
 
 GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : b(0., A_.row_size.size()*(A_.stride+A_.stride%2)), gs(A_, b) { };
 

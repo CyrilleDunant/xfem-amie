@@ -9,7 +9,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Enrich the mesh to simulate a circular ring.

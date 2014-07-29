@@ -12,7 +12,7 @@
 #include "../../geometry/geometry_base.h"
 #include "../../features/features.h"
 
-namespace Mu
+namespace Amie
 {
 	struct PasteBehaviour : public WeibullDistributedStiffness
 	{

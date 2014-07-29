@@ -12,7 +12,7 @@
 
 #include "preconditionners.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 void NullPreconditionner::precondition(const Vector &v, Vector &t) 
 {

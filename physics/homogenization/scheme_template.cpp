@@ -1,7 +1,7 @@
 #include "scheme_template.h"
 #include "homogenization_base.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 PhaseTemplate::PhaseTemplate(int n)
 {

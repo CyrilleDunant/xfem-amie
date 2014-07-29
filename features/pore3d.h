@@ -14,7 +14,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief 3D spherical pore. Has a VoidBehaviour by default*/

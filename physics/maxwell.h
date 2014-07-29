@@ -17,7 +17,7 @@
 
 
 
-namespace Mu
+namespace Amie
 {
   
 struct Maxwell : public LinearForm

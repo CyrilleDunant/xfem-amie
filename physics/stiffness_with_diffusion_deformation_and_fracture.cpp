@@ -15,7 +15,7 @@
 #include "../features/boundarycondition.h"
 #include "../utilities/random.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.002)
 {

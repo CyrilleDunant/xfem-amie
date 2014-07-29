@@ -16,7 +16,7 @@
 #include "../../elements/integrable_entity.h"
 #include "../../utilities/matrixops.h"
 
-namespace Mu
+namespace Amie
 {
 
 	typedef enum{

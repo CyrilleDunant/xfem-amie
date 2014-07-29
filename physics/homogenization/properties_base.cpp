@@ -15,7 +15,7 @@
 #include "converter.h"
 #include "elastic_homogenization.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Properties::Properties()
 {

@@ -7,7 +7,7 @@
 #include "../polynomial/vm_base.h"
 #include "../utilities/random.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Triangle::Triangle() : ConvexGeometry(3)
 {

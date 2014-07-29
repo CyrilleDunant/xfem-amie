@@ -17,7 +17,7 @@
 #include "damagemodels/isotropiclineardamage.h"
 #include "fracturecriteria/fracturecriterion.h"
 
-namespace Mu
+namespace Amie
 {
 
 	

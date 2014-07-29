@@ -5,7 +5,7 @@
 #include "../geometry/geometry_base.h" 
 #include "../polynomial/variable.h" 
 
-namespace Mu
+namespace Amie
 {
 
   

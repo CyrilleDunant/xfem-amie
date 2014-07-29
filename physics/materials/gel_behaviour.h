@@ -11,7 +11,7 @@
 #include "../stiffness_with_imposed_deformation.h"
 #include "../../geometry/geometry_base.h"
 
-namespace Mu
+namespace Amie
 {
 	struct GelBehaviour : public StiffnessWithImposedDeformation
 	{

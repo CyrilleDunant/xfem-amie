@@ -20,7 +20,7 @@
 #include "matrixops.h"
 #include "configuration.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 //#define DEBUG 
 
@@ -44,7 +44,7 @@ InclusionParser(const char* f): Parser(f) { circs = new std::vector< Circle >() 
 	virtual ~InclusionParser() { delete circs ;}
 	
 	virtual void readData() ;
-	std::vector< Mu::Circle > * getData() {return circs;}
+	std::vector< Amie::Circle > * getData() {return circs;}
 } ;
 
 class SegmentsParser : public Parser
@@ -58,7 +58,7 @@ SegmentsParser(const char* f): Parser(f) { segments = new std::vector< Segmented
 	virtual ~SegmentsParser() { delete segments ;}
 	
 	virtual void readData() ;
-	std::vector< Mu::SegmentedLine > * getData() {return segments;}
+	std::vector< Amie::SegmentedLine > * getData() {return segments;}
 } ;
 
 class PointParser : public Parser

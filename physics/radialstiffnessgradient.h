@@ -17,7 +17,7 @@
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/lineardamage.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief  Radial stiffness gradient: the mechanical property is scaled according to the position between two radii. */

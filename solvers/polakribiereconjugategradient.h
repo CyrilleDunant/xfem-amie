@@ -17,7 +17,7 @@
 #include "solver.h"
 #include "conjugategradient.h"
 
-namespace Mu
+namespace Amie
 {
 
 	struct Assembly ;

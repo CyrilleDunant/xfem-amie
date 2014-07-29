@@ -16,7 +16,7 @@
 #include "stiffness.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 RadialDistributedStiffness::RadialDistributedStiffness(std::vector<std::pair<double, Matrix> > rig) : LinearForm(rig[0].second, false, false, rig[0].second.numRows()/3+1) 
 {

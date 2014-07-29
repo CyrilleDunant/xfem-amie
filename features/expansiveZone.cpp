@@ -15,7 +15,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/materials/aggregate_behaviour.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 ExpansiveZone::ExpansiveZone( Feature *father, double radius, double x, double y, const Matrix &tensor, Vector def ) : EnrichmentInclusion( father, radius, x, y ),  imposedDef( def ), cgTensor( tensor )
 {

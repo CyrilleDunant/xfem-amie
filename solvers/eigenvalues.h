@@ -7,7 +7,7 @@
 #include <valarray>
 #include "../sparse/sparse_matrix.h"
 
-namespace Mu
+namespace Amie
 {
 /** \brief Utility. Return largest EigenValue of the argument*/
   double largestEigenValue(const CoordinateIndexedSparseMatrix & A, bool sym = false) ;

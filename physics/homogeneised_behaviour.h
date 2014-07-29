@@ -21,7 +21,7 @@
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
 
-namespace Mu
+namespace Amie
 {
 	class Feature ;
 	class FeatureTree ;

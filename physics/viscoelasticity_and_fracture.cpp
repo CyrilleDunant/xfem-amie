@@ -3,7 +3,7 @@
 #include "fracturecriteria/maxstrain.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 /*void placeMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 {

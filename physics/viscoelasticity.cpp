@@ -1,9 +1,9 @@
 #include "viscoelasticity.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
-void Mu::placeMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
+void Amie::placeMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 {
 	size_t r = m.numRows() ;
 	size_t c = m.numCols() ;
@@ -16,7 +16,7 @@ void Mu::placeMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 	}
 }
 
-void Mu::addMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
+void Amie::addMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 {
 	size_t r = m.numRows() ;
 	size_t c = m.numCols() ;
@@ -29,7 +29,7 @@ void Mu::addMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 	}
 }
 
-void Mu::substractMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
+void Amie::substractMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & ret)
 {
 	size_t r = m.numRows() ;
 	size_t c = m.numCols() ;
@@ -42,7 +42,7 @@ void Mu::substractMatrixInBlock(const Matrix & m, size_t i, size_t j, Matrix & r
 	}
 }
 
-void Mu::getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & ret)
+void Amie::getBlockInMatrix( const Matrix & source, size_t i, size_t j, Matrix & ret)
 {
 	size_t r = ret.numRows() ;
 	size_t c = ret.numCols() ;

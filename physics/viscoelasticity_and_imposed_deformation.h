@@ -14,7 +14,7 @@
 
 #include "viscoelasticity.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct ViscoelasticityAndImposedDeformation : public Viscoelasticity

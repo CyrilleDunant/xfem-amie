@@ -9,7 +9,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Enrich the mesh to simulate a circular inclusion.
@@ -104,7 +104,7 @@ public:
 	}
 	
 /** \brief do nothing*/
-	virtual void step(double dt, std::valarray<double> *, const  Mu::Mesh <Mu::DelaunayTriangle, Mu::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *, const  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
 	
 /** \brief return true if the radius has changed*/
 	virtual bool moved() const ;

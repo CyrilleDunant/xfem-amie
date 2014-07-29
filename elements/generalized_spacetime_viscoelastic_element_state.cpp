@@ -7,7 +7,7 @@
 #include "../features/inclusion.h"
 #include <omp.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 GeneralizedSpaceTimeViscoElasticElementState::GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e) : ElementState(e)
 {
@@ -1882,7 +1882,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 1 ) ;
 					pts[2] = &parent->getBoundingPoint( 2 ) ;
@@ -1920,7 +1920,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 2 ) ;
 					pts[2] = &parent->getBoundingPoint( 4 ) ;
@@ -2039,7 +2039,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 1 ) ;
 					pts[2] = &parent->getBoundingPoint( 2 ) ;
@@ -2077,7 +2077,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				}
 				else if( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 				{
-					Mu::PointArray pts( 4 ) ;
+					Amie::PointArray pts( 4 ) ;
 					pts[0] = &parent->getBoundingPoint( 0 ) ;
 					pts[1] = &parent->getBoundingPoint( 2 ) ;
 					pts[2] = &parent->getBoundingPoint( 4 ) ;

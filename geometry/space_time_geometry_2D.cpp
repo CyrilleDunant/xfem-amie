@@ -1,7 +1,7 @@
 #include "space_time_geometry_2D.h"
 #include <iomanip>
 
-using namespace Mu ;
+using namespace Amie ;
 
 TimeDependentCircle::TimeDependentCircle(Function r, const Point & c): Circle(0., c.getX(), c.getY()), radius_t(r)
 {

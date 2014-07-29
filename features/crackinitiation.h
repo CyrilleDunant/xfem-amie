@@ -14,7 +14,7 @@
 
 #include "enrichmentbehaviour.h"
 
-namespace Mu {
+namespace Amie {
 
 /** \brief Initiate Enrichment cracks from a fatigue Law
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>

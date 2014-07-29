@@ -11,7 +11,7 @@
 //
 #include "strainbrokenisotropiclineardamage.h"
 
-namespace Mu {
+namespace Amie {
 
 StrainBrokenIsotropicLinearDamage::StrainBrokenIsotropicLinearDamage(int numDof, double limitStrain) :  limitStrain(limitStrain)
 {

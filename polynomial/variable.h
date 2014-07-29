@@ -7,7 +7,7 @@
 
 #include "../geometry/geometry_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 const double default_derivation_delta= 1e-6 ;

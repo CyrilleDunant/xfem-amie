@@ -3,7 +3,7 @@
 
 #include "homogenization_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief A PhaseTemplate is a convenience object which allows formated extraction of data from one or more Materials.

@@ -17,7 +17,7 @@
 #include "damagemodels/damagemodel.h"
 #include "fracturecriteria/fracturecriterion.h"
 
-namespace Mu
+namespace Amie
 {
 
 	/** \brief A linear Elastic Law

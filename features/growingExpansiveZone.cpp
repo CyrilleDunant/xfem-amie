@@ -13,7 +13,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/materials/aggregate_behaviour.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 GrowingExpansiveZone::GrowingExpansiveZone(Feature* father, Function & g, double x, double y, ViscoelasticityAndImposedDeformation* i) : TimeDependentEnrichmentInclusion(father,g,x,y), imp(i)
 {
@@ -229,7 +229,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 }
 
-void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, Mu::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+void GrowingExpansiveZone::step(double dt, std::valarray< double >* results, Amie::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 {
 	TimeDependentEnrichmentInclusion::step(dt, results, dtree) ;
 

@@ -5,7 +5,7 @@
 #ifndef TYPEREF_H
 #define TYPEREF_H
 
-namespace Mu
+namespace Amie
 {
 
 typedef enum 

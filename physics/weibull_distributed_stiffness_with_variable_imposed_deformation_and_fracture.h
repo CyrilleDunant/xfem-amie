@@ -19,7 +19,7 @@
 #include "fracturecriteria/mohrcoulomb.h"
 #include "stiffness_with_variable_imposed_deformation_and_fracture.h"
 
-namespace Mu
+namespace Amie
 {
 
 	

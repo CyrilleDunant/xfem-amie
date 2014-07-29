@@ -23,7 +23,7 @@
 #include "../features/sample.h"
 #include "../features/microstructuregenerator.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 PSDGenerator::PSDGenerator() 
 {

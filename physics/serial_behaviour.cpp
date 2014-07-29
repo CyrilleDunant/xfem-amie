@@ -3,7 +3,7 @@
 #include "../features/boundarycondition.h"
 #include "homogenization/composite.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 SerialBehaviour::SerialBehaviour( std::vector<Form *> b ) : LinearForm( b[0]->param, false, false, b[0]->getNumberOfDegreesOfFreedom())
 {

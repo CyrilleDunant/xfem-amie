@@ -15,7 +15,7 @@
 #include "physics_base.h"
 #include "viscoelasticity.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct LogarithmicCreep : public Viscoelasticity

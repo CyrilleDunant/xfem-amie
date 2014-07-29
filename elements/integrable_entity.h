@@ -14,7 +14,7 @@
 #include "../polynomial/vm_function_matrix.h"
 #include "../physics/homogenization/homogenization_base.h"
 
-namespace Mu
+namespace Amie
 {
 
 class DelaunayTreeItem3D;

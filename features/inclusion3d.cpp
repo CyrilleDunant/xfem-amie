@@ -14,7 +14,7 @@
 #include "../physics/void_form.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 Inclusion3D::Inclusion3D(Feature *father, double r, double x, double y, double z) : Sphere(r, x, y,z ), Feature(father)
 {

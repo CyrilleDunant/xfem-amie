@@ -11,7 +11,7 @@
 //
 //
 #include "confinedvonmises.h"
-namespace Mu {
+namespace Amie {
 
 ConfinedVonMises::ConfinedVonMises(double threshdown, double threshup, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
 	, thresholdup(threshup),thresholddown(threshdown)

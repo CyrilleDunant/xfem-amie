@@ -14,7 +14,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 class Sample3D :  public Hexahedron,  public Feature

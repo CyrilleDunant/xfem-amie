@@ -9,7 +9,7 @@
 
 #include "features.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Enrich the mesh to simulate a circular inclusion.
@@ -42,7 +42,7 @@ public:
 	virtual bool enrichmentTarget(DelaunayTetrahedron * t) ;
 
 /** \brief Enrich elements cut by the feature*/
-	virtual void enrich(size_t& counter, Mu::Mesh< Mu::DelaunayTetrahedron, Mu::DelaunayTreeItem3D >* dtree) ;
+	virtual void enrich(size_t& counter, Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* dtree) ;
 	
 /** \brief return false*/
 	virtual bool interacts(Feature * f, double d) const ;
@@ -107,7 +107,7 @@ public:
 	virtual bool moved() const ;
 
 /** \brief compute and cache the elements to enrich*/
-	void update(Mu::Mesh< Mu::DelaunayTetrahedron, Mu::DelaunayTreeItem3D >* dtree) ;
+	void update(Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* dtree) ;
 
 protected:
 	bool changed ;

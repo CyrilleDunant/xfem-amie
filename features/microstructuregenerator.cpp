@@ -9,7 +9,7 @@
 #include "../utilities/optimizer.h"
 #include <iostream>
 
-namespace Mu
+namespace Amie
 {
 	
 	AggregateDistribution2DGenerator::AggregateDistribution2DGenerator(double area, double dmax, double itzSize, double fill, double minMaxRatio) : area(area), dmax(dmax), fill(fill), minMaxRatio(minMaxRatio), itzSize(itzSize)

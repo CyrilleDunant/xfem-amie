@@ -17,7 +17,7 @@
 #include "../geometry/geometry_base.h"
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 std::vector<DelaunayTriangle *> Inclusion::getElements2D( FeatureTree* dt) 
 {

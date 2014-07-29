@@ -14,7 +14,7 @@
 #include "space_time_geometry_2D.h"
 #include "../polynomial/vm_function_base.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Point::Point() : id(-1)
 {
@@ -2881,7 +2881,7 @@ Segment::Segment(const Segment & l)
 	mid = l.midPoint() ;
 }
 
-Segment& Segment::operator=(const Mu::Segment& l)
+Segment& Segment::operator=(const Amie::Segment& l)
 {
 	f = l.first() ;
 	s = l.second() ;
@@ -5028,12 +5028,12 @@ double OrientableCircle::getRadius() const
 	return radius ;
 }
 
-bool isCoplanar(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2, double renorm)  
+bool isCoplanar(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2, double renorm)  
 {
 	return isCoplanar(*test, *f0, *f1, *f2, renorm) ;
 } ;
 
-double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
+double signedAlignement(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1)
 {
 	Point a(f1) ; a -= test ;
 	Point b(f0) ; b -= test ;
@@ -5047,7 +5047,7 @@ double signedAlignement(const Mu::Point &test, const Mu::Point &f0, const Mu::Po
 	return (a^b)*n ;
 }
 
-bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1) 
+bool isAligned(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1) 
 {
 
 	if(test == f1 || test == f0)
@@ -5089,13 +5089,13 @@ bool isAligned(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1)
 	return l.intersects(&s) ;
 } 
 
-bool isAligned(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1)  
+bool isAligned(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1)  
 {
 	return isAligned(*test, *f0, *f1) ;
 } ;
 
 
-int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm)
+int coplanarCount( Point *const* pts, int numpoints, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm)
 {
 	int count = 0 ;
 	Point centre = (**(pts)+f0+f1+f2)*.25 ;
@@ -5132,7 +5132,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Mu::Point &f0, const 
 	return count ;
 }
 
-bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2, double renorm)  
+bool isCoplanar(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm)  
 {
 
 	Point centre = (test+f0+f1+f2)*.25 ;
@@ -5167,37 +5167,37 @@ bool isCoplanar(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1,
 	return  positive && negative ;
 } ;
 
-double coplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+double coplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2)  
 {
 	return coplanarity(*test, *f0, *f1, *f2) ;
 } ;
 
-double coplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+double coplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2)  
 {
 
-	Mu::Point A(f0-f1) ;
-	Mu::Point B(f2-f1) ;
-	Mu::Point C(f2-test) ;
+	Amie::Point A(f0-f1) ;
+	Amie::Point B(f2-f1) ;
+	Amie::Point C(f2-test) ;
 
 	return  std::abs(triProduct(A, B, C))  ;
 } ;
 
-double signedCoplanarity(const Mu::Point &test, const Mu::Point &f0, const Mu::Point &f1, const Mu::Point &f2)  
+double signedCoplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2)  
 {
 
-	Mu::Point A(f0-f1) ;
-	Mu::Point B(f2-f1) ; 
-	Mu::Point C(f2-test) ; 
+	Amie::Point A(f0-f1) ;
+	Amie::Point B(f2-f1) ; 
+	Amie::Point C(f2-test) ; 
 
 	return  triProduct(A, B, C)  ;
 } ;
 
-double signedCoplanarity(const Mu::Point *test, const Mu::Point *f0, const Mu::Point *f1,const Mu::Point *f2)  
+double signedCoplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2)  
 {
 	return signedCoplanarity(*test, *f0, *f1, *f2) ;
 } ;
 
-double triProduct(const Mu::Point &A, const Mu::Point &B, const Mu::Point &C)
+double triProduct(const Amie::Point &A, const Amie::Point &B, const Amie::Point &C)
 {
 	return (A^B)*C ;
 }

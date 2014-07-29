@@ -19,7 +19,7 @@
 #include "../utilities/matrixops.h"
 #include "sparse_vector.h"
 
-namespace Mu {
+namespace Amie {
 
 struct ConstSymetricSparseVector ;
 struct CompositeSparseMatrixTimesVec ;
@@ -642,25 +642,25 @@ struct CompositeSparseMatrixTimesVecMinusVecMinusVec
  @param ret Vector to store the result
  @param c CoordinateIndexedSparseMatrixTimesVecPlusVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart = 0, const int colstart = 0) ;
+void assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart = 0, const int colstart = 0) ;
 
 /** \brief parrallel compute matrix*vector - vector and assign.
 	@param ret Vector to store the result
 	@param c CoordinateIndexedSparseMatrixTimesVecMinusVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart = 0, const int colstart = 0) ;
+void assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart = 0, const int colstart = 0) ;
 
 /** \brief parrallel compute matrix*vector and assign.
 	@param ret Vector to store the result
 @param c CoordinateIndexedSparseMatrixTimesVec containing the reference necessary for the operation
  */
-void assign(Vector & ret, const Mu::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart = 0, const int colstart = 0) ;
+void assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart = 0, const int colstart = 0) ;
 
 } ;
 
-Mu::CompositeSparseMatrix operator+(const Mu::CoordinateIndexedSparseMatrix  & sm, const Mu::CoordinateIndexedIncompleteSparseMatrix  & ism) ;
+Amie::CompositeSparseMatrix operator+(const Amie::CoordinateIndexedSparseMatrix  & sm, const Amie::CoordinateIndexedIncompleteSparseMatrix  & ism) ;
 
-Mu::CompositeSparseMatrix operator+(const Mu::CoordinateIndexedIncompleteSparseMatrix  & ism, const Mu::CoordinateIndexedSparseMatrix  & sm ) ;
+Amie::CompositeSparseMatrix operator+(const Amie::CoordinateIndexedIncompleteSparseMatrix  & ism, const Amie::CoordinateIndexedSparseMatrix  & sm ) ;
 
 #endif
 

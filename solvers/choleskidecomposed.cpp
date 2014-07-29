@@ -12,7 +12,7 @@
 
 #include "choleskidecomposed.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 LowerTriangular::LowerTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), d(A_.inverseDiagonal()) { };
 

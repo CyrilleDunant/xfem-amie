@@ -26,7 +26,7 @@
 
 
 
-using namespace Mu ;
+using namespace Amie ;
 
 
 
@@ -2291,7 +2291,7 @@ Form * FeatureTree::getElementBehaviour( const DelaunayTriangle *t, int layer,  
 
 }
 
-Form * FeatureTree::getElementBehaviour( const Mu::DelaunayTetrahedron *t, int layer,  bool onlyUpdate ) const
+Form * FeatureTree::getElementBehaviour( const Amie::DelaunayTetrahedron *t, int layer,  bool onlyUpdate ) const
 {
 	int root_box = 0 ;
 
@@ -6762,8 +6762,17 @@ void FeatureTree::generateElements()
 
 
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * oldDtree = dtree3D ;
+//         std::vector<Geometry *> domains ;
+//         domains.push_back(new Hexahedron(200, 200, 200, 100, 100, 100));
+//         domains.push_back(new Hexahedron(200, 200, 200, 100, 100, 300));
+//         domains.push_back(new Hexahedron(200, 200, 200, 100, 300, 100));
+//         domains.push_back(new Hexahedron(200, 200, 200, 300, 100, 100));
+//         domains.push_back(new Hexahedron(200, 200, 200, 300, 300, 100));
+//         domains.push_back(new Hexahedron(200, 200, 200, 100, 300, 300));
+//         domains.push_back(new Hexahedron(200, 200, 200, 300, 100, 300));
+//         domains.push_back(new Hexahedron(200, 200, 200, 300, 300, 300));
 		
-		dtree3D = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
+		dtree3D = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
 		dtree3D->insert( meshPoints[4].first ) ;
 		dtree3D->insert( meshPoints[5].first ) ;
 		dtree3D->insert( meshPoints[6].first ) ;
@@ -6775,7 +6784,7 @@ void FeatureTree::generateElements()
 			{
 				if(layer3d.find(tree[i]->getLayer()) == layer3d.end())
 				{
-					layer3d[tree[i]->getLayer()] = new DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first) ;
+					layer3d[tree[i]->getLayer()] = new/* Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[4].first ) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[5].first ) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[6].first ) ;

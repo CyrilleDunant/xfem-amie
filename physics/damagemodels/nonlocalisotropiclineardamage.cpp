@@ -15,7 +15,7 @@
 #include "../../mesher/delaunay_3d.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 
 

@@ -12,7 +12,7 @@
 
 #include "diffusion.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Diffusion::Diffusion(const Matrix & rig) : LinearForm(rig, false, false, 1) 
 {

@@ -22,7 +22,7 @@
 #include <sys/time.h>
 #include <omp.h>
 
-using namespace Mu ;
+using namespace Amie ;
 
 ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(nullptr), nit(0) { };
 

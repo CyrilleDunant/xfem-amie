@@ -13,7 +13,7 @@
 #include "sample.h"
 #include "../physics/void_form.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 Sample::Sample(Feature * father, double x, double y, double originX, double originY) : Rectangle(x, y, originX, originY), Feature(father)
 {

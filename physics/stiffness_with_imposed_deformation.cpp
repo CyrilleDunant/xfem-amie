@@ -14,7 +14,7 @@
 #include "../features/boundarycondition.h"
 #include "homogenization/homogenization_base.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & rig, const Vector & imposedDef) : LinearForm(rig, false, false, rig.numRows()/3+1) , imposed(imposedDef)
 {

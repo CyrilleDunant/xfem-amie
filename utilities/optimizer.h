@@ -12,7 +12,7 @@
 #include "../polynomial/vm_base.h"
 #include "../features/microstructuregenerator.h"
 
-namespace Mu
+namespace Amie
 {
 
 class GeneticAlgorithmOptimizer 

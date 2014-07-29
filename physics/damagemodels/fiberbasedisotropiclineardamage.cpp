@@ -12,7 +12,7 @@
 #include "fiberbasedisotropiclineardamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, double c)  : fibreFraction(f)
 {
@@ -21,7 +21,7 @@ FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, doubl
 	isNull = false ;
 }
 
-std::pair< Vector, Vector > FiberBasedIsotropicLinearDamage::computeDamageIncrement( Mu::ElementState &s)
+std::pair< Vector, Vector > FiberBasedIsotropicLinearDamage::computeDamageIncrement( Amie::ElementState &s)
 {
 	return std::make_pair(state, Vector(1., 1)) ;
 }

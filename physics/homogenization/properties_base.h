@@ -15,7 +15,7 @@
 
 #include "../../utilities/matrixops.h"
 
-namespace Mu
+namespace Amie
 {
 
 

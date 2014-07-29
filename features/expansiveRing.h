@@ -9,7 +9,7 @@
 
 #include "enrichmentRing.h"
 
-namespace Mu
+namespace Amie
 {
 
 /** \brief Expansive Ring. 
@@ -45,8 +45,8 @@ public:
 	virtual void enrich(size_t &,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree) ;
 	
 /** \brief return empty vector*/
-	virtual std::vector<Mu::DelaunayTetrahedron*> getElements3D(FeatureTree*) { return std::vector<Mu::DelaunayTetrahedron*>() ;}
-	virtual std::vector<Mu::DelaunayTriangle*> getElements2D(FeatureTree*) { return std::vector<Mu::DelaunayTriangle*>() ;}
+	virtual std::vector<Amie::DelaunayTetrahedron*> getElements3D(FeatureTree*) { return std::vector<Amie::DelaunayTetrahedron*>() ;}
+	virtual std::vector<Amie::DelaunayTriangle*> getElements2D(FeatureTree*) { return std::vector<Amie::DelaunayTriangle*>() ;}
 	
 	virtual void print() const
 	{

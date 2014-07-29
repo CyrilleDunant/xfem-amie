@@ -3,7 +3,7 @@
 
 #include "phase.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct Composite : public Phase

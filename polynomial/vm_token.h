@@ -29,7 +29,7 @@ double positivity(const double t) ;
 double negativity(const double t) ;
 double interpolate(const double a, const double b) ;
 
-namespace Mu
+namespace Amie
 {
 
 template<class ETYPE, class EABSTRACTTYPE>

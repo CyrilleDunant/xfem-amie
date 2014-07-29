@@ -29,7 +29,7 @@
 #include "../utilities/optimizer.h"
 #include "../features/crack.h"
 
-namespace Mu
+namespace Amie
 {
 	struct MultipleAggregatingDiscontinuities : public LinearForm
 	{

@@ -17,7 +17,7 @@
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/fiberbasedisotropiclineardamage.h"
 
-namespace Mu
+namespace Amie
 {
 
 struct ViscoelasticityAndFracture : public Viscoelasticity

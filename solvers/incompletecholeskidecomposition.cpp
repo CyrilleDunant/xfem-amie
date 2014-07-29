@@ -14,7 +14,7 @@
 #include "incompletecholeskidecomposition.h"
 #include "choleskidecomposed.h"
 
-using namespace Mu ;
+using namespace Amie ;
 
 InCompleteCholesky::InCompleteCholesky(const CoordinateIndexedSparseMatrix &A_) : A(A_), d(A_.diagonal())
 {

@@ -14,7 +14,7 @@
 
 #include "fracturecriterion.h"
 
-namespace Mu {
+namespace Amie {
 
 	/** \brief The von Mises fracture criterion is met when the vonMises stress reaches a threshold level
 	
