@@ -64,30 +64,10 @@ Form * SpatiallyDistributedStiffness::getCopy() const
 	{
 		StiffnessAndFracture* copy = new StiffnessAndFracture( newTensor, new MohrCoulomb(crita,critb) ) ;
 	
-		if(getExtra2dMeshes())
-		{
-			for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-				copy->addMesh((*getExtra2dMeshes())[i]);
-		}
-		if(getExtra3dMeshes())
-		{
-			for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-				copy->addMesh((*getExtra3dMeshes())[i]);
-		}
 		return copy ; 
 	}
 	Stiffness* copy = new Stiffness( newTensor) ;
-	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+
 	return copy ; 
 //	return new Stiffness(pore) ;
 //	return new Stiffness(/*pore*(1.-variability)+*/pore/**randomVar*variability*/) ;

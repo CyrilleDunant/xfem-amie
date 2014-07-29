@@ -2692,17 +2692,7 @@ void FeatureTree::setElementBehaviours()
 
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
-			std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
-			if(layer2d.size() > 1)
-			{
-				for(auto j = ++layer2d.begin() ; j != layer2d.end() ; j++)
-				{
-					if(i != j)
-					{
-						extra2dMeshes.push_back(j->second) ;
-					}
-				}
-			}
+
 			
 			int setcount = 0 ;
 			std::vector<DelaunayTriangle *> tris = i->second->getElements() ;
@@ -2717,14 +2707,6 @@ void FeatureTree::setElementBehaviours()
 				
 				tris[j]->setBehaviour(bf) ;
 
-				if(bf)
-				{
-// 					tris[j]->getBehaviour()->scale(scalingFactors[i->first]) ;
-					for(size_t k = 0 ; k < extra2dMeshes.size() ; k++)
-					{
-						tris[j]->getBehaviour()->addMesh(extra2dMeshes[k]) ;
-					}
-				}
 				
 				if(!tris[j]->getBehaviour())
 				{
@@ -2756,13 +2738,6 @@ void FeatureTree::setElementBehaviours()
 // 				tets[j]->refresh( father3D ) ;
 // 			}
 		}
-
-		std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
-		if(layer3d.size() > 1)
-		{
-			for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
-				extra3dMeshes.push_back(i->second) ;
-		}
 		
 		
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
@@ -2774,14 +2749,6 @@ void FeatureTree::setElementBehaviours()
 			Form * bf =  getElementBehaviour( tetrahedrons[i]);
 			
 			tetrahedrons[i]->setBehaviour( bf) ;
-			if(bf)
-			{
-					for(size_t k = 0 ; k < extra3dMeshes.size() ; k++)
-					{
-						tetrahedrons[i]->getBehaviour()->addMesh(extra3dMeshes[k]) ;
-					}
-			}
-			
 			
 			if(!tetrahedrons[i]->getBehaviour())
 			{
@@ -2816,7 +2783,6 @@ void FeatureTree::updateElementBehaviours()
 		
 		for(auto i = layer2d.begin() ; i != layer2d.end() ; i++)
 		{
-			std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
 			std::vector<double> scales ;
 			if(layer2d.size() > 1)
 			{
@@ -2824,7 +2790,6 @@ void FeatureTree::updateElementBehaviours()
 				{
 					if(i != j)
 					{
-						extra2dMeshes.push_back(j->second) ;
 						scales.push_back(scalingFactors[j->first]/scalingFactors[i->first]);
 					}
 				}
@@ -2863,12 +2828,7 @@ void FeatureTree::updateElementBehaviours()
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
 			tetrahedrons[i]->refresh( father3D ) ;
 
-	std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
-	if(layer3d.size() > 1)
-	{
-	  for(auto i = ++layer3d.begin() ; i != layer3d.end() ; i++)
-	    extra3dMeshes.push_back(i->second) ;
-	}
+
 		
 		#pragma omp parallel for schedule(runtime)
 		for( size_t i = 0 ; i < tetrahedrons.size() ; i++ )
@@ -3024,12 +2984,6 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 	std::vector<DelaunayTriangle> copy ;
 
 	std::vector<DelaunayTriangle *> tris = dtree->getElements() ;
-	std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
-	if(layer2d.size() > 1)
-	{
-	  for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
-	    extra2dMeshes.push_back(i->second) ;
-	}
 	
 	for( size_t i = 0 ; i < tris.size() ; i++ )
 	{
@@ -5875,12 +5829,6 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 
 	if( is2D() )
 	{
-		std::vector<Mesh <DelaunayTriangle, DelaunayTreeItem > *> extra2dMeshes ;
-		if(layer2d.size() > 1)
-		{
-		  for(auto i = ++layer2d.begin() ; i != layer2d.end() ; i++)
-		    extra2dMeshes.push_back(i->second) ;
-		}
 
 		std::cerr << " initialising..." << std::flush;
 		
@@ -6784,7 +6732,7 @@ void FeatureTree::generateElements()
 			{
 				if(layer3d.find(tree[i]->getLayer()) == layer3d.end())
 				{
-					layer3d[tree[i]->getLayer()] = new/* Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
+					layer3d[tree[i]->getLayer()] = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[4].first ) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[5].first ) ;
 					layer3d[tree[i]->getLayer()]->insert( meshPoints[6].first ) ;

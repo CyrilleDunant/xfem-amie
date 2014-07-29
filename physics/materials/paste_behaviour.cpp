@@ -33,18 +33,7 @@ Form * PasteBehaviour::getCopy() const
 //	return new Stiffness(param*factor) ;
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.05,0.95)) ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-//  	copy->dfunc->setThresholdDamageDensity(.8);
-	
-/*	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}*/
+
 	return copy ;
 }
 

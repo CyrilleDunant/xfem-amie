@@ -35,16 +35,6 @@ Form * IterativeMaxwell::getCopy() const
 {
 	IterativeMaxwell * copy =  new IterativeMaxwell(param, chartime) ;
 	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
 	return copy ; 
 }
 
@@ -244,17 +234,7 @@ Form * GeneralizedIterativeMaxwell::getCopy() const
 		eta.push_back(branches[i]->chartime) ;
 	}
 	GeneralizedIterativeMaxwell * copy =  new GeneralizedIterativeMaxwell(r0, rig, eta) ;
-	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+
 	return copy ; 
 }
 
@@ -529,16 +509,6 @@ Form * Maxwell::getCopy() const
 {
 	Maxwell * copy =  new Maxwell(*this) ;
 	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
 	return copy ; 
 }
 
@@ -647,17 +617,7 @@ bool StandardLinearSolid::changed() const
 Form * StandardLinearSolid::getCopy() const 
 {
 	StandardLinearSolid * copy =  new StandardLinearSolid(*this) ;
-	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+
 	return copy ; 
 }
 

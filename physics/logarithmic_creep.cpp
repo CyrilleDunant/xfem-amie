@@ -47,8 +47,8 @@ void LogarithmicCreep::applyViscous(const Function & p_i, const Function & p_j, 
         Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
         getBlockInMatrix(eta, 1,1, buffer) ;
 
-        vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+        vm->ieval(GradientDot(p_i)   * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(GradientDotDot(p_i)* buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
         a += b ;
         placeMatrixInBlock( a, 1,1, ret ) ;
     }
@@ -62,16 +62,6 @@ Form * LogarithmicCreep::getCopy() const
     else
         copy = new LogarithmicCreep( C, E, tau ) ;
 
-    if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
 	return copy ; 
 }
 
@@ -130,16 +120,6 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
     else
         copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed ) ;
 
-    if(getExtra2dMeshes())
-    {
-        for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-            copy->addMesh((*getExtra2dMeshes())[i]);
-    }
-    if(getExtra3dMeshes())
-    {
-        for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-            copy->addMesh((*getExtra3dMeshes())[i]);
-    }
     return copy ;
 }
 

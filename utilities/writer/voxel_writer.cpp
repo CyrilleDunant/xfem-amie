@@ -141,7 +141,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 								p.getY() += ((top_right.getY())-(bottom_left.getY()))*((double)(j))/(double(nVoxelY-1)) ;
 								p.getZ() += ((top_right.getZ())-(bottom_left.getZ()))*((double)(k))/(double(nVoxelZ-1)) ;
 								
-								if(tris[t]->in(p) && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
+								if(tris[t]->in(p) && tris[t]->getBehaviour() && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
 									std::pair<bool, std::vector<double> > val = getDoubleValue(tris[t],p,field) ;
 									std::pair<bool, std::vector<double> > valAlternate ;
@@ -151,7 +151,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 										bool hasAlternate = false ;
 										for(size_t l = 0 ; l < tris[t]->neighbourhood.size() ; l++)
 										{
-											if( tris[t]->getNeighbourhood(l)->in(p) && tris[t]->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
+											if( tris[t]->getNeighbourhood(l)->in(p) && tris[t]->getNeighbourhood(l)->getBehaviour() && tris[t]->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
 											{
 												valAlternate = getDoubleValue(tris[t]->getNeighbourhood(l),p,field) ; 
 												hasAlternate = true ;
@@ -169,7 +169,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 										}
 									}
 								}
-								else if(tris[t]->in(p) && tris[t]->getBehaviour()->type == VOID_BEHAVIOUR)
+								else if(tris[t]->in(p) && tris[t]->getBehaviour() && tris[t]->getBehaviour()->type == VOID_BEHAVIOUR)
 								{
 									for(int m = 0 ; m < numberOfFields(field) ; m++)
 									{

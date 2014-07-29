@@ -460,8 +460,7 @@ protected:
 	size_t num_dof ;
 	
 	Geometry * source ;
-	std::vector< Mesh<DelaunayTriangle, DelaunayTreeItem >* > extra2dMeshes ;
-	std::vector< Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* > extra3dMeshes ;
+
 public:
 	
 	/** A form has at least a parameter, which takes the shape of a Matrix*/
@@ -484,24 +483,7 @@ public:
 
 	virtual bool isSymmetric() const { return symmetric ; }
 	virtual void setSymmetric(bool s) { symmetric = s ; } 
-	virtual void addMesh( Mesh<DelaunayTriangle, DelaunayTreeItem >* newMesh)
-	{
-		extra2dMeshes.push_back(newMesh);
-	}
-	virtual void addMesh( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* newMesh)
-	{
-		extra3dMeshes.push_back(newMesh);
-	}
-	
-	const std::vector< Mesh<DelaunayTriangle, DelaunayTreeItem >* > * getExtra2dMeshes() const
-	{
-		return &extra2dMeshes ;
-	}
-	const std::vector< Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >* > * getExtra3dMeshes() const
-	{
-		return &extra3dMeshes ;
-	}
-	
+
 	virtual bool timeDependent() const
 	{
 		return this->time_d ;

@@ -68,17 +68,7 @@ Form * WeibullDistributedStiffness::getCopy() const
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
 	copy->dfunc->setThresholdDamageDensity(.99);
 	copy->dfunc->setSecondaryThresholdDamageDensity(.99);
-	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+
 	return copy ; 
 }
 

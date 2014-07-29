@@ -86,17 +86,7 @@ Form * StiffnessAndFracture::getCopy() const
 	copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
 	copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
 	copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
-	
-	if(getExtra2dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra2dMeshes())[i]);
-	}
-	if(getExtra3dMeshes())
-	{
-		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-			copy->addMesh((*getExtra3dMeshes())[i]);
-	}
+
 	return copy ; 
 }
 

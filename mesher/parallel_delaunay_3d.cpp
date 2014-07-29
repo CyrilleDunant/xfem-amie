@@ -88,6 +88,7 @@ bool interacts(const Geometry * g , const DelaunayTreeItem3D * item)
         for(size_t i = 0 ; i < bbox.size() ; i++)
             if(item->inCircumSphere(bbox[i]) || item->onCircumSphere(bbox[i]))
                 return true ;
+        return false ;
     }
     else if( item->isTetrahedron() && item->isAlive())
     {
@@ -99,22 +100,36 @@ bool interacts(const Geometry * g , const DelaunayTreeItem3D * item)
             return true ;
             
         const DelaunayTetrahedron * t = static_cast<const DelaunayTetrahedron *>(item) ;
-        Sphere test(t->getRadius(), t->getCenter() ) ;
-        if( g->intersects(&test) || test.intersects((g)))
+        Sphere test(t->getRadius(), t->getCircumCenter() ) ;
+        if( g->intersects(&test) )
             return true ;
         
         for(size_t j = 0 ; j < t->neighbourhood.size() ;  j++)
         {
            if(g->in(*(t->getNeighbourhood(j)->first))  || 
-           g->in(*(t->getNeighbourhood(j))->second) || 
-           g->in(*(t->getNeighbourhood(j))->third)  || 
-           g->in(*(t->getNeighbourhood(j))->fourth) 
-          )
+                g->in(*(t->getNeighbourhood(j))->second) || 
+                g->in(*(t->getNeighbourhood(j))->third)  || 
+                g->in(*(t->getNeighbourhood(j))->fourth) 
+                )
             return true ;
             
           Sphere test(t->getNeighbourhood(j)->getRadius(), t->getNeighbourhood(j)->getCenter() ) ;
-          if( g->intersects(&test) || test.intersects((g)))
+          if( g->intersects(&test) )
             return true ;
+          
+          for(size_t k = 0 ; k < t->getNeighbourhood(j)->neighbourhood.size() ;  k++)
+          {
+            if(g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->first)  || 
+                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->second) || 
+                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->third)  || 
+                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->fourth) 
+                )
+                return true ;
+                
+            Sphere test(t->getNeighbourhood(j)->getNeighbourhood(k)->getRadius(), t->getNeighbourhood(j)->getNeighbourhood(k)->getCenter() ) ;
+            if( g->intersects(&test) )
+                return true ;
+          }
         }
         
         return false ;
@@ -130,8 +145,9 @@ bool interacts(const Geometry * g , const DelaunayTreeItem3D * item)
             return true ;
             
         Sphere test(item->getRadius(), static_cast<const DelaunayDeadTetrahedron *>(item)->center ) ;
-        if( g->intersects(&test) || test.intersects((g)))
+        if( g->intersects(&test) )
             return true ;
+        return false ;
     }
 }
 
@@ -192,9 +208,83 @@ void ParallelDelaunayTree3D::insert(Point * p)
     
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
+    {
         if(insertion[i])
-            meshes[i]->getTetrahedrons() ;
-         
+        {
+            for( size_t j = 0 ; j < newElems[i].size() ; j++ )
+            {
+                if(!newElems[i][j]->isTetrahedron())
+                    continue ;
+                
+                static_cast<DelaunayTetrahedron *>(newElems[i][j])->neighbourhood.resize( 0 ) ;
+                newElems[i][j]->clearVisited() ;
+            }
+
+
+
+            for( size_t j = 0 ; j < newElems[i].size() ; j++ )
+            {
+                if(!newElems[i][j]->isTetrahedron())
+                    continue ;
+                
+                DelaunayTetrahedron * tri = static_cast<DelaunayTetrahedron *>(newElems[i][j]) ;
+    //          if( i % 10000 == 0 )
+    //              std::cerr << "\r building neighbourhood... element " << i << "/" << ret.size() << std::flush ;
+
+                std::vector<DelaunayTetrahedron *> tocheck ;
+                std::vector<DelaunayTetrahedron *> toclean ;
+
+                for( size_t k = 0 ; k < tri->neighbour.size() ; k++ )
+                {
+                    if( !tri->getNeighbour( k )->visited() && tri->getNeighbour( k )->isTetrahedron() )
+                    {
+                        tocheck.push_back( static_cast<DelaunayTetrahedron *>( tri->getNeighbour( k ) ) );
+                        tri->getNeighbour( k )->visited() = true ;
+                        toclean.push_back( tocheck.back() ) ;
+                        tri->addNeighbourhood( tocheck.back() ) ;
+                    }
+                }
+
+                for( size_t k = 0 ; k < tocheck.size() ; k++ )
+                {
+                    if( tocheck[k]->numberOfCommonVertices( tri ) > 0 )
+                        tri->addNeighbourhood( tocheck[k] ) ;
+                }
+
+                while( !tocheck.empty() )
+                {
+                    std::vector<DelaunayTetrahedron *> tocheck_temp ;
+
+                    for( size_t k = 0 ; k < tocheck.size() ; k++ )
+                    {
+                        for( size_t l = 0 ; l < tocheck[k]->neighbour.size() ; l++ )
+                        {
+                            if( tocheck[k]->getNeighbour( l )->isTetrahedron()
+                                && tocheck[k]->getNeighbour( l )->isAlive()
+                                && !tocheck[k]->getNeighbour( l )->visited()
+                                && tocheck[k]->getNeighbour( l ) != tri
+                                && static_cast<DelaunayTetrahedron *>( tocheck[k]->getNeighbour( l ) )->numberOfCommonVertices( tri ) > 0
+                            )
+                            {
+                                tocheck_temp.push_back( static_cast<DelaunayTetrahedron *>( tocheck[k]->getNeighbour( l ) ) );
+                                tocheck[k]->getNeighbour( l )->visited() = true ;
+                                toclean.push_back( tocheck_temp.back() ) ;
+                                tri->addNeighbourhood( tocheck_temp.back() ) ;
+                            }
+                        }
+                    }
+
+                    tocheck = tocheck_temp ;
+                }
+
+                for( size_t k = 0 ; k < toclean.size() ; k++ )
+                {
+                    toclean[k]->clearVisited() ;
+                }
+
+            }
+        }
+    }     
          
     #pragma omp parallel for
     for(size_t i = 0 ; i < newElems.size() ; i++)
