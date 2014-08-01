@@ -174,7 +174,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 
 					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
-					if(visc)
+                    if(visc && visc->model != PURE_ELASTICITY)
 					{
 						for(size_t b = 1 ; b < visc->blocks ;  b++)
 						{
@@ -232,7 +232,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					a->addForceOn( ETA, forces[1], id[idit] ) ;
 	
 					Viscoelasticity * visc = dynamic_cast<Viscoelasticity *>( e->getBehaviour()) ;
-					if(visc)
+                    if(visc && visc->model != PURE_ELASTICITY)
 					{
 						for(size_t b = 1 ; b < visc->blocks ;  b++)
 						{

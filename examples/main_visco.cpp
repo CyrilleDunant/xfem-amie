@@ -13,6 +13,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/dual_behaviour.h"
 #include "../physics/logarithmic_creep.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/parallel_behaviour.h"
 //#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
@@ -37,6 +38,8 @@
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/itoa.h"
+#include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include "../physics/fracturecriteria/maxstrain.h"
 
 #include <fstream>
 #include <omp.h>
@@ -51,57 +54,35 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-    double timestep = 1. ;
-    double appliedLoadEta = 0.01 ;
-
-    Sample box(nullptr, 0.1,0.1,0.,0.) ;
+    Sample box(nullptr, 0.17,0.4,0.,0.) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(2) ;
-	F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.setDeltaTime(timestep) ;
-    F.setMinDeltaTime(timestep*1e-9) ;
+    F.setSamplingNumber(6) ;
+    F.setOrder(LINEAR_TIME_LINEAR) ;
+    F.setDeltaTime(1.) ;
+    F.setMinDeltaTime(1e-9) ;
 
-    ElasticOnlyPasteBehaviour dummy ;
-    Vector alpha(3) ; alpha[0] = 0.01 ; alpha[1] = 0.01 ;
-    LogarithmicCreepWithImposedDeformation creep( dummy.param,dummy.param, 100,alpha ) ;
+    LogarithmicCreepWithExternalParameters creep("young_modulus = 12e9, poisson_ratio = 0.2, imposed_deformation=0") ;
+    creep.addMaterialLaw( new SpaceTimeDependentExternalMaterialLaw( "temperature", "333 500 y * +") ) ;
+    creep.addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 333, thermal_expansion_coefficient = 0.0001") ) ;
+
     box.setBehaviour( &creep );
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
 
     F.step() ;
 
-//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, appliedLoadEta,1));
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -10e6)) ;
 
-    std::string filename = "logcreep" ;
-    std::ofstream output ;
-    output.open( filename.c_str(), std::ios::out ) ;
+    F.step() ;
+	TriangleWriter trg( "toto", &F, 1) ;
+    trg.getField("temperature") ;
+    trg.getField(STRAIN_FIELD) ;
+    trg.write() ;
 
-    int i = 0 ;
-    while(F.getCurrentTime() < 70.)
-	{
-//        F.setDeltaTime(++timestep) ;
-//        F.setMinDeltaTime(timestep*1e-9) ;
-        F.step() ;
-
-        std::string trgname = filename ;
-        trgname.append("_") ;
-        trgname.append(itoa(++i)) ;
-
-        TriangleWriter writer( trgname, &F, 1) ;
-        writer.getField(STRAIN_FIELD) ;
-        writer.getField(REAL_STRESS_FIELD);
-        writer.write() ;
-
-        Vector strain = F.getAverageField(STRAIN_FIELD, -1, -1.) ;
-        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, -1.) ;
-        std::cout << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << "\t" << F.getAssembly()->getForces()[44] << std::endl ;
-        output << F.getCurrentTime() << "\t" << strain[1] << "\t" << stress[1] << std::endl ;
-
-	}
 
     return 0 ;
 }

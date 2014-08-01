@@ -45,6 +45,24 @@ public:
 	virtual void step( double dt, const Vector *d ) ;
 } ;
 
+class GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables : public GeneralizedSpaceTimeViscoElasticElementState
+{
+    std::map<std::string, double> variables ;
+
+public:
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(IntegrableEntity * e, std::map<std::string, double> & external) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & operator =(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s) ;
+
+    bool has(std::string v) const ;
+    double get(std::string v, std::map<std::string, double> & defaultValues) ;
+    void set(std::string v, double d) ;
+    std::map<std::string, double> getVariables() const { return variables ; }
+
+
+} ;
+
+
 } ;
 
 

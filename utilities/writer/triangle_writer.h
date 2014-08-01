@@ -46,7 +46,8 @@ typedef enum
 	TWFT_VON_MISES,
 	TWFT_CRACKS,
 	TWFT_INTERSECTION,
-	TWFT_FIELD_TYPE
+    TWFT_FIELD_TYPE,
+    TWFT_INTERNAL_VARIABLE
 } TWFieldType ;
 
 /** \brief utility class to write the values of various fields of a 2D sample in a text file. You need to use getField() to get your data before writing the file.*/
@@ -64,6 +65,7 @@ protected:
 	std::vector<TWFieldType> extraFields ;
 	std::vector<TWFieldType> fields ;
 	std::map<size_t, FieldType> fieldsOther ;
+    std::map<size_t, std::string> fieldsInternal ;
 	std::map<int, size_t> layerTranslator ;
 	int counter ;
 	const Geometry * intersection = nullptr;
@@ -95,14 +97,15 @@ public:
 	virtual void append() ;
 
 	/** \brief store the values of the field in the writer*/
-	
-	virtual void getField(TWFieldType field, bool extra = true) ;
-	
+    virtual void getField(TWFieldType field, bool extra = true, std::string type = std::string()) ;
+
+    virtual void getField(std::string field, bool extra = true) { getField(TWFT_INTERNAL_VARIABLE, extra, field) ; }
+
 	/** \brief store the values of the field in the writer*/
 	virtual void getField(FieldType field, bool extra = true) ;
 
 	/** \brief get the raw values of the specified field from the source*/
-	virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, size_t index, int layer) ;
+    virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, size_t index, int layer, std::string name = std::string() ) ;
 
 	/** \brief get the raw values of the specified field from the source*/
 	virtual std::vector<std::valarray<double> > getDoubleValues(FieldType field, int layer) ;

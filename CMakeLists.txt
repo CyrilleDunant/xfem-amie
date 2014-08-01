@@ -70,11 +70,13 @@ physics/damagemodels/lineardamage.cpp
 physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/damageindexeddamage.cpp
 physics/damagemodels/rotatingcrack.cpp
+physics/material_laws/material_laws.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
 physics/mass.cpp 
 physics/laplacian.cpp 
 physics/logarithmic_creep.cpp 
+physics/logarithmic_creep_with_external_parameters.cpp 
 physics/dual_behaviour.cpp 
 physics/viscoelasticity.cpp 
 physics/viscoelasticity_and_fracture.cpp 

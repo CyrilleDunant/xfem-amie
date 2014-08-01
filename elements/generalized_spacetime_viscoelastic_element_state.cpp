@@ -2279,3 +2279,44 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes( FieldType f1
 }
 
 
+
+GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(IntegrableEntity * e, std::map<std::string, double> & v) : GeneralizedSpaceTimeViscoElasticElementState(e)
+{
+    variables = v ;
+
+}
+
+GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s) : GeneralizedSpaceTimeViscoElasticElementState(s)
+{
+    variables = s.getVariables() ;
+}
+
+
+GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::operator =(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s)
+{
+    ElementState::operator =(s) ;
+
+    return *this ;
+}
+
+bool GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::has(std::string v) const
+{
+    return !(variables.empty() || variables.find(v) == variables.end()) ;
+}
+
+double GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::get(std::string v, std::map<std::string, double> & defaultValues)
+{
+    if(has(v))
+    {
+        return variables[v] ;
+    }
+    return defaultValues[v] ;
+}
+
+void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::set(std::string v, double d)
+{
+    if(has(v))
+        variables[v] = d ;
+    else
+        variables.insert( std::pair<std::string, double>(v, d) ) ;
+}

@@ -16,6 +16,8 @@
 #include "../../physics/dual_behaviour.h"
 #include "../../physics/stiffness.h"
 #include "../../physics/materials/paste_behaviour.h"
+#include "../../physics/logarithmic_creep_with_external_parameters.h"
+#include "../../elements/generalized_spacetime_viscoelastic_element_state.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip> 
@@ -573,13 +575,15 @@ void MultiTriangleWriter::append()
 }
 
 
-void TriangleWriter::getField( TWFieldType field, bool extra )
+void TriangleWriter::getField( TWFieldType field, bool extra, std::string fieldName )
 {
 
-	fields.push_back(field);
+    if(field == TWFT_INTERNAL_VARIABLE)
+        fieldsInternal[fields.size()] = fieldName ;
+    fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
-		std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j] ) ;
+        std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j], fieldName ) ;
 		std::reverse( val.begin(), val.end() );
 		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
@@ -600,7 +604,7 @@ void TriangleWriter::getField( FieldType field, bool extra )
 
 }
 
-std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, size_t index, int layer )
+std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, size_t index, int layer, std::string fieldName )
 {
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
@@ -905,13 +909,34 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				}
 			}
 		}
+        else if( field == TWFT_INTERNAL_VARIABLE)
+        {
+            std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+            std::map<std::string, double> empty ;
+            for( int i = 0 ; i < triangles.size() ; i++ )
+            {
+                if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(triangles[i]->getBehaviour()) )
+                {
+                    double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(triangles[i]->getState()).get(fieldName, empty ) ;
+                    ret[0][iterator] = v;
+                    ret[1][iterator] = v ;
+                    ret[2][iterator++] = v ;
+                }
+                else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    ret[0][iterator] = 0;
+                    ret[1][iterator] = 0 ;
+                    ret[2][iterator++] = 0 ;
+                }
+            }
+        }
 		else
 		{
 			std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer( layer ) ;
 
 			for( size_t i = 0 ; i < tri.size() ; i++ )
 			{
-				std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field , index) ;
+                std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field , index) ;
 
 				if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
@@ -1371,6 +1396,8 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
 			return 6 ;
 		case TWFT_FIELD_TYPE:
 			return numberOfFields(fieldsOther[index]) ;
+        case TWFT_INTERNAL_VARIABLE:
+            return 3 ;
 	}
 
 	return 3 ;
@@ -1434,6 +1461,8 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
 			return std::string("Crack Opening") ;
 		case TWFT_FIELD_TYPE:
 			return nameOfField(fieldsOther[index]) ;
+        case TWFT_INTERNAL_VARIABLE:
+            return std::string("Internal Variable") ;
 	}
 
 	return std::string("Not a Field") ;

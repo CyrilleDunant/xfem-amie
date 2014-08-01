@@ -47,8 +47,8 @@ void LogarithmicCreep::applyViscous(const Function & p_i, const Function & p_j, 
         Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
         getBlockInMatrix(eta, 1,1, buffer) ;
 
-        vm->ieval(GradientDot(p_i)   * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-        vm->ieval(GradientDotDot(p_i)* buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+        vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
         a += b ;
         placeMatrixInBlock( a, 1,1, ret ) ;
     }
@@ -62,6 +62,16 @@ Form * LogarithmicCreep::getCopy() const
     else
         copy = new LogarithmicCreep( C, E, tau ) ;
 
+/*    if(getExtra2dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra2dMeshes())[i]);
+	}
+	if(getExtra3dMeshes())
+	{
+		for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+			copy->addMesh((*getExtra3dMeshes())[i]);
+    }*/
 	return copy ; 
 }
 
@@ -120,6 +130,16 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
     else
         copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed ) ;
 
+ /*   if(getExtra2dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra2dMeshes())[i]);
+    }
+    if(getExtra3dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra3dMeshes())[i]);
+    }*/
     return copy ;
 }
 
@@ -158,3 +178,136 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBou
     return ret ;
 
 }
+
+
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp) : LogarithmicCreepWithImposedDeformation(rig, imp), dfunc(nullptr), criterion(nullptr), noFracture(false)
+{
+
+}
+
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double t, const Vector & imp) : LogarithmicCreepWithImposedDeformation(rig, v, t, imp), dfunc(nullptr), criterion(nullptr), noFracture(false)
+{
+
+}
+
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d) : LogarithmicCreepWithImposedDeformation(rig, imp), dfunc(d), criterion(c), noFracture(!d || !c)
+{
+
+}
+
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double t, const Vector & imp, FractureCriterion * c , DamageModel * d) : LogarithmicCreepWithImposedDeformation(rig, v, t, imp), dfunc(d), criterion(c), noFracture(!d || !c)
+{
+
+}
+
+Form * LogarithmicCreepWithImposedDeformationAndFracture::getCopy() const
+{
+    LogarithmicCreepWithImposedDeformationAndFracture * copy ;
+
+    if(noFracture)
+    {
+	    if(isPurelyElastic)
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed ) ;
+	    else
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed ) ;
+    } else {
+
+	    if(isPurelyElastic)
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy() ) ;
+	    else
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, criterion->getCopy(), dfunc->getCopy() ) ;
+	    copy->dfunc->getState(true).resize(dfunc->getState().size());
+	    copy->dfunc->getState(true) = dfunc->getState() ;
+	    copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
+	    copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
+	    copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
+    }
+
+/*    if(getExtra2dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra2dMeshes())[i]);
+    }
+    if(getExtra3dMeshes())
+    {
+        for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
+            copy->addMesh((*getExtra3dMeshes())[i]);
+    }*/
+
+    return copy ;
+}
+
+void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+    Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+    Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+
+    Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+    getBlockInMatrix(param, 0,0, buffer) ;
+    if(!noFracture)
+        buffer = dfunc->apply(buffer) ;
+
+    vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+    vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+    a += b ;
+
+    placeMatrixInBlock( a, 0,0, ret ) ;
+    if(!isPurelyElastic)
+    {
+        b = a*(-1.) ;
+        placeMatrixInBlock(b,1,0, ret);
+        placeMatrixInBlock(b,0,1, ret);
+        placeMatrixInBlock(a,1,1, ret);
+    }
+}
+
+void LogarithmicCreepWithImposedDeformationAndFracture::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+    if(!isPurelyElastic)
+    {
+        Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+
+        Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+        getBlockInMatrix(eta, 1,1, buffer) ;
+        if(!noFracture)
+    	    buffer = dfunc->applyViscous(buffer) ;
+
+        vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(GradientDotDot(p_i)    * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+        a += b ;
+        placeMatrixInBlock( a, 1,1, ret ) ;
+    }
+}
+
+void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore)
+{
+    if(!noFracture)
+    {
+	    dfunc->step(currentState, maxscore) ;
+	    currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+    }
+}
+
+void LogarithmicCreepWithImposedDeformationAndFracture::setFractureCriterion(FractureCriterion * frac)
+{
+    if(frac)
+    {
+        criterion = frac ;
+    }
+}
+
+Matrix LogarithmicCreepWithImposedDeformationAndFracture::getTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(noFracture)
+	return param ;
+    return  dfunc->apply(param) ;
+}
+
+Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const Point & p, IntegrableEntity * e, int g) const
+{
+    if(noFracture)
+	return eta ;
+    return dfunc->applyViscous(eta) ;
+}
+
