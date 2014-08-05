@@ -1,5 +1,6 @@
 #include "material_laws.h"
 #include <stdlib.h>
+#include <fstream>
 
 namespace Amie
 {
@@ -36,26 +37,26 @@ std::map<std::string, double> parseDefaultValues(std::string args, char sep)
     return ret ;
 }
 
-void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s )
+void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     for(auto iter = defaultValues.begin() ; iter != defaultValues.end() ; iter++)
         s.set(iter->first, iter->second) ;
 }
 
-void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s )
+void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p = s.getParent()->getCenter() ;
     p.setT( s.getTime() ) ;
     s.set(external, VirtualMachine().eval(f, p)) ;
 }
 
-void SimpleDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s )
+void SimpleDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double x = s.get(coordinate, defaultValues) ;
     s.set(external, VirtualMachine().eval(f, x)) ;
 }
 
-void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s )
+void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p ;
     if(useSpaceTimeCoordinates)
@@ -74,53 +75,63 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     s.set(external, VirtualMachine().eval(f, p, q)) ;
 }
 
-void ThermalExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s)
+LinearInterpolatedExternalMaterialLaw::LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, std::string args, char sep) : ExternalMaterialLaw(args, sep), external(e)
 {
-    double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
-    double alpha = s.get("thermal_expansion_coefficient", defaultValues) ;
-    double imp = s.get("imposed_deformation", defaultValues) ;
-    imp += alpha*(T-T0) ;
-    s.set("imposed_deformation", imp) ;
-}
+    std::vector<double> x ;
+    std::vector<double> y ;
 
-ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char sep) : ExternalMaterialLaw(args, sep), affected(a)
-{
-    coefficient = affected ; coefficient.append("_activation_energy") ;
-}
+    std::fstream input ;
+    input.open(file.c_str(), std::ios::in) ;
+    double buffer ;
 
-void ArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s)
-{
-    double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
-    double Ea = s.get(coefficient, defaultValues) ;
-    double prop = defaultValues[affected] ;
-    prop *= exp( Ea*(1./T-1./T0) ) ;
-    s.set(affected, prop) ;
-}
-
-void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s)
-{
-    if(!s.has("creep_characteristic_time"))
-        return ;
-
-    double T = s.get("temperature", defaultValues) ;
-    double T0 = defaultValues["temperature"] ;
-    double Ea = s.get("creep_activation_energy", defaultValues) ;
-    double factor = exp( Ea*(1./T-1./T0) ) ;
-    double tau = defaultValues["creep_characteristic_time"] ;
-    s.set("creep_characteristic_time", tau*factor) ;
-    if(s.has("creep_modulus"))
+    while(!input.eof())
     {
-        double E = defaultValues["creep_modulus"] ;
-        s.set("creep_modulus", E*factor) ;
-    } else {
-        double k = defaultValues["creep_bulk"] ;
-        s.set("creep_bulk", k*factor) ;
-        double mu = defaultValues["creep_shear"] ;
-        s.set("creep_shear", mu*factor) ;
+        input >> buffer ;
+        x.push_back(buffer) ;
+        input >> buffer ;
+        y.push_back(buffer) ;
     }
+
+    Vector first(x.size()) ;
+    Vector second(y.size()) ;
+    for(size_t i = 0 ; i < x.size() ; i++)
+    {
+        first[i] = x[i] ;
+        second[i] = y[i] ;
+    }
+    values = std::make_pair(first,second) ;
+
 }
+
+
+void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    if(external.first == std::string("x"))
+        s.set(external.second, get(s.getParent()->getCenter().getX())) ;
+    else if(external.first == std::string("y"))
+        s.set(external.second, get(s.getParent()->getCenter().getY())) ;
+    else if(external.first == std::string("z"))
+        s.set(external.second, get(s.getParent()->getCenter().getZ())) ;
+    else if(external.first == std::string("t"))
+        s.set(external.second, get(s.getTime())) ;
+    else
+        s.set(external.second, get(s.get(external.second, defaultValues))) ;
+}
+
+double LinearInterpolatedExternalMaterialLaw::get(double x) const
+{
+    if(x < values.first[0])
+        return values.second[0] ;
+    if(x > values.first[values.first.size()-1])
+        return values.second[values.second.size()-1] ;
+
+    int i = 0 ;
+    while(values.first[i]<x)
+        i++ ;
+
+    return values.second[i-1]+(values.second[i]-values.second[i-1])*(x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
+}
+
 
 
 } ;

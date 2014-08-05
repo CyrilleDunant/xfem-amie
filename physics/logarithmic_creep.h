@@ -20,12 +20,21 @@
 namespace Amie
 {
 
+typedef enum
+{
+    LOGCREEP_CONSTANT,
+    LOGCREEP_FORWARD,
+    LOGCREEP_PREDICTED
+} LogCreepStressAccumulator ;
+
+
 struct LogarithmicCreep : public Viscoelasticity
 {
 	// material parameters
 	Matrix C ; //stiffness
 	Matrix E ; //viscosity
 	double tau ; //characteristic time
+    LogCreepStressAccumulator accumulator ;
 
 	double accumulatedStress ;
 	double currentStress ;

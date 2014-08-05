@@ -1429,8 +1429,8 @@ void FeatureTree::quadTreeRefine(const Geometry * location)
 					}
 				}
 			}
-			if(inrefinedFeature)
-				continue ;
+            if(inrefinedFeature)
+                continue ;
 			
 // 			conflictingElements[i]->print() ;
 			Point a = *conflictingElements[i]->first*.5+*conflictingElements[i]->second*.5 ;
@@ -6184,7 +6184,7 @@ void FeatureTree::generateElements()
 				for( size_t l = 0 ; l < potentialFeaturestmp.size() ; l++ )
 					potentialFeatures.push_back( const_cast<Feature *>(dynamic_cast<const Feature *>( potentialFeaturestmp[l] )) ) ;
 
-				std::vector<Feature *> potentialChildren ;
+                std::vector<Feature *> potentialChildren ;
 
 				for( size_t l = 0 ; l < potentialFeatures.size() ; l++ )
 				{
@@ -6224,11 +6224,11 @@ void FeatureTree::generateElements()
 				if( !isIn && tree[i]->isVirtualFeature && !tree[i]->in( tree[i]->getBoundingPoint( j ) ) )
 					isIn = true ;
 
-				if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
+                if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
 					isIn = true ;
 
-				if( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
-					isIn = true ;
+                if( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary( tree[i]->getBoundingPoint( j ), pointDensity * .25 ) )
+                    isIn = true ;
 
 				if( !tree[i]->getFather() && i)
 				{

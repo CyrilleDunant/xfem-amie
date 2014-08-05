@@ -71,6 +71,7 @@ physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/damageindexeddamage.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/material_laws/material_laws.cpp
+physics/material_laws/temperature_material_laws.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 
 physics/mass.cpp 
@@ -391,6 +392,9 @@ target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
 
 add_executable(visco examples/main_visco.cpp )
 target_link_libraries( visco Amie ${ALL_LINK_FLAGS})
+
+add_executable(irradiation examples/main_irradiation.cpp )
+target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )

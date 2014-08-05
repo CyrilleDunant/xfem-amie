@@ -59,7 +59,7 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 void LogarithmicCreepWithExternalParameters::step(double timestep, ElementState &s, double maxScore)
 {
     for(size_t i = 0 ; i < relations.size() ; i++)
-        relations[i]->step( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(s)) ;
+        relations[i]->step( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(s), timestep) ;
 
     LogarithmicCreepWithImposedDeformationAndFracture::step(timestep, s, maxScore) ;
 }
@@ -72,7 +72,7 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 
 
     for(size_t i = 0 ; i < relations.size() ; i++)
-        relations[i]->preProcess( state ) ;
+        relations[i]->preProcess( state, timeStep ) ;
 
     if(state.has("bulk_modulus"))
     {

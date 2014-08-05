@@ -575,7 +575,7 @@ void MultiTriangleWriter::append()
 }
 
 
-void TriangleWriter::getField( TWFieldType field, bool extra, std::string fieldName )
+void TriangleWriter::getField( TWFieldType field, bool extra, std::string fieldName, double offset )
 {
 
     if(field == TWFT_INTERNAL_VARIABLE)
@@ -583,7 +583,7 @@ void TriangleWriter::getField( TWFieldType field, bool extra, std::string fieldN
     fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
-        std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j], fieldName ) ;
+        std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j], fieldName, offset ) ;
 		std::reverse( val.begin(), val.end() );
 		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
@@ -604,7 +604,7 @@ void TriangleWriter::getField( FieldType field, bool extra )
 
 }
 
-std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, size_t index, int layer, std::string fieldName )
+std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType field, size_t index, int layer, std::string fieldName, double offset )
 {
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
@@ -917,8 +917,8 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
             {
                 if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(triangles[i]->getBehaviour()) )
                 {
-                    double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(triangles[i]->getState()).get(fieldName, empty ) ;
-                    ret[0][iterator] = v;
+                    double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(triangles[i]->getState()).get(fieldName, empty ) - offset;
+                    ret[0][iterator] = v ;
                     ret[1][iterator] = v ;
                     ret[2][iterator++] = v ;
                 }
@@ -989,10 +989,10 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 			size_t n = triangles[i]->getBoundingPoints().size()/3 ;
 			if(triangles[i]->timePlanes() > 1)
 				n /= triangles[i]->timePlanes() ;
-		  
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(0), first, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(n), second, false, 0);
-			triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(2*n), third, false, 0);
+
+            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+0), first, false, 0);
+            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+n), second, false, 0);
+            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+2*n), third, false, 0);
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{
@@ -1205,9 +1205,9 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				Point B_ = tri->inLocalCoordinates(B) ; B_.getT() = t ;
 				Point C_ = tri->inLocalCoordinates(C) ; C_.getT() = t ;
 
-				ret[2] = (tri->getBehaviour()->getTensor( A_ )[0][0]+tri->getBehaviour()->getTensor( A_ )[1][1])*.5 ;
-				ret[1] = (tri->getBehaviour()->getTensor( B_ )[0][0]+tri->getBehaviour()->getTensor( B_ )[1][1])*.5 ;
-				ret[0] = (tri->getBehaviour()->getTensor( C_ )[0][0]+tri->getBehaviour()->getTensor( C_ )[1][1])*.5 ;
+                ret[2] = (tri->getBehaviour()->getTensor( A_ )[0][0]+tri->getBehaviour()->getTensor( A_ )[1][1])*.5 ;
+                ret[1] = (tri->getBehaviour()->getTensor( B_ )[0][0]+tri->getBehaviour()->getTensor( B_ )[1][1])*.5 ;
+                ret[0] = (tri->getBehaviour()->getTensor( C_ )[0][0]+tri->getBehaviour()->getTensor( C_ )[1][1])*.5 ;
 				found = true ;
 
 				break ;

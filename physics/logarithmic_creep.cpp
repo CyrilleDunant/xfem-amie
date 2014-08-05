@@ -5,12 +5,12 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), isPurelyElastic(true), accumulatedStress(0), currentStress(0), updated(true)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), isPurelyElastic(true), accumulatedStress(0), currentStress(0), updated(true), accumulator(LOGCREEP_FORWARD)
 {
 
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, double e) : Viscoelasticity(MAXWELL, rig, vs), C(rig), E(vs), tau(e), isPurelyElastic(false), currentStress(0), accumulatedStress(0), updated(true)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, double e) : Viscoelasticity(MAXWELL, rig, vs), C(rig), E(vs), tau(e), isPurelyElastic(false), currentStress(0), accumulatedStress(0), updated(true), accumulator(LOGCREEP_FORWARD)
 {
 
 }
@@ -86,24 +86,50 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
     if(E.array().max() < POINT_TOLERANCE_2D)
         return ;
 
-    Vector stress(C.numRows()) ; stress = 0 ;
-    currentState.getAverageField( REAL_STRESS_FIELD, stress, nullptr, -1, 1) ;
-//    Vector principalstress = toPrincipal(stress) ;
-
-    currentStress = std::max(std::abs(stress[0]), std::abs(stress[1])) ;
-    accumulatedStress += currentStress*timeStep ;
-
-
     Matrix visc = E ;
-    if(accumulatedStress > POINT_TOLERANCE_2D)
+
+    switch(accumulator)
     {
-        if(currentStress < POINT_TOLERANCE_2D)
-            visc.array() = 0 ;
-        else
-            visc *= (1.+accumulatedStress / (tau*currentStress)) ;
-    } else {
-//        std::cout << "h" << std::endl ;
+        case LOGCREEP_CONSTANT:
+            break ;
+        case LOGCREEP_FORWARD:
+        {
+            Vector stress(C.numRows()) ; stress = 0 ;
+            currentState.getAverageField( REAL_STRESS_FIELD, stress, nullptr, -1, 1) ;
+            currentStress = std::max(std::abs(stress[0]), std::abs(stress[1])) ;
+            accumulatedStress += currentStress*timeStep ;
+            if(accumulatedStress > POINT_TOLERANCE_2D)
+            {
+                if(currentStress < POINT_TOLERANCE_2D)
+                    visc.array() = 0 ;
+                else
+                    visc *= (1.+accumulatedStress / (tau*currentStress)) ;
+            }
+            break ;
+        }
+        case LOGCREEP_PREDICTED:
+        {
+            Vector buffer0(C.numRows()) ; buffer0 = 0 ;
+            Vector buffer1(C.numRows()) ; buffer1 = 0 ;
+            currentState.getAverageField( REAL_STRESS_FIELD, buffer0, nullptr, -1, -1) ;
+            currentState.getAverageField( REAL_STRESS_FIELD, buffer1, nullptr, -1, 1) ;
+            currentStress =  std::max(std::abs(buffer1[0]), std::abs(buffer1[1])) ;
+            buffer1 = buffer1*2. - buffer0 ;
+            double projStress = std::max(std::abs(buffer1[0]), std::abs(buffer1[1])) ;
+            currentState.getAverageField( STRAIN_RATE_FIELD, buffer0, nullptr, -1, 1) ;
+            buffer0 = E*buffer0 ;
+            double projElasticStress = std::max(std::abs(buffer0[0]), std::abs(buffer0[1])) ;
+            if(currentStress > POINT_TOLERANCE_2D)
+            {
+                if(projStress < POINT_TOLERANCE_2D || projElasticStress < POINT_TOLERANCE_2D)
+                    visc.array() = 0 ;
+                else
+                    visc *= ( (1.+timeStep/(2.*tau)) + currentStress/projStress*(currentStress/projElasticStress - 1. + timeStep/(2.*tau))  ) ;
+            }
+            break ;
+        }
     }
+
 
     placeMatrixInBlock(visc, 1,1, eta);
     isPurelyElastic = (visc.array().max() < POINT_TOLERANCE_2D) ;

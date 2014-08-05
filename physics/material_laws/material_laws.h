@@ -29,8 +29,8 @@ struct ExternalMaterialLaw
     std::map<std::string, double> defaultValues ;
 
     ExternalMaterialLaw(std::string args = std::string(), char sep = ',') : defaultValues(parseDefaultValues(args, sep)) { }
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) { }
-    virtual void step( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s) { }
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s , double dt) { }
+    virtual void step( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt) { }
 };
 
 /* Generic material law to set one or several variables to a constant
@@ -40,7 +40,7 @@ struct ConstantExternalMaterialLaw : public ExternalMaterialLaw
 {
     ConstantExternalMaterialLaw( std::string args, char sep = ',' ) : ExternalMaterialLaw(args, sep) { }
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
 };
 
@@ -52,7 +52,7 @@ struct SpaceTimeDependentExternalMaterialLaw : public ExternalMaterialLaw
     SpaceTimeDependentExternalMaterialLaw( std::string e, const char *f_, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_) { }
     SpaceTimeDependentExternalMaterialLaw( std::string e, Function & f_, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_) { }
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
 
 };
@@ -65,7 +65,7 @@ struct SimpleDependentExternalMaterialLaw: public SpaceTimeDependentExternalMate
     SimpleDependentExternalMaterialLaw( std::string e, std::string c, const char *f_, std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, args, sep), coordinate(c) { }
     SimpleDependentExternalMaterialLaw( std::string e, std::string c,  Function & f_, std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, args, sep), coordinate(c) { }
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
 };
 
@@ -84,7 +84,7 @@ struct VariableDependentExternalMaterialLaw: public SpaceTimeDependentExternalMa
     VariableDependentExternalMaterialLaw( std::string e, const char *f_,  std::map<char, std::string> c, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
     VariableDependentExternalMaterialLaw( std::string e, Function & f_,  std::map<char, std::string> c, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 
     bool has(char c) const { return !(coordinates.empty() || coordinates.find(c) == coordinates.end()) ; }
     void setAsX(std::string s) { coordinates['x'] = s ; }
@@ -97,40 +97,22 @@ struct VariableDependentExternalMaterialLaw: public SpaceTimeDependentExternalMa
 
 };
 
-/* Material law for thermal expansion
- * The material parameters must include "temperature", "thermal_expansion_coefficient" and "imposed_deformation"
- * The reference temperature must be given in the defaults values
- * Temperatures must be set in Kelvin for compatibility with the Arrhenius law
+/* Generic material law to set an external variable as a function of another one variable, using a linear interpolation.
+ * "external" contains the pair of variable (first the input variable, second the variable to be set
+ * "values" contains the list of values for the linear interpolation (first the input variable, second the output variable) [this vector can be read from a two-columns file, without delimiters]
+ * The interpolation does not extrapolate outside the given bounds: the bounding values are used instead
  */
-struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
+struct LinearInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
 {
-    ThermalExpansionMaterialLaw(std::string args, char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    std::pair<std::string, std::string> external ;
+    std::pair<Vector, Vector> values ;
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
-};
+    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v) { }
+    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, std::string args = std::string(), char sep = ',' ) ;
 
-/* Material law for a generic Arrhenius equation affecting a single parameter
- * The material parameters must include the affected parameter, the activation energy for that parameter (in Kelvin^{-1}, and written as parameter"_activation_energy"), "temperature" and "temperature_reference" (both in Kelvin)
- * The reference value of the affected parameter and "temperature" must be given in the defaults values
- */
-struct ArrheniusMaterialLaw : public ExternalMaterialLaw
-{
-    std::string affected ;
-    std::string coefficient ;
-    ArrheniusMaterialLaw(std::string a, std::string args, char sep = ',') ;
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+    double get(double x) const ;
 
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
-};
-
-/* Material law for the Arrhenius equation affecting all creep parameters
- * The material parameters must include "creep_characteristic_time", "creep_modulus" (or the pair "creep_bulk" and "creep_shear"), "creep_activation_energy" (in Kelvin^{-1}), "temperature" and "temperature_reference"
- * The reference value of "creep_characteristic_time","creep_modulus" (or the pair "creep_bulk" and "creep_shear"), and "temperature" must be given in the default values
- */
-struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
-{
-    CreepArrheniusMaterialLaw(std::string args, char sep = ',') : ExternalMaterialLaw(args, sep) { }
-
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s ) ;
 };
 
 

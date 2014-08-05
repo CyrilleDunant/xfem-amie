@@ -97,15 +97,15 @@ public:
 	virtual void append() ;
 
 	/** \brief store the values of the field in the writer*/
-    virtual void getField(TWFieldType field, bool extra = true, std::string type = std::string()) ;
+    virtual void getField(TWFieldType field, bool extra = true, std::string type = std::string(), double offset = 0.) ;
 
-    virtual void getField(std::string field, bool extra = true) { getField(TWFT_INTERNAL_VARIABLE, extra, field) ; }
+    virtual void getField(std::string field, double offset = 0., bool extra = true ) { getField(TWFT_INTERNAL_VARIABLE, extra, field, offset) ; }
 
 	/** \brief store the values of the field in the writer*/
 	virtual void getField(FieldType field, bool extra = true) ;
 
 	/** \brief get the raw values of the specified field from the source*/
-    virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, size_t index, int layer, std::string name = std::string() ) ;
+    virtual std::vector<std::valarray<double> > getDoubleValues(TWFieldType field, size_t index, int layer, std::string name = std::string() , double offset = 0.) ;
 
 	/** \brief get the raw values of the specified field from the source*/
 	virtual std::vector<std::valarray<double> > getDoubleValues(FieldType field, int layer) ;

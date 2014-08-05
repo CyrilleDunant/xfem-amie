@@ -1,4 +1,4 @@
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
+// Author: Alain Giorla <alain.b.giorla@gmail.com>, (C) 2005-2014
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -56,24 +56,45 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-    Sample box(nullptr, 0.17,0.4,0.,0.) ;
+    LinearInterpolatedExternalMaterialLaw temperatureProfile(std::make_pair("x","temperature"), "temperature_profile.txt") ;
+    LinearInterpolatedExternalMaterialLaw neutronProfile(std::make_pair("x","neutron_fluence"), "neutron_fluence_profile.txt") ;
+    ThermalExpansionMaterialLaw thermalExpansion("temperature=293") ;
+    RadiationInducedExpansionMaterialLaw aggregateExpansion("radiation_expansion_delay=0.15, neutron_fluence_correction = 0.57, maximum_radiation_expansion=0.0073") ;
+
+    LogarithmicCreepWithExternalParameters paste("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 31.5e12, creep_poisson = 0.2, creep_characteristic_time = 4500, thermal_expansion_coefficient=8e-6") ;
+    paste.addMaterialLaw(&temperatureProfile);
+    paste.addMaterialLaw(&neutronProfile);
+    paste.addMaterialLaw(&thermalExpansion);
+    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 70e9, poisson_ratio = 0.3, thermal_expansion_coefficient=12e-6") ;
+    aggregates.addMaterialLaw(&temperatureProfile);
+    aggregates.addMaterialLaw(&neutronProfile);
+    aggregates.addMaterialLaw(&thermalExpansion);
+    aggregates.addMaterialLaw(&aggregateExpansion);
+    LogarithmicCreepWithExternalParameters concrete("young_modulus = 17e9, poisson_ratio = 0.2, creep_modulus = 31.5e12, creep_poisson = 0.2, creep_characteristic_time = 4500, thermal_expansion_coefficient=10e-6") ;
+    concrete.addMaterialLaw(&temperatureProfile);
+    concrete.addMaterialLaw(&neutronProfile);
+    concrete.addMaterialLaw(&thermalExpansion);
+
+    Sample box(nullptr, 1.,0.3,0.,0.) ;
+    Sample left(nullptr, 0.3,0.3, -0.35, 0.) ;
+    box.setBehaviour( &concrete ) ;
+    left.setBehaviour( &paste ) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(6) ;
+    F.setSamplingNumber(32) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     int time_step = 1 ;
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
+    F.setSamplingFactor(&box, 0.5);
+    F.setSamplingFactor(&left, 5.);
+    F.addRefinementZone(new Rectangle(0.3,0.3,-0.35,0.));
 
-    LogarithmicCreepWithExternalParameters creep("young_modulus = 17e9, poisson_ratio = 0.2, imposed_deformation=0") ;
-    creep.accumulator = LOGCREEP_PREDICTED ;
-    Vector ttmp(2) ; ttmp[0]=330, ttmp[1]=370 ;
-    Vector ytmp(2) ; ytmp[0]=-0.1, ytmp[1]=0.1 ;
-    creep.addMaterialLaw(new LinearInterpolatedExternalMaterialLaw(std::make_pair("y","temperature"), std::make_pair(ytmp,ttmp)));
-//    creep.addMaterialLaw( new SpaceTimeDependentExternalMaterialLaw( "temperature", "333 500 y * +") ) ;
-    creep.addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 333, thermal_expansion_coefficient = 0.0001") ) ;
 
-    box.setBehaviour( &creep );
+    F.addFeature(nullptr, &left) ;
+    std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, &aggregates, 100, 0.025, 0.00001,new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, new Rectangle(0.295,0.295,-0.35,0.) ) ;
+    for(size_t i = 0 ; i < inclusions.size() ;i++)
+        F.setSamplingFactor(inclusions[i], 3.);
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
@@ -82,12 +103,10 @@ int main(int argc, char *argv[])
 
     F.step() ;
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -10e6)) ;
-
-    F.step() ;
     std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << std::endl ;
-    TriangleWriter trg("toto", &F, 1.) ;
-    trg.getField("temperature");
+    TriangleWriter trg("tata", &F, 1.) ;
+    trg.getField(STRAIN_FIELD) ;
+    trg.getField(REAL_STRESS_FIELD) ;
     trg.write() ;
 
     return 0 ;
