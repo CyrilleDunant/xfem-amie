@@ -130,10 +130,10 @@ public:
 	virtual bool onCircumSphere(const Point &p) const = 0 ;
 	virtual bool isNeighbour(const  DelaunayTreeItem3D *) const = 0 ;  //!< Test. Are we a neighbour ?
 	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-	virtual  void conflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-	virtual  void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
-	virtual void flatConflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
-	virtual void flatConflicts(std::valarray<bool> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
+	virtual  void conflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+	virtual  void conflicts(std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
+	virtual void flatConflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
+	virtual void flatConflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
 
 	virtual void print() const = 0 ;
 
@@ -194,7 +194,6 @@ public:
 	std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 	void clearElementaryMatrix() ;
 	std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
-// 	Vector getForces() ;
 	Vector getNonLinearForces()  ;
 	
 	const GaussPointArray & getSubTriangulatedGaussPoints()  ;
@@ -301,9 +300,9 @@ public:
 	
 	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
 	
-	virtual void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Point *p )  ;
+	virtual void conflicts(std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Point *p )  ;
 	
-	virtual void conflicts( std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Geometry *g)  ;
+	virtual void conflicts( std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Geometry *g)  ;
 
 	virtual void print() const ;
 
@@ -396,10 +395,20 @@ public:
 	
 	virtual DelaunayTreeItem3D * getInTree(int index) 
 	{
-		if( index >= 0 && index < tree.size())
+// 		if( index >= 0 && index < tree.size())
 			return tree[index] ;
-		return nullptr ;
+// 		return nullptr ;
 	}
+	
+	virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) 
+    {
+        std::vector<DelaunayTetrahedron *> ret ;
+        for(const auto & idx : element->neighbourhood)
+        {
+            ret.push_back((DelaunayTetrahedron *)tree[idx]);
+        }
+        return ret ;
+    };
 	
 // 	virtual std::vector<DelaunayTreeItem3D *> & getTree() { return tree ;}
 // 	virtual const std::vector<DelaunayTreeItem3D *> & getTree() const { return tree ;}

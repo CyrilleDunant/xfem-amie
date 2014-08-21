@@ -354,6 +354,16 @@ public:
         return nullptr ;
 	}
 	
+    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) 
+    {
+        std::vector<DelaunayTriangle *> ret ;
+        for(const auto & idx : element->neighbourhood)
+        {
+            ret.push_back((DelaunayTriangle *)tree[idx]);
+        }
+        return ret ;
+    };
+	
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ;};
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 	virtual std::vector< DelaunayTriangle* > getElements() {return getTriangles() ;};
@@ -368,6 +378,7 @@ public:
 		}
 		return ret ;
 	};
+    
 	virtual std::vector< DelaunayTriangle* > getConflictingElements(const Geometry* g) 
 	{
 		return conflicts(g) ;
@@ -377,6 +388,7 @@ public:
 	
 	virtual void extrude(double dt) ;
 	void extrude(const Vector & dt) ;
+    std::vector<DelaunayTreeItem *> addElements(std::vector<DelaunayTreeItem *> & cons, Point * p) ;
 	
 public:
 

@@ -204,6 +204,8 @@ bool Point::operator==(const Point &p) const
 		return false ;
 	if(std::abs(p.getT()-t) > 2.*POINT_TOLERANCE_2D)
 		return false ;
+    
+    return true ;
 
 	return dist(p, *this) < POINT_TOLERANCE_2D ;
 // 	Point mid = (p+ *this)*.5 ;
@@ -1495,6 +1497,9 @@ bool Geometry::intersects(const Geometry *g) const
 			}
 			if(g->getGeometryType() == TETRAHEDRON)
 			{
+                if(squareDist3D( static_cast<const Tetrahedron*>(g)->getCircumCenter(), getCenter()) > (g->getRadius()+getRadius())*(g->getRadius()+getRadius()))
+                    return false ;
+                
 				int incount = 0 ;
 				int outcount = 0 ;
 				for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
@@ -1511,7 +1516,7 @@ bool Geometry::intersects(const Geometry *g) const
 				std::multimap<double, const Point *> pts ;
 				for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
 				{
-					pts.insert(std::make_pair(std::abs(g->getRadius()*g->getRadius()-squareDist3D(dynamic_cast<const Tetrahedron*>(g)->getCircumCenter(), g->getBoundingPoint(i))), & g->getBoundingPoint(i))) ;
+					pts.insert(std::make_pair(std::abs(g->getRadius()*g->getRadius()-squareDist3D(static_cast<const Tetrahedron*>(g)->getCircumCenter(), g->getBoundingPoint(i))), & g->getBoundingPoint(i))) ;
 				}
 				auto p = pts.begin() ;
 				const Point * a = p->second ; ++p ;
@@ -1564,6 +1569,8 @@ bool Geometry::intersects(const Geometry *g) const
 				return count != 0 && count !=8 && count_alt != 0 && count_alt !=8;
 
 			}
+			if(g->getGeometryType() == TETRAHEDRON)
+                return g->intersects(this) ;
 			return false ;
 		}
 	case TETRAHEDRON:
@@ -1572,6 +1579,23 @@ bool Geometry::intersects(const Geometry *g) const
 			{
 				return g->intersects(this) ;
 			}
+			
+			if(g->getGeometryType() == HEXAHEDRON)
+            {
+                if(g->in(getCenter()) || in(g->getCenter()))
+                    return true ;
+                
+                Segment s(getCenter(), g->getCenter()) ;
+                
+                std::vector<Point> inter = s.intersection(this) ;
+                for(size_t i = 0 ; i < inter.size() ;i++)
+                    if(g->in(inter[i]))
+                        return true ;
+                inter = s.intersection(g) ;
+                for(size_t i = 0 ; i < inter.size() ;i++)
+                    if(in(inter[i]))
+                        return true ;
+            }
 		}
 	default:
 		{
@@ -4043,6 +4067,94 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 				return std::vector<Point>(0) ;
 			}
 		}
+    case HEXAHEDRON:
+    {
+        std::vector<Point> ret ;
+        std::vector<Point> bbox = g->getBoundingBox() ;
+        double maxx =  bbox[0].getX() ;
+        double minx =  bbox[0].getX() ;
+        double maxy =  bbox[0].getY() ;
+        double miny =  bbox[0].getY() ;
+        double maxz =  bbox[0].getZ() ;
+        double minz =  bbox[0].getZ() ;
+        
+        for(size_t i = 1 ; i < bbox.size() ; i++)
+        {
+            if(bbox[i].getX() > maxx)
+                maxx = bbox[i].getX() ;
+            if(bbox[i].getX() < minx)
+                minx = bbox[i].getX() ;
+            if(bbox[i].getY() > maxy)
+                maxy = bbox[i].getY() ;
+            if(bbox[i].getY() < miny)
+                miny = bbox[i].getY() ;
+            if(bbox[i].getZ() > maxz)
+                maxz = bbox[i].getZ() ;
+            if(bbox[i].getZ() < minz)
+                minz = bbox[i].getZ() ;
+        }
+        
+        Point corner1 (minx, miny, minz) ;
+        Point corner2 (minx, miny, maxz) ;
+        Point corner3 (minx, maxy, minz) ;
+        Point corner4 (minx, maxy, maxz) ;
+        Point corner5 (maxx, miny, minz) ;
+        Point corner6 (maxx, miny, maxz) ;
+        Point corner7 (maxx, maxy, minz) ;
+        Point corner8 (maxx, maxy, maxz) ;
+        
+        Plane plane0(corner1,corner2,corner3) ;
+        if(plane0.intersects(*this))
+            ret.push_back(plane0.intersection(*this));
+        Plane plane1(corner2,corner3,corner4) ;
+        if(plane1.intersects(*this))
+            ret.push_back(plane1.intersection(*this));
+        Plane plane2(corner1,corner3,corner4) ;
+        if(plane2.intersects(*this))
+            ret.push_back(plane2.intersection(*this));
+        Plane plane3(corner1,corner2,corner4) ;
+        if(plane3.intersects(*this))
+            ret.push_back(plane3.intersection(*this));
+        Plane plane4(corner5,corner6,corner7) ;
+        if(plane4.intersects(*this))
+            ret.push_back(plane4.intersection(*this));
+        Plane plane5(corner6,corner7,corner8) ;
+        if(plane5.intersects(*this))
+            ret.push_back(plane5.intersection(*this));
+        Plane plane6(corner5,corner6,corner8) ;
+        if(plane6.intersects(*this))
+            ret.push_back(plane6.intersection(*this));
+        Plane plane7(corner5,corner7,corner8) ;
+        if(plane7.intersects(*this))
+            ret.push_back(plane7.intersection(*this));
+        
+        return ret ;
+        
+    }
+    case TETRAHEDRON :
+    {
+        std::vector<Point> ret ;
+        
+        Point corner1 = g->getBoundingPoint(0) ;
+        Point corner2 = g->getBoundingPoint(1) ;
+        Point corner3 = g->getBoundingPoint(2) ;
+        Point corner4 = g->getBoundingPoint(3) ;
+        
+        TriPoint t0(&corner1, &corner2, &corner3) ;
+        if(intersects(t0))
+            ret.push_back(intersection(t0)[0]);
+        TriPoint t1(&corner2, &corner3, &corner4) ;
+        if(intersects(t1))
+            ret.push_back(intersection(t1)[0]);
+        TriPoint t2(&corner1, &corner2, &corner4) ;
+        if(intersects(t2))
+            ret.push_back(intersection(t2)[0]);
+        TriPoint t3(&corner1, &corner3, &corner4) ;
+        if(intersects(t3))
+            ret.push_back(intersection(t3)[0]);
+        
+        return ret ;
+    }
 		
 	default:
 		return std::vector<Point>(0) ;

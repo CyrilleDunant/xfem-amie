@@ -21,32 +21,117 @@
 
 using namespace Amie ;
 
+bool isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1)
+{
+    if(i0->isTetrahedron() && !i1->isTetrahedron())
+        return false ;
+    if(i0->isSpace() && !i1->isSpace())
+        return false ;
+    return i0->isVertex( i1->first ) && i0->isVertex( i1->second ) && i0->isVertex( i1->third )  && i0->isVertex( i1->fourth ) ;
+}
+
+bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const DelaunayTetrahedron * tet)
+{
+    if(domains[domain_index]->in(tet->getCenter()))
+    {
+        bool unique  = true ;
+        for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+        {
+            if(domains[k]->in(tet->getCenter()))
+            {
+                unique = false ;
+                break ;
+            }
+        }
+        if(unique)
+            return true ;
+    }
+    return false ;
+}
+
+int getMesh(const std::vector<DelaunayTree3D *> & meshes, const DelaunayTreeItem3D * self)
+{
+    for(size_t i = 0 ; i < meshes.size() ; i++)
+        if(self->tree == meshes[i])
+            return i ;
+    return -1 ;
+}
+
+int getDomain(const std::vector <Geometry* > & domains, const std::vector<DelaunayTree3D *> & meshes, const DelaunayTetrahedron * tet)
+{
+    int mesh = getMesh(meshes,tet) ;
+    std::valarray<bool> inDomain(false, domains.size()) ;
+    #pragma omp parallel for
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        inDomain[domain_index] = domains[domain_index]->in(tet->getCenter()) ;
+    }
+    
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        if(inDomain[domain_index])
+        {
+            bool unique  = true ;
+            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+            {
+                if(inDomain[k])
+                {
+                    unique = false ;
+                    break ;
+                }
+            }
+            if( unique && mesh == domain_index )
+                return domain_index ;
+        }
+    }
+    return -1 ;
+}
+
+int getDomain(const std::vector <Geometry* > & domains, const Point & center)
+{
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        if(domains[domain_index]->in(center))
+        {
+            bool unique  = true ;
+            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+            {
+                if(domains[k]->in(center))
+                {
+                    unique = false ;
+                    break ;
+                }
+            }
+            if(unique)
+                return domain_index ;
+        }
+    }
+    return -1 ;
+}
 
 ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<Geometry *> & domains) : domains(domains)
 {
-    
+    std::vector<std::vector<DelaunayTreeItem3D *> > newElements(domains.size()) ;
+
     for(size_t i = 0 ; i < domains.size() ; i++)
     {
         meshes.push_back(new DelaunayTree3D(p0, p1, p2, p3));
-        elementMap.push_back(std::vector<int>());
-        outElements.push_back(std::vector<bool>());
+
     }
+
     global_counter = meshes[0]->global_counter ;
-    //there needs to be one more mesh than domains: it contains all the boundary elements
-//     meshes.push_back(new DelaunayTree3D(p0, p1, p2, p3));
 }
 
 std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElements(const Point  * p)
 {
     std::valarray<std::vector<DelaunayTetrahedron *> > conflicts(meshes.size()) ;
-    std::valarray<std::vector<DelaunayTetrahedron *> > boundaries(meshes.size()) ;
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {
         std::vector<DelaunayTetrahedron *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
         {
-            if(elementMap[i][tmpConflicts[j]->index] >= 0)
+            if(getDomain(domains,meshes,tmpConflicts[i]) != 1)
                 conflicts[i].push_back(tmpConflicts[j]) ;
         }
     }
@@ -60,15 +145,15 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
 std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElements(const Geometry  * p)
 {
     std::valarray<std::vector<DelaunayTetrahedron *> > conflicts(meshes.size()) ;
-    std::valarray<std::vector<DelaunayTetrahedron *> > boundaries(meshes.size()) ;
+    
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {
         std::vector<DelaunayTetrahedron *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
-        for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
+        for(size_t j = 0 ; j < tmpConflicts.size() ;  j++)
         {
-            if(elementMap[i][tmpConflicts[j]->index] >= 0)
-                conflicts[i].push_back(tmpConflicts[j]) ;
+            if(inDomain(domains, i, tmpConflicts[j]))
+                conflicts[i].push_back(tmpConflicts[j]);
         }
     }
 
@@ -79,262 +164,98 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
     return ret ;
 }
 
-bool interacts(const Geometry * g , const DelaunayTreeItem3D * item)
+bool interacts(const Geometry * g , DelaunayTreeItem3D * item)
 {
+
+//     checkfather = false ;
     if( item->isSpace() )
     {
-        std::vector<Point> bbox = g->getBoundingBox() ;
-        
-        for(size_t i = 0 ; i < bbox.size() ; i++)
-            if(item->inCircumSphere(bbox[i]) || item->onCircumSphere(bbox[i]))
-                return true ;
         return false ;
     }
-    else if( item->isTetrahedron() && item->isAlive())
+    else if( item->isTetrahedron())
     {
         if(g->in(*item->first)  || 
            g->in(*item->second) || 
            g->in(*item->third)  || 
            g->in(*item->fourth) 
           )
-            return true ;
-            
-        const DelaunayTetrahedron * t = static_cast<const DelaunayTetrahedron *>(item) ;
-        Sphere test(t->getRadius(), t->getCircumCenter() ) ;
-        if( g->intersects(&test) )
-            return true ;
-        
-        for(size_t j = 0 ; j < t->neighbourhood.size() ;  j++)
         {
-           if(g->in(*(t->getNeighbourhood(j)->first))  || 
-                g->in(*(t->getNeighbourhood(j))->second) || 
-                g->in(*(t->getNeighbourhood(j))->third)  || 
-                g->in(*(t->getNeighbourhood(j))->fourth) 
-                )
             return true ;
-            
-          Sphere test(t->getNeighbourhood(j)->getRadius(), t->getNeighbourhood(j)->getCenter() ) ;
-          if( g->intersects(&test) )
-            return true ;
-          
-          for(size_t k = 0 ; k < t->getNeighbourhood(j)->neighbourhood.size() ;  k++)
-          {
-            if(g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->first)  || 
-                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->second) || 
-                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->third)  || 
-                g->in(*(t->getNeighbourhood(j)->getNeighbourhood(k))->fourth) 
-                )
-                return true ;
-                
-            Sphere test(t->getNeighbourhood(j)->getNeighbourhood(k)->getRadius(), t->getNeighbourhood(j)->getNeighbourhood(k)->getCenter() ) ;
-            if( g->intersects(&test) )
-                return true ;
-          }
         }
-        
-        return false ;
-
-    }
-    else if(item->isDeadTetrahedron())
-    {
-        if(g->in(*item->first)  || 
-           g->in(*item->second) || 
-           g->in(*item->third)  || 
-           g->in(*item->fourth) 
-          )
-            return true ;
             
-        Sphere test(item->getRadius(), static_cast<const DelaunayDeadTetrahedron *>(item)->center ) ;
-        if( g->intersects(&test) )
-            return true ;
-        return false ;
-    }
+        for(size_t j = 0 ; j < item->neighbour.size() ;  j++)
+        {
+            if(item->getNeighbour(j)->isSpace())
+                continue ;
+            
+            DelaunayTreeItem3D * n = item->getNeighbour(j) ;
+            
+            if(g->in(*(n->first))  || 
+               g->in(*(n->second)) || 
+               g->in(*(n->third))  || 
+               g->in(*(n->fourth))  )
+            {
+                return true ;
+            }
+        }
+
+    }    
+
+    return false ;
 }
 
 void ParallelDelaunayTree3D::insert(Point * p)
-{
-    std::valarray<std::vector<DelaunayTreeItem3D *>> newElems(meshes.size()) ;
-    std::valarray<bool> insertion(false, meshes.size()) ;
-    #pragma omp parallel for
+{   
+    #pragma omp parallel for schedule(static,1)
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {   
         bool isVertex = false ;
-        bool allout = true ;
-        bool inMesh = true ;
+        bool noInteraction = true ;
         std::vector<DelaunayTreeItem3D *> cons = meshes[i]->conflicts(p) ;
+        std::vector<DelaunayTreeItem3D *> newElems ;
         if(cons.empty())
         {
-            inMesh = false ;
             std::cout << "Failed insertion : in nothing !" << std::endl ;
         }
-
-        meshes[i]->neighbourhood = false ;
-
-
-        if(!domains[i]->in(*p))
+        
+        for(size_t j = 0 ; j < cons.size() ; j++)
         {
-            for(size_t j = 0 ; j < cons.size() ; j++)
+            if(cons[j]->isVertex(p))
             {
-                if(cons[j]->isVertex(p))
-                    isVertex = true ; 
+                isVertex = true ;
+                break ;
             }
-            
-            for(size_t j = 0 ; j < cons.size() && allout; j++)
-            {
-                
-                for(size_t k = 0 ; k < outElements[i].size() && allout ; k++)
-                {
-                    if(outElements[i][cons[j]->index])
-                        allout = false ;
-                }
-                
-            }
-            
         }
+        if(isVertex)
+            continue ;
+        
+        if(domains[i]->in(*p))
+             noInteraction = false ;
         else
         {
-            allout = false ;
-        }
-        
-        if((!allout && !isVertex && inMesh) || global_counter < 8)
-        {
-            insertion[i] = true ;
-            newElems[i] = meshes[i]->addElements(cons, p) ;
-        }
-        
-    }
-
-    p->getId()= global_counter++ ;
-    
-    #pragma omp parallel for
-    for(size_t i = 0 ; i < meshes.size() ; i++)
-    {
-        if(insertion[i])
-        {
-            for( size_t j = 0 ; j < newElems[i].size() ; j++ )
+            for(auto & c : cons )
             {
-                if(!newElems[i][j]->isTetrahedron())
-                    continue ;
-                
-                static_cast<DelaunayTetrahedron *>(newElems[i][j])->neighbourhood.resize( 0 ) ;
-                newElems[i][j]->clearVisited() ;
-            }
-
-
-
-            for( size_t j = 0 ; j < newElems[i].size() ; j++ )
-            {
-                if(!newElems[i][j]->isTetrahedron())
-                    continue ;
-                
-                DelaunayTetrahedron * tri = static_cast<DelaunayTetrahedron *>(newElems[i][j]) ;
-    //          if( i % 10000 == 0 )
-    //              std::cerr << "\r building neighbourhood... element " << i << "/" << ret.size() << std::flush ;
-
-                std::vector<DelaunayTetrahedron *> tocheck ;
-                std::vector<DelaunayTetrahedron *> toclean ;
-
-                for( size_t k = 0 ; k < tri->neighbour.size() ; k++ )
+                if(interacts(domains[i], c))
                 {
-                    if( !tri->getNeighbour( k )->visited() && tri->getNeighbour( k )->isTetrahedron() )
-                    {
-                        tocheck.push_back( static_cast<DelaunayTetrahedron *>( tri->getNeighbour( k ) ) );
-                        tri->getNeighbour( k )->visited() = true ;
-                        toclean.push_back( tocheck.back() ) ;
-                        tri->addNeighbourhood( tocheck.back() ) ;
-                    }
+                    noInteraction = false ;
+                    break ;
                 }
-
-                for( size_t k = 0 ; k < tocheck.size() ; k++ )
-                {
-                    if( tocheck[k]->numberOfCommonVertices( tri ) > 0 )
-                        tri->addNeighbourhood( tocheck[k] ) ;
-                }
-
-                while( !tocheck.empty() )
-                {
-                    std::vector<DelaunayTetrahedron *> tocheck_temp ;
-
-                    for( size_t k = 0 ; k < tocheck.size() ; k++ )
-                    {
-                        for( size_t l = 0 ; l < tocheck[k]->neighbour.size() ; l++ )
-                        {
-                            if( tocheck[k]->getNeighbour( l )->isTetrahedron()
-                                && tocheck[k]->getNeighbour( l )->isAlive()
-                                && !tocheck[k]->getNeighbour( l )->visited()
-                                && tocheck[k]->getNeighbour( l ) != tri
-                                && static_cast<DelaunayTetrahedron *>( tocheck[k]->getNeighbour( l ) )->numberOfCommonVertices( tri ) > 0
-                            )
-                            {
-                                tocheck_temp.push_back( static_cast<DelaunayTetrahedron *>( tocheck[k]->getNeighbour( l ) ) );
-                                tocheck[k]->getNeighbour( l )->visited() = true ;
-                                toclean.push_back( tocheck_temp.back() ) ;
-                                tri->addNeighbourhood( tocheck_temp.back() ) ;
-                            }
-                        }
-                    }
-
-                    tocheck = tocheck_temp ;
-                }
-
-                for( size_t k = 0 ; k < toclean.size() ; k++ )
-                {
-                    toclean[k]->clearVisited() ;
-                }
-
             }
         }
-    }     
-         
-    #pragma omp parallel for
-    for(size_t i = 0 ; i < newElems.size() ; i++)
-    {
-//         if(!insertion[i])
-//         {
-//             std::cout << "pop !" << std::endl ;
-//             continue ;
-//         }
-//         else
-//             std::cout << "plouf !" << std::endl ;
+        
+        if(!noInteraction || global_counter < 9 )
+        {
+            meshes[i]->neighbourhood = false ;
+            newElems = meshes[i]->addElements(cons, p) ;
+        }
         
         int maxIdx = 0 ;
-        for(size_t j = 0 ; j < newElems[i].size() ; j++)
-            maxIdx = std::max(maxIdx, newElems[i][j]->index) ;
+        for(size_t j = 0 ; j < newElems.size() ; j++)
+            maxIdx = std::max(maxIdx, newElems[j]->index) ;
 
-        for(int j = elementMap[i].size() ; j < maxIdx+1 ; j++)
-        {
-            elementMap[i].push_back(0) ;
-            outElements[i].push_back(true) ;
-        }
 
-        for(size_t j = 0 ; j < newElems[i].size() ; j++)
-        {
-            elementMap[i][newElems[i][j]->index] = newElems[i][j]->index ;
-            outElements[i][newElems[i][j]->index] = interacts(domains[i], newElems[i][j]) ;
-        }
-    }
-    
-    for(size_t i = 0 ; i < meshes.size() ; i++)
-    {
-        if(!insertion[i])
-            continue ;
-        for(size_t j = 0 ; j < newElems[i].size() ; j++)
-        {
-            for(size_t k = i+1 ; k < meshes.size() ; k++)
-            {
-                if(!insertion[k])
-                    continue ;
-                for(size_t l = 0 ; l < newElems[k].size() ; l++)
-                {
-                    if(newElems[i][j]->isVertex( newElems[k][l]->first)  &&
-                       newElems[i][j]->isVertex( newElems[k][l]->second) &&
-                       newElems[i][j]->isVertex( newElems[k][l]->third)  &&
-                       newElems[i][j]->isVertex( newElems[k][l]->fourth) &&
-                       elementMap[i][newElems[i][j]->index] >= 0)
-                            elementMap[i][newElems[i][j]->index] = -newElems[i][j]->index ;
-                }
-            }
-        }
+        if(!isVertex && i == meshes.size()-1)
+            p->getId()= global_counter++ ;
     }
 }
 
@@ -346,11 +267,11 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
     for(size_t i = 0 ; i < meshes.size() ;  i++)
     {
         std::vector<DelaunayTetrahedron *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(const auto & t : tmp)
         {
-//             std::cout  << elementMap[i].size() << " vs " << tmp[j]->index << std::endl ;
-            if(elementMap[i][tmp[j]->index] >= 0)
-                tris[i].push_back(tmp[j]);
+
+            if(getDomain(domains,meshes, t) == i)
+                tris[i].push_back(t);
         }
     }
 
@@ -361,29 +282,313 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
     return ret ;
 }
 
-void ParallelDelaunayTree3D::setElementOrder(Order o, double dt )
+std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element)
 {
-    #pragma omp parallel for
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+    std::vector<DelaunayTetrahedron *> ret ;
+    int domain = getDomain(domains,meshes,element) ;
+    if(domain == -1)
     {
-        meshes[i]->global_counter = global_counter ;
-        meshes[i]->setElementOrder(o, dt) ;
-    }
-    int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
-    {
-        std::vector<DelaunayTetrahedron *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(const auto & idx : element->neighbourhood)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
+            ret.push_back((DelaunayTetrahedron *)meshes[domain]->tree[idx]);
+        }
+        return ret ;
+    }
+    else
+    {
+        for(const auto & idx : element->neighbourhood)
+        {
+            DelaunayTetrahedron * n = (DelaunayTetrahedron *)meshes[domain]->tree[idx] ;
+            if(getDomain(domains,meshes,n) == domain)
+                ret.push_back(n);
+            else
             {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
+                int altDomain = getDomain(domains,n->getCenter()) ;
+                DelaunayTetrahedron * an = meshes[altDomain]->getUniqueConflictingElement(&n->getCenter()) ;
+                ret.push_back(an);
+            }
+        }
+        return ret ;
+    }
+};
+
+void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
+{
+    std::vector<DelaunayTetrahedron *> tet = getElements() ;
+
+    if( nodes_per_side > 1 )
+        nodes_per_side = 1 ;
+
+    std::vector<size_t> positions ;
+
+    if( nodes_per_side )
+    {
+        positions.push_back( 0 ) ;
+        positions.push_back( 1 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 2 ) ;
+        positions.push_back( 3 ) ;
+        positions.push_back( 4 ) ;
+
+        positions.push_back( 4 ) ;
+        positions.push_back( 5 ) ;
+        positions.push_back( 6 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 7 ) ;
+        positions.push_back( 6 ) ;
+
+        positions.push_back( 6 ) ;
+        positions.push_back( 8 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 9 ) ;
+        positions.push_back( 4 ) ;
+    }
+    else
+    {
+        positions.push_back( 0 ) ;
+        positions.push_back( 1 ) ;
+
+        positions.push_back( 1 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 2 ) ;
+        positions.push_back( 3 ) ;
+
+        positions.push_back( 3 ) ;
+        positions.push_back( 0 ) ;
+
+        positions.push_back( 3 ) ;
+        positions.push_back( 1 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 2 ) ;
+    }
+    
+    std::cerr << "setting order... elements 0/" << tet.size() << std::flush ;
+    for( size_t i = 0 ; i < tet.size() ; i++ )
+    {
+        if(i%1000 == 0)
+            std::cerr << "\rsetting order... elements " << i+1 << "/" << tet.size() << std::flush ;
+
+        std::vector<std::pair<Point, Point> > sides ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 1 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 2 ), tet[i]->getBoundingPoint( 3 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 0 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
+
+
+        tet[i]->visited() = true ;
+
+        size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
+
+        std::valarray<Point *> newPoints( ( Point * )nullptr, nodes_per_plane * time_planes ) ;
+        std::valarray<bool> done( false, nodes_per_plane * time_planes ) ;
+
+        for( size_t plane = 0 ; plane < time_planes ; plane++ )
+        {
+            size_t current = 0 ;
+
+            for( size_t side = 0 ; side < 6 ; side++ )
+            {
+                Point a( sides[side].first ) ;
+                Point b( sides[side].second ) ;
+
+                if( time_planes > 1 )
                 {
-                    if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
+                    a.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+                    b.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+                }
+
+                for( size_t node = 0 ; node < nodes_per_side + 2 ; node++ )
+                {
+                    double fraction = ( double )( node ) / ( ( double )nodes_per_side + 1 ) ;
+                    Point proto = a * ( 1. - fraction ) + b * fraction ;
+                    Point *foundPoint = nullptr ;
+
+                    for( size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
+                    {
+                        if( tet[i]->getBoundingPoint( j ) == proto )
+                        {
+                            foundPoint = &tet[i]->getBoundingPoint( j ) ;
+                            break ;
+                        }
+                    }
+
+                    if( !foundPoint )
+                    {
+                        std::vector<DelaunayTetrahedron *> toTest =  getNeighbourhood(tet[i]);
+
+                        for( size_t j = 0 ; j < toTest.size() ; j++ )
+                        {
+                            if( toTest[j]->visited() && tet[i] != toTest[j])
+                            {
+                                for( size_t k = 0 ; k < toTest[j]->getBoundingPoints().size() ; k++ )
+                                {
+                                    if( toTest[j]->getBoundingPoint( k ) == proto )
+                                    {
+                                        foundPoint = &toTest[j]->getBoundingPoint( k ) ;
+                                        break ;
+                                    }
+                                }
+
+                                if( foundPoint )
+                                {
+                                    break ;
+                                }
+                            }
+                        }
+
+                    }
+
+                    if( !done[positions[current] + plane * nodes_per_plane] )
+                    {
+                        if( foundPoint )
+                        {
+                            newPoints[positions[current] + plane * nodes_per_plane]  = foundPoint ;
+                        }
+                        else
+                        {
+                            additionalPoints.push_back( new Point( proto ) ) ;
+                            newPoints[positions[current] + plane * nodes_per_plane]  = additionalPoints.back() ;
+                            newPoints[positions[current] + plane * nodes_per_plane]->getId() = global_counter++ ;
+                        }
+
+                        done[positions[current] + plane * nodes_per_plane] = true ;
+                    }
+
+                    current++ ;
                 }
             }
         }
+
+        for( size_t k = 0 ; k < newPoints.size() ; k++ )
+        {
+            if( !newPoints[k] )
+            {
+                std::cout << "ouch !" << std::endl ;
+
+                for( size_t k = 0 ; k < newPoints.size() ; k++ )
+                    if( newPoints[k] )
+                        newPoints[k]->print() ;
+
+                exit( 0 ) ;
+            }
+        }
+
+        tet[i]->setBoundingPoints( newPoints ) ;
+
+    }
+
+
+    for( size_t i = 0 ; i < tet.size() ; i++ )
+    {
+        tet[i]->clearVisited() ;
+    }
+    
+    std::cerr << "setting order... elements " << tet.size() << "/" << tet.size() << " ...done."<< std::endl ;
+}
+
+void ParallelDelaunayTree3D::setElementOrder( Order elemOrder, double dt )
+{
+    switch( elemOrder )
+    {
+        case CONSTANT:
+        {
+            break ;
+        }
+        case LINEAR:
+        {
+            break ;
+        }
+        case QUADRATIC:
+        {
+            addSharedNodes( 1, 1, 0 ) ;
+            break ;
+        }
+        case CUBIC:
+        {
+            addSharedNodes( 2, 1, 0 ) ;
+            break ;
+        }
+        case QUADRIC:
+        {
+            addSharedNodes( 3, 1, 0 ) ;
+            break ;
+        }
+        case QUINTIC:
+        {
+            addSharedNodes( 3, 1, 0 ) ;
+            break ;
+        }
+        case CONSTANT_TIME_LINEAR:
+        {
+            addSharedNodes( 0, 2, dt ) ;
+            break ;
+        }
+        case CONSTANT_TIME_QUADRATIC:
+        {
+            addSharedNodes( 0, 3, dt ) ;
+            break ;
+        }
+        case LINEAR_TIME_LINEAR:
+        {
+            addSharedNodes( 0, 2, dt ) ;
+            break ;
+        }
+        case LINEAR_TIME_QUADRATIC:
+        {
+            addSharedNodes( 0, 3, dt ) ;
+            break ;
+        }
+        case QUADRATIC_TIME_LINEAR:
+        {
+            addSharedNodes( 1, 2, dt ) ;
+            break ;
+        }
+        case QUADRATIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 1, 3, dt ) ;
+            break ;
+        }
+        case CUBIC_TIME_LINEAR:
+        {
+            addSharedNodes( 2, 2, dt ) ;
+            break ;
+        }
+        case CUBIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 2, 3, dt ) ;
+            break ;
+        }
+        case QUADRIC_TIME_LINEAR:
+        {
+            addSharedNodes( 3, 2, dt ) ;
+            break ;
+        }
+        case QUADRIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 3, 3, dt ) ;
+            break ;
+        }
+        case QUINTIC_TIME_LINEAR:
+        {
+            addSharedNodes( 3, 2, dt ) ;
+            break ;
+        }
+        case QUINTIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 3, 3, dt ) ;
+            break ;
+        }
+        default:
+            break ;
+
     }
 }
 
@@ -397,21 +602,19 @@ void ParallelDelaunayTree3D::extrude(double dt)
     }
 
     int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+    
+
+    std::vector<DelaunayTetrahedron *> tmp = getElements() ;
+    for(size_t j = 0 ; j < tmp.size() ;  j++)
     {
-        std::vector<DelaunayTetrahedron *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+
+        for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
-            {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
-                {
-                    if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
-                }
-            }
+            if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
+                tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
         }
     }
+
 }
 
 void ParallelDelaunayTree3D::extrude(const Vector & dt)
@@ -424,19 +627,14 @@ void ParallelDelaunayTree3D::extrude(const Vector & dt)
     }
 
     int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+
+    std::vector<DelaunayTetrahedron *> tmp = getElements() ;
+    for(size_t j = 0 ; j < tmp.size() ;  j++)
     {
-        std::vector<DelaunayTetrahedron *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
-            {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
-                {
-                    if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
-                }
-            }
+            if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
+                tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
         }
     }
 }

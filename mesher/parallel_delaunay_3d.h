@@ -19,16 +19,17 @@
 
 namespace Amie
 {
-
+    
 class ParallelDelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
 protected:
-    std::vector< std::vector<int> > elementMap ; //the negative ids indicate elements not valid for the mesh
-    std::vector< std::vector<bool> > outElements ; //elements in which it is safe not to insert
     std::vector<Geometry *> domains ;
     std::vector<DelaunayTree3D *> meshes ;
     std::vector<Point *> additionalPoints ;
     std::vector<DelaunayTreeItem3D *> tree ;
+    void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2) ;
+   
+//     std::vector<double> maxRadius ;
     int global_counter ;
 public:
     virtual std::vector<DelaunayTreeItem3D *> & getTree() ;
@@ -58,6 +59,8 @@ public:
     {
         return 0 ;
     }
+    
+    virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) ;
 
     virtual DelaunayTreeItem3D * getInTree(int index)
     {

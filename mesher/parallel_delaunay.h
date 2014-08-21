@@ -34,6 +34,7 @@ public:
     virtual const std::vector<DelaunayTreeItem *> & getTree() const;
     virtual std::vector<Point * > & getAdditionalPoints()  ;
     virtual const std::vector<Point * > & getAdditionalPoints() const  ;
+    void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep) ;
     virtual void extrude(double dt);
     virtual void extrude(const Vector & dt) ;
     virtual double getInternalScale() const {
@@ -53,6 +54,8 @@ public:
         return global_counter ;
     };
 
+    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) ;
+    
     virtual int addToTree(DelaunayTreeItem * toAdd)
     {
         return 0 ;

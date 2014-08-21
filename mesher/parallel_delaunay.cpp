@@ -21,28 +21,117 @@
 
 using namespace Amie ;
 
+bool isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1)
+{
+    if(i0->isTriangle && !i1->isTriangle)
+        return false ;
+    if(i0->isPlane && !i1->isPlane)
+        return false ;
+    return i0->isVertex( i1->first ) && i0->isVertex( i1->second ) && i0->isVertex( i1->third )  ;
+}
+
+bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const DelaunayTriangle * tet)
+{
+    if(domains[domain_index]->in(tet->getCenter()))
+    {
+        bool unique  = true ;
+        for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+        {
+            if(domains[k]->in(tet->getCenter()))
+            {
+                unique = false ;
+                break ;
+            }
+        }
+        if(unique)
+            return true ;
+    }
+    return false ;
+}
+
+int getMesh(const std::vector<DelaunayTree *> & meshes, const DelaunayTreeItem * self)
+{
+    for(size_t i = 0 ; i < meshes.size() ; i++)
+        if(self->tree == meshes[i])
+            return i ;
+    return -1 ;
+}
+
+int getDomain(const std::vector <Geometry* > & domains, const std::vector<DelaunayTree *> & meshes, const DelaunayTriangle * tet)
+{
+    int mesh = getMesh(meshes,tet) ;
+    std::valarray<bool> inDomain(false, domains.size()) ;
+    #pragma omp parallel for
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        inDomain[domain_index] = domains[domain_index]->in(tet->getCenter()) ;
+    }
+    
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        if(inDomain[domain_index])
+        {
+            bool unique  = true ;
+            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+            {
+                if(inDomain[k])
+                {
+                    unique = false ;
+                    break ;
+                }
+            }
+            if( unique && mesh == domain_index )
+                return domain_index ;
+        }
+    }
+    return -1 ;
+}
+
+int getDomain(const std::vector <Geometry* > & domains, const Point & center)
+{
+    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
+    {
+        if(domains[domain_index]->in(center))
+        {
+            bool unique  = true ;
+            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
+            {
+                if(domains[k]->in(center))
+                {
+                    unique = false ;
+                    break ;
+                }
+            }
+            if(unique)
+                return domain_index ;
+        }
+    }
+    return -1 ;
+}
 
 ParallelDelaunayTree::ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<Geometry *> & domains) : domains(domains)
 {
-    global_counter = 0 ;
+    std::vector<std::vector<DelaunayTreeItem *> > newElements(domains.size()) ;
+
     for(size_t i = 0 ; i < domains.size() ; i++)
     {
         meshes.push_back(new DelaunayTree(p0, p1, p2));
-        elementMap.push_back(std::vector<int>());
+
     }
+
+    global_counter = meshes[0]->global_counter ;
 }
 
 std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(const Point  * p)
 {
     std::valarray<std::vector<DelaunayTriangle *> > conflicts(meshes.size()) ;
-    std::valarray<std::vector<DelaunayTriangle *> > boundaries(meshes.size()) ;
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {
         std::vector<DelaunayTriangle *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
         {
-            if(elementMap[i][tmpConflicts[j]->index] >= 0)
+            if(getDomain(domains,meshes,tmpConflicts[i]) != 1)
                 conflicts[i].push_back(tmpConflicts[j]) ;
         }
     }
@@ -56,15 +145,15 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
 std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(const Geometry  * p)
 {
     std::valarray<std::vector<DelaunayTriangle *> > conflicts(meshes.size()) ;
-    std::valarray<std::vector<DelaunayTriangle *> > boundaries(meshes.size()) ;
+    
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {
         std::vector<DelaunayTriangle *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
-        for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
+        for(size_t j = 0 ; j < tmpConflicts.size() ;  j++)
         {
-            if(elementMap[i][tmpConflicts[j]->index] >= 0)
-                conflicts[i].push_back(tmpConflicts[j]) ;
+            if(inDomain(domains, i, tmpConflicts[j]))
+                conflicts[i].push_back(tmpConflicts[j]);
         }
     }
 
@@ -75,199 +164,97 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
     return ret ;
 }
 
-void ParallelDelaunayTree::insert(Point * p)
+bool interacts(const Geometry * g , DelaunayTreeItem * item)
 {
-    bool insertion = false ;
-    std::valarray<std::vector<DelaunayTreeItem *>> newElems(meshes.size()) ;
-    #pragma omp parallel for
-    for(size_t i = 0 ; i < meshes.size() ; i++)
+
+//     checkfather = false ;
+    if( item->isPlane )
     {
+        return false ;
+    }
+    else if( item->isTriangle)
+    {
+        if(g->in(*item->first)  || 
+           g->in(*item->second) || 
+           g->in(*item->third)   
+          )
+        {
+            return true ;
+        }
+            
+        for(size_t j = 0 ; j < item->neighbour.size() ;  j++)
+        {
+            if(item->getNeighbour(j)->isPlane)
+                continue ;
+            
+            DelaunayTreeItem * n = item->getNeighbour(j) ;
+            
+            if(g->in(*(n->first))  || 
+               g->in(*(n->second)) || 
+               g->in(*(n->third))   )
+            {
+                return true ;
+            }
+        }
+
+    }    
+
+    return false ;
+}
+
+void ParallelDelaunayTree::insert(Point * p)
+{   
+    #pragma omp parallel for schedule(static,1)
+    for(size_t i = 0 ; i < meshes.size() ; i++)
+    {   
+        bool isVertex = false ;
+        bool noInteraction = true ;
         std::vector<DelaunayTreeItem *> cons = meshes[i]->conflicts(p) ;
+        std::vector<DelaunayTreeItem *> newElems ;
         if(cons.empty())
         {
             std::cout << "Failed insertion : in nothing !" << std::endl ;
-            exit(0) ;
+        }
+        
+        for(size_t j = 0 ; j < cons.size() ; j++)
+        {
+            if(cons[j]->isVertex(p))
+            {
+                isVertex = true ;
+                break ;
+            }
+        }
+        if(isVertex)
             continue ;
-        }
-
-        meshes[i]->neighbourhood = false ;
-
-        if(!domains[i]->in(*p))
+        
+        if(domains[i]->in(*p))
+             noInteraction = false ;
+        else
         {
-            bool allout = true ;
-            for(size_t j = 0 ; j < cons.size() ; j++)
+            for(auto & c : cons )
             {
-                if(domains[i]->in(*cons[j]->first) ||
-                   domains[i]->in(*cons[j]->second) ||
-                   domains[i]->in(*cons[j]->third))
-                    allout = false ;
-
-                for(size_t k = 0 ; k < cons[j]->neighbour.size() ; k++)
+                if(interacts(domains[i], c))
                 {
-                    if(domains[i]->in(*cons[j]->getNeighbour(k)->first) || 
-						domains[i]->in(*cons[j]->getNeighbour(k)->second) || 
-						domains[i]->in(*cons[j]->getNeighbour(k)->third) )
-                        allout = false ;
-                }
-
-                if(cons[j]->father)
-                {
-                    for(size_t k = 0 ; k < cons[j]->getFather()->son.size() ; k++)
-                    {
-                        if(domains[i]->in(*cons[j]->getFather()->getSon(k)->first) ||
-                                domains[i]->in(*cons[j]->getFather()->getSon(k)->second) ||
-                                domains[i]->in(*cons[j]->getFather()->getSon(k)->third) )
-                            allout = false ;
-                    }
-                    for(size_t k = 0 ; k < cons[j]->getFather()->stepson.size() ; k++)
-                    {
-                        if(domains[i]->in(*cons[j]->getFather()->getStepson(k)->first) ||
-                                domains[i]->in(*cons[j]->getFather()->getStepson(k)->second) ||
-                                domains[i]->in(*cons[j]->getFather()->getStepson(k)->third) )
-                            allout = false ;
-                    }
-                }
-
-                if(cons[j]->stepfather)
-                {
-                    for(size_t k = 0 ; k < cons[j]->getStepfather()->son.size() ; k++)
-                    {
-                        if(cons[j]->getStepfather()->getSon(k))
-                        {
-                            if(domains[i]->in(*cons[j]->getStepfather()->getSon(k)->first) ||
-                                    domains[i]->in(*cons[j]->getStepfather()->getSon(k)->second) ||
-                                    domains[i]->in(*cons[j]->getStepfather()->getSon(k)->third) )
-                                allout = false ;
-                        }
-                    }
-                    for(size_t k = 0 ; k < cons[j]->getFather()->stepson.size() ; k++)
-                    {
-                        if(cons[j]->getStepfather()->getStepson(k))
-                        {
-                            if(domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->first) ||
-                                    domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->second) ||
-                                    domains[i]->in(*cons[j]->getStepfather()->getStepson(k)->third) )
-                                allout = false ;
-                        }
-                    }
-                }
-                if(!allout)
+                    noInteraction = false ;
                     break ;
-            } 
-            
-            if(allout)
-            {
-                 continue ;
-            }
-        }
-
-        Star * s = new Star(&cons, p) ;
-
-        std::vector<DelaunayTreeItem *> ret ;
-
-        for(size_t j = 0 ; j < cons.size() ; j++)
-        {
-
-            if(!cons[j]->onCircumCircle(*p))
-            {
-                std::vector<DelaunayTreeItem *> temp ;
-                cons[j]->insert(temp,p, s) ;
-                ret.insert(ret.end(), temp.begin(), temp.end()) ;
-            }
-        }
-
-        s->updateNeighbourhood() ;
-
-        bool weGotPlanes = false ;
-
-        for(size_t j = 0 ; j< ret.size() ; j++)
-        {
-            if(ret[j]->isAlive() && ret[j]->isPlane )
-            {
-                weGotPlanes = true ;
-                meshes[i]->plane.push_back((DelaunayDemiPlane*)(ret[j])) ;
-            }
-        }
-
-        if(weGotPlanes)
-        {
-            for(int k = 0 ; k< (int)meshes[i]->plane.size()-1 ; k++)
-            {
-                for(int j = k ; j< (int)meshes[i]->plane.size() ; j++)
-                {
-                    meshes[i]->plane[j]->merge(meshes[i]->plane[k]) ;
                 }
             }
         }
-
-        for(size_t j = 0 ; j < ret.size() ; j++)
+        
+        if(!noInteraction || global_counter < 5 )
         {
-            ret[j]->clearVisited() ;
+            meshes[i]->neighbourhood = false ;
+            newElems = meshes[i]->addElements(cons, p) ;
+        }
+        
+        unsigned int maxIdx = 0 ;
+        for(size_t j = 0 ; j < newElems.size() ; j++)
+            maxIdx = std::max(maxIdx, newElems[j]->index) ;
 
-        }
-        for(size_t j = 0 ; j < cons.size() ; j++)
-        {
-            cons[j]->clearVisited() ;
-        }
 
-        for(size_t j = 0 ; j < cons.size() ; j++)
-        {
-            if(!cons[j]->onCircumCircle(*p))
-                cons[j]->kill(p) ;
-        }
-        std::vector<DelaunayDemiPlane *> * hull = meshes[i]->getConvexHull() ;
-        meshes[i]->plane.clear() ;
-        meshes[i]->plane.insert(meshes[i]->plane.end(), hull->begin(), hull->end()) ;
-
-        for(size_t j = 0 ; j < cons.size() ; j++)
-        {
-            if(!cons[j]->isAlive() && cons[j]->isTriangle && !cons[j]->isDeadTriangle)
-            {
-                DelaunayDeadTriangle* dt = new DelaunayDeadTriangle(static_cast<DelaunayTriangle *>(cons[j])) ;
-                dt->clearVisited() ;
-                std::valarray<Point *> nularray(0) ;
-                static_cast<DelaunayTriangle *>(cons[j])->setBoundingPoints(nularray) ;
-                meshes[i]->tree[cons[j]->index] = dt ;
-                delete cons[j] ;
-            }
-        }
-        delete hull ;
-        delete s ;
-        newElems[i] = ret ;
-        #pragma omp critical
-        insertion = true ;
+        if(!isVertex && i == meshes.size()-1)
+            p->getId()= global_counter++ ;
     }
-
-    for(size_t i = 0 ; i < newElems.size() ; i++)
-    {
-        for(size_t j = 0 ; j < newElems[i].size() ; j++)
-            elementMap[i].push_back(0) ;
-        for(size_t j = 0 ; j < newElems[i].size() ; j++)
-        {
-            elementMap[i][newElems[i][j]->index] = newElems[i][j]->index ;
-            if(!domains[i]->in(*newElems[i][j]->first) || !domains[i]->in(*newElems[i][j]->second) || !domains[i]->in(*newElems[i][j]->third))
-            {
-                elementMap[i][newElems[i][j]->index] *= -1 ;
-            }
-            else
-            {
-                for(size_t k = i+1 ; k < newElems.size() ; k++)
-                {
-                    for(size_t l = 0 ; l < newElems[k].size() ; l++)
-                    {
-                        if(*newElems[i][j]->first == *newElems[k][l]->first &&
-                                *newElems[i][j]->second == *newElems[k][l]->second &&
-                                *newElems[i][j]->third == *newElems[k][l]->third&&
-                                elementMap[i][newElems[i][j]->index] >= 0)
-                            elementMap[i][newElems[i][j]->index] *= -1 ;
-                    }
-                }
-            }
-        }
-    }
-
-    p->getId() = global_counter++ ;
-
 }
 
 std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
@@ -278,10 +265,11 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
     for(size_t i = 0 ; i < meshes.size() ;  i++)
     {
         std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(const auto & t : tmp)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
-                tris[i].push_back(tmp[j]);
+
+            if(getDomain(domains,meshes, t) == i)
+                tris[i].push_back(t);
         }
     }
 
@@ -292,29 +280,225 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
     return ret ;
 }
 
-void ParallelDelaunayTree::setElementOrder(Order o, double dt )
+std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayTriangle * element)
 {
-    #pragma omp parallel for
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+    std::vector<DelaunayTriangle *> ret ;
+    int domain = getDomain(domains,meshes,element) ;
+    if(domain == -1)
     {
-        meshes[i]->global_counter = global_counter ;
-        meshes[i]->setElementOrder(o, dt) ;
-    }
-    int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
-    {
-        std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(const auto & idx : element->neighbourhood)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
+            ret.push_back((DelaunayTriangle *)meshes[domain]->tree[idx]);
+        }
+        return ret ;
+    }
+    else
+    {
+        for(const auto & idx : element->neighbourhood)
+        {
+            DelaunayTriangle * n = (DelaunayTriangle *)meshes[domain]->tree[idx] ;
+            if(getDomain(domains,meshes,n) == domain)
+                ret.push_back(n);
+            else
             {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
+                int altDomain = getDomain(domains,n->getCenter()) ;
+                DelaunayTriangle * an = meshes[altDomain]->getUniqueConflictingElement(&n->getCenter()) ;
+                ret.push_back(an);
+            }
+        }
+        return ret ;
+    }
+};
+
+void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
+{   std::vector<DelaunayTriangle *> tri = getElements() ;
+
+    double timeSlice = timestep ;
+    
+    for(auto i = tri.begin() ; i != tri.end() ; ++i)
+    {
+        (*i)->visited = true ;
+            
+        size_t nodes_per_plane = nodes_per_side*3+3 ;
+        
+        std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
+        std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
+        
+        for(size_t plane = 0 ; plane < time_planes ; plane++)
+        {
+            for(size_t side = 0 ; side < 3 ; side++)
+            {
+                Point a((*i)->getBoundingPoint(side)) ;
+                Point b((*i)->getBoundingPoint((side+1)%3)) ;
+                
+                if(time_planes> 1)
                 {
-                    if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
+                    a.getT() = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
+                    b.getT() = -timestep/2 + ((double) plane / (double) (time_planes-1))*timeSlice ;
+                }
+                for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
+                {
+                    double fraction = (double)(node)/((double)nodes_per_side+1) ;
+                    Point proto = a*(1.-fraction) + b*fraction ;
+                    Point * foundPoint = nullptr ;
+                    
+                    for(size_t j = 0 ; j< (*i)->getBoundingPoints().size() ; j++)
+                    {
+                        if((*i)->getBoundingPoint(j) == proto)
+                        {
+                            foundPoint = &(*i)->getBoundingPoint(j) ;
+                            break ;
+                        }
+                    }
+                    
+                    if(!foundPoint)
+                    {
+                        std::vector<DelaunayTriangle *> neighbourhood = getNeighbourhood(*i) ;
+                        for(size_t j = 0 ; j < neighbourhood.size() ; j++)
+                        {
+                            if(neighbourhood[j]->visited)
+                            {
+                                DelaunayTriangle * n = neighbourhood[j] ;
+                                for(size_t k = 0 ; k < n->getBoundingPoints().size() ; k++)
+                                {
+                                    if(n->getBoundingPoint(k) == proto)
+                                    {
+                                        foundPoint = &n->getBoundingPoint(k) ;
+                                        break ;
+                                    }
+                                }
+                                
+                                if(foundPoint)
+                                    break ;
+                            }
+                        }
+                    }
+                    
+                    if(!done[nodes_per_plane*plane+side*(nodes_per_side+1)+node])
+                    {
+                        if(foundPoint)
+                        {
+                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = foundPoint ;
+                        }
+                        else
+                        {
+                            additionalPoints.push_back(new Point(proto) ) ;
+                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = additionalPoints.back();
+                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
+                        }
+                        
+                        done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
+                    }
                 }
             }
         }
+        
+        (*i)->setBoundingPoints(newPoints) ;
+    }
+            
+    
+    for(auto i = tri.begin() ; i != tri.end() ; ++i)
+    {
+        (*i)->clearVisited() ;
+    }
+
+}
+
+void ParallelDelaunayTree::setElementOrder( Order elemOrder, double dt )
+{
+    switch( elemOrder )
+    {
+        case CONSTANT:
+        {
+            break ;
+        }
+        case LINEAR:
+        {
+            break ;
+        }
+        case QUADRATIC:
+        {
+            addSharedNodes( 1, 1, 0 ) ;
+            break ;
+        }
+        case CUBIC:
+        {
+            addSharedNodes( 2, 1, 0 ) ;
+            break ;
+        }
+        case QUADRIC:
+        {
+            addSharedNodes( 3, 1, 0 ) ;
+            break ;
+        }
+        case QUINTIC:
+        {
+            addSharedNodes( 3, 1, 0 ) ;
+            break ;
+        }
+        case CONSTANT_TIME_LINEAR:
+        {
+            addSharedNodes( 0, 2, dt ) ;
+            break ;
+        }
+        case CONSTANT_TIME_QUADRATIC:
+        {
+            addSharedNodes( 0, 3, dt ) ;
+            break ;
+        }
+        case LINEAR_TIME_LINEAR:
+        {
+            addSharedNodes( 0, 2, dt ) ;
+            break ;
+        }
+        case LINEAR_TIME_QUADRATIC:
+        {
+            addSharedNodes( 0, 3, dt ) ;
+            break ;
+        }
+        case QUADRATIC_TIME_LINEAR:
+        {
+            addSharedNodes( 1, 2, dt ) ;
+            break ;
+        }
+        case QUADRATIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 1, 3, dt ) ;
+            break ;
+        }
+        case CUBIC_TIME_LINEAR:
+        {
+            addSharedNodes( 2, 2, dt ) ;
+            break ;
+        }
+        case CUBIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 2, 3, dt ) ;
+            break ;
+        }
+        case QUADRIC_TIME_LINEAR:
+        {
+            addSharedNodes( 3, 2, dt ) ;
+            break ;
+        }
+        case QUADRIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 3, 3, dt ) ;
+            break ;
+        }
+        case QUINTIC_TIME_LINEAR:
+        {
+            addSharedNodes( 3, 2, dt ) ;
+            break ;
+        }
+        case QUINTIC_TIME_QUADRATIC:
+        {
+            addSharedNodes( 3, 3, dt ) ;
+            break ;
+        }
+        default:
+            break ;
+
     }
 }
 
@@ -328,21 +512,19 @@ void ParallelDelaunayTree::extrude(double dt)
     }
 
     int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+    
+
+    std::vector<DelaunayTriangle *> tmp = getElements() ;
+    for(size_t j = 0 ; j < tmp.size() ;  j++)
     {
-        std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+
+        for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
-            {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
-                {
-                    if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
-                }
-            }
+            if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
+                tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
         }
     }
+
 }
 
 void ParallelDelaunayTree::extrude(const Vector & dt)
@@ -355,19 +537,14 @@ void ParallelDelaunayTree::extrude(const Vector & dt)
     }
 
     int initial_global_counter = global_counter ;
-    for(size_t i = 0 ; i < meshes.size() ;  i++)
+
+    std::vector<DelaunayTriangle *> tmp = getElements() ;
+    for(size_t j = 0 ; j < tmp.size() ;  j++)
     {
-        std::vector<DelaunayTriangle *> tmp = meshes[i]->getElements() ;
-        for(size_t j = 0 ; j < tmp.size() ;  j++)
+        for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
         {
-            if(elementMap[i][tmp[j]->index] >= 0)
-            {
-                for(size_t k = 0 ; k < tmp[j]->getBoundingPoints().size() ; k++)
-                {
-                    if(tmp[j]->getBoundingPoint(k).getId() >=initial_global_counter)
-                        tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
-                }
-            }
+            if( tmp[j]->getBoundingPoint(k).getId() >= initial_global_counter )
+                tmp[j]->getBoundingPoint(k).getId() = global_counter++ ;
         }
     }
 }
