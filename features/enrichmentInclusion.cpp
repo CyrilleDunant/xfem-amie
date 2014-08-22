@@ -215,7 +215,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 					feat.push_back(brother[i]) ;
 			}
 			HomogeneisedBehaviour * hom2 = new HomogeneisedBehaviour(feat, disc[0]) ;
-			disc[0]->setBehaviour(hom2) ;
+			disc[0]->setBehaviour(dtree,hom2) ;
 			disc[0]->getBehaviour()->setSource(getPrimitive()) ;
 			double rad = disc[0]->getRadius()*3. ;
 			if(hom2->getOriginalBehaviour()->getFractureCriterion())
@@ -272,9 +272,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			points.insert(&ring[i]->getBoundingPoint(j)) ;
 		}
 		ring[i]->enrichmentUpdated = false ;
-		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
+		for(size_t j = 0 ; j < neighbourhood.size() ; j++)
 		{
-			ring[i]->getNeighbourhood(j)->enrichmentUpdated = false ;
+			neighbourhood[j]->enrichmentUpdated = false ;
 		}
 	}
 
@@ -333,9 +334,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			}
 		}
 		hint.clear(); hint.push_back(Point(1./3., 1./3.));
-		for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
+        
+        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
+		for(auto & t : neighbourhood)
 		{
-			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 			enrichedElem.insert(t) ;
 			if(std::binary_search(ring.begin(), ring.end(), t) )
 				continue ;

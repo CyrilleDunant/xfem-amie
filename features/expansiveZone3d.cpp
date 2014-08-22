@@ -74,7 +74,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 			}
 
 			delete ring[i]->getBehaviour() ;
-			ring[i]->setBehaviour( bi) ;
+			ring[i]->setBehaviour(dtree, bi) ;
 			bi->transform( ring[i] ) ;
 			bi->setSource( getPrimitive() );
 		}
@@ -90,7 +90,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 		{
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
 			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( bi ) ;
+			inDisc[i]->setBehaviour(dtree, bi ) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 
@@ -120,7 +120,7 @@ void ExpansiveZone3D::enrich(size_t&lastId, Mesh< DelaunayTetrahedron, DelaunayT
 		}
 		else
 		{
-			disc[0]->setBehaviour(new HomogeneisedBehaviour( feat, disc[0] )) ;
+			disc[0]->setBehaviour(dtree, new HomogeneisedBehaviour( feat, disc[0] )) ;
 		}
 
 		newInterface.insert( disc[0] ) ;

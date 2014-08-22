@@ -263,8 +263,9 @@ protected:
 			
 			if(conflicts.size() == 1)
 			{
-				for(size_t j = 0 ; j < conflicts[0]->neighbourhood.size() ; j++)
-					conflicts.push_back(conflicts[0]->getNeighbourhood(j)) ;
+                std::vector<ETYPE *> neighbourhood = source->getNeighbourhood(conflicts[0]) ;
+				for(auto & n : neighbourhood)
+					conflicts.push_back(n) ;
 			}
 			
 			std::vector<double> fractions ; 
@@ -285,7 +286,7 @@ protected:
 					}
 				}
 				
-				elems[i]->setBehaviour(main->getBehaviour()->getCopy()) ;
+				elems[i]->setBehaviour(destination,main->getBehaviour()->getCopy()) ;
 				
 				if(elems[i]->getBehaviour()->getDamageModel())
 				{
@@ -308,7 +309,7 @@ protected:
 				}
 			}
 			else
-				elems[i]->setBehaviour(nullptr) ;
+				elems[i]->setBehaviour(nullptr,nullptr) ;
 		}
 		
 		std::cout << " ...done."<< std::endl ;

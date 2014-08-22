@@ -17,6 +17,8 @@
 namespace Amie
 {
 
+class DelaunayTriangle;
+class DelaunayTetrahedron;
 class DelaunayTreeItem3D;
 class DelaunayTetrahedron;
 class DelaunayTreeItem;
@@ -139,6 +141,9 @@ protected:
 	double previousTimePos ;
 	
 	IntegrableEntity * parent ;
+    
+    const Mesh< DelaunayTriangle, DelaunayTreeItem > * mesh2d ;
+    const Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
 		
 public:
 	
@@ -237,7 +242,11 @@ public:
 		return parent ;
 	}
 	
-	virtual void initialize(bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache) ;
+    
+    const Mesh< DelaunayTriangle, DelaunayTreeItem > * getMesh2D() const { return mesh2d ; } ;
+    const Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > * getMesh3D() const { return  mesh3d ; } ;
 	
 	const Vector & getBuffer() const ;
 	Vector & getBuffer()  ;
@@ -283,7 +292,8 @@ public:
 
 	virtual void getFieldAtGaussPoint( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0) ;
 
-	virtual void initialize(bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache) ;
 	
 	virtual void setInternalVariableAtGaussPoint(Vector & v, size_t g, int i) ;
 	
@@ -303,10 +313,12 @@ public:
 	const ElementState & getState(size_t i) const ;
 	size_t getNumberOfStates() const { return states.size() ; }
 
-	virtual void initialize(bool initializeFractureCache) ;
+	virtual void initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache) ;
 	virtual void step(double dt, const Vector* d ) ;
 	
 } ;
+
 
 class SerialElementState : public ElementState
 {
@@ -319,10 +331,11 @@ public:
 	SerialElementState & operator =(const SerialElementState & s) ;
 	
 	ElementState & getState(size_t i) ;
-	const ElementState & getState(size_t i) const ;
+	const ElementState& getState(size_t i) const ;
 	size_t getNumberOfStates() const { return states.size() ; }
 
-	virtual void initialize(bool initializeFractureCache) ;
+	virtual void initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache) ;
+    virtual void initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache) ;
 	virtual void step(double dt, const Vector* d ) ;
 	
 } ;

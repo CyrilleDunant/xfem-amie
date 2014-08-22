@@ -1937,8 +1937,9 @@ std::vector<double> ElementState::getInterpolatingFactors( const Point &p, bool 
 	return ret;
 }
 
-void ElementState::initialize( bool initializeFractureCache)
+void ElementState::initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache)
 {
+    mesh3d = msh ;
 	size_t ndofs = 0 ;
 	if(parent->getBehaviour()) 
 		ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -1960,6 +1961,33 @@ void ElementState::initialize( bool initializeFractureCache)
 	{
 		parent->getBehaviour()->getFractureCriterion()->initialiseCache( *this ) ;
 	}
+
+}
+
+void ElementState::initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache)
+{
+    mesh2d = msh ;
+    size_t ndofs = 0 ;
+    if(parent->getBehaviour()) 
+        ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    displacements.resize( parent->getBoundingPoints().size()*ndofs ) ;
+    displacements = 0 ;
+    previousDisplacements.resize( displacements.size() ) ;
+    previousDisplacements = 0 ;
+
+    buffer.resize( displacements.size() ) ;
+    buffer = 0 ;
+
+    if( std::abs( timePos - previousTimePos ) < POINT_TOLERANCE_3D && std::abs( timePos ) < POINT_TOLERANCE_3D )
+    {
+        timePos = -0.1 ;
+        previousTimePos = -0.2 ;
+    }
+
+    if( initializeFractureCache && parent->getBehaviour()->getFractureCriterion() )
+    {
+        parent->getBehaviour()->getFractureCriterion()->initialiseCache( *this ) ;
+    }
 
 }
 
@@ -2327,9 +2355,9 @@ void ElementStateWithInternalVariables::getFieldAtGaussPoint(FieldType f1, Field
 	if(cleanup) delete vm ;
 }
 
-void ElementStateWithInternalVariables::initialize( bool initializeFractureCache)
+void ElementStateWithInternalVariables::initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache)
 {
-	ElementState::initialize(initializeFractureCache) ;
+	ElementState::initialize(msh, initializeFractureCache) ;
 	
 	size_t ngp = parent->getGaussPoints().gaussPoints.size() ;
 	std::vector<Vector> dummy(0) ;
@@ -2343,7 +2371,24 @@ void ElementStateWithInternalVariables::initialize( bool initializeFractureCache
 			internalVariablesAtGaussPoints[g].push_back(vdummy) ;
 		}
 	}
-	
+}
+
+void ElementStateWithInternalVariables::initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache)
+{
+    ElementState::initialize(msh, initializeFractureCache) ;
+    
+    size_t ngp = parent->getGaussPoints().gaussPoints.size() ;
+    std::vector<Vector> dummy(0) ;
+    Vector vdummy(0., p) ;
+
+    for(size_t g = 0 ; g < ngp ; g++)
+    {
+        internalVariablesAtGaussPoints.push_back(dummy) ;
+        for(size_t k = 0 ; k < n ; k++)
+        {
+            internalVariablesAtGaussPoints[g].push_back(vdummy) ;
+        }
+    }
 }
 
 void ElementStateWithInternalVariables::setNumberOfGaussPoints(int g) 
@@ -2414,11 +2459,18 @@ const ElementState & ParallelElementState::getState(size_t i) const
 	return *states[i] ;
 }
 
-void ParallelElementState::initialize(bool initializeFractureCache) 
+void ParallelElementState::initialize(const Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > * msh, bool initializeFractureCache) 
 {
-	ElementState::initialize( initializeFractureCache) ;
+	ElementState::initialize(msh, initializeFractureCache) ;
 	for(size_t i = 0 ; i < states.size() ; i++)
-		states[i]->initialize( initializeFractureCache) ;
+		states[i]->initialize(msh, initializeFractureCache) ;
+}
+
+void ParallelElementState::initialize(const Mesh< DelaunayTriangle, DelaunayTreeItem >* msh, bool initializeFractureCache) 
+{
+    ElementState::initialize(msh, initializeFractureCache) ;
+    for(size_t i = 0 ; i < states.size() ; i++)
+        states[i]->initialize(msh, initializeFractureCache) ;
 }
 
 void ParallelElementState::step(double dt, const Vector* d ) 
@@ -2460,11 +2512,18 @@ const ElementState & SerialElementState::getState(size_t i) const
 	return *states[i] ;
 }
 
-void SerialElementState::initialize(bool initializeFractureCache) 
+void SerialElementState::initialize(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache) 
 {
-	ElementState::initialize( initializeFractureCache) ;
+	ElementState::initialize(msh, initializeFractureCache) ;
 	for(size_t i = 0 ; i < states.size() ; i++)
-		states[i]->initialize( initializeFractureCache) ;
+		states[i]->initialize(msh, initializeFractureCache) ;
+}
+
+void SerialElementState::initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh,bool initializeFractureCache) 
+{
+    ElementState::initialize(msh, initializeFractureCache) ;
+    for(size_t i = 0 ; i < states.size() ; i++)
+        states[i]->initialize(msh, initializeFractureCache) ;
 }
 
 void SerialElementState::step(double dt, const Vector* d ) 

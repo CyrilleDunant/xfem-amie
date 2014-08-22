@@ -645,12 +645,12 @@ void FeatureTree::projectTetrahedronsOnBoundaries( size_t edge, size_t time )
 	Point d( 0.166666666666667, 0.5, 0.166666666666667 ) ;
 	Point e( 0.166666666666667, 0.166666666666667, 0.5 ) ;
 
-	for( size_t j = 1 ; j < this->tree.size() ; j++ )
+	for( size_t j = 1 ; j < tree.size() ; j++ )
 	{
 		if( !tree[j]->isEnrichmentFeature )
 		{
 			//In two pass
-		  std::vector<DelaunayTetrahedron *> tets = this->tree[j]->getElements3D( this ) ;
+		  std::vector<DelaunayTetrahedron *> tets = tree[j]->getElements3D( this ) ;
 		  std::valarray<Point> originalPoints( tets[0]->getBoundingPoints().size() ) ;
 
 		 for( size_t i = 0 ; i < tets.size() ; i++ )
@@ -2705,12 +2705,12 @@ void FeatureTree::setElementBehaviours()
 				tris[j]->refresh( father2D ) ;
 				Form * bf =  getElementBehaviour( tris[j], i->first );
 				
-				tris[j]->setBehaviour(bf) ;
+				tris[j]->setBehaviour(i->second, bf) ;
 
 				
 				if(!tris[j]->getBehaviour())
 				{
-					tris[j]->setBehaviour( new VoidForm()) ;
+					tris[j]->setBehaviour(i->second, new VoidForm()) ;
 				}
 				
 			}
@@ -2748,11 +2748,11 @@ void FeatureTree::setElementBehaviours()
 			tetrahedrons[i]->refresh( father3D ) ;
 			Form * bf =  getElementBehaviour( tetrahedrons[i]);
 			
-			tetrahedrons[i]->setBehaviour( bf) ;
+			tetrahedrons[i]->setBehaviour(dtree3D, bf) ;
 			
 			if(!tetrahedrons[i]->getBehaviour())
 			{
-				tetrahedrons[i]->setBehaviour( new VoidForm()) ;
+				tetrahedrons[i]->setBehaviour(dtree3D, new VoidForm()) ;
 			}
 			setcount++ ;
 		}
@@ -2809,7 +2809,7 @@ void FeatureTree::updateElementBehaviours()
 				
 				if(bf )
 				{
-					tris[j]->setBehaviour( bf ) ;
+					tris[j]->setBehaviour(dtree, bf ) ;
 				}
 			}
 			std::cerr << " ...done" << std::endl ;
@@ -2820,7 +2820,7 @@ void FeatureTree::updateElementBehaviours()
 	}
 	else
 	{
-		std::vector<DelaunayTetrahedron *> tetrahedrons = this->dtree3D->getElements() ;
+		std::vector<DelaunayTetrahedron *> tetrahedrons = dtree3D->getElements() ;
 
 		std::cerr << " setting behaviours..." << std::flush ;
 		int setcount = 0 ;
@@ -2839,10 +2839,10 @@ void FeatureTree::updateElementBehaviours()
 			Form *b = getElementBehaviour( tetrahedrons[i], true ) ;
 
 			if( b )
-				tetrahedrons[i]->setBehaviour( b) ;
+				tetrahedrons[i]->setBehaviour(dtree3D, b) ;
 
 			if( !tetrahedrons[i]->getBehaviour() || tetrahedrons[i]->getBehaviour()->type == VOID_BEHAVIOUR )
-				tetrahedrons[i]->setBehaviour( getElementBehaviour( tetrahedrons[i] )) ;
+				tetrahedrons[i]->setBehaviour(dtree3D, getElementBehaviour( tetrahedrons[i] )) ;
 
 			n_void++ ;
 			setcount++ ;
@@ -2988,8 +2988,8 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
 	for( size_t i = 0 ; i < tris.size() ; i++ )
 	{
 		copy.push_back( *tris[i] ) ;
-		copy.back().setBehaviour( tris[i]->getBehaviour()->getCopy()) ;
-		copy.back().getState().initialize(false) ;
+		copy.back().setBehaviour(dtree, tris[i]->getBehaviour()->getCopy()) ;
+		copy.back().getState().initialize(dtree,false) ;
 	}
 
 	return copy ;
@@ -3979,7 +3979,7 @@ bool FeatureTree::stepElements()
 				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					if( i % 500 == 0 )
+					if( i % 200 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4223,7 +4223,7 @@ bool FeatureTree::stepElements()
 				double maxScoreInit = -1;
 				for( size_t i = 0 ; i < elements.size() ; i++ )
 				{
-					if( i % 500 == 0 )
+					if( i % 200 == 0 )
 						std::cerr << "\r checking for fractures (1)... " << i << "/" << elements.size() << std::flush ;
 
 					if( elements[i]->getBehaviour()->getFractureCriterion() )
@@ -4436,9 +4436,6 @@ bool FeatureTree::stepElements()
 			}
 
 			std::cerr << " ...done" << std::endl ;
-
-			for( size_t i = 0 ; i < elements.size() ; i++ )
-				elements[i]->clearVisited() ;
 
 
 		}
@@ -5846,7 +5843,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 				else
 				{
 					tris[i]->refresh( father2D );
-					tris[i]->getState().initialize( initialiseFractureCache) ;
+					tris[i]->getState().initialize(dtree, initialiseFractureCache) ;
 					#pragma omp critical
 					{
 						ecounter++ ;
@@ -5883,7 +5880,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 			if(!tets[i]->getBehaviour())
 				continue ;
 			tets[i]->refresh( father3D );
-			tets[i]->getState().initialize( initialiseFractureCache) ;
+			tets[i]->getState().initialize(dtree3D, initialiseFractureCache) ;
 		}
 
 		gettimeofday( &time1, nullptr );
@@ -5902,7 +5899,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
 					std::cout << "ouch" << std::endl ;
 				}
 				tetras[i]->refresh( father3D );
-				tetras[i]->getState().initialize( initialiseFractureCache) ;
+				tetras[i]->getState().initialize(dtree3D, initialiseFractureCache) ;
 				#pragma omp critical
 				{
 					ecounter++ ;
@@ -6437,12 +6434,12 @@ void FeatureTree::generateElements()
 			}
 		}
 
-		for( size_t i = 1 ;  i < tree.size() ; i++ )
+		for( auto & feature : tree)
 		{
-			if( !tree[i]->isEnrichmentFeature && tree[i]->getBoundingPoints().size() && !tree[i]->isVirtualFeature && tree[0]->intersects( tree[i] ) && tree[i]->getFather() != nullptr )
+			if( !feature->isEnrichmentFeature && feature->getBoundingPoints().size() && !feature->isVirtualFeature && tree[0]->intersects( feature ) && feature->getFather() != nullptr )
 			{
-				std::vector<Point> inter = tree[0]->intersection( tree[i] ) ;
-				std::vector<Feature *> descendants = tree[i]->getDescendants() ;
+				std::vector<Point> inter = tree[0]->intersection( feature ) ;
+				std::vector<Feature *> descendants = feature->getDescendants() ;
 				std::vector<Feature *> fatherdescendants = tree[0]->getDescendants() ;
 
 				for( size_t k = 0 ;  k < inter.size() ; k++ )
@@ -6460,7 +6457,7 @@ void FeatureTree::generateElements()
 
 					for( size_t l = 0 ; l < fatherdescendants.size() ; l++ )
 					{
-						if( fatherdescendants[l] != tree[i] && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->inBoundary( inter[k], pointDensity ) && fatherdescendants[l]->getBoundingPoints().size() )
+						if( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->inBoundary( inter[k], pointDensity ) && fatherdescendants[l]->getBoundingPoints().size() )
 						{
 							indescendants = true ;
 							break ;
@@ -6508,7 +6505,7 @@ void FeatureTree::generateElements()
 							Point *p = new Point( inter[k] ) ;
 							additionalPoints.push_back( p ) ;
 							++count ;
-							meshPoints.push_back( std::make_pair( p, tree[i] ) ) ;
+							meshPoints.push_back( std::make_pair( p, feature ) ) ;
 						}
 					}
 					else
@@ -6544,7 +6541,7 @@ void FeatureTree::generateElements()
 							Point *p = new Point( inter[k] ) ;
 							additionalPoints.push_back( p ) ;
 							++count ;
-							meshPoints.push_back( std::make_pair( p, tree[i] ) ) ;
+							meshPoints.push_back( std::make_pair( p, feature ) ) ;
 						}
 					}
 
@@ -6653,10 +6650,10 @@ void FeatureTree::generateElements()
 				std::cerr << "\r generating triangles.... point " << ++count << "/" << meshPoints.size() - 3 << std::flush ;
 
 				if( *to_insert[i] != bbox[0] &&
-				        *to_insert[i] != bbox[2] &&
-				        *to_insert[i] != bbox[4] &&
-				        *to_insert[i] != bbox[6] &&
-				        inRoot( *to_insert[i] )
+                    *to_insert[i] != bbox[2] &&
+                    *to_insert[i] != bbox[4] &&
+                    *to_insert[i] != bbox[6] &&
+                    inRoot( *to_insert[i] )
 				  )
 				{
 					for(auto j = layer2d.begin() ; j != layer2d.end() ; j++)
@@ -6710,36 +6707,47 @@ void FeatureTree::generateElements()
 
 
 		Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * oldDtree = dtree3D ;
-//         std::vector<Geometry *> domains ;
-//         domains.push_back(new Hexahedron(200, 200, 200, 100, 100, 100));
-//         domains.push_back(new Hexahedron(200, 200, 200, 100, 100, 300));
-//         domains.push_back(new Hexahedron(200, 200, 200, 100, 300, 100));
-//         domains.push_back(new Hexahedron(200, 200, 200, 300, 100, 100));
-//         domains.push_back(new Hexahedron(200, 200, 200, 300, 300, 100));
-//         domains.push_back(new Hexahedron(200, 200, 200, 100, 300, 300));
-//         domains.push_back(new Hexahedron(200, 200, 200, 300, 100, 300));
-//         domains.push_back(new Hexahedron(200, 200, 200, 300, 300, 300));
-		
-		dtree3D = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
+        std::vector<Geometry *> domains ;
+        double l = 400 ;
+        double di = 1 ;
+        double dj = 1 ;
+        double dk = 2 ;
+        for(size_t i = 0 ; i < di ; i++)
+        {
+             for(size_t j = 0 ; j < dj ; j++)
+             {
+                  for(size_t k = 0 ; k < dk ; k++)
+                  {
+                       domains.push_back(new Hexahedron(l/di, l/dj, l/dk, l/(2.*di)+l/di*i, l/(2.*dj)+l/dj*j, l/(2.*dk)+l/dk*k));
+                  }
+             }
+        }
+#ifdef HAVE_OPENMP
+		double t0 = omp_get_wtime() ;
+#endif
+		dtree3D = new ParallelDelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains) ;
 		dtree3D->insert( meshPoints[4].first ) ;
 		dtree3D->insert( meshPoints[5].first ) ;
 		dtree3D->insert( meshPoints[6].first ) ;
 		dtree3D->insert( meshPoints[7].first ) ;
 		layer3d[-1] = dtree3D ;
-		for( size_t i  = 0 ; i < tree.size() ; i++ )
-		{
-			if( !tree[i]->isEnrichmentFeature && !tree[i]->isVirtualFeature && tree[i]->getLayer() != -1)
-			{
-				if(layer3d.find(tree[i]->getLayer()) == layer3d.end())
-				{
-					layer3d[tree[i]->getLayer()] = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
-					layer3d[tree[i]->getLayer()]->insert( meshPoints[4].first ) ;
-					layer3d[tree[i]->getLayer()]->insert( meshPoints[5].first ) ;
-					layer3d[tree[i]->getLayer()]->insert( meshPoints[6].first ) ;
-					layer3d[tree[i]->getLayer()]->insert( meshPoints[7].first ) ;
-				}
-			}
-		}
+        
+
+            for( const auto & feature : tree)
+            {
+                if( !feature->isEnrichmentFeature && !feature->isVirtualFeature && feature->getLayer() != -1)
+                {
+                    if(layer3d.find(feature->getLayer()) == layer3d.end())
+                    {
+                        layer3d[feature->getLayer()] = new ParallelDelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains) ;
+                        layer3d[feature->getLayer()]->insert( meshPoints[4].first ) ;
+                        layer3d[feature->getLayer()]->insert( meshPoints[5].first ) ;
+                        layer3d[feature->getLayer()]->insert( meshPoints[6].first ) ;
+                        layer3d[feature->getLayer()]->insert( meshPoints[7].first ) ;
+                    }
+                }
+            }
+
 
 		std::pair<std::vector<int>, std::vector<int> > pb ;
 
@@ -6754,8 +6762,9 @@ void FeatureTree::generateElements()
 
 		std::vector<Point *> toInsert ;
 
-		for( auto i = meshPoints.begin() + 8 ; i != this->meshPoints.end(); ++i )
+		for( auto i = meshPoints.begin() + 8 ; i != meshPoints.end(); ++i )
 		{
+            
 			if( ( i - meshPoints.begin() ) % 1000 == 0 )
 				std::cerr << "\r generating tetrahedrons... point " << ++count * 1000 << "/" << meshPoints.size() - 8 <<  std::flush ;
 
@@ -6827,7 +6836,11 @@ void FeatureTree::generateElements()
 
 		}
 
-		std::cerr << " ...done." << std::endl ;
+#ifdef HAVE_OPENMP
+		std::cerr << " ...done. " << omp_get_wtime() - t0 <<  " (s)"<< std::endl ;
+#else
+        std::cerr << " ...done. " << std::endl ;
+#endif
 //		dtree3D->purge() ;
 
 		if( oldDtree )
@@ -6996,46 +7009,46 @@ void FeatureTree::homothety(double before, double now, double after)
 		return ;
 	double stepa = after/now ;
 	double stepb = now/before ;
-	for(size_t i = 0 ; i < tri.size() ; i++)
+	for(auto & t : tri)
 	{
-		for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size()/2 ; j++)
+		for(size_t j = 0 ; j < t->getBoundingPoints().size()/2 ; j++)
 		{
-			size_t id = tri[i]->getBoundingPoint(j).getId() ;
+			size_t id = t->getBoundingPoint(j).getId() ;
 			if(!nodes[id])
 			{
 				nodes[id] = true ;
-				tri[i]->getBoundingPoint(j).getX() = tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/2+j).getX() ;
-				tri[i]->getBoundingPoint(j).getY() = tri[i]->getBoundingPoint(tri[i]->getBoundingPoints().size()/2+j).getY() ;
+				t->getBoundingPoint(j).getX() = t->getBoundingPoint(t->getBoundingPoints().size()/2+j).getX() ;
+				t->getBoundingPoint(j).getY() = t->getBoundingPoint(t->getBoundingPoints().size()/2+j).getY() ;
 			}
 		}
-		for(size_t j = tri[i]->getBoundingPoints().size()/2 ; j < tri[i]->getBoundingPoints().size() ; j++)
+		for(size_t j = t->getBoundingPoints().size()/2 ; j < t->getBoundingPoints().size() ; j++)
 		{
-			size_t id = tri[i]->getBoundingPoint(j).getId() ;
+			size_t id = t->getBoundingPoint(j).getId() ;
 			if(!nodes[id])
 			{
 				nodes[id] = true ;
-				if(tri[i]->getBoundingPoint(j).getX() != 0.5 && tri[i]->getBoundingPoint(j).getX() != -0.5 && tri[i]->getBoundingPoint(j).getY() != 0.5 && tri[i]->getBoundingPoint(j).getY() != -0.5)
+				if(t->getBoundingPoint(j).getX() != 0.5 && t->getBoundingPoint(j).getX() != -0.5 && t->getBoundingPoint(j).getY() != 0.5 && t->getBoundingPoint(j).getY() != -0.5)
 				{
-					double r = sqrt(tri[i]->getBoundingPoint(j).getX()*tri[i]->getBoundingPoint(j).getX() + tri[i]->getBoundingPoint(j).getY()*tri[i]->getBoundingPoint(j).getY()) ;
+					double r = sqrt(t->getBoundingPoint(j).getX()*t->getBoundingPoint(j).getX() + t->getBoundingPoint(j).getY()*t->getBoundingPoint(j).getY()) ;
 					if(r < now)
 					{
-						tri[i]->getBoundingPoint(j).getX() /= now ;
-						tri[i]->getBoundingPoint(j).getY() /= now ;
-						tri[i]->getBoundingPoint(j).getX() *= after ;
-						tri[i]->getBoundingPoint(j).getY() *= after ;
+						t->getBoundingPoint(j).getX() /= now ;
+						t->getBoundingPoint(j).getY() /= now ;
+						t->getBoundingPoint(j).getX() *= after ;
+						t->getBoundingPoint(j).getY() *= after ;
 					}
 					else
 					{
-						Point inter(tri[i]->getBoundingPoint(j).getX(), tri[i]->getBoundingPoint(j).getY()) ;
+						Point inter(t->getBoundingPoint(j).getX(), t->getBoundingPoint(j).getY()) ;
 						dynamic_cast<Rectangle *>(tree[0])->project(&inter) ;
 						double rl = sqrt(inter.getX()*inter.getX() + inter.getY()*inter.getY()) ;
-						tri[i]->getBoundingPoint(j).getX() *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
-						tri[i]->getBoundingPoint(j).getY() *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
+						t->getBoundingPoint(j).getX() *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
+						t->getBoundingPoint(j).getY() *= 1.-(1.-stepa)*(rl-r)/(rl-now) ;
 					}
 				}
 			}
 		}
-		tri[i]->clearElementaryMatrix() ;
+		t->clearElementaryMatrix() ;
 	}
 //	tri[0]->getBoundingPoint(0).print() ;
 }

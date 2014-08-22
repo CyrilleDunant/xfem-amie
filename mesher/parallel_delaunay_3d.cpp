@@ -242,7 +242,7 @@ void ParallelDelaunayTree3D::insert(Point * p)
                 }
             }
         }
-        
+
         if(!noInteraction || global_counter < 9 )
         {
             meshes[i]->neighbourhood = false ;
@@ -282,7 +282,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
     return ret ;
 }
 
-std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element)
+std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element) const
 {
     std::vector<DelaunayTetrahedron *> ret ;
     int domain = getDomain(domains,meshes,element) ;
@@ -315,6 +315,9 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(Dela
 void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
 {
     std::vector<DelaunayTetrahedron *> tet = getElements() ;
+    std::map<DelaunayTetrahedron *, bool> visited ;
+    for(const auto & t : tet)
+        visited[t] = false ;
 
     if( nodes_per_side > 1 )
         nodes_per_side = 1 ;
@@ -382,8 +385,8 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
 
-
-        tet[i]->visited() = true ;
+        
+        visited[tet[i]] = true ;
 
         size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
 
@@ -426,7 +429,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
 
                         for( size_t j = 0 ; j < toTest.size() ; j++ )
                         {
-                            if( toTest[j]->visited() && tet[i] != toTest[j])
+                            if( visited[toTest[j]] && tet[i] != toTest[j])
                             {
                                 for( size_t k = 0 ; k < toTest[j]->getBoundingPoints().size() ; k++ )
                                 {
@@ -483,12 +486,6 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
 
         tet[i]->setBoundingPoints( newPoints ) ;
 
-    }
-
-
-    for( size_t i = 0 ; i < tet.size() ; i++ )
-    {
-        tet[i]->clearVisited() ;
     }
     
     std::cerr << "setting order... elements " << tet.size() << "/" << tet.size() << " ...done."<< std::endl ;

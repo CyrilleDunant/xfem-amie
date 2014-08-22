@@ -33,7 +33,6 @@ DelaunayTreeItem3D::DelaunayTreeItem3D( Mesh<DelaunayTetrahedron, DelaunayTreeIt
     this->creator  = c ;
     this->dead() = false ;
     this->erased() = false ;
-    this->visited() = false ;
 
     this->isSpace() = false ;
     this->isTetrahedron() = false ;
@@ -70,11 +69,6 @@ bool &DelaunayTreeItem3D::isDeadTetrahedron()
     return m_isDeadTetrahedron ;
 }
 
-bool &DelaunayTreeItem3D::visited()
-{
-    return m_visited ;
-}
-
 bool &DelaunayTreeItem3D::erased()
 {
     return m_erased ;
@@ -98,11 +92,6 @@ bool DelaunayTreeItem3D::isTetrahedron() const
 bool DelaunayTreeItem3D::isDeadTetrahedron() const
 {
     return m_isDeadTetrahedron ;
-}
-
-bool DelaunayTreeItem3D::visited() const
-{
-    return m_visited ;
 }
 
 bool DelaunayTreeItem3D::erased() const
@@ -337,7 +326,7 @@ void DelaunayTree3D::extrude(const Vector & dt)
             DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(tri[i]->tree, nullptr, newPoints[0],newPoints[pointsPerTimePlane/4],newPoints[pointsPerTimePlane*2/4],newPoints[pointsPerTimePlane*3/4],newPoints[0]) ;
             toInsert->setOrder(tri[i]->getOrder()) ;
             toInsert->setBoundingPoints(newPoints) ;
-            toInsert->setBehaviour(tri[i]->getBehaviour()->getCopy()) ;
+            toInsert->setBehaviour(tri[i]->getState().getMesh3D(), tri[i]->getBehaviour()->getCopy()) ;
         }
     }
 
@@ -360,6 +349,7 @@ void DelaunayTree3D::addSharedNodes(DelaunayTree3D * dt)
 void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
 {
     std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
+    std::valarray<bool> visited(false, tree.size()) ;
 
     if( nodes_per_side > 1 )
         nodes_per_side = 1 ;
@@ -432,7 +422,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
 
 
-        tet[i]->visited() = true ;
+        visited[tet[i]->index] = true ;
 
         size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
 
@@ -473,11 +463,9 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
                     {
                         for( size_t j = 0 ; j < tet[i]->neighbourhood.size() ; j++ )
                         {
-                            if( tet[i]->getNeighbourhood( j )->visited() )
+                            if( visited[tet[i]->neighbourhood[j]] )
                             {
-                                for( size_t k = 0 ;
-                                        k < tet[i]->getNeighbourhood( j )->getBoundingPoints().size() ;
-                                        k++ )
+                                for( size_t k = 0 ; k < tet[i]->getNeighbourhood( j )->getBoundingPoints().size() ; k++ )
                                 {
                                     if( tet[i]->getNeighbourhood( j )->getBoundingPoint( k ) == proto )
                                     {
@@ -541,8 +529,6 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 
     for( size_t i = 0 ; i < tet.size() ; i++ )
     {
-        tet[i]->clearVisited() ;
-
         if( father != nullptr )
             refresh( father ) ;
     }
@@ -566,16 +552,15 @@ size_t DelaunayTree3D::numPoints() const
     return this->global_counter ;
 }
 
-void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vector< DelaunayTreeItem3D * >  & ret, const Amie::Geometry *g )
+void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >  & ret, const Amie::Geometry *g )
 {
 
-    if( visited() )
+    if( visited[index] )
     {
         return  ;
     }
 
-    visitedItems.push_back(index) ;
-    visited() = true ;
+    visited[index] = true ;
 
 
     if(
@@ -600,7 +585,7 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
 
     for( size_t i  = 0 ;  i < stepson.size() ; i++ )
     {
-        if( !getStepson(i)->visited()
+        if( !visited[stepson[i]]
                 &&
                 !(
                     !getStepson( i )->inCircumSphere( g->getCenter() )
@@ -621,14 +606,14 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
                 )
           )
         {
-            getStepson( i )->conflicts( visitedItems, ret, g ) ;
+            getStepson( i )->conflicts(visited, ret, g ) ;
         }
     }
 
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
         if(
-            !getSon(i)->visited()
+            !visited[son[i]]
             &&
             !(
                 !getSon( i )->inCircumSphere( g->getCenter() )
@@ -649,7 +634,7 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
             )
         )
         {
-            getSon( i )->conflicts( visitedItems, ret, g ) ;
+            getSon( i )->conflicts(visited, ret, g ) ;
         }
     }
 
@@ -661,7 +646,7 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
     for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
     {
         if(
-            !getNeighbour(i)->visited()
+            !visited[neighbour[i]]
             &&
             !(
                 !getNeighbour( i )->inCircumSphere( g->getCenter() )
@@ -683,20 +668,19 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
             )
         )
         {
-            getNeighbour( i )->conflicts( visitedItems, ret, g ) ;
+            getNeighbour( i )->conflicts(visited, ret, g ) ;
         }
     }
 }
 
-void DelaunayTreeItem3D::flatConflicts( std::vector<int> & visitedItems , std::vector<DelaunayTreeItem3D *> & toTest,  std::vector<DelaunayTreeItem3D *>  & ret, const Geometry *g )
+void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> & toTest,  std::vector<DelaunayTreeItem3D *>  & ret, const Geometry *g )
 {
-    if( visited() )
+    if( visited[index] )
     {
         return ;
     }
 
-    visitedItems.push_back(index);
-    visited() = true ;
+    visited[index] = true ;
 
 
     if(
@@ -721,7 +705,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector<int> & visitedItems , std::v
 
     for( size_t i  = 0 ;  i < stepson.size() ; i++ )
     {
-        if( !getStepson(i)->visited()
+        if( !visited[stepson[i]]
                 &&
                 !(
                     !getStepson( i )->inCircumSphere( g->getCenter() )
@@ -749,7 +733,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector<int> & visitedItems , std::v
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
         if(
-            !getSon(i)->visited()
+            !visited[son[i]]
             &&
             !(
                 !getSon( i )->inCircumSphere( g->getCenter() )
@@ -782,7 +766,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector<int> & visitedItems , std::v
     for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
     {
         if(
-            !getNeighbour(i)->visited()
+            !visited[neighbour[i]]
             &&
             !(
                 !getNeighbour( i )->inCircumSphere( g->getCenter() )
@@ -809,32 +793,31 @@ void DelaunayTreeItem3D::flatConflicts( std::vector<int> & visitedItems , std::v
     }
 }
 
-void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vector< DelaunayTreeItem3D * > &ret, const Amie::Point *p )
+void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * > &ret, const Amie::Point *p )
 {
 
-    if( visited() )
+    if( visited[index] )
     {
         return  ;
     }
 
-    visited() = true ;
-    visitedItems.push_back(index) ;
+    visited[index] = true ;
 
 
     for( size_t i  = 0 ;  i < stepson.size() ; i++ )
     {
-        if( ( !getStepson(i)->visited() && getStepson( i )->inCircumSphere( *p ) ) )
+        if( ( !visited[stepson[i]] && getStepson( i )->inCircumSphere( *p ) ) )
         {
-            getStepson( i )->conflicts( visitedItems, ret, p ) ;
+            getStepson( i )->conflicts(visited, ret, p ) ;
         }
     }
 
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
 
-        if( ( !getSon(i)->visited() && getSon( i )->inCircumSphere( *p ) ) )
+        if( ( !visited[son[i]] && getSon( i )->inCircumSphere( *p ) ) )
         {
-            getSon( i )->conflicts( visitedItems, ret, p ) ;
+            getSon( i )->conflicts(visited, ret, p ) ;
         }
     }
 
@@ -846,9 +829,9 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
     for( size_t i  = 0 ;  i < neighbour.size() ; i++ )
     {
 
-        if( ( !getNeighbour(i)->visited() && getNeighbour( i )->inCircumSphere( *p ) ) )
+        if( ( !visited[neighbour[i]] && getNeighbour( i )->inCircumSphere( *p ) ) )
         {
-            getNeighbour( i )->conflicts( visitedItems, ret, p ) ;
+            getNeighbour( i )->conflicts(visited, ret, p ) ;
         }
     }
 
@@ -862,16 +845,15 @@ void DelaunayTreeItem3D::conflicts( std::vector< int >& visitedItems, std::vecto
 
 }
 
-void DelaunayTreeItem3D::flatConflicts( std::vector< int >& visitedItems, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p, int threadid )
+void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p, int threadid )
 {
     if(threadid >= 0 && index%(threadid+1) != 0)
         return ;
 
-    if(visited())
+    if(visited[index])
         return  ;
 
-    visited() = true ;
-    visitedItems.push_back(index) ;
+    visited[index] = true ;
 
     if(!inCircumSphere(*p))
         return  ;
@@ -889,7 +871,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector< int >& visitedItems, std::v
     for ( size_t i  = 0 ;  i < stepson.size() ; i++)
     {
         bool limit = false ;
-        if(!getStepson(i)->visited())
+        if(!visited[stepson[i]])
         {
             if(getStepson(i)->isTetrahedron() && !getStepson(i)->isDeadTetrahedron())
             {
@@ -917,7 +899,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector< int >& visitedItems, std::v
     for (size_t i  = 0 ;  i < son.size() ; i++)
     {
         bool limit = false ;
-        if(!getSon(i)->visited())
+        if(!visited[son[i]])
         {
             if(getSon(i)->isTetrahedron() && !getSon(i)->isDeadTetrahedron())
             {
@@ -945,7 +927,7 @@ void DelaunayTreeItem3D::flatConflicts( std::vector< int >& visitedItems, std::v
     for (size_t i  = 0 ;  i < neighbour.size() ; i++)
     {
         bool limit = false ;
-        if(!getNeighbour(i)->visited())
+        if(!visited[neighbour[i]])
         {
             if(getNeighbour(i)->isTetrahedron() && !getNeighbour(i)->isDeadTetrahedron())
             {
@@ -1186,11 +1168,6 @@ void DelaunayTreeItem3D::setFather( DelaunayTreeItem3D *s )
     father = s->index ;
 }
 
-void DelaunayTreeItem3D::clearVisited()
-{
-    visited() = false ;
-}
-
 DelaunayTetrahedron::~DelaunayTetrahedron()
 {
 }
@@ -1214,7 +1191,6 @@ DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTree
     isSpace() = false ;
     isTetrahedron() = true ;
     isDeadTetrahedron() = false ;
-    visited() = false ;
 
 }
 
@@ -1231,8 +1207,6 @@ DelaunayTetrahedron::DelaunayTetrahedron( Mesh<DelaunayTetrahedron, DelaunayTree
     isSpace() = false ;
     isTetrahedron() = true ;
     isDeadTetrahedron() = false ;
-    visited() = false ;
-
 
 }
 
@@ -1246,7 +1220,6 @@ DelaunayTetrahedron::DelaunayTetrahedron() : DelaunayTreeItem3D( nullptr, nullpt
     isSpace() = false ;
     isTetrahedron() = true ;
     isDeadTetrahedron() = false ;
-    visited() = false ;
     index = 0 ;
 }
 
@@ -1309,7 +1282,6 @@ DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron *parent ) 
     isTetrahedron() = true ;
     isSpace() = false ;
     isDeadTetrahedron() = true ;
-    visited() = false ;
 
     first = parent->first ;
     second = parent->second ;
@@ -1864,16 +1836,16 @@ bool DelaunayTreeItem3D::isDuplicate( const DelaunayTreeItem3D *t ) const
     return true ;
 }
 
-void DelaunayTetrahedron::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *p,  Star3D *s )
+void DelaunayTetrahedron::insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> & ret, Point *p,  Star3D *s )
 {
-    if( visited() )
+    if( visited[index] )
         return ;
 
-    visited() = true ;
+    visited[index] = true ;
 
     for( size_t i = 0 ; i < 4 ; i++ )
     {
-        bool ins =  !getNeighbour( i )->visited() && ( !getNeighbour( i )->inCircumSphere( *p ) || getNeighbour( i )->onCircumSphere( *p ) ) ;
+        bool ins =  !visited[neighbour[i]] && ( !getNeighbour( i )->inCircumSphere( *p ) || getNeighbour( i )->onCircumSphere( *p ) ) ;
 
         if( ins )
         {
@@ -1927,7 +1899,6 @@ DelaunayDemiSpace::DelaunayDemiSpace( Mesh<DelaunayTetrahedron, DelaunayTreeItem
     isSpace() = true ;
     isTetrahedron() = false ;
     isDeadTetrahedron() = false;
-    visited() = false ;
 
 
 }
@@ -1984,19 +1955,19 @@ bool  DelaunayDemiSpace::isNeighbour( const DelaunayTreeItem3D *t )  const
     return numberOfCommonVertices( t ) >= 2 ;
 }
 
-void DelaunayDemiSpace::insert( std::vector<DelaunayTreeItem3D *> & ret, Point *p, Star3D *s )
+void DelaunayDemiSpace::insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> & ret, Point *p, Star3D *s )
 {
 
-    if( visited() )
+    if( visited[index] )
         return ;
 
-    visited() = true ;
+    visited[index] = true ;
 
     for( size_t i = 0 ; i < neighbour.size() ; i++ )
     {
         std::vector< Point *> pp = getNeighbour( i )->commonSurface( this ) ;
 
-        if( !getNeighbour( i )->visited() && ( !getNeighbour( i )->inCircumSphere( *p ) || getNeighbour( i )->onCircumSphere( *p ) ) )
+        if( !visited[neighbour[i]] && ( !getNeighbour( i )->inCircumSphere( *p ) || getNeighbour( i )->onCircumSphere( *p ) ) )
         {
             if( !isCoplanar( p, pp[0], pp[1] , pp[2],tree->getInternalScale() ) )
             {
@@ -2134,14 +2105,14 @@ bool DelaunayRoot3D::onCircumSphere( const Point &p ) const
 }
 
 
-void DelaunayRoot3D::insert( std::vector<DelaunayTreeItem3D *>& ret, Point *p, Star3D *s )
+void DelaunayRoot3D::insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *>& ret, Point *p, Star3D *s )
 {
 
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
 
         std::vector<DelaunayTreeItem3D *> temp ;
-        getSon( i )->insert( temp, p, s ) ;
+        getSon( i )->insert(visited, temp, p, s ) ;
 
         for( size_t j = 0 ; j < temp.size() ; j++ )
         {
@@ -2152,16 +2123,15 @@ void DelaunayRoot3D::insert( std::vector<DelaunayTreeItem3D *>& ret, Point *p, S
     updateNeighbours( &ret ) ;
 }
 
-void DelaunayRoot3D::conflicts( std::vector< int >& visitedItems,  std::vector< DelaunayTreeItem3D * > &ret, const Amie::Geometry *g )
+void DelaunayRoot3D::conflicts(std::valarray<bool> & visited,  std::vector< DelaunayTreeItem3D * > &ret, const Amie::Geometry *g )
 {
-    visited() = true ;
-    visitedItems.push_back(index);
+    visited[index] = true ;
 
     for( size_t i  = 0 ;  i < son.size() ; i++ )
     {
         std::vector<DelaunayTreeItem3D *>  temp  ;
         std::vector<DelaunayTreeItem3D *> toTest ;
-        getSon( i )->flatConflicts( visitedItems, toTest, temp, g ) ;
+        getSon( i )->flatConflicts(visited, toTest, temp, g ) ;
 
         while( !toTest.empty() )
         {
@@ -2169,7 +2139,7 @@ void DelaunayRoot3D::conflicts( std::vector< int >& visitedItems,  std::vector< 
 
             for( size_t j  = 0 ;  j < toTest.size() ; j++ )
             {
-                toTest[j]->flatConflicts( visitedItems, tempToTest, temp, g ) ;
+                toTest[j]->flatConflicts(visited, tempToTest, temp, g ) ;
             }
 
             toTest = tempToTest ;
@@ -2180,24 +2150,23 @@ void DelaunayRoot3D::conflicts( std::vector< int >& visitedItems,  std::vector< 
 
 }
 
-void DelaunayRoot3D::conflicts( std::vector< int >& visitedItems, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p )
+void DelaunayRoot3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p )
 {
 
-    visited() = true ;
-    visitedItems.push_back(index);
+    visited[index] = true ;
 
     for (size_t i  = 0 ;  i < 5 ; i++)
     {
         std::vector<DelaunayTreeItem3D *> toTest ;
 
-        getSon(i)->flatConflicts(visitedItems,toTest,ret,p) ;
+        getSon(i)->flatConflicts(visited,toTest,ret,p) ;
 
         while(!toTest.empty())
         {
             std::vector<DelaunayTreeItem3D *> tempToTest ;
             for(size_t j  = 0 ;  j < toTest.size() ; j++)
             {
-                toTest[j]->flatConflicts(visitedItems,tempToTest,ret,p) ;
+                toTest[j]->flatConflicts(visited,tempToTest,ret,p) ;
             }
             toTest = tempToTest ;
         }
@@ -2305,6 +2274,7 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
 {
 
     p->getId() = global_counter++ ;
+    std::valarray<bool> visited(false, tree.size()) ;
 
     Star3D *s = new Star3D( &cons, p ) ;
 
@@ -2315,16 +2285,13 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
         if( !item->onCircumSphere( *p ) )
         {
             std::vector<DelaunayTreeItem3D *> temp ;
-            item->insert( temp, p, s ) ;
+            item->insert(visited, temp, p, s ) ;
             ret.insert( ret.end(), temp.begin(), temp.end() ) ;
         }
     }
 
     s->updateNeighbourhood() ;
     bool weGotSpaces = false ;
-
-    for( auto & item : ret  )
-        item->clearVisited() ;
 
 
     for( const auto & item : ret)
@@ -2422,7 +2389,6 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
         if( !item->isAlive() && item->isTetrahedron() && !item->isDeadTetrahedron() )
         {
             DelaunayDeadTetrahedron *dt = new DelaunayDeadTetrahedron( static_cast<DelaunayTetrahedron *>( item ) ) ;
-            dt->clearVisited() ;
             tree[item->index] = dt ;
             delete item ;
         }
@@ -2435,8 +2401,8 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::addElements(std::vector<Delaun
 
 void DelaunayTree3D::insert( Point *p )
 {
-
     std::vector<DelaunayTreeItem3D *> cons = conflicts( p ) ;
+   
     neighbourhood = false ;
 
     for( size_t i = 0 ; i < cons.size() ; i++ )
@@ -2457,16 +2423,14 @@ void DelaunayTree3D::insert( Point *p )
 
 Star3D::~Star3D()
 {
-    for( size_t i = 0 ; i < cleanup.size() ; i++ )
-        cleanup[i]->visited() = false ;
 }
 
-std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p)
+std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts(const Point *p)
 {
     std::vector<DelaunayTreeItem3D *> cons;
-    std::vector<int> visitedItems ;
+    std::valarray<bool> visited(false, tree.size()) ;
 
-    tree[0]->conflicts( visitedItems, cons, p ) ;
+    tree[0]->conflicts(visited, cons, p ) ;
 
     if( cons.empty() )
     {
@@ -2474,15 +2438,11 @@ std::vector<DelaunayTreeItem3D *> DelaunayTree3D::conflicts( const Point *p)
         {
 
             std::vector<DelaunayTreeItem3D *>  temp ;
-            s->conflicts( visitedItems, temp, p ) ;
+            s->conflicts(visited, temp, p ) ;
 
             cons.insert( cons.end(), temp.begin(), temp.end() ) ;
         }
     }
-
-
-    for(const auto & v : visitedItems)
-        tree[v]->clearVisited();
 
     return cons ;
 }
@@ -2573,47 +2533,9 @@ void DelaunayTree3D::purge()
 void DelaunayTetrahedron::refresh( const TetrahedralElement *father )
 {
     TetrahedralElement::refresh( father ) ;
-// 	this->computeCenter() ;
 }
 
-// std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g )
-// {
-//     std::valarray<bool> visitedState(false, tree.size()) ;
-//     for(size_t i = 0 ; i < tree.size() ;  i++)
-//         visitedState[i] = tree[i]->visited() ;
-//
-//     for(size_t i = 0 ; i < tree.size() ;  i++)
-//         tree[i]->visited() = false ;
-//
-// 	std::vector<DelaunayTreeItem3D *> cons = conflicts( &g->getCenter() ) ;
-// 	DelaunayTetrahedron *origin = nullptr ;
-//
-// 	for( size_t i = 0 ; i < cons.size() ; i++ )
-// 	{
-// 		if( cons[i]->isTetrahedron() && static_cast<DelaunayTetrahedron *>( cons[i] )->normalisedIn( g->getCenter() ) )
-// 		{
-// 			origin = static_cast<DelaunayTetrahedron *>( cons[i] ) ;
-// 			break ;
-// 		}
-// 	}
-//
-// 	if(origin)
-//     {
-//         for(size_t i = 0 ; i < tree.size() ;  i++)
-//             tree[i]->visited() = false ;
-//
-//         std::vector<DelaunayTetrahedron *> ret = getNeighbouringElementsInGeometry( origin, g ) ;
-//
-//         for(size_t i = 0 ; i < tree.size() ;  i++)
-//             tree[i]->visited() = visitedState[i];
-// 		return ret ;
-//     }
-//
-// 	return std::vector<DelaunayTetrahedron *>() ;
-//
-// }
-
-std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts( const Geometry *g )
+std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts(const Geometry *g )
 {
 
     std::vector<DelaunayTreeItem3D *> cons = conflicts( &g->getCenter() ) ;
@@ -2657,6 +2579,7 @@ std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()
 std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood )
 {
     std::vector<DelaunayTetrahedron *> ret;
+    std::valarray<bool> visited(false, tree.size()) ;
 
     for( const auto & item : tree )
     {
@@ -2674,7 +2597,6 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
         for( auto & item : ret  )
         {
             item->neighbourhood.resize( 0 ) ;
-            item->clearVisited() ;
         }
 
 
@@ -2689,10 +2611,10 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
 
             for( size_t j = 0 ; j < item->neighbour.size() ; j++ )
             {
-                if( item->getNeighbour( j )->isTetrahedron() && !item->getNeighbour( j )->visited() )
+                if( item->getNeighbour( j )->isTetrahedron() && ! visited[item->neighbour[j]] )
                 {
                     tocheck.push_back( static_cast<DelaunayTetrahedron *>( item->getNeighbour( j ) ) );
-                    item->getNeighbour( j )->visited() = true ;
+                    visited[item->neighbour[j]] = true ;
                     toclean.push_back( tocheck.back() ) ;
                     item->addNeighbourhood( tocheck.back() ) ;
                 }
@@ -2715,25 +2637,26 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
                         if(
                             itemTocheck->getNeighbour( j )->isTetrahedron()
                             && itemTocheck->getNeighbour( j )->isAlive()
-                            && !itemTocheck->getNeighbour( j )->visited()
+                            && !visited[itemTocheck->neighbour[j]]
                             && itemTocheck->getNeighbour( j ) != item
                             && static_cast<DelaunayTetrahedron *>( itemTocheck->getNeighbour( j ) )->numberOfCommonVertices( item ) > 0
                         )
                         {
                             tocheck_temp.push_back( static_cast<DelaunayTetrahedron *>( itemTocheck->getNeighbour( j ) ) );
-                            itemTocheck->getNeighbour( j )->visited() = true ;
+                            visited[itemTocheck->neighbour[j]] = true ;
                             toclean.push_back( tocheck_temp.back() ) ;
                             item->addNeighbourhood( tocheck_temp.back() ) ;
                         }
                     }
                 }
+                
 
                 tocheck = tocheck_temp ;
             }
-
+            
             for( auto & itemToClean : toclean )
             {
-                itemToClean->clearVisited() ;
+                 visited[itemToClean->index] = false ;
             }
 
         }

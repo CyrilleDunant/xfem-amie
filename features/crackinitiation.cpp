@@ -23,11 +23,11 @@ CrackInitiation::~CrackInitiation()
 {
 }
 
-std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTree * dt) const
+std::vector<EnrichmentFeature *> CrackInitiation::step(double delta,  Mesh<DelaunayTriangle, DelaunayTreeItem> * dt) const
 {
 	std::vector<EnrichmentFeature *> ret ;
 	
-	std::vector<DelaunayTriangle *> triangles = dt->getTriangles() ;
+	std::vector<DelaunayTriangle *> triangles = dt->getElements() ;
 	std::vector<DelaunayTriangle *> brokenTriangles ;
 	for(size_t i = 0 ; i < triangles.size() ;i++)
 	{
@@ -35,21 +35,20 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 			brokenTriangles.push_back(triangles[i]) ;
 	}
 	std::vector<std::vector<DelaunayTriangle *> > clusters ;
+    std::valarray<bool> visited(false, dt->size()) ;
 	for(size_t i = 0 ; i < brokenTriangles.size() ; i++)
 	{
 		std::vector<DelaunayTriangle *> cluster;
 
-		while(i < brokenTriangles.size() && brokenTriangles[i]->visited)
+		while(i < brokenTriangles.size() && visited[brokenTriangles[i]->index])
 			i++ ;
 
 		if(i >= brokenTriangles.size())
 			break ;
 		
 		cluster.push_back(brokenTriangles[i]) ;
-		brokenTriangles[i]->visited = true ;
-		std::vector<DelaunayTriangle *> toTest ;
-		for(size_t j = 0 ; j < brokenTriangles[i]->neighbourhood.size() ; j++)
-			toTest.push_back(brokenTriangles[i]->getNeighbourhood(j));
+		visited[brokenTriangles[i]->index] = true ;
+		std::vector<DelaunayTriangle *> toTest = dt->getNeighbourhood(brokenTriangles[i]);
 		
 		while(!toTest.empty())
 		{
@@ -57,12 +56,13 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 
 			for(size_t j = 0 ; j < toTest.size() ; j++)
 			{
-				if(toTest[j]->getBehaviour()->fractured() && !toTest[j]->visited)
+				if(toTest[j]->getBehaviour()->fractured() && !visited[toTest[j]->index])
 				{
-					toTest[j]->visited = true ;
+					visited[toTest[j]->index] = true ;
 					cluster.push_back(toTest[j]) ;
-					for(size_t k = 0 ; k < toTest[j]->neighbourhood.size() ; k++)
-						newToTest.push_back(toTest[j]->getNeighbourhood(k));
+                    std::vector<DelaunayTriangle *> neighbourhood = dt->getNeighbourhood(toTest[j]) ;
+					for(size_t k = 0 ; k < neighbourhood.size() ; k++)
+						newToTest.push_back(neighbourhood[k]);
 				}
 			}
 			auto e = std::unique(newToTest.begin(),newToTest.end() ) ;
@@ -74,8 +74,6 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta, DelaunayTre
 		clusters.push_back(cluster) ;
 	}
 
-	for(size_t i = 0 ; i < brokenTriangles.size() ; i++)
-		brokenTriangles[i]->clearVisited() ;
 
 	for(size_t i = 0 ; i < clusters.size() ; i++)
 	{

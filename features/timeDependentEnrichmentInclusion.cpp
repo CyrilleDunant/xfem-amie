@@ -212,9 +212,10 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			points.insert(&ring[i]->getBoundingPoint(j)) ;
 		}
 		ring[i]->enrichmentUpdated = false ;
-		for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
+		for(auto & n : neighbourhood)
 		{
-			ring[i]->getNeighbourhood(j)->enrichmentUpdated = false ;
+			n->enrichmentUpdated = false ;
 		}
 	}
 
@@ -279,9 +280,9 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 //		ring[i]->enrichmentUpdated = true ;
 		
 		hint.clear(); hint.push_back(Point(1./3., 1./3.,0,0));
-		for(size_t j = 0 ; j < 0*ring[i]->neighbourhood.size() ; j++)
+        std::vector<DelaunayTriangle *> neighbourhood = dtree->getNeighbourhood(ring[i]) ;
+		for(auto & t : neighbourhood)
 		{
-			DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 			enrichedElem.insert(t) ;
 			if(std::binary_search(ring.begin(), ring.end(), t) )
 				continue ;
@@ -515,7 +516,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 
 	for(size_t i = 0 ; i < inside.size() ; i++)
 	{
-		inside[i]->setBehaviour(imposed->getCopy()) ;
+		inside[i]->setBehaviour(dtree,imposed->getCopy()) ;
 		if(zoneElem.find(inside[i]) == zoneElem.end())
 		{
 			zoneElem.insert(inside[i]) ;
@@ -564,7 +565,7 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 //		std::cout << (int) dynamic_cast<Viscoelasticity *>(homogeneised[ring[i]])->model ;
 		double factor = ((double) areIn/(double)k) * imposed->param[0][0]/realStiff[0][0] ;
 		Vector alpha = (imposed->getImposedStrain(ring[i]->getCenter())) * factor;
-		ring[i]->setBehaviour( new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY,realStiff, alpha, b-1)) ;
+		ring[i]->setBehaviour(dtree, new ViscoelasticityAndImposedDeformation(PURE_ELASTICITY,realStiff, alpha, b-1)) ;
 
 		
 	}

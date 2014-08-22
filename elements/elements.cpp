@@ -163,7 +163,7 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 	return this->nonlinbehaviour ;
 }
 
-void ElementarySurface::setBehaviour(Form * f)
+void ElementarySurface::setBehaviour(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, Form * f)
 {	
 	bool init = false ;
 	if(state)
@@ -183,7 +183,7 @@ void ElementarySurface::setBehaviour(Form * f)
 		{
 			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
 		}
-		state->initialize( needCacheInit) ;
+		state->initialize(msh, needCacheInit) ;
 	}
 //	delete old ;
 }
@@ -4347,7 +4347,7 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	return std::valarray<std::valarray<Amie::Matrix> >(0);
 }
 
-void ElementaryVolume::setBehaviour(Form * f)
+void ElementaryVolume::setBehaviour(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>*msh, Form * f)
 {	
 	bool init = false ;
 	if(state)
@@ -4365,7 +4365,7 @@ void ElementaryVolume::setBehaviour(Form * f)
 		{
 			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
 		}
-		state->initialize( needCacheInit) ;
+		state->initialize(msh, needCacheInit) ;
 	}
 }
 

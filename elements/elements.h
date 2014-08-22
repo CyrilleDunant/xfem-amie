@@ -95,7 +95,7 @@ public:
 	virtual Vector getNonLinearForces() = 0 ;
 		
 	virtual Form * getBehaviour() const ;
-	void setBehaviour(Form *);
+	void setBehaviour(const Mesh<DelaunayTriangle,DelaunayTreeItem> *msh, Form *);
 
 	virtual NonLinearForm * getNonLinearBehaviour() const;
 	void setNonLinearBehaviour(NonLinearForm * f) ;
@@ -205,7 +205,7 @@ public:
 
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
-	virtual void setBehaviour(Form *);
+	virtual void setBehaviour(const Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh, Amie::Form* f);
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	

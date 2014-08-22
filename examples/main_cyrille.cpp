@@ -91,19 +91,6 @@ std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
-Vector b(0) ;
-Vector x(0) ;
-Vector sigma(0) ; 
-Vector sigma11(0) ; 
-Vector sigma22(0) ; 
-Vector sigma12(0) ; 
-Vector epsilon(0) ; 
-Vector epsilon11(0) ; 
-Vector epsilon22(0) ; 
-Vector epsilon12(0) ; 
-Vector vonMises(0) ; 
-Vector angle(0) ; 
-Vector fracCrit(0) ;
 std::vector<double> scales ;
 std::vector<double> disps ;
 
@@ -204,7 +191,7 @@ Vector origYdisps1 ;
 // 	std::cout << "found " << coincidentPoints.size() << " coincident points" << std::endl ;
 // }
 
-void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy)
+void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy, const std::valarray<double> & x)
 {
 	ls->clearParameterValues();
 	for(auto i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
@@ -213,7 +200,7 @@ void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy)
 	}
 }
 
-void setupLeastSquares()
+void setupLeastSquares(const std::valarray<double> & x)
 {
 	trans0.clear();
 	idsall.clear();
@@ -367,323 +354,91 @@ void step()
 
 		double da = 0 ;
 		
-		triangles = featureTree->getElements2D(grid) ;
-		x.resize(featureTree->getDisplacements(grid).size()) ;
-		x = featureTree->getDisplacements(grid) ;
-		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-	
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain(grid) ;
-		sigma.resize(sigma_epsilon.first.size()) ;
-		sigma = sigma_epsilon.first ;
-		epsilon.resize(sigma_epsilon.second.size()) ;
-		epsilon = sigma_epsilon.second ;
-		
-		Vector avgdisplacement(2) ;
-		double avgdisplacementarea(0) ;
-		sigma11.resize(sigma.size()/3) ;
-		sigma22.resize(sigma.size()/3) ;
-		sigma12.resize(sigma.size()/3) ;
-		epsilon11.resize(sigma.size()/3) ;
-		epsilon22.resize(sigma.size()/3) ;
-		epsilon12.resize(sigma.size()/3) ;
-		vonMises.resize(sigma.size()/3) ;
-		angle.resize(sigma.size()/3) ;
-		fracCrit.resize(sigma.size()/3) ;
-		g_count.resize(sigma.size()/3) ;
-		
-		int npoints = triangles[0]->getBoundingPoints().size() ;
-	
-		double area = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_xy = 0;
-		double avg_s_xx = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double e_xx = 0 ;
-		double ex_count = 0 ;
-		double enr = 0 ;
-		VirtualMachine vm ;
-		for(size_t k = 0 ; k < triangles.size() ; k++)
-		{
-			bool in = false ;
-			for(size_t m = 0 ; m < tris__.size() ; m++)
-			{
-				if(triangles[k] == tris__[m])
-				{
-					in = true ;
-					break ;
-				}
-			}
-			cracked.push_back(in) ;
-		
-		
-			if(triangles[k]->getBehaviour() && !in && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-			{
-				avgdisplacement += triangles[k]->getState().getAverageDisplacement(&vm)*triangles[k]->area() ;
-				avgdisplacementarea += triangles[k]->area() ;
-			}
-			
-			
-			if(triangles[k]->getBehaviour() && !in && !triangles[k]->getBehaviour()->fractured() && triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-			{
-				
-				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
-				{
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
-					if(triangles[k]->getBoundingPoint(p).getX() > 0.0799)
-					{
-						e_xx+=x[triangles[k]->getBoundingPoint(p).getId()*2] ;
-						ex_count++ ;
-					}
-				}
-				area += triangles[k]->area() ;
-				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-				{
-					if(triangles[k]->getBehaviour()->param[0][0] > E_max)
-						E_max = triangles[k]->getBehaviour()->param[0][0] ;
-					if(triangles[k]->getBehaviour()->param[0][0] < E_min)
-						E_min = triangles[k]->getBehaviour()->param[0][0] ;
-				}
-				
-				g_count[k*npoints]++ ;
-				g_count[k*npoints+1]++ ;
-				g_count[k*npoints+2]++ ;
-				sigma11[k*npoints] = sigma[k*npoints*3];
-				sigma22[k*npoints] = sigma[k*npoints*3+1];
-				sigma12[k*npoints] = sigma[k*npoints*3+2];
-				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-				sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-				sigma12[k*npoints+2] = sigma[k*npoints*3+8];
-				
-				if(npoints >3)
-				{
-					g_count[k*npoints+3]++ ;
-					g_count[k*npoints+4]++ ;
-					g_count[k*npoints+5]++ ;
-					sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-					sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-					sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-					sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-					sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-					sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-					sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-					sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-					sigma12[k*npoints+5] = sigma[k*npoints*3+17];
-				}
-				
-				epsilon11[k*npoints] = epsilon[k*npoints*3];
-				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-				epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-					epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-					epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-					epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-					epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-					epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-					epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-					epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-					epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
-				}  
-				
-				for(size_t l = 0 ; l < npoints ; l++)
-				{
-					Vector vm0(0., 3) ;
-					triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
-					vonMises[k*npoints+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-	
-					Vector agl(0., 1) ;
-					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
-					angle[k*npoints+l]  += agl[0] ;
-					if(triangles[k]->getBehaviour()->getFractureCriterion())
-					{
-						fracCrit[k*npoints+l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade(triangles[k]->getState()) ;
-					}
-					enr += triangles[k]->getState().elasticEnergy() ;
-				}
-	
-				
-				double ar = triangles[k]->area() ;
-				for(size_t l = 0 ; l < npoints ;l++)
-				{
-					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
-				}
-	
-			}
-			else
-			{
-				sigma11[k*npoints] += 0 ;
-				sigma22[k*npoints] += 0 ;
-				sigma12[k*npoints] += 0 ;
-				sigma11[k*npoints+1] += 0 ;
-				sigma22[k*npoints+1] += 0 ;
-				sigma12[k*npoints+1] += 0 ;
-				sigma11[k*npoints+2] += 0 ;
-				sigma22[k*npoints+2] += 0 ;
-				sigma12[k*npoints+2] += 0 ;
-				
-				if(npoints >3)
-				{
-					sigma11[k*npoints+3] += 0 ;
-					sigma22[k*npoints+3] += 0 ;
-					sigma12[k*npoints+3] += 0 ;
-					sigma11[k*npoints+4] += 0 ;
-					sigma22[k*npoints+4] += 0 ;
-					sigma12[k*npoints+4] += 0 ;
-					sigma11[k*npoints+5] += 0 ;
-					sigma22[k*npoints+5] += 0 ;
-					sigma12[k*npoints+5] += 0 ;
-				}
-				
-				epsilon11[k*npoints] += 0 ;
-				epsilon22[k*npoints] += 0 ;
-				epsilon12[k*npoints] += 0 ;
-				epsilon11[k*npoints+1] += 0 ;
-				epsilon22[k*npoints+1] += 0 ;
-				epsilon12[k*npoints+1] += 0 ;
-				epsilon11[k*npoints+2] += 0 ;
-				epsilon22[k*npoints+2] += 0 ;
-				epsilon12[k*npoints+2] += 0 ;
-				
-				if(npoints > 3)
-				{
-					epsilon11[k*npoints+3] += 0 ;
-					epsilon22[k*npoints+3] += 0 ;
-					epsilon12[k*npoints+3] += 0 ;
-					epsilon11[k*npoints+4] += 0 ;
-					epsilon22[k*npoints+4] += 0 ;
-					epsilon12[k*npoints+4] += 0 ;
-					epsilon11[k*npoints+5] += 0 ;
-					epsilon22[k*npoints+5] += 0 ;
-					epsilon12[k*npoints+5] += 0 ;
-				}  
-				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
-				{
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  += 0 ;
-				}
-			}
-		}
-// 		avgdisplacement /= avgdisplacementarea ;
-		
-		
-		std::stringstream filename ;
-		
-		filename << "triangles-" ;
-		filename << countit++ ;
-		
-// 		filename.append(itoa(totit++, 10)) ;
-// 		std::cout << filename.str() << std::endl ;
+		std::vector<DelaunayTriangle *> triangles = featureTree->getElements2D() ;
 
-// 		TriangleWriter writer(filename.str(), featureTree) ;
-// 		writer.getField(TWFT_STRAIN_AND_STRESS) ;
-// 		writer.getField(TWFT_VON_MISES) ;
-// 		writer.getField(TWFT_STIFFNESS) ;
-// 		writer.getField(TWFT_DAMAGE) ;
-// 		writer.write() ;
-		
-// 		if(true)
-// 		{
-// 			
-// 			for(double k = 0 ; k < 8 ; k += 8./800)
-// 			{
-// 				for(double l = -4 ; l < 4 ; l += 8./800)
-// 				{
-// 					Point p(k, l) ;
-// 					auto tri = featureTree->getElements2D(&p) ;
-// 					
-// 					for(size_t j = 0 ; j  < tri.size() ; j++ )
-// 					{
-// 						if(tri[j]->in(p))
-// 						{
-// 							
-// 							Vector s = tri[j]->getState().getStress(p, false) ;
-// 							Vector e = tri[j]->getState().getStrain(p, false) ;
-// 							std::cout << 0.5*(s[0]*e[0] + s[1]*e[1]+ s[2]*e[2])<< "  " << std::flush ;
-// 							
-// // 								Point p_ = tri[j]->inLocalCoordinates(p) ;
-// // 								std::cout << tri[j]->getBehaviour()->getTensor(p_)[0][0]<< "  " << std::flush ;
-// 							
-// // 							std::cout << tri[j]->getState().getStress(p, false)[0] << "  " << std::flush ;
-// 							
-// //  							std::cout << tri[j]->getState().getDisplacements(p, false)[0] << "  " << std::flush ;
-// 							break ;
-// 						}
-// 					}
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			std::cout << std::endl ;
-			
-		disps.push_back(y_max) ;
-// 			for(size_t i = 0 ; i < scales.size() ; i++)
-// 				std::cout << disps[i]<< "  "<<  scales[i] << std::endl ;
-		
-			std::cout << "max value :" << x_max << std::endl ;
-			std::cout << "min value :" << x_min << std::endl ;
-			std::cout << "max sigma11 :" << sigma11.max()/1000000. << std::endl ;
-			std::cout << "min sigma11 :" << sigma11.min()/1000000. << std::endl ;
-			std::cout << "max sigma12 :" << sigma12.max()/1000000. << std::endl ;
-			std::cout << "min sigma12 :" << sigma12.min()/1000000. << std::endl ;
-			std::cout << "max sigma22 :" << sigma22.max()/1000000. << std::endl ;
-			std::cout << "min sigma22 :" << sigma22.min()/1000000. << std::endl ;
-			
-			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-			
-			std::cout << "max von Mises :" << vonMises.max()/1000000. << std::endl ;
-			std::cout << "min von Mises :" << vonMises.min()/1000000. << std::endl ;
-			
-			std::cout << "average sigma11 : " << (avg_s_xx/area)/1000000. << std::endl ;
-			std::cout << "average sigma22 : " << (avg_s_yy/area)/1000000. << std::endl ;
-			std::cout << "average sigma12 : " << (avg_s_xy/area)/1000000. << std::endl ;
-			std::cout << "average epsilon11 : " << avg_e_xx/area<< std::endl ;
-			std::cout << "average epsilon22 : " << avg_e_yy/area << std::endl ;
-			std::cout << "average epsilon12 : " << avg_e_xy/area << std::endl ;
-// 		}
-			
-			if(!triangles.empty())
-			{
-				ang.push_back(0.) ;
-				sig.push_back((avg_s_yy/area)/1000000.);
-				eps.push_back((avg_e_yy/area)/1000000.);
-				
-				for(size_t j = 0 ; j < ang.size() ; j++)
-				{
-					std::cout << ang[j] << "  " << sig[j] << "  " << eps[j] << std::endl ;
-				}
-			}
-		energy.push_back(enr) ;
+        Vector x = featureTree->getDisplacements() ;
+
+        std::cout << "unknowns :" << x.size() << std::endl ;
+
+
+        int npoints = triangles[0]->getBoundingPoints().size() ;
+
+        std::string filename( "triangles" ) ;
+
+        if( !featureTree->solverConverged() )
+            filename = std::string( "failed-triangles" ) ;
+
+        filename.append( itoa( s, 10 ) ) ;
+        std::cout << filename << std::endl ;
+
+        TriangleWriter writer(filename.c_str(), featureTree) ;
+//      writer.reset( featureTree ) ;
+//      writer.getField(TWFT_STRAIN_AND_STRESS ) ;
+        writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+        writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+        writer.getField( TWFT_VON_MISES ) ;
+        writer.getField( TWFT_STIFFNESS ) ;
+        writer.getField( TWFT_DAMAGE ) ;
+
+        writer.write() ;
+
+        double volume = 0 ;
+        double xavg = 0 ;
+        double yavg = 0 ;
+        for(size_t k = 0 ; k < triangles.size() ; k++)
+        {
+            if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
+            {       
+                double ar = triangles[k]->area() ;
+                volume += ar ;
+                for(size_t l = 0 ; l < npoints ;l++)
+                {
+                    xavg += x[triangles[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
+                    yavg += x[triangles[k]->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
+                }
+
+            }
+        }
+            
+        xavg /= volume ;
+        yavg /= volume ;
+        std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
+        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+        std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
+        Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
+        Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
+        
+        std::cout << std::endl ;
+        std::cout << "max value :" << x.max() << std::endl ;
+        std::cout << "min value :" << x.min() << std::endl ;
+        std::cout << "avg x value :" << xavg << std::endl ;
+        std::cout << "avg y value :" << xavg << std::endl ;
+
+        std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
+        std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
+        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
+        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
+        std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
+        std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+        
+        std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
+        std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+        std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
+        std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
+        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+        
+        std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
+        std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
+        
+        std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+        std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+        std::cout << "average sigma12 : " << stemp[2] << std::endl ;
+        std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
+        std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
+        std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
+        
+        std::cout << std::endl ;;
 		
 		writer.reset(featureTree) ;
 		writer.getField(TWFT_PRINCIPAL_STRESS ) ;

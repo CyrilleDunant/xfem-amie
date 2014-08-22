@@ -311,13 +311,14 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayT
 };
 
 void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
-{   std::vector<DelaunayTriangle *> tri = getElements() ;
-
+{   
+    std::vector<DelaunayTriangle *> tri = getElements() ;
+    std::valarray<bool> visited(false, size()) ;
     double timeSlice = timestep ;
     
-    for(auto i = tri.begin() ; i != tri.end() ; ++i)
+    for(auto & i :tri)
     {
-        (*i)->visited = true ;
+        visited[i->index] = true ;
             
         size_t nodes_per_plane = nodes_per_side*3+3 ;
         
@@ -328,8 +329,8 @@ void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_pl
         {
             for(size_t side = 0 ; side < 3 ; side++)
             {
-                Point a((*i)->getBoundingPoint(side)) ;
-                Point b((*i)->getBoundingPoint((side+1)%3)) ;
+                Point a(i->getBoundingPoint(side)) ;
+                Point b(i->getBoundingPoint((side+1)%3)) ;
                 
                 if(time_planes> 1)
                 {
@@ -342,21 +343,21 @@ void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_pl
                     Point proto = a*(1.-fraction) + b*fraction ;
                     Point * foundPoint = nullptr ;
                     
-                    for(size_t j = 0 ; j< (*i)->getBoundingPoints().size() ; j++)
+                    for(size_t j = 0 ; j< i->getBoundingPoints().size() ; j++)
                     {
-                        if((*i)->getBoundingPoint(j) == proto)
+                        if(i->getBoundingPoint(j) == proto)
                         {
-                            foundPoint = &(*i)->getBoundingPoint(j) ;
+                            foundPoint = &i->getBoundingPoint(j) ;
                             break ;
                         }
                     }
                     
                     if(!foundPoint)
                     {
-                        std::vector<DelaunayTriangle *> neighbourhood = getNeighbourhood(*i) ;
+                        std::vector<DelaunayTriangle *> neighbourhood = getNeighbourhood(i) ;
                         for(size_t j = 0 ; j < neighbourhood.size() ; j++)
                         {
-                            if(neighbourhood[j]->visited)
+                            if(visited[neighbourhood[j]->index])
                             {
                                 DelaunayTriangle * n = neighbourhood[j] ;
                                 for(size_t k = 0 ; k < n->getBoundingPoints().size() ; k++)
@@ -393,14 +394,9 @@ void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_pl
             }
         }
         
-        (*i)->setBoundingPoints(newPoints) ;
+        i->setBoundingPoints(newPoints) ;
     }
-            
-    
-    for(auto i = tri.begin() ; i != tri.end() ; ++i)
-    {
-        (*i)->clearVisited() ;
-    }
+
 
 }
 

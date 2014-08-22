@@ -188,7 +188,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 
 			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 //			delete ring[i]->getBehaviour() ;
-			ring[i]->setBehaviour( bi ) ;
+			ring[i]->setBehaviour(dtree, bi ) ;
 			bi->transform( ring[i]) ;
 			bi->setSource( src );
 		}
@@ -209,7 +209,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 		if( expansive.find( inDisc[i] ) == expansive.end() )
 		{
 //			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( imp->getCopy() ) ;
+			inDisc[i]->setBehaviour(dtree, imp->getCopy() ) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 

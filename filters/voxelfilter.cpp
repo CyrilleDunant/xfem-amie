@@ -564,23 +564,23 @@ void VoxelFilter::read(const char * filename)
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
 					LinearForm * behaviour = behaviourMap[phase[i][j][k]] ;
-					elems.back()->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[2], corner[3], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					elems.back()->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[4], corner[6], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					elems.back()->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					elems.back()->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[3], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
-					elems.back()->setBehaviour(behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviour) ;
 
 				}	
 			}

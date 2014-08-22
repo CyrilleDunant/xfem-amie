@@ -105,7 +105,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 
 			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 //			delete ring[i]->getBehaviour() ;
-			ring[i]->setBehaviour( bi ) ;
+			ring[i]->setBehaviour( dtree, bi ) ;
 			bi->transform( ring[i]) ;
 			bi->setSource( src );
 		}
@@ -121,7 +121,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 		{
 			StiffnessWithImposedDeformation * bi = new StiffnessWithImposedDeformation( cgTensor, imposedDef ) ;
 //			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( bi) ;
+			inDisc[i]->setBehaviour(dtree, bi) ;
 			inDisc[i]->getBehaviour()->setSource( getPrimitive() );
 		}
 
@@ -143,7 +143,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 				                       dynamic_cast<HomogeneisedBehaviour *>( disc[0]->getBehaviour() )->original->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;
-				disc[0]->setBehaviour( bi) ;
+				disc[0]->setBehaviour(dtree, bi) ;
 			}
 			else
 			{
@@ -152,7 +152,7 @@ void ExpansiveZone::enrich( size_t &lastId , Mesh<DelaunayTriangle, DelaunayTree
 				                       disc[0]->getBehaviour()->getCopy()
 				                                              ) ;
 				delete disc[0]->getBehaviour() ;
-				disc[0]->setBehaviour( bi) ;
+				disc[0]->setBehaviour(dtree, bi) ;
 			}
 
 			disc[0]->getBehaviour()->transform( disc[0]) ;
@@ -229,7 +229,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       inclusionBehaviour->getCopy(),
 			                       ring[i]->getBehaviour()->getCopy()) ;
 			delete ring[i]->getBehaviour() ;
-			ring[i]->setBehaviour( bi) ;
+			ring[i]->setBehaviour(dtree, bi) ;
 			bi->transform( ring[i]) ;
 			bi->setSource( getPrimitive() );
 		}
@@ -244,7 +244,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 		if( internal.find( inDisc[i] ) == internal.end() )
 		{
 			delete inDisc[i]->getBehaviour() ;
-			inDisc[i]->setBehaviour( inclusionBehaviour->getCopy()) ;
+			inDisc[i]->setBehaviour(dtree, inclusionBehaviour->getCopy()) ;
 		}
 
 		newExpansive.insert( inDisc[i] ) ;
@@ -261,7 +261,7 @@ void MaterialInclusion::enrich( size_t &counter , Mesh<DelaunayTriangle, Delauna
 			                       disc[0]->getBehaviour()->getCopy()
 			                                              ) ;
 			delete disc[0]->getBehaviour() ;
-			disc[0]->setBehaviour( bi) ;
+			disc[0]->setBehaviour(dtree, bi) ;
 			disc[0]->getBehaviour()->transform( disc[0]) ;
 		}
 

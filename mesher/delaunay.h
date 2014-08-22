@@ -59,7 +59,6 @@ public:
 	bool isTriangle ;//!< Marker. This allows for a bit of reflectivity, cheaper than using casts.
 	bool isDeadTriangle ;
 	
-	bool visited ;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	bool erased ;
 	std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
 	std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
@@ -100,19 +99,17 @@ public:
 	
 	void setStepfather(DelaunayTreeItem * s) ;  //!< Accessor. sets the stepfather.
 	
-	void clearVisited() ; //!< Accessor. We are not marked visited anymore.
-	
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
 	virtual std::pair< Point*,  Point*> nearestEdge(const Point & p) const = 0;  //!< What is the nearest edge from this point \a p.
 	virtual std::pair< Point*,  Point*> commonEdge(const DelaunayTreeItem * t) const  = 0; //!< What is the common edge with this item. returns a null pair if none.
 	virtual bool inCircumCircle(const Point & p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
 	virtual bool onCircumCircle(const Point &p) const = 0 ;
 	virtual bool isNeighbour( const DelaunayTreeItem *) const = 0 ;  //!< Test. Are we a neighbour ?
-	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-	virtual void conflicts(std::valarray< bool >& visitedItems, std::vector< Amie::DelaunayTreeItem* >& ret, const Amie::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-	virtual void conflicts(std::valarray< bool >& visitedItems,std::vector<DelaunayTriangle *> &, const Geometry *g) ;
-	void flatConflicts(std::valarray< bool >& visitedItems , std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTriangle *> & ret, const Geometry *g) ;
-	void flatConflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
+	virtual void insert(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *> &, Point *p,  Star *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
+	virtual void conflicts(std::valarray<bool> & visited, std::vector< Amie::DelaunayTreeItem* >& ret, const Amie::Point* p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+	virtual void conflicts(std::valarray<bool> & visited,std::vector<DelaunayTriangle *> &, const Geometry *g) ;
+	void flatConflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTriangle *> & ret, const Geometry *g) ;
+	void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> & toTest, std::vector<DelaunayTreeItem *> & ret,const Point *p) ;
 	virtual void print() const { } ;
 	
 	virtual bool in( const Point & p) const  = 0;
@@ -131,8 +128,11 @@ public:
 */
 class DelaunayTriangle : virtual public TriElement, public DelaunayTreeItem
 {
+    friend class DelaunayTree ;
 	Vector cachedForces;
 	std::vector<Point * > getIntegrationHints() const ;
+protected:
+    DelaunayTriangle * getNeighbourhood(size_t i) const ;
 public:
 	
 	GEO_DERIVED_OBJECT(Triangle) ;
@@ -158,7 +158,7 @@ public:
 	virtual bool onCircumCircle(const Point &p) const ;
 	virtual bool isNeighbour( const DelaunayTreeItem * t) const;
 	
-	void insert( std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
+	void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
 	
 	void print() const;
 	virtual void refresh(const TriElement *) ;
@@ -174,7 +174,7 @@ public:
 	virtual const GaussPointArray & getSubTriangulatedGaussPoints(const Function & f0, const Function & f1, Matrix &m) ;
 
 	std::valarray<unsigned int> neighbourhood ;
-	DelaunayTriangle * getNeighbourhood(size_t i) const ;
+	
 	bool isInNeighbourhood(const DelaunayTriangle * t) const ;
 
 	void addNeighbourhood(DelaunayTriangle * t) ;
@@ -219,7 +219,7 @@ public:
 	
 	//virtual void kill(Point * p) ;
 	
-	virtual void insert(std::vector<DelaunayTreeItem *> &,Point *p, Star *s) ;
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> &,Point *p, Star *s) ;
 	
 	virtual bool in( const Point & p) const
 	{
@@ -254,11 +254,11 @@ public:
 	
 	virtual bool isNeighbour( const DelaunayTreeItem *) const { return false ; } 
 	
-	virtual void insert(std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> &, Point *p,   Star *s) ;
 	
-	virtual void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTreeItem *> &, const Point *p )  ;
+	virtual void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem *> &, const Point *p )  ;
 	
-	virtual void conflicts(std::valarray<bool> & visitedItems, std::vector<DelaunayTriangle *> &, const Geometry *g)  ;
+	virtual void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTriangle *> &, const Geometry *g)  ;
 	
 	virtual void print() const ;
 	
@@ -313,7 +313,7 @@ public:
 	bool isVertex(const Point *p) const ;
 	bool isVertexByID(const Point *p) const ;
 	
-	void insert(std::vector<DelaunayTreeItem *>& , Point *p, Star *s) { };
+	void insert(std::valarray<bool> & visited,std::vector<DelaunayTreeItem *>& , Point *p, Star *s) { };
 
 	bool isConflicting(const Geometry * g) const ;
 	
@@ -332,7 +332,8 @@ class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 friend class FeatureTree ;
 friend class ParallelDelaunayTree ;
 friend class Geometry ;
-	std::valarray<bool> visitedItems ;
+friend class DelaunayTriangle ;
+
 protected:
 	size_t global_counter ;
 	bool neighbourhood ;
@@ -341,20 +342,19 @@ protected:
 	
 public:
 	
+    virtual size_t size() const { return tree.size() ; } ;
 	virtual int addToTree(DelaunayTreeItem * toAdd)
 	{
 		tree.push_back(toAdd);
 		return tree.size()-1 ;
 	}
 	
-	virtual DelaunayTreeItem * getInTree(int index) 
+	virtual DelaunayTreeItem * getInTree(int index) const
 	{
-        if(index > -1)
-            return tree[index] ;
-        return nullptr ;
+        return tree[index] ;
 	}
 	
-    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) 
+    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) const
     {
         std::vector<DelaunayTriangle *> ret ;
         for(const auto & idx : element->neighbourhood)

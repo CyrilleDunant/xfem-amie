@@ -60,10 +60,18 @@ public:
         return 0 ;
     }
     
-    virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) ;
+    virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) const ;
 
-    virtual DelaunayTreeItem3D * getInTree(int index)
+    virtual DelaunayTreeItem3D * getInTree(int index) const
     {
+        return nullptr ;
+    }
+    virtual size_t size() const
+    {
+        size_t s = 0 ;
+        for( const auto & m : meshes)
+            s += m->size() ;
+        return s ;
     }
 } ;
 } ;

@@ -29,6 +29,7 @@
 
 namespace Amie
 {
+    
 template <class ETYPE, class EABSTRACTTYPE>
 class Mesh
 {
@@ -39,7 +40,7 @@ public:
 // 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
 // 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
     virtual int addToTree(EABSTRACTTYPE * toAdd) = 0 ;
-    virtual EABSTRACTTYPE * getInTree(int index) = 0 ;
+    virtual EABSTRACTTYPE * getInTree(int index) const = 0 ;
     virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
     virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
     virtual void extrude(double dt) = 0 ;
@@ -53,7 +54,7 @@ public:
     virtual std::vector<ETYPE *> getElements() = 0;
     virtual std::vector<ETYPE *> getConflictingElements(const Point  * p)  = 0;
     virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) = 0;
-    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) = 0 ;
+    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) const = 0 ;
 
     virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g)
     {
@@ -387,6 +388,7 @@ public:
     }
 
     virtual size_t getLastNodeId() const = 0;
+    virtual size_t size() const = 0 ;
 } ;
 
 template<class ETYPE, class EABSTRACTTYPE>
@@ -399,7 +401,7 @@ protected:
     std::map<int *, int> trans ;
     size_t global_counter ;
 
-    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element)
+    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) const
     {
         std::vector<ETYPE *> ret = { element };
         return ret ;
@@ -409,8 +411,6 @@ protected:
     {
         for(auto  i = tree.begin() ; i != tree.end() ; ++i)
         {
-
-            (*i)->visited = true ;
 
             size_t nodes_per_plane = nodes_per_side*3+3 ;
 
@@ -444,40 +444,13 @@ protected:
                             }
                         }
 
-                        if(!foundPoint)
-                        {
-                            for(size_t j = 0 ; j < static_cast<ETYPE *>(*i)->neighbourhood.size() ; j++)
-                            {
-                                if(static_cast<ETYPE *>(*i)->getNeighbourhood(j)->visited)
-                                {
-                                    ETYPE * n = static_cast<ETYPE *>(*i)->getNeighbourhood(j) ;
-                                    for(size_t k = 0 ; k < n->getBoundingPoints().size(); k++)
-                                    {
-                                        if(n->getBoundingPoint(k) == proto)
-                                        {
-                                            foundPoint = &n->getBoundingPoint(k) ;
-                                            break ;
-                                        }
-                                    }
-
-                                    if(foundPoint)
-                                        break ;
-                                }
-                            }
-                        }
 
                         if(!done[nodes_per_plane*plane+side*(nodes_per_side+1)+node])
                         {
-                            if(foundPoint)
-                            {
-                                newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = foundPoint ;
-                            }
-                            else
-                            {
-                                points.push_back(new Point(proto) ) ;
-                                newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
-                                newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
-                            }
+
+                            points.push_back(new Point(proto) ) ;
+                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
+                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
 
                             done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
                         }
@@ -488,17 +461,12 @@ protected:
             static_cast<ETYPE *>(*i)->setBoundingPoints(newPoints) ;
         }
 
-
-        for(auto i = tree.begin() ; i != tree.end() ; ++i)
-        {
-            (*i)->clearVisited() ;
-        }
-
     }
 
 
 public:
 
+    virtual size_t size() const { return 1. ; } ;
     int elementLayer(ETYPE * e) const {
         return -1 ;
     }
@@ -672,7 +640,7 @@ public:
         return tree.size() -1 ;
     }
 
-    virtual EABSTRACTTYPE * getInTree(int index)
+    virtual EABSTRACTTYPE * getInTree(int index) const 
     {
         return tree[std::abs(index)] ;
     }

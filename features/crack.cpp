@@ -1242,9 +1242,10 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 		bool performEnrichment = tris[i]->in(*target) ;
 		if(centralTriangle)
 		{
-			for ( size_t j = 0 ; j < centralTriangle->neighbourhood.size() ; j++ )
+            std::vector<DelaunayTriangle * > neighbourhood = dt->getNeighbourhood(centralTriangle) ;
+			for ( size_t j = 0 ; j < neighbourhood.size() ; j++ )
 			{
-				if ( centralTriangle->getNeighbourhood(j)->isAlive() && centralTriangle->getNeighbourhood(j) == tris[i] )
+				if ( neighbourhood[j]->isAlive() && neighbourhood[j] == tris[i] )
 				{
 					performEnrichment = true ;
 					break ;
@@ -1352,11 +1353,12 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 			e->setEnrichment ( f , getPrimitive() ) ;
 
 			std::vector<DelaunayTriangle *> toEnrichAlso ;
-			for ( size_t j = 0 ; j < e->neighbourhood.size() ; j++ )
+            std::vector<DelaunayTriangle *> neighbourhood = dt->getNeighbourhood(e) ;
+			for (auto & n : neighbourhood )
 			{
-				if ( e->getNeighbourhood(j)->isAlive() 
-					&& !line->intersects(e->getNeighbourhood(j)->getPrimitive()))
-					toEnrichAlso.push_back ( e->getNeighbourhood(j) ) ;
+				if ( n->isAlive() 
+					&& !line->intersects(n->getPrimitive()))
+					toEnrichAlso.push_back ( n ) ;
 			}
 
 

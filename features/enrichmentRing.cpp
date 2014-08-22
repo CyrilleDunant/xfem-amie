@@ -247,9 +247,9 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 				f.setPoint(c) ;
 				f.setDofID(dofId[c]) ;
 				ring[i]->setEnrichment(f, circles[h]) ;
-				for(size_t j = 0 ; j < ring[i]->neighbourhood.size() ; j++)
+                std::vector<DelaunayTriangle * > neighbourhood = dtree->getNeighbourhood(ring[i]) ;
+				for(auto & t : neighbourhood)
 				{
-					DelaunayTriangle * t = ring[i]->getNeighbourhood(j) ;
 					if(((circles[h]->in(*disc[i]->first) && circles[h]->in(*disc[i]->second) && circles[h]->in(*disc[i]->third)) || (!circles[h]->in(*disc[i]->first) && !circles[h]->in(*disc[i]->second) && !circles[h]->in(*disc[i]->third)))  && disc[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 						if(!t->enrichmentUpdated)

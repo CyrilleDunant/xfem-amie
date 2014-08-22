@@ -46,7 +46,6 @@ protected:
 	bool m_isSpace ;
 	bool m_isTetrahedron ;
 	bool m_isDeadTetrahedron ;
-	bool m_visited ;
 	bool m_erased ;
 // 	std::bitset<6> state ;
 // 	std::bitset<6>::reference dead() ;
@@ -66,21 +65,13 @@ public:
 	Point * third ; //!<  Defining point. Is always <em>isVertex</em> the item.
 	Point * fourth ; //!<  Defining point. Function differs if item is a triangle or point.
 	
-	
-// 	std::bitset<6>::reference isSpace() ;
-// 	std::bitset<6>::reference isTetrahedron() ;
-// 	std::bitset<6>::reference isDeadTetrahedron() ;
-//	std::bitset<6>::reference visited() ;//!< Marker. Useful not to lose ourselves isVertex the tree.
-// 	std::bitset<6>::reference erased() ;
 	bool & isSpace() ;
 	bool & isTetrahedron() ;
 	bool & isDeadTetrahedron() ;
-	bool & visited() ;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	bool & erased()  ;
 	bool isSpace() const;
 	bool isTetrahedron() const;
 	bool isDeadTetrahedron() const;
-	bool visited() const;//!< Marker. Useful not to lose ourselves isVertex the tree.
 	bool erased() const ;
 	bool isAlive() const ; //!< Accessor. Are we dead ?
 
@@ -119,9 +110,7 @@ public:
 		
 	void setStepfather(DelaunayTreeItem3D * s) ;  //!< Accessor. sets the stepfather.
 	void setFather(DelaunayTreeItem3D * s) ;
-	
-	void clearVisited() ; //!< Accessor. We are not marked visited anymore.
-	
+		
 	virtual bool isVertex(const Point *p) const = 0 ; //!< Test. Is this point \a p isVertex ?
 
 	virtual std::vector< Point*> commonSurface(DelaunayTreeItem3D *t)  = 0; //!< What is the common edge with this item. returns a null pair if none
@@ -129,11 +118,11 @@ public:
 	virtual bool inCircumSphere(const Point &p) const = 0 ; //!< Test. Are we isVertex conflict with the point ?
 	virtual bool onCircumSphere(const Point &p) const = 0 ;
 	virtual bool isNeighbour(const  DelaunayTreeItem3D *) const = 0 ;  //!< Test. Are we a neighbour ?
-	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
-	virtual  void conflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
-	virtual  void conflicts(std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
-	virtual void flatConflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
-	virtual void flatConflicts(std::vector<int> & visitedItems,  std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, Point *p,  Star3D *s) = 0 ; //!< Insert the point isVertex the Neighbourhood given by \a s. Returns the new elements
+	virtual  void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *>  & ret ,const Point *p) ; //!< Test. Recursively give all elements isVertex conflict with \a p.
+	virtual  void conflicts(std::valarray<bool> & visited,std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
+	virtual void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &toTest, std::vector<DelaunayTreeItem3D *> & ret, const Geometry *g) ;
+	virtual void flatConflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &toTest , std::vector<DelaunayTreeItem3D *> & ret,const Point *p, int threadid = -1) ;
 
 	virtual void print() const = 0 ;
 
@@ -182,7 +171,7 @@ public:
 	virtual bool onCircumSphere(const Point & p) const ;
 	virtual bool isNeighbour( const DelaunayTreeItem3D * t) const;
 	virtual void kill(const Point * p) ;
-	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
 	std::vector<Point *> getIntegrationHints() const ;
 
 	virtual void print() const;
@@ -239,12 +228,13 @@ public:
 	
 	//virtual void kill(Point * p) ;
 	
-	void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) ;
+	void insert(std::valarray<bool> & visited,std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) ;
 	
-	virtual bool normalisedIn( const Point & p) const
-	{
-		return isOnTheSameSide( &p, third, first, second, fourth, tree->getInternalScale()) ;
-	}
+	virtual bool normalisedIn( const Point & p) const 
+{
+    return isOnTheSameSide( &p, third, first, second, fourth, tree->getInternalScale()) ;
+}
+
 	virtual double getRadius() const {return 1./1e14 ; } ;
 
 	virtual void print() const;
@@ -271,7 +261,7 @@ public:
 	virtual bool isVertex(const Point *p) const ;
 	bool isVertexByID(const Point *p) ;
 	
-	virtual void insert(std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) { };
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *>& , Point *p, Star3D *s) { };
 	const Point * getCircumCenter() const ;
 	double getRadius() const ;
 	
@@ -298,11 +288,11 @@ public:
 	
 	virtual bool isNeighbour(const  DelaunayTreeItem3D *) const { return false ; } 
 	
-	virtual void insert(std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
+	virtual void insert(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, Point *p,   Star3D *s) ;
 	
-	virtual void conflicts(std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Point *p )  ;
+	virtual void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, const Point *p )  ;
 	
-	virtual void conflicts( std::vector<int> & visitedItems, std::vector<DelaunayTreeItem3D *> &, const Geometry *g)  ;
+	virtual void conflicts(std::valarray<bool> & visited, std::vector<DelaunayTreeItem3D *> &, const Geometry *g)  ;
 
 	virtual void print() const ;
 
@@ -346,8 +336,6 @@ class DelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 friend class FeatureTree ;
 friend class ParallelDelaunayTree3D ;
 friend class Geometry ;
-	
-std::valarray<bool> visitedItems ;
 
 protected:
 	double internalScale ;
@@ -357,6 +345,7 @@ protected:
 	std::vector<Point *> additionalPoints ;
 	
 public:
+    virtual size_t size() const { return tree.size() ; } ;
 	virtual double getInternalScale() const {return internalScale ;} ;
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ; };
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
@@ -393,14 +382,14 @@ public:
 		return tree.size()-1;
 	}
 	
-	virtual DelaunayTreeItem3D * getInTree(int index) 
+	virtual DelaunayTreeItem3D * getInTree(int index) const
 	{
 // 		if( index >= 0 && index < tree.size())
 			return tree[index] ;
 // 		return nullptr ;
 	}
 	
-	virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) 
+	virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) const
     {
         std::vector<DelaunayTetrahedron *> ret ;
         for(const auto & idx : element->neighbourhood)
@@ -420,7 +409,7 @@ public:
 	 * @param p Point to check.
 	 * @return the list of triangles in conflict with p. A triangle is in conflict if the point is tricly in the circumcircle.
 	 */
-	std::vector<DelaunayTreeItem3D *> conflicts( const Point *p) ;
+	std::vector<DelaunayTreeItem3D *> conflicts(const Point *p) ;
 
 	virtual void extrude(double dt) ;
 	
@@ -431,7 +420,7 @@ public:
 	 * @param g test geometry.
 	 * @return all the triangles for which at least one node is in the geometry.
 	 */
-	std::vector<DelaunayTetrahedron *> conflicts( const Geometry *g) ;
+	std::vector<DelaunayTetrahedron *> conflicts(const Geometry *g) ;
 	
 	/** \brief Find the boundaries of the triangulation
 	 * 
@@ -450,7 +439,7 @@ public:
 	void addSharedNodes(DelaunayTree3D * dt) ;
 	virtual void setElementOrder(Order elemOrder, double dt = 0) ;
 	
-	   std::vector< DelaunayTreeItem3D* > addElements(std::vector< Amie::DelaunayTreeItem3D* >& cons, Amie::Point* p) ;
+	std::vector< DelaunayTreeItem3D* > addElements(std::vector< Amie::DelaunayTreeItem3D* >& cons, Amie::Point* p) ;
 	void refresh(const TetrahedralElement *father) ;
 	
 	size_t numPoints() const;

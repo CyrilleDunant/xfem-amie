@@ -299,10 +299,11 @@ void StructuredMesh::insert(Point *)
 void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
 {
 
-	for(auto i = tree.begin() ; i != tree.end() ; ++i)
+    std::valarray<bool> visited(false, size()) ;
+	for(auto & i : tree)
 	{
 		
-		(*i)->visited = true ;
+		visited[i->index] = true ;
 			
 		size_t nodes_per_plane = nodes_per_side*3+3 ;
 		
@@ -313,8 +314,8 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 		{
 			for(size_t side = 0 ; side < 3 ; side++)
 			{
-				Point a(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(side)) ;
-				Point b(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint((side+1)%3)) ;
+				Point a(i->getBoundingPoint(side)) ;
+				Point b(i->getBoundingPoint((side+1)%3)) ;
 				
 				if(time_planes> 1)
 				{
@@ -327,22 +328,22 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 					Point proto = a*(1.-fraction) + b*fraction ;
 					Point * foundPoint = nullptr ;
 					
-					for(size_t j = 0 ; j< static_cast<DelaunayTriangle *>(*i)->getBoundingPoints().size() ; j++)
+					for(size_t j = 0 ; j< i->getBoundingPoints().size() ; j++)
 					{
-						if(static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(j) == proto)
+						if(i->getBoundingPoint(j) == proto)
 						{
-							foundPoint = &static_cast<DelaunayTriangle *>(*i)->getBoundingPoint(j) ;
+							foundPoint = &i->getBoundingPoint(j) ;
 							break ;
 						}
 					}
 					
 					if(!foundPoint)
 					{
-						for(size_t j = 0 ; j < static_cast<DelaunayTriangle *>(*i)->neighbourhood.size() ; j++)
+                        std::vector<DelaunayTriangle *> neighbourhood = getNeighbourhood(i) ;
+						for(auto & n : neighbourhood)
 						{
-							if(static_cast<DelaunayTriangle *>(*i)->getNeighbourhood(j)->visited)
+							if(visited[n->index])
 							{
-								DelaunayTriangle * n = static_cast<DelaunayTriangle *>(*i)->getNeighbourhood(j) ;
 								for(size_t k = 0 ; k < n->getBoundingPoints().size();k++)
 								{
 									if(n->getBoundingPoint(k) == proto)
@@ -377,13 +378,8 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 			}
 		}
 		
-		static_cast<DelaunayTriangle *>(*i)->setBoundingPoints(newPoints) ;
+		i->setBoundingPoints(newPoints) ;
 	}
-			
-	
-	for(auto i = tree.begin() ; i != tree.end() ; ++i)
-	{
-		(*i)->clearVisited() ;
-	}
+
 
 }

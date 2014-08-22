@@ -428,31 +428,31 @@ void VoxelPoreFilter::read(const char * filename)
 					tet->refresh(father) ;
 					tet->setOrder(QUADRATIC_TIME_QUADRATIC) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					(*elems.rbegin())->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron(nullptr, nullptr, corner[0], corner[2], corner[3], corner[6], 
 												corner[0+8], corner[2+8], corner[3+8], corner[6+8], nullptr) ;
 					tet->refresh(father) ;
 					tet->setOrder(QUADRATIC_TIME_QUADRATIC) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					(*elems.rbegin())->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[4], corner[6], corner[7], 
 												corner[0+8], corner[4+8], corner[6+8], corner[7+8], nullptr) ;
 					tet->refresh(father) ;
 					tet->setOrder(QUADRATIC_TIME_QUADRATIC) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					(*elems.rbegin())->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[4], corner[7],
 												corner[0+8], corner[1+8], corner[4+8], corner[7+8], nullptr) ;
 					tet->refresh(father) ;
 					tet->setOrder(QUADRATIC_TIME_QUADRATIC) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					(*elems.rbegin())->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[3], corner[7],
 												corner[0+8], corner[1+8], corner[3+8], corner[7+8], nullptr) ;
 					tet->refresh(father) ;
 					tet->setOrder(QUADRATIC_TIME_QUADRATIC) ;
 					elems.push_back(tet) ;
-					(*elems.rbegin())->setBehaviour(behaviour) ;
+					(*elems.rbegin())->setBehaviour(nullptr,behaviour) ;
 				}
 			}
 			
