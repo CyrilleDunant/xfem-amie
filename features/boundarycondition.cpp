@@ -178,8 +178,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					{
 						for(size_t b = 1 ; b < visc->blocks ;  b++)
 						{
-							a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
-							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
+                            a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
+                            a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
 						}
 					}
 
@@ -236,8 +236,8 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					{
 						for(size_t b = 1 ; b < visc->blocks ;  b++)
 						{
-							a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
-							a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
+                            a->addForceOnIndexedAxis( 2*b, -forces[0], id[idit] ) ;
+                            a->addForceOnIndexedAxis( 2*b+1, -forces[1], id[idit] ) ;
 						}
 					}
 
@@ -3959,7 +3959,7 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 		Point pmin(minx, miny, 0., mint) ;
 		Point pmax(maxx, maxy, 0., maxt) ;
 
-		double tol = std::max( std::min( maxx - minx, maxy - miny ) * .001, POINT_TOLERANCE_2D ) ;
+		double tol = std::max( std::min(std::min( maxx - minx, maxy - miny ), maxt-mint) * .001, POINT_TOLERANCE_2D ) ;
 
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
