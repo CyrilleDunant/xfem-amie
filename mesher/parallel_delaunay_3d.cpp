@@ -21,7 +21,7 @@
 
 using namespace Amie ;
 
-bool isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1)
+bool ParallelDelaunayTree3D::isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1) const
 {
     if(i0->isTetrahedron() && !i1->isTetrahedron())
         return false ;
@@ -30,7 +30,7 @@ bool isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1)
     return i0->isVertex( i1->first ) && i0->isVertex( i1->second ) && i0->isVertex( i1->third )  && i0->isVertex( i1->fourth ) ;
 }
 
-bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const DelaunayTetrahedron * tet)
+bool ParallelDelaunayTree3D::inDomain( int domain_index, const DelaunayTetrahedron * tet) const
 {
     if(domains[domain_index]->in(tet->getCenter()))
     {
@@ -49,7 +49,7 @@ bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const 
     return false ;
 }
 
-int getMesh(const std::vector<DelaunayTree3D *> & meshes, const DelaunayTreeItem3D * self)
+int ParallelDelaunayTree3D::getMesh(const DelaunayTreeItem3D * self) const
 {
     for(size_t i = 0 ; i < meshes.size() ; i++)
         if(self->tree == meshes[i])
@@ -57,9 +57,9 @@ int getMesh(const std::vector<DelaunayTree3D *> & meshes, const DelaunayTreeItem
     return -1 ;
 }
 
-int getDomain(const std::vector <Geometry* > & domains, const std::vector<DelaunayTree3D *> & meshes, const DelaunayTetrahedron * tet)
+int ParallelDelaunayTree3D::getDomain(const DelaunayTetrahedron * tet) const
 {
-    int mesh = getMesh(meshes,tet) ;
+    int mesh = getMesh(tet) ;
     std::valarray<bool> inDomain(false, domains.size()) ;
     #pragma omp parallel for
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
@@ -87,7 +87,7 @@ int getDomain(const std::vector <Geometry* > & domains, const std::vector<Delaun
     return -1 ;
 }
 
-int getDomain(const std::vector <Geometry* > & domains, const Point & center)
+int ParallelDelaunayTree3D::getDomain(const Point & center) const
 {
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
@@ -131,7 +131,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
         std::vector<DelaunayTetrahedron *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
         {
-            if(getDomain(domains,meshes,tmpConflicts[i]) != 1)
+            if(getDomain(tmpConflicts[i]) != 1)
                 conflicts[i].push_back(tmpConflicts[j]) ;
         }
     }
@@ -152,7 +152,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
         std::vector<DelaunayTetrahedron *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ;  j++)
         {
-            if(inDomain(domains, i, tmpConflicts[j]))
+            if(inDomain( i, tmpConflicts[j]))
                 conflicts[i].push_back(tmpConflicts[j]);
         }
     }
@@ -270,7 +270,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
         for(const auto & t : tmp)
         {
 
-            if(getDomain(domains,meshes, t) == i)
+            if(getDomain( t) == i)
                 tris[i].push_back(t);
         }
     }
@@ -285,7 +285,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
 std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element) const
 {
     std::vector<DelaunayTetrahedron *> ret ;
-    int domain = getDomain(domains,meshes,element) ;
+    int domain = getDomain(element) ;
     if(domain == -1)
     {
         for(const auto & idx : element->neighbourhood)
@@ -299,11 +299,11 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(Dela
         for(const auto & idx : element->neighbourhood)
         {
             DelaunayTetrahedron * n = (DelaunayTetrahedron *)meshes[domain]->tree[idx] ;
-            if(getDomain(domains,meshes,n) == domain)
+            if(getDomain(n) == domain)
                 ret.push_back(n);
             else
             {
-                int altDomain = getDomain(domains,n->getCenter()) ;
+                int altDomain = getDomain(n->getCenter()) ;
                 DelaunayTetrahedron * an = meshes[altDomain]->getUniqueConflictingElement(&n->getCenter()) ;
                 ret.push_back(an);
             }

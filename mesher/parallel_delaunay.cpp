@@ -21,7 +21,7 @@
 
 using namespace Amie ;
 
-bool isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1)
+bool ParallelDelaunayTree::isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1) const 
 {
     if(i0->isTriangle && !i1->isTriangle)
         return false ;
@@ -30,7 +30,7 @@ bool isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1)
     return i0->isVertex( i1->first ) && i0->isVertex( i1->second ) && i0->isVertex( i1->third )  ;
 }
 
-bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const DelaunayTriangle * tet)
+bool ParallelDelaunayTree::inDomain(int domain_index, const DelaunayTriangle * tet) const 
 {
     if(domains[domain_index]->in(tet->getCenter()))
     {
@@ -49,7 +49,7 @@ bool inDomain(const std::vector <Geometry* > & domains, int domain_index, const 
     return false ;
 }
 
-int getMesh(const std::vector<DelaunayTree *> & meshes, const DelaunayTreeItem * self)
+int ParallelDelaunayTree::getMesh(const DelaunayTreeItem * self) const 
 {
     for(size_t i = 0 ; i < meshes.size() ; i++)
         if(self->tree == meshes[i])
@@ -57,9 +57,9 @@ int getMesh(const std::vector<DelaunayTree *> & meshes, const DelaunayTreeItem *
     return -1 ;
 }
 
-int getDomain(const std::vector <Geometry* > & domains, const std::vector<DelaunayTree *> & meshes, const DelaunayTriangle * tet)
+int ParallelDelaunayTree::getDomain(const DelaunayTriangle * tet) const 
 {
-    int mesh = getMesh(meshes,tet) ;
+    int mesh = getMesh(tet) ;
     std::valarray<bool> inDomain(false, domains.size()) ;
     #pragma omp parallel for
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
@@ -87,7 +87,7 @@ int getDomain(const std::vector <Geometry* > & domains, const std::vector<Delaun
     return -1 ;
 }
 
-int getDomain(const std::vector <Geometry* > & domains, const Point & center)
+int ParallelDelaunayTree::getDomain(const Point & center) const 
 {
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
@@ -131,7 +131,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
         std::vector<DelaunayTriangle *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
         {
-            if(getDomain(domains,meshes,tmpConflicts[i]) != 1)
+            if(getDomain(tmpConflicts[i]) != 1)
                 conflicts[i].push_back(tmpConflicts[j]) ;
         }
     }
@@ -152,7 +152,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getConflictingElements(con
         std::vector<DelaunayTriangle *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ;  j++)
         {
-            if(inDomain(domains, i, tmpConflicts[j]))
+            if(inDomain(i, tmpConflicts[j]))
                 conflicts[i].push_back(tmpConflicts[j]);
         }
     }
@@ -268,7 +268,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
         for(const auto & t : tmp)
         {
 
-            if(getDomain(domains,meshes, t) == i)
+            if(getDomain(t) == i)
                 tris[i].push_back(t);
         }
     }
@@ -280,10 +280,10 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
     return ret ;
 }
 
-std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayTriangle * element)
+std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayTriangle * element) const
 {
     std::vector<DelaunayTriangle *> ret ;
-    int domain = getDomain(domains,meshes,element) ;
+    int domain = getDomain(element) ;
     if(domain == -1)
     {
         for(const auto & idx : element->neighbourhood)
@@ -297,11 +297,11 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayT
         for(const auto & idx : element->neighbourhood)
         {
             DelaunayTriangle * n = (DelaunayTriangle *)meshes[domain]->tree[idx] ;
-            if(getDomain(domains,meshes,n) == domain)
+            if(getDomain(n) == domain)
                 ret.push_back(n);
             else
             {
-                int altDomain = getDomain(domains,n->getCenter()) ;
+                int altDomain = getDomain(n->getCenter()) ;
                 DelaunayTriangle * an = meshes[altDomain]->getUniqueConflictingElement(&n->getCenter()) ;
                 ret.push_back(an);
             }

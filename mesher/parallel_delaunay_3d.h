@@ -22,6 +22,11 @@ namespace Amie
     
 class ParallelDelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
+    int getDomain(const DelaunayTetrahedron * tet) const;
+    int getMesh(const DelaunayTreeItem3D * self) const;
+    bool inDomain(int domain_index, const DelaunayTetrahedron * tet) const;
+    bool isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1) const;
+    int getDomain(const Point & center) const;
 protected:
     std::vector<Geometry *> domains ;
     std::vector<DelaunayTree3D *> meshes ;
@@ -66,6 +71,7 @@ public:
     {
         return nullptr ;
     }
+    
     virtual size_t size() const
     {
         size_t s = 0 ;

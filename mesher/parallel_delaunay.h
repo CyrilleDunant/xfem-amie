@@ -22,6 +22,11 @@ namespace Amie
 
 class ParallelDelaunayTree :public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
+    int getDomain(const DelaunayTriangle * tet) const ;
+    int getMesh(const DelaunayTreeItem * self) const;
+    bool inDomain(int domain_index, const DelaunayTriangle * tet) const;
+    bool isSame(const DelaunayTreeItem * i0, const DelaunayTreeItem * i1) const;
+    int getDomain(const Point & center) const;
 protected:
     std::vector< std::vector<int> > elementMap ; //the negative ids indicate elements not valid for the mesh
     std::vector<Geometry *> domains ;
@@ -54,15 +59,23 @@ public:
         return global_counter ;
     };
 
-    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) ;
+    virtual std::vector<DelaunayTriangle *> getNeighbourhood(DelaunayTriangle * element) const ;
     
     virtual int addToTree(DelaunayTreeItem * toAdd)
     {
         return 0 ;
     }
 
-    virtual DelaunayTreeItem * getInTree(int index)
+    virtual DelaunayTreeItem * getInTree(int index) const 
     {
+    }
+    
+    virtual size_t size() const
+    {
+        size_t s = 0 ;
+        for( const auto & m : meshes)
+            s += m->size() ;
+        return s ;
     }
 } ;
 } ;
