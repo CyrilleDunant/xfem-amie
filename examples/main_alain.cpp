@@ -45,63 +45,172 @@
 #define DEBUG
 using namespace Amie ;
 
-Sample box(nullptr, 0.02, 0.01,0.,0.) ;
-
 
 int main(int argc, char *argv[])
 {
-	double timestep = 1. ;//atof(argv[1]) ;
+	omp_set_num_threads(1) ;
+	bool elastic = (std::string(argv[2]) == std::string("elastic")) ;
+	bool simple = (std::string(argv[3]) == std::string("simple")) ;
+	int criterion = atoi(argv[4]) ;
+	double deltad = atof(argv[5]) ;
+
+	double timestep = 86400.*0.00001/atof(argv[1]) ;//atof(argv[1]) ;
+	double absoluteTimeTolerance = 1e-10;//0.1/(86400.*0.00001/0.0001) ;
+	double relativeTimeTolerance = absoluteTimeTolerance*timestep ;
+
+	double length = 0.02 ; if(simple) { length = 0.01 ; }
+	Sample box(nullptr, length, 0.01,0.,0.) ;
+
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(4) ;
+	if(simple)
+		F.setSamplingNumber(1) ;
+	else
+		F.setSamplingNumber(6) ;
 
-	ViscoElasticOnlyPasteBehaviour dpaste ;
-	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9) ;//atof(argv[1]) ) ;
-	ViscoelasticityAndFracture paste( PURE_ELASTICITY, dpaste.param, new SpaceTimeNonLocalLinearSofteningMaximumStrain( 0.0001, 0.0001*dpaste.param[0][0], 0.0001*1.5), dampaste ) ;
-	paste.getFractureCriterion()->setMaterialCharacteristicRadius(0.003) ;
-	box.setBehaviour(&paste);
+	ElasticOnlyPasteBehaviour dpaste(16e9, 0.3) ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( deltad, absoluteTimeTolerance, 1.-1e-5) ;//atof(argv[1]) ) ;
+	FractureCriterion * critpaste ;
+	switch(criterion)
+	{
+		case 1:
+			critpaste =  new SpaceTimeNonLocalLinearSofteningMaximumStrain( 0.00035, 0.00035*16e9, 0.0007) ;
+			break ;
+		case 2:
+			critpaste =  new SpaceTimeNonLocalMaximumStrain( 0.00035, 0.00035*16e9) ;
+			break ;
+		case 3:
+			critpaste =  new SpaceTimeNonLocalMaximumStress( 0.00035, 0.00035*16e9) ;
+			break ;
+	}
+	ViscoelasticityAndFracture * paste ;
+	if(elastic)
+		paste = new ViscoelasticityAndFracture( PURE_ELASTICITY, dpaste.param, critpaste, dampaste ) ;
+	else
+		paste = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, dpaste.param, dpaste.param*40./16., dpaste.param*0.005*40/16, critpaste, dampaste ) ;
 
-	F.setSamplingFactor(&box, 2.) ;
+	paste->getFractureCriterion()->setMaterialCharacteristicRadius(0.0015) ;
+	box.setBehaviour(paste);
+
+	if(simple)
+		F.setSamplingFactor(&box, 0.25) ;
+	else
+		F.setSamplingFactor(&box, 2) ;
 
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(timestep) ;
-	F.setMaxIterationsPerStep(500) ;
-	F.setMinDeltaTime(1e-20) ;
+	if(simple)
+		F.setMaxIterationsPerStep(32) ;
+	else
+		F.setMaxIterationsPerStep(256) ;
+	F.setMinDeltaTime(absoluteTimeTolerance) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0,1)) ;
 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
+//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0,1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
 	F.step() ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 	int count = 0 ;
-	for(size_t i = 0 ; i < trg.size() ; i++)
+	Rectangle s( 0.002,0.02, 0., 0.) ;
+
+	if(!simple)
 	{
-		if(trg[i]->getBehaviour()->getFractureCriterion())
+		for(size_t i = 0 ; i < trg.size() ; i++)
 		{
-			if(std::abs(trg[i]->getCenter().getX()) < 0.0002)
+			if(trg[i]->getBehaviour()->getFractureCriterion())
 			{
-				SpaceTimeNonLocalLinearSofteningMaximumStrain* dam = dynamic_cast<SpaceTimeNonLocalLinearSofteningMaximumStrain *>(trg[i]->getBehaviour()->getFractureCriterion()) ;
-				dam->upVal *= 0.99 ;
-				dam->maxstress *= 0.99 ;
-				dam->yieldstrain *= 0.99 ;
-				count++ ;
+				if(s.in(trg[i]->getCenter()))
+				{
+					SpaceTimeNonLocalLinearSofteningMaximumStrain* dam = dynamic_cast<SpaceTimeNonLocalLinearSofteningMaximumStrain *>(trg[i]->getBehaviour()->getFractureCriterion()) ;
+					dam->upVal *= 0.99999 ;
+					dam->maxstress *= 0.99999 ;
+					count++ ;
+				}
 			}
 		}
+		std::cout << "paste weakened in " << count << " elements" << std::endl ;
 	}
-	std::cout << "paste weakened in " << count << " elements" << std::endl ;
+
+	double increment = atof(argv[1]) ;
 
 	std::fstream out ;
 	std::string name = "tensile_" ;
-//	name.append(argv[1]) ;
+	name.append(argv[1]) ;
+	name.append("_") ;
+	name.append(argv[2]) ;
+	name.append("_") ;
+	name.append(argv[3]) ;
+	switch(criterion)
+	{
+		case 1:
+			name.append("_softening") ;
+			break ;
+		case 2:
+			name.append("_strain") ;
+			break ;
+		case 3:
+			name.append("_stress") ;
+			break ;
+	}
+	name.append("_") ;
+	name.append(argv[5]) ;
 	out.open(name.c_str(), std::ios::out) ;
 
 	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.0, 0) ;
 	F.addBoundaryCondition(disp) ;
-	for(size_t i = 0 ; i < 100 ; i++)
+	size_t i = 0 ;
+	int done = 0 ;
+	while(increment*i < length*0.00099)
 	{
-		disp->setData(0.0000001*i) ;
-		if(!F.step())
-			break ;
+		i++;
+		disp->setData(increment*i) ;
+		F.setDeltaTime(timestep) ;
+		F.setMinDeltaTime(absoluteTimeTolerance) ;
+		while(!F.step()) 
+		{ 
+			std::string nameinter = name ;
+			nameinter.append("_trg_inter") ;
+			TriangleWriter writer(nameinter, &F, 1) ;
+			writer.getField(STRAIN_FIELD) ;
+			writer.getField(REAL_STRESS_FIELD) ;
+			writer.getField(TWFT_CRITERION) ;
+			writer.getField(TWFT_STIFFNESS) ;
+			writer.getField(TWFT_DAMAGE) ;
+			writer.write() ;
 
+			double sigma = F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] ;
+			double epsilon = F.getAverageField(STRAIN_FIELD, -1, 1.)[0] ;
+			double Ei = sigma/epsilon ;
+			double E0 = 16e9 ;
+
+			if((Ei/E0 < 0.9 && done == 0) || (Ei/E0 < 0.5 && done == 0))
+			{
+				std::fstream outi ;
+				std::string namei = name ;
+				namei.append("_") ;
+				namei.append(itoa(done)) ;
+				outi.open(namei.c_str(), std::ios::out) ;
+				for(size_t j = 0 ; j < trg.size() ; j++)
+					outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
+				done++ ;
+			}
+
+			out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, -1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, -1.)[0] << std::endl ;
+
+			std::cout << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
+		}
+
+		out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
+
+		std::cout << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
 	}
+
+	std::fstream outi ;
+	std::string namei = name ;
+	namei.append("_") ;
+	namei.append(itoa(done)) ;
+	outi.open(namei.c_str(), std::ios::out) ;
+	for(size_t j = 0 ; j < trg.size() ; j++)
+		outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
 
 	std::string nametrg = name ;
 	nametrg.append("_trg_0") ;

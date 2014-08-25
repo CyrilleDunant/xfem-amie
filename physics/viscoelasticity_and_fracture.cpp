@@ -506,13 +506,6 @@ void ViscoelasticityAndFracture::step(double timestep, ElementState & currentSta
 {
 	dfunc->step(currentState, maxscore) ;
 	currentState.getParent()->behaviourUpdated = dfunc->changed() ;
-/*	SpaceTimeNonLocalMaximumStrain * crit = dynamic_cast<SpaceTimeNonLocalMaximumStrain *>(criterion) ;
-	if(crit != nullptr && dfunc->changed() && !dfunc->fractured())
-	{
-		crit->upVal = crit->maxstress/(param[0][0]*(1.-dfunc->getState().max())) ;
-	}*/
-
-
 }
 
 
@@ -529,7 +522,44 @@ bool ViscoelasticityAndFracture::changed() const
 Form * ViscoelasticityAndFracture::getCopy() const 
 {
   
-	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture(  param, eta, blocks, criterion->getCopy(), dfunc->getCopy())  ;
+	ViscoelasticityAndFracture * copy ; 
+	switch(model)
+	{
+		case PURE_ELASTICITY:
+			copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, tensors[0], criterion->getCopy(), dfunc->getCopy(), blocks-1) ;
+			break ;
+		case PURE_VISCOSITY:
+			copy = new ViscoelasticityAndFracture( PURE_VISCOSITY, tensors[1], criterion->getCopy(), dfunc->getCopy(), blocks-1) ;
+			break ;
+		case MAXWELL:
+			copy = new ViscoelasticityAndFracture( MAXWELL, tensors[0], tensors[1], criterion->getCopy(), dfunc->getCopy(), blocks-2) ;
+			break ;
+		case KELVIN_VOIGT:
+			copy = new ViscoelasticityAndFracture( KELVIN_VOIGT, tensors[0], tensors[1], criterion->getCopy(), dfunc->getCopy(), blocks-1) ;
+			break ;
+		case GENERALIZED_MAXWELL:
+		{
+			std::vector<std::pair<Matrix, Matrix> > branches ;
+			for(size_t i = 1 ; i < tensors.size() ; i += 2)
+				branches.push_back(std::make_pair(tensors[i], tensors[i+1])) ;
+			copy = new ViscoelasticityAndFracture( GENERALIZED_MAXWELL, tensors[0], branches, criterion->getCopy(), dfunc->getCopy()) ;
+			break ;
+		}
+		case GENERALIZED_KELVIN_VOIGT:
+		{
+			std::vector<std::pair<Matrix, Matrix> > branches ;
+			for(size_t i = 1 ; i < tensors.size() ; i += 2)
+				branches.push_back(std::make_pair(tensors[i], tensors[i+1])) ;
+			copy = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, tensors[0], branches, criterion->getCopy(), dfunc->getCopy()) ;
+			break ;
+		}
+		case BURGER:
+			copy = new ViscoelasticityAndFracture( BURGER, tensors[0], tensors[1], tensors[2], tensors[3], criterion->getCopy(), dfunc->getCopy(), blocks-3) ;
+			break ;
+		default:
+			copy = new ViscoelasticityAndFracture(  param, eta, blocks, criterion->getCopy(), dfunc->getCopy())  ;
+
+	}
 	copy->model = model ;
 	copy->dfunc->getState(true).resize(dfunc->getState().size());
 	copy->dfunc->getState(true) = dfunc->getState() ;
