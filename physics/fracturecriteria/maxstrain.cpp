@@ -10,6 +10,7 @@
 //
 //
 #include "maxstrain.h"
+#include "../damagemodels/damagemodel.h"
 
 namespace Amie {
 
@@ -88,8 +89,40 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 
-	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
+	double Esoft = maxstress / ( yieldstrain - upVal) ;
+	double Einst = maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+// stateAfter.first.max() / stateAfter.second.max() ;
+	double Eprev = stateBefore.first.max() / stateBefore.second.max() ;
+	double epsMax = (Esoft / (Esoft+Einst))*yieldstrain ;
+
+	double maxStrainBefore = stateBefore.second.max() ;
+	double maxStrainAfter = stateAfter.second.max() ;
+	double maxStressBefore = stateBefore.first.max() ;
+	double maxStressAfter = stateAfter.first.max() ;
+
+	metInCompression = false ;
+	metInTension = false ;
+	if(maxStrainAfter > epsMax)
+	{
+		metInTension = true ;
+/*		std::cout << (Esoft-Einst)/Esoft << std::endl ;
+		Point before(maxStrainBefore, maxStressBefore) ;
+		Point after(maxStrainAfter, maxStressAfter) ;
+		Point intersect(epsMax, epsMax*Einst) ;
+		before.print() ;
+		intersect.print() ;
+		after.print() ;*/
+		if( false ) //s.getParent()->getBoundingPoint(0).getId() == 9)
+			std::cout << s.getNodalDeltaTime() << "\t" << s.getParent()->getBoundingPoint(0).getId() << "\t" << s.getParent()->getBoundingPoint(1).getId() << "\t" <<  maxStrainBefore << "\t" << maxStrainAfter << "\t" << maxStressBefore << "\t" << maxStressAfter << "\t" << upVal << "\t" << yieldstrain << "\t" << epsMax << "\t" << epsMax*Einst << "\t" << Esoft << "\t" << Einst << "\t" <<  (Esoft / (Esoft+Einst)) << "\t" << std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) <<  std::endl ;
+		return  std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
+	}
+	return -1.+ maxStrainAfter/epsMax;
+
+/*	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
 	Point after( (stateAfter.second).max(), (stateAfter.first).max()/1e6 ) ;
+
+	
+
 	Segment history(before, after) ;
 	Line current(history) ;
 
@@ -97,8 +130,6 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	Point x1( yieldstrain, 0. ) ;
 	Line behaviour(Segment(x0, x1)) ;
 
-	metInCompression = false ;
-	metInTension = false ;
 	
 	Point t = behaviour.intersection(current) ;
 
@@ -119,13 +150,13 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	{
 	before.print() ;
 	after.print() ;
-/*	x0.print() ;
-	x1.print() ;*/
+	x0.print() ;
+	x1.print() ;
 	t.print() ;
 	std::cout << ret << std::endl ;
 	}	
 
-	return ret ;
+	return ret ;*/
 }
 
 double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)

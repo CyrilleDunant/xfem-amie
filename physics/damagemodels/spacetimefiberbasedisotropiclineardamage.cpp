@@ -59,6 +59,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
   
 	if(fractured())
 		return m*1e-5 ;
+
 	
 	if(state.size() == 1)
 		return m*(1.-state[0]) ;
@@ -130,7 +131,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 	else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance*dt)
 	{
 
-		state[state.size() -1] += fibreFraction*(1.-(maxscore-score)/maxscore) ;
+		state[state.size() -1] += fibreFraction ;//*(1.-(maxscore-score)/maxscore) ;
 		for(size_t i = 0 ; i < state.size() ; i++)
 		{
 			if(state[i] > 1)
