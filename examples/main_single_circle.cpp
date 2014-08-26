@@ -119,12 +119,15 @@ void step()
     exit(0) ;
 }
 
-
+double partitionScore(const std::vector<int> & triplet)
+{
+    double avg = (triplet[0]+triplet[1]+triplet[2])/3. ;
+    return (triplet[0]-avg)*(triplet[0]-avg)+(triplet[1]-avg)*(triplet[1]-avg)+(triplet[2]-avg)*(triplet[2]-avg) ;
+}
 
 int main(int argc, char *argv[])
 {
 
-   
     Sample samplers(nullptr, 400,400,200,200) ;
 
     FeatureTree F(&samplers) ;

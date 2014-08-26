@@ -134,6 +134,7 @@ protected:
 	Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree3D ;
 	
 	std::vector<const Geometry * > refinementZones ;
+    std::vector<const Geometry *>  domains ;
 	void quadTreeRefine(const Geometry * location = nullptr) ;
 	
 	std::map<int, Mesh<DelaunayTriangle, DelaunayTreeItem> *> layer2d ;
@@ -327,6 +328,8 @@ public:
 	void setInitialValue(double v) {initialValue = v ; } ;
 	double getInitialValue() const {return initialValue ;} ;
 
+    void setPartition(size_t partitionNumber) ;
+    const std::vector<const Geometry *> getPartition() { return domains ;} ;
 public:
 	Vector instants ;
 

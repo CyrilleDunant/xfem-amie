@@ -204,56 +204,60 @@ bool interacts(const Geometry * g , DelaunayTreeItem * item)
 
 void ParallelDelaunayTree::insert(Point * p)
 {   
-    #pragma omp parallel for schedule(static,1)
+    #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {   
-        bool isVertex = false ;
-        bool noInteraction = true ;
-        std::vector<DelaunayTreeItem *> cons = meshes[i]->conflicts(p) ;
-        std::vector<DelaunayTreeItem *> newElems ;
-        if(cons.empty())
-        {
-            std::cout << "Failed insertion : in nothing !" << std::endl ;
-        }
-        
-        for(size_t j = 0 ; j < cons.size() ; j++)
-        {
-            if(cons[j]->isVertex(p))
+//         #pragma omp task
+//         {
+            bool isVertex = false ;
+            bool noInteraction = true ;
+            std::vector<DelaunayTreeItem *> cons = meshes[i]->conflicts(p) ;
+            std::vector<DelaunayTreeItem *> newElems ;
+            if(cons.empty())
             {
-                isVertex = true ;
-                break ;
+                std::cout << "Failed insertion : in nothing !" << std::endl ;
             }
-        }
-        if(isVertex)
-            continue ;
-        
-        if(domains[i]->in(*p))
-             noInteraction = false ;
-        else
-        {
-            for(auto & c : cons )
+            
+            for(size_t j = 0 ; j < cons.size() ; j++)
             {
-                if(interacts(domains[i], c))
+                if(cons[j]->isVertex(p))
                 {
-                    noInteraction = false ;
+                    isVertex = true ;
                     break ;
                 }
             }
-        }
-        
-        if(!noInteraction || global_counter < 5 )
-        {
-            meshes[i]->neighbourhood = false ;
-            newElems = meshes[i]->addElements(cons, p) ;
-        }
-        
-        unsigned int maxIdx = 0 ;
-        for(size_t j = 0 ; j < newElems.size() ; j++)
-            maxIdx = std::max(maxIdx, newElems[j]->index) ;
+            if(!isVertex)
+            {
+            
+                if(domains[i]->in(*p))
+                    noInteraction = false ;
+                else
+                {
+                    for(const auto & c : cons )
+                    {
+                        if(interacts(domains[i], c))
+                        {
+                            noInteraction = false ;
+                            break ;
+                        }
+                    }
+                }
+                
+                if(!noInteraction || global_counter < 5 )
+                {
+                    meshes[i]->neighbourhood = false ;
+                    newElems = meshes[i]->addElements(cons, p) ;
+                }
+                
+                unsigned int maxIdx = 0 ;
+                for(size_t j = 0 ; j < newElems.size() ; j++)
+                    maxIdx = std::max(maxIdx, newElems[j]->index) ;
 
 
-        if(!isVertex && i == meshes.size()-1)
-            p->getId()= global_counter++ ;
+                if(i == meshes.size()-1)
+                    p->getId()= global_counter++ ;
+            }
+//         }
     }
 }
 
