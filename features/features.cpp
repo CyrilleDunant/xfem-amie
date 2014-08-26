@@ -6724,7 +6724,7 @@ void FeatureTree::generateElements()
         double t0 = omp_get_wtime() ;
 #endif
         
-        dtree = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains ) ;
+        dtree = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/ ) ;
         dtree->insert( meshPoints[3].first ) ;
         layer2d[-1] = dtree ;
 
@@ -6734,7 +6734,7 @@ void FeatureTree::generateElements()
             {
                 if(layer2d.find(tree[i]->getLayer()) == layer2d.end())
                 {
-                    layer2d[tree[i]->getLayer()] = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains) ;
+                    layer2d[tree[i]->getLayer()] = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/) ;
                     layer2d[tree[i]->getLayer()]->insert( meshPoints[3].first ) ;
                 }
             }
@@ -6860,7 +6860,7 @@ void FeatureTree::generateElements()
 #ifdef HAVE_OPENMP
         double t0 = omp_get_wtime() ;
 #endif
-        dtree3D = new ParallelDelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains) ;
+        dtree3D = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
         dtree3D->insert( meshPoints[4].first ) ;
         dtree3D->insert( meshPoints[5].first ) ;
         dtree3D->insert( meshPoints[6].first ) ;
@@ -6874,7 +6874,7 @@ void FeatureTree::generateElements()
             {
                 if(layer3d.find(feature->getLayer()) == layer3d.end())
                 {
-                    layer3d[feature->getLayer()] = new ParallelDelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains) ;
+                    layer3d[feature->getLayer()] = new /*Parallel*/DelaunayTree3D( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/) ;
                     layer3d[feature->getLayer()]->insert( meshPoints[4].first ) ;
                     layer3d[feature->getLayer()]->insert( meshPoints[5].first ) ;
                     layer3d[feature->getLayer()]->insert( meshPoints[6].first ) ;
