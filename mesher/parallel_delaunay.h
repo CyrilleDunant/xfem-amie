@@ -29,7 +29,7 @@ class ParallelDelaunayTree :public Mesh<DelaunayTriangle, DelaunayTreeItem>
     int getDomain(const Point & center) const;
 protected:
     std::vector< std::vector<int> > elementMap ; //the negative ids indicate elements not valid for the mesh
-    std::vector<Geometry *> domains ;
+    std::vector<const Geometry *> domains ;
     std::vector<DelaunayTree *> meshes ;
     std::vector<Point *> additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
@@ -46,7 +46,7 @@ public:
         return meshes[0]->getInternalScale() ;
     } ;
 public:
-    ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<Geometry *> & domains) ;
+    ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree() {} ;
     virtual std::vector<DelaunayTriangle *> getElements() ;
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;

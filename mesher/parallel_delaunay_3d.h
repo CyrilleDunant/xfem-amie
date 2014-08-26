@@ -28,7 +28,7 @@ class ParallelDelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3
     bool isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1) const;
     int getDomain(const Point & center) const;
 protected:
-    std::vector<Geometry *> domains ;
+    std::vector<const Geometry *> domains ;
     std::vector<DelaunayTree3D *> meshes ;
     std::vector<Point *> additionalPoints ;
     std::vector<DelaunayTreeItem3D *> tree ;
@@ -47,7 +47,7 @@ public:
         return meshes[0]->getInternalScale() ;
     } ;
 public:
-    ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<Geometry *> & domains) ;
+    ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree3D() {} ;
     virtual std::vector<DelaunayTetrahedron *> getElements() ;
     virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Point  * p) ;

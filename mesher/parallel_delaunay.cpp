@@ -109,7 +109,7 @@ int ParallelDelaunayTree::getDomain(const Point & center) const
     return -1 ;
 }
 
-ParallelDelaunayTree::ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<Geometry *> & domains) : domains(domains)
+ParallelDelaunayTree::ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<const Geometry *> & domains) : domains(domains)
 {
     std::vector<std::vector<DelaunayTreeItem *> > newElements(domains.size()) ;
 

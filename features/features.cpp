@@ -227,7 +227,7 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
     dtree = nullptr ;
     dtree3D = nullptr ;
 
-    std::valarray<Point> bbox = first->getBoundingBox() ;
+    std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
     for( size_t j  =  0 ; j <  bbox.size() ; j++ )
@@ -330,7 +330,7 @@ void FeatureTree::setPartition(size_t partitionNumber)
     for(size_t i = 0 ; i < domains.size() ; i++)
         delete domains[i] ;
     
-    std::valarray<Point> bbox = tree[0]->getBoundingBox() ;
+    std::vector<Point> bbox = tree[0]->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
     for( size_t j  =  0 ; j <  bbox.size() ; j++ )
@@ -412,10 +412,7 @@ void FeatureTree::setPartition(size_t partitionNumber)
         {
             for(size_t j = 0 ; j < dj ; j++)
             {
-                for(size_t k = 0 ; k < dk ; k++)
-                {
-                     domains.push_back(new Rectangle(lx/di, ly/dj, lx/(2.*di)+lx/di*i, ly/(2.*dj)+ly/dj*j));
-                }
+                domains.push_back(new Rectangle(lx/di, ly/dj, lx/(2.*di)+lx/di*i, ly/(2.*dj)+ly/dj*j));
             }
         }
     }
@@ -6246,7 +6243,7 @@ void FeatureTree::generateElements()
 
     std::cout << "space meshed with " << pointDensity << " points per unit length" << std::endl ;
 
-    std::valarray<Point> bbox = tree[0]->getBoundingBox() ;
+    std::vector<Point> bbox = tree[0]->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
 
     for( size_t j  =  0 ; j <  bbox.size() ; j++ )

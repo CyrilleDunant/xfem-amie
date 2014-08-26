@@ -109,14 +109,13 @@ int ParallelDelaunayTree3D::getDomain(const Point & center) const
     return -1 ;
 }
 
-ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<Geometry *> & domains) : domains(domains)
+ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) : domains(domains)
 {
     std::vector<std::vector<DelaunayTreeItem3D *> > newElements(domains.size()) ;
 
     for(size_t i = 0 ; i < domains.size() ; i++)
     {
         meshes.push_back(new DelaunayTree3D(p0, p1, p2, p3));
-
     }
 
     global_counter = meshes[0]->global_counter ;
