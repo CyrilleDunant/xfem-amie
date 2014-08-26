@@ -251,15 +251,6 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
             max_z = bbox[j].getZ() ;
     }
 
-    bbox[0] = Point( min_x, min_y, min_z ) ;
-    bbox[1] = Point( min_x, min_y, max_z ) ;
-    bbox[2] = Point( min_x, max_y, min_z ) ;
-    bbox[3] = Point( min_x, max_y, max_z ) ;
-    bbox[4] = Point( max_x, min_y, min_z ) ;
-    bbox[5] = Point( max_x, min_y, max_z ) ;
-    bbox[6] = Point( max_x, max_y, min_z ) ;
-    bbox[7] = Point( max_x, max_y, max_z ) ;
-
     samplingRestriction = SAMPLE_NO_RESTRICTION ;
 
     if( first )
@@ -269,19 +260,19 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 
     if( is2D() )
     {
-        grid = new Grid( ( first->getBoundingBox()[1].getX() - first->getBoundingBox()[0].getX() ) * 1.1,
-                         ( first->getBoundingBox()[1].getY() - first->getBoundingBox()[2].getY() ) * 1.1, gridsize,
-                         Point( ( first->getBoundingBox()[1].getX() + first->getBoundingBox()[0].getX() )*.5,
-                                ( first->getBoundingBox()[1].getY() + first->getBoundingBox()[2].getY() )*.5
+        grid = new Grid( ( bbox[1].getX() - bbox[0].getX() ) * 1.1,
+                         ( bbox[1].getY() - bbox[2].getY() ) * 1.1, gridsize,
+                         Point( ( bbox[1].getX() + bbox[0].getX() )*.5,
+                                ( bbox[1].getY() + bbox[2].getY() )*.5
                               ) ) ;
         domains.push_back(new Rectangle(max_x-min_x, max_y-min_y, (max_x+min_x)*.5, (max_y+min_y)*.5));
     }
 
     if( is3D() )
     {
-        grid3d = new Grid3D( ( first->getBoundingBox()[7].getX() - first->getBoundingBox()[0].getX() ) * 1.1,
-                             ( first->getBoundingBox()[7].getY() - first->getBoundingBox()[0].getY() ) * 1.1,
-                             ( first->getBoundingBox()[7].getZ() - first->getBoundingBox()[0].getZ() ) * 1.1, gridsize / 5, ( first->getBoundingBox()[7] + first->getBoundingBox()[0] )*.5 );
+        grid3d = new Grid3D( ( bbox[7].getX() - bbox[0].getX() ) * 1.1,
+                             ( bbox[7].getY() - bbox[0].getY() ) * 1.1,
+                             ( bbox[7].getZ() - bbox[0].getZ() ) * 1.1, gridsize / 5, ( bbox[7] + bbox[0] )*.5 );
         domains.push_back(new Hexahedron(max_x-min_x, max_y-min_y, max_z-min_y , (max_x+min_x)*.5, (max_y+min_y)*.5, (max_z+min_z)*.5));
     }
 
@@ -327,8 +318,8 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 void FeatureTree::setPartition(size_t partitionNumber)
 {
     
-    for(size_t i = 0 ; i < domains.size() ; i++)
-        delete domains[i] ;
+//     for(size_t i = 0 ; i < domains.size() ; i++)
+//         delete domains[i] ;
     
     std::vector<Point> bbox = tree[0]->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -6267,14 +6258,32 @@ void FeatureTree::generateElements()
             max_z = bbox[j].getZ() ;
     }
 
-    bbox[0] = Point( min_x, min_y, min_z ) ;
-    bbox[1] = Point( min_x, min_y, max_z ) ;
-    bbox[2] = Point( min_x, max_y, min_z ) ;
-    bbox[3] = Point( min_x, max_y, max_z ) ;
-    bbox[4] = Point( max_x, min_y, min_z ) ;
-    bbox[5] = Point( max_x, min_y, max_z ) ;
-    bbox[6] = Point( max_x, max_y, min_z ) ;
-    bbox[7] = Point( max_x, max_y, max_z ) ;
+    if(is3D())
+    {
+        bbox[0] = Point( min_x, min_y, min_z ) ;
+        bbox[1] = Point( min_x, min_y, max_z ) ;
+        bbox[2] = Point( min_x, max_y, min_z ) ;
+        bbox[3] = Point( min_x, max_y, max_z ) ;
+        bbox[4] = Point( max_x, min_y, min_z ) ;
+        bbox[5] = Point( max_x, min_y, max_z ) ;
+        bbox[6] = Point( max_x, max_y, min_z ) ;
+        bbox[7] = Point( max_x, max_y, max_z ) ;
+    }
+    else
+    {
+        bbox.push_back(Point());
+        bbox.push_back(Point());
+        bbox.push_back(Point());
+        bbox.push_back(Point());
+        bbox[0] = Point( min_x, min_y, min_z ) ;
+        bbox[1] = Point( min_x, min_y, max_z ) ;
+        bbox[2] = Point( min_x, max_y, min_z ) ;
+        bbox[3] = Point( min_x, max_y, max_z ) ;
+        bbox[4] = Point( max_x, min_y, min_z ) ;
+        bbox[5] = Point( max_x, min_y, max_z ) ;
+        bbox[6] = Point( max_x, max_y, min_z ) ;
+        bbox[7] = Point( max_x, max_y, max_z ) ;
+    }
 
     int bpcount = 0 ;
     size_t basepoints = 0 ;
