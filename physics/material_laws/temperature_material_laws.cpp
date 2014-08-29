@@ -25,6 +25,18 @@ void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoE
     s.set("imposed_deformation", imp) ;
 }
 
+void DryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double h = s.get("relative_humidity",defaultValues) ;
+    double h0 = defaultValues["relative_humidity"] ;
+    if(h > h0 - POINT_TOLERANCE_2D)
+        return ;
+    double ks = s.get("drying_shrinkage_coefficient",defaultValues) ;
+    double imp = s.get("imposed_deformation", defaultValues) ;
+    imp -= ks*(h0-h) ;
+    s.set("imposed_deformation", imp) ;
+}
+
 ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char sep) : ExternalMaterialLaw(args, sep), affected(a)
 {
     coefficient = affected ; coefficient.append("_activation_energy") ;
@@ -59,6 +71,26 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
         double k = defaultValues["creep_bulk"] ;
         s.set("creep_bulk", k*factor) ;
         double mu = defaultValues["creep_shear"] ;
+        s.set("creep_shear", mu*factor) ;
+    }
+}
+
+void CreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("creep_characteristic_time"))
+        return ;
+
+    double h = s.get("relative_humidity", defaultValues) ;
+    double hc = s.get("creep_humidity_coefficient", defaultValues) ;
+    double factor =  hc*(1-h) + exp(-hc*(1-h)) ;
+    if(s.has("creep_modulus"))
+    {
+        double E = s.get("creep_modulus", defaultValues) ;
+        s.set("creep_modulus", E*factor) ;
+    } else {
+        double k = s.get("creep_bulk", defaultValues) ;
+        s.set("creep_bulk", k*factor) ;
+        double mu = s.get("creep_shear", defaultValues) ;
         s.set("creep_shear", mu*factor) ;
     }
 }

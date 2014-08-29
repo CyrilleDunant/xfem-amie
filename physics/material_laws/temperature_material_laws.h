@@ -31,7 +31,21 @@ struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
 
 struct RadiationInducedExpansionMaterialLaw : public ExternalMaterialLaw
 {
-    RadiationInducedExpansionMaterialLaw(std::string args, char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    RadiationInducedExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
+struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
+{
+    DryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
+struct WeightLossInducedShrinkageMaterialLaw : public ExternalMaterialLaw
+{
+    WeightLossInducedShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
@@ -60,6 +74,12 @@ struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct CreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
+{
+    CreepRelativeHumidityMaterialLaw(std::string args = std::string("creep_humidity_coefficient = 5"), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
+
+    virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
+};
 
 
 } ;

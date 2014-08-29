@@ -1,17 +1,18 @@
 #include "logarithmic_creep_with_external_parameters.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
+#include "damagemodels/spacetimestressdependentcreep.h"
+#include "fracturecriteria/stressincrementcreep.h"
 
 using namespace Amie ;
 
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, SpaceDimensionality dim, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), c,d), external(parseDefaultValues(args, sep))
 {
-
+    noFracture = (c == nullptr) ;
 }
 
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, SpaceDimensionality dim, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector()), external(parseDefaultValues(args, sep))
 {
     noFracture = true ;
-
 }
 
 ElementState * LogarithmicCreepWithExternalParameters::createElementState( IntegrableEntity * e)
@@ -41,16 +42,7 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
     for(size_t i = 0 ; i < relations.size() ; i++)
         copy->relations.push_back(relations[i]) ;
 
-/*    if(getExtra2dMeshes())
-    {
-        for(size_t i = 0 ; i < getExtra2dMeshes()->size() ; i++)
-            copy->addMesh((*getExtra2dMeshes())[i]);
-    }
-    if(getExtra3dMeshes())
-    {
-        for(size_t i = 0 ; i < getExtra3dMeshes()->size() ; i++)
-            copy->addMesh((*getExtra3dMeshes())[i]);
-    }*/
+    copy->accumulator = accumulator ;
 
     return copy ;
 
@@ -66,6 +58,11 @@ void LogarithmicCreepWithExternalParameters::step(double timestep, ElementState 
 
 void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, ElementState & currentState )
 {
+    if(reducedTimeStep > POINT_TOLERANCE_2D)
+        return ;
+
+    accumulateStress(timeStep, currentState);
+
     GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables& state = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState) ;
     if(state.has("imposed_deformation"))
         state.set("imposed_deformation", 0.) ;
@@ -107,6 +104,8 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
         placeMatrixInBlock( C*(-1), 0,1, param) ;
         placeMatrixInBlock( C, 1,1, param) ;
         placeMatrixInBlock( E, 1,1, eta) ;
+
+        model = MAXWELL ;
     }
     else
     {
@@ -119,11 +118,18 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
         double a = state.get("imposed_deformation", external) ;
         for(size_t i = 0 ; i < 2+(imposed.size()==6) ; i++)
             imposed[i] = a ;
+        if(std::abs(a) < POINT_TOLERANCE_2D)
+            imposed.resize(0) ;
+
     }
     else
         imposed.resize(0) ;
 
-    LogarithmicCreepWithImposedDeformationAndFracture::preProcess(timeStep, currentState) ;
+    if(imposed.size() > 0 && prevImposed.size() == 0)
+        prevImposed.resize(imposed.size()) ;
+
+//    LogarithmicCreepWithImposedDeformationAndFracture::preProcess(timeStep, currentState) ;
+    makeEquivalentViscosity(timeStep, currentState);
 
     currentState.getParent()->behaviourUpdated = true ;
 

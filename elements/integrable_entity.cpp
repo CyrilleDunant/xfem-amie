@@ -2063,6 +2063,11 @@ double ElementState::getDeltaTime() const
 	return timePos - previousTimePos ;
 }
 
+double ElementState::getNodalCentralTime() const
+{
+    return 0.5*(parent->getBoundingPoint(parent->getBoundingPoints().size() -1).getT() + parent->getBoundingPoint(0).getT()) ;
+}
+
 double ElementState::getNodalDeltaTime() const
 {
 	return parent->getBoundingPoint(parent->getBoundingPoints().size() -1).getT() - parent->getBoundingPoint(0).getT() ;

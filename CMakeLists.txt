@@ -360,6 +360,9 @@ target_link_libraries( steel Amie ${ALL_LINK_FLAGS})
 add_executable(alain examples/main_alain.cpp )
 target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
 
+add_executable(elleuch examples/main_elleuch.cpp )
+target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
+
 add_executable(asr examples/main_asr.cpp )
 target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
 

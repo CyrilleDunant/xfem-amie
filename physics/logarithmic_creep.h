@@ -24,7 +24,8 @@ typedef enum
 {
     LOGCREEP_CONSTANT,
     LOGCREEP_FORWARD,
-    LOGCREEP_PREDICTED
+    LOGCREEP_PREDICTED,
+    LOGCREEP_AGEING
 } LogCreepStressAccumulator ;
 
 
@@ -38,10 +39,14 @@ struct LogarithmicCreep : public Viscoelasticity
 
 	double accumulatedStress ;
 	double currentStress ;
+    double previousTimeStep ;
+    double reducedTimeStep ;
 
+/*    std::vector<Matrix> E_t ;
+    std::vector<Matrix> dE_dt ;*/
 
 	bool isPurelyElastic ;
-	bool updated ;
+    bool updated ;
 	
 	// constructor for pure elasticity
 	LogarithmicCreep( const Matrix & rig) ;
@@ -58,6 +63,12 @@ struct LogarithmicCreep : public Viscoelasticity
 	virtual void print() const ;
 
 	virtual void preProcess( double timeStep, ElementState & currentState ) ;
+    virtual void step(double timestep, ElementState &s, double maxScore) ;
+
+    virtual void setLogCreepAccumulator( LogCreepStressAccumulator acc) ;
+
+    virtual void accumulateStress(double timeStep, ElementState & currentState) ;
+    virtual void makeEquivalentViscosity(double timeStep, ElementState & currentState) ;
 
 } ;
 
@@ -65,6 +76,7 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 {
 	// size = 0 indicates no imposed deformation
 	Vector imposed ;
+    Vector prevImposed ;
 
 	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp ) ;
 	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp ) ;
@@ -77,6 +89,8 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
 	virtual bool hasInducedForces() const { return imposed.size()>0 ; }
+
+    virtual void step(double timestep, ElementState &s, double maxScore) ;
 
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 } ;
@@ -112,6 +126,9 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
     virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
     virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
+    virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+    virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 } ;
 

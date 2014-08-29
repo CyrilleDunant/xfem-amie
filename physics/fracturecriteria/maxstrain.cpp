@@ -90,8 +90,8 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 
 	double Esoft = maxstress / ( yieldstrain - upVal) ;
-	double Einst = maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
-// stateAfter.first.max() / stateAfter.second.max() ;
+	double Einst = stateAfter.first.max() / stateAfter.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+// ;
 	double Eprev = stateBefore.first.max() / stateBefore.second.max() ;
 	double epsMax = (Esoft / (Esoft+Einst))*yieldstrain ;
 
@@ -99,6 +99,12 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	double maxStrainAfter = stateAfter.second.max() ;
 	double maxStressBefore = stateBefore.first.max() ;
 	double maxStressAfter = stateAfter.first.max() ;
+
+//		std::cout << maxStressBefore << "/" << epsMax << "/" << maxStressAfter << "\t" ;
+
+		if( false ) //s.getParent()->getBoundingPoint(0).getId() == 9)
+			std::cout << s.getNodalDeltaTime() << "\t" << s.getParent()->getBoundingPoint(0).getId() << "\t" << s.getParent()->getBoundingPoint(1).getId() << "\t" << s.getParent()->getBoundingPoint(2).getId() << "\t" <<  maxStrainBefore << "\t" << maxStrainAfter << "\t" << maxStressBefore << "\t" << maxStressAfter << "\t" << upVal << "\t" << yieldstrain << "\t" << epsMax << "\t" << epsMax*Einst << "\t" << Esoft << "\t" << Einst << "\t" <<  (Esoft / (Esoft+Einst)) << "\t" << std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) <<  std::endl ;
+
 
 	metInCompression = false ;
 	metInTension = false ;
@@ -112,10 +118,9 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 		before.print() ;
 		intersect.print() ;
 		after.print() ;*/
-		if( false ) //s.getParent()->getBoundingPoint(0).getId() == 9)
-			std::cout << s.getNodalDeltaTime() << "\t" << s.getParent()->getBoundingPoint(0).getId() << "\t" << s.getParent()->getBoundingPoint(1).getId() << "\t" <<  maxStrainBefore << "\t" << maxStrainAfter << "\t" << maxStressBefore << "\t" << maxStressAfter << "\t" << upVal << "\t" << yieldstrain << "\t" << epsMax << "\t" << epsMax*Einst << "\t" << Esoft << "\t" << Einst << "\t" <<  (Esoft / (Esoft+Einst)) << "\t" << std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) <<  std::endl ;
 		return  std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
+//	std::cout << maxStrainBefore << "\t" << maxStrainAfter << "\t" <<  -1.+ maxStrainAfter/epsMax << std::endl ;
 	return -1.+ maxStrainAfter/epsMax;
 
 /*	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
@@ -164,7 +169,6 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
-
 	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
 	double maxStressAfter = stateAfter.first.max() ;
@@ -175,12 +179,86 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	if(maxStressAfter > maxstress)
 	{
 		metInTension = true ;
+ //       std::cout << maxStressBefore << " " << maxStressAfter << std::endl ;
 		return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
 	}
 	return -1.+ maxStressAfter/maxstress;
 	
 	
 }
+
+double SpaceTimeNonLocalBrittleMaximumStress::grade(ElementState &s)
+{
+    if( s.getParent()->getBehaviour()->fractured() )
+        return -1 ;
+
+
+    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
+    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+    double maxStressAfter = stateAfter.first.max() ;
+    double maxStressBefore = stateBefore.first.max() ;
+
+    metInCompression = false ;
+    metInTension = false ;
+    if(s.getParent()->getBehaviour()->getDamageModel())
+        maxstress = maxStressInit*(1.-0.99*s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+//    std::cout << maxStressBefore << " " << maxStressAfter << std::endl ;
+    if(maxStressAfter > maxstress)
+    {
+        metInTension = true ;
+        return std::min(1., 1. - (maxstress - maxStressBefore) / (maxStressAfter - maxStressBefore)) ;
+    }
+    return -1.+ maxStressAfter/maxstress;
+
+
+}
+
+double SpaceTimeNonLocalBrittleExtremumStress::grade(ElementState &s)
+{
+    if( s.getParent()->getBehaviour()->fractured() )
+        return -1 ;
+
+
+    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
+    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+    double maxTensionStressAfter = stateAfter.first.max() ;
+    double maxTensionStressBefore = stateBefore.first.max() ;
+    double maxCompressionStressAfter = stateAfter.first.min() ;
+    double maxCompressionStressBefore = stateBefore.first.min() ;
+
+    metInCompression = false ;
+    metInTension = false ;
+    if(s.getParent()->getBehaviour()->getDamageModel())
+    {
+        double d = (1.-0.99*s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+        maxstress = maxStressInit*d ;
+        maxCompStress = maxCompStressInit*d ;
+    }
+
+    double scoreInTension = -1. ;
+    if(maxTensionStressAfter > maxstress)
+    {
+        metInTension = true ;
+        scoreInTension = std::min(1., 1. - (maxstress - maxTensionStressBefore) / (maxTensionStressAfter - maxTensionStressBefore)) ;
+    }
+    else
+        scoreInTension = -1.+ maxTensionStressAfter/maxstress;
+
+    double scoreInCompression = -1. ;
+    if(maxCompressionStressAfter < maxCompStress)
+    {
+        metInCompression = true ;
+        scoreInCompression = std::min(1., 1. - (maxCompStress - maxCompressionStressBefore) / (maxCompressionStressAfter - maxCompressionStressBefore)) ;
+    }
+    else
+        scoreInCompression = -1.+ maxCompressionStressAfter/maxCompStress;
+
+
+    return std::max(scoreInTension, scoreInCompression) ;
+
+
+}
+
 
 SpaceTimeNonLocalEllipsoidalMixedCriterion::SpaceTimeNonLocalEllipsoidalMixedCriterion(double up, double mstr, double E0, double Einf, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(up, mirroring, delta_x, delta_y, delta_z),maxstress(mstr), E_inst(E0), E_relaxed(Einf)
 {

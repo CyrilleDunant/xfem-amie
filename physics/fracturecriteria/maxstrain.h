@@ -122,6 +122,48 @@ public:
 
 };
 
+class SpaceTimeNonLocalBrittleMaximumStress : public SpaceTimeNonLocalMaximumStress
+{
+public:
+    double maxStressInit ;
+
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+    SpaceTimeNonLocalBrittleMaximumStress(double up, double mstr, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : SpaceTimeNonLocalMaximumStress(up, mstr, mirroring, delta_x, delta_y, delta_z),maxStressInit(mstr) { } ;
+
+    virtual ~SpaceTimeNonLocalBrittleMaximumStress() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+    virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalBrittleMaximumStress(*this) ; }
+
+    virtual double grade(ElementState &s)  ;
+
+};
+
+class SpaceTimeNonLocalBrittleExtremumStress : public SpaceTimeNonLocalBrittleMaximumStress
+{
+public:
+    double maxCompStress ;
+    double maxCompStressInit ;
+
+/** \brief Constructor, set the maximum and minimum strain
+ * @param up Maximum stress (tension)
+ * @param down Minimum stress (compression)
+*/
+    SpaceTimeNonLocalBrittleExtremumStress(double up, double mstr, double c, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) : SpaceTimeNonLocalBrittleMaximumStress(up, mstr, mirroring, delta_x, delta_y, delta_z),maxCompStress(c), maxCompStressInit(c) { } ;
+
+    virtual ~SpaceTimeNonLocalBrittleExtremumStress() { } ;
+
+/** \brief Return a copy of this fracture criterion*/
+    virtual FractureCriterion * getCopy() const { return new SpaceTimeNonLocalBrittleExtremumStress(*this) ; }
+
+    virtual double grade(ElementState &s)  ;
+
+};
+
+
 class SpaceTimeNonLocalEllipsoidalMixedCriterion : public MaximumStrain
 {
 protected:

@@ -1171,6 +1171,7 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
                 strFromStrain[i] = strFromFullStrain[i] ;
                 straFromStrain[i] = stra[i] ;
             }
+            strFromStrain -= s.getParent()->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
             currentAngle = -0.5*atan2( 2.*straFromStrain[2],  straFromStrain[0] -  straFromStrain[1] ) ;
             return std::make_pair(strFromStrain, straFromStrain) ;
         }

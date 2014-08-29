@@ -50,7 +50,7 @@ public:
 	virtual void step(ElementState & s, double maxscore)  ;
 
 	void setLogitViscousDamageLaw(double a, double b, double c) ;
-	
+
 	/** \brief compute the new stifness matrix after damage
 	 * 
 	 * \f$ K' = K(1-d) \f$

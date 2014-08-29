@@ -235,7 +235,8 @@ public:
 	
 	double getTime() const ;
 	double getDeltaTime() const ;
-	double getNodalDeltaTime() const ;
+    double getNodalCentralTime() const ;
+    double getNodalDeltaTime() const ;
 	
 	IntegrableEntity * getParent() const
 	{

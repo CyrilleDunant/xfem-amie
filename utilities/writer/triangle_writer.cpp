@@ -1212,7 +1212,31 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 
 				break ;
 			}
-			case TWFT_STIFFNESS_X:
+            case TWFT_VISCOSITY:
+            {
+                double t = 0 ;
+                size_t n = tri->getBoundingPoints().size()/3 ;
+                if(tri->timePlanes() > 1)
+                    n /= tri->timePlanes() ;
+
+                if( tri->timePlanes() > 1 )
+                    t = -1 + timePlane[0] * 2 / ( (int)tri->timePlanes() - 1 ) ;
+
+                Point A = tri->getBoundingPoint(0) ;
+                Point B = tri->getBoundingPoint(n) ;
+                Point C = tri->getBoundingPoint(2*n) ;
+                Point A_ = tri->inLocalCoordinates(A) ; A_.getT() = t ;
+                Point B_ = tri->inLocalCoordinates(B) ; B_.getT() = t ;
+                Point C_ = tri->inLocalCoordinates(C) ; C_.getT() = t ;
+
+                ret[2] = (tri->getBehaviour()->getViscousTensor( A_ )[3][3]+tri->getBehaviour()->getViscousTensor( A_ )[3][4])*.5 ;
+                ret[1] = (tri->getBehaviour()->getViscousTensor( B_ )[3][3]+tri->getBehaviour()->getViscousTensor( B_ )[3][4])*.5 ;
+                ret[0] = (tri->getBehaviour()->getViscousTensor( C_ )[3][3]+tri->getBehaviour()->getViscousTensor( C_ )[3][4])*.5 ;
+                found = true ;
+
+                break ;
+            }
+            case TWFT_STIFFNESS_X:
 			{
 				double t = 0 ;
 
@@ -1258,8 +1282,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 					found = true ;
 
 				break ;
-			}
-
+            }
 			case TWFT_VON_MISES:
 			{
 				Vector v(0., 1) ;
@@ -1269,7 +1292,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				break ;
 			}
 
-		}
+        }
 	}
 
 	return std::make_pair( found, ret ) ;
@@ -1358,7 +1381,9 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
 			return 3 ;
 		case TWFT_STIFFNESS:
 			return 3 ;
-		case TWFT_STIFFNESS_X:
+        case TWFT_VISCOSITY:
+            return 3 ;
+        case TWFT_STIFFNESS_X:
 			return 3 ;
 		case TWFT_STIFFNESS_Y:
 			return 3 ;
@@ -1423,7 +1448,9 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
 			return std::string("Cracking Angle") ;
 		case TWFT_STIFFNESS:
 			return std::string("Stiffness") ;
-		case TWFT_STIFFNESS_X:
+        case TWFT_VISCOSITY:
+            return std::string("Viscosity") ;
+        case TWFT_STIFFNESS_X:
 			return std::string("Stiffness X") ;
 		case TWFT_STIFFNESS_Y:
 			return std::string("Stiffness Y") ;

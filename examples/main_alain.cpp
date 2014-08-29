@@ -49,16 +49,23 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 	omp_set_num_threads(1) ;
+
+	double duration = atof(argv[1]) ;
+	int nsteps = atoi(argv[6]) ;
 	bool elastic = (std::string(argv[2]) == std::string("elastic")) ;
 	bool simple = (std::string(argv[3]) == std::string("simple")) ;
+	double length = 0.02 ; if(simple) { length = 0.01 ; }
 	int criterion = atoi(argv[4]) ;
 	double deltad = atof(argv[5]) ;
+	double timestep = duration/nsteps ;
+	double increment = length*0.001/nsteps ;
 
-	double timestep = 86400.*0.00001/atof(argv[1]) ;//atof(argv[1]) ;
+	std::cout << timestep << std::endl ;
+
+//	double timestep = rate ;//atof(argv[1]) ;
 	double absoluteTimeTolerance = 1e-10;//0.1/(86400.*0.00001/0.0001) ;
 	double relativeTimeTolerance = absoluteTimeTolerance*timestep ;
 
-	double length = 0.02 ; if(simple) { length = 0.01 ; }
 	Sample box(nullptr, length, 0.01,0.,0.) ;
 
 	FeatureTree F(&box) ;
@@ -88,11 +95,11 @@ int main(int argc, char *argv[])
 	else
 		paste = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, dpaste.param, dpaste.param*40./16., dpaste.param*0.005*40/16, critpaste, dampaste ) ;
 
-	paste->getFractureCriterion()->setMaterialCharacteristicRadius(0.0015) ;
+	paste->getFractureCriterion()->setMaterialCharacteristicRadius(0.05) ;
 	box.setBehaviour(paste);
 
 	if(simple)
-		F.setSamplingFactor(&box, 0.25) ;
+		F.setSamplingFactor(&box, 1) ;
 	else
 		F.setSamplingFactor(&box, 2) ;
 
@@ -104,9 +111,13 @@ int main(int argc, char *argv[])
 		F.setMaxIterationsPerStep(256) ;
 	F.setMinDeltaTime(absoluteTimeTolerance) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0,0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,0)) ;
+	if(!elastic)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT, 0,2)) ;
 //	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0,1)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0,1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,1)) ;
+	if(!elastic)
+		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM, 0,3)) ;
 	F.step() ;
 	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 	int count = 0 ;
@@ -130,7 +141,6 @@ int main(int argc, char *argv[])
 		std::cout << "paste weakened in " << count << " elements" << std::endl ;
 	}
 
-	double increment = atof(argv[1]) ;
 
 	std::fstream out ;
 	std::string name = "tensile_" ;
@@ -153,6 +163,8 @@ int main(int argc, char *argv[])
 	}
 	name.append("_") ;
 	name.append(argv[5]) ;
+	name.append("_") ;
+	name.append(argv[6]) ;
 	out.open(name.c_str(), std::ios::out) ;
 
 	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, RIGHT_AFTER, 0.0, 0) ;
@@ -182,7 +194,7 @@ int main(int argc, char *argv[])
 			double Ei = sigma/epsilon ;
 			double E0 = 16e9 ;
 
-			if((Ei/E0 < 0.9 && done == 0) || (Ei/E0 < 0.5 && done == 0))
+			if((Ei/E0 < 0.95 && done == 0) || (Ei/E0 < 0.6 && done == 1))
 			{
 				std::fstream outi ;
 				std::string namei = name ;
@@ -190,16 +202,42 @@ int main(int argc, char *argv[])
 				namei.append(itoa(done)) ;
 				outi.open(namei.c_str(), std::ios::out) ;
 				for(size_t j = 0 ; j < trg.size() ; j++)
-					outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
+				{
+					if(std::abs(trg[j]->getCenter().getY()) < 0.0015)
+						outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
+				}
 				done++ ;
 			}
 
-			out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, -1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, -1.)[0] << std::endl ;
+//			out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, -1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, -1.)[0] << "\t" << F.getCurrentTime() << "\t 0" << std::endl ;
 
-			std::cout << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
+			std::cout << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, -1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, -1.)[0] << std::endl ;
 		}
 
-		out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
+
+			if(F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] < 0.)
+			{
+
+				F.getAssembly()->print() ;
+				Vector disp = F.getDisplacements() ;
+				for(size_t i = 0 ; i < 32 ; i++)
+					std::cout << disp[i] << "\t" ;
+
+				exit(0) ;
+
+				std::string nametrg = name ;
+				nametrg.append("_trg_wrong") ;
+				TriangleWriter writer(nametrg, &F, 1) ;
+				writer.getField(STRAIN_FIELD) ;
+				writer.getField(REAL_STRESS_FIELD) ;
+				writer.getField(TWFT_STIFFNESS) ;
+				writer.getField(TWFT_DAMAGE) ;
+				writer.write() ;
+
+			}
+
+
+		out << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << "\t" << F.getCurrentTime() << "\t 1" <<  std::endl ;
 
 		std::cout << increment*i << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[0] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[0] << std::endl ;
 	}
@@ -210,8 +248,10 @@ int main(int argc, char *argv[])
 	namei.append(itoa(done)) ;
 	outi.open(namei.c_str(), std::ios::out) ;
 	for(size_t j = 0 ; j < trg.size() ; j++)
-		outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
-
+	{
+		if(std::abs(trg[j]->getCenter().getY()) < 0.0015)
+			outi << trg[j]->getCenter().getX() << "\t" << trg[j]->getBehaviour()->getDamageModel()->getState().max() << std::endl ;
+	}
 	std::string nametrg = name ;
 	nametrg.append("_trg_0") ;
 	TriangleWriter writer(nametrg, &F, 1) ;

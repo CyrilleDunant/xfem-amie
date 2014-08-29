@@ -46,14 +46,20 @@ void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticEl
 void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p = s.getParent()->getCenter() ;
-    p.setT( s.getTime() ) ;
-    s.set(external, VirtualMachine().eval(f, p)) ;
+    p.setT( s.getNodalCentralTime() ) ;
+    double ret = VirtualMachine().eval(f, p) ;
+    if(add)
+        ret += s.get(external, defaultValues) ;
+    s.set(external, ret) ;
 }
 
 void SimpleDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double x = s.get(coordinate, defaultValues) ;
-    s.set(external, VirtualMachine().eval(f, x)) ;
+    double ret = VirtualMachine().eval(f, x) ;
+    if(add)
+        ret += s.get(external, defaultValues) ;
+    s.set(external, ret) ;
 }
 
 void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
@@ -62,7 +68,7 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     if(useSpaceTimeCoordinates)
     {
         p = s.getParent()->getCenter() ;
-        p.setT( s.getTime() ) ;
+        p.setT( s.getNodalCentralTime() ) ;
     }
     if( has('x')) { p.setX( s.get(coordinates['x'], defaultValues)) ; }
     if( has('y')) { p.setY( s.get(coordinates['y'], defaultValues)) ; }
@@ -72,7 +78,10 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
     if( has('u')) { p.setX( s.get(coordinates['u'], defaultValues)) ; }
     if( has('v')) { p.setY( s.get(coordinates['v'], defaultValues)) ; }
     if( has('w')) { p.setZ( s.get(coordinates['w'], defaultValues)) ; }
-    s.set(external, VirtualMachine().eval(f, p, q)) ;
+    double ret = VirtualMachine().eval(f, p, q) ;
+    if(add)
+        ret += s.get(external, defaultValues) ;
+    s.set(external, ret) ;
 }
 
 LinearInterpolatedExternalMaterialLaw::LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, std::string args, char sep) : ExternalMaterialLaw(args, sep), external(e)
@@ -80,17 +89,23 @@ LinearInterpolatedExternalMaterialLaw::LinearInterpolatedExternalMaterialLaw(std
     std::vector<double> x ;
     std::vector<double> y ;
 
-    std::fstream input ;
-    input.open(file.c_str(), std::ios::in) ;
+    std::fstream input(file) ;
+    if(!input.is_open())
+    {
+        std::cout << "file " << file << " doesn't exist!" << std::endl ;
+        exit(0) ;
+    }
+
     double buffer ;
 
-    while(!input.eof())
-    {
+    do {
         input >> buffer ;
         x.push_back(buffer) ;
         input >> buffer ;
         y.push_back(buffer) ;
-    }
+    } while(!input.eof()) ;
+    x.pop_back() ;
+    y.pop_back() ;
 
     Vector first(x.size()) ;
     Vector second(y.size()) ;
@@ -113,23 +128,72 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
     else if(external.first == std::string("z"))
         s.set(external.second, get(s.getParent()->getCenter().getZ())) ;
     else if(external.first == std::string("t"))
-        s.set(external.second, get(s.getTime())) ;
+        s.set(external.second, get(s.getNodalCentralTime())) ;
     else
-        s.set(external.second, get(s.get(external.second, defaultValues))) ;
+        s.set(external.second, get(s.get(external.first, defaultValues))) ;
 }
 
 double LinearInterpolatedExternalMaterialLaw::get(double x) const
 {
     if(x < values.first[0])
-        return values.second[0] ;
+        return values.second[0] ;\
     if(x > values.first[values.first.size()-1])
         return values.second[values.second.size()-1] ;
 
     int i = 0 ;
     while(values.first[i]<x)
+    {
+        if(std::abs(values.first[i]-x) < POINT_TOLERANCE_2D)
+            return values.second[i] ;
         i++ ;
+    }
 
     return values.second[i-1]+(values.second[i]-values.second[i-1])*(x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
+}
+
+CopyFromFeatureTreeExternalMaterialLaw::CopyFromFeatureTreeExternalMaterialLaw(FeatureTree * f, std::string e, std::string args, char s) : ExternalMaterialLaw(args, s), source(f)
+{
+    std::string options = e ;
+    if(options.size() == 0)
+        return ;
+
+    size_t foundSpace = options.find(' ') ;
+    while(foundSpace != std::string::npos)
+    {
+        options.erase( foundSpace, 1) ;
+        foundSpace = options.find(' ') ;
+    }
+
+    size_t foundSep = options.find(s) ;
+    while(foundSep != std::string::npos)
+    {
+        external.push_back(options.substr(0, foundSep)) ;
+        options.erase(0, foundSep+1) ;
+        foundSep = options.find(s) ;
+    }
+    external.push_back(options) ;
+
+}
+
+void CopyFromFeatureTreeExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
+{
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables corresponding = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(dynamic_cast<DelaunayTriangle *>(source->get2DMesh()->getInTree(dynamic_cast<DelaunayTriangle *>(s.getParent())->index))->getState()) ;
+    for(size_t i = 0 ; i < external.size() ; i++)
+        s.set(external[i], corresponding.get(external[i], defaultValues)) ;
+}
+
+void TimeDerivativeMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    double current = s.get(base, defaultValues) ;
+    s.set(rate, (current-previous)/dt) ;
+    previous = current ;
+}
+
+void TimeIntegralMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    double current = s.get(integral, defaultValues) ;
+    double rate = s.get(base, defaultValues) ;
+    s.set(integral, current + rate*dt) ;
 }
 
 

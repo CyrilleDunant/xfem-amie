@@ -6,6 +6,7 @@
 
 #include "main.h"
 #include "../utilities/samplingcriterion.h"
+#include "../polynomial/vm_function_base.h"
 #include "../features/features.h"
 #include "../physics/physics_base.h"
 #include "../physics/kelvinvoight.h"
@@ -56,58 +57,177 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-    LinearInterpolatedExternalMaterialLaw temperatureProfile(std::make_pair("x","temperature"), "temperature_profile.txt") ;
-    LinearInterpolatedExternalMaterialLaw neutronProfile(std::make_pair("x","neutron_fluence"), "neutron_fluence_profile.txt") ;
+
     ThermalExpansionMaterialLaw thermalExpansion("temperature=293") ;
-    RadiationInducedExpansionMaterialLaw aggregateExpansion("radiation_expansion_delay=0.15, neutron_fluence_correction = 0.57, maximum_radiation_expansion=0.0073") ;
 
-    LogarithmicCreepWithExternalParameters paste("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 31.5e12, creep_poisson = 0.2, creep_characteristic_time = 4500, thermal_expansion_coefficient=8e-6") ;
-    paste.addMaterialLaw(&temperatureProfile);
-    paste.addMaterialLaw(&neutronProfile);
-    paste.addMaterialLaw(&thermalExpansion);
-    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 70e9, poisson_ratio = 0.3, thermal_expansion_coefficient=12e-6") ;
-    aggregates.addMaterialLaw(&temperatureProfile);
-    aggregates.addMaterialLaw(&neutronProfile);
-    aggregates.addMaterialLaw(&thermalExpansion);
-    aggregates.addMaterialLaw(&aggregateExpansion);
-    LogarithmicCreepWithExternalParameters concrete("young_modulus = 17e9, poisson_ratio = 0.2, creep_modulus = 31.5e12, creep_poisson = 0.2, creep_characteristic_time = 4500, thermal_expansion_coefficient=10e-6") ;
-    concrete.addMaterialLaw(&temperatureProfile);
-    concrete.addMaterialLaw(&neutronProfile);
-    concrete.addMaterialLaw(&thermalExpansion);
+    std::string file = "mortar_visco_mid3" ;
+    std::fstream out;
+    out.open(file.c_str(), std::ios::out) ;
 
-    Sample box(nullptr, 1.,0.3,0.,0.) ;
-    Sample left(nullptr, 0.3,0.3, -0.35, 0.) ;
-    box.setBehaviour( &concrete ) ;
-    left.setBehaviour( &paste ) ;
+
+    Function f_neutron_fluence("0.01 t *") ;
+    Function f_drying_shrinkage("-0.00191 x * 0.00092  -") ;
+    Function f_weight_loss("0.015 x 0.0075 * +") ;
+    Function f_ageing_creep("y t x / 1 + *") ;
+    SpaceTimeDependentExternalMaterialLaw neutronRadiation("neutron_fluence", f_neutron_fluence) ;
+    RadiationInducedExpansionMaterialLaw radiationExpansion ;
+    LinearInterpolatedExternalMaterialLaw radiationDamage( std::make_pair("neutron_fluence","young_modulus"), "../examples/data/irradiation/limestone_aggregate_modulus" ) ;
+
+    SimpleDependentExternalMaterialLaw dryingShrinkage("imposed_deformation","weight_loss", f_drying_shrinkage, true) ;
+    SimpleDependentExternalMaterialLaw weightLoss("weight_loss", "neutron_fluence", f_weight_loss ) ;
+
+    VariableDependentExternalMaterialLaw ageingCreep("creep_modulus",  f_ageing_creep) ;
+    ageingCreep.setAsX("creep_characteristic_time") ;
+    ageingCreep.setAsY("creep_modulus_28days") ;
+
+    LogarithmicCreepWithExternalParameters limestone("young_modulus=72.4e9, poisson_ratio=0.25, imposed_deformation=0, thermal_expansion_coefficient=6.35e-6, temperature=318, maximum_radiation_expansion = 0.0187, radiation_expansion_delay=0.0008, neutron_fluence_correction=3.0411") ;
+    limestone.addMaterialLaw(&thermalExpansion) ;
+    limestone.addMaterialLaw(&neutronRadiation);
+    limestone.addMaterialLaw(&radiationExpansion);
+//    limestone.addMaterialLaw(&radiationDamage);
+    LogarithmicCreepWithExternalParameters paste("young_modulus=22e9, poisson_ratio=0.2, imposed_deformation=0, thermal_expansion_coefficient=10e-6, temperature=318, creep_modulus=4.5e9, creep_characteristic_time=0.25, creep_poisson = 0.2, creep_modulus_28days=4.5e9") ;
+    paste.setLogCreepAccumulator(LOGCREEP_CONSTANT);
+    paste.addMaterialLaw( &ageingCreep ) ;
+    paste.addMaterialLaw(&thermalExpansion) ;
+    paste.addMaterialLaw(&neutronRadiation);
+    paste.addMaterialLaw(&weightLoss);
+    paste.addMaterialLaw(&dryingShrinkage);
+
+    Sample box(nullptr, 0.0635,0.0127,0.0635/2,0.) ;
+    box.setBehaviour(&paste);
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(32) ;
+    F.setSamplingNumber(32) ; // calculation with 96
+    F.setSamplingRestriction(SAMPLE_RESTRICT_4);
     F.setOrder(LINEAR_TIME_LINEAR) ;
-    int time_step = 1 ;
+    double time_step = 0.1 ;
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
-    F.setSamplingFactor(&box, 0.5);
-    F.setSamplingFactor(&left, 5.);
-    F.addRefinementZone(new Rectangle(0.3,0.3,-0.35,0.));
 
-
-    F.addFeature(nullptr, &left) ;
-    std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, &aggregates, 100, 0.025, 0.00001,new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, new Rectangle(0.295,0.295,-0.35,0.) ) ;
-    for(size_t i = 0 ; i < inclusions.size() ;i++)
-        F.setSamplingFactor(inclusions[i], 3.);
+    std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, &limestone, 10000, 0.00625, 0.00001, new GranuloFromCumulativePSD("../examples/data/irradiation/limestone_aggregate_psd", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.6, new Rectangle(0.0635, 0.279,0.0635/2,0.) ) ;
+    std::vector<Geometry *> placed ;
+    for(size_t i = 0 ; i < inclusions.size() ; i++)
+    {
+        if(box.intersects(inclusions[i]) || box.in(inclusions[i]->getCenter()))
+        {
+            F.setSamplingFactor(inclusions[i], 3.) ;
+            placed.push_back(new Circle(inclusions[i]->getRadius(), inclusions[i]->getCenter())) ;
+        }
+    }
+    int count = placed.size() ;
+    std::vector<Feature *> small = PSDGenerator::get2DConcrete(&F, &limestone, 1000, 0.0001, 0.00003, new ConstantSizeDistribution(), CIRCLE, 1., M_PI, 500000, 0.6, new Rectangle(0.0635, 0.0127,0.0635/2,0.), placed ) ;
+    count += small.size() ;
+    std::cout << count << " aggregates in slice" << std::endl ;
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 1)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_LEFT_AFTER, 0, 3)) ;
+
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
 
-    F.step() ;
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT_AFTER, 1e6));
 
-    std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << std::endl ;
-    TriangleWriter trg("tata", &F, 1.) ;
-    trg.getField(STRAIN_FIELD) ;
-    trg.getField(REAL_STRESS_FIELD) ;
-    trg.write() ;
+    double aggregateArea = 0. ;
+    std::vector<size_t> iAgg ;
+    std::vector<size_t> iCem ;
+    int done = 1 ;
+
+    while(VirtualMachine().eval(f_neutron_fluence,0.0635/2.,0.,0.,F.getCurrentTime()) < 10.)
+//    while(F.getCurrentTime() < 400)
+    {
+//        F.setDeltaTime(0.01*done);
+        F.step() ;
+        Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1.) ;
+        Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+
+        std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
+        Vector strainAgg(3) ;
+        Vector strainCem(3) ;
+        Vector stressAgg(3) ;
+        Vector stressCem(3) ;
+        Vector strainMaxAgg(3) ;
+        Vector strainMaxCem(3) ;
+        Vector stressMaxAgg(3) ;
+        Vector stressMaxCem(3) ;
+        Vector tmp(3) ;
+        done++ ;
+
+        if(aggregateArea < POINT_TOLERANCE_2D)
+        {
+            for(size_t i = 0 ; i < trg.size() ; i++)
+            {
+                if(trg[i]->getBehaviour()->param[0][0] > 30e9)
+                {
+                    aggregateArea += trg[i]->area() ;
+                    iAgg.push_back(i) ;
+                } else {
+                    iCem.push_back(i) ;
+                }
+            }
+            std::cout << aggregateArea / (0.0635*0.0127) << std::endl ;
+        }
+
+        for(size_t i = 0 ; i < iAgg.size() ; i++)
+        {
+            double a = trg[iAgg[i]]->area() ;
+            trg[iAgg[i]]->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+            strainAgg += tmp*a ;
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                if(tmp[j] > strainMaxAgg[j])
+                    strainMaxAgg[j] = tmp[j] ;
+            }
+            trg[iAgg[i]]->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+            stressAgg += tmp*a ;
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                if(tmp[j] > stressMaxAgg[0])
+                    stressMaxAgg[0] = tmp[0] ;
+            }
+        }
+        strainAgg /= aggregateArea ;
+        stressAgg /= aggregateArea ;
+
+        for(size_t i = 0 ; i < iCem.size() ; i++)
+        {
+            double a = trg[iCem[i]]->area() ;
+            trg[iCem[i]]->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+            strainCem += tmp*a ;
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                if(tmp[j] > strainMaxCem[j])
+                    strainMaxCem[j] = tmp[j] ;
+            }
+            trg[iCem[i]]->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+            stressCem+= tmp*a ;
+            for(size_t j = 0 ; j < 3 ; j++)
+            {
+                if(tmp[j] > stressMaxCem[j])
+                    stressMaxCem[j] = tmp[j] ;
+            }
+        }
+        strainCem /= box.area() - aggregateArea ;
+        stressCem /= box.area() - aggregateArea ;
+
+        std::cout << F.getCurrentTime() << "\t" << VirtualMachine().eval(f_neutron_fluence,0.0635/2.,0.,0.,F.getCurrentTime()) << "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] <<
+                     "\t" << strainAgg[0] << "\t" << strainAgg[1] << "\t" << stressAgg[0] << "\t" << stressAgg[1] <<
+                     "\t" << strainMaxAgg[0] << "\t" << strainMaxAgg[1] << "\t" << stressMaxAgg[0] << "\t" << stressMaxAgg[1] <<
+                     "\t" << strainCem[0] << "\t" << strainCem[1] << "\t" << stressCem[0] << "\t" << stressCem[1] <<
+                     "\t" << strainMaxCem[0] << "\t" << strainMaxCem[1] << "\t" << stressMaxCem[0] << "\t" << stressMaxCem[1] << std::endl ;
+
+        out << F.getCurrentTime() << "\t" << VirtualMachine().eval(f_neutron_fluence,0.0635/2.,0.,0.,F.getCurrentTime()) << "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] <<
+                     "\t" << strainAgg[0] << "\t" << strainAgg[1] << "\t" << stressAgg[0] << "\t" << stressAgg[1] <<
+                     "\t" << strainMaxAgg[0] << "\t" << strainMaxAgg[1] << "\t" << stressMaxAgg[0] << "\t" << stressMaxAgg[1] <<
+                     "\t" << strainCem[0] << "\t" << strainCem[1] << "\t" << stressCem[0] << "\t" << stressCem[1] <<
+                     "\t" << strainMaxCem[0] << "\t" << strainMaxCem[1] << "\t" << stressMaxCem[0] << "\t" << stressMaxCem[1] << std::endl ;
+
+    }
+/*    TriangleWriter writer("tata", &F, 1.) ;
+    writer.getField("young_modulus") ;
+    writer.getField("creep_modulus") ;
+    writer.write() ;*/
 
     return 0 ;
 }
