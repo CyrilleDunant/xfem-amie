@@ -1,7 +1,5 @@
 #include "logarithmic_creep_with_external_parameters.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
-#include "damagemodels/spacetimestressdependentcreep.h"
-#include "fracturecriteria/stressincrementcreep.h"
 
 using namespace Amie ;
 
