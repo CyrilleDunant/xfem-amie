@@ -9,7 +9,15 @@ if( OpenMP_FOUND EQUAL 1 )
 	include(FindOpenMP)
 endif( OpenMP_FOUND EQUAL 1 )
     
-include_directories(${MPI_INCLUDE_PATH})
+include_directories(${MPI_INCLUDE_PATH} ${Boost_INCLUDE_PATH})
+
+if (USE_MPI EQUAL 0)
+    set (MPI_COMPILE_FLAGS "")
+    set (MPI_LINK_FLAGS "")
+else()
+    set(CXX MPI_CXX_COMPILER)
+    add_definitions(${MPI_COMPILE_FLAGS} ${Boost_COMPILE_FLAGS})
+endif(USE_MPI EQUAL 0)
 
 set(ALL_SRC 
 elements/elements.cpp 
@@ -170,25 +178,6 @@ utilities/writer/triangle_writer.cpp
 utilities/writer/voxel_writer.cpp
 )
 
-message (STATUS "checking for C++ TR1 extensions")
-try_run (TR1_TEST_EXITCODE TR1_TEST_COMPILED
-  ${CMAKE_BINARY_DIR}
-  ${PROJECT_SOURCE_DIR}/cmake/tr1-test.cpp
-)
-
-if(TR1_TEST_COMPILED)
-	if (TR1_TEST_EXITCODE EQUAL 0)
-		message (STATUS "  C++ TR1 extensions found")
-		set (TR1_FOUND 1)
-		add_definitions(-DHAVE_TR1)
-	else (TR1_TEST_EXITCODE EQUAL 0)
-		message (STATUS "  C++ TR1 extensions not found")
-		set (TR1_FOUND 0)
-	endif (TR1_TEST_EXITCODE EQUAL 0)
-else()
-	message (STATUS "  C++ TR1 extensions not found")
-        set (TR1_FOUND 0)
-endif(TR1_TEST_COMPILED)
 
 CHECK_CXX_COMPILER_FLAG(-ftree-vectorize COMPILER_HAS_VECTORISER )
 CHECK_CXX_COMPILER_FLAG(-floop-strip-mine COMPILER_HAS_LOOP_INTERCHANGE )
@@ -303,24 +292,19 @@ message (STATUS "  found OpenMP")
 # 	endif()
 endif(OPENMP_FOUND)
 
-if (USE_MPI EQUAL 0)
-    set (MPI_COMPILE_FLAGS "")
-    set (MPI_LINK_FLAGS "")
-endif(USE_MPI EQUAL 0)
-
 if(CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions ( "-std=c++0x" )
+	add_definitions ( "-std=c++11" )
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(DEBUG_BUILD EQUAL 1)
-	add_definitions(-g3 -fno-exceptions -O0 -std=c++0x -DNDEBUG -funroll-loops)
+	add_definitions(-g3 -O0 -std=c++0x -DNDEBUG -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
-	add_definitions(-g3 -fno-exceptions -O3 ${BIT32_FLAGS} -std=c++0x -DNDEBUG -funroll-loops )
+	add_definitions(-g3 -O3 ${BIT32_FLAGS} -std=c++0x -DNDEBUG -funroll-loops )
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 
-set(ALL_LINK_FLAGS  ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS})
+set(ALL_LINK_FLAGS   ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS} ${MPI_LIBRARIES} ${Boost_LINK_FLAGS} ${Boost_LIBRARIES})
 
 add_library (Amie ${ALL_SRC})
 
@@ -360,8 +344,8 @@ target_link_libraries( steel Amie ${ALL_LINK_FLAGS})
 add_executable(alain examples/main_alain.cpp )
 target_link_libraries( alain Amie ${ALL_LINK_FLAGS})
 
-add_executable(elleuch examples/main_elleuch.cpp )
-target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
+# add_executable(elleuch examples/main_elleuch.cpp )
+# target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
 
 add_executable(asr examples/main_asr.cpp )
 target_link_libraries( asr Amie ${ALL_LINK_FLAGS})

@@ -546,7 +546,6 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 			}
 		}
 	}
-
 } ;
 
 void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
