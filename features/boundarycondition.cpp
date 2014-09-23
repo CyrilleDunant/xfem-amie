@@ -4010,6 +4010,9 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 				cache2d[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
 			}
 
+			for(size_t j = 0 ; j < cache[i].size() ; j++)
+				cache[i][j].setT( cache[i][j].getT() + cache2d[i]->getState().getDeltaTime() ) ;
+
 			if ( !function )
 				apply2DBC( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a, axis ) ;
 			else

@@ -41,6 +41,8 @@ namespace Amie
 		SAMPLE_NO_RESTRICTION
 	} SamplingRestrictionType ;
 
+class ConfigTreeItem ;
+
 /** \brief Container for the features defining the setup.
  * 
  * The feature tree is responsible for all global operations: meshing, matrix assembly, 
@@ -333,6 +335,9 @@ public:
 public:
 	Vector instants ;
 
+	void setDiscretizationParameters(ConfigTreeItem * config, ConfigTreeItem * def = nullptr)  ;
+	int setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def = nullptr)  ;
+
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}
 	
@@ -544,6 +549,8 @@ public:
 	 * \todo Make it work for values other than 1 and 2.
 	 */
 	void setOrder(Order ord) ;
+
+	Order getOrder() const { return elemOrder  ; }
 	
 	void setDeltaTime(double d) ;
 	void setMinDeltaTime(double d) { minDeltaTime = d ; }

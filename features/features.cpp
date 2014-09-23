@@ -12,6 +12,7 @@
 #include "layeredinclusion.h"
 #include "sample.h"
 #include "sample3d.h"
+#include "../utilities/configuration.h"
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/kelvinvoight.h"
@@ -3569,6 +3570,43 @@ std::vector<int>FeatureTree:: listLayers() const
     }
 
     return ret ;
+}
+
+void FeatureTree::setDiscretizationParameters(ConfigTreeItem * config, ConfigTreeItem * def)  
+{
+	if(def == nullptr)
+	{
+		def = new ConfigTreeItem() ;
+		def->addChild( new ConfigTreeItem( def, "sampling_number", 4 ) ) ;
+		def->addChild( new ConfigTreeItem( def, "order", "LINEAR" ) ) ;
+		def->addChild( new ConfigTreeItem( def, "sampling_restriction", "SAMPLE_NO_RESTRICTION") ) ;
+	}
+	double sampling = config->getData("sampling_number", def->getData("sampling_number")) ;
+	std::string order = config->getStringData("order", def->getStringData("order")) ;
+	std::string restriction = config->getStringData("sampling_restriction", def->getStringData("sampling_restriction")) ;
+	setSamplingNumber( sampling ) ;
+	setOrder( ConfigTreeItem::translateOrder(order) ) ;
+	setSamplingRestriction( ConfigTreeItem::translateSamplingRestrictionType(restriction) ) ;
+}
+
+int FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def)  
+{
+	if(def == nullptr)
+	{
+		def = new ConfigTreeItem() ;
+		def->addChild( new ConfigTreeItem( def, "time_step", 4 ) ) ;
+		def->addChild( new ConfigTreeItem( def, "minimum_time_step", 1e-9 ) ) ;
+		def->addChild( new ConfigTreeItem( def, "maximum_iterations_per_step", 256) ) ;
+		def->addChild( new ConfigTreeItem( def, "number_of_time_steps", 1 ) ) ;
+	}
+	double deltaTime = config->getData("time_step", def->getData("time_step")) ;
+	double minDeltaTime = config->getData("minimum_time_step", def->getData("minimum_time_step")) ;
+	int maxIter = config->getData("maximum_iterations_per_step", def->getData("maximum_iterations_per_step")) ;
+	int nSteps = config->getData("number_of_time_steps", def->getData("number_of_time_steps")) ;
+	setDeltaTime( deltaTime ) ;
+	setMinDeltaTime( minDeltaTime ) ;
+	setMaxIterationsPerStep( maxIter ) ;
+	return nSteps ;
 }
 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool stepTree )

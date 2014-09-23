@@ -365,6 +365,9 @@ target_link_libraries( thermal_expansion Amie ${ALL_LINK_FLAGS})
 add_executable(geometry examples/main_geometry.cpp )
 target_link_libraries( geometry Amie ${ALL_LINK_FLAGS} )
 
+add_executable(2d_composite examples/main_2d_composite.cpp )
+target_link_libraries( 2d_composite Amie ${ALL_LINK_FLAGS} )
+
 add_executable(benchmark examples/main_benchmark.cpp )
 target_link_libraries( benchmark Amie ${ALL_LINK_FLAGS} )
 

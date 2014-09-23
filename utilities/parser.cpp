@@ -379,18 +379,97 @@ std::vector<std::valarray<int> > * HexahedronBoundaryParser::getData(size_t face
 	}
 }
 
-
-
-
-
+int ConfigParser::getIndentLevel( std::string test ) 
+{
+	int i = 0 ;
+	while(test[i] == '.' && i < test.size())
+		i++ ;
+	return i ;
+}
 
 void ConfigParser::readData()
 {
+	ConfigTreeItem * current = trunk ;
+	int level = 1 ;
+	std::string buffer ;
 	if(!file.fail())
 	{
-		std::string *type = new std::string() ;
-		file >> (*type) ;
-		Configlet<std::string> * child = trunk->putData<std::string>(type, TYPE_PROBLEME) ;
-		std::cout << (*child->getData()) << std::endl ;
+		for( std::string line ; getline( file, line ) ; ) 
+		{
+			if(line[0] == '#')
+				continue ;
+
+			size_t comment = line.find("#") ;
+			if(comment != std::string::npos)
+			{
+				line = line.substr(0, comment-1) ;
+				std::cout << line << std::endl ;
+			}	
+
+			size_t found = line.find(" ") ;
+			while(found != std::string::npos)
+			{
+				line = line.erase(found,1) ;
+				found = line.find(" ") ;
+			}
+
+			size_t sep = line.find("=") ;
+			int l = ConfigParser::getIndentLevel(line) ;
+			if(l == level)
+			{
+				// current = current ;
+			} 
+			else if(l == level+1)
+			{
+				current = current->getLastChild() ;
+				level++ ;
+			}
+			else if(l == 0 || l > level+1)
+			{
+				std::cout << "parsing error in file " << filename << std::endl ;
+				exit(0) ;
+			}
+			else // (l between 1 and level-1)
+			{
+				while(level > l)
+				{
+					level-- ;
+					current = current->getFather() ;
+				}
+			}
+			if(sep == std::string::npos)
+			{
+				ConfigTreeItem * cnf = new ConfigTreeItem( current , line.substr(level) ) ;
+			}
+			else
+			{
+				std::string right = line.substr( sep+1 ) ;
+				bool isDouble = (right.find_first_not_of("0123456789.e") == std::string::npos ) ;
+				std::string label = line.substr(0, sep) ;
+				label = label.substr(level) ;
+				if(isDouble)
+					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, atof(right.c_str()) ) ;
+				else
+					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;			
+			}
+
+		}
+		
+		std::cout << filename << " parsed with success!" << std::endl ;
+
 	}
+	else
+		std::cout << filename << " not found!" << std::endl ;
+
+
 }
+
+ConfigTreeItem * ConfigParser::readFile(std::string f) 
+{
+	ConfigParser parser(f) ;	
+	parser.readData() ;
+	return parser.getData() ;
+}
+
+
+

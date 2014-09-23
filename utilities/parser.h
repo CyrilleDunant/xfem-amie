@@ -223,16 +223,22 @@ public:
 
 class ConfigParser : public Parser
 {
-	//! \todo complete the damn thing
 protected:
-	Configlet<void * > * trunk;
-	
+	ConfigTreeItem * trunk ;
+	std::string filename ;
+
+	static int getIndentLevel( std::string test ) ;
+
 public:
-	ConfigParser(const char* f): Parser(f) { trunk = new Configlet<void *>(nullptr, nullptr, TRUNK) ; }
-	ConfigParser(): Parser("infile1") { trunk = new Configlet<void *>(nullptr, nullptr, TRUNK) ;  } 
+	ConfigParser(std::string f): Parser(f.c_str()), filename(f) { trunk = new ConfigTreeItem() ; } 
+	ConfigParser(const char* f): Parser(f), filename(f) { trunk = new ConfigTreeItem() ; } 
+	ConfigParser(): Parser("input.ini"), filename("input.ini") { trunk = new ConfigTreeItem() ; } 
 	virtual ~ConfigParser() { } ;
 	virtual void readData() ;
-	Configlet<void * > * getData() { return trunk; }
+	ConfigTreeItem * getData() { return trunk; }
+
+	static ConfigTreeItem * readFile(std::string f) ;
+
 } ;
 
 #endif // __PARSER_H_
