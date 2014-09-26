@@ -389,6 +389,9 @@ public:
 
     virtual size_t getLastNodeId() const = 0;
     virtual size_t size() const = 0 ;
+    
+    virtual unsigned int generateCache(const std::vector<ETYPE *> original) = 0 ;
+    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) = 0 ;
 } ;
 
 template<class ETYPE, class EABSTRACTTYPE>
@@ -644,6 +647,9 @@ public:
     {
         return tree[std::abs(index)] ;
     }
+    
+    virtual unsigned int generateCache(const std::vector<ETYPE *> original) { return 0 ;} ;
+    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) {return {element} ; } ;
 
 // 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
 // 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }

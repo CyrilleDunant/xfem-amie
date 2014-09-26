@@ -58,7 +58,7 @@ void step()
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
-        int npoints = 4 ;
+        int npoints = tets[0]->getBoundingPoints().size() ;
 
         double volume = 0 ;
 
@@ -66,14 +66,13 @@ void step()
 
         for(size_t k = 0 ; k < tets.size() ; k++)
         {
-
             if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
             {
                 double ar = tets[k]->area() ;
                 volume += ar ;
                 for(size_t l = 0 ; l < npoints ; l++)
                 {
-                    xavg += x[tets[k]->getBoundingPoint(l).getId()]*ar/npoints ;
+                    xavg += x[tets[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
                 }
             }
         }
@@ -92,17 +91,17 @@ void step()
 
         std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
         std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
-        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
-        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
         std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
         std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
+        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
 
         std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
         std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;        
         std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
         std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
-        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
-        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
 
         std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
         std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
@@ -135,15 +134,11 @@ int main(int argc, char *argv[])
     
     double nu = 0.2 ;
     double E = 1 ;
-    Matrix m0(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS)) ;
+    Matrix m0(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN)) ;
 
     nu = 0.2 ;
     E = 10 ;
-    Matrix m1(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS)) ;
-
-
-
-
+    Matrix m1(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN)) ;
 
     MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
     StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
@@ -173,26 +168,23 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, -1.)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, -1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, 1.)) ;
 //     F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, inc.getPrimitive(), -1)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_RIGHT_BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_FRONT)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-// 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.setOrder(QUADRATIC) ;
-    F.setPartition(8);
+    F.setPartition(64);
 
     step() ;
 // 	delete dt ;

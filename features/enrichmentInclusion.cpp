@@ -75,88 +75,6 @@ void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtre
 		std::cout << "cache empty !" << std::endl ;
 }
 
-Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
-{
-// 	return Function("1") ;
-
-// if(t->getOrder() == QUADRATIC)
-// {
-// 	TriElement father(QUADRATIC) ;
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return father.getShapeFunction(0) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return father.getShapeFunction(2) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(3);
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return father.getShapeFunction(4) + 0.25*father.getShapeFunction(3)+ 0.25*father.getShapeFunction(5);
-// 	}
-// 	
-// 	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return father.getShapeFunction(2)+father.getShapeFunction(3)+father.getShapeFunction(4) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
-// 	}
-// 	
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-// 	{
-// 		return father.getShapeFunction(0) + father.getShapeFunction(5) + father.getShapeFunction(4) + 0.25*father.getShapeFunction(1) +0.25*father.getShapeFunction(3);
-// 	}
-// 	
-// 	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-// 	{
-// 		return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(2) + 0.25*father.getShapeFunction(3) + 0.25*father.getShapeFunction(5);
-// 	}
-// }
-
-
-	TriElement father(LINEAR) ;
-// 	Function f ;
-// 	for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
-// 	{
-// 		if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
-// 			f += father.getShapeFunction(i) ;
-// 	}
-// 	return f ;
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return father.getShapeFunction(0) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return father.getShapeFunction(1) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return father.getShapeFunction(2) ;
-	}
-	
-	if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return 1-father.getShapeFunction(0) ;
-	}
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
-	{
-		return 1-father.getShapeFunction(1) ;
-	}
-	
-	if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
-	{
-		return 1-father.getShapeFunction(2) ;
-	}
-	
-	return Function("1") ;
-}
-
-
 void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
 	freeIds.clear() ;
@@ -442,7 +360,7 @@ std::vector<Geometry *> EnrichmentInclusion::getRefinementZones( size_t level) c
 	return std::vector<Geometry *>(0) ;
 }
 	
-void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Amie::Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
+void EnrichmentInclusion::step(double dt, std::valarray< double >*, const Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) {}
 	
 bool EnrichmentInclusion::moved() const {  return updated ;}
 

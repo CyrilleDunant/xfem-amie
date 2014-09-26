@@ -229,22 +229,6 @@ public:
 	void checkZeroLines() ;
 
 	void setMaxDof(size_t n) { ndofmax = n ; }
-	
-/** \brief update element e
-* 
-* @param element to update
-* @param dt time step
-* @param params Supplementary parameters 
-*/
-	void update(ElementarySurface * e, double dt, Vector * params) ;
-
-/** \brief update element e
-* 
-* @param element to update
-* @param dt time step
-* @param params Supplementary parameters 
-*/
-	void update(ElementaryVolume * e, double dt, Vector * params) ;
 
 	void setRemoveZeroOnlyLines(bool r) { removeZeroOnlyLines = r ; }
 	
@@ -309,36 +293,6 @@ public:
 /** \brief return result of the system*/
 	Vector & getDisplacements() {return displacements ;}
 // 	const Vector & getForces() const;
-	
-/** \brief return list of elements*/
-	const std::vector<ElementarySurface *> & getElements2d() const ;
-
-/** \brief return list of elements*/
-	std::vector<ElementarySurface *> & getElements2d()  ;
-	
-/** \brief return list of elements*/
-	const std::vector<double> & getScales() const ;
-
-/** \brief return list of elements*/
-	std::vector<double> & getScales()  ;
-
-/** \brief return ith element*/
-	ElementarySurface * getElement2d(const size_t ) const ;
-
-/** \brief return ith element*/
-	ElementarySurface * getElement2d(const size_t )  ;
-	
-/** \brief return list of elements*/
-	const std::vector<ElementaryVolume *> & getElements3d() const ;
-
-/** \brief return list of elements*/
-	std::vector<ElementaryVolume *> & getElements3d()  ;
-
-/** \brief return ith element*/
-	ElementaryVolume * getElement3d(const size_t ) const ;
-
-/** \brief return list of elements*/
-	ElementaryVolume * getElement3d(const size_t )  ;
 	
 /** \brief set boundary condition. Point with ID id is fixed*/
 	void fixPoint(size_t id) ;
@@ -420,8 +374,181 @@ public:
 
 	void fix() ;
 	void clear() ;
-	
-	
+    void clearElements() ;
+} ;
+
+/** \brief Assembly of the elementary Matrices
+* 
+* Elements are add() ed to the assembly. The assembly provides methods for the setting of boundary conditions.
+* A solver is finally called.
+*/
+class ParallelAssembly
+{
+protected:
+        
+    std::vector<Assembly> assembly ;
+    std::vector<Geometry *> domains ;
+
+public:
+    ParallelAssembly(const std::vector<Geometry *> & domains) ;
+    
+    virtual ~ParallelAssembly() ;
+
+    size_t getMaxDofID() const ; 
+
+/** \brief add element to assembly*/
+    void add(ElementarySurface * e, double scale = 1.) ;
+
+/** \brief add element to assembly*/
+    void add(ElementaryVolume * e, double scale = 1.) ;
+
+    void setMaxDof(size_t n) ;
+
+    void setRemoveZeroOnlyLines(bool r) ;
+    
+    void initialiseElementaryMatrices() ;
+    void initialiseElementaryMatrices(TriElement * father) ;
+    void initialiseElementaryMatrices(TetrahedralElement * father) ;
+
+/** \brief return true if Assembly is made of 2D elements*/
+    bool has2DElements() const ;
+
+/** \brief return true if Assembly is made of 3D elements*/
+    bool has3DElements() const ;
+
+/** \brief print assembled matrix ans vector*/
+    void print() ;
+
+/** \brief print the diagonal of the assembled matrix*/
+    void printDiag() const ;
+    
+/** \brief apply Boundary conditions*/
+    void setBoundaryConditions() ;
+    
+/** \brief perform a sub-step in a non-linear problem*/
+    bool nonLinearStep() ;
+//  Vector solve(size_t maxit = 1000) ;
+
+/** \brief Solve linear system*/
+    bool solve(Vector x, size_t maxit = 1000, const bool verbose = false) ;
+
+/** \brief Solve linear system using Preconditionned Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
+    bool cgsolve(Vector x0 = Vector(0), int maxit = -1, bool verbose = true) ;
+
+    void setEpsilon(double e) ;
+    double getEpsilon() const ;
+    
+/** \brief Solve linear system using provided solver*/
+
+    bool mgprepare() ;
+    bool mgsolve(LinearSolver * mg, Vector x0 = Vector(0), Preconditionner * pg = nullptr, int maxit = -1) ;
+
+/** \brief Solve linear system using Conjugate Gradient (linear/non linear/biconjugate is automatically selected)*/
+    bool cgnpsolve(Vector b, size_t maxit) ;
+    
+/** \brief return assembled matrix*/
+    CoordinateIndexedSparseMatrix & getMatrix(int i) ;
+
+/** \brief return assembled matrix*/
+    const CoordinateIndexedSparseMatrix & getMatrix(int i) const;
+
+/** \brief return non-linear part of the assembled matrix*/
+    CoordinateIndexedIncompleteSparseMatrix & getNonLinearMatrix(int i) ;
+
+/** \brief return right-and-side vector*/
+    Vector & getForces(int i) ;
+
+/** \brief return virtual forces which come from imposed displacements BCs*/
+    Vector & getNaturalBoundaryConditionForces(int i) ;
+
+/** \brief return right-and-side vector*/
+    Vector & getNonLinearForces(int i) ;
+
+/** \brief return result of the system*/
+    Vector & getDisplacements(int i) ;
+//  const Vector & getForces() const;
+ 
+/** \brief set boundary condition. Point with ID id is fixed*/
+    void fixPoint(size_t id) ;
+
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+     * @param id
+     */
+    void setPoint(double ex, size_t id) ;
+
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+     * @param ex
+     * @param ey
+     * @param id
+     */
+    void setPoint(double ex, double ey, size_t id) ;
+
+/** \brief set boundary condition. Point with ID id has fixed displacement.
+     * @param ex
+     * @param ey
+     * @param ez
+     * @param id
+     */
+    void setPoint(double ex, double ey, double ez, size_t id) ;
+    
+/** Set unknown of a given node in a given direction to a given value
+     * @param var Variable (XI, ETA, or ZETA) along which displacement is fixed
+     * @param id ID of the node 
+     * @param val value at which unknown is set
+ */
+    void setPointAlong(Variable, double val, size_t id) ;
+    
+    void setPointAlongIndexedAxis(int index, double val, size_t id) ;
+    
+    /** Apply a force on given node
+     * @param var Variable (XI, ETA, or ZETA) along which force is applied 
+     * @param id ID of the node 
+     * @param val intensity of the force
+     */
+    void setForceOn(Variable var, double val, size_t id) ;
+    
+    /** Apply a force on given node. The force specified is added to the already applied force (if any).
+     * @param var Variable (XI, ETA, or ZETA) along which force is applied 
+     * @param id ID of the node 
+     * @param val intensity of the force
+     */
+    void addForceOn(Variable var, double val, size_t id) ;
+
+    void addForceOnIndexedAxis(int index, double val, size_t id) ;
+    
+    void setDisplacementByDof(size_t dof, double val) ;
+
+    /** Apply a force on given node (1D)
+     * @param id ID of the node 
+     * @param val intensity of the force
+     */
+    void setForceOn(double val, size_t id) ;
+    
+    /**Add a Lagrange Multiplier to the problem
+     * @param l Multiplier to add
+     */
+    void addMultiplier(const LagrangeMultiplier & l) ;
+
+    void addForceVector(const Vector & v) ;
+
+/** \brief set boundary condition. Point with ID id has 0 displacement along prescribed axis*/
+    void fixPoint(size_t id, Amie::Variable v) ;
+
+/** \brief The two points are the same*/
+    void setPeriodicPoint(size_t id0, size_t id1) ;
+        
+/** \brief return Froebenius norm of the assembled matrix*/
+    double froebeniusNorm() ;
+    
+    void setNumberOfDregreesOfFreedom(int dof) ;
+    int getNumberOfDegreesOfFreedom() const ;
+    
+    void setSpaceDimension(SpaceDimensionality d) ;
+    SpaceDimensionality getSpaceDimension() const ;
+
+    void fix() ;
+    void clear() ;
+    void clearElements() ;
 } ;
 
 

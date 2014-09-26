@@ -20,7 +20,7 @@ namespace Amie
 struct BiConjugateGradientStabilized : public LinearSolver
 {
 	virtual ~BiConjugateGradientStabilized() { } ;
-	BiConjugateGradientStabilized(const Amie::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
+	BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix& A_, const Vector& b_) ;
 	virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
 } ;
 

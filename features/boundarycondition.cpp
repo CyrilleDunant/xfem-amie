@@ -3928,32 +3928,30 @@ void BoundingBoxDefinedBoundaryCondition::apply( Assembly * a, Mesh<DelaunayTria
 
 		for ( size_t i = 0 ; i < elements.size() ; ++i )
 		{
-			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+			if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
 				continue ;
 
-			if ( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-			{
-				for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
-				{
-					if ( elements[i]->getBoundingPoint( j ).getX() < minx )
-						minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-					if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
-						maxx = elements[i]->getBoundingPoint( j ).getX() ;
+            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            {
+                if ( elements[i]->getBoundingPoint( j ).getX() < minx )
+                    minx = elements[i]->getBoundingPoint( j ).getX() ;
 
-					if ( elements[i]->getBoundingPoint( j ).getY() < miny )
-						miny = elements[i]->getBoundingPoint( j ).getY() ;
+                if ( elements[i]->getBoundingPoint( j ).getX() > maxx )
+                    maxx = elements[i]->getBoundingPoint( j ).getX() ;
 
-					if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
-						maxy = elements[i]->getBoundingPoint( j ).getY() ;
+                if ( elements[i]->getBoundingPoint( j ).getY() < miny )
+                    miny = elements[i]->getBoundingPoint( j ).getY() ;
 
-					if ( elements[i]->getBoundingPoint( j ).getT() < mint )
-						mint = elements[i]->getBoundingPoint( j ).getT() ;
+                if ( elements[i]->getBoundingPoint( j ).getY() > maxy )
+                    maxy = elements[i]->getBoundingPoint( j ).getY() ;
 
-					if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
-						maxt = elements[i]->getBoundingPoint( j ).getT() ;
-				}
-			}
+                if ( elements[i]->getBoundingPoint( j ).getT() < mint )
+                    mint = elements[i]->getBoundingPoint( j ).getT() ;
+
+                if ( elements[i]->getBoundingPoint( j ).getT() > maxt )
+                    maxt = elements[i]->getBoundingPoint( j ).getT() ;
+            }
 		}
 		
 		Point pmin(minx, miny, 0., mint) ;

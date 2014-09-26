@@ -13,7 +13,7 @@
 
 namespace Amie {
 
-GaussSeidel::GaussSeidel(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { };
+GaussSeidel::GaussSeidel(const Amie::CoordinateIndexedSparseMatrix& A_, const Vector& b_) :LinearSolver(A_, b_) { };
 
 bool GaussSeidel::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {

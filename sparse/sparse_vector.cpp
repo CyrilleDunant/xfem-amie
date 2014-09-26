@@ -613,6 +613,7 @@ void ConstSparseVector::parallel_product(const Vector &v, double *dest, const si
 		}
 		#endif
 	}
+
 void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_t rowstart , size_t const colstart ) const
 {
 	size_t mstart = start ;

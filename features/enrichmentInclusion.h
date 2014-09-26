@@ -30,6 +30,87 @@ protected:
 	bool updated ;
 	std::vector<DelaunayTriangle *> cache ;
 	std::map<Mesh<DelaunayTriangle, DelaunayTreeItem> *,std::set<size_t> > freeIds ;
+    Function getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
+    {
+    //  return Function("1") ;
+
+    // if(t->getOrder() == QUADRATIC)
+    // {
+    //  TriElement father(QUADRATIC) ;
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(0) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(2) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(3);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(4) + 0.25*father.getShapeFunction(3)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(2)+father.getShapeFunction(3)+father.getShapeFunction(4) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(0) + father.getShapeFunction(5) + father.getShapeFunction(4) + 0.25*father.getShapeFunction(1) +0.25*father.getShapeFunction(3);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(2) + 0.25*father.getShapeFunction(3) + 0.25*father.getShapeFunction(5);
+    //  }
+    // }
+
+
+        Amie::TriElement father(Amie::LINEAR) ;
+    //  Function f ;
+    //  for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+    //  {
+    //      if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
+    //          f += father.getShapeFunction(i) ;
+    //  }
+    //  return f ;
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return father.getShapeFunction(0) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return father.getShapeFunction(1) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return father.getShapeFunction(2) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return 1-father.getShapeFunction(0) ;
+        }
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return 1-father.getShapeFunction(1) ;
+        }
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return 1-father.getShapeFunction(2) ;
+        }
+        
+        return Amie::Function("1") ;
+    } ;
+
 public:
 
 /** \brief Constructor. Construct the inclusion from a supporting feature, a radius and center coordinates */
@@ -104,7 +185,7 @@ public:
 	}
 	
 /** \brief do nothing*/
-	virtual void step(double dt, std::valarray<double> *, const  Amie::Mesh <Amie::DelaunayTriangle, Amie::DelaunayTreeItem > * dtree);
+	virtual void step(double dt, std::valarray<double> *, const  Mesh <DelaunayTriangle, DelaunayTreeItem > * dtree);
 	
 /** \brief return true if the radius has changed*/
 	virtual bool moved() const ;
@@ -117,9 +198,9 @@ protected:
 	bool changed ;
 } ;
 
-  
-  
 
-}
+} ;
+
+
 
 #endif

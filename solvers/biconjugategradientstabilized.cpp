@@ -7,7 +7,7 @@
 
 using namespace Amie ;
 
-BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) { }
+BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { }
 
 bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
 {

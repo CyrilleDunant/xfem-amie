@@ -18,9 +18,8 @@ GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : b(
 void GaussSeidellStep::precondition(const Vector& v, Vector& t) 
 {
 
-	gs.b = v ;
-	gs.solve(v, nullptr, 0, 1, false) ;
-	t = gs.x ;
+	GaussSeidel gs_(gs.A, v); gs_.solve(v, nullptr, 0, 1, false) ;
+	t = gs_.x ;
 }
 
 

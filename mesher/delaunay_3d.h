@@ -136,7 +136,6 @@ public:
 	
 } ;
 
-
 //! \brief Tetrahedron item the tree, defined by four points. 
 /*!The points are also stored as a valarray of points(inherited from \c Triangle ). Those are stored clockwise but should only be used when creating the final mesh. They insure the proper orientation of the triangles.
 */
@@ -304,7 +303,6 @@ public:
 	virtual double getRadius() const {return 0 ; } ;
 } ;
 
-
 //! \brief Neighbourhood of conflicing triangles.
 
 /*! The star knows about all the conflicting elements when inserting a point. Thus, It has all the information available to create the correct neighbourhood relationships.
@@ -343,6 +341,7 @@ protected:
 	bool neighbourhood ;
 	bool fixedScale ;
 	std::vector<Point *> additionalPoints ;
+    std::vector< std::vector<DelaunayTetrahedron *> > caches ; 
 	
 public:
     virtual size_t size() const { return tree.size() ; } ;
@@ -447,6 +446,16 @@ public:
 	void purge() ;
 
 	void print() const;
+    
+    virtual unsigned int generateCache(const std::vector<DelaunayTetrahedron *> original) 
+    { 
+        caches.push_back(original);
+        return caches.size()-1 ;
+    } ;
+    virtual std::vector<DelaunayTetrahedron *> getCache(unsigned int cacheID) 
+    {
+        return caches[cacheID] ; 
+    } ;
 
 } ;
 

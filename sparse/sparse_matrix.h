@@ -121,6 +121,8 @@ public:
  * @param columnIndex the column indes of every value to be sotred in the matrix.
  */
 	CoordinateIndexedSparseMatrix(const std::valarray<unsigned int> & rowSize, const std::valarray<unsigned int> & columnIndex, size_t stride) ;
+    
+    CoordinateIndexedSparseMatrix(const CoordinateIndexedSparseMatrix & src) : stride(src.stride), array(src.array), column_index(src.column_index), row_size(src.row_size), accumulated_row_size(src.accumulated_row_size) { } ;
 	
 	~CoordinateIndexedSparseMatrix() ;
 	
@@ -387,7 +389,6 @@ As there are no warranty all members of the diagonal are non-0, there is no warr
 			}
 		}
 	}
-	
 } ;
 
 struct CompositeSparseMatrixTimesVec ;

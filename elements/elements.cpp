@@ -970,7 +970,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 		}
 	}
 
-	if(moved && false)
+	if(moved)
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
@@ -982,7 +982,7 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 // 		Matrix J ;
 // 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = area()*2. ;//1./det(J) ;
+		double j = area()*2. ;//1./jacobianAtPoint(fin[0].first) ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;

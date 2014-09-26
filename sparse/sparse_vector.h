@@ -64,7 +64,7 @@ public:
 	 */
 	Vector operator *(const Vector&) const ;
 	
-        void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
+    void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
 	{
 		if(stride == 2)
 		{
@@ -875,7 +875,7 @@ public:
 	 */
 	void inner_product(const Vector &v, double *dest, const size_t rowstart = 0, size_t const colstart = 0) const ;
         
-        void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const ;
+    void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const ;
 	
 
 

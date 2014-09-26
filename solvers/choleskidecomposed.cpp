@@ -14,43 +14,75 @@
 
 using namespace Amie ;
 
-LowerTriangular::LowerTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_), d(A_.inverseDiagonal()) { };
+LowerTriangular::LowerTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_), d(A_.inverseDiagonal()) { };
 
 bool LowerTriangular::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
+    int stride = A.stride ;
 	x = 0 ;
-	for(size_t i = 0 ; i < x.size() ; i++)
-	{
-		double delta  = 0 ;
-		for(size_t j = A.accumulated_row_size[i] ; A.column_index[j]  < i ; j++)
-		{
-			delta += x[A.column_index[j]]*A.array[j] ;
-		}
-		x[i] = (b[i] -delta)*d[i] ;
-	}
+	
+	for(size_t i = 0 ; i < A.row_size.size() ; i++)
+    {
+        for(size_t k = 0 ; k < stride ; k++)
+        {
+            double delta = 0 ; 
+            int row = i*stride+k ;
+            for(size_t j = 0 ; j < A.row_size[i] ; j++)
+            {
+                int column = A.column_index[A.accumulated_row_size[i]+j] ;
+                for(size_t l = 0 ; l < stride ; l++)
+                {
+                    if(row >= column*stride+l)
+                    {
+                        delta += x[column*stride+l]*A[row][column*stride+l] ;
+                    }
+                }
+                
+                if(row < column*stride)
+                    break ;
+            }
+            x[row] = (b[row] -delta)*d[row] ;
+        }
+    }
 	
 	return true ;
 }
 
-UpperTriangular::UpperTriangular(const CoordinateIndexedSparseMatrix &A_, Vector &b_) :LinearSolver(A_, b_) , d(A_.inverseDiagonal()){ };
+UpperTriangular::UpperTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) , d(A_.inverseDiagonal()){ };
 
 bool UpperTriangular::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	x = 0 ;
-	for(size_t i = x.size() ; i > 0 ; i--)
-	{
-		double delta  = 0 ;
-		for(size_t j = A.accumulated_row_size[i-1]+A.row_size[i-1] ; A.column_index[j-1]  > i-1 ; j--)
-		{
-			delta += x[A.column_index[j-1]]*A.array[j-1] ;
-		}
-		x[i-1] = (b[i-1] -delta)*d[i-1] ;
-	}
+    int stride = A.stride ;
 	
-	return true ;
+	for(int i = A.row_size.size()-1 ; i >= 0 ; i--)
+    {
+        for(int k = stride-1 ; k >= 0 ; k--)
+        {
+            double delta = 0 ; 
+            int row = i*stride+k ;
+            for(int j = A.row_size[i]-1 ; j >= 0 ; j--)
+            {
+                int column = A.column_index[A.accumulated_row_size[i]+j] ;
+                for(int l = stride-1 ; l >=0 ; l--)
+                {
+                    if(row <= column*stride+l)
+                    {
+                        delta += x[column*stride+l]*A[row][column*stride+l] ;
+                    }
+                }
+                if(row > column*stride)
+                    break ;
+            }
+            x[row] = (b[row] -delta)*d[row] ;
+        }
+    }
+    
+    return true ;
+
 }
 
-CholeskiDecomposed::CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, Vector &b_,const Vector &d_) :LinearSolver(A_, b_), d(d_), y(0., A_.row_size.size()*A_.stride)
+CholeskiDecomposed::CholeskiDecomposed(const CoordinateIndexedSparseMatrix &A_, const Vector &b_,const Vector &d_) :LinearSolver(A_, b_), d(d_), y(0., A_.row_size.size()*A_.stride)
 {};
 
 bool CholeskiDecomposed::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)

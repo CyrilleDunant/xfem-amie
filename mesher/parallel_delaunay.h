@@ -34,6 +34,7 @@ protected:
     std::vector<Point *> additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
     int global_counter ;
+    std::vector< std::vector<DelaunayTriangle *> > caches ;
 public:
     virtual std::vector<DelaunayTreeItem *> & getTree() ;
     virtual const std::vector<DelaunayTreeItem *> & getTree() const;
@@ -77,6 +78,19 @@ public:
             s += m->size() ;
         return s ;
     }
+    
+    virtual unsigned int generateCache(const std::vector<DelaunayTriangle *> original) 
+    { 
+        caches.push_back(original);
+        return caches.size()-1 ;
+    } ;
+    
+    virtual std::vector<DelaunayTriangle *> getCache(unsigned int cacheID) 
+    {
+        return caches[cacheID] ; 
+    } ;
+        
+
 } ;
 } ;
 

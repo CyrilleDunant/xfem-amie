@@ -2813,8 +2813,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 {
     if(!enrichmentUpdated && getCachedGaussPoints())
     {
-// 		if(getEnrichmentFunctions().size() > 0)
-// 			std::cout << "wut?" << std::endl ;
         return *getCachedGaussPoints() ;
     }
 
@@ -3136,20 +3134,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
         }
 
     }
-    else
-    {
-// 		std::cout << "no enrichment functions !" << std::endl ;
-// 		Circle c(0.1,0.,0.) ;
-// 		if(this->intersects(&c))
-// 		{
-// 		double x = getCenter().getX() ;
-// 		double y = getCenter().getY() ;
-// 		std::cout << std::sqrt(x*x+y*y) << "\t" ;
-// 		getCenter().print() ;
-// 		}
-    }
 
-// 	delete getCachedGaussPoints() ;
+
     setCachedGaussPoints(new GaussPointArray(gp));
     return *getCachedGaussPoints();
 }

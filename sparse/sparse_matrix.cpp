@@ -506,11 +506,11 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 	
 	#pragma omp parallel for schedule(static)
 	for (int i = 0 ; i <rowstart ; i++)
-		ret[i] = 0;
+		ret[i] = 0 ;
 	
 	#pragma omp parallel for schedule(static)
 	for (int i = rowstart ; i <end ; i++)
-		ret[i] = -c.ve[i];
+		ret[i] = -c.ve[i] ;
 		
 // 	#pragma omp parallel for schedule(static) 
 // 	for (int i = rowstart ; i <end ; i+=stride)
@@ -519,6 +519,30 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 // // 		c.co.sm[i].inner_product(ve, &ret[0] + i, rowstart, colstart);
 // 	}
 	
+//     void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
+    
+//     #pragma omp parallel
+//     {
+//         #ifdef HAVE_OMP
+//         int nthreads = omp_get_num_threads() ;
+//         #else
+//         int nthreads = 1 ;
+//         #endif
+//         
+//         int chunksize = 1;
+//         
+//         std::valarray< Vector > buffer(Vector(0., ret.size()), nthreads) ;
+//         #pragma omp parallel for
+//         for (int i = 0 ; i < end; i+=stride)
+//         {
+//             c.co.sm.parallel_product(ve, &(buffer[i%nthreads][0]), rowstart, colstart, i) ;
+//         }
+//         
+//         for (size_t i = 0 ; i < nthreads ; i++)
+//             ret += buffer[i] ;
+//         
+//     }
+    
 	#pragma omp parallel
 	{
 #ifdef HAVE_OMP

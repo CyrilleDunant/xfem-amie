@@ -22,7 +22,7 @@ Solver::~Solver()
 {
 }
 
-LinearSolver::LinearSolver(const CoordinateIndexedSparseMatrix &A_,Vector &b_) : b(b_), A(A_), x(0., b.size()) {} ;
+LinearSolver::LinearSolver(const CoordinateIndexedSparseMatrix &A_,const Vector &b_) : b(b_), A(A_), x(0., b.size()) {} ;
 
 
 NonLinearSolver::NonLinearSolver(Assembly * a) : assembly(a) { } ;

@@ -319,11 +319,12 @@ FeatureTree::FeatureTree( Feature *first, int layer, double fraction, size_t gri
 void FeatureTree::setPartition(size_t partitionNumber)
 {
     
-//     for(size_t i = 0 ; i < domains.size() ; i++)
-//         delete domains[i] ;
+    for(size_t i = 0 ; i < domains.size() ; i++)
+        delete domains[i] ;
     
+    domains.clear() ;
     std::vector<Point> bbox = tree[0]->getBoundingBox() ;
-    double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
+    double min_x = bbox[0].getX(), min_y = bbox[0].getX(), max_x = bbox[0].getY(), max_y = bbox[0].getY(), max_z = bbox[0].getZ(), min_z = bbox[0].getZ();
 
     for( size_t j  =  0 ; j <  bbox.size() ; j++ )
     {
@@ -370,13 +371,14 @@ void FeatureTree::setPartition(size_t partitionNumber)
         double di = triplet.begin()->second[0] ;
         double dj = triplet.begin()->second[1] ;
         double dk = triplet.begin()->second[2] ;
+        std::cerr << "New partition : " << di << "x" << dj << "x" << dk << ", " << di*dj*dk << " domains. ...done." << std::endl ;
         for(size_t i = 0 ; i < di ; i++)
         {
             for(size_t j = 0 ; j < dj ; j++)
             {
                 for(size_t k = 0 ; k < dk ; k++)
                 {
-                     domains.push_back(new Hexahedron(lx/di, ly/dj, lz/dk, lx/(2.*di)+lx/di*i, ly/(2.*dj)+ly/dj*j, lz/(2.*dk)+lz/dk*k));
+                     domains.push_back(new Hexahedron(lx/di, ly/dj, lz/dk, lx/(2.*di)+lx/di*i+min_x, ly/(2.*dj)+ly/dj*j+min_y, lz/(2.*dk)+lz/dk*k+min_z));
                 }
             }
         }
@@ -400,11 +402,12 @@ void FeatureTree::setPartition(size_t partitionNumber)
         double ly = max_y-min_y ;
         double di = triplet.begin()->second[0] ;
         double dj = triplet.begin()->second[1] ;
+        std::cerr << "New partition : " << di << "x" << dj << ", " << di*dj << " domains. ...done." << std::endl ;
         for(size_t i = 0 ; i < di ; i++)
         {
             for(size_t j = 0 ; j < dj ; j++)
             {
-                domains.push_back(new Rectangle(lx/di, ly/dj, lx/(2.*di)+lx/di*i, ly/(2.*dj)+ly/dj*j));
+                domains.push_back(new Rectangle(lx/di, ly/dj, lx/(2.*di)+lx/di*i+min_x, ly/(2.*dj)+ly/dj*j+min_y));
             }
         }
     }
@@ -3049,9 +3052,7 @@ void FeatureTree::enrich()
 
 void FeatureTree::assemble()
 {
-    K->getElements2d().clear();
-    K->getElements3d().clear();
-    K->getScales().clear();
+    K->clearElements();
 
     if( is2D() )
     {
@@ -3892,7 +3893,7 @@ void FeatureTree::forceEnrichmentChange()
 void FeatureTree::elasticStep()
 {
     Vector lastx( K->getDisplacements() ) ;
-    this->K->clear() ;
+    K->clear() ;
     assemble() ;
     solve() ;
     bool prevElastic = elastic ;
@@ -5077,18 +5078,24 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
     {
         std::vector<DelaunayTriangle *> elements = getElements2D( grid ) ;
         size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
-        avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ;
-        buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ;
-        avg = 0 ;
-        buffer = 0 ;
+        if(!blocks)
+        {
+            int i = 1 ;
+            while(!blocks)
+                blocks = elements[i++]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
+        }
+            
+        avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks), 0.) ;
+        buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks), 0.) ;
+
         for(size_t i = 0 ; i < elements.size() ; i++)
         {
+            double v = elements[i]->area() ;
+            volume += v ;
             if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
             {
                 elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
-
-                avg += buffer * elements[i]->area() ;
-                volume += elements[i]->area() ;
+                avg += buffer * v ;  
             }
         }
     }
@@ -5096,15 +5103,25 @@ Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
     {
         std::vector<DelaunayTetrahedron *> elements = getElements3D( grid ) ;
         size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
-        avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
-        buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
-        avg = 0 ;
-        buffer = 0 ;
+        if(!blocks)
+        {
+            int i = 1 ;
+            while(!blocks)
+                blocks = elements[i++]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
+        }
+        avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks), 0.) ;
+        buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks), 0.) ;
+
         for(size_t i = 0 ; i < elements.size() ; i++)
         {
-            elements[i]->getState().getAverageField( f, buffer,&vm, -1, t ) ;
-            avg += buffer * elements[i]->volume() ;
-            volume += elements[i]->volume() ;
+            double v = elements[i]->volume() ;
+            volume += v ;
+            if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+            {
+                
+                elements[i]->getState().getAverageField( f, buffer,&vm, -1, t ) ;
+                avg += buffer * v ;
+            }
         }
 
     }
@@ -6762,7 +6779,7 @@ void FeatureTree::generateElements()
         double t0 = omp_get_wtime() ;
 #endif
         
-        dtree = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/ ) ;
+        dtree = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains ) ;
         dtree->insert( meshPoints[3].first ) ;
         layer2d[-1] = dtree ;
 
@@ -6772,7 +6789,7 @@ void FeatureTree::generateElements()
             {
                 if(layer2d.find(tree[i]->getLayer()) == layer2d.end())
                 {
-                    layer2d[tree[i]->getLayer()] = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/) ;
+                    layer2d[tree[i]->getLayer()] = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains) ;
                     layer2d[tree[i]->getLayer()]->insert( meshPoints[3].first ) ;
                 }
             }

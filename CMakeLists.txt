@@ -159,6 +159,7 @@ solvers/solver.cpp
 solvers/multigrid.cpp
 solvers/multigridstep.cpp
 solvers/tridiagonal.cpp
+solvers/ssor.cpp
 sparse/sparse_matrix.cpp
 sparse/sparse_vector.cpp
 utilities/configuration.cpp

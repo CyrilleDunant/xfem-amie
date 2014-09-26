@@ -58,7 +58,7 @@ void step()
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
-        int npoints = 4 ;
+        int npoints = tets[0]->getBoundingPoints().size() ; ;
 
         double volume = 0 ;
 
@@ -66,14 +66,13 @@ void step()
 
         for(size_t k = 0 ; k < tets.size() ; k++)
         {
-
             if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
             {
                 double ar = tets[k]->volume() ;
                 volume += ar ;
                 for(size_t l = 0 ; l < npoints ; l++)
                 {
-                    xavg += x[tets[k]->getBoundingPoint(l).getId()]*ar/npoints ;
+                    xavg += x[tets[k]->getBoundingPoint(l).getId()*3]*ar/npoints ;
                 }
             }
         }
@@ -157,6 +156,31 @@ std::pair<double, double> centile(const Vector & v)
 
 int main(int argc, char *argv[])
 {
+/*    
+    Matrix toto(6,6) ;
+    toto[0][0] = 0; toto[0][1] = 0; toto[0][2] = 0; toto[0][3] = 0; toto[0][4] = 0; toto[0][5] = 0; 
+    toto[1][0] = 0; toto[1][1] = 1; toto[1][2] = 2; toto[1][3] = 3; toto[1][4] = 4; toto[1][5] = 5; 
+    toto[2][0] = 0; toto[2][1] = 2; toto[2][2] = 0; toto[2][3] = 0; toto[2][4] = 0; toto[2][5] = 0; 
+    toto[3][0] = 0; toto[3][1] = 3; toto[3][2] = 0; toto[3][3] = 0; toto[3][4] = 0; toto[3][5] = 0; 
+    toto[4][0] = 0; toto[4][1] = 4; toto[4][2] = 0; toto[4][3] = 0; toto[4][4] = 0; toto[4][5] = 0; 
+    toto[5][0] = 0; toto[5][1] = 5; toto[5][2] = 0; toto[5][3] = 0; toto[5][4] = 0; toto[5][5] = 0; 
+    
+    Vector v(0., 6) ;
+    Vector r(0., 6) ;
+    v[0] = 1 ; v[3] = 1 ; v[4] = 3 ; v[5] = 7 ;
+    int idx = 1 ;
+    for(size_t i = idx ; i < 6 ;  i++)
+    {
+        double val = v[i]*toto[idx][i] ;
+        //     val = v[i]*toto[i][idx]
+        r[i] += val ;
+        r[idx] += val ;
+    }
+    for(size_t i = 0 ; i < 6 ;  i++)
+        std::cout << r[i] << std::endl ;
+    
+    return 0 ;
+    */
 
     double nu = 0.2 ;
     double E = 1 ;

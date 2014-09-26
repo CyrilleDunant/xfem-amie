@@ -29,7 +29,7 @@ namespace Amie
 		Preconditionner * P ;
 		size_t nit ;
 		virtual ~ConjugateGradient() { if(cleanup) delete P ;} ;
-		ConjugateGradient(const Amie::CoordinateIndexedSparseMatrix& A_, Vector& b_) ;
+		ConjugateGradient(const CoordinateIndexedSparseMatrix& A_, const Vector& b_) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
 	} ;
 
