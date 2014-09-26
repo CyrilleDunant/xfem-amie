@@ -1701,6 +1701,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                             break ;
                         }
                     }
+			if(intersection.size() > 1)
+				ret.push_back(intersection[intersection.size()-1]) ;
 
                     if(haveDuplicates)
                         break ;
@@ -1708,28 +1710,30 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             }
             return intersection ;
         }
-        std::vector<Point> intersection = s0.intersection(g) ;
-        if(intersection.size() == 1)
-        {
-            if(g->in(s0.second()))
-                intersection.push_back(s0.second()) ;
-            else if(g->in(s0.first()))
-                intersection.push_back(s0.first()) ;
-        }
-        double perimetre = s0.norm()+s1.norm()+s2.norm()+s3.norm() ;
-        for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
-        {
-            ret.push_back(intersection[i]) ;
 
-            double l = dist(intersection[i], intersection[i+1]) ;
-            double jmax = round(1.5*getBoundingPoints().size()*(l/perimetre)) ;
-            for(double j = 1 ; j < jmax+1 ; j++ )
-            {
-                double frac = j/(jmax+1) ;
-                ret.push_back(intersection[i]*(1.-frac)+intersection[i+1]*frac) ;
-            }
+	std::vector<Point> intersection = s0.intersection(g) ;
+	if(intersection.size() == 1)
+	{
+	    if(g->in(s0.second()))
+	        intersection.push_back(s0.second()) ;
+	    else if(g->in(s0.first()))
+	        intersection.push_back(s0.first()) ;
+	}
+	double perimetre = s0.norm()+s1.norm()+s2.norm()+s3.norm() ;
+	for(int i = 0 ; i < (int)intersection.size()-1 ; i++)
+	{
+		ret.push_back(intersection[i]) ;
+		double l = dist(intersection[i], intersection[i+1]) ;
+		double jmax = round(1.5*getBoundingPoints().size()*(l/perimetre)) ;
+		for(double j = 1 ; j < jmax+1 ; j++ )
+		{
+			double frac = j/(jmax+1) ;
+			ret.push_back(intersection[i]*(1.-frac)+intersection[i+1]*frac) ;
+		}
+	}
+	if(intersection.size() > 1)
+		ret.push_back(intersection[intersection.size()-1]) ;
 
-        }
 
         intersection = s1.intersection(g) ;
         if(intersection.size() == 1)
@@ -1751,6 +1755,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             }
 
         }
+	if(intersection.size() > 1)
+		ret.push_back(intersection[intersection.size()-1]) ;
 
         intersection = s2.intersection(g) ;
         if(intersection.size() == 1)
@@ -1772,6 +1778,8 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 ret.push_back(intersection[i]*(1.-frac)+intersection[i+1]*frac) ;
             }
         }
+	if(intersection.size() > 1)
+		ret.push_back(intersection[intersection.size()-1]) ;
 
         intersection = s3.intersection(g) ;
         if(intersection.size() == 1)
@@ -1791,8 +1799,9 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 double frac = j/(jmax+1) ;
                 ret.push_back(intersection[i]*(1.-frac)+intersection[i+1]*frac) ;
             }
-            ret.push_back(intersection[i+1]) ;
         }
+	if(intersection.size() > 1)
+		ret.push_back(intersection[intersection.size()-1]) ;
 
 
         bool haveDuplicates = true ;
