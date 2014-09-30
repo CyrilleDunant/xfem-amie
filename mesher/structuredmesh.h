@@ -18,6 +18,7 @@ namespace Amie
 		size_t global_counter ;
 		std::vector <DelaunayTriangle *> tree ;
         std::vector< std::vector<DelaunayTriangle *> > caches ;
+        std::vector<Vector> coefs ;
 	public:
 		StructuredMesh(double sizeX, double sizeY, int div, const Point & center ) ;
         virtual size_t size() const { return tree.size() ; } ;
@@ -36,6 +37,42 @@ namespace Amie
             caches.push_back(original);
             return caches.size()-1 ;
         } ;
+        
+        
+    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1"))
+    {
+        VirtualMachine vm ;
+        std::vector<double> co ;
+        for(auto & element : tree)
+        {
+            if(source && element->getBehaviour()->getSource() != source)
+                continue ;
+            
+            if(locus->in(element->getCenter()))
+            {
+                       
+                Function x = element->getXTransform() ;
+                Function y = element->getYTransform() ;
+                Function z = element->getZTransform() ;
+                Function t = element->getTTransform() ;
+                for(size_t i = 0 ; i < co.size() ; i++)
+                {
+                    double xx= vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
+                    double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
+                    double xz = vm.eval(z, element->getGaussPoints().gaussPoints[i].first) ;
+                    double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
+                    co.push_back(vm.eval(smoothing, xx, xy, xz, xt));
+                }
+            }
+        }
+        
+        Vector cf(co.size()) ;
+        std::copy(co.begin(), co.end(), &cf[0]) ;
+        coefs.push_back(cf);
+        return coefs.size()-1 ;
+        
+    } ;
+        
         virtual std::vector<DelaunayTriangle *> getCache(unsigned int cacheID) 
         {
             return caches[cacheID] ; 

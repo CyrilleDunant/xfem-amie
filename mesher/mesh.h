@@ -36,6 +36,7 @@ class Mesh
 protected:
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, std::pair<ETYPE *, std::vector<double> > > > cache ;
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
+    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) = 0 ;
 public:
 // 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
 // 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
@@ -391,7 +392,11 @@ public:
     virtual size_t size() const = 0 ;
     
     virtual unsigned int generateCache(const std::vector<ETYPE *> original) = 0 ;
-    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) = 0 ;
+    
+    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1")) = 0;
+//     
+//     std::valarray<Vector> getField( FieldType f, unsigned int cacheID) = 0 ;
+    
 } ;
 
 template<class ETYPE, class EABSTRACTTYPE>
@@ -403,6 +408,7 @@ protected:
     std::vector<Point *> points ;
     std::map<int *, int> trans ;
     size_t global_counter ;
+    std::vector<Vector> coefs ;
 
     virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) const
     {
@@ -466,7 +472,7 @@ protected:
 
     }
 
-
+    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) {return {element} ; } ;
 public:
 
     virtual size_t size() const { return 1. ; } ;
@@ -648,8 +654,35 @@ public:
         return tree[std::abs(index)] ;
     }
     
-    virtual unsigned int generateCache(const std::vector<ETYPE *> original) { return 0 ;} ;
-    virtual std::vector<ETYPE *> getCache(unsigned int cacheID) {return {element} ; } ;
+    virtual unsigned int generateCache(const std::vector<ETYPE *> original) 
+    { return 0 ;} ;
+    
+    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1"))
+    {
+        if(locus->in(element->getCenter()))
+        {
+            VirtualMachine vm ;
+            Vector co(element->getGaussPoints().gaussPoints.size()) ;
+            Function x = element->getXTransform() ;
+            Function y = element->getYTransform() ;
+            Function z = element->getZTransform() ;
+            Function t = element->getTTransform() ;
+            for(size_t i = 0 ; i < co.size() ; i++)
+            {
+                double xx= vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
+                double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
+                double xz = vm.eval(z, element->getGaussPoints().gaussPoints[i].first) ;
+                double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
+                co[i] = vm.eval(smoothing, xx, xy, xz, xt) ;
+            }
+            coefs.push_back(co);
+            return coefs.size()-1 ;
+        }
+        coefs.push_back(Vector());
+        return coefs.size()-1 ;
+        
+        
+    } ;
 
 // 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
 // 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }

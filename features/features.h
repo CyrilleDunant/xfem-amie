@@ -600,8 +600,8 @@ public:
 	std::pair<Vector , Vector > getStressAndStrainInAllLayers( bool stepTree = true) ;
 	
 	Vector getAverageField( FieldType f, int grid = -1, double t = 0) ;
-	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
-	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
+// 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
+// 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 	
 	std::pair<Vector, Vector> getFieldMinMax( FieldType f, int grid = -1, double t = 0) ;
 	std::pair<Vector, Vector> getFieldMinMax( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;

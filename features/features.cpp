@@ -5663,41 +5663,41 @@ std::vector<double> FeatureTree::getMedianMacroscopicStrain(const Geometry * bas
 }
 
 
-Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri )
-{
-    Vector avg ;
-    Vector buffer ;
-    double volume = 0 ;
-    avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ;
-    buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ;
-    avg = 0 ;
-    buffer = 0 ;
-    for(size_t i = 0 ; i < tri.size() ; i++)
-    {
-        tri[i]->getState().getAverageField( f, buffer ) ;
-        avg += buffer * tri[i]->area() ;
-        volume += tri[i]->area() ;
-    }
-    return avg/volume ;
-}
+// Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri )
+// {
+//     Vector avg ;
+//     Vector buffer ;
+//     double volume = 0 ;
+//     avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ;
+//     buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL)) ;
+//     avg = 0 ;
+//     buffer = 0 ;
+//     for(size_t i = 0 ; i < tri.size() ; i++)
+//     {
+//         tri[i]->getState().getAverageField( f, buffer ) ;
+//         avg += buffer * tri[i]->area() ;
+//         volume += tri[i]->area() ;
+//     }
+//     return avg/volume ;
+// }
 
-Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet )
-{
-    Vector avg ;
-    Vector buffer ;
-    double volume = 0 ;
-    avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ;
-    buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ;
-    avg = 0 ;
-    buffer = 0 ;
-    for(size_t i = 0 ; i < tet.size() ; i++)
-    {
-        tet[i]->getState().getAverageField( f, buffer ) ;
-        avg += buffer * tet[i]->volume() ;
-        volume += tet[i]->volume() ;
-    }
-    return avg/volume ;
-}
+// Vector FeatureTree::getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet )
+// {
+//     Vector avg ;
+//     Vector buffer ;
+//     double volume = 0 ;
+//     avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ;
+//     buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL)) ;
+//     avg = 0 ;
+//     buffer = 0 ;
+//     for(size_t i = 0 ; i < tet.size() ; i++)
+//     {
+//         tet[i]->getState().getAverageField( f, buffer ) ;
+//         avg += buffer * tet[i]->volume() ;
+//         volume += tet[i]->volume() ;
+//     }
+//     return avg/volume ;
+// }
 
 std::pair<Vector, Vector> FeatureTree::getFieldMinMax( FieldType f, int grid, double t)
 {

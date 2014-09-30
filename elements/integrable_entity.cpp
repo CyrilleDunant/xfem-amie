@@ -1082,14 +1082,15 @@ void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, Vi
 	if(cleanup) delete vm ;
 }
 
-void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t) 
+void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t, Vector weights) 
 {
 	bool cleanup = !vm ;
 	if( !vm ) vm = new VirtualMachine() ;
 	GaussPointArray gp = parent->getGaussPoints() ;
 	ret = 0 ;
 	double total = 0 ;
-	
+        if (weights.size() != gp.gaussPoints.size())
+            weights.resize(gp.gaussPoints.size(), 1.) ;
 	switch(f)
 	{
 		case STRAIN_FIELD :
@@ -1105,8 +1106,9 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
+                                        
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1124,8 +1126,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1147,8 +1149,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 					
 				}
 				if(total > POINT_TOLERANCE_2D)
@@ -1167,8 +1169,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1190,8 +1192,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						stressAtGaussPoints[i*tmp.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1209,8 +1211,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = stressAtGaussPoints[i*tmp.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1233,8 +1235,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						pstressAtGaussPoints[i*tmp.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1252,8 +1254,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = pstressAtGaussPoints[i*tmp.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1276,8 +1278,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						stressAtGaussPoints[i*tmp.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1296,8 +1298,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = stressAtGaussPoints[i*tmp.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1320,8 +1322,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						pstressAtGaussPoints[i*tmp.size()+j] = tmp[j] ;
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1340,8 +1342,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 					{
 						tmp[j] = pstressAtGaussPoints[i*tmp.size()+j];
 					}
-					ret += tmp*gp.gaussPoints[i].second ;
-					total += gp.gaussPoints[i].second ;
+					ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+					total += gp.gaussPoints[i].second*weights[i] ;
 				}
 				if(total > POINT_TOLERANCE_2D)
 					ret /= total ;
@@ -1356,8 +1358,8 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 				Point p_ = gp.gaussPoints[i].first ;
 				Vector tmp = ret ;
 				getField(f, p_, tmp,true,  vm, dummy) ;
-				ret += tmp*gp.gaussPoints[i].second ;
-				total += gp.gaussPoints[i].second ;
+				ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+				total += gp.gaussPoints[i].second*weights[i] ;
 			}
 			if(total > POINT_TOLERANCE_2D)
 				ret /= total ;
@@ -1368,7 +1370,7 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 	}
 }
 
-void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t) 
+void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t, Vector weights) 
 {
 	bool cleanup = !vm ;
 	if(!vm) vm = new VirtualMachine() ; 
@@ -1376,7 +1378,8 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 	ret = 0 ;
 	ret_ = 0 ;
 	double total = 0 ;
-	
+	if(weights.size() != gp.gaussPoints.size())
+            weights.resize(gp.gaussPoints.size(), 1.);
 	if(f == STRAIN_FIELD && (f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD))
 	{
 		if( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size():6*gp.gaussPoints.size() || 
@@ -1398,9 +1401,9 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 					stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
 				}
 
-				ret += tmp*gp.gaussPoints[i].second ;
-				ret_ += tmp_*gp.gaussPoints[i].second ;
-				total += gp.gaussPoints[i].second ;
+				ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+				ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
+				total += gp.gaussPoints[i].second*weights[i] ;
 			}
 			if(total > POINT_TOLERANCE_2D)
 			{
@@ -1426,9 +1429,9 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 					tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size()/gp.gaussPoints.size()+j];
 					tmp_[j] = stressAtGaussPoints[i*stressAtGaussPoints.size()/gp.gaussPoints.size()+j];
 				}
-				ret += tmp*gp.gaussPoints[i].second ;
-				ret_ += tmp_*gp.gaussPoints[i].second ;
-				total += gp.gaussPoints[i].second ;
+				ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+				ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
+				total += gp.gaussPoints[i].second*weights[i] ;
 			}
 			if(total > POINT_TOLERANCE_2D)
 			{
@@ -1462,9 +1465,9 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 					pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp[j] ;
 					pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j] = tmp_[j] ;
 				}
-				ret += tmp*gp.gaussPoints[i].second ;
-				ret_ += tmp_*gp.gaussPoints[i].second ;
-				total += gp.gaussPoints[i].second ;
+				ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+				ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
+				total += gp.gaussPoints[i].second*weights[i] ;
 				
 			}
 			if(total > POINT_TOLERANCE_2D)
@@ -1491,9 +1494,9 @@ void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vec
 					tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size()/gp.gaussPoints.size()+j];
 					tmp_[j] = pstressAtGaussPoints[i*pstressAtGaussPoints.size()/gp.gaussPoints.size()+j];
 				}
-				ret += tmp*gp.gaussPoints[i].second ;
-				ret_ += tmp_*gp.gaussPoints[i].second ;
-				total += gp.gaussPoints[i].second ;
+				ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+				ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
+				total += gp.gaussPoints[i].second*weights[i] ;
 			}
 			if(total > POINT_TOLERANCE_2D)
 			{
@@ -1939,7 +1942,7 @@ std::vector<double> ElementState::getInterpolatingFactors( const Point &p, bool 
 
 void ElementState::initialize(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache)
 {
-    mesh3d = msh ;
+        mesh3d = msh ;
 	size_t ndofs = 0 ;
 	if(parent->getBehaviour()) 
 		ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
