@@ -62,18 +62,19 @@ int main(int argc, char *argv[])
     F.setSamplingNumber(6) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     int time_step = 1 ;
-    F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
+    F.setDeltaTime(time_step) ; 
+   
 
-    LogarithmicCreepWithExternalParameters creep("young_modulus = 17e9, poisson_ratio = 0.2, imposed_deformation=0") ;
-    creep.accumulator = LOGCREEP_PREDICTED ;
+    LogarithmicCreepWithExternalParameters *creep = new LogarithmicCreepWithExternalParameters("young_modulus = 17e9, poisson_ratio = 0.2, imposed_deformation=0") ;
+    creep->accumulator = LOGCREEP_PREDICTED ;
     Vector ttmp(2) ; ttmp[0]=330, ttmp[1]=370 ;
     Vector ytmp(2) ; ytmp[0]=-0.1, ytmp[1]=0.1 ;
-    creep.addMaterialLaw(new LinearInterpolatedExternalMaterialLaw(std::make_pair("y","temperature"), std::make_pair(ytmp,ttmp)));
+    creep->addMaterialLaw(new LinearInterpolatedExternalMaterialLaw(std::make_pair("y","temperature"), std::make_pair(ytmp,ttmp)));
 //    creep.addMaterialLaw( new SpaceTimeDependentExternalMaterialLaw( "temperature", "333 500 y * +") ) ;
-    creep.addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 333, thermal_expansion_coefficient = 0.0001") ) ;
+    creep->addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 333, thermal_expansion_coefficient = 0.0001") ) ;
 
-    box.setBehaviour( &creep );
+    box.setBehaviour( creep );
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;

@@ -18,6 +18,36 @@
 #include <sys/time.h>
 using namespace Amie ;
 
+void CoordinateIndexedSparseMatrix::reshape(std::set<std::pair<size_t, size_t>> &source, size_t s) 
+{
+  stride = s ;
+  array.resize(source.size()*stride*(stride+stride%2)/(stride*stride)) ;
+  row_size.resize(source.rbegin()->first) ;
+  column_index.resize(source.size()) ;
+  accumulated_row_size.resize(source.rbegin()->first) ;
+	double * array_iterator = &array[0] ;
+	unsigned int * column_index_iterator = &column_index[0] ;
+	unsigned int * row_size_iterator = &row_size[0] ;
+	auto previous = source.begin() ;
+	size_t r_s = 0 ;
+	for(auto ij = source.begin() ; ij != source.end() ; ++ij)
+	{
+		if(ij->first == previous->first)
+		{
+			r_s++;
+		}
+		else
+		{
+			*row_size_iterator = r_s ;
+			row_size_iterator++ ;
+			r_s = 1 ;	
+		}
+		previous = ij ;
+		*column_index_iterator = ij->second ;
+		column_index_iterator++ ;
+	}
+	array = 0 ;
+}
 
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, double> &source, size_t s): stride(s), array(source.size()*s*(s+s%2)/(s*s)), column_index(source.size()/s), row_size(source.rbegin()->first.first/s), accumulated_row_size(source.rbegin()->first.first/s)

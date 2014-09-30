@@ -15,6 +15,7 @@
 
 #include<valarray>
 #include<map>
+#include <set>
 #include <complex>
 #include "../utilities/matrixops.h"
 #include "sparse_vector.h"
@@ -115,6 +116,7 @@ public:
  * The size of the blocks is deduced from the matrix size.
  */
 	CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, Matrix> &source) ;
+	void reshape(std::set<std::pair<size_t, size_t>> &source, size_t stride) ;
 
 /** \brief Constructor using a pair of valarays as input for the parseness pattern. The matrix is initialised at 0.
  * @param rowSize A valarray of unsigned ints containing the succesive length of each row

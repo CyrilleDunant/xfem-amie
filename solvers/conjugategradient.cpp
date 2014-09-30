@@ -58,25 +58,25 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			x[i] = b[i] ;
 	}
 
-// 	if(precond == nullptr && !cleanup)
-// 	{
+	if(precond == nullptr && !cleanup)
+	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
 // 		P = new InverseDiagonal(A) ;
         //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
         //   10.8     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
-        P = new Ssor(A, 1.3) ;
+		P = new Ssor(A, 1.3) ;
 //  		P = new InverseLumpedDiagonal(A) ;
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
-// 	}
-// 	else if (precond != nullptr)
-// 	{
-// 		delete P ;
-// 		cleanup = false ;
-// 		P = precond ;
-// 	}
+	}
+	else if (precond != nullptr)
+	{
+		delete P ;
+		cleanup = false ;
+		P = precond ;
+	}
 
 	assign(r, A*x-b, rowstart, colstart) ;
 	int vsize = r.size() ;
