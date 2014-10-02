@@ -1082,7 +1082,7 @@ void ElementState::getFieldAtGaussPoint( FieldType f, size_t p, Vector & ret, Vi
 	if(cleanup) delete vm ;
 }
 
-void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t, Vector weights) 
+void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t, std::vector<double> weights) 
 {
 	bool cleanup = !vm ;
 	if( !vm ) vm = new VirtualMachine() ;
@@ -1370,7 +1370,7 @@ void ElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * 
 	}
 }
 
-void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t, Vector weights) 
+void ElementState::getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t, std::vector<double> weights) 
 {
 	bool cleanup = !vm ;
 	if(!vm) vm = new VirtualMachine() ; 

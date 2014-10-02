@@ -347,8 +347,6 @@ protected:
     bool neighbourhood ;
     std::vector<Point * > additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
-    std::vector< std::vector<DelaunayTriangle *> > caches ;
-    std::vector<Vector> coefs ;
 public:
 
     virtual size_t size() const {
@@ -463,54 +461,8 @@ public:
 
     size_t numPoints() const;
 
-    virtual unsigned int generateCache(const std::vector<DelaunayTriangle *> original)
-    {
-        caches.push_back(original);
-        coefs.push_back(Vector());
-        return caches.size()-1 ;
-    } ;
-    virtual std::vector<DelaunayTriangle *> getCache(unsigned int cacheID)
-    {
-        return caches[cacheID] ;
-    } ;
-
     void print() const;
     
-    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1"))
-    {
-        VirtualMachine vm ;
-        std::vector<double> co ;
-        std::vector<DelaunayTriangle *> elems= getConflictingElements(locus) ;
-        for(auto & element : elems)
-        {
-            if(source && element->getBehaviour()->getSource() != source)
-                continue ;
-            
-            if(locus->in(element->getCenter()))
-            {
-                       
-                Function x = element->getXTransform() ;
-                Function y = element->getYTransform() ;
-                Function z = element->getZTransform() ;
-                Function t = element->getTTransform() ;
-                for(size_t i = 0 ; i < co.size() ; i++)
-                {
-                    double xx= vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xz = vm.eval(z, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
-
-                    co.push_back(vm.eval(smoothing, xx, xy, xz, xt));
-                }
-            }
-        }
-        
-        Vector cf(co.size()) ;
-        std::copy(co.begin(), co.end(), &cf[0]) ;
-        coefs.push_back(cf);
-        caches.push_back(elems);
-        return coefs.size()-1 ;
-    } ;
 
     
 } ;

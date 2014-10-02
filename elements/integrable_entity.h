@@ -174,9 +174,9 @@ public:
 
 	virtual void getField( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0) const  ;
 
-	virtual void getAverageField( FieldType f, Vector & ret , VirtualMachine * vm = nullptr, int i= 0, double t = 0, Vector weights = Vector()) ;
+	virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
 	
-	virtual void getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm = nullptr, int dummy= 0, double t = 0, Vector weights = Vector())  ;
+	virtual void getAverageField( Amie::FieldType f, Amie::FieldType f_, Vector& ret, Vector& ret_, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>())  ;
 	
 /** \brief return displacements at the nodes of the element*/
 	const Vector & getDisplacements() const;

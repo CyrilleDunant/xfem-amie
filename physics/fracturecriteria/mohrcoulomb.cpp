@@ -170,8 +170,8 @@ double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s )
 	double upStress = upVal * stiffness ;
 	double downStress = downVal * stiffness ;
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
 
 	double minStressBefore = stateBefore.first.min() ;
 	double maxStressBefore = stateBefore.first.max() ;

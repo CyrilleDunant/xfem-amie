@@ -60,8 +60,8 @@ double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 		return -1 ;
 
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
 	double maxStrainAfter = stateAfter.second.max() ;
 	double maxStrainBefore = stateBefore.second.max() ;
 
@@ -86,8 +86,8 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 
 	double ret = -1. ;
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
 
 	double Esoft = maxstress / ( yieldstrain - upVal) ;
 	double Einst = stateAfter.first.max() / stateAfter.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
@@ -169,8 +169,8 @@ double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
 	double maxStressAfter = stateAfter.first.max() ;
 	double maxStressBefore = stateBefore.first.max() ;
 
@@ -193,8 +193,8 @@ double SpaceTimeNonLocalBrittleMaximumStress::grade(ElementState &s)
         return -1 ;
 
 
-    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
     double maxStressAfter = stateAfter.first.max() ;
     double maxStressBefore = stateBefore.first.max() ;
 
@@ -219,8 +219,8 @@ double SpaceTimeNonLocalBrittleExtremumStress::grade(ElementState &s)
         return -1 ;
 
 
-    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+    std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+    std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
     double maxTensionStressAfter = stateAfter.first.max() ;
     double maxTensionStressBefore = stateBefore.first.max() ;
     double maxCompressionStressAfter = stateAfter.first.min() ;
@@ -287,8 +287,8 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	metInCompression = false ;
 	metInTension = false ;
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, FROM_STRESS_STRAIN, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
 
 	Point before( stateBefore.second.max()*renormStrain/surface->getMinorRadius(), stateBefore.first.max()*renormStress/surface->getMajorRadius()) ;
 	Point after( stateAfter.second.max()*renormStrain/surface->getMinorRadius() , stateAfter.first.max()*renormStress/surface->getMajorRadius()) ;

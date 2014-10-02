@@ -30,7 +30,7 @@ NonLocalVonMises::~NonLocalVonMises()
 double NonLocalVonMises::grade(ElementState &s)
 {
 	met = false ;
-	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, REAL_STRESS) ) ;
+	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
 	
 	double maxStress = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )

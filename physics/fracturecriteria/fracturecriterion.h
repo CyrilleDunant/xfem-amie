@@ -14,6 +14,7 @@
 
 #include "../../elements/integrable_entity.h"
 #include "../../mesher/mesh.h"
+#include "../../features/features.h"
 
 namespace Amie {
 
@@ -36,11 +37,6 @@ typedef enum {
     GAUSSIAN_SMOOTH
 } NonLocalSmoothingType ;
 
-
-typedef enum {
-    FROM_STRESS_STRAIN,
-    FROM_PRINCIPAL_STRESS_STRAIN
-} SmoothingSourceType ;
 
 typedef enum {
     QUARTIC_COMPACT,
@@ -98,10 +94,9 @@ protected:
 
     double getDeltaEnergy(const ElementState & s, double delta_d) ;
 
-    // as described in C. Giry et al. / International Journal of Solids and Structures 48 (2011) 3431–3443
-    double getSquareInfluenceRatio( ElementState & s, const Point & direction) ;
-
     double cachedInfluenceRatio ;
+    int cacheID ;
+    int cachecoreID ;
 
 public:
     bool inIteration ;
@@ -120,9 +115,11 @@ public:
     double smoothedScore(ElementState& s) ;
     Vector smoothedPrincipalStrain( ElementState &s) ;
     std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, double t = 0) ;
-    std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s, SmoothingSourceType ss = FROM_STRESS_STRAIN , StressCalculationMethod m = REAL_STRESS,  double t = 0) ;
+    std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s,  StressCalculationMethod m = REAL_STRESS,  double t = 0) ;
+    std::pair<Vector, Vector> getSmoothedFields( ElementState &s ,FieldType f0, FieldType f1, double t = 0) ;
     double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
     double smoothedCrackAngle( ElementState &s) const ;
+    
     double getCurrentAngle() const {
         return currentAngle ;
     }
@@ -155,7 +152,8 @@ public:
     FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 
-    virtual void initialiseCache(const Amie::ElementState& s);
+    virtual void initialiseCache(const ElementState& s);
+    virtual void initialiseCacheNew(Amie::FeatureTree* ft, const Amie::ElementState& s) ;
     virtual ~FractureCriterion();
 
     void step(Amie::ElementState& s) ;

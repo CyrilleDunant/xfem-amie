@@ -42,7 +42,8 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     maxScoreInNeighbourhood(0),
     maxModeInNeighbourhood(-1),
     maxAngleShiftInNeighbourhood(0),
-    smoothingType(GAUSSIAN_NONCOMPACT)
+    smoothingType(GAUSSIAN_NONCOMPACT),
+    cacheID(-1), cachecoreID(-1)
 {
 }
 
@@ -132,164 +133,10 @@ Vector FractureCriterion::smoothedPrincipalStrain(ElementState &s)
     return smoothedPrincipalStressAndStrain(s).second ;
 }
 
-std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, SmoothingSourceType ss, StressCalculationMethod m , double t )
+std::pair< Vector, Vector > FractureCriterion::smoothedPrincipalStressAndStrain(ElementState& s, StressCalculationMethod m , double t )
 {
-    if(ss == FROM_STRESS_STRAIN)
-    {
         std::pair< Vector, Vector > stressStrain = smoothedStressAndStrain(s,m, t) ;
         return std::make_pair(toPrincipal(stressStrain.first), toPrincipal(stressStrain.second)) ;
-    }
-
-    size_t vlength = 2 ;
-    if(s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-        vlength = 3 ;
-    Vector str(0., vlength) ;
-    Vector stra(0., vlength) ;
-    Vector tmpstr(vlength) ;
-    Vector tmpstra(vlength) ;
-
-    if(factors.size()==0)
-        initialiseFactors(s) ;
-    double sumFactors = 0 ;
-    double cosangle = 0 ;
-    VirtualMachine vm ;
-    if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        double stra0 = stra[0] ;
-        double stra1 = stra[1] ;
-        double str0 = str[0] ;
-        double str1 = str[1] ;
-        if(m == EFFECTIVE_STRESS)
-        {
-            s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t) ;
-            stra = tmpstra*factors[0] ;
-            str = tmpstr*factors[0] ;
-
-            sumFactors += factors[0] ;
-            //#pragma omp parallel for shared(stra,str,sumFactors)
-            for( size_t i = 1 ; i < physicalcache.size() ; i++ )
-            {
-                // 			iteratorValue = factors[i] ;
-                DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( mesh2d ->getInTree(physicalcache[i]) ) ;
-                if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-                {
-                    Vector tmpstr(vlength) ;
-                    Vector tmpstra(vlength) ;
-
-                    ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_EFFECTIVE_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t) ;
-
-                    stra += tmpstra*factors[i] ;
-                    str += tmpstr*factors[i] ;
-                    cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*factors[i] ;
-                    sumFactors += factors[i] ;
-                }
-            }
-        }
-        else
-        {
-            s.getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD, tmpstra,tmpstr,&vm, 0, t) ;
-
-            stra = tmpstra*factors[0] ;
-            str = tmpstr*factors[0] ;
-
-            sumFactors += factors[0] ;
-            //#pragma omp parallel for shared(stra,str,sumFactors)
-            for( size_t i = 1 ; i < physicalcache.size() ; i++ )
-            {
-                DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(physicalcache[i]) ) ;
-                if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
-                {
-                    Vector tmpstr(vlength) ;
-                    Vector tmpstra(vlength) ;
-
-                    ci->getState().getAverageField( PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD,tmpstra ,tmpstr,&vm, 0, t) ;
-
-                    stra += tmpstra*factors[i] ;
-                    str += tmpstr*factors[i] ;
-                    cosangle += cos(0.5*atan2( tmpstra[2],  tmpstra[0] -  tmpstra[1] ))*factors[i] ;
-                    sumFactors += factors[i] ;
-                }
-            }
-        }
-
-
-
-        str /= sumFactors ;
-        stra /= sumFactors ;
-        currentAngle = -0.5*atan2( 2.*stra[2],  stra[0] -  stra[1] ) ;
-
-        return std::make_pair(str, stra) ;
-
-    }
-
-    else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
-    {
-        std::pair<Vector, Vector> stressAndStrain = smoothedStressAndStrain(s,m, t) ;
-
-        Vector lprincipal( 3 ) ;
-        Matrix stresses(3,3) ;
-        stresses[0][0] = stressAndStrain.first[0] ;
-        stresses[0][1] = stressAndStrain.first[3] ;
-        stresses[0][2] = stressAndStrain.first[4] ;
-        stresses[1][0] = stressAndStrain.first[3] ;
-        stresses[1][1] = stressAndStrain.first[1] ;
-        stresses[1][2] = stressAndStrain.first[5] ;
-        stresses[2][0] = stressAndStrain.first[4] ;
-        stresses[2][1] = stressAndStrain.first[5] ;
-        stresses[2][2] = stressAndStrain.first[2] ;
-        Matrix I( 3, 3 ) ;
-        I[0][0] = 1 ;
-        I[1][1] = 1 ;
-        I[2][2] = 1 ;
-        double m = ( stresses[0][0] + stresses[1][1] + stresses[2][2] ) / 3. ;
-        Matrix Am = stresses - I * m ;
-        double q = det( Am ) / 2. ;
-        double rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
-        double phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
-
-        if( rr * rr * rr - q * q < 1e-12 )
-            phi = atan( 0 ) / 3. ;
-
-        if( phi < 0 )
-            phi += M_PI ;
-
-
-        lprincipal[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
-        lprincipal[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
-        lprincipal[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
-
-        Vector lprincipals( 3 ) ;
-        Matrix sstresses(3,3) ;
-        sstresses[0][0] = stressAndStrain.second[0] ;
-        sstresses[0][1] = stressAndStrain.second[3] ;
-        sstresses[0][2] = stressAndStrain.second[4] ;
-        sstresses[1][0] = stressAndStrain.second[3] ;
-        sstresses[1][1] = stressAndStrain.second[1] ;
-        sstresses[1][2] = stressAndStrain.second[5] ;
-        sstresses[2][0] = stressAndStrain.second[4] ;
-        sstresses[2][1] = stressAndStrain.second[5] ;
-        sstresses[2][2] = stressAndStrain.second[2] ;
-        m = ( sstresses[0][0] + sstresses[1][1] + sstresses[2][2] ) / 3. ;
-        Am = sstresses - I * m ;
-        q = det( Am ) / 2. ;
-        rr = std::inner_product( &Am.array()[0], &Am.array()[9], &Am.array()[0],  double( 0. ) ) / 6. ;
-        phi = atan2( sqrt( rr * rr * rr - q * q ), q ) / 3. ;
-
-        if( rr * rr * rr - q * q < 1e-12 )
-            phi = atan( 0 ) / 3. ;
-
-        if( phi < 0 )
-            phi += M_PI ;
-
-
-        lprincipals[0] = m + 2.*sqrt( rr ) * cos( phi ) ;
-        lprincipals[1] = m - sqrt( rr ) * ( cos( phi ) + sqrt( 3 ) * sin( phi ) ) ;
-        lprincipals[2] = m - sqrt( rr ) * ( cos( phi ) - sqrt( 3 ) * sin( phi ) ) ;
-
-        return std::make_pair(lprincipal,lprincipals)  ;
-    }
-
-    return std::make_pair(smoothedPrincipalStress(s, m), smoothedPrincipalStrain(s)) ;
 }
 
 double FractureCriterion::smoothedScore(ElementState& s)
@@ -339,94 +186,6 @@ double FractureCriterion::smoothedScore(ElementState& s)
     }
 
     return 0. ;
-}
-
-double FractureCriterion::getSquareInfluenceRatio(ElementState & s, const Point & direction)
-{
-
-// 	return 1. ;
-    double dirnorm = direction.norm() ;
-    if(dirnorm < POINT_TOLERANCE_2D)
-    {
-        cachedInfluenceRatio = 1 ;
-        return 1. ;
-    }
-    Point renormdir = direction/-dirnorm ;
-
-    if(/*!getInfluenceCalculated()*/true)
-    {
-        std::vector<Point> u = s.getPrincipalFrame(s.getParent()->getCenter()) ;
-        Point tricross = u[2]^(renormdir^u[2]) ;
-        double tricrossNorm = tricross.norm() ;
-        if(tricrossNorm < POINT_TOLERANCE_2D)
-        {
-            cachedInfluenceRatio = 1 ;
-            return 1. ;
-        }
-        tricross /= tricrossNorm ;
-
-        double costheta = u[0]*tricross ;
-        costheta *= costheta ;
-        double sintheta = u[1]*tricross ;
-        sintheta *= sintheta ;
-        double cosphi = u[2]*renormdir ;
-        cosphi *= cosphi ;
-        double sinphi = renormdir*tricross ;
-        sinphi *= sinphi ;
-
-
-        Vector sigma(0., s.getParent()->spaceDimensions() ) ;
-        s.getAverageField(PRINCIPAL_REAL_STRESS_FIELD, sigma) ;
-
-        double limit = getTensileLimit(s) ;
-        if(std::abs(sigma).min() < POINT_TOLERANCE_2D)
-        {
-            cachedInfluenceRatio = 0 ;
-            return 0. ;
-        }
-        if(sigma.max() > limit)
-        {
-            cachedInfluenceRatio = 1 ;
-            return 1. ;
-        }
-        if(sigma.size() == 2)
-        {
-            double minrho = std::min(s.getParent()->area()/(physicalCharacteristicRadius*physicalCharacteristicRadius*4.), 1.) ;
-            double costheta = u[0]*tricross ;
-            costheta *= costheta ;
-            double sintheta = u[1]*tricross ;
-            sintheta *= sintheta ;
-            double cosphi = u[2]*renormdir ;
-            cosphi *= cosphi ;
-            double sinphi = renormdir*tricross ;
-            sinphi *= sinphi ;
-            limit =1 ;
-            sigma = 1 ;
-            cachedInfluenceRatio = std::max(std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]))), 1.), minrho) ;
-
-            return cachedInfluenceRatio ;
-        }
-        if(sigma.size() == 3)
-        {
-            double minrho = pow(s.getParent()->volume(), .66666666666)/(physicalCharacteristicRadius*physicalCharacteristicRadius*2.) ;
-            double costheta = u[0]*tricross ;
-            costheta *= costheta ;
-            double sintheta = u[1]*tricross ;
-            sintheta *= sintheta ;
-            double cosphi = u[2]*renormdir ;
-            cosphi *= cosphi ;
-            double sinphi = renormdir*tricross ;
-            sinphi *= sinphi ;
-            limit =1 ;
-            sigma = 1 ;
-            cachedInfluenceRatio = std::max(std::min(1./(limit*limit*(sinphi*costheta/(sigma[0]*sigma[0]) + sinphi*sintheta/(sigma[1]*sigma[1]) + cosphi/(sigma[2]*sigma[2]))), 1.), minrho) ;
-            return cachedInfluenceRatio ;
-        }
-        cachedInfluenceRatio = 0 ;
-        return 0. ;
-    }
-    else
-        return cachedInfluenceRatio ;
 }
 
 void FractureCriterion::initialiseFactors(const ElementState & s)
@@ -903,7 +662,7 @@ void FractureCriterion::initialiseFactors(const ElementState & s)
 
 Vector FractureCriterion::smoothedPrincipalStress( ElementState &s, StressCalculationMethod m)
 {
-    return smoothedPrincipalStressAndStrain(s,FROM_PRINCIPAL_STRESS_STRAIN, m).first ;
+    return smoothedPrincipalStressAndStrain(s, m).first ;
 }
 
 
@@ -1389,6 +1148,207 @@ std::pair<Vector, Vector> FractureCriterion::smoothedStressAndStrain( ElementSta
     return std::make_pair(smoothedPrincipalStress(s, m), smoothedPrincipalStrain(s)) ;
 }
 
+std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( ElementState &s ,FieldType f0, FieldType f1, double t)
+{
+    Vector first ;
+    Vector second ;
+    Vector strain ;
+    Vector stress ;
+    Vector strainrate ;
+    Vector buffer ;
+    int tsize = 3 ;
+    int psize = 2 ;
+    if(mesh3d)
+    {
+        tsize = 6 ;
+        psize = 3 ;
+    }
+    bool spaceTime = s.getParent()->getOrder() >= CONSTANT_TIME_LINEAR ;
+    VirtualMachine vm ;
+    if(f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD ||
+        f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD
+    )
+    {
+        //we first need to compute the strain field
+        if(!spaceTime)
+        {
+            double sumFactors(0) ;
+            
+            for(size_t i = 0 ; i < physicalcache.size() ; i++)
+            {
+                IntegrableEntity *ci ;
+                if(mesh2d)
+                    ci = static_cast<DelaunayTriangle *>(mesh2d->getInTree(physicalcache[i])) ;
+                else
+                    ci = static_cast<DelaunayTetrahedron *>(mesh3d->getInTree(physicalcache[i])) ;
+                if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
+                {
+                    ci->getState().getAverageField(STRAIN_FIELD, buffer, &vm, 0, t);
+                    if(!strain.size())
+                        strain.resize(0., buffer.size());
+                    strain += buffer*factors[i] ;
+                    sumFactors += factors[i] ;
+                }
+            }
+            strain /= sumFactors ;
+        }
+        else
+        {
+            double sumFactors(0) ;
+            Vector tmpstrain ;
+            Vector tmpstrainrate ;
+            
+            for(size_t i = 0 ; i < physicalcache.size() ; i++)
+            {
+                IntegrableEntity *ci ;
+                if(mesh2d)
+                    ci = static_cast<DelaunayTriangle *>(mesh2d->getInTree(physicalcache[i])) ;
+                else
+                    ci = static_cast<DelaunayTetrahedron *>(mesh3d->getInTree(physicalcache[i])) ;
+                
+                if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
+                {
+                    ci->getState().getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, 0, t);
+                    if(!tmpstrain.size())
+                        tmpstrain.resize(0., buffer.size());
+                    tmpstrain += buffer*factors[i] ;
+                    sumFactors += factors[i] ;
+                }
+            }
+            for(size_t i = 0 ; i < physicalcache.size() ; i++)
+            {
+                DelaunayTriangle *ci = static_cast<DelaunayTriangle *>(  mesh2d->getInTree(physicalcache[i]) ) ;
+                if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
+                {
+                    ci->getState().getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, 0, t);
+                    if(!tmpstrainrate.size())
+                        tmpstrainrate.resize(0., buffer.size());
+                    tmpstrainrate += buffer*factors[i] ;
+                }
+            }
+            tmpstrain /= sumFactors ;
+            tmpstrainrate /=sumFactors ;
+            
+            Vector tmpstress = tmpstrain*s.getParent()->getBehaviour()->getTensor(Point()) + (Vector) (tmpstrainrate*s.getParent()->getBehaviour()->getViscousTensor(Point())) ;
+            stress.resize(tsize, 0.) ;
+            strain.resize(tsize, 0.) ;
+            for(size_t i = 0 ; i < tsize ; i++)
+            {
+                stress[i] = tmpstress[i] ;
+                strain[i] = tmpstrain[i] ;
+            }
+        }
+        
+        if(f0 == PRINCIPAL_STRAIN_FIELD)
+        {
+            first.resize(psize);
+            first = toPrincipal(strain) ;
+        }
+        if(f1 == PRINCIPAL_STRAIN_FIELD)
+        {
+            second.resize(psize);
+            second = toPrincipal(strain) ;
+        }
+        if(f0 == REAL_STRESS_FIELD)
+        {
+            first.resize(tsize);
+            if(!spaceTime)
+                first = strain*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) ;
+            else
+                first = stress ;
+        }
+        if(f1 == REAL_STRESS_FIELD)
+        {
+            second.resize(tsize);
+            if(!spaceTime)
+                second = strain*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter()) ;
+            else
+                second = stress ;
+        }
+        if(f0 == EFFECTIVE_STRESS_FIELD)
+        {
+            first.resize(tsize);
+            first = strain*s.getParent()->getBehaviour()->param ;
+        }
+        if(f1 == EFFECTIVE_STRESS_FIELD)
+        {
+            second.resize(tsize);
+            second = strain*s.getParent()->getBehaviour()->param ;
+        }
+        if(f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD)
+        {
+            first.resize(psize);
+            first = toPrincipal(strain*s.getParent()->getBehaviour()->param) ;
+        }
+        if(f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD)
+        {
+            second.resize(psize);
+            second = toPrincipal(strain*s.getParent()->getBehaviour()->param) ;
+        }
+        if(f0 == PRINCIPAL_REAL_STRESS_FIELD)
+        {
+            first.resize(psize);
+            if(!spaceTime)
+                first = toPrincipal(strain*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
+            else
+                first = toPrincipal(stress) ;
+        }
+        if(f1 == PRINCIPAL_REAL_STRESS_FIELD)
+        {
+            second.resize(psize);
+            if(!spaceTime)
+                second = toPrincipal(strain*s.getParent()->getBehaviour()->getTensor(s.getParent()->getCenter())) ;
+            else
+                second = toPrincipal(stress) ;
+        }
+        
+        if(f0 == STRAIN_FIELD)
+        {
+            first.resize(tsize) ;
+            first = strain ;
+        }
+        if(f1 == STRAIN_FIELD)
+        {
+            second.resize(tsize) ;
+            second = strain ;
+        }
+        
+    }
+    else
+    {
+        double sumFactors(0) ;
+        
+        for(size_t i = 0 ; i < physicalcache.size() ; i++)
+        {
+            DelaunayTriangle *ci = static_cast<DelaunayTriangle *>(  mesh2d->getInTree(physicalcache[i]) ) ;
+            if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
+            {
+                ci->getState().getAverageField(f0, buffer, &vm, 0, t);
+                if(!first.size())
+                    first.resize(0., buffer.size());
+                first += buffer*factors[i] ;
+                sumFactors += factors[i] ;
+            }
+        }
+        for(size_t i = 0 ; i < physicalcache.size() ; i++)
+        {
+            DelaunayTriangle *ci = static_cast<DelaunayTriangle *>(  mesh2d->getInTree(physicalcache[i]) ) ;
+            if(ci->getBehaviour()->getSource() == s.getParent()->getBehaviour()->getSource())
+            {
+                ci->getState().getAverageField(f1, buffer, &vm, 0, t);
+                if(!second.size())
+                    second.resize(0., buffer.size());
+                second += buffer*factors[i] ;
+            }
+        }
+        first /= sumFactors ;
+        second /= sumFactors ;
+    }
+    
+    
+    return std::make_pair(first, second) ;
+}
+
 double FractureCriterion::getDeltaEnergy(const ElementState & s, double delta_d)
 {
     Assembly K ;
@@ -1706,6 +1666,41 @@ std::pair<double, double> FractureCriterion::getCrackOpeningAndSlip(const Elemen
     Vector delta = rotationMatrix*(displacementLeft-displacementRight) ;
 
     return std::make_pair(delta[0], delta[1]) ;
+}
+
+void FractureCriterion::initialiseCacheNew( FeatureTree * ft, const ElementState & s)
+{
+    if(ft->is2D())
+    {
+        Function x = Function("x")-s.getParent()->getCenter().getX() ;
+        Function y = Function("y")-s.getParent()->getCenter().getY() ;
+        Function rr = x*x+y*y ;
+        Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        
+        double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
+        Circle epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        int cacheID = ft->get2DMesh()->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
+        int cachecoreID = ft->get2DMesh()->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
+        mesh2d = ft->get2DMesh() ;
+    }
+    if(ft->is3D())
+    {
+        Function x = Function("x")-s.getParent()->getCenter().getX() ;
+        Function y = Function("y")-s.getParent()->getCenter().getY() ;
+        Function z = Function("z")-s.getParent()->getCenter().getZ() ;
+        Function rr = x*x+y*y+z*z ;
+        Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
+        Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
+        
+        double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
+        Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
+        int cacheID = ft->get3DMesh()->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
+        int cachecoreID = ft->get3DMesh()->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
+        mesh3d = ft->get3DMesh() ;
+    }
 }
 
 void FractureCriterion::initialiseCache(const ElementState & s)
