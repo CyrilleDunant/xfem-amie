@@ -36,8 +36,8 @@ double CreepRupture::grade( ElementState &s )
 		damage = 0.001 ;
 	double kstrain = 1./(limStrain * damage) ;
 
-	std::pair<Vector, Vector> stateBefore( smoothedPrincipalStressAndStrain(s, REAL_STRESS, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( smoothedPrincipalStressAndStrain(s, REAL_STRESS, 1) ) ;
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields(s, PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields(s, PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, 1) ) ;
 
 	double maxStrainBefore = stateBefore.second.max() ;
 	double maxStressBefore = stateBefore.first.max() ;

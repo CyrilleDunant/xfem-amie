@@ -2912,14 +2912,17 @@ Vector Form::getForcesFromAppliedStress( const Vector & data, Function & shape, 
 	Vector ret(0., normal.size()) ;
 	if(normal.size() == 2)
 	{
+
 		ret[0] = (data[0]*normal[0]+data[2]*normal[1]) ;
 		ret[1] = (data[2]*normal[0]+data[1]*normal[1]) ;
 	}
 	else
 	{
-		ret[0] = (data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2]) ;
-		ret[1] = (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2]) ;
-		ret[2] = (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1]) ;
+
+		ret[0] += (data[0]*normal[0]+data[3]*normal[1]+data[4]*normal[2]) ;
+		ret[1] += (data[1]*normal[1]+data[3]*normal[0]+data[5]*normal[2]) ;
+		ret[2] += (data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1]) ;
+
 	}
 
 	return ret * VirtualMachine().ieval(shape, gp) ;

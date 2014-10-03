@@ -18,26 +18,26 @@
 using namespace Amie ;
 
 
-Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), lower(A),  buffer(A.inverseDiagonal()), omega(omega), omega_prev(0), previous_r(0)
+Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), lower(A), auxiliaryUpper(A), auxiliaryLower(A), buffer(A.inverseDiagonal()), omega(omega), omega_prev(0), previous_r(0)
 {
      
     //first, update the sparseness patterns
-    size_t blocksUpper = 0 ;
-    size_t blocksLower = 0 ;
+
     int stride = A.stride ;
     std::set<std::pair<size_t, size_t>> upperPattern ;
     std::set<std::pair<size_t, size_t>> lowerPattern ;
+    size_t column_iterator = 0 ;
     for(size_t i = 0 ; i < A.row_size.size() ; i++)
     {
-        int row = i ;
+        size_t row = i ;
         for(size_t j = 0 ; j < A.row_size[i] ; j++)
         {
             
-            int column = A.column_index[A.accumulated_row_size[i]+j] ;
+            size_t column = A.column_index[column_iterator++] ;
             
-            if (row >= column)
-                upperPattern.insert(std::make_pair(row,column)) ;
             if (row <= column)
+                upperPattern.insert(std::make_pair(row,column)) ;
+            if (row >= column)
                 lowerPattern.insert(std::make_pair(row,column)) ;
         }
     }
@@ -47,40 +47,41 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), low
        lowerPattern.insert(std::make_pair(i,i)) ;
     }
     upper.reshape(upperPattern, stride) ;
+    auxiliaryUpper.reshape(upperPattern, stride);
     lower.reshape(lowerPattern, stride) ;
+    auxiliaryLower.reshape(lowerPattern, stride);
 
     for(size_t i = 0 ; i < A.row_size.size() ; i++)
     {
-        int row = i ;
-        for(size_t j = 0 ; j < A.row_size[i] ; j++)
-        {
+        int row = i ;            
+        for(size_t k = 0 ; k < stride ; k++)
+        {                   
+            double v = A[row * stride+k][row * stride+k] ;
+            long double diag = 1./v ;         
             
-            int column = A.column_index[A.accumulated_row_size[i]+j] ;
-	    if(row < column)
-	      continue ;
-            for(size_t k = 0 ; k < stride ; k++)
+            if (v < std::numeric_limits<double>::epsilon())
             {
-                double v = A[row * stride+k][row * stride+k] ;
-                if (std::abs(v) < 1e-8)
-                    continue ;
-                double diag = 1./v ;
+                diag = 1./std::numeric_limits<double>::epsilon() ;
+            }
+            
+            for(size_t j = 0 ; j < A.row_size[i] ; j++)
+            {
+                int column = A.column_index[A.accumulated_row_size[i]+j] ;
 
                 for(size_t l = 0 ; l < stride ; l++)
-                {
-                     
+                {    
                     if(row*stride+k > column*stride+l)
                     {
-                        double val = -sqrt(diag)*A[row*stride+k][column*stride+l]*diag;
-// 			std::cout << "a" << std::endl ;
+                        long double val = -sqrt((2.-omega)*omega)*sqrt(diag)*A[row*stride+k][column*stride+l]*diag*omega;
                         upper[row*stride+k][column*stride+l] = val ;
-// 			std::cout << "b" << std::endl ;
+                        auxiliaryUpper[row*stride+k][column*stride+l] = -val ;
                         lower[column*stride+l][row*stride+k] = val ;
-// 			std::cout << "b" << std::endl ;
-			
+                        auxiliaryLower[column*stride+l][row*stride+k] = -val ;
+                        
                     }
                     else if(row*stride+k == column*stride+l)
                     {
-                        double val = sqrt(diag);
+                        long double val = sqrt((2.-omega)*omega)*sqrt(diag);
                         upper[row*stride+k][column*stride+l] = val ;
                         lower[column*stride+l][row*stride+k] = val ;
                     }
@@ -88,25 +89,32 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), low
             }
         }
     }
-    upper.array *= sqrt((2.-omega)*omega)*omega ;
-    lower.array *= sqrt((2.-omega)*omega)*omega ;
     
-    for(size_t i = 0 ; i < A.row_size.size() ; i++)
-    {
-        for(size_t k = 0 ; k < stride ; k++)
-        {
-            upper[i*stride+k][i*stride+k] /= omega ;
-            lower[i*stride+k][i*stride+k] /= omega ;
-        }
-    }
 }
-
+// y = (upper+auxupper*auxuper)*(lower+auxlower*auxlower)*b
+//   = (upper+auxupper*auxupper)*(lower*b+auxlower*auxlower*b)
+//   =  upper*lower*b + upper*auxlower*auxlower*b + auxupp*auxupper*lower*b + auxupper*auxupper*auxlower*auxlower*b
 void  Ssor::precondition(const Vector &v, Vector & t) 
 {
     if(v.size() != buffer.size())
       std::cout << " ouch ! " << std::endl ;
-    assign(buffer, lower*v) ;
-    assign(t, upper*buffer) ;
+    Vector buffer2(buffer) ;
+    Vector buffer3(buffer) ;
+    Vector buffer4(buffer) ;
+    
+    assign(buffer, upper*v) ;
+    assign(t, lower*buffer) ; //1
+//     assign(buffer, upper*v) ;
+//     assign(buffer2, auxiliaryLower*buffer) ;
+//     assign(buffer, auxiliaryLower*buffer2) ; //2
+//     assign(buffer2, auxiliaryUpper*v) ;
+//     assign(buffer3, auxiliaryUpper*buffer2) ;
+//     assign(buffer2, lower*buffer3) ; //3
+//     assign(buffer3, auxiliaryUpper*v) ;
+//     assign(buffer4, auxiliaryUpper*buffer3) ;
+//     assign(buffer3, auxiliaryLower*buffer4) ;
+//     assign(buffer4, auxiliaryLower*buffer3) ;
+//     t +=buffer4+buffer2+buffer ;
     
 }
 

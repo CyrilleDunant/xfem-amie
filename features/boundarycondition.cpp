@@ -438,7 +438,9 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 								else
 								{
 									if(dist(first, last) < dist(first, &e->getBoundingPoint( i ) ) )
-										  last = &e->getBoundingPoint( i ) ;
+										last = &e->getBoundingPoint( i ) ;
+                                                                        if(dist(first, last) < dist(last, &e->getBoundingPoint( i ) ) )
+                                                                                 first = &e->getBoundingPoint( i ) ;
 								}
 							}
 						}
@@ -451,7 +453,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 					
 				}
 				
-				if(!last)
+                                if(!last)
 					return ;
 				
 				Segment edge( *last, *first) ;
@@ -501,6 +503,7 @@ void apply2DBC( ElementarySurface *e, const GaussPointArray & gp, const std::val
 
 					a->addForceOn( XI,  forces[0], id[j] ) ;
 					a->addForceOn( ETA, forces[1], id[j] ) ;
+                                        
 				}
 
  				return ;
@@ -1035,13 +1038,8 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					v.push_back(TIME_VARIABLE) ;
 				}
-				Vector imposed( 6 ) ;
+				Vector imposed( 0., 6 ) ;
 				imposed[0] = data ;
-				imposed[1] = 0 ;
-				imposed[2] = 0 ;
-				imposed[3] = 0 ;
-				imposed[4] = 0 ;
-				imposed[5] = 0 ;
 
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
@@ -1220,7 +1218,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 			
 			case SET_NORMAL_STRESS:
 			{
-								if ( e->getBehaviour()->fractured() )
+				if ( e->getBehaviour()->fractured() )
 					return ;
 
 				std::vector<Function> shapeFunctions ;
@@ -1235,13 +1233,15 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 						if(!&e->getBoundingPoint( i ))
 							continue ;
 						
+                                                DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(e) ;
+                                                
 						if(id[j] == e->getBoundingPoint( i ).getId())
 						  shapeFunctions.push_back( e->getShapeFunction( i ) ) ;
 						if ( id[j] == e->getBoundingPoint( i ).getId() && (
-							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->first) < POINT_TOLERANCE_3D  ||
-							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->second) < POINT_TOLERANCE_3D  ||
-							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->third) < POINT_TOLERANCE_3D  ||
-							squareDist3D( &e->getBoundingPoint( i ), dynamic_cast<DelaunayTetrahedron *>(e)->fourth) < POINT_TOLERANCE_3D )
+							squareDist3D( e->getBoundingPoint( i ), *tet->first) < POINT_TOLERANCE_3D  ||
+							squareDist3D( e->getBoundingPoint( i ), *tet->second) < POINT_TOLERANCE_3D  ||
+							squareDist3D( e->getBoundingPoint( i ), *tet->third) < POINT_TOLERANCE_3D  ||
+							squareDist3D( e->getBoundingPoint( i ), *tet->fourth) < POINT_TOLERANCE_3D )
 						)
 						{
 							if(!first)
@@ -1332,7 +1332,7 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 			
 			case SET_TANGENT_STRESS:
 			{
-								if ( e->getBehaviour()->fractured() )
+				if ( e->getBehaviour()->fractured() )
 					return ;
 
 				std::vector<Function> shapeFunctions ;
@@ -2412,7 +2412,6 @@ void apply3DBC( ElementaryVolume *e, const GaussPointArray & gp, const std::vala
 				{
 					v.push_back(TIME_VARIABLE) ;
 				}
-				Vector imposed( 6 ) ;
 				
 				for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
 				{
@@ -3138,7 +3137,7 @@ bool isInBoundary3D( Point test, Point min, Point max)
 }
 
 
-bool isOnBoundary( BoundingBoxPosition pos, Point test, Point min, Point max , double tol)
+bool isOnBoundary( BoundingBoxPosition pos, Point & test, Point & min, Point & max , double tol)
 {
 	switch( pos )
 	{

@@ -458,15 +458,10 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 {
 	if(!initialised)
 		initialise(s);
-	std::pair<Vector, Vector> sstrain = smoothedStressAndStrain(s, REAL_STRESS, t) ;
-	Vector first = toPrincipal(sstrain.first) ;
-	Vector second = toPrincipal(sstrain.second) ;
+	std::pair<Vector, Vector> sstrain = getSmoothedFields(s, PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, t) ;
+	Vector first = sstrain.first ;
+	Vector second = sstrain.second ;
 	
-	std::pair<double, double> crackstress = std::make_pair(0.,0.); 
-	
-	if(s.getParent()->getBehaviour()->getDamageModel()->getState().max() > .1)
-		crackstress = stressOnCrack(s, downVal) ;
-		
 	double tstrain = second.max();
 	double cstrain = second.min();
 

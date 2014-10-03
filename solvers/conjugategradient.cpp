@@ -58,14 +58,15 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			x[i] = b[i] ;
 	}
 
+	InverseDiagonal P0(A) ;
 	if(precond == nullptr && !cleanup)
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-// 		P = new InverseDiagonal(A) ;
+		P = new InverseDiagonal(A) ;
         //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
-        //   10.8     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
-		P = new Ssor(A, 1.3) ;
+        //   505     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
+// 		P = new Ssor(A, 1.5) ;
 //  		P = new InverseLumpedDiagonal(A) ;
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
@@ -135,7 +136,10 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double beta = 0 ;
 	while(last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit )
 	{
-		P->precondition(r,z) ;
+//             if(nit < 256)
+		P->precondition(r, z) ;
+//             else
+//                 P0.precondition(r, z) ;
 
 		rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
 

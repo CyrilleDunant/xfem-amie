@@ -27,6 +27,7 @@
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
+#include "../utilities/writer/triangle_writer.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -113,6 +114,12 @@ void step()
         std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
         std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
 
+        MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+        writerc.reset( featureTree ) ;
+        writerc.getField( REAL_STRESS_FIELD ) ;
+        writerc.getField( STRAIN_FIELD ) ;
+        writerc.append() ;
+        writerc.writeSvg(0., true) ;
     }
 
     exit(0) ;
@@ -155,7 +162,7 @@ int main(int argc, char *argv[])
     inc.setBehaviour(new VoidForm()) ;
 
 
-    F.addFeature(&samplers, &inc) ;
+//     F.addFeature(&samplers, &inc) ;
 // 	F.addFeature(&samplers, inc0) ;
     F.setSamplingNumber(atof(argv[1])) ;
 // 		F.setProjectionOnBoundaries(false) ;

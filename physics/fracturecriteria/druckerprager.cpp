@@ -33,9 +33,9 @@ DruckerPrager::~DruckerPrager()
 double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
-	std::pair<Vector, Vector> stressstrain( smoothedStressAndStrain(s,REAL_STRESS) ) ;
-	Vector stra = toPrincipal(stressstrain.second) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.first ;
-	Vector str =  (stressstrain.second-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3., 1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3., 1./3.)) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.second ;
+	
+	Vector stra = getSmoothedField(s,PRINCIPAL_STRAIN_FIELD) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.first ;
+	Vector str =  (stra-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3., 1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3., 1./3.)) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.second ;
 	double maxStress = 0 ;
 	double maxStrain = 0 ;
 	double pseudomodulus = modulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;

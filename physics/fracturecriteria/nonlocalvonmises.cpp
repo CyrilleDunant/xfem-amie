@@ -30,16 +30,16 @@ NonLocalVonMises::~NonLocalVonMises()
 double NonLocalVonMises::grade(ElementState &s)
 {
 	met = false ;
-	std::pair<Vector, Vector> str( smoothedPrincipalStressAndStrain(s, REAL_STRESS) ) ;
+	Vector str( getSmoothedField(s, PRINCIPAL_REAL_STRESS_FIELD ) ) ;
 	
 	double maxStress = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{           
-		maxStress = sqrt( ( ( str.first[0] - str.first[1] ) * ( str.first[0] - str.first[1] ) + str.first[0] * str.first[0] + str.first[1] * str.first[1] ) * .5 ) ;
+		maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) * .5 ) ;
 	}
 	else if( s.getParent()->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
 	{
-		maxStress = sqrt( ( str.first[0] - str.first[1] ) * ( str.first[0] - str.first[1] ) + ( str.first[0] - str.first[2] ) * ( str.first[0] - str.first[2] ) + ( str.first[1] - str.first[2] ) * ( str.first[1] - str.first[2] ) ) / 6 ;
+		maxStress = sqrt( ( str[0] - str[1] ) * ( str[0] - str[1] ) + ( str[0] - str[2] ) * ( str[0] - str[2] ) + ( str[1] - str[2] ) * ( str[1] - str[2] ) ) / 6 ;
 	}
 	
 	if( maxStress >= threshold )

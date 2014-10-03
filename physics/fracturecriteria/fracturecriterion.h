@@ -111,12 +111,13 @@ public:
         return metAtStep ;
     }
 
-    Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
+//     Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
     double smoothedScore(ElementState& s) ;
-    Vector smoothedPrincipalStrain( ElementState &s) ;
-    std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, double t = 0) ;
-    std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s,  StressCalculationMethod m = REAL_STRESS,  double t = 0) ;
+//     Vector smoothedPrincipalStrain( ElementState &s) ;
+//     std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, double t = 0) ;
+//     std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s,  StressCalculationMethod m = REAL_STRESS,  double t = 0) ;
     std::pair<Vector, Vector> getSmoothedFields( ElementState &s ,FieldType f0, FieldType f1, double t = 0) ;
+    Vector getSmoothedField( ElementState &s ,FieldType f0, double t = 0) ;
     double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
     double smoothedCrackAngle( ElementState &s) const ;
     

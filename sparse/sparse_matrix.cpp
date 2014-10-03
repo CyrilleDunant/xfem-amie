@@ -21,16 +21,17 @@ using namespace Amie ;
 void CoordinateIndexedSparseMatrix::reshape(std::set<std::pair<size_t, size_t>> &source, size_t s) 
 {
   stride = s ;
-  array.resize(source.size()*stride*(stride+stride%2)/(stride*stride)) ;
-  row_size.resize(source.rbegin()->first) ;
-  column_index.resize(source.size()) ;
-  accumulated_row_size.resize(source.rbegin()->first) ;
-	double * array_iterator = &array[0] ;
-	unsigned int * column_index_iterator = &column_index[0] ;
+  array.resize(source.size()*stride*(stride+stride%2)) ;
+  row_size.resize(source.rbegin()->first+1, 0) ;
+  column_index.resize(source.size(), 0) ;
+  accumulated_row_size.resize(source.rbegin()->first+1, 0) ;
+
+	unsigned int * column_index_iterator = &column_index[1] ;
+        column_index[0] = source.begin()->second ;
 	unsigned int * row_size_iterator = &row_size[0] ;
 	auto previous = source.begin() ;
-	size_t r_s = 0 ;
-	for(auto ij = source.begin() ; ij != source.end() ; ++ij)
+	size_t r_s = 1 ;
+	for(auto ij = ++source.begin() ; ij != source.end() ; ++ij)
 	{
 		if(ij->first == previous->first)
 		{
@@ -47,85 +48,12 @@ void CoordinateIndexedSparseMatrix::reshape(std::set<std::pair<size_t, size_t>> 
 		column_index_iterator++ ;
 	}
 	array = 0 ;
-}
-
-
-CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, double> &source, size_t s): stride(s), array(source.size()*s*(s+s%2)/(s*s)), column_index(source.size()/s), row_size(source.rbegin()->first.first/s), accumulated_row_size(source.rbegin()->first.first/s)
-{
-	unsigned int * column_index_iterator = &column_index[0] ;
-	unsigned int * row_size_iterator = &row_size[0] ;
-	std::map<std::pair<size_t, size_t>, double>::const_iterator previous = source.begin() ;
-	size_t r_s = 0 ;
-	for(std::map<std::pair<size_t, size_t>, double>::const_iterator ij = source.begin() ; ij != source.end() ; ++ij)
-	{
-		if(ij->first.first/stride == previous->first.first/stride)
-		{
-			r_s++;
-		}
-		else
-		{
-			*row_size_iterator = r_s/stride ;
-			row_size_iterator++ ;
-			r_s = 1 ;	
-		}
-		previous = ij ;
-		*column_index_iterator =ij->first.second/stride ;
-		if((ij->first.second+1)%s == 0)
-			column_index_iterator++ ;
-	}
-	*row_size_iterator = r_s/stride ;
-	
-	for(std::map<std::pair<size_t, size_t>, double>::const_iterator ij = source.begin() ; ij != source.end() ; ++ij)
-		(*this)[ij->first.first][ij->first.second] = ij->second ;
-
-	for(size_t i = 1 ; i < accumulated_row_size.size() ; i++)
+        for(size_t i = 1 ; i < accumulated_row_size.size() ; i++)
 	{
 		accumulated_row_size[i] += accumulated_row_size[i-1]+row_size[i-1] ;
 	}
 }
 
-CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, Matrix> &source) : stride(source.begin()->second.numRows()),  array(source.size()*stride*(stride+stride%2)/(stride*stride)), column_index(source.size()/stride), row_size(source.rbegin()->first.first/stride), accumulated_row_size(source.rbegin()->first.first/stride)
-{
-	double * array_iterator = &array[0] ;
-	unsigned int * column_index_iterator = &column_index[0] ;
-	unsigned int * row_size_iterator = &row_size[0] ;
-	std::map<std::pair<size_t, size_t>, Matrix>::const_iterator previous = source.begin() ;
-	size_t r_s = 0 ;
-	for(std::map<std::pair<size_t, size_t>, Matrix>::const_iterator ij = source.begin() ; ij != source.end() ; ++ij)
-	{
-		if(ij->first.first == previous->first.first)
-		{
-			r_s++;
-		}
-		else
-		{
-			*row_size_iterator = r_s ;
-			row_size_iterator++ ;
-			r_s = 1 ;	
-		}
-		previous = ij ;
-		*column_index_iterator =ij->first.second ;
-		column_index_iterator++ ;
-	}
-	*row_size_iterator = r_s ;
-	array = 0 ;
-	for(std::map<std::pair<size_t, size_t>, Matrix>::const_iterator ij = source.begin() ; ij != source.end() ; ++ij)
-	{
-		for(size_t i = 0 ; i < stride ; i++)
-		{
-			for(size_t j = 0 ; j < stride ; j++)
-			{
-				*array_iterator = ij->second[j][i] ;
-				array_iterator++ ;
-			}
-		}
-	}
-	
-	for(size_t i = 1 ; i < accumulated_row_size.size() ; i++)
-	{
-		accumulated_row_size[i] += accumulated_row_size[i-1]+row_size[i-1] ;
-	}
-}
 
 CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(const std::valarray<unsigned int> &rs, const std::valarray<unsigned int> &ci, size_t s) : stride(s), array(0., ci.size()*stride*(stride+stride%2)),column_index(ci),row_size(rs), accumulated_row_size(rs.size())
 {

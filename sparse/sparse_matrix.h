@@ -104,18 +104,7 @@ public:
 	std::valarray<unsigned int>  accumulated_row_size ;
 	
 public:
-/** \brief Constructor using a std::map\<std::pair\<size_t, size_t\>, double\> as an input. 
- * @param source The natural c++ way of storing a sparse matrix: the values are mapped by pairs of (row, column) unsigned ints
- * @param stride stride giving the size of the blocks.
- */
-	CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, double> &source, size_t stride) ;
 
-/** \brief Constructor using a std::map\<std::pair\<size_t, size_t\>, Matrix> as an input. 
- * @param source The natural c++ way of storing a block sparse matrix: the blockcs, stored as matrices are 
- * mapped by pairs of (row, column) unsigned ints giving the block row, column.
- * The size of the blocks is deduced from the matrix size.
- */
-	CoordinateIndexedSparseMatrix(std::map<std::pair<size_t, size_t>, Matrix> &source) ;
 	void reshape(std::set<std::pair<size_t, size_t>> &source, size_t stride) ;
 
 /** \brief Constructor using a pair of valarays as input for the parseness pattern. The matrix is initialised at 0.
@@ -180,7 +169,7 @@ As there are no warranty all members of the diagonal are non-0, there is no warr
 /** \brief Compute the infinity norm of the matrix: \f$ |\max A_{ij}|\f$*/
 	double infinityNorm() const ;
 	
-	inline void inner_product(const double* __restrict__ v, double* __restrict__ dest, const size_t rowstart, const size_t colstart, const size_t index) const
+	inline void inner_product(const double*  v, double*  dest, const size_t rowstart, const size_t colstart, const size_t index) const
 	{
 		size_t length = row_size[index/stride] ;
 		size_t start = accumulated_row_size[index/stride] ;
@@ -390,7 +379,7 @@ As there are no warranty all members of the diagonal are non-0, there is no warr
 				return ;
 			}
 		}
-	}
+	} ;
 } ;
 
 struct CompositeSparseMatrixTimesVec ;

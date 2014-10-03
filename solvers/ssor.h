@@ -23,12 +23,14 @@ namespace Amie
 	struct Ssor  : public Preconditionner
 	{
 		CoordinateIndexedSparseMatrix upper ;
-        CoordinateIndexedSparseMatrix lower ;
-        Vector buffer ;
-        double omega ;
-        double omega_prev ;
-        double previous_r ;
-        bool converged = false ;
+                CoordinateIndexedSparseMatrix lower ;
+                CoordinateIndexedSparseMatrix auxiliaryUpper ;
+                CoordinateIndexedSparseMatrix auxiliaryLower ;
+                Vector buffer ;
+                double omega ;
+                double omega_prev ;
+                double previous_r ;
+                bool converged = false ;
 		virtual ~Ssor() { }
 		Ssor(const CoordinateIndexedSparseMatrix &A, double omega) ;
 		virtual void precondition(const Vector &v,Vector &)  ;

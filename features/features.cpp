@@ -6779,7 +6779,7 @@ void FeatureTree::generateElements()
         double t0 = omp_get_wtime() ;
 #endif
         
-        dtree = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains ) ;
+        dtree = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/ ) ;
         dtree->insert( meshPoints[3].first ) ;
         layer2d[-1] = dtree ;
 
@@ -6789,7 +6789,7 @@ void FeatureTree::generateElements()
             {
                 if(layer2d.find(tree[i]->getLayer()) == layer2d.end())
                 {
-                    layer2d[tree[i]->getLayer()] = new ParallelDelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, domains) ;
+                    layer2d[tree[i]->getLayer()] = new /*Parallel*/DelaunayTree( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first/*, domains*/) ;
                     layer2d[tree[i]->getLayer()]->insert( meshPoints[3].first ) ;
                 }
             }
