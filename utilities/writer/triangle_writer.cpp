@@ -236,7 +236,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 	{
 
 		
-		std::string fname = base + std::string("_") + itoa(m)+".svg" ;
+		std::string fname = base + std::string("_") + itoa(m+1)+".svg" ;
 		std::fstream outfile(fname.c_str(), std::ios::out | std::ios_base::trunc) ;
 		if(!outfile.is_open())
 		{
@@ -304,10 +304,10 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 			
 			for(size_t j = 6 ; j < values.back()[0].size() ; j+=3)
 			{
-				std::string currentField = nameOfField(fields[fieldCounter], fieldCounter, fieldsOther) ;
+				std::string currentField = nameOfField(fields[fieldCounter], fieldCounter, fieldsOther, fieldsInternal) ;
 				if(isScalar && (fields[fieldCounter] == TWFT_COORDINATE || fields[fieldCounter] == TWFT_DISPLACEMENTS))
 				{
-					if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter , fieldsOther))
+					if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter , fieldsOther, fieldsInternal))
 					{
 						localFieldCounter +=3 ;
 					}
@@ -321,7 +321,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 					continue ;
 				}
 				
-				if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter, fieldsOther))
+				if(localFieldCounter < numberOfFields(fields[fieldCounter],fieldCounter, fieldsOther, fieldsInternal))
 				{
 					localFieldCounter +=3 ;
 				}
@@ -578,12 +578,14 @@ void MultiTriangleWriter::append()
 void TriangleWriter::getField( TWFieldType field, bool extra, std::string fieldName, double offset )
 {
 
-    if(field == TWFT_INTERNAL_VARIABLE)
-        fieldsInternal[fields.size()] = fieldName ;
-    fields.push_back(field);
+	if(field == TWFT_INTERNAL_VARIABLE)
+	{
+		fieldsInternal[fields.size()] = fieldName ;
+	}
+        fields.push_back(field);
 	for( size_t j = 0 ; j < layers.size() ; j++ )
 	{
-        std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j], fieldName, offset ) ;
+	        std::vector<std::valarray<double> > val = getDoubleValues( field, fields.size()-1, layers[j], fieldName, offset ) ;
 		std::reverse( val.begin(), val.end() );
 		values.back()[layerTranslator[layers[j]]].insert( values.back()[layerTranslator[layers[j]]].end(), val.begin(), val.end() ) ;
 	}
@@ -609,7 +611,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
 
-	for( int i = 0 ; i < numberOfFields( field, index , fieldsOther) ; i++ )
+	for( int i = 0 ; i < numberOfFields( field, index , fieldsOther, fieldsInternal) ; i++ )
 	{
 		std::valarray<double> reti( nTriangles[layerTranslator[layer]] ) ;
 		ret.push_back( reti ) ;
@@ -942,7 +944,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( val.first )
 					{
-						for( size_t j = 0 ; j < numberOfFields( field , index, fieldsOther) ; j++ )
+						for( size_t j = 0 ; j < numberOfFields( field , index, fieldsOther, fieldsInternal) ; j++ )
 							ret[j][iterator] = val.second[j] ;
 
 						iterator++ ;
@@ -1011,7 +1013,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTriangle *tri, TWFieldType field , size_t index)
 {
 	bool found = false ;
-	std::vector<double> ret( numberOfFields( field,  index, fieldsOther) ) ;
+	std::vector<double> ret( numberOfFields( field,  index, fieldsOther, fieldsInternal) ) ;
 
 	if( tri->getBehaviour() && tri->getBehaviour()->type != VOID_BEHAVIOUR )
 	{
@@ -1361,7 +1363,7 @@ void MultiTriangleWriter::writeHeader( int layer, bool firstlayer, bool append )
 
 
 
-int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther)
+int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther, std::map<size_t, std::string> & external)
 {
 	switch( field )
 	{
@@ -1421,14 +1423,16 @@ int numberOfFields( TWFieldType field, size_t index , std::map<size_t, FieldType
 			return 6 ;
 		case TWFT_FIELD_TYPE:
 			return numberOfFields(fieldsOther[index]) ;
-        case TWFT_INTERNAL_VARIABLE:
-            return 3 ;
+	        case TWFT_INTERNAL_VARIABLE:
+		{
+	            return 3 ;
+		}
 	}
 
 	return 3 ;
 }
 
-std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther)
+std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther,  std::map<size_t, std::string> & external)
 {
 	switch( field )
 	{
@@ -1448,9 +1452,9 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
 			return std::string("Cracking Angle") ;
 		case TWFT_STIFFNESS:
 			return std::string("Stiffness") ;
-        case TWFT_VISCOSITY:
-            return std::string("Viscosity") ;
-        case TWFT_STIFFNESS_X:
+		case TWFT_VISCOSITY:
+		    return std::string("Viscosity") ;
+		case TWFT_STIFFNESS_X:
 			return std::string("Stiffness X") ;
 		case TWFT_STIFFNESS_Y:
 			return std::string("Stiffness Y") ;
@@ -1488,8 +1492,14 @@ std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, Field
 			return std::string("Crack Opening") ;
 		case TWFT_FIELD_TYPE:
 			return nameOfField(fieldsOther[index]) ;
-        case TWFT_INTERNAL_VARIABLE:
-            return std::string("Internal Variable") ;
+		case TWFT_INTERNAL_VARIABLE:
+		{
+			if(external.find(index) != external.end())
+			{
+				return external[index] ;
+			}
+		    return std::string("Internal Variable") ;
+		}
 	}
 
 	return std::string("Not a Field") ;

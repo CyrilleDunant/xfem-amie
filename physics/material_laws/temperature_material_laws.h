@@ -43,13 +43,6 @@ struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-struct WeightLossInducedShrinkageMaterialLaw : public ExternalMaterialLaw
-{
-    WeightLossInducedShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
-
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
-};
-
 /* Material law for a generic Arrhenius equation affecting a single parameter
  * The material parameters must include the affected parameter, the activation energy for that parameter (in Kelvin^{-1}, and written as parameter"_activation_energy"), "temperature" and "temperature_reference" (both in Kelvin)
  * The reference value of the affected parameter and "temperature" must be given in the defaults values

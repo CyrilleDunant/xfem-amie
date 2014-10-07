@@ -13,8 +13,12 @@
 #include "../geometry/geometry_base.h"
 #include "../elements/integrable_entity.h"
 #include "../solvers/assembly.h"
+#include "../physics/material_laws/material_laws.h"
+#include "../physics/damagemodels/damagemodel.h"
+#include "../physics/fracturecriteria/fracturecriterion.h"
 #include "matrixops.h"
 #include "granulo.h"
+#include "writer/triangle_writer.h"
 
 #include <string>
 #include <vector>
@@ -65,6 +69,9 @@ public:
 
 	/** Accessor, returns all direct children of the current item with the corresponding label */
 	std::vector<ConfigTreeItem *> getAllChildren(std::string childLabel) const ;
+
+	/** Accessor, returns all direct children of the current item */
+	std::vector<ConfigTreeItem *> getAllChildren() const ;
 
 	/** Accessor, returns the tree item below the current item with the corresponding label. 
 	 * This allows access to the direct children as well as grand-children of any level. 
@@ -136,11 +143,23 @@ public:
 	/** Print the current item and all its descendents.*/
 	void printTree() const ;
 
+	/** Read a vector of double from a file*/
+	Vector readVectorFromFile() const ;
+
+	/** Translates the current item in a function*/
+	Function getFunction() const ;
+
 	/** Translates the current item in a 2D sample*/
 	Sample * getSample() const ;
 
 	/** Translates the current item in a mechanical behaviour*/
 	Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false) const ;
+
+	/** Translates the current item in a fracture criterion*/
+	FractureCriterion * getFractureCriterion(bool spaceTime = false) const ;
+
+	/** Translates the current item in a damage model*/
+	DamageModel * getDamageModel(bool spaceTime = false) const ;
 
 	/** Translates the current item in a Cauchy-Green stiffness matrix*/
 	Matrix getStiffnessMatrix(SpaceDimensionality dim) const ;
@@ -150,6 +169,9 @@ public:
 
 	/** Translates the current item in a particle size distribution*/
 	ParticleSizeDistribution * getParticleSizeDistribution() const ;
+
+	/** Translates the current item in a material law for log-creep behaviour*/
+	ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
 	/** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
 	std::vector<Feature *> getInclusions(FeatureTree * F) const ;
@@ -166,11 +188,14 @@ public:
 	/** Writes field values taken from f in a determined triangle file*/
 	void exportTriangles(FeatureTree * f, int n, int nmax) ;
 
+	/** Writes field values taken from f in a determined svg triangle file*/
+	void exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * f, int n, int nmax) ;
+
 	/** Translate a string in an element order*/
 	static Order translateOrder(std::string order) ;
 
 	/** Translate a string in a field type*/
-	static FieldType translateFieldType(std::string field) ;
+	static FieldType translateFieldType(std::string field, bool & ok) ;
 
 	/** Translate a string in an inclusion type*/
 	static TypeInclusion translateInclusionType(std::string type) ;

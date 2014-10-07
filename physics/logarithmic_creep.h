@@ -25,7 +25,8 @@ typedef enum
     LOGCREEP_CONSTANT,
     LOGCREEP_FORWARD,
     LOGCREEP_PREDICTED,
-    LOGCREEP_AGEING
+    LOGCREEP_AGEING,
+    LOGCREEP_EXPSTRAIN,
 } LogCreepStressAccumulator ;
 
 
@@ -36,11 +37,16 @@ struct LogarithmicCreep : public Viscoelasticity
 	Matrix E ; //viscosity
 	double tau ; //characteristic time
     LogCreepStressAccumulator accumulator ;
+	bool fixCreepVariable ;
 
 	double accumulatedStress ;
 	double currentStress ;
     double previousTimeStep ;
     double reducedTimeStep ;
+	bool sign ;
+
+	Matrix accumulatedStressTensor ;
+	Matrix currentStressTensor ;
 
 /*    std::vector<Matrix> E_t ;
     std::vector<Matrix> dE_dt ;*/
@@ -70,6 +76,10 @@ struct LogarithmicCreep : public Viscoelasticity
     virtual void accumulateStress(double timeStep, ElementState & currentState) ;
     virtual void makeEquivalentViscosity(double timeStep, ElementState & currentState) ;
 
+	virtual bool hasInducedForces() const { return fixCreepVariable ; }
+
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+
 } ;
 
 struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
@@ -88,7 +98,7 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
-	virtual bool hasInducedForces() const { return imposed.size()>0 ; }
+	virtual bool hasInducedForces() const { return fixCreepVariable || imposed.size()>0 ; }
 
     virtual void step(double timestep, ElementState &s, double maxScore) ;
 

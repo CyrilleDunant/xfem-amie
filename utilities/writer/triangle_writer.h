@@ -151,10 +151,10 @@ protected:
 
 
 /** \brief indicates the number of "columns" needed by a specific field type*/
-int numberOfFields(TWFieldType field, size_t index, std::map<size_t, FieldType> & fieldsOther) ;
+int numberOfFields(TWFieldType field, size_t index, std::map<size_t, FieldType> & fieldsOther, std::map<size_t, std::string> & external) ;
 int numberOfFields(FieldType field) ;
 
-std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther) ;
+std::string nameOfField(TWFieldType field, size_t index , std::map<size_t, FieldType> & fieldsOther, std::map<size_t, std::string> & external) ;
 std::string nameOfField(FieldType field) ;
 
 

@@ -407,10 +407,16 @@ void ConfigParser::readData()
 			}	
 
 			size_t found = line.find(" ") ;
-			while(found != std::string::npos)
+			size_t quote = line.find('"') ;
+			while(found != std::string::npos && found < quote)
 			{
 				line = line.erase(found,1) ;
 				found = line.find(" ") ;
+			}
+			while(quote != std::string::npos)
+			{
+				line = line.erase(quote,1) ;
+				quote = line.find('"') ;
 			}
 
 			size_t sep = line.find("=") ;
@@ -426,6 +432,7 @@ void ConfigParser::readData()
 			}
 			else if(l == 0 || l > level+1)
 			{
+				std::cout << line << std::endl ;
 				std::cout << "parsing error in file " << filename << std::endl ;
 				exit(0) ;
 			}
@@ -444,11 +451,14 @@ void ConfigParser::readData()
 			else
 			{
 				std::string right = line.substr( sep+1 ) ;
-				bool isDouble = (right.find_first_not_of("0123456789.e") == std::string::npos ) ;
+				bool isDouble = (right.find_first_not_of("0123456789.e-") == std::string::npos ) ;
 				std::string label = line.substr(0, sep) ;
 				label = label.substr(level) ;
 				if(isDouble)
+				{
+					std::cout << label << "\t" << atof(right.c_str()) << std::endl ;
 					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, atof(right.c_str()) ) ;
+				}
 				else
 					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;			
 			}

@@ -56,25 +56,35 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-    Sample box(nullptr, 0.17,0.4,0.,0.) ;
+    Sample box(nullptr, 0.2,0.4,0.,0.) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(6) ;
+    F.setSamplingNumber(128) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
-    int time_step = 1 ;
+    double time_step = 0.01 ;
+    F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
-    F.setDeltaTime(time_step) ; 
-   
+    F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 
-    LogarithmicCreepWithExternalParameters *creep = new LogarithmicCreepWithExternalParameters("young_modulus = 17e9, poisson_ratio = 0.2, imposed_deformation=0") ;
-    creep->accumulator = LOGCREEP_PREDICTED ;
-    Vector ttmp(2) ; ttmp[0]=330, ttmp[1]=370 ;
-    Vector ytmp(2) ; ytmp[0]=-0.1, ytmp[1]=0.1 ;
-    creep->addMaterialLaw(new LinearInterpolatedExternalMaterialLaw(std::make_pair("y","temperature"), std::make_pair(ytmp,ttmp)));
-//    creep.addMaterialLaw( new SpaceTimeDependentExternalMaterialLaw( "temperature", "333 500 y * +") ) ;
-    creep->addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 333, thermal_expansion_coefficient = 0.0001") ) ;
+    LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.2, creep_poisson = 0.2, creep_characteristic_time = 0.1") ;
+    paste.addMaterialParameter("creep_modulus", atof(argv[1])*1e9) ;
+    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
+    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
-    box.setBehaviour( creep );
+    box.setBehaviour( &paste );
+
+   std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, &aggregates, 5000, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1,0.,0.)) ;
+    for(size_t i = 0 ; i < inc.size() ; i++)
+    {
+	if(inc[i]->intersects(dynamic_cast<Rectangle *>(&box)))
+		F.setSamplingFactor( inc[i], 3. ) ;
+	else
+		F.setSamplingFactor( inc[i], 2. ) ;
+    }
+/*    F.addRefinementZone( new Rectangle(0.01,0.4,0.095,0.)) ;
+    F.addRefinementZone( new Rectangle(0.01,0.4,-0.095,0.)) ;
+    F.addRefinementZone( new Rectangle(0.18,0.01,0.,0.195)) ;
+    F.addRefinementZone( new Rectangle(0.18,0.01,0.,-0.195)) ;*/
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
@@ -83,14 +93,111 @@ int main(int argc, char *argv[])
 
     F.step() ;
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, -10e6)) ;
+    std::vector<DelaunayTriangle *> triangles = F.getElements2D() ;
+    double area = 0. ;
+    std::vector<size_t> paste_index ;
+    std::vector<size_t> agg_index ;
+    for(size_t i = 0 ; i < triangles.size() ; i++)
+    {
+	if(triangles[i]->getBehaviour()->param[0][0] > 30e9)
+	{
+		area += triangles[i]->area() ;
+		agg_index.push_back(i) ;
+	} 
+	else
+		paste_index.push_back(i) ;
+    }
+    std::cout << paste_index.size() << "\t" << triangles.size() << std::endl ;
+    std::cout << "effective surface covered by aggregates: " << area << std::endl ;
 
-    F.step() ;
-    std::cout << F.getCurrentTime() << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(STRAIN_FIELD, -1, 1.)[1] << std::endl ;
-    TriangleWriter trg("toto", &F, 1.) ;
-    trg.getField("temperature");
-    trg.write() ;
+
+    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6) ;
+
+    F.addBoundaryCondition(stress) ;
+
+    std::fstream out ;
+    out.open("superposition_bengougam_tension_full", std::ios::out) ;
+    int i = 0 ;
+    bool down = false ;
+    bool up = false ;
+    int incr = 10 ;
+	Point p ;
+	MultiTriangleWriter trg("toto","tata", &F, 1.) ;
+    while(F.getCurrentTime() < 3000)
+    {
+	    if(i%incr == 0)
+	    {
+		F.setDeltaTime(std::min(1.,0.01+0.01*i/incr)) ;
+		TriangleWriter trg("toto", &F, 1.) ;
+		trg.getField(STRAIN_FIELD) ;
+		trg.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
+		trg.getField(TWFT_STIFFNESS) ;
+		trg.getField(TWFT_VISCOSITY) ;
+		trg.write() ;
+	    }
+
+	    if(!down && F.getCurrentTime() > 1288)
+	    {
+		down = true ;
+		stress->setData(0) ;
+		F.setDeltaTime(0.01) ;
+		i = 0 ;
+	    }
+	    if(!up && F.getCurrentTime() > 1448)
+	    {
+		up = true ;
+		stress->setData(1e6) ;
+		F.setDeltaTime(0.01) ;
+		i = 0 ;
+	    }
+
+
+	    bool goOn = F.step() ;
+	    if(!goOn)
+	    {
+		TriangleWriter trg("tata", &F, 1.) ;
+		trg.getField(STRAIN_FIELD) ;
+		trg.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
+		trg.getField(TWFT_STIFFNESS) ;
+		trg.getField(TWFT_VISCOSITY) ;
+		trg.write() ;
+		return 0 ;
+	    }
+
+	    Vector strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, -1, 1.) ;
+	    Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+	    Vector stress_paste = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+	    Vector stress_aggregates = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
+	    stress_paste = 0. ;
+	    double area_paste = 0. ;
+	    stress_aggregates = 0. ;
+	    double area_aggregates = 0. ;
+	    for(size_t j = 0 ; j < paste_index.size() ; j++)
+	    {
+		Vector str = stress_paste*0. ;
+		triangles[paste_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
+		double a = triangles[paste_index[j]]->area() ;
+		stress_paste += str*a ;
+		area_paste += a ;
+	    }
+	    for(size_t j = 0 ; j < agg_index.size() ; j++)
+	    {
+		Vector str = stress_paste*0. ;
+		triangles[agg_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
+		double a = triangles[agg_index[j]]->area() ;
+		stress_aggregates += str*a ;
+		area_aggregates += a ;
+	    }
+	    stress_paste /= area_paste ;
+	    stress_aggregates /= area_aggregates ;
+	
+
+            out << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
+            std::cout << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
+	    i++ ;
+    }
 
     return 0 ;
+
 }
 

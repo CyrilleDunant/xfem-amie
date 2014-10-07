@@ -15,7 +15,7 @@ namespace Amie
 {
 	struct SteelBehaviour : public WeibullDistributedStiffness
 	{
-		SteelBehaviour(double E=59e9, double nu=0.3, double tensile=570000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		SteelBehaviour(double E=210e9, double nu=0.27, double tensile = 276e6, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

@@ -39,7 +39,7 @@ Form * PasteBehaviour::getCopy() const
 
 ElasticOnlyPasteBehaviour::ElasticOnlyPasteBehaviour(double E, double nu, SpaceDimensionality dim) : PasteBehaviour(E,nu,0.,0.,0.,dim)
 {
-	variability = 0 ;
+	variability = 0.2 ;
 }
 
 Form * ElasticOnlyPasteBehaviour::getCopy() const 
@@ -114,10 +114,10 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
 			double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;
@@ -147,16 +147,16 @@ Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
 	
 	ViscoelasticityAndFracture * copy ;
 // 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
-	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
+	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.01, 1e-9, 0.8 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
 
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
 			double k = 1. + C0[0][0]/C1[0][0];
@@ -232,10 +232,10 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStrain(up*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case STRESS_CRITERION:
-			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up, up*param[0][0]*factor), dampaste, 0, freeblocks) ;
+			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalMaximumStress(up*param[0][0]*factor), dampaste, 0, freeblocks) ;
 			break ;
 		case MIXED_CRITERION:
 			double k = 1. + C0[0][0]/C1[0][0] + C0[0][0]/C2[0][0] ;

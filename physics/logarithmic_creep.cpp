@@ -5,12 +5,12 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), isPurelyElastic(true), accumulatedStress(0), currentStress(0), updated(true), accumulator(LOGCREEP_FORWARD), previousTimeStep(0.), reducedTimeStep(-1.)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), isPurelyElastic(true), accumulatedStress(0), currentStress(0), updated(true), accumulator(LOGCREEP_FORWARD), previousTimeStep(0.), reducedTimeStep(-1.), sign(true), fixCreepVariable(false), currentStressTensor(2,2), accumulatedStressTensor(2,2)
 {
 
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, double e) : Viscoelasticity(MAXWELL, rig, vs), C(rig), E(vs), tau(e), isPurelyElastic(false), currentStress(0), accumulatedStress(0), updated(true), accumulator(LOGCREEP_FORWARD), previousTimeStep(0.), reducedTimeStep(-1.)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, double e) : Viscoelasticity(MAXWELL, rig, vs), C(rig), E(vs), tau(e), isPurelyElastic(false), currentStress(0), accumulatedStress(0), updated(true), accumulator(LOGCREEP_FORWARD), previousTimeStep(0.), reducedTimeStep(-1.), sign(true), fixCreepVariable(false), currentStressTensor(2,2), accumulatedStressTensor(2,2)
 {
 
 }
@@ -87,16 +87,36 @@ void LogarithmicCreep::accumulateStress(double timeStep, ElementState & currentS
         {
             break ;
         }
+	case LOGCREEP_EXPSTRAIN:
+	{
+		accumulatedStress = 1. ;
+		Vector strain(C.numRows()) ; strain = 0 ;
+                Vector stress(C.numRows()) ; stress = 0 ;
+                currentState.getAverageField( STRAIN_FIELD, strain, nullptr, -1, 1) ;
+		accumulatedStress = std::pow(1 + std::max( std::abs(strain[0]), std::abs(strain[1]) ), 4. ) ;
+                currentState.getAverageField( REAL_STRESS_FIELD, stress, nullptr, -1, 1) ;
+                currentStress = std::max(std::abs(stress[0]), std::abs(stress[1])) ;
+		break ;
+	}
         case LOGCREEP_FORWARD:
         {
-            Vector stress(C.numRows()) ; stress = 0 ;
+            Vector strain(C.numRows()) ; strain = 0 ;
             if(reducedTimeStep < 0)
             {
                 if(!fractured())
                 {
-                    currentState.getAverageField( REAL_STRESS_FIELD, stress, nullptr, -1, 1) ;
-                    currentStress = std::abs(std::max(stress[0], stress[1])) ;
-                    accumulatedStress += currentStress*(timeStep+previousTimeStep)/2 ;
+                    currentState.getAverageField( STRAIN_FIELD, strain, nullptr, -1, -1) ;
+		    Vector stress = C*strain ;
+//		    std::cout << strain[0] << " " << strain[1] << "     " ;
+		    currentStressTensor[0][0] = stress[0] ;
+		    currentStressTensor[0][1] = stress[2]/2 ;
+		    currentStressTensor[1][0] = stress[2]/2 ;
+		    currentStressTensor[1][1] = stress[1] ;
+		    double dt = (timeStep+previousTimeStep)/2. ;
+		    accumulatedStressTensor[0][0] += currentStressTensor[0][0]*dt ;
+		    accumulatedStressTensor[1][0] += currentStressTensor[1][0]*dt ;
+		    accumulatedStressTensor[0][1] += currentStressTensor[0][1]*dt ;
+		    accumulatedStressTensor[1][1] += currentStressTensor[1][1]*dt ;
                 }
                 previousTimeStep = timeStep ;
             }
@@ -151,14 +171,39 @@ void LogarithmicCreep::makeEquivalentViscosity(double timeStep, ElementState & c
         {
             break ;
         }
+        case LOGCREEP_EXPSTRAIN:
+        {
+		if(currentStress < POINT_TOLERANCE_2D)
+		    visc.array() = 0 ;
+		else
+		    visc *= ((accumulatedStress*tau) / (currentStress)) ;
+            break ;
+        }
         case LOGCREEP_FORWARD:
         {
-            if(accumulatedStress > POINT_TOLERANCE_2D)
+            if(accumulatedStressTensor.array().max() > POINT_TOLERANCE_2D)
             {
-                if(currentStress < POINT_TOLERANCE_2D)
+		Vector str = currentStressTensor.array() ;
+                if((abs(str).max()) < 1.)
+		{
+		    fixCreepVariable = true ;
                     visc.array() = 0 ;
+		}
                 else
-                    visc *= (1.+accumulatedStress / (tau*currentStress)) ;
+		{
+		    fixCreepVariable = false ;
+		    double n = 0. ;
+		    Matrix S(2,2) ;
+		    S = inverse2x2Matrix(currentStressTensor) ;
+		    for(size_t i = 0 ; i < 2 ; i++)
+		    {
+			for(size_t j = 0 ; j < 2 ; j++)
+				n += accumulatedStressTensor[i][j]*S[j][i]/2. ;
+		    }
+//		    if(n < 0)
+//			    std::cout << n << " ++ " ;
+                    visc *= 1+std::abs(n)/tau ;
+		}
             }
             break ;
         }
@@ -176,14 +221,14 @@ void LogarithmicCreep::makeEquivalentViscosity(double timeStep, ElementState & c
         case LOGCREEP_AGEING:
         {
             double t = currentState.getNodalCentralTime() ;
-            visc *= t/tau ;
+            visc *= (1.+t/tau) ;
             break ;
         }
     }
 
 
     placeMatrixInBlock(visc, 1,1, eta);
-    isPurelyElastic = (visc.array().max() < POINT_TOLERANCE_2D) ;
+//    isPurelyElastic = (visc.array().max() < POINT_TOLERANCE_2D) ;
 
     currentState.getParent()->behaviourUpdated = true ;
 
@@ -201,6 +246,30 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 void LogarithmicCreep::step(double timestep, ElementState &s, double maxScore)
 {
 
+}
+
+std::vector<BoundaryCondition * > LogarithmicCreep::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+{
+	std::vector<BoundaryCondition * > ret ;
+	if(fixCreepVariable)
+	{
+		size_t k = 0 ;
+		ElementarySurface * tri = dynamic_cast<ElementarySurface *>(s.getParent()) ;
+		for(size_t i = tri->getBoundingPoints().size()/tri->timePlanes() ; i < tri->getBoundingPoints().size() ; i++)
+		{
+			if(id == tri->getBoundingPoint(i).getId())
+			{
+				k = i-tri->getBoundingPoints().size()/tri->timePlanes() ;
+				break ;
+			}
+		}
+		if(k != 0)
+		{
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*4+2], 2)) ;
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*4+3], 3)) ;
+		}
+	}
+	return ret ;
 }
 
 
@@ -241,7 +310,7 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStress(const Point & p,
 
 std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-    std::vector<BoundaryCondition * > ret ;
+    std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
     if(imposed.size() == 0)
         return ret ;
     if(v.size() == 3)
@@ -410,7 +479,7 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const
 
 std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-    std::vector<BoundaryCondition * > ret ;
+    std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
     if(imposed.size() == 0 || fractured())
         return ret ;
     Vector istress = C*imposed ;

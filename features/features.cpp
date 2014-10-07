@@ -1864,9 +1864,10 @@ void FeatureTree::sample()
     }
 }
 
+
 void FeatureTree::refine( size_t nit, SamplingCriterion *cri )
 {
-    for( size_t t = 0 ; t < 512 ; t++ )
+    for( size_t t = 0 ; t < nit ; t++ )
     {
         bool corrected = false ;
         std::vector <DelaunayTriangle *> triangles  =  dtree->getElements() ;
@@ -3590,12 +3591,12 @@ void FeatureTree::setDiscretizationParameters(ConfigTreeItem * config, ConfigTre
 	setSamplingRestriction( ConfigTreeItem::translateSamplingRestrictionType(restriction) ) ;
 }
 
-int FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def)  
+Vector FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def)  
 {
 	if(def == nullptr)
 	{
 		def = new ConfigTreeItem() ;
-		def->addChild( new ConfigTreeItem( def, "time_step", 4 ) ) ;
+		def->addChild( new ConfigTreeItem( def, "time_step", 1. ) ) ;
 		def->addChild( new ConfigTreeItem( def, "minimum_time_step", 1e-9 ) ) ;
 		def->addChild( new ConfigTreeItem( def, "maximum_iterations_per_step", 256) ) ;
 		def->addChild( new ConfigTreeItem( def, "number_of_time_steps", 1 ) ) ;
@@ -3607,7 +3608,15 @@ int FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem *
 	setDeltaTime( deltaTime ) ;
 	setMinDeltaTime( minDeltaTime ) ;
 	setMaxIterationsPerStep( maxIter ) ;
-	return nSteps ;
+	Vector cinstants( nSteps ) ;
+	if(config->hasChild("list_of_time_steps"))
+		cinstants = config->getChild("list_of_time_steps")->readVectorFromFile() ;
+	else
+	{
+		for(size_t i = 0 ; i < cinstants.size() ; i++)
+			cinstants[i] = deltaTime*i ;
+	}
+	return cinstants ;
 }
 
 std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer( int g, bool stepTree )
@@ -4899,6 +4908,7 @@ bool FeatureTree::step()
         else
         {
             notConvergedCounts++ ;
+	    needexit = true ;
             std::cout << "+" << std::flush ;
         }
 
@@ -4907,7 +4917,7 @@ bool FeatureTree::step()
             K->clear() ;
         }
 
-        if(needexit && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
+        if(needexit)// && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
             break ;
 
         if( it > maxitPerStep && foundCheckPoint)
@@ -6454,7 +6464,7 @@ void FeatureTree::generateElements()
                     if(
                         (
                             !potentialChildren[k]->isVirtualFeature
-                            && potentialChildren[k]->inBoundary( tree[i]->getInPoint( j ), pointDensity )
+                            && potentialChildren[k]->inBoundary( tree[i]->getInPoint( j ), pointDensity*0.25 )
                         )
                         ||
                         (
@@ -6464,7 +6474,7 @@ void FeatureTree::generateElements()
                                 dynamic_cast<VirtualFeature *>( potentialChildren[k] )->getSource()
                                 != dynamic_cast<VirtualFeature *>( tree[i] )->getSource()
                             )
-                            && potentialChildren[k]->inBoundary( tree[i]->getInPoint( j ), pointDensity )
+                            && potentialChildren[k]->inBoundary( tree[i]->getInPoint( j ), pointDensity*0.25 )
                         )
                     )
                     {
@@ -6479,13 +6489,13 @@ void FeatureTree::generateElements()
                 if( i && !inRoot( tree[i]->getInPoint( j ) ) )
                     isIn = true ;
 
-                if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
+                if( tree[i]->getFather() && tree[i]->getFather()->onBoundary( tree[i]->getInPoint( j ), pointDensity*0.25 ) )
                     isIn = true ;
 
                 if( tree[i]->isVirtualFeature && !tree[i]->in( tree[i]->getInPoint( j ) ) )
                     isIn = true ;
 
-                if( tree[i]->getFather() && i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity ) )
+                if( tree[i]->getFather() && i && tree[0]->onBoundary( tree[i]->getInPoint( j ), pointDensity*0.25 ) )
                     isIn = true ;
 
                 if( !tree[i]->getFather()&& i )
@@ -6555,7 +6565,7 @@ void FeatureTree::generateElements()
 
                             for( size_t l = 0 ; l < descendants.size() ; l++ )
                             {
-                                if( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary( inter[k], pointDensity ) )
+                                if( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary( inter[k], pointDensity*0.25 ) )
                                 {
                                     indescendants = true ;
                                     break ;
@@ -6592,6 +6602,9 @@ void FeatureTree::generateElements()
 
                 for( size_t k = 0 ;  k < inter.size() ; k++ )
                 {
+			
+
+
                     bool indescendants = false ;
 
                     for( size_t l = 0 ; l < descendants.size() ; l++ )
@@ -6605,7 +6618,7 @@ void FeatureTree::generateElements()
 
                     for( size_t l = 0 ; l < fatherdescendants.size() ; l++ )
                     {
-                        if( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->inBoundary( inter[k], pointDensity ) && fatherdescendants[l]->getBoundingPoints().size() )
+                        if( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary( inter[k], pointDensity ) && !feature->onBoundary( inter[k], pointDensity ) )
                         {
                             indescendants = true ;
                             break ;
@@ -6683,14 +6696,19 @@ void FeatureTree::generateElements()
                                         + tree[0]->in( proj2 )
                                         + tree[0]->in( proj3 );
 
+
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if( !indescendants && squareDist3D( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) )
+                        if( (feature->onBoundary( inter[k], pointDensity )) || ( !indescendants && squareDist3D( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point( inter[k] ) ;
                             additionalPoints.push_back( p ) ;
                             ++count ;
                             meshPoints.push_back( std::make_pair( p, feature ) ) ;
                         }
+			else
+			{
+
+			}
                     }
 
                 }

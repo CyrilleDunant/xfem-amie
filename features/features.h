@@ -336,7 +336,7 @@ public:
 	Vector instants ;
 
 	void setDiscretizationParameters(ConfigTreeItem * config, ConfigTreeItem * def = nullptr)  ;
-	int setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def = nullptr)  ;
+	Vector setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def = nullptr)  ;
 
 	State & getState() {return state ;}
 	const State & getState() const {return state ;}

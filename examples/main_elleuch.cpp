@@ -151,15 +151,15 @@ int main(int argc, char *argv[])
     {
         if(plastic)
         {
-            pasteCriterion = new SpaceTimeNonLocalMaximumStress(0.00038, 17e6) ;
-            serpentineCriterion = new SpaceTimeNonLocalMaximumStress(0.00039, 50e6) ;
+            pasteCriterion = new SpaceTimeNonLocalMaximumStress(17e6) ;
+            serpentineCriterion = new SpaceTimeNonLocalMaximumStress(50e6) ;
             damageModel = new SpaceTimeFiberBasedIsotropicLinearDamage(0.01, 1e-6, 0.9) ;
 
         }
         else
         {
-            pasteCriterion = new SpaceTimeNonLocalBrittleMaximumStress(0.00038, 17e6) ;
-            serpentineCriterion = new SpaceTimeNonLocalBrittleMaximumStress(0.00039, 50e6) ;
+            pasteCriterion = new SpaceTimeNonLocalMaximumStrain(0.00038) ;
+            serpentineCriterion = new SpaceTimeNonLocalMaximumStrain(0.00039) ;
             damageModel = new SpaceTimeFiberBasedIsotropicLinearDamage(0.01, 1e-6, 0.9) ;
         }
         pasteCriterion->setMaterialCharacteristicRadius(0.0001) ;
@@ -192,17 +192,17 @@ int main(int argc, char *argv[])
     serpentine.addMaterialLaw(&radiationExpansion);
     serpentine.addMaterialLaw(&radiationDamage);
 
-    Sample box(nullptr, 0.025,0.025,0.,0.) ;
+    Sample box(nullptr, 0.025,0.02,0.,0.) ;
     box.setBehaviour(&paste) ;
 
     int sampling = 256 ;
     if(simple)
-        sampling = 32 ;
+        sampling = 64 ;
 
     FeatureTree F(&box) ;
     F.setSamplingNumber(sampling) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
-//    F.setSamplingRestriction(SAMPLE_RESTRICT_16);
+    F.setSamplingRestriction(SAMPLE_RESTRICT_4);
     double time_step = 0.5 ;
     F.setMaxIterationsPerStep(100) ;
     F.setDeltaTime(time_step) ;
@@ -258,23 +258,24 @@ int main(int argc, char *argv[])
     GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(elements[0]->getStatePointer()) ;
     std::map<std::string, double> dummy ;
 
-    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1) ;
+//    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1) ;
 //    F.addBoundaryCondition(stress) ;
 
     while(F.getCurrentTime() < tmax)
     {
-        stress->setData(0.00001*F.getCurrentTime()) ;
+//        stress->setData(0.00001*F.getCurrentTime()) ;
         F.setDeltaTime(time_step);
         bool goOn = true ;
         do {
             goOn = F.step() ;
-            TriangleWriter writer("tata", &F, 1.) ;
+            TriangleWriter writer("trg_elleuch", &F, 1.) ;
             writer.getField(PRINCIPAL_STRAIN_FIELD) ;
             writer.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
             writer.getField(TWFT_STIFFNESS) ;
             writer.getField(TWFT_DAMAGE) ;
             writer.getField(TWFT_VISCOSITY) ;
             writer.write();
+		exit(0) ;
 
             if(!F.solverConverged())
             {

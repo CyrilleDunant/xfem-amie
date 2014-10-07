@@ -425,6 +425,11 @@ void Assembly::setBoundaryConditions()
             rowstart = 2*totaldofs/3 ;
             colstart = 2*totaldofs/3 ;
         }
+	if(totaldofs < 128)
+	{
+		colstart = 0 ;
+		rowstart = 0 ;
+	}
     }
     if( dim == SPACE_THREE_DIMENSIONAL &&  element3d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
     {
@@ -437,6 +442,11 @@ void Assembly::setBoundaryConditions()
             rowstart = 2*totaldofs/3 ;
             colstart = 2*totaldofs/3 ;
         }
+	if(totaldofs < 128)
+	{
+		colstart = 0 ;
+		rowstart = 0 ;
+	}
     }
 
 

@@ -71,6 +71,7 @@ Form * ViscoElasticOnlyAggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 	return new Viscoelasticity( PURE_ELASTICITY, param*factor, 2+freeblocks )  ;
+
 }
 
 ViscoDamageAggregateBehaviour::ViscoDamageAggregateBehaviour(double E, double nu, double up, double r, SpaceDimensionality dim) : AggregateBehaviour(E,nu,up,0.,0.,dim), rad(r), freeblocks(0)
@@ -82,7 +83,7 @@ Form * ViscoDamageAggregateBehaviour::getCopy() const
 {
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
-	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up, up*param[0][0]*factor), new IsotropicLinearDamage(), 2+freeblocks )  ;
+	ViscoelasticityAndFracture * copy = new ViscoelasticityAndFracture( PURE_ELASTICITY, param*factor, new SpaceTimeNonLocalMaximumStrain(up), new IsotropicLinearDamage(), 2+freeblocks )  ;
 	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
 	copy->getDamageModel()->setDamageDensityTolerance(0.05) ;
 	copy->getDamageModel()->setThresholdDamageDensity(0.8) ;

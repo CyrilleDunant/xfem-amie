@@ -32,6 +32,7 @@ struct ExternalMaterialLaw
     ExternalMaterialLaw(std::string args = std::string(), char sep = ',') : defaultValues(parseDefaultValues(args, sep)) { }
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s , double dt) { }
     virtual void step( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt) { }
+    void setDefaultValue(std::string str, double v) ;
 };
 
 /* Generic material law to set one or several variables to a constant

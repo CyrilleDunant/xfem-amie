@@ -37,6 +37,11 @@ std::map<std::string, double> parseDefaultValues(std::string args, char sep)
     return ret ;
 }
 
+void ExternalMaterialLaw::setDefaultValue(std::string str, double d)
+{
+	defaultValues[str] = d ;
+}
+
 void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     for(auto iter = defaultValues.begin() ; iter != defaultValues.end() ; iter++)
@@ -136,7 +141,7 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
 double LinearInterpolatedExternalMaterialLaw::get(double x) const
 {
     if(x < values.first[0])
-        return values.second[0] ;\
+        return values.second[0] ;
     if(x > values.first[values.first.size()-1])
         return values.second[values.second.size()-1] ;
 

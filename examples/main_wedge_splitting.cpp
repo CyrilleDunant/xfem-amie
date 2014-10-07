@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setMaxIterationsPerStep( 1024 ) ;
 	double totaltime = atof(argv[1]) ;
-	F.setDeltaTime(totaltime/100.) ;
+	F.setDeltaTime(totaltime/500.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
 	size_t seed = atof(argv[3]) ;
 	ShortTermViscoElasticOnlyPasteBehaviour pastenodamage(16e9,0.3,5.) ;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	Rectangle refinement6( width*1,0.0005, 0., 0.) ;
 	F.addRefinementZone( &refinement ) ;
 	F.addRefinementZone( &refinement2 ) ;
-	F.addRefinementZone( &refinement3 ) ;
+//	F.addRefinementZone( &refinement3 ) ;
 // 	F.addRefinementZone( &refinement4 ) ;
 // 	F.addRefinementZone( &refinement5 ) ;
 // 	F.addRefinementZone( &refinement6 ) ;
@@ -118,12 +118,12 @@ int main(int argc, char *argv[])
 	if(argv[2] == std::string("stress"))
 	{
 		paste.ctype = STRESS_CRITERION ;
-		paste.up = 0.0002 ;
+		paste.up = 0.00025 ;
 	}
 	if(argv[2] == std::string("mixed"))
 	{
 		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.0002 ;
+		paste.up = 0.00025 ;
 		paste.stressFraction = 0.714 ;
 	}
 	paste.materialRadius = 0.002 ;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 
-	std::vector<Feature *> aggregates = PSDGenerator::get2DConcrete( &F, &agg, 60, 0.008, 0.0003, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones, seed ) ;
+	std::vector<Feature *> aggregates = PSDGenerator::get2DConcrete( &F, &agg, 200, 0.008, 0.0003, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones, seed ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 2.5) ;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
  	F.addFeature(&box, &top) ;
 	F.addFeature(&box, &middle) ;
  	F.addFeature(&middle, &notch) ;
-	F.setSamplingFactor(&box, .125) ;
+	F.setSamplingFactor(&box, .5) ;
 //	F.setSamplingFactor(&top, 10.) ;
 //	F.setSamplingFactor(&notch, 10.) ;
 	F.addFeature(&box, &left) ;
@@ -166,10 +166,10 @@ int main(int argc, char *argv[])
 
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 1 ) ) ;
  	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 3 ) ) ;
- 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 5 ) ) ;
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 5 ) ) ;
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 0 ) ) ;
  	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 2 ) ) ;
- 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 4 ) ) ;
+// 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., 0.), 0, 4 ) ) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 7 ) ) ;
  //	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, Point(0., -length*0.5), 0, 9 ) ) ;
 
@@ -194,13 +194,13 @@ int main(int argc, char *argv[])
 	size_t j = 0 ;
 
 	std::fstream out ;
-	std::string tata = "wedge_" ;
+	std::string tata = "wedge_paper/wedge_" ;
 	tata.append(argv[2]) ;
 	tata.append("_") ;
 	tata.append(argv[1]) ;
 	tata.append("_") ;
 	tata.append(argv[3]) ;
-	tata.append(".getT()xt") ;
+	tata.append(".txt") ;
 	out.open(tata.c_str(), std::ios::out) ;
 
 	double speed = 0.0005/totaltime ;
@@ -220,8 +220,8 @@ int main(int argc, char *argv[])
 			dispyr->setData( totaldisp*0.25/(-1.8666) ) ;
 			dispxl->setData( totaldisp*(-0.5) ) ;
 			dispyl->setData( totaldisp*(0.25)/(-1.8666) ) ;
-			F.setDeltaTime(totaltime/100.) ;
-			F.setMinDeltaTime((totaltime/100.)*1e-9) ;
+			F.setDeltaTime(totaltime/500.) ;
+			F.setMinDeltaTime((totaltime/500.)*1e-9) ;
 			std::cout << totaldisp << std::endl ;
 		}
 
