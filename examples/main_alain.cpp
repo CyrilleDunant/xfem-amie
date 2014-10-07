@@ -71,8 +71,6 @@ int main(int argc, char *argv[])
 
     std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(), 500, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1,0.,0.)) ;
 
-	    F.addMeshPointBetweenInclusions(1,0.001, 0.004) ;
-
 
     F.step() ;
 
