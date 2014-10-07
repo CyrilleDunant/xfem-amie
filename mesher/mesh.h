@@ -358,6 +358,8 @@ public:
         VirtualMachine vm ;
         std::vector<double> co ;
         std::vector<ETYPE *> elems = getConflictingElements ( locus ) ;
+        if(elems.empty())
+            elems = getConflictingElements ( &locus->getCenter() ) ;
         is2D = locus->spaceDimensions() == 2 ;
         //search for first empty cache slot ;
         if ( caches.empty() ) {
@@ -538,21 +540,19 @@ public:
 
         } else {
             double sumFactors ( 0 ) ;
-
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-
                 double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
-                if ( !first.size() ) {
-                    first.resize ( 0., buffer.size() );
+                if ( first.size() != buffer.size()) {
+                    first.resize ( buffer.size(), 0. );
                 }
+                
                 first += buffer*v ;
                 sumFactors += v ;
             }
 
             first /= sumFactors ;
         }
-
 
         return first ;
     }

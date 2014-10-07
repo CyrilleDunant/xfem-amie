@@ -1121,7 +1121,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			{
 				if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
 				{
-					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->smoothedCrackAngle(tri->getState())/M_PI ;
+					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD,  tri->getState())[0]/M_PI ;
 					while (angle < 0)
 						angle += 90 ;
 					ret[2] =  angle ;

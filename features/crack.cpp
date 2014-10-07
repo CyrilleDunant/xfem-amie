@@ -1651,7 +1651,7 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 				tipsToGrow.push_back(tips[i].first) ;
 				changed = true ;
 				isUpdated = true ;
-				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getCurrentAngle()+M_PI*.5) ;
+				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD, tri->getState())[0]+M_PI*.5) ;
 			}
 		}
 	}

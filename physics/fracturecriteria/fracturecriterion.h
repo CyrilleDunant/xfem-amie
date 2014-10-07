@@ -31,11 +31,11 @@ typedef enum {
     MIRROR_YZ
 } MirrorState ;
 
-typedef enum {
-    NULL_SMOOTH,
-    MAX_PROXIMITY_SMOOTH,
-    GAUSSIAN_SMOOTH
-} NonLocalSmoothingType ;
+// typedef enum {
+//     NULL_SMOOTH,
+//     MAX_PROXIMITY_SMOOTH,
+//     GAUSSIAN_SMOOTH
+// } NonLocalSmoothingType ;
 
 
 typedef enum {
@@ -54,7 +54,6 @@ class FractureCriterion
 protected:
 
     std::valarray<unsigned int> physicalcache ;
-    void initialiseFactors( Amie::ElementState& s ) ;
     std::valarray<double> factors ;
 
     std::vector<unsigned int> damagingSet ;
@@ -76,7 +75,6 @@ protected:
     bool metAtStep ;
     bool stable ;
 
-    double currentAngle ;
     double minDeltaInNeighbourhood ;
     int maxModeInNeighbourhood ;
     double maxScoreInNeighbourhood ;
@@ -104,17 +102,8 @@ public:
         return metAtStep ;
     }
 
-    double smoothedScore(ElementState& s) ;
     std::pair<Vector, Vector> getSmoothedFields(FieldType f0, FieldType f1,  ElementState &s ,double t = 0) ;
     Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
-    double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
-    double smoothedCrackAngle( ElementState &s) const ;
-    
-    double getCurrentAngle() const {
-        return currentAngle ;
-    }
-
-    std::pair<double, double> getCrackOpeningAndSlip(const ElementState & s) ;
 
 public:
     std::vector<unsigned int> cache ;
@@ -137,12 +126,11 @@ public:
     FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 
-    virtual void initialiseCacheOld( Amie::ElementState& s );
     virtual void initialiseCache( Amie::ElementState& s ) ;
     virtual ~FractureCriterion();
 
     void step(Amie::ElementState& s) ;
-    void computeNonLocalState(ElementState &s, NonLocalSmoothingType st = MAX_PROXIMITY_SMOOTH) ;
+    void computeNonLocalState(ElementState &s) ;
     bool isAtCheckpoint() const {
         return checkpoint ;
     }

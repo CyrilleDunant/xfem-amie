@@ -1269,7 +1269,11 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         vm = new VirtualMachine() ;
     }
     GaussPointArray gp = parent->getGaussPoints() ;
-    ret = 0 ;
+    size_t blocks = parent->getBehaviour()->getNumberOfDegreesOfFreedom() / parent->spaceDimensions() ;
+    if( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) != ret.size())
+        ret.resize( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) , 0.) ;
+    else
+        ret = 0 ;
     double v = parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
     double total = 0 ;
     if ( weights.size() != gp.gaussPoints.size() )
@@ -1291,6 +1295,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }
+                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
@@ -1318,6 +1324,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
+                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1348,6 +1356,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     pstrainAtGaussPoints[i*pstrainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }
+                if(ret.size() != tmp.size())
+                    ret.resize( tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
@@ -1375,6 +1385,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1405,6 +1417,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     stressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1431,6 +1445,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = stressAtGaussPoints[i*tmp.size() +j];
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1462,6 +1478,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     pstressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1488,6 +1506,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstressAtGaussPoints[i*tmp.size() +j];
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1519,6 +1539,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     stressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1546,6 +1568,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = stressAtGaussPoints[i*tmp.size() +j];
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1577,6 +1601,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     pstressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1604,6 +1630,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstressAtGaussPoints[i*tmp.size() +j];
                 }
+                                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
@@ -1622,11 +1650,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             return v;
         }
     default :
+
+        Vector tmp (ret) ;
         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
         {
             Point p_ = gp.gaussPoints[i].first ;
-            Vector tmp = ret ;
-            getField ( f, p_, tmp,true,  vm, dummy ) ;
+            
+            getField ( f, gp.gaussPoints[i].first, tmp,true,  vm, dummy ) ;
+
             ret += tmp*gp.gaussPoints[i].second*weights[i] ;
             total += gp.gaussPoints[i].second*weights[i] ;
         }

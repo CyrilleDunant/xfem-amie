@@ -4158,7 +4158,7 @@ bool FeatureTree::stepElements()
                     if( elements[i]->getBehaviour()->getFractureCriterion() )
                     {
                         elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
-                        elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+                        elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState() ) ;
                         maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
 
                     }
@@ -4402,7 +4402,7 @@ bool FeatureTree::stepElements()
                     if( elements[i]->getBehaviour()->getFractureCriterion() )
                     {
                         elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
-                        elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState(), NULL_SMOOTH ) ;
+                        elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState() ) ;
                         maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
 
                     }

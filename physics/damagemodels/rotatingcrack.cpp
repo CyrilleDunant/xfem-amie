@@ -91,6 +91,8 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement( ElementState 
 	if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet())
 	{
 
+            stiff->setAngle(s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD, s)[0]) ;
+
 		if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension(0) )
 		{
 			firstTension = true ;
@@ -270,7 +272,7 @@ void RotatingCrack::postProcess()
 // 			if(secondMet && secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() > 0|| firstMet && firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() < 0 )
 // 				stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
 // 			else
-				stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
+				
 				
 // 			std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << "  " << firstTension << firstMet << "  " << secondTension << secondMet << std::endl ;
 // 			Vector a(1) ;
@@ -340,7 +342,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement( ElementState &s 
 // 		if(getState().max() < POINT_TOLERANCE_2D)
 		if(!angleset)
 		{
-			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle();
+			currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD, s)[0];
 			angleset = true ;
 		}
 // 		if(!fractured())

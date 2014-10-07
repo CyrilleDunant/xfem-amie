@@ -359,8 +359,7 @@ void NonLocalMCFT::initialise( ElementState &s)
 {
 	double energy = /*physicalCharacteristicRadius / sqrt(s.getParent()->area())*/75.*5. ; //N/m 32000 prev
 	strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
-	if(factors.size()==0)
-		initialiseFactors(s) ;
+
 // 	energy *= nlcorrection ;
 	if(strain_ch < tensionCritStrain)
 	{
@@ -428,31 +427,31 @@ void NonLocalMCFT::initialise( ElementState &s)
 // rough crack model by bazant and gambarova
 // From engineering fracture mechanics, smeared crack analysis for fracture and aggregate 
 // interlock in concrete, Gambarova and Valente
-std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double dmax = 16)
-{
-	double tau_0 = 0.25*downVal ;
-	double a12 = 0.62*downVal ;
-	double a3 = 2.45/tau_0 ;
-	double a4 = 2.44*(1.-4./tau_0) ;
-	
-	std::pair<double, double> deltas = s.getParent()->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(s) ;
-	double delta_n = deltas.first*1000. ;
-	double delta_t = deltas.second*1000. ;
-	if(delta_n < 0.01)
-		return std::make_pair(0, 0) ;
-	
-	double r = delta_t/delta_n ;
-	if(std::abs(delta_n) < POINT_TOLERANCE_2D)
-		r = 0 ;
-	double f = a3+a4*std::abs(r*r*r) ;
-	double g = 1.+a4*r*r*r*r ;
-	double h = pow(1.+r*r, 0.25) ;
-	
-	double sigma_nt = tau_0*(1.-sqrt(2.*delta_n/dmax))*r*f/g ;
-	double sigma_nn = a12*r*sqrt(delta_n)*sigma_nt*.25 ;
-	
-	return std::make_pair(sigma_nn, sigma_nt) ;
-}
+// std::pair<double, double> stressOnCrack(ElementState &s, double downVal, double dmax = 16)
+// {
+// 	double tau_0 = 0.25*downVal ;
+// 	double a12 = 0.62*downVal ;
+// 	double a3 = 2.45/tau_0 ;
+// 	double a4 = 2.44*(1.-4./tau_0) ;
+// 	
+// 	std::pair<double, double> deltas = s.getParent()->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(s) ;
+// 	double delta_n = deltas.first*1000. ;
+// 	double delta_t = deltas.second*1000. ;
+// 	if(delta_n < 0.01)
+// 		return std::make_pair(0, 0) ;
+// 	
+// 	double r = delta_t/delta_n ;
+// 	if(std::abs(delta_n) < POINT_TOLERANCE_2D)
+// 		r = 0 ;
+// 	double f = a3+a4*std::abs(r*r*r) ;
+// 	double g = 1.+a4*r*r*r*r ;
+// 	double h = pow(1.+r*r, 0.25) ;
+// 	
+// 	double sigma_nt = tau_0*(1.-sqrt(2.*delta_n/dmax))*r*f/g ;
+// 	double sigma_nn = a12*r*sqrt(delta_n)*sigma_nt*.25 ;
+// 	
+// 	return std::make_pair(sigma_nn, sigma_nt) ;
+// }
 
 double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 {
