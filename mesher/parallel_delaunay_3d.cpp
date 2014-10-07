@@ -244,7 +244,6 @@ void ParallelDelaunayTree3D::insert(Point * p)
 
         if(!noInteraction || global_counter < 9 )
         {
-            meshes[i]->neighbourhood = false ;
             newElems = meshes[i]->addElements(cons, p) ;
         }
         
@@ -258,7 +257,7 @@ void ParallelDelaunayTree3D::insert(Point * p)
     }
 }
 
-std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
+std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements() const
 {
     std::vector<std::vector<DelaunayTetrahedron *>> tris(meshes.size()) ;
 
@@ -645,13 +644,111 @@ const std::vector<Point * > & ParallelDelaunayTree3D::getAdditionalPoints() cons
     return additionalPoints ;
 }
 
-std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree()
+// std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree()
+// {
+//     return tree ;
+// }
+// 
+// const std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree() const
+// {
+//     return tree ;
+// }
+
+
+unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const Geometry * source, Function smoothing )
 {
-    return tree ;
+    VirtualMachine vm ;
+    std::vector<double> co ;
+    std::vector<DelaunayTetrahedron *> elems = getConflictingElements(locus) ;
+    //search for first empty cache slot ;
+    if(caches.empty())
+    {
+        caches.push_back(std::vector<int>());
+        coefs.push_back(std::vector<std::vector<double>>());
+        elementMap.push_back(std::vector<int>());
+    }
+    size_t position = 0;
+    for( ; position < caches.size() ; position++)
+    {
+        if(caches[position].empty())
+            break ;
+    }
+    if(position == caches.size())
+    {
+        caches.push_back(std::vector<int>());
+        coefs.push_back(std::vector<std::vector<double>>());
+        elementMap.push_back(std::vector<int>());
+    }
+
+    for(auto & element : elems)
+    {
+        if(source && element->getBehaviour()->getSource() != source)
+            continue ;
+        
+        if(locus->in(element->getCenter()))
+        {
+            caches[position].push_back(element->index) ;
+            elementMap[position].push_back(getDomain(element));
+            coefs[position].push_back(std::vector<double>()) ;
+            Function x = element->getXTransform() ;
+            Function y = element->getYTransform() ;
+            Function z = element->getZTransform() ;
+            Function t = element->getTTransform() ;
+            for(size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++)
+            {
+                double xx = vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
+                double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
+                double xz = vm.eval(z, element->getGaussPoints().gaussPoints[i].first) ;
+                double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
+
+                coefs[position].back().push_back(vm.eval(smoothing, xx, xy, xz, xt));
+            }
+        }
+    }
+    
+    return position ;
 }
 
-const std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree() const
+Vector ParallelDelaunayTree3D::getField( FieldType f, unsigned int cacheID, int dummy, double t) const
 {
-    return tree ;
+    VirtualMachine vm ;
+    size_t blocks = 0 ;
+    std::vector<int> treeStarts ;
+    treeStarts.push_back(caches[cacheID][0]) ;
+    for(size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++)
+    {
+        blocks = static_cast<DelaunayTetrahedron *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
+    }
+    Vector ret(0., fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
+    Vector buffer(ret) ;
+    double w = 0 ;
+    for(size_t i = 0 ; i < caches[cacheID].size() ; i++)
+    {
+        double v = static_cast<DelaunayTetrahedron *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, &vm, dummy, t, coefs[cacheID][i]) ;
+        ret += buffer * v ;
+        w +=v ;
+    }
+    return ret/w ;
 }
 
+Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
+{
+    VirtualMachine vm ;
+    size_t blocks = 0 ;
+    
+    std::vector<DelaunayTetrahedron *> elems = getElements() ;
+    for(size_t i = 0 ; i < elems.size() && !blocks; i++)
+    {
+        blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
+    }
+    Vector ret(0., fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks)) ;
+    Vector buffer(ret) ;
+    double w = 0 ;
+    for(size_t i = 0 ; i < elems.size() ; i++)
+    { 
+        double v = elems[i]->getState().getAverageField(f, buffer, &vm, dummy, t) ;
+        ret += buffer * v ;
+        w +=v ;
+    }
+    return ret/w ;
+}

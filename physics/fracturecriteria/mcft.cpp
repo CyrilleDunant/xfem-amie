@@ -458,7 +458,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 {
 	if(!initialised)
 		initialise(s);
-	std::pair<Vector, Vector> sstrain = getSmoothedFields(s, PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, t) ;
+	std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;
 	Vector first = sstrain.first ;
 	Vector second = sstrain.second ;
 	

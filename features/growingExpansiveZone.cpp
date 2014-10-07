@@ -186,7 +186,7 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 				imp->getCopy(),
 				ring[i]->getBehaviour()->getCopy() );
 
-			Geometry * src =  ring[i]->getBehaviour()->getSource() ;
+			const Geometry * src =  ring[i]->getBehaviour()->getSource() ;
 //			delete ring[i]->getBehaviour() ;
 			ring[i]->setBehaviour(dtree, bi ) ;
 			bi->transform( ring[i]) ;

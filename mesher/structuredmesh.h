@@ -22,7 +22,7 @@ namespace Amie
 		StructuredMesh(double sizeX, double sizeY, int div, const Point & center ) ;
         virtual size_t size() const { return tree.size() ; } ;
 		virtual ~StructuredMesh() ;
-		virtual std::vector<DelaunayTriangle *> getElements();
+		virtual std::vector<DelaunayTriangle *> getElements()const ;
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;
 		virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 		virtual std::vector<Point * > & getAdditionalPoints(){ return points ;} ;

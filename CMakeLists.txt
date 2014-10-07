@@ -76,7 +76,7 @@ physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/damagemodels/plasticstrain.cpp
-physics/damagemodels/damageindexeddamage.cpp
+# physics/damagemodels/damageindexeddamage.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/material_laws/material_laws.cpp
 physics/material_laws/temperature_material_laws.cpp

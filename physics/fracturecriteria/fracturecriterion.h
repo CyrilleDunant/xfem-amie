@@ -54,7 +54,7 @@ class FractureCriterion
 protected:
 
     std::valarray<unsigned int> physicalcache ;
-    void initialiseFactors(const Amie::ElementState& s) ;
+    void initialiseFactors( Amie::ElementState& s ) ;
     std::valarray<double> factors ;
 
     std::vector<unsigned int> damagingSet ;
@@ -66,18 +66,13 @@ protected:
     double scoreAtState ;
     double nonLocalScoreAtState ;
     double deltaScoreAtState ;
-    double deltaEnergyAtState ;
-    double energyDamageDifferential ;
+
     double criterionDamageDifferential ;
-    double currentEnergy ;
-    double previousEnergy ;
     MirrorState mirroring ;
     double delta_x ;
     double delta_y ;
     double delta_z ;
 
-    bool energyIndexed ;
-    bool noEnergyUpdate ;
     bool metAtStep ;
     bool stable ;
 
@@ -91,8 +86,6 @@ protected:
     bool checkpoint ;
     bool inset ;
     SmoothingFunctionType smoothingType ;
-
-    double getDeltaEnergy(const ElementState & s, double delta_d) ;
 
     double cachedInfluenceRatio ;
     int cacheID ;
@@ -111,13 +104,9 @@ public:
         return metAtStep ;
     }
 
-//     Vector smoothedPrincipalStress( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
     double smoothedScore(ElementState& s) ;
-//     Vector smoothedPrincipalStrain( ElementState &s) ;
-//     std::pair<Vector, Vector> smoothedStressAndStrain( ElementState &s , StressCalculationMethod m = REAL_STRESS, double t = 0) ;
-//     std::pair<Vector, Vector> smoothedPrincipalStressAndStrain( ElementState &s,  StressCalculationMethod m = REAL_STRESS,  double t = 0) ;
-    std::pair<Vector, Vector> getSmoothedFields( ElementState &s ,FieldType f0, FieldType f1, double t = 0) ;
-    Vector getSmoothedField( ElementState &s ,FieldType f0, double t = 0) ;
+    std::pair<Vector, Vector> getSmoothedFields(FieldType f0, FieldType f1,  ElementState &s ,double t = 0) ;
+    Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
     double smoothedPrincipalStressAngle( ElementState &s, StressCalculationMethod m = REAL_STRESS) ;
     double smoothedCrackAngle( ElementState &s) const ;
     
@@ -130,18 +119,13 @@ public:
 public:
     std::vector<unsigned int> cache ;
 
-    const Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
-    const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
+    Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
+    Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
 
-    double getEnergyDamageDifferential()  const {
-        return energyDamageDifferential ;
-    }
     double getCriterionDamageDifferential()  const {
         return criterionDamageDifferential ;
     }
-    double getDeltaEnergyAtState() const {
-        return deltaEnergyAtState ;
-    }
+
     double getScoreTolerance() const {
         return scoreTolerance ;
     }
@@ -153,8 +137,8 @@ public:
     FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
 
-    virtual void initialiseCache(const ElementState& s);
-    virtual void initialiseCacheNew(Amie::FeatureTree* ft, const Amie::ElementState& s) ;
+    virtual void initialiseCacheOld( Amie::ElementState& s );
+    virtual void initialiseCache( Amie::ElementState& s ) ;
     virtual ~FractureCriterion();
 
     void step(Amie::ElementState& s) ;
@@ -188,7 +172,7 @@ public:
      */
     virtual double grade(ElementState & s) = 0 ;
 
-    virtual std::pair<double, double> setChange(const ElementState &s, double maxscore)  ;
+    virtual std::pair<double, double> setChange( Amie::ElementState& s, double thresholdScore )  ;
 
     /** \brief Produce a copy of the fracture criterion
      *
@@ -220,20 +204,6 @@ public:
     }
     double getNonLocalScoreAtState() const {
         return nonLocalScoreAtState ;
-    }
-
-    std::pair<double, double> getDeltaEnergyDeltaCriterion(const ElementState & s, double delta_d) const ;
-
-    /** \brief Set true to compute the energy state at each time step.
-     * Set true to compute the energy state at each time step. This operation is expensive
-     * so the default is set to false.
-     */
-    void setEnergyIndexed(bool t) {
-        energyIndexed = t ;
-    };
-
-    const std::valarray<double> & getFactors() const {
-        return factors ;
     }
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;

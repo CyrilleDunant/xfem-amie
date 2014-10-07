@@ -68,7 +68,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
 		Vector stress(3) ;
 		Vector strain(3) ;
 // 		s.getField(STRAIN_FIELD, REAL_STRESS_FIELD,es->getParent()->getCenter(),strain,stress, false);
-		std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields(s, STRAIN_FIELD, REAL_STRESS_FIELD) ;
+		std::pair<Vector, Vector> ss = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedFields( STRAIN_FIELD, REAL_STRESS_FIELD, s) ;
 		stress = ss.first ;
 		strain = ss.second ;
 		stressMatrix[0][0] = stress[0] ;

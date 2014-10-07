@@ -27,8 +27,8 @@ public:
 	
 	void getEssentialAverageFields(FieldType f, Vector & stress, Vector & strain, Vector & strain_rate, VirtualMachine * vm, double t) ;
 	GeneralizedSpaceTimeViscoElasticElementState(IntegrableEntity * e) ;
-	GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) ;
-	GeneralizedSpaceTimeViscoElasticElementState & operator =(const GeneralizedSpaceTimeViscoElasticElementState & s) ;
+	GeneralizedSpaceTimeViscoElasticElementState( Amie::GeneralizedSpaceTimeViscoElasticElementState& s ) ;
+	GeneralizedSpaceTimeViscoElasticElementState & operator =( GeneralizedSpaceTimeViscoElasticElementState & s) ;
 	
 	virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0) const ;
 
@@ -51,8 +51,8 @@ class GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables : public
 
 public:
     GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(IntegrableEntity * e, std::map<std::string, double> & external) ;
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s) ;
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & operator =(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables( Amie::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables& s ) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & operator =( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s) ;
 
     bool has(std::string v) const ;
     double get(std::string v, std::map<std::string, double> & defaultValues) ;

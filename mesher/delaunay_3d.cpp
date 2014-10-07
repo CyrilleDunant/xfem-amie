@@ -2212,7 +2212,6 @@ const Point *Star3D::getEdge( size_t i ) const
 
 DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
 {
-    neighbourhood = false ;
     fixedScale = false ;
     global_counter = 4;
     double maxDist = std::min(dist(*p0, *p1),dist(*p0, *p2)) ;
@@ -2403,8 +2402,6 @@ void DelaunayTree3D::insert( Point *p )
 {
     std::vector<DelaunayTreeItem3D *> cons = conflicts( p ) ;
    
-    neighbourhood = false ;
-
     for( size_t i = 0 ; i < cons.size() ; i++ )
     {
         if( cons[i]->isVertex( p ) )
@@ -2576,19 +2573,20 @@ std::vector<DelaunayDemiSpace *>  DelaunayTree3D::getConvexHull()
     return ret ;
 }
 
-std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood )
+std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildNeighbourhood ) const
 {
     std::vector<DelaunayTetrahedron *> ret;
     std::valarray<bool> visited(false, tree.size()) ;
-
+    bool neighbourhood = false;
     for( const auto & item : tree )
     {
         if( item->isAlive() && item->isTetrahedron() )
         {
             ret.push_back( ( DelaunayTetrahedron * )( item ) ) ;
+            if (!neighbourhood && ret.back()->neighbourhood.size())
+                neighbourhood = true ;
         }
     }
-
 
     if( !neighbourhood && buildNeighbourhood )
     {

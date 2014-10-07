@@ -32,7 +32,7 @@ protected:
     std::vector<const Geometry *> domains ;
     std::vector<DelaunayTree *> meshes ;
     std::vector<Point *> additionalPoints ;
-    std::vector<DelaunayTreeItem *> tree ;
+//     std::vector<DelaunayTreeItem *> tree ;
     int global_counter ;
 public:
     virtual std::vector<DelaunayTreeItem *> & getTree() ;
@@ -48,7 +48,7 @@ public:
 public:
     ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree() {} ;
-    virtual std::vector<DelaunayTriangle *> getElements() ;
+    virtual std::vector<DelaunayTriangle *> getElements() const ;
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 
@@ -77,6 +77,12 @@ public:
             s += m->size() ;
         return s ;
     }
+    
+    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1")) ;
+    
+    Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) const;
+
+    Vector getField( FieldType f, int dummy = 0, double t = 0) const;
       
 
 } ;

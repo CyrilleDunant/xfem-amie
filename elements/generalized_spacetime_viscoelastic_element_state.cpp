@@ -15,13 +15,13 @@ GeneralizedSpaceTimeViscoElasticElementState::GeneralizedSpaceTimeViscoElasticEl
   
 }
 
-GeneralizedSpaceTimeViscoElasticElementState::GeneralizedSpaceTimeViscoElasticElementState(const GeneralizedSpaceTimeViscoElasticElementState &s) : ElementState(s)
+GeneralizedSpaceTimeViscoElasticElementState::GeneralizedSpaceTimeViscoElasticElementState( GeneralizedSpaceTimeViscoElasticElementState &s) : ElementState(s)
 {
 
 }
 
 
-GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticElementState::operator =(const GeneralizedSpaceTimeViscoElasticElementState & s) 
+GeneralizedSpaceTimeViscoElasticElementState & GeneralizedSpaceTimeViscoElasticElementState::operator =( GeneralizedSpaceTimeViscoElasticElementState & s) 
 {
 	ElementState::operator =(s) ;
 	
@@ -2286,13 +2286,13 @@ GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::GeneralizedSp
 
 }
 
-GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s) : GeneralizedSpaceTimeViscoElasticElementState(s)
+GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s) : GeneralizedSpaceTimeViscoElasticElementState(s)
 {
     variables = s.getVariables() ;
 }
 
 
-GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::operator =(const GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s)
+GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::operator =( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s)
 {
     ElementState::operator =(s) ;
 

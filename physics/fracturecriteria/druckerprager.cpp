@@ -34,7 +34,7 @@ double DruckerPrager::grade(ElementState &s)
 {
 	double factor = 1 ;
 	
-	Vector stra = getSmoothedField(s,PRINCIPAL_STRAIN_FIELD) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.first ;
+	Vector stra = getSmoothedField(PRINCIPAL_STRAIN_FIELD, s) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.first ;
 	Vector str =  (stra-s.getParent()->getBehaviour()->getImposedStrain(Point(1./3., 1./3.)))*s.getParent()->getBehaviour()->getTensor(Point(1./3., 1./3.)) ; //+((double)random()/RAND_MAX*2.-1.)*.0001*stressstrain.second ;
 	double maxStress = 0 ;
 	double maxStrain = 0 ;

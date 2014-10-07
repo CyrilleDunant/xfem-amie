@@ -163,7 +163,7 @@ NonLinearForm * ElementaryVolume::getNonLinearBehaviour() const
 	return this->nonlinbehaviour ;
 }
 
-void ElementarySurface::setBehaviour(const Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, Form * f)
+void ElementarySurface::setBehaviour( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, Form * f)
 {	
 	bool init = false ;
 	if(state)
@@ -4347,7 +4347,7 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	return std::valarray<std::valarray<Amie::Matrix> >(0);
 }
 
-void ElementaryVolume::setBehaviour(const Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>*msh, Form * f)
+void ElementaryVolume::setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f )
 {	
 	bool init = false ;
 	if(state)

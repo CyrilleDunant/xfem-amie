@@ -32,6 +32,7 @@ protected:
     std::vector<DelaunayTree3D *> meshes ;
     std::vector<Point *> additionalPoints ;
     std::vector<DelaunayTreeItem3D *> tree ;
+    std::vector<std::vector<int>> elementMap ;
     void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2) ;
    
 //     std::vector<double> maxRadius ;
@@ -49,7 +50,7 @@ public:
 public:
     ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree3D() {} ;
-    virtual std::vector<DelaunayTetrahedron *> getElements() ;
+    virtual std::vector<DelaunayTetrahedron *> getElements() const ;
     virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Point  * p) ;
     virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Geometry * g) ;
 
@@ -79,6 +80,12 @@ public:
             s += m->size() ;
         return s ;
     }
+    
+    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1")) ;
+    
+    Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) const ;
+
+    Vector getField( FieldType f, int dummy = 0, double t = 0) const ;
     
 } ;
 } ;

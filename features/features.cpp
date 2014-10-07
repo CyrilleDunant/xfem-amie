@@ -5070,62 +5070,12 @@ std::vector<Point *> FeatureTree::getNodes(int grid)
 
 Vector FeatureTree::getAverageField( FieldType f, int grid , double t)
 {
-    Vector avg ;
-    Vector buffer ;
-    double volume = 0 ;
-    VirtualMachine vm ;
     if(is2D())
-    {
-        std::vector<DelaunayTriangle *> elements = getElements2D( grid ) ;
-        size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
-        if(!blocks)
-        {
-            int i = 1 ;
-            while(!blocks)
-                blocks = elements[i++]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
-        }
-            
-        avg.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks), 0.) ;
-        buffer.resize(fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks), 0.) ;
-
-        for(size_t i = 0 ; i < elements.size() ; i++)
-        {
-            double v = elements[i]->area() ;
-            volume += v ;
-            if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-            {
-                elements[i]->getState().getAverageField( f, buffer,&vm, -1, t) ;
-                avg += buffer * v ;  
-            }
-        }
-    }
-    else
-    {
-        std::vector<DelaunayTetrahedron *> elements = getElements3D( grid ) ;
-        size_t blocks = elements[0]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
-        if(!blocks)
-        {
-            int i = 1 ;
-            while(!blocks)
-                blocks = elements[i++]->getBehaviour()->getNumberOfDegreesOfFreedom()/3 ;
-        }
-        avg.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks), 0.) ;
-        buffer.resize(fieldTypeElementarySize(f, SPACE_THREE_DIMENSIONAL, blocks), 0.) ;
-
-        for(size_t i = 0 ; i < elements.size() ; i++)
-        {
-            double v = elements[i]->volume() ;
-            volume += v ;
-            if(elements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-            {
-                
-                elements[i]->getState().getAverageField( f, buffer,&vm, -1, t ) ;
-                avg += buffer * v ;
-            }
-        }
-
-    }
-    return avg/volume ;
+        return get2DMesh()->getField(f, 0, t) ;
+    
+    
+    return get3DMesh()->getField(f, 0, t) ;
+    
 }
 
 std::vector<double>  FeatureTree::getMacroscopicStrain(const Geometry * base, double tol)

@@ -245,7 +245,6 @@ void ParallelDelaunayTree::insert(Point * p)
                 
                 if(!noInteraction || global_counter < 5 )
                 {
-                    meshes[i]->neighbourhood = false ;
                     newElems = meshes[i]->addElements(cons, p) ;
                 }
                 
@@ -261,7 +260,7 @@ void ParallelDelaunayTree::insert(Point * p)
     }
 }
 
-std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
+std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements() const
 {
     std::vector<std::vector<DelaunayTriangle *>> tris(meshes.size()) ;
 
@@ -559,13 +558,110 @@ const std::vector<Point * > & ParallelDelaunayTree::getAdditionalPoints() const
     return additionalPoints ;
 }
 
-std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree()
+// std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree()
+// {
+//     return tree ;
+// }
+// 
+// const std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree() const
+// {
+//     return tree ;
+// }
+
+unsigned int ParallelDelaunayTree::generateCache(const Geometry * locus, const Geometry * source, Function smoothing )
 {
-    return tree ;
+    VirtualMachine vm ;
+    std::vector<double> co ;
+    std::vector<DelaunayTriangle *> elems = getConflictingElements(locus) ;
+    //search for first empty cache slot ;
+    if(caches.empty())
+    {
+        caches.push_back(std::vector<int>());
+        coefs.push_back(std::vector<std::vector<double>>());
+        elementMap.push_back(std::vector<int>());
+    }
+    size_t position = 0;
+    for( ; position < caches.size() ; position++)
+    {
+        if(caches[position].empty())
+            break ;
+    }
+    if(position == caches.size())
+    {
+        caches.push_back(std::vector<int>());
+        coefs.push_back(std::vector<std::vector<double>>());
+        elementMap.push_back(std::vector<int>());
+    }
+
+    for(auto & element : elems)
+    {
+        if(source && element->getBehaviour()->getSource() != source)
+            continue ;
+        
+        if(locus->in(element->getCenter()))
+        {
+            caches[position].push_back(element->index) ;
+            elementMap[position].push_back(getDomain(element));
+            coefs[position].push_back(std::vector<double>()) ;
+            Function x = element->getXTransform() ;
+            Function y = element->getYTransform() ;
+            Function t = element->getTTransform() ;
+            for(size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++)
+            {
+                double xx = vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
+                double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
+                double xz = 0 ;
+                double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
+
+                coefs[position].back().push_back(vm.eval(smoothing, xx, xy, xz, xt));
+            }
+        }
+    }
+    
+    return position ;
 }
 
-const std::vector<DelaunayTreeItem *> & ParallelDelaunayTree::getTree() const
+Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int dummy, double t) const 
 {
-    return tree ;
+    VirtualMachine vm ;
+    size_t blocks = 0 ;
+    std::vector<int> treeStarts ;
+    treeStarts.push_back(caches[cacheID][0]) ;
+    for(size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++)
+    {
+        blocks = static_cast<DelaunayTriangle *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
+    }
+    Vector ret(0., fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ;
+    Vector buffer(ret) ;
+    double w = 0 ;
+    for(size_t i = 0 ; i < caches[cacheID].size() ; i++)
+    {
+        double v = static_cast<DelaunayTriangle *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, &vm, dummy, t, coefs[cacheID][i]) ;
+        ret += buffer * v ;
+        w +=v ;
+    }
+    return ret/w ;
+}
+
+Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) const
+{
+    VirtualMachine vm ;
+    size_t blocks = 0 ;
+    
+    std::vector<DelaunayTriangle *> elems = getElements() ;
+    for(size_t i = 0 ; i < elems.size() && !blocks; i++)
+    {
+        blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom()/2 ;
+    }
+    Vector ret(0., fieldTypeElementarySize(f, SPACE_TWO_DIMENSIONAL, blocks)) ;
+    Vector buffer(ret) ;
+    double w = 0 ;
+    for(size_t i = 0 ; i < elems.size() ; i++)
+    { 
+        double v = elems[i]->getState().getAverageField(f, buffer, &vm, dummy, t) ;
+        ret += buffer * v ;
+        w +=v ;
+    }
+    return ret/w ;
 }
 

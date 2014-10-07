@@ -29,7 +29,7 @@
 
 namespace Amie
 {
-    
+
 template <class ETYPE, class EABSTRACTTYPE>
 class Mesh
 {
@@ -38,147 +38,127 @@ protected:
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
     std::vector<std::vector<int>> caches ;
     std::vector<std::vector<std::vector<double>>> coefs ;
-    virtual std::vector<int> & getCache(unsigned int cacheID) { return caches[cacheID] ;} ;
+
+    bool is2D ;
 public:
-// 			virtual std::vector<EABSTRACTTYPE *> & getTree() = 0;
-// 			virtual const std::vector<EABSTRACTTYPE *> & getTree() const = 0 ;
-    virtual int addToTree(EABSTRACTTYPE * toAdd) = 0 ;
-    virtual EABSTRACTTYPE * getInTree(int index) const = 0 ;
+
+    virtual std::vector<int> & getCache ( unsigned int cacheID ) {
+        return caches[cacheID] ;
+    } ;
+    virtual int addToTree ( EABSTRACTTYPE * toAdd ) = 0 ;
+    virtual EABSTRACTTYPE * getInTree ( int index ) const = 0 ;
     virtual std::vector<Point * > & getAdditionalPoints() = 0 ;
     virtual const std::vector<Point * > & getAdditionalPoints() const = 0 ;
-    virtual void extrude(double dt) = 0 ;
-    virtual void extrude(const Vector & dt) = 0 ;
+    virtual void extrude ( double dt ) = 0 ;
+    virtual void extrude ( const Vector & dt ) = 0 ;
     virtual double getInternalScale() const {
         return 1. ;
     } ;
 public:
-    Mesh() {} ;
+    Mesh() : is2D ( false ) {} ;
     virtual ~Mesh() {} ;
-    virtual std::vector<ETYPE *> getElements() = 0;
-    virtual std::vector<ETYPE *> getConflictingElements(const Point  * p)  = 0;
-    virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g) = 0;
-    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) const = 0 ;
+    virtual std::vector<ETYPE *> getElements() const = 0;
+    virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
+    virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
+    virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
 
-    virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry(ETYPE * start , const Geometry * g)
-    {
-        if(!start)
-        {
+    virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry ( ETYPE * start , const Geometry * g ) {
+        if ( !start ) {
 // 					std::cout << "nullptr" << std::endl ;
             return std::vector<ETYPE *>() ;
         }
 
         std::set<ETYPE *> to_test ;
         std::set<ETYPE *> found ;
-        found.insert(start) ;
-        std::vector<ETYPE *> neighbourhood = getNeighbourhood(start) ;
-        for(const auto & neighbour : neighbourhood)
-        {
-            if(neighbour->timePlanes() > 1)
-            {
-                if(neighbour->in(g->getCenter()) || g->intersects(neighbour->getPrimitive()) )
-                {
-                    to_test.insert(neighbour) ;
+        found.insert ( start ) ;
+        std::vector<ETYPE *> neighbourhood = getNeighbourhood ( start ) ;
+        for ( const auto & neighbour : neighbourhood ) {
+            if ( neighbour->timePlanes() > 1 ) {
+                if ( neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                    to_test.insert ( neighbour ) ;
                 }
 
-                for(size_t j = 0 ; j < neighbour->timePlanes() ; j++)
-                {
+                for ( size_t j = 0 ; j < neighbour->timePlanes() ; j++ ) {
                     Point c = neighbour->getCenter() ;
-                    c.getT() = neighbour->getBoundingPoint( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
-                    if(g->in(c))
-                    {
-                        to_test.insert(neighbour) ;
+                    c.getT() = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
+                    if ( g->in ( c ) ) {
+                        to_test.insert ( neighbour ) ;
                     }
 
-                    if(g->getGeometryType() == TIME_DEPENDENT_CIRCLE)
-                    {
-                        for(size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++)
-                        {
-                            Point A = neighbour->getBoundingPoint( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
-                            Point B = neighbour->getBoundingPoint( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1) ;
-                            Segment s(A,B) ;
-                            if(s.intersects(g) || g->in(A) || g->in(B))
-                                to_test.insert(neighbour) ;
+                    if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
+                        for ( size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++ ) {
+                            Point A = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
+                            Point B = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1 ) ;
+                            Segment s ( A,B ) ;
+                            if ( s.intersects ( g ) || g->in ( A ) || g->in ( B ) ) {
+                                to_test.insert ( neighbour ) ;
+                            }
                         }
                     }
 
                 }
-            }
-            else if(g->in(neighbour->getCenter()) || neighbour->in(g->getCenter()) || g->intersects(neighbour->getPrimitive()) )
-            {
-                to_test.insert(neighbour) ;
+            } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                to_test.insert ( neighbour ) ;
             }
         }
-        found.insert(to_test.begin(), to_test.end()) ;
+        found.insert ( to_test.begin(), to_test.end() ) ;
 
-        while(!to_test.empty())
-        {
+        while ( !to_test.empty() ) {
             std::set<ETYPE *> new_test ;
-            for(auto j = to_test.begin() ; j != to_test.end() ; j++)
-            {
-                neighbourhood = getNeighbourhood(*j) ;
-                for(const auto & neighbour : neighbourhood)
-                {
-                    if(to_test.find(neighbour) == to_test.end()
-                            && found.find(neighbour) == found.end())
-                    {
+            for ( auto j = to_test.begin() ; j != to_test.end() ; j++ ) {
+                neighbourhood = getNeighbourhood ( *j ) ;
+                for ( const auto & neighbour : neighbourhood ) {
+                    if ( to_test.find ( neighbour ) == to_test.end()
+                            && found.find ( neighbour ) == found.end() ) {
 
-                        if(neighbour->timePlanes() > 1)
-                        {
-                            if(neighbour->in(g->getCenter()) || g->intersects(neighbour->getPrimitive()) )
-                            {
-                                new_test.insert(neighbour) ;
+                        if ( neighbour->timePlanes() > 1 ) {
+                            if ( neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                                new_test.insert ( neighbour ) ;
                             }
 
-                            for(size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++)
-                            {
-                                Point A = neighbour->getBoundingPoint(k) ;
-                                Point B = neighbour->getBoundingPoint(k+1) ;
-                                Segment s(A,B) ;
-                                if(g->in(A) || g->in(B) || s.intersects(g))
-                                {
-                                    new_test.insert(neighbour) ;
+                            for ( size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++ ) {
+                                Point A = neighbour->getBoundingPoint ( k ) ;
+                                Point B = neighbour->getBoundingPoint ( k+1 ) ;
+                                Segment s ( A,B ) ;
+                                if ( g->in ( A ) || g->in ( B ) || s.intersects ( g ) ) {
+                                    new_test.insert ( neighbour ) ;
                                     break ;
                                 }
 
                             }
-                        }
-                        else if(g->in(neighbour->getCenter()) || neighbour->in(g->getCenter()) || g->intersects(neighbour->getPrimitive()) )
-                        {
-                            new_test.insert(neighbour) ;
+                        } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                            new_test.insert ( neighbour ) ;
                         }
 
                     }
                 }
             }
             to_test = new_test ;
-            found.insert(new_test.begin(), new_test.end()) ;
+            found.insert ( new_test.begin(), new_test.end() ) ;
         }
 
-        std::vector<ETYPE *> ret(found.begin(),found.end()) ;
+        std::vector<ETYPE *> ret ( found.begin(),found.end() ) ;
         return ret ;
     }
 
-    virtual ETYPE * getUniqueConflictingElement(const Point  * p)
-    {
-        std::vector<ETYPE *> elements = getConflictingElements(p) ;
-        for(const auto & element : elements)
-        {
-            if(element->in(*p))
+    virtual ETYPE * getUniqueConflictingElement ( const Point  * p ) {
+        std::vector<ETYPE *> elements = getConflictingElements ( p ) ;
+        for ( const auto & element : elements ) {
+            if ( element->in ( *p ) ) {
                 return element ;
+            }
         }
 
         return nullptr ;
     }
 
-    virtual void setElementOrder(Order o, double dt = 0.) = 0;
-    virtual void insert(Point *) = 0 ;
+    virtual void setElementOrder ( Order o, double dt = 0. ) = 0;
+    virtual void insert ( Point * ) = 0 ;
     template <class ETARGETTYPE>
     /** \brief Return the displacements in source mesh projected on current mesh.
     */
-    void project( Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
-    {
-        if(cache.find(mesh) == cache.end())
-        {
+    void project ( Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false ) {
+        if ( cache.find ( mesh ) == cache.end() ) {
             std::map<Point *, std::pair<ETYPE *, std::vector<double> > > projectionCache ;
             std::map<Point *, Point * > projectionPointCache ;
             std::vector<ETYPE *> selfElements = getElements() ;
@@ -188,193 +168,170 @@ public:
             double rav = 0 ;
             double ecount  = 0;
             std::set<Point *> points ;
-            for(size_t i = 0 ; i < selfElements.size() ; i++)
-            {
-                if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-                {
-                    numDofs = std::max(selfElements[i]->getBehaviour()->getNumberOfDegreesOfFreedom(),numDofs) ;
-                    for(size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++)
-                        points.insert(&selfElements[i]->getBoundingPoint(j)) ;
+            for ( size_t i = 0 ; i < selfElements.size() ; i++ ) {
+                if ( selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                    numDofs = std::max ( selfElements[i]->getBehaviour()->getNumberOfDegreesOfFreedom(),numDofs ) ;
+                    for ( size_t j = 0 ; j < selfElements[i]->getBoundingPoints().size() ; j++ ) {
+                        points.insert ( &selfElements[i]->getBoundingPoint ( j ) ) ;
+                    }
                     rav += selfElements[i]->getRadius() ;
                     ecount++ ;
                 }
 
             }
             rav /= ecount ;
-            if(projection.size() == 0)
-            {
-                projection.resize(numDofs*getLastNodeId()) ;
+            if ( projection.size() == 0 ) {
+                projection.resize ( numDofs*getLastNodeId() ) ;
                 projection = 0 ;
             }
 
-            for(auto i = points.begin() ; i != points.end() ; i++)
-            {
+            for ( auto i = points.begin() ; i != points.end() ; i++ ) {
                 std::vector<ETARGETTYPE *> targets ;
 
-                std::vector<ETARGETTYPE *> temp = mesh->getConflictingElements(*i) ;
-                for(size_t k = 0 ; k < temp.size() ; k++)
-                {
-                    if(temp[k]->getBehaviour()->type != VOID_BEHAVIOUR)
-                        targets.push_back(temp[k]) ;
+                std::vector<ETARGETTYPE *> temp = mesh->getConflictingElements ( *i ) ;
+                for ( size_t k = 0 ; k < temp.size() ; k++ ) {
+                    if ( temp[k]->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                        targets.push_back ( temp[k] ) ;
+                    }
                 }
 
-                if(!targets.empty())
-                {
-                    std::sort(targets.begin(), targets.end()) ;
-                    auto e = std::unique(targets.begin(), targets.end()) ;
-                    targets.erase(e,targets.end()) ;
-                }
-                else
-                {
-                    Circle c(rav*2., *(*i)) ;
-                    targets =  mesh->getConflictingElements(&c) ;
+                if ( !targets.empty() ) {
+                    std::sort ( targets.begin(), targets.end() ) ;
+                    auto e = std::unique ( targets.begin(), targets.end() ) ;
+                    targets.erase ( e,targets.end() ) ;
+                } else {
+                    Circle c ( rav*2., * ( *i ) ) ;
+                    targets =  mesh->getConflictingElements ( &c ) ;
                 }
 
 
-                if(targets.empty())
-                {
+                if ( targets.empty() ) {
                     std::cout << "failed projection, empty mesh" << std::endl ;
-                    (*i)->print() ;
-                    exit(0) ;
+                    ( *i )->print() ;
+                    exit ( 0 ) ;
                 }
-                projectionPointCache[(*i)] = nullptr ;
+                projectionPointCache[ ( *i )] = nullptr ;
                 std::map<double, ETARGETTYPE *> coincidentElements;
-                for(size_t k = 0 ; k < targets.size() ; k++)
-                {
-                    Point proj(*(*i)) ;
-                    targets[k]->project(&proj) ;
-                    if(targets[k]->in(*(*i)) || dist(proj, *(*i)) < 128.*POINT_TOLERANCE_2D)
-                        coincidentElements[dist(*(*i), targets[k]->getCenter())] = targets[k] ;
+                for ( size_t k = 0 ; k < targets.size() ; k++ ) {
+                    Point proj ( * ( *i ) ) ;
+                    targets[k]->project ( &proj ) ;
+                    if ( targets[k]->in ( * ( *i ) ) || dist ( proj, * ( *i ) ) < 128.*POINT_TOLERANCE_2D ) {
+                        coincidentElements[dist ( * ( *i ), targets[k]->getCenter() )] = targets[k] ;
+                    }
                 }
 
-                if(!coincidentElements.empty())
-                {
-                    Vector disps(0., numDofs) ;
-                    projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
+                if ( !coincidentElements.empty() ) {
+                    Vector disps ( 0., numDofs ) ;
+                    projectionCache[ ( *i )] = std::make_pair ( coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors ( * ( *i ), false ) ) ;
 
-                    for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
-                    {
-                        if(coincidentElements.begin()->second->getBoundingPoint(j) == *(*i))
-                        {
-                            projectionPointCache[(*i)] = &coincidentElements.begin()->second->getBoundingPoint(j) ;
+                    for ( size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++ ) {
+                        if ( coincidentElements.begin()->second->getBoundingPoint ( j ) == * ( *i ) ) {
+                            projectionPointCache[ ( *i )] = &coincidentElements.begin()->second->getBoundingPoint ( j ) ;
                             break ;
                         }
                     }
 
-                    if(projectionPointCache[(*i)] && source.size())
-                    {
-                        projectionCache.erase(projectionCache.find(*i)) ;
-                        for(size_t k = 0 ; k < numDofs ; k++)
-                            disps[k] = source[projectionPointCache[(*i)]->getId()*numDofs+k] ;
-                    }
-                    else
-                    {
-                        projectionPointCache.erase(projectionPointCache.find(*i)) ;
-                        if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
-                        {
-                            for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
-                            {
-                                int id = coincidentElements.begin()->second->getBoundingPoint(j).getId() ;
-                                double d = projectionCache[(*i)].second[j] ;
-                                for(size_t k = 0 ; k < numDofs ; k++)
+                    if ( projectionPointCache[ ( *i )] && source.size() ) {
+                        projectionCache.erase ( projectionCache.find ( *i ) ) ;
+                        for ( size_t k = 0 ; k < numDofs ; k++ ) {
+                            disps[k] = source[projectionPointCache[ ( *i )]->getId() *numDofs+k] ;
+                        }
+                    } else {
+                        projectionPointCache.erase ( projectionPointCache.find ( *i ) ) ;
+                        if ( coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                            for ( size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++ ) {
+                                int id = coincidentElements.begin()->second->getBoundingPoint ( j ).getId() ;
+                                double d = projectionCache[ ( *i )].second[j] ;
+                                for ( size_t k = 0 ; k < numDofs ; k++ ) {
                                     disps[k] += source[id*numDofs+k]*d ;
+                                }
                             }
                         }
                     }
 
-                    for(size_t k = 0 ; k < numDofs ; k++)
-                        projection[(*i)->getId()*numDofs+k] = disps[k] ;
-                }
-                else
-                {
-                    for(size_t k = 0 ; k < targets.size() ; k++)
-                    {
-                        Point proj(*(*i)) ;
-                        targets[k]->project(&proj) ;
-                        coincidentElements[dist(proj, *(*i))] = targets[k] ;
+                    for ( size_t k = 0 ; k < numDofs ; k++ ) {
+                        projection[ ( *i )->getId() *numDofs+k] = disps[k] ;
                     }
-                    Vector disps(0., numDofs);
-                    projectionCache[(*i)] = std::make_pair(coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors(*(*i), false)) ;
+                } else {
+                    for ( size_t k = 0 ; k < targets.size() ; k++ ) {
+                        Point proj ( * ( *i ) ) ;
+                        targets[k]->project ( &proj ) ;
+                        coincidentElements[dist ( proj, * ( *i ) )] = targets[k] ;
+                    }
+                    Vector disps ( 0., numDofs );
+                    projectionCache[ ( *i )] = std::make_pair ( coincidentElements.begin()->second, coincidentElements.begin()->second->getState().getInterpolatingFactors ( * ( *i ), false ) ) ;
 
-                    for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++)
-                    {
-                        if(coincidentElements.begin()->second->getBoundingPoint(j) == *(*i))
-                        {
-                            projectionPointCache[(*i)] = &coincidentElements.begin()->second->getBoundingPoint(j) ;
+                    for ( size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size(); j++ ) {
+                        if ( coincidentElements.begin()->second->getBoundingPoint ( j ) == * ( *i ) ) {
+                            projectionPointCache[ ( *i )] = &coincidentElements.begin()->second->getBoundingPoint ( j ) ;
                             break ;
                         }
                     }
 
-                    if(projectionPointCache[(*i)] && source.size())
-                    {
-                        projectionCache.erase(projectionCache.find(*i)) ;
-                        int id = projectionPointCache[(*i)]->getId() ;
-                        for(size_t k = 0 ; k < numDofs ; k++)
+                    if ( projectionPointCache[ ( *i )] && source.size() ) {
+                        projectionCache.erase ( projectionCache.find ( *i ) ) ;
+                        int id = projectionPointCache[ ( *i )]->getId() ;
+                        for ( size_t k = 0 ; k < numDofs ; k++ ) {
                             disps[k] = source[id*numDofs+k] ;
-                    }
-                    else
-                    {
-                        projectionPointCache.erase(projectionPointCache.find(*i)) ;
-                        if(coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR)
-                        {
-                            for(size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++)
-                            {
-                                double d = projectionCache[(*i)].second[j] ;
-                                int id = coincidentElements.begin()->second->getBoundingPoint(j).getId() ;
-                                for(size_t k = 0 ; k < numDofs ; k++)
+                        }
+                    } else {
+                        projectionPointCache.erase ( projectionPointCache.find ( *i ) ) ;
+                        if ( coincidentElements.begin()->second->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                            for ( size_t j = 0 ; j < coincidentElements.begin()->second->getBoundingPoints().size() ; j++ ) {
+                                double d = projectionCache[ ( *i )].second[j] ;
+                                int id = coincidentElements.begin()->second->getBoundingPoint ( j ).getId() ;
+                                for ( size_t k = 0 ; k < numDofs ; k++ ) {
                                     disps[k] += source[id*numDofs+k]*d ;
+                                }
                             }
                         }
                     }
 
-                    for(size_t k = 0 ; k < numDofs ; k++)
-                        projection[(*i)->getId()*numDofs+k] = disps[k] ;
+                    for ( size_t k = 0 ; k < numDofs ; k++ ) {
+                        projection[ ( *i )->getId() *numDofs+k] = disps[k] ;
+                    }
                 }
 
             }
             pointcache[mesh] = projectionPointCache ;
             cache[mesh] = projectionCache ;
-        }
-        else
-        {
+        } else {
             std::vector<ETYPE *> selfElements = getElements() ;
             size_t numDofs = 0 ;
-            for(size_t i = 0 ; i < selfElements.size() ; i++)
-            {
-                if(selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR)
-                {
-                    numDofs = std::max(selfElements[i]->getBehaviour()->getNumberOfDegreesOfFreedom(),numDofs) ;
-                    if(numDofs)
+            for ( size_t i = 0 ; i < selfElements.size() ; i++ ) {
+                if ( selfElements[i]->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                    numDofs = std::max ( selfElements[i]->getBehaviour()->getNumberOfDegreesOfFreedom(),numDofs ) ;
+                    if ( numDofs ) {
                         break ;
+                    }
                 }
             }
 
             projection = 0 ;
-            Vector disps(0.,numDofs) ;
+            Vector disps ( 0.,numDofs ) ;
 
-            for( auto i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i)
-            {
+            for ( auto i = cache[mesh].begin() ; i != cache[mesh].end() ; ++i ) {
                 disps = 0 ;
-                if(i->second.first->getBehaviour()->type != VOID_BEHAVIOUR)
-                {
-                    for(size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++)
-                    {
+                if ( i->second.first->getBehaviour()->type != VOID_BEHAVIOUR ) {
+                    for ( size_t j = 0 ; j < i->second.first->getBoundingPoints().size() ; j++ ) {
                         double d = i->second.second[j] ;
-                        int id = i->second.first->getBoundingPoint(j).getId() ;
-                        for(size_t k = 0 ; k < numDofs ; k++)
+                        int id = i->second.first->getBoundingPoint ( j ).getId() ;
+                        for ( size_t k = 0 ; k < numDofs ; k++ ) {
                             disps[k] += source[id*numDofs+k]*d ;
+                        }
                     }
                 }
-                for(size_t k = 0 ; k < numDofs ; k++)
-                    projection[i->first->getId()*numDofs+k] = disps[k] ;
+                for ( size_t k = 0 ; k < numDofs ; k++ ) {
+                    projection[i->first->getId() *numDofs+k] = disps[k] ;
+                }
 
             }
 
-            for( auto j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j)
-            {
+            for ( auto j = pointcache[mesh].begin() ; j != pointcache[mesh].end() ; ++j ) {
 
-                for(size_t k = 0 ; k < numDofs ; k++)
-                    projection[j->first->getId()*numDofs+k] = source[j->second->getId()*numDofs+k] ;
+                for ( size_t k = 0 ; k < numDofs ; k++ ) {
+                    projection[j->first->getId() *numDofs+k] = source[j->second->getId() *numDofs+k] ;
+                }
 
             }
 
@@ -385,74 +342,399 @@ public:
     template <class ETARGETTYPE>
     /** \brief Return the displacements in source mesh projected on current mesh.
     */
-    void leastSquareProject(const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false)
-    {
+    void leastSquareProject ( const Mesh<ETARGETTYPE, EABSTRACTTYPE> * mesh, Vector & projection, const Vector & source, bool fast = false ) {
 
     }
 
     virtual size_t getLastNodeId() const = 0;
     virtual size_t size() const = 0 ;
-   
-    virtual void deleteCache(unsigned int cacheID)
-    {
+
+    virtual void deleteCache ( unsigned int cacheID ) {
         caches[cacheID].clear() ;
         coefs[cacheID].clear() ;
-    } 
-    
-    virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1"))
-    {
+    }
+
+    virtual unsigned int generateCache ( const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
         VirtualMachine vm ;
         std::vector<double> co ;
-        std::vector<ETYPE *> elems = getConflictingElements(locus) ;
-        
+        std::vector<ETYPE *> elems = getConflictingElements ( locus ) ;
+        is2D = locus->spaceDimensions() == 2 ;
         //search for first empty cache slot ;
-        if(caches.empty())
-        {
-            caches.push_back(std::vector<int>());
-            coefs.push_back(std::vector<std::vector<double>>());
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
         }
         size_t position = 0;
-        for( ; position < caches.size() ; position++)
-        {
-            if(caches[position].empty())
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
                 break ;
+            }
         }
-        if(position == caches.size())
-        {
-            caches.push_back(std::vector<int>());
-            coefs.push_back(std::vector<std::vector<double>>());
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
         }
 
-        for(auto & element : elems)
-        {
-            if(source && element->getBehaviour()->getSource() != source)
+        for ( auto & element : elems ) {
+            if ( source && element->getBehaviour()->getSource() != source ) {
                 continue ;
-            
-            if(locus->in(element->getCenter()))
-            {
-                caches[position].push_back(element->index) ;
-                coefs[position].push_back(std::vector<double>()) ;
+            }
+
+            if ( locus->in ( element->getCenter() ) ) {
+                caches[position].push_back ( element->index ) ;
+                coefs[position].push_back ( std::vector<double>() ) ;
                 Function x = element->getXTransform() ;
                 Function y = element->getYTransform() ;
                 Function z = element->getZTransform() ;
                 Function t = element->getTTransform() ;
-                for(size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++)
-                {
-                    double xx = vm.eval(x, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xy = vm.eval(y, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xz = vm.eval(z, element->getGaussPoints().gaussPoints[i].first) ;
-                    double xt = vm.eval(t, element->getGaussPoints().gaussPoints[i].first) ;
+                for ( size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++ ) {
+                    double xx = vm.eval ( x, element->getGaussPoints().gaussPoints[i].first ) ;
+                    double xy = vm.eval ( y, element->getGaussPoints().gaussPoints[i].first ) ;
+                    double xz = vm.eval ( z, element->getGaussPoints().gaussPoints[i].first ) ;
+                    double xt = vm.eval ( t, element->getGaussPoints().gaussPoints[i].first ) ;
 
-                    coefs[position].back().push_back(vm.eval(smoothing, xx, xy, xz, xt));
+                    coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
                 }
             }
         }
-        
+
         return position ;
     } ;
-//     
-//     std::valarray<Vector> getField( FieldType f, unsigned int cacheID) = 0 ;
-    
+
+//
+    //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
+    Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) const {
+        VirtualMachine vm ;
+        size_t blocks = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
+            blocks = getInTree ( caches[cacheID][i] )->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+        }
+        Vector ret ( 0., fieldTypeElementarySize ( f, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ) ) ;
+        Vector buffer ( ret ) ;
+        double w = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+
+            double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, &vm, dummy, t, coefs[cacheID][i] ) ;
+            ret += buffer * v ;
+            w +=v ;
+        }
+        return ret/w ;
+    }
+
+    Vector getField ( FieldType f, int dummy = 0, double t = 0 ) const {
+        VirtualMachine vm ;
+        size_t blocks = 0 ;
+
+        std::vector<ETYPE *> elems = getElements() ;
+        for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
+            blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+        }
+        Vector ret ( 0., fieldTypeElementarySize ( f, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ) ) ;
+        Vector buffer ( ret ) ;
+        double w = 0 ;
+        for ( size_t i = 0 ; i < elems.size() ; i++ ) {
+
+            double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+            ret += buffer * v ;
+            w +=v ;
+        }
+        return ret/w ;
+    }
+
+    Vector getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) const {
+        Vector first ;
+        Vector strain ;
+        Vector stress ;
+        Vector strainrate ;
+        Vector buffer ;
+        int tsize = 3 ;
+        int psize = 2 ;
+        if ( !is2D ) {
+            tsize = 6 ;
+            psize = 3 ;
+        }
+        bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
+        VirtualMachine vm ;
+        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+            //we first need to compute the strain field
+            if ( !spaceTime ) {
+                double sumFactors ( 0 ) ;
+
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    if ( !strain.size() ) {
+                        strain.resize ( 0., buffer.size() );
+                    }
+                    strain += buffer*v ;
+                    sumFactors += v ;
+                }
+                strain /= sumFactors ;
+            } else {
+                double sumFactors ( 0 ) ;
+                Vector tmpstrain ;
+                Vector tmpstrainrate ;
+
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    if ( !tmpstrain.size() ) {
+                        tmpstrain.resize ( 0., buffer.size() );
+                    }
+                    tmpstrain += buffer*v ;
+                    sumFactors += v ;
+                }
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    if ( !tmpstrainrate.size() ) {
+                        tmpstrainrate.resize ( 0., buffer.size() );
+                    }
+                    tmpstrainrate += buffer*v ;
+                }
+                tmpstrain /= sumFactors ;
+                tmpstrainrate /=sumFactors ;
+
+                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+                stress.resize ( tsize, 0. ) ;
+                strain.resize ( tsize, 0. ) ;
+                for ( size_t i = 0 ; i < tsize ; i++ ) {
+                    stress[i] = tmpstress[i] ;
+                    strain[i] = tmpstrain[i] ;
+                }
+            }
+
+            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+                first.resize ( psize );
+                first = toPrincipal ( strain ) ;
+            }
+            if ( f0 == REAL_STRESS_FIELD ) {
+                first.resize ( tsize );
+                if ( !spaceTime ) {
+                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                } else {
+                    first = stress ;
+                }
+            }
+            if ( f0 == EFFECTIVE_STRESS_FIELD ) {
+                first.resize ( tsize );
+                first = strain*e->getBehaviour()->param ;
+            }
+            if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+                first.resize ( psize );
+                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            }
+            if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
+                first.resize ( psize );
+                if ( !spaceTime ) {
+                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                } else {
+                    first = toPrincipal ( stress ) ;
+                }
+            }
+
+        } else {
+            double sumFactors ( 0 ) ;
+
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                if ( !first.size() ) {
+                    first.resize ( 0., buffer.size() );
+                }
+                first += buffer*v ;
+                sumFactors += v ;
+            }
+
+            first /= sumFactors ;
+        }
+
+
+        return first ;
+    }
+
+    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) const {
+        Vector first ;
+        Vector second ;
+        Vector strain ;
+        Vector stress ;
+        Vector strainrate ;
+        Vector buffer ;
+        int tsize = 3 ;
+        int psize = 2 ;
+        if ( !is2D ) {
+            tsize = 6 ;
+            psize = 3 ;
+        }
+        bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
+        VirtualMachine vm ;
+        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD ||
+                f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD
+           ) {
+            //we first need to compute the strain field
+            if ( !spaceTime ) {
+                buffer.resize ( tsize, 0. );
+                strain.resize ( tsize, 0. );
+                double sumFactors ( 0 ) ;
+
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                    if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
+                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                        strain += buffer*v ;
+                        sumFactors += v ;
+                    }
+                }
+                strain /= sumFactors ;
+            } else {
+                size_t blocks = 0 ;
+                for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
+                    ETYPE *ci  = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                    blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+                }
+                Vector tmpstrain ;
+                Vector tmpstrainrate ;
+
+                tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. ) ;
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. );
+                tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. ) ;
+                double sumFactors ( 0 ) ;
+
+
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    if ( !tmpstrain.size() ) {
+                        tmpstrain.resize ( buffer.size(), 0. );
+                    }
+                    tmpstrain += buffer*v ;
+                    sumFactors += v ;
+                }
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. );
+                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                    ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    if ( !tmpstrainrate.size() ) {
+                        tmpstrainrate.resize ( buffer.size(), 0. );
+                    }
+                    tmpstrainrate += buffer*v ;
+                }
+                tmpstrain /= sumFactors ;
+                tmpstrainrate /=sumFactors ;
+
+                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+                stress.resize ( tsize, 0. ) ;
+                strain.resize ( tsize, 0. ) ;
+                for ( size_t i = 0 ; i < tsize ; i++ ) {
+                    stress[i] = tmpstress[i] ;
+                    strain[i] = tmpstrain[i] ;
+                }
+            }
+
+            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+                first.resize ( psize );
+                first = toPrincipal ( strain ) ;
+            }
+            if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
+                second.resize ( psize );
+                second = toPrincipal ( strain ) ;
+            }
+            if ( f0 == REAL_STRESS_FIELD ) {
+                first.resize ( tsize );
+                if ( !spaceTime ) {
+                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                } else {
+                    first = stress ;
+                }
+            }
+            if ( f1 == REAL_STRESS_FIELD ) {
+                second.resize ( tsize );
+                if ( !spaceTime ) {
+                    second = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                } else {
+                    second = stress ;
+                }
+            }
+            if ( f0 == EFFECTIVE_STRESS_FIELD ) {
+                first.resize ( tsize );
+                first = strain*e->getBehaviour()->param ;
+            }
+            if ( f1 == EFFECTIVE_STRESS_FIELD ) {
+                second.resize ( tsize );
+                second = strain*e->getBehaviour()->param ;
+            }
+            if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+                first.resize ( psize );
+                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            }
+            if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+                second.resize ( psize );
+                second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            }
+            if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
+                first.resize ( psize );
+                if ( !spaceTime ) {
+                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                } else {
+                    first = toPrincipal ( stress ) ;
+                }
+            }
+            if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
+                second.resize ( psize );
+                if ( !spaceTime ) {
+                    second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                } else {
+                    second = toPrincipal ( stress ) ;
+                }
+            }
+
+            if ( f0 == STRAIN_FIELD ) {
+                first.resize ( tsize ) ;
+                first = strain ;
+            }
+            if ( f1 == STRAIN_FIELD ) {
+                second.resize ( tsize ) ;
+                second = strain ;
+            }
+
+        } else {
+            double sumFactors ( 0 ) ;
+
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+
+                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                if ( !first.size() ) {
+                    first.resize ( 0., buffer.size() );
+                }
+                first += buffer*v ;
+                sumFactors += v ;
+            }
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
+                if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
+                    double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
+                    if ( !second.size() ) {
+                        second.resize ( 0., buffer.size() );
+                    }
+                    second += buffer*v ;
+                }
+            }
+            first /= sumFactors ;
+            second /= sumFactors ;
+        }
+
+
+        return std::make_pair ( first, second ) ;
+    }
+
 } ;
 
 template<class ETYPE, class EABSTRACTTYPE>
@@ -465,113 +747,101 @@ protected:
     std::map<int *, int> trans ;
     size_t global_counter ;
 
-    virtual std::vector<ETYPE *> getNeighbourhood(ETYPE * element) const
-    {
+    virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const {
         std::vector<ETYPE *> ret = { element };
         return ret ;
     };
 
-    void addSharedNodes(size_t nodes_per_side, size_t time_planes, double timestep)
-    {
-        for(auto  i = tree.begin() ; i != tree.end() ; ++i)
-        {
+    void addSharedNodes ( size_t nodes_per_side, size_t time_planes, double timestep ) {
+        for ( auto  i = tree.begin() ; i != tree.end() ; ++i ) {
 
             size_t nodes_per_plane = nodes_per_side*3+3 ;
 
-            std::valarray<Point *> newPoints(nodes_per_plane*time_planes) ;
-            std::valarray<bool> done(false, nodes_per_plane*time_planes) ;
+            std::valarray<Point *> newPoints ( nodes_per_plane*time_planes ) ;
+            std::valarray<bool> done ( false, nodes_per_plane*time_planes ) ;
 
-            for(size_t plane = 0 ; plane < time_planes ; plane++)
-            {
-                for(size_t side = 0 ; side < 3 ; side++)
-                {
-                    Point a(static_cast<ETYPE *>(*i)->getBoundingPoint(side)) ;
-                    Point b(static_cast<ETYPE *>(*i)->getBoundingPoint((side+1)%3)) ;
+            for ( size_t plane = 0 ; plane < time_planes ; plane++ ) {
+                for ( size_t side = 0 ; side < 3 ; side++ ) {
+                    Point a ( static_cast<ETYPE *> ( *i )->getBoundingPoint ( side ) ) ;
+                    Point b ( static_cast<ETYPE *> ( *i )->getBoundingPoint ( ( side+1 ) %3 ) ) ;
 
-                    if(time_planes> 1)
-                    {
-                        a.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
-                        b.getT() = (double)plane*(timestep/(double)(time_planes-1))-timestep/2.;
+                    if ( time_planes> 1 ) {
+                        a.getT() = ( double ) plane* ( timestep/ ( double ) ( time_planes-1 ) )-timestep/2.;
+                        b.getT() = ( double ) plane* ( timestep/ ( double ) ( time_planes-1 ) )-timestep/2.;
                     }
-                    for(size_t node = 0 ; node < nodes_per_side+1 ; node++)
-                    {
-                        double fraction = (double)(node)/((double)nodes_per_side+1) ;
-                        Point proto = a*(1.-fraction) + b*fraction ;
+                    for ( size_t node = 0 ; node < nodes_per_side+1 ; node++ ) {
+                        double fraction = ( double ) ( node ) / ( ( double ) nodes_per_side+1 ) ;
+                        Point proto = a* ( 1.-fraction ) + b*fraction ;
                         Point * foundPoint = nullptr ;
 
-                        for(size_t j = 0 ; j< static_cast<ETYPE *>(*i)->getBoundingPoints().size() ; j++)
-                        {
-                            if(static_cast<ETYPE *>(*i)->getBoundingPoint(j) == proto)
-                            {
-                                foundPoint = &static_cast<ETYPE *>(*i)->getBoundingPoint(j) ;
+                        for ( size_t j = 0 ; j< static_cast<ETYPE *> ( *i )->getBoundingPoints().size() ; j++ ) {
+                            if ( static_cast<ETYPE *> ( *i )->getBoundingPoint ( j ) == proto ) {
+                                foundPoint = &static_cast<ETYPE *> ( *i )->getBoundingPoint ( j ) ;
                                 break ;
                             }
                         }
 
 
-                        if(!done[nodes_per_plane*plane+side*(nodes_per_side+1)+node])
-                        {
+                        if ( !done[nodes_per_plane*plane+side* ( nodes_per_side+1 ) +node] ) {
 
-                            points.push_back(new Point(proto) ) ;
-                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]  = points.back();
-                            newPoints[nodes_per_plane*plane+side*(nodes_per_side+1)+node]->getId() = global_counter++ ;
+                            points.push_back ( new Point ( proto ) ) ;
+                            newPoints[nodes_per_plane*plane+side* ( nodes_per_side+1 ) +node]  = points.back();
+                            newPoints[nodes_per_plane*plane+side* ( nodes_per_side+1 ) +node]->getId() = global_counter++ ;
 
-                            done[nodes_per_plane*plane+side*(nodes_per_side+1)+node] = true ;
+                            done[nodes_per_plane*plane+side* ( nodes_per_side+1 ) +node] = true ;
                         }
                     }
                 }
             }
 
-            static_cast<ETYPE *>(*i)->setBoundingPoints(newPoints) ;
+            static_cast<ETYPE *> ( *i )->setBoundingPoints ( newPoints ) ;
         }
 
     }
 
 public:
 
-    virtual size_t size() const { return 1. ; } ;
-    int elementLayer(ETYPE * e) const {
+    virtual size_t size() const {
+        return 1. ;
+    } ;
+    int elementLayer ( ETYPE * e ) const {
         return -1 ;
     }
-    void addElementToLayer(const ETYPE * element, int layer) { } ;
+    void addElementToLayer ( const ETYPE * element, int layer ) { } ;
 
-    SingleElementMesh(ETYPE * element) : element(element), global_counter(0)
-    {
-        tree.push_back(element) ;
-        for(size_t i = 0 ; i < element->getBoundingPoints().size() ; ++i)
-        {
-            if(element->getBoundingPoint(i).getId() < 0)
-                element->getBoundingPoint(i).getId() = global_counter ;
-            trans[& (element->getBoundingPoint(i).getId())] = global_counter ;
+    SingleElementMesh ( ETYPE * element ) : element ( element ), global_counter ( 0 ) {
+        tree.push_back ( element ) ;
+        for ( size_t i = 0 ; i < element->getBoundingPoints().size() ; ++i ) {
+            if ( element->getBoundingPoint ( i ).getId() < 0 ) {
+                element->getBoundingPoint ( i ).getId() = global_counter ;
+            }
+            trans[& ( element->getBoundingPoint ( i ).getId() )] = global_counter ;
             global_counter++ ;
         }
     } ;
 
-    virtual ~SingleElementMesh()
-    {
-        for(int i = 0 ; i < points.size() ; i++)
+    virtual ~SingleElementMesh() {
+        for ( int i = 0 ; i < points.size() ; i++ ) {
             delete points[i] ;
+        }
     } ;
-    virtual std::vector<ETYPE *> getElements()
-    {
+    virtual std::vector<ETYPE *> getElements() const {
         std::vector<ETYPE *> ret ;
-        ret.push_back(element) ;
+        ret.push_back ( element ) ;
         return ret ;
     }
-    virtual std::vector<ETYPE *> getConflictingElements(const Point  * p)
-    {
+    virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p ) {
         std::vector<ETYPE *> ret ;
-        if(element->in(*p))
-        {
-            ret.push_back(element) ;
+        if ( element->in ( *p ) ) {
+            ret.push_back ( element ) ;
         }
         return ret ;
     }
 
-    virtual void extrude(double dt) {
+    virtual void extrude ( double dt ) {
         std::cout << "should extrude.." << std::endl  ;
     } ;
-    virtual void extrude(const Vector & dt) {
+    virtual void extrude ( const Vector & dt ) {
         std::cout << "should extrude.." << std::endl  ;
     } ;
 
@@ -582,105 +852,85 @@ public:
         return points ;
     };
 
-    virtual std::vector<ETYPE *> getConflictingElements(const Geometry * g)
-    {
+    virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) {
         std::vector<ETYPE *> ret ;
-        if(element->intersects(g) || g->in(element->getCenter()) || element->in(g->getCenter()))
-            ret.push_back(element) ;
+        if ( element->intersects ( g ) || g->in ( element->getCenter() ) || element->in ( g->getCenter() ) ) {
+            ret.push_back ( element ) ;
+        }
 
         return ret ;
     }
     /** Does nothing as this is a special-purpose mesh*/
-    virtual void setElementOrder(Order o, double dt = 0.)
-    {
-        switch(o)
-        {
-        case CONSTANT:
-        {
+    virtual void setElementOrder ( Order o, double dt = 0. ) {
+        switch ( o ) {
+        case CONSTANT: {
             break ;
         }
-        case LINEAR:
-        {
+        case LINEAR: {
             break ;
         }
-        case QUADRATIC:
-        {
-            addSharedNodes(1,1,0) ;
+        case QUADRATIC: {
+            addSharedNodes ( 1,1,0 ) ;
             break ;
         }
-        case CUBIC:
-        {
-            addSharedNodes(2,1,0) ;
+        case CUBIC: {
+            addSharedNodes ( 2,1,0 ) ;
             break ;
         }
-        case QUADRIC:
-        {
-            addSharedNodes(3,1,0) ;
+        case QUADRIC: {
+            addSharedNodes ( 3,1,0 ) ;
             break ;
         }
-        case QUINTIC:
-        {
-            addSharedNodes(3,1,0) ;
+        case QUINTIC: {
+            addSharedNodes ( 3,1,0 ) ;
             break ;
         }
-        case CONSTANT_TIME_LINEAR:
-        {
-            addSharedNodes(0,2,dt) ;
+        case CONSTANT_TIME_LINEAR: {
+            addSharedNodes ( 0,2,dt ) ;
             break ;
         }
-        case CONSTANT_TIME_QUADRATIC:
-        {
-            addSharedNodes(0,3,dt) ;
+        case CONSTANT_TIME_QUADRATIC: {
+            addSharedNodes ( 0,3,dt ) ;
             break ;
         }
-        case LINEAR_TIME_LINEAR:
-        {
-            addSharedNodes(0,2,dt) ;
+        case LINEAR_TIME_LINEAR: {
+            addSharedNodes ( 0,2,dt ) ;
             break ;
         }
-        case LINEAR_TIME_QUADRATIC:
-        {
-            addSharedNodes(0,3,dt) ;
+        case LINEAR_TIME_QUADRATIC: {
+            addSharedNodes ( 0,3,dt ) ;
             break ;
         }
-        case QUADRATIC_TIME_LINEAR:
-        {
-            addSharedNodes(1,2,dt) ;
+        case QUADRATIC_TIME_LINEAR: {
+            addSharedNodes ( 1,2,dt ) ;
             break ;
         }
-        case QUADRATIC_TIME_QUADRATIC:
-        {
-            addSharedNodes(1,3,dt) ;
+        case QUADRATIC_TIME_QUADRATIC: {
+            addSharedNodes ( 1,3,dt ) ;
             break ;
         }
-        case CUBIC_TIME_LINEAR:
-        {
-            addSharedNodes(2,2,dt) ;
+        case CUBIC_TIME_LINEAR: {
+            addSharedNodes ( 2,2,dt ) ;
             break ;
         }
-        case CUBIC_TIME_QUADRATIC:
-        {
-            addSharedNodes(2,3,dt) ;
+        case CUBIC_TIME_QUADRATIC: {
+            addSharedNodes ( 2,3,dt ) ;
             break ;
         }
-        case QUADRIC_TIME_LINEAR:
-        {
-            addSharedNodes(3,2,dt) ;
+        case QUADRIC_TIME_LINEAR: {
+            addSharedNodes ( 3,2,dt ) ;
             break ;
         }
-        case QUADRIC_TIME_QUADRATIC:
-        {
-            addSharedNodes(3,3,dt) ;
+        case QUADRIC_TIME_QUADRATIC: {
+            addSharedNodes ( 3,3,dt ) ;
             break ;
         }
-        case QUINTIC_TIME_LINEAR:
-        {
-            addSharedNodes(3,2,dt) ;
+        case QUINTIC_TIME_LINEAR: {
+            addSharedNodes ( 3,2,dt ) ;
             break ;
         }
-        case QUINTIC_TIME_QUADRATIC:
-        {
-            addSharedNodes(3,3,dt) ;
+        case QUINTIC_TIME_QUADRATIC: {
+            addSharedNodes ( 3,3,dt ) ;
             break ;
         }
         default:
@@ -690,25 +940,22 @@ public:
     }
 
     /** Does nothing as this is a special-purpose mesh*/
-    virtual void insert(Point *)
-    {
+    virtual void insert ( Point * ) {
     }
 
     virtual size_t getLastNodeId() const {
         return global_counter ;
     }
-    virtual int addToTree(EABSTRACTTYPE * toAdd)
-    {
-        tree.push_back(toAdd) ;
+    virtual int addToTree ( EABSTRACTTYPE * toAdd ) {
+        tree.push_back ( toAdd ) ;
         return tree.size() -1 ;
     }
 
-    virtual EABSTRACTTYPE * getInTree(int index) const 
-    {
-        return tree[std::abs(index)] ;
+    virtual EABSTRACTTYPE * getInTree ( int index ) const {
+        return tree[std::abs ( index )] ;
     }
 
-    
+
 
 // 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
 // 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }

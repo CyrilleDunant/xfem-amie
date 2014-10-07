@@ -102,7 +102,7 @@ void PseudoPlastic::step(double timestep, ElementState & currentState, double ma
 	change = false ;
 	double lastalpha = alpha ;
 
-	Vector str = vm->getSmoothedField(currentState, PRINCIPAL_REAL_STRESS_FIELD) ;
+	Vector str = vm->getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, currentState) ;
 	double maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
 	
 	if(maxStress > POINT_TOLERANCE_2D)

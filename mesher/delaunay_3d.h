@@ -338,7 +338,6 @@ friend class Geometry ;
 protected:
 	double internalScale ;
 	size_t global_counter ;
-	bool neighbourhood ;
 	bool fixedScale ;
 	std::vector<Point *> additionalPoints ;
 	
@@ -348,7 +347,7 @@ public:
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ; };
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 
-	virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
+	virtual std::vector< DelaunayTetrahedron* > getElements() const {return getTetrahedrons() ;};
 	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Amie::Point* p) 
 	{
 		std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
@@ -430,7 +429,7 @@ public:
 	 * 
 	 * @return all the living triangles resulting from the triangulation.
 	 */
-	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) ;
+	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) const ;
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = nullptr) ; 
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = nullptr) ;

@@ -344,7 +344,6 @@ class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
 
 protected:
     size_t global_counter ;
-    bool neighbourhood ;
     std::vector<Point * > additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
 public:
@@ -379,7 +378,7 @@ public:
     virtual const std::vector<Point * > & getAdditionalPoints() const {
         return additionalPoints ;
     };
-    virtual std::vector< DelaunayTriangle* > getElements() {
+    virtual std::vector< DelaunayTriangle* > getElements() const {
         return getTriangles() ;
     };
     virtual std::vector< DelaunayTriangle* > getConflictingElements(const Amie::Point* p)
@@ -452,7 +451,7 @@ public:
      *
      * @return all the living triangles resulting from the triangulation.
      */
-    std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
+    std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) const ;
 
     void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = nullptr) ;
     void addSharedNodes(DelaunayTree * dt) ;

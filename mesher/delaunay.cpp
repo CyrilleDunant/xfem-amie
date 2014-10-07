@@ -1966,7 +1966,6 @@ const Point * Star::getEdge(size_t i) const
 
 DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
 {
-    neighbourhood = false ;
     this->global_counter = 3;
     p0->setId(0) ;
     p1->setId(1)  ;
@@ -2170,9 +2169,6 @@ void DelaunayTree::insert(Point *p)
         exit(0) ;
         return ;
     }
-
-    neighbourhood = false ;
-
     for(size_t i = 0 ; i < cons.size() ; i++)
     {
         if(cons[i]->isVertex(p))
@@ -2259,16 +2255,18 @@ std::vector<DelaunayDemiPlane *> * DelaunayTree::getConvexHull()
     return ret ;
 }
 
-std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood)
+std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood) const 
 {
 
     std::vector<DelaunayTriangle *> ret ;
-
+    bool neighbourhood = false;
     for(size_t i = 0 ; i < tree.size() ; i++)
     {
         if(tree[i]->isTriangle && !tree[i]->isDeadTriangle)
         {
             ret.push_back((DelaunayTriangle *)(tree[i])) ;
+            if(!neighbourhood && ret.back()->neighbourhood.size())
+                neighbourhood = true ;
         }
     }
     

@@ -30,7 +30,7 @@ NonLocalVonMises::~NonLocalVonMises()
 double NonLocalVonMises::grade(ElementState &s)
 {
 	met = false ;
-	Vector str( getSmoothedField(s, PRINCIPAL_REAL_STRESS_FIELD ) ) ;
+	Vector str( getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, s ) ) ;
 	
 	double maxStress = 0 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
