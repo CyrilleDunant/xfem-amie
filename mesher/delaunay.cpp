@@ -1964,7 +1964,7 @@ const Point * Star::getEdge(size_t i) const
 }
 
 
-DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2)
+DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2): Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >(SPACE_TWO_DIMENSIONAL)
 {
     this->global_counter = 3;
     p0->setId(0) ;

@@ -1091,31 +1091,6 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				}
 				break ;
 			}
-// 			case TWFT_CRACKS:
-// 			{
-// 				if( tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
-// 				{
-// 					std::pair<double, double> np = tri->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(tri->getState()) ;
-// 					ret[0] = np.first;
-// 					ret[1] = np.first ;
-// 					ret[2] = np.first ;
-// 					ret[3] = np.second;
-// 					ret[4] = np.second ;
-// 					ret[5] = np.second ;
-// 
-// 				}
-// 				else
-// 				{
-// 					ret[0] = 0;
-// 					ret[1] = 0 ;
-// 					ret[2] = 0 ;
-// 					ret[3] = 0;
-// 					ret[4] = 0 ;
-// 					ret[5] = 0 ;
-// 				}
-// 				found = true ;
-// 				break ;
-// 			}
 			
 			case TWFT_CRACK_ANGLE:
 			{

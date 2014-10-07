@@ -4,7 +4,7 @@
 
 using namespace Amie ;
 
-StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): grid( sizeX,  sizeY,  div, center)
+StructuredMesh::StructuredMesh(double sizeX, double sizeY, int div, const Point & center ): Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >(SPACE_TWO_DIMENSIONAL), grid( sizeX,  sizeY,  div, center)
 {
 	global_counter = 0 ;
 	for(size_t i = 0 ; i < grid.pixels.size()+1 ; i++)

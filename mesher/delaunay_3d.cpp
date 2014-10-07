@@ -2210,7 +2210,7 @@ const Point *Star3D::getEdge( size_t i ) const
     return this->edge[i] ;
 }
 
-DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 )
+DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 ) : Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
 {
     fixedScale = false ;
     global_counter = 4;

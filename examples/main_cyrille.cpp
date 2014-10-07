@@ -113,7 +113,7 @@ std::vector<double> energy ;
 SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(nullptr, nullptr, 
 																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() - sample.height()/2), 
 																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() + sample.height()/2), 
-																	  new Point(sample.getCenter().getX() + sample.width()/2, sample.getCenter().getY() + sample.height()/2), nullptr)) ;
+																	  new Point(sample.getCenter().getX() + sample.width()/2, sample.getCenter().getY() + sample.height()/2), nullptr), SPACE_TWO_DIMENSIONAL) ;
 Point *pa = new Point(sample.getCenter().getX() - 2, sample.getCenter().getY()) ;
 Point *pb = new Point(sample.getCenter().getX() + 2, sample.getCenter().getY()) ;
 

@@ -34,12 +34,12 @@ template <class ETYPE, class EABSTRACTTYPE>
 class Mesh
 {
 protected:
+    SpaceDimensionality spaceDimensions ;
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, std::pair<ETYPE *, std::vector<double> > > > cache ;
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
     std::vector<std::vector<int>> caches ;
     std::vector<std::vector<std::vector<double>>> coefs ;
-
-    bool is2D ;
+    
 public:
 
     virtual std::vector<int> & getCache ( unsigned int cacheID ) {
@@ -55,7 +55,7 @@ public:
         return 1. ;
     } ;
 public:
-    Mesh() : is2D ( false ) {} ;
+    Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions){} ;
     virtual ~Mesh() {} ;
     virtual std::vector<ETYPE *> getElements() const = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
@@ -360,7 +360,6 @@ public:
         std::vector<ETYPE *> elems = getConflictingElements ( locus ) ;
         if(elems.empty())
             elems = getConflictingElements ( &locus->getCenter() ) ;
-        is2D = locus->spaceDimensions() == 2 ;
         //search for first empty cache slot ;
         if ( caches.empty() ) {
             caches.push_back ( std::vector<int>() );
@@ -409,9 +408,9 @@ public:
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
-            blocks = getInTree ( caches[cacheID][i] )->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+            blocks = getInTree ( caches[cacheID][i] )->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions ;
         }
-        Vector ret ( 0., fieldTypeElementarySize ( f, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ) ) ;
+        Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
@@ -429,9 +428,9 @@ public:
 
         std::vector<ETYPE *> elems = getElements() ;
         for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
-            blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+            blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
         }
-        Vector ret ( 0., fieldTypeElementarySize ( f, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ) ) ;
+        Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( size_t i = 0 ; i < elems.size() ; i++ ) {
@@ -451,7 +450,7 @@ public:
         Vector buffer ;
         int tsize = 3 ;
         int psize = 2 ;
-        if ( !is2D ) {
+        if (spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
         }
@@ -566,7 +565,7 @@ public:
         Vector buffer ;
         int tsize = 3 ;
         int psize = 2 ;
-        if ( !is2D ) {
+        if ( spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
         }
@@ -594,14 +593,14 @@ public:
                 size_t blocks = 0 ;
                 for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
                     ETYPE *ci  = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                    blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / ( is2D?2:3 ) ;
+                    blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
                 }
                 Vector tmpstrain ;
                 Vector tmpstrainrate ;
 
-                tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. ) ;
-                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. );
-                tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. ) ;
+                tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
+                tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, spaceDimensions, blocks ), 0. ) ;
                 double sumFactors ( 0 ) ;
 
 
@@ -616,7 +615,7 @@ public:
                     tmpstrain += buffer*v ;
                     sumFactors += v ;
                 }
-                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, is2D?SPACE_TWO_DIMENSIONAL:SPACE_THREE_DIMENSIONAL, blocks ), 0. );
+                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,spaceDimensions, blocks ), 0. );
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
@@ -809,7 +808,7 @@ public:
     }
     void addElementToLayer ( const ETYPE * element, int layer ) { } ;
 
-    SingleElementMesh ( ETYPE * element ) : element ( element ), global_counter ( 0 ) {
+    SingleElementMesh ( ETYPE * element, SpaceDimensionality spaceDimensions ) : Mesh<ETYPE, EABSTRACTTYPE>(spaceDimensions), element ( element ), global_counter ( 0 ) {
         tree.push_back ( element ) ;
         for ( size_t i = 0 ; i < element->getBoundingPoints().size() ; ++i ) {
             if ( element->getBoundingPoint ( i ).getId() < 0 ) {
