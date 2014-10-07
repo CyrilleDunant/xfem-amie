@@ -58,50 +58,6 @@ std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, Fi
   
 }
 
-// std::pair<double, double> FractureCriterion::getCrackOpeningAndSlip(ElementState & s)
-// {
-//     double angle = getSmoothedField(PRINCIPAL_ANGLE_FIELD, s)[0] ;
-//     Matrix rotationMatrix(2,2) ;
-//     rotationMatrix[0][0] = cos(-angle) ;
-//     rotationMatrix[0][1] = sin(-angle) ;
-//     rotationMatrix[1][0] = -sin(-angle) ;
-//     rotationMatrix[1][1] = cos(-angle) ;
-// 
-//     Vector displacementLeft(0., 2) ;
-//     Vector displacementRight(0., 2) ;
-//     double countLeft = 0 ;
-//     double countRight = 0 ;
-// 
-//     for(size_t i = 0 ; i < physicalcache.size() ; i++)
-//     {
-//         DelaunayTriangle *ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(physicalcache[i])) ;
-//         for(size_t j = 0 ; j < ci->getBoundingPoints().size() ; j++)
-//         {
-//             if((ci->getBoundingPoint(j) - s.getParent()->getCenter()).angle()-angle > 0 &&
-//                     (ci->getBoundingPoint(j) - s.getParent()->getCenter()).angle()-angle < M_PI
-//               )
-//             {
-//                 displacementLeft[0] += ci->getState().getDisplacements()[2*j]*factors[i] ;
-//                 displacementLeft[1] += ci->getState().getDisplacements()[2*j+1]*factors[i] ;
-//                 countLeft += factors[i];
-//             }
-//             else
-//             {
-//                 displacementRight[0] += ci->getState().getDisplacements()[2*j]*factors[i] ;
-//                 displacementRight[1] += ci->getState().getDisplacements()[2*j+1]*factors[i] ;
-//                 countRight += factors[i];
-//             }
-//         }
-//     }
-// 
-// 
-//     displacementLeft /= countLeft ;
-//     displacementRight /= countRight ;
-//     Vector delta = rotationMatrix*(displacementLeft-displacementRight) ;
-// 
-//     return std::make_pair(delta[0], delta[1]) ;
-// }
-
 void FractureCriterion::initialiseCache( ElementState & s)
 {
     if(s.getMesh2D())

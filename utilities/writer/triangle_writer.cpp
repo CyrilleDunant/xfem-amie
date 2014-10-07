@@ -827,35 +827,35 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				}
 			}
 		}
-		else if( field == TWFT_CRACKS )
-		{
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-
-			for( int i = 0 ; i < triangles.size() ; i++ )
-			{
-				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
-				{
-
-					std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
-					ret[0][iterator] = np.first;
-					ret[1][iterator] = np.first ;
-					ret[2][iterator] = np.first ;
-					ret[3][iterator] = np.second;
-					ret[4][iterator] = np.second ;
-					ret[5][iterator++] = np.second ;
-
-				}
-				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-				{
-					ret[0][iterator] = 0;
-					ret[1][iterator] = 0 ;
-					ret[2][iterator] = 0 ;
-					ret[3][iterator] = 0;
-					ret[4][iterator] = 0 ;
-					ret[5][iterator++] = 0 ;
-				}
-			}
-		}
+// 		else if( field == TWFT_CRACKS )
+// 		{
+// 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+// 
+// 			for( int i = 0 ; i < triangles.size() ; i++ )
+// 			{
+// 				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+// 				{
+// 
+// 					std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
+// 					ret[0][iterator] = np.first;
+// 					ret[1][iterator] = np.first ;
+// 					ret[2][iterator] = np.first ;
+// 					ret[3][iterator] = np.second;
+// 					ret[4][iterator] = np.second ;
+// 					ret[5][iterator++] = np.second ;
+// 
+// 				}
+// 				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+// 				{
+// 					ret[0][iterator] = 0;
+// 					ret[1][iterator] = 0 ;
+// 					ret[2][iterator] = 0 ;
+// 					ret[3][iterator] = 0;
+// 					ret[4][iterator] = 0 ;
+// 					ret[5][iterator++] = 0 ;
+// 				}
+// 			}
+// 		}
 		else if( field == TWFT_DAMAGE)
 		{
 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
