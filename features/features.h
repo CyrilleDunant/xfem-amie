@@ -652,7 +652,7 @@ public:
 	}
 	
 /** \brief initialise the element states*/
-	void initializeElements(bool initialiseFractureCache = true) ;
+	void initializeElements() ;
 	
 	double getMaximumDisplacement()  ;
 	double getMinimumDisplacement()  ;

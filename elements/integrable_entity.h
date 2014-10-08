@@ -240,8 +240,8 @@ public:
         return parent ;
     }
 
-    virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache ) ;
-    virtual void initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh, bool initializeFractureCache ) ;
+    virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
 
     const Mesh< DelaunayTriangle, DelaunayTreeItem > * getMesh2D() const {
         return mesh2d ;
@@ -305,8 +305,8 @@ public:
 
     virtual void getFieldAtGaussPoint ( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) ;
 
-    virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh, bool initializeFractureCache ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh, bool initializeFractureCache ) ;
+    virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
 
     virtual void setInternalVariableAtGaussPoint ( Vector & v, size_t g, int i ) ;
 
@@ -328,8 +328,8 @@ public:
         return states.size() ;
     }
 
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh, bool initializeFractureCache ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh, bool initializeFractureCache ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
     virtual void step ( double dt, const Vector* d ) ;
 
 } ;
@@ -351,8 +351,8 @@ public:
         return states.size() ;
     }
 
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh, bool initializeFractureCache ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh, bool initializeFractureCache ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh ) ;
+    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
     virtual void step ( double dt, const Vector* d ) ;
 
 } ;

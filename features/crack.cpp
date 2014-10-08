@@ -1645,7 +1645,7 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 			pdistance = std::max(tri->getRadius()*2.,pdistance) ;
 			double score = -1 ;
 			if(tri->getBehaviour()->getFractureCriterion())
-				score = tri->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() ;
+				score = tri->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 			if(score > 0 || true)
 			{
 				tipsToGrow.push_back(tips[i].first) ;

@@ -466,8 +466,6 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 
 	double tstress = first.max();
 	double cstress = first.min();
-
-	
 	
 	
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());

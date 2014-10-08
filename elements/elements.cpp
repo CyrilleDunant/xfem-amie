@@ -178,12 +178,7 @@ void ElementarySurface::setBehaviour( Mesh<DelaunayTriangle,DelaunayTreeItem> * 
 	behaviour = f ;
 	if(init)
 	{
-		bool needCacheInit = false ;
-		if(f->getFractureCriterion())
-		{
-			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
-		}
-		state->initialize(msh, needCacheInit) ;
+		state->initialize(msh) ;
 	}
 //	delete old ;
 }
@@ -4360,12 +4355,7 @@ void ElementaryVolume::setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem
 	behaviour = f ;
 	if(init)
 	{
-		bool needCacheInit = false ;
-		if(f->getFractureCriterion())
-		{
-			needCacheInit = f->getFractureCriterion()->getCache().size() == 0 ;
-		}
-		state->initialize(msh, needCacheInit) ;
+		state->initialize(msh) ;
 	}
 }
 

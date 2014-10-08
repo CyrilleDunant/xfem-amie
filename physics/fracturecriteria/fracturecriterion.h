@@ -53,17 +53,12 @@ class FractureCriterion
     friend class DamageModel ;
 protected:
 
-    std::valarray<unsigned int> physicalcache ;
-    std::valarray<double> factors ;
-
     std::vector<unsigned int> damagingSet ;
     std::vector<unsigned int> proximitySet ;
 
     double initialScore ;
-    double neighbourhoodvolume ;
     double physicalCharacteristicRadius ;
     double scoreAtState ;
-    double nonLocalScoreAtState ;
     double deltaScoreAtState ;
 
     double criterionDamageDifferential ;
@@ -106,7 +101,6 @@ public:
     Vector getSmoothedField( FieldType f0,ElementState &s , double t = 0) ;
 
 public:
-    std::vector<unsigned int> cache ;
 
     Mesh<DelaunayTriangle, DelaunayTreeItem>  *mesh2d ;
     Mesh<DelaunayTetrahedron,DelaunayTreeItem3D>  *mesh3d ;
@@ -121,7 +115,7 @@ public:
     double getMinDeltaInNeighbourhood() const {
         return minDeltaInNeighbourhood ;
     }
-    double getMaxScoreInNeighbourhood() const ;
+    double getMaxScoreInNeighbourhood( Amie::ElementState& s ) ;
 
     FractureCriterion(MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
 
@@ -168,13 +162,6 @@ public:
      */
     virtual FractureCriterion * getCopy() const = 0;
 
-    /** \brief set the neighbourhood in which to consider other elements to check for failure.
-     *
-     * @param r new radius
-     */
-    double getNeighbourhoodVolume() const {
-        return neighbourhoodvolume ;
-    } ;
 
     virtual void setMaterialCharacteristicRadius(double r) ;
     double getMaterialCharacteristicRadius() const {
@@ -183,15 +170,8 @@ public:
 
     virtual Material toMaterial() ;
 
-    const std::vector<unsigned int> & getCache() const {
-        return cache ;
-    } ;
-
     double getScoreAtState() const {
         return scoreAtState ;
-    }
-    double getNonLocalScoreAtState() const {
-        return nonLocalScoreAtState ;
     }
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;

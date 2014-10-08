@@ -3117,7 +3117,7 @@ std::vector<DelaunayTriangle> FeatureTree::getSnapshot2D() const
     {
         copy.push_back( *tris[i] ) ;
         copy.back().setBehaviour(dtree, tris[i]->getBehaviour()->getCopy()) ;
-        copy.back().getState().initialize(dtree,false) ;
+        copy.back().getState().initialize(dtree) ;
     }
 
     return copy ;
@@ -4083,7 +4083,7 @@ void FeatureTree::stepXfem()
 bool sortByScore( DelaunayTriangle * tri1, DelaunayTriangle * tri2)
 {
     if(tri1->getBehaviour()->getFractureCriterion() && tri2->getBehaviour()->getFractureCriterion())
-        return tri1->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState() > tri2->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState();
+        return tri1->getBehaviour()->getFractureCriterion()->getScoreAtState() > tri2->getBehaviour()->getFractureCriterion()->getScoreAtState();
     return false ;
 }
 
@@ -4159,7 +4159,7 @@ bool FeatureTree::stepElements()
                     {
                         elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
                         elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState() ) ;
-                        maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
+                        maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit) ;
 
                     }
                 }
@@ -4281,7 +4281,7 @@ bool FeatureTree::stepElements()
                     if( elements[i]->getBehaviour()->getFractureCriterion() )
                     {
                         elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-                        maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+                        maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore) ;
                         maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 
                     }
@@ -4403,7 +4403,7 @@ bool FeatureTree::stepElements()
                     {
                         elements[i]->getBehaviour()->getFractureCriterion()->step( elements[i]->getState() ) ;
                         elements[i]->getBehaviour()->getFractureCriterion()->computeNonLocalState( elements[i]->getState() ) ;
-                        maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScoreInit) ;
+                        maxScoreInit = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit) ;
 
                     }
                 }
@@ -4523,7 +4523,7 @@ bool FeatureTree::stepElements()
                     {
                         //std::cout << "." << std::flush ;
                         elements[i]->getBehaviour()->getFractureCriterion()->setCheckpoint( true ) ;
-                        maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getNonLocalScoreAtState(), maxScore) ;
+                        maxScore = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore) ;
                         maxTolerance = std::max(elements[i]->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance) ;
 
                     }
@@ -4657,11 +4657,9 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
     bool behaviourChanged = ft->behaviourChanged() ;
     bool xfemChanged = ft->enrichmentChanged() ;
     bool samplingChanged = ft->needMeshing ;
-    bool initialiseFractureCache = false ;
 
     if( samplingChanged )
     {
-        initialiseFractureCache = true ;
         sampled = false ;
         meshed = false ;
         behaviourSet = behaviourSet ;
@@ -4795,7 +4793,7 @@ void FeatureTree::State::setStateTo( StateType s, bool stepChanged )
 
     if( !initialised )
     {
-        ft->initializeElements( initialiseFractureCache );
+        ft->initializeElements( );
         initialised = true ;
     }
     if( s == INITIALISED )
@@ -5953,7 +5951,7 @@ bool FeatureTree::is2D() const
     return tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL ;
 }
 
-void FeatureTree::initializeElements( bool initialiseFractureCache )
+void FeatureTree::initializeElements( )
 {
 
     if( !father3D )
@@ -5989,7 +5987,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
                 else
                 {
                     tris[i]->refresh( father2D );
-                    tris[i]->getState().initialize(dtree, initialiseFractureCache) ;
+                    tris[i]->getState().initialize(dtree) ;
                     #pragma omp critical
                     {
                         ecounter++ ;
@@ -6026,7 +6024,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
             if(!tets[i]->getBehaviour())
                 continue ;
             tets[i]->refresh( father3D );
-            tets[i]->getState().initialize(dtree3D, initialiseFractureCache) ;
+            tets[i]->getState().initialize(dtree3D) ;
         }
 
         gettimeofday( &time1, nullptr );
@@ -6045,7 +6043,7 @@ void FeatureTree::initializeElements( bool initialiseFractureCache )
                     std::cout << "ouch" << std::endl ;
                 }
                 tetras[i]->refresh( father3D );
-                tetras[i]->getState().initialize(dtree3D, initialiseFractureCache) ;
+                tetras[i]->getState().initialize(dtree3D) ;
                 #pragma omp critical
                 {
                     ecounter++ ;
