@@ -1,0 +1,27 @@
+input_manager is an input file manager for the C++ extended finite element AMIE library.
+
+
+
+INSTALLATION
+1. Install and build the main AMIE components (including 2d_composite)
+2. Open input_manager.pro in QtCreator
+3. If you are on Windows, open input_manager/input_manager.pro and edit the target line so that the executable file is in the input_manager folder
+4. If you use Qt4 or earlier version, open input_manager/main.cpp and replace the first two lines with the following:
+
+#include <QApplication>
+#include <QFileDialog>
+
+5. Build the input_manager executable. You should see an executable file appear in the input_manager folder.
+6. If you are on Windows, copy-paste all necessary *.dll files in your main AMIE build folder, and the input_manager folder. You will find them in your Qt installation folder
+7. Edit the file input_manager/path_to_executable.ini and edit the path according to your current build of 2d_composite
+NOTE for Windows users: use "/" instead of "\" as folder separator
+
+
+
+USAGE
+1. Double-click on input_manager executable.
+2. A window will open, allowing you to choose which configuration file you want to open. You can only open *.ini files.
+3. The program 2d_composite will then be executed with the chosen file as a configuration file.
+NOTE for Windows users: in the configuration files, always use "/" instead of "\" as folder separator.
+
+

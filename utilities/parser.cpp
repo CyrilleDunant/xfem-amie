@@ -413,6 +413,7 @@ void ConfigParser::readData()
 				line = line.erase(found,1) ;
 				found = line.find(" ") ;
 			}
+			quote = line.find('"') ;
 			while(quote != std::string::npos)
 			{
 				line = line.erase(quote,1) ;
@@ -430,9 +431,10 @@ void ConfigParser::readData()
 				current = current->getLastChild() ;
 				level++ ;
 			}
+			else if(l == 0 && line.length() == 0)
+				break ;
 			else if(l == 0 || l > level+1)
 			{
-				std::cout << line << std::endl ;
 				std::cout << "parsing error in file " << filename << std::endl ;
 				exit(0) ;
 			}
@@ -456,11 +458,35 @@ void ConfigParser::readData()
 				label = label.substr(level) ;
 				if(isDouble)
 				{
-					std::cout << label << "\t" << atof(right.c_str()) << std::endl ;
 					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, atof(right.c_str()) ) ;
 				}
 				else
-					ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;			
+				{
+					if(right.find("@") == 0 && authorizeIncludes)
+					{
+						right = right.substr(1) ;
+						ConfigParser includes( right, false) ;
+						includes.readData() ;
+						ConfigTreeItem * cnf = includes.getData() ;
+						ConfigTreeItem * child = cnf->getChild(label) ;
+						current->addChild( child ) ;
+						child->setFather( current ) ;
+					} 
+					else if( label == "include"  && authorizeIncludes)
+					{
+						ConfigParser includes( right, false) ;
+						includes.readData() ;
+						ConfigTreeItem * cnf = includes.getData() ;
+						std::vector<ConfigTreeItem *> children = cnf->getAllChildren() ;
+						for(size_t i = 0 ; i < children.size() ; i++)
+						{
+							current->addChild( children[i] ) ;
+							children[i]->setFather( current ) ;
+						}
+					}
+					else
+						ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;			
+				}
 			}
 
 		}
@@ -471,6 +497,11 @@ void ConfigParser::readData()
 	else
 		std::cout << filename << " not found!" << std::endl ;
 
+
+#ifdef _WIN32
+	if(trunk)
+		trunk->makeWindowsPath() ;
+#endif
 
 }
 

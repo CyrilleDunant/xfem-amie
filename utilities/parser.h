@@ -226,12 +226,13 @@ class ConfigParser : public Parser
 protected:
 	ConfigTreeItem * trunk ;
 	std::string filename ;
+	bool authorizeIncludes ;
 
 	static int getIndentLevel( std::string test ) ;
 
 public:
-	ConfigParser(std::string f): Parser(f.c_str()), filename(f) { trunk = new ConfigTreeItem() ; } 
-	ConfigParser(const char* f): Parser(f), filename(f) { trunk = new ConfigTreeItem() ; } 
+	ConfigParser(std::string f, bool a = true): Parser(f.c_str()), filename(f), authorizeIncludes(a) { trunk = new ConfigTreeItem() ; } 
+	ConfigParser(const char* f, bool a = true): Parser(f), filename(f), authorizeIncludes(a) { trunk = new ConfigTreeItem() ; } 
 	ConfigParser(): Parser("input.ini"), filename("input.ini") { trunk = new ConfigTreeItem() ; } 
 	virtual ~ConfigParser() { } ;
 	virtual void readData() ;

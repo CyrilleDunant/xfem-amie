@@ -218,6 +218,9 @@ public:
 	/** Decomposes a path as father.current.child into a vector of strings {father, current, child} */
 	static std::vector<std::string> decompose(std::string path) ;
 
+#ifdef __WIN32
+	void makeWindowsPath() ;
+#endif
 
 } ;
 

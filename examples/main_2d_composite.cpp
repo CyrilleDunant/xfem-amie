@@ -45,17 +45,17 @@ int main(int argc, char *argv[])
 		BoundaryCondition * bc = bcItem[i]->getBoundaryCondition() ;
 		if(bcItem[i]->hasChild("time_evolution"))
 		{
-			if(bcItem[i]->hasChild("time_evolution.file_name"))
+			if(bcItem[i]->hasChildFromFullLabel("time_evolution.file_name"))
 			{
 				LinearInterpolatedExternalMaterialLaw * interpolation = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","value"), bcItem[i]->getStringData("time_evolution.file_name", "file_not_found")) ; 
 				interpolatedBC.push_back(std::make_pair(bc, interpolation)) ;
 			}
-			if(bcItem[i]->hasChild("time_evolution.function"))
+			if(bcItem[i]->hasChildFromFullLabel("time_evolution.function"))
 			{
-				Function f = bcItem[i]->getChild("time_evolution.function")->getFunction() ; 
+				Function f = bcItem[i]->getChildFromFullLabel("time_evolution.function")->getFunction() ; 
 				functionBC.push_back(std::make_pair(bc, f)) ;
 			}
-			if(bcItem[i]->hasChild("time_evolution.rate"))
+			if(bcItem[i]->hasChildFromFullLabel("time_evolution.rate"))
 			{
 				Function f = "t" ; 
 				f *= bcItem[i]->getData("time_evolution.rate", 0.) ;
@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
 		F.setDeltaTime( instants[i]-instants[i-1] ) ;
 
 		for(size_t j = 0 ; j < interpolatedBC .size() ; j++)
-			interpolatedBC[j].first->setData( interpolatedBC[j].second->get( F.getCurrentTime() ) ) ;
+			interpolatedBC[j].first->setData( interpolatedBC[j].second->get( instants[i] ) ) ;
 		for(size_t j = 0 ; j < functionBC .size() ; j++)
-			functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., F.getCurrentTime() ) ) ;
+			functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., instants[i] ) ) ;
 
 		F.step() ;
 		problem->getChild("output")->writeOutput(&F, i, instants.size()) ;

@@ -296,7 +296,7 @@ Vector ConfigTreeItem::getImposedDeformation(SpaceDimensionality dim) const
 
 Function ConfigTreeItem::getFunction() const 
 {
-	std::string function = getStringData("0") ;
+	std::string function = getStringData() ;
 	Function f(function.c_str()) ;
 	return f ;
 }
@@ -459,7 +459,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 	{
 		if(type == "MOHR_COULOMB")
 		{
-			ret = new NonLocalMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",0.001), getFather()->getData("young_modulus",1e9) ) ;
+			ret = new NonLocalMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9) ) ;
 		}
 		if(type == "LINEAR_SOFTENING_MOHR_COULOMB")
 		{
@@ -609,7 +609,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 		std::vector<ConfigTreeItem *> parameters = getChild("parameters")->getAllChildren() ;
 		for(size_t i = 0 ; i < parameters.size() ; i++)
 		{
-			std::cout << parameters[i]->getLabel() << "\t" << parameters[i]->getData() << std::endl ;
+//			std::cout << parameters[i]->getLabel() << "\t" << parameters[i]->getData() << std::endl ;
 			log->addMaterialParameter( parameters[i]->getLabel(), parameters[i]->getData() ) ;
 		}
 
@@ -619,7 +619,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 			log->addMaterialLaw( laws[i]->getExternalMaterialLaw() ) ;
 		}
 
-		std::cout << getFullLabel() << std::endl ;
+//		std::cout << getFullLabel() << std::endl ;
 
 		return log ;
 	}
@@ -740,6 +740,11 @@ Vector ConfigTreeItem::readVectorFromFile() const
 {
 	std::fstream in ;
 	in.open( getStringData().c_str(), std::ios::in ) ;
+	if(in.fail())
+	{
+		std::cout << "unable to read vector from file " << getStringData() << std::endl ;
+		return Vector() ;
+	}
 	std::vector<double> tmp ;
 	while(!in.eof())
 	{
@@ -747,7 +752,7 @@ Vector ConfigTreeItem::readVectorFromFile() const
 		in >> buff ;
 		tmp.push_back(buff) ;
 	}
-	Vector ret(tmp.size()) ;
+	Vector ret(tmp.size()-1) ;
 	for(size_t i = 0 ; i < ret.size() ; i++)
 		ret[i] = tmp[i] ;
 	return ret ;
@@ -1395,7 +1400,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps)
 	if(getStringData("file_name","file_not_found") == "file_not_found")
 		return ;
 
-	if(i == 0)
+	if(i == 1)
 	{
 		std::fstream out ;
 		out.open(getStringData("file_name","output").c_str(), std::ios::out) ;
@@ -1466,4 +1471,28 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
 		trg->writeSvg() ;
 	}
 }
+
+#ifdef __WIN32
+void ConfigTreeItem::makeWindowsPath() 
+{
+	for(size_t i = 0 ; i < children.size() ; i++)
+		children[i]->makeWindowsPath() ;
+
+	if(label != "function")
+	{
+		std::string path = str ;
+		size_t backslash = path.find("/") ;
+		while(backslash < std::string::npos)
+		{
+			std::string left = path.substr(0, backslash) ;
+			std::string right = path.substr(backslash+1) ;
+			path = left+"\\"+right ;
+			backslash = path.find("/") ;
+		}
+		str = path ;
+		std::cout << path << std::endl ;
+	}
+
+}
+#endif
 
