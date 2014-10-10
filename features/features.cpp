@@ -6610,7 +6610,7 @@ void FeatureTree::generateElements()
 
                     for( size_t l = 0 ; l < descendants.size() ; l++ )
                     {
-                        if( descendants[l]->inBoundary( inter[k], pointDensity ) )
+                        if( descendants[l]->inBoundary( inter[k], pointDensity*0.25 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -6619,7 +6619,7 @@ void FeatureTree::generateElements()
 
                     for( size_t l = 0 ; l < fatherdescendants.size() ; l++ )
                     {
-                        if( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary( inter[k], pointDensity ) && !feature->onBoundary( inter[k], pointDensity ) )
+                        if( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary( inter[k], pointDensity*0.25 ) && !feature->onBoundary( inter[k], pointDensity*0.25 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -6699,7 +6699,7 @@ void FeatureTree::generateElements()
 
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if( (feature->onBoundary( inter[k], pointDensity )) || ( !indescendants && squareDist3D( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
+                        if( (feature->onBoundary( inter[k], pointDensity*0.25 )) || ( !indescendants && squareDist3D( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point( inter[k] ) ;
                             additionalPoints.push_back( p ) ;

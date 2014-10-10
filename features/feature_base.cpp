@@ -118,6 +118,8 @@ std::vector<Feature *> & Feature::getChildren()
 
 bool Feature::inBoundary(const Point &p, double d) const 
 {
+	if(p == getCenter())
+		return true ;
 	Point proj(p) ;
 	project(&proj) ;
 	return (squareDist3D(proj, p) < d*d) || in(p);
@@ -125,9 +127,10 @@ bool Feature::inBoundary(const Point &p, double d) const
 
 bool Feature::onBoundary(const Point &p, double d) const 
 {
+	if(p == getCenter())
+		return false ;
 	Point proj(p) ;
 	project(&proj) ;
-	
 	return (dist(proj, p) < d) ;
 }
 

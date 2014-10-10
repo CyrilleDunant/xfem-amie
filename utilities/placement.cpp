@@ -45,6 +45,20 @@ bool intersections( Feature * feat, const std::vector<Geometry *> & exclusionZon
 	return false ;
 }
 
+bool isInside( Feature * feat, const std::vector<Geometry *> & base)
+{
+	for(size_t j = 0 ; j < base.size() ; j++)
+	{
+		if(feat->intersects(base[j]))
+		{
+			Point p = feat->getCenter() ;
+			base[j]->project(&p) ;
+			return !feat->in(p) ;
+		}
+	}
+	return false ;
+}
+
 
 void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution, RandomDistribution & rDistribution)
 {
@@ -98,6 +112,76 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
 			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))|| intersections(inclusions[i], exclusionZones) )
+			{
+				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+				bbox = inclusions[i]->getBoundingBox() ;
+			}
+			
+		}
+		
+		if(tries < triesMax)
+		{
+			if(i%100 == 0)
+				std::cout << "\rplaced " << i << " particles (tries " << tries << "/" << triesMax << ")" << std::flush ;
+			if(scale > 1.)
+			{
+				Point s(1./scale, 1./scale) ;
+				inclusions[i]->transform( SCALE , s) ;
+			}
+			ret.push_back(inclusions[i]);
+		}
+		  
+	}
+	
+	std::cout << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;
+	
+	return ret ;
+}
+
+std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
+{
+	std::vector<Feature *> ret ;
+	int tries = 0 ;
+	
+	std::vector<Point> boundingBox = box->getBoundingBox() ;
+	UniformDistribution xDistribution( boundingBox[0].getX(), boundingBox[2].getX() ) ;
+	UniformDistribution yDistribution( boundingBox[0].getY(), boundingBox[2].getY() ) ;
+	UniformDistribution rDistribution( -orientation, orientation ) ;
+	Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
+
+	for(size_t i = 0 ; i < placedAggregates ; i++)
+	{
+		ret.push_back(inclusions[i]);
+		grid.add(inclusions[i]) ;
+	}
+
+	for(size_t i = placedAggregates ; i < inclusions.size() && tries < triesMax ; i++)
+	{
+		tries++ ;
+		
+		double scale = 1. ;
+		if(minDist > POINT_TOLERANCE_2D)
+		{
+			scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
+			Point s( scale, scale ) ;
+			inclusions[i]->transform(SCALE, s) ;
+		}
+		
+		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
+		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) )
+		{
+			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+			bbox = inclusions[i]->getBoundingBox() ;
+		}
+		
+		while(!grid.add(inclusions[i]) && tries < triesMax)
+		{
+			tries++ ;
+			
+			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
+			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))  || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) )
 			{
 				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 				bbox = inclusions[i]->getBoundingBox() ;

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     Sample box(nullptr, 0.2,0.2,0.,0.) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(64) ;
+    F.setSamplingNumber(128) ;
     F.setOrder(LINEAR) ;
     double time_step = 0.01 ;
     F.setDeltaTime(time_step) ;
@@ -69,22 +69,31 @@ int main(int argc, char *argv[])
     ElasticOnlyPasteBehaviour paste ;
     box.setBehaviour( &paste );
 
-    std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(), 500, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1,0.,0.)) ;
+    std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(), 1, 0.04, 0.0002, new ConstantSizeDistribution(), ELLIPSE, 0.7, M_PI, 10, 0.8) ;
 
+	std::vector<Geometry *> buffer ;
+	for(size_t i = 0 ; i < inc.size() ; i++)
+	{
+		buffer.push_back(dynamic_cast<Geometry *>(inc[i])) ;
+	}
+
+    std::vector<Feature *> inc2 = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(30e9), 1, 0.05, 0.0002, new ConstantSizeDistribution(), CIRCLE, 1., M_PI, 1000, 0.8, nullptr, buffer) ;
+
+	std::vector<Feature *> inc3 = PSDGenerator::get2DEmbeddedInclusions(&F, new VoidForm(), inc2, 3, 0.01, 0.0001, new ConstantSizeDistribution(), CIRCLE, 1, M_PI, 100, 0.8) ;
+
+	std::vector<Geometry *> buffer2 ;
+	for(size_t i = 0 ; i < inc3.size() ; i++)
+	{
+		buffer2.push_back(dynamic_cast<Geometry *>(inc3[i])) ;
+	}
+
+	PSDGenerator::get2DEmbeddedInclusions(&F, new VoidForm(), inc2, 20, 0.005, 0.0001, new ConstantSizeDistribution(), ELLIPSE, 0.8, M_PI, 1000, 0.8, nullptr, buffer2) ;
 
     F.step() ;
 
 	TriangleWriter trg("toto", &F, 1.) ;
 	trg.getField(TWFT_STIFFNESS) ;
 	trg.write() ;
-
-//	for(size_t i = 0 ; i < 10 ; i++)
-
-    F.step() ;
-
-	TriangleWriter trg2("tata", &F, 1.) ;
-	trg2.getField(TWFT_STIFFNESS) ;
-	trg2.write() ;
 
     return 0 ;
 

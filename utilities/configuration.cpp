@@ -267,6 +267,7 @@ Sample * ConfigTreeItem::getSample() const
 	{
 		ret->setBehaviour( getChild("behaviour")->getBehaviour( SPACE_TWO_DIMENSIONAL, spaceTime ) ) ;
 	}
+
 	return ret ;
 }
 
@@ -929,7 +930,7 @@ GeometryType ConfigTreeItem::translateGeometryType(std::string type)
 }
 
 
-std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F) const 
+std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers) const 
 {
 	std::vector<Feature *> ret ;
 	ConfigTreeItem * psdConfig = getChild("particle_size_distribution") ;
@@ -963,7 +964,42 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F) const
 				ret[i]->setBehaviour( behaviour ) ;
 		}
 		for(size_t i = 0 ; i < ret.size() ; i++)
-			F->addFeature( F->getFeature(0), ret[i]) ;
+		{
+			bool placed = false ;
+			for(size_t j = 0 ; j < base.size() ; j++)
+			{
+				if(base[j]->in(ret[i]->getCenter()))
+				{
+					F->addFeature( base[j], ret[i]) ;
+					placed = true ;
+					break ; 
+				}
+			}
+			if(!placed)
+				F->addFeature( F->getFeature(0), ret[i]) ;
+		}
+	}
+	else if(type == "FROM_PARENT_DISTRIBUTION")
+	{
+		Function f("x") ;
+		if(psdConfig->hasChild("layer_thickness_function"))
+			f = psdConfig->getChild("layer_thickness_function")->getFunction() ;
+		else
+			f -= psdConfig->getData("layer_thickness",0.0001) ;
+		
+		VirtualMachine vm ;
+		for(size_t i = 0 ; i < base.size() ; i++)
+		{
+			double newr = vm.eval(f, base[i]->getRadius()) ;
+			if(newr > POINT_TOLERANCE_2D && newr < base[i]->getRadius() - POINT_TOLERANCE_2D)
+			{
+				Inclusion * inc = new Inclusion( newr, base[i]->getCenter().getX(), base[i]->getCenter().getY()) ;
+				inc->setBehaviour(behaviour) ;
+				F->addFeature( base[i], inc) ;
+				ret.push_back(inc) ;
+			}
+		}
+
 	}
 	else
 	{
@@ -981,7 +1017,15 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F) const
 		{
 			placement = getChildFromFullLabel("placement.box")->getSample() ;
 		}
-		ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement)) ;
+		if(base.size() == 0)
+		{
+			ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers) ;
+			std::cout << ret.size() << std::endl ;
+		}
+		else
+		{
+			ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers) ;
+		}
 	}
 
 	if(hasChild("sampling_factor"))
@@ -996,6 +1040,19 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F) const
 		{
 			if(F->getFeature(0)->intersects(ret[i]))
 				F->setSamplingFactor( ret[i], getData("intersection_sampling_factor",1.) ) ;
+		}
+	}
+
+	if(hasChild("inclusions"))
+	{
+		std::vector<Feature *> newbase = ret ;
+		std::vector<Geometry *> newbrothers ;
+		std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
+		for(size_t i = 0 ; i < newInclusions.size() ; i++)
+		{
+			std::vector<Feature *> tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
+			for(size_t j = 0 ; j < tmp.size() ; j++)
+				newbrothers.push_back( dynamic_cast<Geometry *>(tmp[j]) ) ;
 		}
 	}
 
@@ -1317,6 +1374,20 @@ bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 	return false ;
 }
 
+TWFieldType ConfigTreeItem::translateTriangleWriterFieldType( std::string field, bool & ok)
+{
+	ok = true ;
+	if(field == "CRITERION")
+		return TWFT_CRITERION ;
+	if(field == "STIFFNESS")
+		return TWFT_STIFFNESS ;
+	if(field == "VISCOSITY")
+		return TWFT_VISCOSITY ;
+	ok = false ;
+	return TWFT_COORDINATE ;
+}
+
+
 FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
 {
 	ok = true ;
@@ -1439,8 +1510,12 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
 		{
 			bool isFieldType = true ;
 			FieldType f = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+			bool isTWFieldType = false ;
+			TWFieldType g = ConfigTreeItem::translateTriangleWriterFieldType( fields[i]->getStringData(), isTWFieldType ) ;
 			if(isFieldType)
 				trg.getField( f ) ;
+			else if(isTWFieldType)
+				trg.getField( g ) ;
 			else
 				trg.getField(  fields[i]->getStringData() ) ;
 		}
@@ -1462,8 +1537,16 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
 		{
 			bool isFieldType = true ;
 			FieldType f = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+			bool isTWFieldType = false ;
+			TWFieldType g = ConfigTreeItem::translateTriangleWriterFieldType( fields[i]->getStringData(), isTWFieldType ) ;
 			if(isFieldType)
+			{
 				trg->getField( f ) ;
+			}
+			else if(isTWFieldType)
+			{
+				trg->getField( g ) ;
+			}
 			else
 				trg->getField(  fields[i]->getStringData() ) ;
 		}

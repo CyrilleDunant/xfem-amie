@@ -78,7 +78,7 @@ std::vector<Inclusion *> PSDGenerator::get2DInclusions(double rmax, double mass,
 // 		std::cout << radii.size() << " particles generated, covering a surface of " << mass-remainingMass << std::endl ;
 // 	}
 	std::vector<Inclusion *> incs ;
-	for(size_t i = 0 ; i < radii.size() ; i++)
+	for(size_t i = 0 ; i < radii.size()-1 ; i++)
 	{
 		incs.push_back(new Inclusion(radii[i],0.,0.)) ;
 	}
@@ -164,7 +164,6 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 	}
 	inc.clear() ;
 	srand(seed) ;
-	srandom(seed) ;
 	if(placement)
 		feats = placement2D( placement, feats, itz, 0, tries, orientation, exclusionZones ) ;
 	else
@@ -179,10 +178,61 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 //		feats[i]->isUpdated = false ;
 		F->addFeature(box, feats[i]) ;
 	}
-	std::cout << area << std::endl ;
 	return feats ;
 }
 
+std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour, std::vector<Feature *> base, size_t n, double rmax, double itz, ParticleSizeDistribution * type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
+{
+	if(!type)
+		type = new PSDBolomeA() ;
+	Feature * box = F->getFeature(0) ;
+	double ar = sqrt(box->area()) ;
+	if(placement != nullptr)
+		ar = sqrt(placement->area()) ;
+
+	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
+	std::vector<Feature *> feats ;
+	if(geo == ELLIPSE || geo == TRIANGLE)
+	{
+		InclusionConverter converter(geo) ;
+		converter.setAspectRatio(aspectRatio) ;
+		feats = converter.convert(inc) ;
+	}
+	else 
+	{
+		if(geo != CIRCLE)
+			std::cout << "unknown geometry inclusion - fall back on circles" << std::endl ;
+		for(size_t i = 0 ; i < inc.size() ; i++)
+		{
+			feats.push_back(inc[i]) ;
+		}
+	}
+	inc.clear() ;
+	srand(seed) ;
+	std::vector<Geometry *> geom ;
+	for(size_t i = 0 ; i < base.size() ; i++)
+		geom.push_back( dynamic_cast<Geometry *>(base[i])) ;
+	if(placement)
+		feats = placement2DInInclusions( placement, geom, feats, itz, 0, tries, orientation, exclusionZones ) ;
+	else
+		feats = placement2DInInclusions( dynamic_cast<Rectangle *>(box), geom, feats, itz, 0, tries, orientation, exclusionZones ) ;
+	double area = 0 ;
+	for(size_t i = 0 ; i < feats.size() ; i++)
+	{
+		area += feats[i]->area() ;
+		if(behaviour)
+			feats[i]->setBehaviour(behaviour) ;
+		for(size_t j = 0 ; j < base.size() ; j++)
+		{
+			if(base[j]->in(feats[i]->getCenter()))
+			{
+				F->addFeature(base[j], feats[i]) ;
+				break ;
+			}
+		}
+	}
+	return feats ;
+}
 std::vector<Inclusion *> PSDGenerator::get2DMortar(FeatureTree * F, Form * behaviour, double rmax, size_t n, ParticleSizeDistribution * type, size_t tries, size_t seed) 
 {
 	if(!type)

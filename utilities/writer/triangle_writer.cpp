@@ -537,7 +537,7 @@ void BinaryTriangleWriter::append()
 
 void MultiTriangleWriter::append()
 {
-	writeHeader( layers[0], true ,true ) ;
+	writeHeader( layers[0], true ,false ) ;
 	std::fstream outfile  ;
 	outfile.open( filename.c_str(), std::ios::out | std::ios::app ) ;
 
@@ -571,6 +571,7 @@ void MultiTriangleWriter::append()
 
 		outfile.close();
 	}
+	std::cout << layers.size() << std::endl ;
 	writeIndexFile();
 }
 

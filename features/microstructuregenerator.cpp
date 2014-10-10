@@ -208,7 +208,7 @@ namespace Amie
 					ay = a*std::sin(o) ;
 					bx = b*std::sin(o) ;
 					by = -b*std::cos(o) ;
-					
+
 					return new EllipsoidalInclusion(inc->getFather(), inc->getCenter(), Point(ax,ay), Point(bx,by)) ;
 					
 				case TRIANGLE:

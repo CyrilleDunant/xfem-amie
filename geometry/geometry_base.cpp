@@ -1336,6 +1336,13 @@ bool Geometry::intersects(const Geometry *g) const
 
         std::vector<Segment> segs ;
 
+        if(g->getGeometryType() == ELLIPSE)
+	{
+	    Point p(getCenter().getX(), getCenter().getY());
+            Ellipse falseCircle( p , Point(this->getRadius(),0.), Point(0.,this->getRadius() ) ) ;
+            return g->intersects(&falseCircle) ;
+	}
+
         if(g->getGeometryType() == TRIANGLE)
         {
             segs.push_back(Segment(g->getBoundingPoint(0),
@@ -1366,7 +1373,7 @@ bool Geometry::intersects(const Geometry *g) const
             intersects = intersects || segs[i].intersects(this) ;
         }
 
-        return intersects ;
+       return intersects ;
     }
     case TIME_DEPENDENT_CIRCLE:
     {
@@ -1421,26 +1428,58 @@ bool Geometry::intersects(const Geometry *g) const
 
         if(g->getGeometryType() == CIRCLE)
         {
-            Ellipse falseCircle(*dynamic_cast<const Circle *>(g)) ;
-            return this->intersects(&falseCircle) ;
+	    Point p(g->getCenter().getX(), g->getCenter().getY()) ;
+            Ellipse falseCircle(p, Point(g->getRadius(), 0.), Point(0.,g->getRadius())) ;
+            return falseCircle.intersects(this) ;
         }
 
         if(g->getGeometryType() == ELLIPSE)
         {
-            if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())*1.01)
+            if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())+POINT_TOLERANCE_2D)
+	    {
                 return false ;
+	    }
 
-            Ellipse copy(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis()*1.01, dynamic_cast<const Ellipse *>(g)->getMinorAxis()*1.01) ;
-//				Point p = dynamic_cast<const Ellipse *>(g)->getMajorAxis() ; p.print() ;
-            copy.sampleBoundingSurface(64) ;
+	if(dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(this)->getMinorRadius() || dist(g->getCenter(), getCenter()) < dynamic_cast<const Ellipse *>(g)->getMinorRadius())
+	{
+		return true ;
+	}
 
-            bool isin = false ;
+	Point gcenter(g->getCenter().getX(), g->getCenter().getY()) ;
+	Point thiscenter(getCenter().getX(), getCenter().getY()) ;
+	Point ga(dynamic_cast<const Ellipse *>(g)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMajorAxis().getY()) ;
+	Point gb(dynamic_cast<const Ellipse *>(g)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(g)->getMinorAxis().getY()) ;
+	Point thisa(dynamic_cast<const Ellipse *>(this)->getMajorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMajorAxis().getY()) ;
+	Point thisb(dynamic_cast<const Ellipse *>(this)->getMinorAxis().getX(), dynamic_cast<const Ellipse *>(this)->getMinorAxis().getY()) ;
 
-            for(size_t i = 0 ; i < copy.getBoundingPoints().size() ; i++)
+            Ellipse gcopy(gcenter, ga, gb) ;
+            gcopy.sampleBoundingSurface(64) ;
+
+            Ellipse thiscopy(thiscenter, thisa, thisb) ;
+            thiscopy.sampleBoundingSurface(64) ;
+
+		if(thiscopy.in(gcenter))
+		{
+			return true ;
+		}
+
+            for(size_t i = 0 ; i < gcopy.getBoundingPoints().size() ; i++)
             {
-                if(in(copy.getBoundingPoint(i)))
-                    return true ;
+                if(thiscopy.in(gcopy.getBoundingPoint(i)))
+		{
+			return true ;
+		}
             }
+
+
+            for(size_t i = 0 ; i < thiscopy.getBoundingPoints().size() ; i++)
+            {
+                if(gcopy.in(thiscopy.getBoundingPoint(i)))
+		{
+			return true ;
+		}
+            }
+
 
             return false ;
 
@@ -1621,6 +1660,7 @@ bool Geometry::intersects(const Geometry *g) const
     {
         if(g->getGeometryType() == SPHERE)
         {
+		std::cout << "really???" << std::endl ;
             return g->intersects(this) ;
         }
 
@@ -3701,6 +3741,12 @@ bool Segment::intersects(const Geometry *g) const
     }
     case ELLIPSE:
     {
+	Point pfirst = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(f) ;
+	Point psecond = dynamic_cast<const Ellipse *>(g)->toLocalCoordinates(s) ;
+	Segment inLocalCoordinates(pfirst, psecond) ;
+	Circle c(0.,0.,1.) ;
+	return inLocalCoordinates.intersects(&c) ;
+
         Ellipse ell(g->getCenter(), dynamic_cast<const Ellipse *>(g)->getMajorAxis(), dynamic_cast<const Ellipse *>(g)->getMinorAxis()) ;
 
 //			ell.sampleBoundingSurface(128) ;

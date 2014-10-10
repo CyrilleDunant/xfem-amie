@@ -1780,9 +1780,9 @@ void Ellipse::project(Point * p) const
 	Point test(p->getX(),p->getY()) ;
 	if(test == center)
 	{
-		p->getX() += getMinorAxis().getX() ;
-		p->getY() += getMinorAxis().getY() ;
-		std::cout << "center" << std::endl ;
+//		p->getX() += getMinorAxis().getX() ;
+//		p->getY() += getMinorAxis().getY() ;
+		p->print() ;
 		return ;
 	}
 	else
@@ -1837,71 +1837,36 @@ void Ellipse::project(Point * p) const
 		}
 
 		// else, we need brute force
-		Point c_(0.,0.) ;
-		Point a_(getMajorRadius(),0.) ;
-		Point b_(0.,getMinorRadius()) ;
-		Ellipse ell(c_,a_,b_) ;
-
-		Function x("x") ;
-		Function y("y") ;
-
-		Function dist_x(x*x - x*2*prot.getX() + prot.getX()*prot.getX()) ;
-		Function dist_y(y*y - y*2*prot.getY() + prot.getY()*prot.getY()) ;
-
-
-		Function dist_p_ell(dist_x + dist_y) ;
 
 		double tmin = 0. ;
 		double tmax = M_PI * 2. ;
-		double found = tmin ;
-		double found2 = tmax ;
 		int iter = 0 ;
-		while(std::abs(found-found2) > POINT_TOLERANCE_2D && iter < 10)
+		while(std::abs(tmin-tmax) > POINT_TOLERANCE_2D && iter < 16)
 		{
 			iter++ ;
-			double dtheta = (tmax - tmin) / 100. ;
-			double theta_n = (tmin + tmax)*0.5 - dtheta ;
-			double theta_p = (tmin + tmax)*0.5 ;
-			double theta_q = (tmin + tmax)*0.5 + dtheta ;
+			double dtheta = (tmax - tmin) / 32. ;
+			Vector allDistances(33) ;
+			for(size_t i = 0 ; i < allDistances.size() ; i++)
+				allDistances[i] = dist( test, getPointOnEllipse( tmin+dtheta*i )) ;
 
-			double dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-			double dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-			double dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
-
-			while(dist_p > std::min(dist_n,std::min(dist_p,dist_q)))
+			double j = 0 ;
+			for(size_t i = 0 ; i < allDistances.size() ; i++)
 			{
-				if(dist_n < dist_q)
+				if(allDistances[i] == allDistances.min())
 				{
-					theta_n -= dtheta ;
-					theta_p -= dtheta ;
-					theta_q -= dtheta ;
-					dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-					dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-					dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
-				}
-				else
-				{
-					theta_n += dtheta ;
-					theta_p += dtheta ;
-					theta_q += dtheta ;
-					dist_n = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_n)) ;
-					dist_p = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_p)) ;
-					dist_q = VirtualMachine().eval(dist_p_ell,ell.getPointOnEllipse(theta_q)) ;
+					j = (double) i ;
+					break ;
 				}
 			}
-
-			tmin = std::min(theta_n, theta_q) ;
-			tmax = std::max(theta_n, theta_q) ;
-
-			found2 = found ;
-			found = theta_p ;
-
-
-
+			tmin = tmin+dtheta*(j-1) ;
+			tmax = tmin+dtheta*(j+1) ;
 		}
 
-		p->getX() = this->getPointOnEllipse(found).getX() ;
-		p->getY() = this->getPointOnEllipse(found).getY() ;
+		double found = (tmin+tmax)/2. ;		
+//		std::cout << found << "\t" ;
+
+		p->getX() = getPointOnEllipse(found).getX() ;
+		p->getY() = getPointOnEllipse(found).getY() ;
 
 	}
 
@@ -1987,7 +1952,10 @@ Function Ellipse::getEllipseFormFunction() const
 	Function y_((x-center.getX())*sin(-alpha)+(y-center.getY())*cos(alpha)) ;
 	double mm0 = (getMajorRadius()*getMajorRadius()) ;
 	double mm1 = (getMinorRadius()*getMinorRadius()) ;
-	return Function(x_*x_/mm0 + y_*y_/mm1 - 1) ;
+	Function f0 = x_*x_/mm0 ;
+	Function f1 = y_*y_/mm1 ;
+	Function f2 = f0+f1-1. ;
+	return f2 ;
 }
 
 bool Ellipse::in(const Point &p) const
@@ -2090,9 +2058,9 @@ void Ellipse::sampleSurface (size_t num_points)
 	inPoints.resize(1) ;
 	inPoints[0] = new Point(center) ;
 
-	size_t n = num_points*3*getMajorRadius()/getMinorRadius() ;
+	size_t n = num_points*getMajorRadius()/getMinorRadius() ;
 
-	sampleBoundingSurface(n*4/3) ;
+	sampleBoundingSurface(n) ;
 	sampled = true ;
 
 	double dist = (getBoundingPoint(0)-getBoundingPoint(1)).norm() ;

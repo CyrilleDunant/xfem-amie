@@ -7,7 +7,9 @@
 #define __GEOMETRY_2D_H_
 
 #include "geometry_base.h"
-// #define M_PI 3.14159265358979323846
+#ifdef _WIN32
+#define M_PI 3.14159265358979323846
+#endif
 namespace Amie
 {
 

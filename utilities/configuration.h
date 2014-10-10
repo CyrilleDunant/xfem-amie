@@ -174,7 +174,7 @@ public:
 	ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
 	/** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
-	std::vector<Feature *> getInclusions(FeatureTree * F) const ;
+	std::vector<Feature *> getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) const ;
 
 	/** Translates the current item in a boundary condition*/
 	BoundaryCondition * getBoundaryCondition() const ;
@@ -196,6 +196,9 @@ public:
 
 	/** Translate a string in a field type*/
 	static FieldType translateFieldType(std::string field, bool & ok) ;
+
+	/** Translate a string in a field type*/
+	static TWFieldType translateTriangleWriterFieldType(std::string field, bool & ok) ;
 
 	/** Translate a string in an inclusion type*/
 	static TypeInclusion translateInclusionType(std::string type) ;

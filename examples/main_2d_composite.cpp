@@ -33,7 +33,17 @@ int main(int argc, char *argv[])
 	F.setDiscretizationParameters(problem->getChild("discretization")) ;
 	Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
 	if(problem->hasChild("inclusions"))
-		problem->getChild("inclusions")->getInclusions(&F) ;
+	{
+		std::vector<Geometry *> inclusions ;
+		std::vector<Feature *> dummy ;
+		std::vector<ConfigTreeItem *> newInclusions = problem->getAllChildren("inclusions") ;
+		for(size_t i = 0 ; i < newInclusions.size() ; i++)
+		{
+			std::vector<Feature *> tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions ) ;
+			for(size_t j = 0 ; j < tmp.size() ; j++)
+				inclusions.push_back( dynamic_cast<Geometry *>(tmp[j]) ) ;
+		}
+	}
 
 	F.step() ;
 
