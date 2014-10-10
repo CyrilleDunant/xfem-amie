@@ -11,6 +11,7 @@
 //
 
 #include "linearstiffnessgradient.h"
+#include "../polynomial/vm_function_extra.h"
 
 using namespace Amie ;
 

@@ -102,11 +102,16 @@ struct Form ;
 struct NonLinearForm ;
 struct Function ;
 struct DelaunayTriangle ;
+struct ElementarySurface ;
+struct ElementaryVolume ;
 struct IntegrableEntity ;
 struct FractureCriterion ;
 struct DamageModel ;
 struct VirtualMachine ;
 struct BoundaryCondition ;
+template<class A, class B>
+struct Mesh  ;
+
 
 size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks = 0 ) ;
 

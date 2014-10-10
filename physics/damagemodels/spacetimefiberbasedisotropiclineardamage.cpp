@@ -11,6 +11,7 @@
 //
 #include "spacetimefiberbasedisotropiclineardamage.h"
 #include "../fracturecriteria/fracturecriterion.h"
+#include "../../polynomial/vm_function_extra.h"
 
 namespace Amie {
 

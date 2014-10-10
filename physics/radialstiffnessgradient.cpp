@@ -12,6 +12,7 @@
 
 #include "radialstiffnessgradient.h"
 #include "../elements/elements.h"
+#include "../polynomial/vm_function_extra.h"
 
 using namespace Amie ;
 

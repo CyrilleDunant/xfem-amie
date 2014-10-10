@@ -11,6 +11,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/maxwell.h"
 #include "../physics/void_form.h"
+#include "../polynomial/vm_function_extra.h"
 
 using namespace Amie ;
 
@@ -104,17 +105,17 @@ Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & d
 	
 	if(dofIds.find(&t->getBoundingPoint(0)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) != dofIds.end())
 	{
-		return 1-father.getShapeFunction(0) ;
+		return Function("1")-father.getShapeFunction(0) ;
 	}
 	
 	if(dofIds.find(&t->getBoundingPoint(0)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) == dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) != dofIds.end())
 	{
-		return 1-father.getShapeFunction(1) ;
+		return Function("1")-father.getShapeFunction(1) ;
 	}
 	
 	if(dofIds.find(&t->getBoundingPoint(0)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(1)) != dofIds.end() && dofIds.find(&t->getBoundingPoint(2)) == dofIds.end())
 	{
-		return 1-father.getShapeFunction(2) ;
+		return Function("1")-father.getShapeFunction(2) ;
 	}
 	return Function("1") ;
 }
@@ -248,7 +249,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 		                           (y-getCenter().getY())*(y-getCenter().getY())) ;
 					   
 		
-		Function hat = 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
+		Function hat = Function("1")-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime( ring[i]->getBoundingPoint(0) )-f_abs(position-radiusAtTime( ring[i]->getBoundingPoint(0) ))^2;
 		Function dx = ring[i]->getXTransform() ;
 		Function dy = ring[i]->getYTransform() ;
 		Function dt = ring[i]->getTTransform() ;
@@ -296,7 +297,7 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 			bool hinted = false ;
 			Function position = f_sqrt((x-getCenter().getX())*(x-getCenter().getX()) +
 		                           (y-getCenter().getY())*(y-getCenter().getY())) ;
-			Function hat= 1.-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
+			Function hat= Function("1")-f_abs(position-getRadiusFunction())/getRadiusFunction(); //radiusAtTime(t->getBoundingPoint(0))-f_abs(position-radiusAtTime(t->getBoundingPoint(0)))^2;
 			Function dx = t->getXTransform() ;
 			Function dy = t->getYTransform() ;
 			Function dt = t->getTTransform() ;

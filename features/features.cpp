@@ -4132,7 +4132,7 @@ bool FeatureTree::stepElements()
             //the behaviour updates might depend on the global state of the
             //simulation.
             std::cerr << " stepping through elements... " << std::flush ;
-//#pragma omp parallel for schedule(runtime)
+            #pragma omp parallel for schedule(runtime)
             for( size_t i = 0 ; i < elements.size() ; i++ )
             {
                 if( i % 1000 == 0 )
@@ -4168,7 +4168,7 @@ bool FeatureTree::stepElements()
 
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
-// #pragma omp parallel for reduction(+:volume,adamage)
+                #pragma omp parallel for
                 for( size_t i = 0 ; i < elements.size() ; i++ )
                 {
 
@@ -4183,6 +4183,7 @@ bool FeatureTree::stepElements()
                         bool wasFractured = elements[i]->getBehaviour()->fractured() ;
 
                         elements[i]->getBehaviour()->step( deltaTime, elements[i]->getState(), maxScoreInit ) ;
+                        #pragma omp critical
                         if( dmodel )
                         {
                             if( !elements[i]->getBehaviour()->fractured() )
@@ -4195,12 +4196,14 @@ bool FeatureTree::stepElements()
                                 adamage += are ;// * dmodel->getState().max() ;
 
                         }
+                        #pragma omp critical
                         if( elements[i]->getBehaviour()->changed() )
                         {
                             needAssembly = true ;
                             behaviourChange = true ;
                             ccount++ ;
                         }
+                        #pragma omp critical
                         if( elements[i]->getBehaviour()->fractured() )
                         {
                             fracturedCount++ ;

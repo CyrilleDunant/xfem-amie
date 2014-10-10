@@ -3,7 +3,7 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "enrichmentRing.h"
-
+#include "../polynomial/vm_function_extra.h"
 using namespace Amie ;
 
 EnrichmentRing::EnrichmentRing(Feature *father, double radius, double inradius, double x, double y) : EnrichmentFeature(father), Circle(radius, x, y), self(inradius, x, y)
@@ -106,7 +106,7 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 			Function position(getCenter(),disc[i]) ;
 			
 				//finaly, we have the enrichment function
-			Function hat = 1-f_abs(position -radius)/radius;
+			Function hat = Function("1")-f_abs(position -radius)/radius;
 			
 				//enriching the first point
 			Function f = shapefunc[0]*(hat - VirtualMachine().eval(hat, Point(0,1))) ;
@@ -217,8 +217,8 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 				Function position(getCenter(), ring[i]) ;
 				
 				//finaly, we have the enrichment function
-				Function hatOut = 1-f_abs(position -radius)/radius;
-				Function hatIn = 1-f_abs(position - getInRadius())/getInRadius();
+				Function hatOut = Function("1")-f_abs(position -radius)/radius;
+				Function hatIn = Function("1")-f_abs(position - getInRadius())/getInRadius();
 				Function hat ;
 
 				if(h == 0)
@@ -256,8 +256,8 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 							t->clearEnrichment(circles[h]) ;
 						t->enrichmentUpdated = true ;
 						
-						Function hatOut = 1-f_abs(Function(getCenter(),t) -radius)/radius;
-						Function hatIn = 1-f_abs(Function(getCenter(),t) - getInRadius())/getInRadius();
+						Function hatOut = Function("1")-f_abs(Function(getCenter(),t) -radius)/radius;
+						Function hatIn = Function("1")-f_abs(Function(getCenter(),t) - getInRadius())/getInRadius();
 						Function hat ;
 
 						if(h == 0)

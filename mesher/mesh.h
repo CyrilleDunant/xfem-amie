@@ -39,6 +39,7 @@ protected:
     std::map<const Mesh<ETYPE, EABSTRACTTYPE> *, std::map<Point *, Point * > > pointcache ;
     std::vector<std::vector<int>> caches ;
     std::vector<std::vector<std::vector<double>>> coefs ;
+    int allElementsCacheID ;
     
 public:
 
@@ -55,7 +56,7 @@ public:
         return 1. ;
     } ;
 public:
-    Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions){} ;
+    Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions), allElementsCacheID(-1) {} ;
     virtual ~Mesh() {} ;
     virtual std::vector<ETYPE *> getElements() const = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
@@ -402,6 +403,37 @@ public:
         return position ;
     } ;
 
+    virtual unsigned int generateCache ()
+    {
+        //search for first empty cache slot ;
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+        for ( size_t i = 0 ;  i < size() ; i++ ) {
+
+            if(!dynamic_cast<ETYPE *>(getInTree(i)))
+                continue ;
+            caches[position].push_back ( getInTree(i)->index ) ;
+            coefs[position].push_back ( std::vector<double>() ) ;
+
+            for ( size_t i = 0 ; i < dynamic_cast<ETYPE *>(getInTree(i))->getGaussPoints().gaussPoints.size() ; i++ )
+                coefs[position].back().push_back ( 1 ) ;
+        }
+
+        return position ;
+    };
 //
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
     Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) const {
@@ -733,8 +765,221 @@ public:
 
         return std::make_pair ( first, second ) ;
     }
+    
+    class iterator
+    {
+    private:
+        Mesh<ETYPE, EABSTRACTTYPE> * msh ;
+        size_t cacheID ;
+        size_t position ;
+
+    public:
+        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
+        { 
+            if(msh->allElementsCacheID == -1)
+                msh->allElementsCacheID = msh->generateCache() ;
+            cacheID = msh->allElementsCacheID ;
+        } ;
+        
+        bool operator ==(const iterator & i) const
+        {
+            return i.position == position ;
+        }
+        
+        bool operator <=(const iterator & i)const
+        {
+            return position <= i.position ;
+        }
+        bool operator <(const iterator & i) const
+        {
+            return position < i.position ;
+        }
+        bool operator >=(const iterator & i)const
+        {
+            return position >= i.position ;
+        }
+        bool operator >(const iterator & i) const
+        {
+            return position > i.position ;
+        }
+        
+        iterator& operator++() {
+            position++ ;
+            // actual increment takes place here
+            return *this;
+        }
+        
+        iterator operator++(int) {
+            iterator tmp(*this); // copy
+            operator++(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        iterator& operator+=(int i) {
+            position +=i ;
+            return *this;
+        }
+        
+        friend iterator operator+(iterator lhs,  int i) 
+        {
+            return lhs += i; 
+        }
+        
+        iterator& operator--() {
+            position-- ;
+            return *this;
+        }
+        
+        iterator operator--(int) {
+            iterator tmp(*this); // copy
+            operator--(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        iterator& operator-=(int i) {
+            position -=i ;
+            return *this;
+        }
+        
+        friend iterator operator-(iterator lhs,  int i) 
+        {
+            return lhs -= i; 
+        }
+        
+        ETYPE * operator-> ( ) { 
+            return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        }
+        
+    } ;
+    
+    class const_iterator
+    {
+    private:
+        Mesh<ETYPE, EABSTRACTTYPE> * msh ;
+        size_t cacheID ;
+        size_t position ;
+    public:
+        const_iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        
+        const_iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
+        { 
+            if(msh->allElementsCacheID == -1)
+                msh->allElementsCacheID = msh->generateCache() ;
+            cacheID = msh->allElementsCacheID ;
+        } ;
+        
+        bool operator ==(const const_iterator & i) const
+        {
+            return i.position == position ;
+        }
+        bool operator <=(const const_iterator & i)const
+        {
+            return position <= i.position ;
+        }
+        bool operator <(const const_iterator & i) const
+        {
+            return position < i.position ;
+        }
+        bool operator >=(const const_iterator & i)const
+        {
+            return position >= i.position ;
+        }
+        bool operator >(const const_iterator & i) const
+        {
+            return position > i.position ;
+        }
+        
+        const_iterator& operator++() {
+            position++ ;
+            // actual increment takes place here
+            return *this;
+        }
+        
+        const_iterator operator++(int) {
+            iterator tmp(*this); // copy
+            operator++(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        const_iterator& operator+=(int i) {
+            position +=i ;
+            return *this;
+        }
+        
+        friend const_iterator operator+(const_iterator lhs,  int i) 
+        {
+            return lhs += i; 
+        }
+        
+        const_iterator& operator--() {
+            position-- ;
+            return *this;
+        }
+        
+        const_iterator operator--(int) {
+            iterator tmp(*this); // copy
+            operator--(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        const_iterator& operator-=(int i) {
+            position -=i ;
+            return *this;
+        }
+        
+        friend const_iterator operator-(const_iterator lhs,  int i) 
+        {
+            return lhs -= i; 
+        }
+        
+        const ETYPE * operator-> ( ) const { 
+            return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        }
+        
+    } ;
+    
+    iterator begin()
+    {
+        return iterator(this, 0) ;
+    }
+    const_iterator cbegin()
+    {
+        return const_iterator(this, 0) ;
+    }
+    iterator end()
+    {
+        if(allElementsCacheID == -1)
+            allElementsCacheID = generateCache() ;
+        return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
+    }
+    const_iterator cend()
+    {
+        if(allElementsCacheID == -1)
+            allElementsCacheID = generateCache() ;
+        return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
+    }
+    
+    iterator begin( size_t cacheID)
+    {
+        return iterator(this, cacheID, 0) ;
+    }
+    const_iterator cbegin(size_t cacheID)
+    {
+        return const_iterator(this, cacheID, 0) ;
+    }
+    iterator end(size_t cacheID)
+    {
+        return iterator(this,cacheID, caches[cacheID].size()) ;
+    }
+    const_iterator cend(size_t cacheID)
+    {
+        return const_iterator(this,cacheID, caches[cacheID].size()) ;
+    }
 
 } ;
+
+
 
 template<class ETYPE, class EABSTRACTTYPE>
 class SingleElementMesh : public Mesh<ETYPE, EABSTRACTTYPE>
@@ -959,17 +1204,7 @@ public:
 // 		virtual std::vector<EABSTRACTTYPE *> & getTree() {return tree ; }
 // 		virtual const std::vector<EABSTRACTTYPE *> & getTree() const {return tree ; }
 } ;
-} ;
-
-
-
-
-
-
-
-
-
-
+}
 
 
 #endif // MESH_H

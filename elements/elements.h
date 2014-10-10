@@ -18,6 +18,7 @@
 #include "../geometry/geometry_2D.h"
 #include "../physics/physics_base.h"
 #include "../polynomial/vm_base.h"
+#include "../polynomial/vm_token.h"
 #include "../elements/integrable_entity.h"
 
 Amie::Function XTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;

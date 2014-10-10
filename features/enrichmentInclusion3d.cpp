@@ -3,8 +3,14 @@
 // Copyright: See COPYING file that comes with this distribution
 
 #include "enrichmentInclusion3d.h"
+#include "../polynomial/vm_function_extra.h"
+// #include "../polynomial/vm_function_base.h"
+
+
 
 using namespace Amie ;
+
+
 
 EnrichmentInclusion3D::EnrichmentInclusion3D(Feature *father, double radius, double x, double y, double z) : EnrichmentFeature(father), Sphere(radius, x, y, z)
 {
@@ -336,7 +342,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 		Function dy = ring[i]->getYTransform()-getCenter().getY() ; dy *= dy ;
 		Function dz = ring[i]->getZTransform()-getCenter().getZ() ; dz *= dz ;
 		Function position = f_sqrt(dx + dy + dz) ;
-		Function hat = getRadius()-f_abs(position-getRadius());
+		Function hat("0") ;
+                hat += getRadius() ;
+                hat -= f_abs(position-getRadius());
 // 		hat.setNumberOfDerivatives(0);
 // 		exit(0) ;
 // 		for(double j = -1 ; j < 1 ; j+=.01)
@@ -390,7 +398,9 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 			Function dy = t->getYTransform()-getCenter().getY() ; dy *= dy ;
 			Function dz = t->getZTransform()-getCenter().getZ() ; dz *= dz ;
 			Function position = f_sqrt(dx + dy + dz) ;
-			Function hat = (getRadius()-f_abs(position-getRadius()));
+			Function hat("0") ;
+                        hat += getRadius() ;
+                        hat -= f_abs(position-getRadius());
 // 			hat.setNumberOfDerivatives(0);
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)
 			{

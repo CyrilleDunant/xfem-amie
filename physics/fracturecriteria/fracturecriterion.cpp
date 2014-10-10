@@ -16,6 +16,7 @@
 #include "../../physics/viscoelasticity.h"
 #include "../../mesher/delaunay_3d.h"
 #include "../../solvers/assembly.h"
+#include "../../polynomial/vm_function_extra.h"
 #include <omp.h>
 using namespace Amie ;
 
@@ -28,7 +29,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     criterionDamageDifferential(0),
     mesh2d(nullptr), mesh3d(nullptr),
     stable(true), checkpoint(true), inset(false),inIteration(false),
-    scoreTolerance(1e-3),
+    scoreTolerance(1e-2),
     initialScore(1),
     cachedInfluenceRatio(1),
     minDeltaInNeighbourhood(1),

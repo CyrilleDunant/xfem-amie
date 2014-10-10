@@ -6,6 +6,7 @@
 #include "crack.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../elements/integrable_entity.h"
+#include "../polynomial/vm_function_extra.h"
 
 #include <fstream>
 

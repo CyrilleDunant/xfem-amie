@@ -11,6 +11,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/maxwell.h"
 #include "../physics/void_form.h"
+#include "../polynomial/vm_function_extra.h"
 
 using namespace Amie ;
 
@@ -33,6 +34,87 @@ bool EnrichmentInclusion::enrichmentTarget(DelaunayTriangle * t)
 	Segment s2(*t->third, *t->first) ;
 	return (s0.intersects(getPrimitive()) || s1.intersects(getPrimitive()) || s2.intersects(getPrimitive())) ;
 }
+
+    Function EnrichmentInclusion::getBlendingFunction(const std::map<const Point *, int> & dofIds, const DelaunayTriangle * t)
+    {
+    //  return Function("1") ;
+
+    // if(t->getOrder() == QUADRATIC)
+    // {
+    //  TriElement father(QUADRATIC) ;
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(0) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(2) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(3);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(4) + 0.25*father.getShapeFunction(3)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(2)+father.getShapeFunction(3)+father.getShapeFunction(4) + 0.25*father.getShapeFunction(1)+ 0.25*father.getShapeFunction(5);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+    //  {
+    //      return father.getShapeFunction(0) + father.getShapeFunction(5) + father.getShapeFunction(4) + 0.25*father.getShapeFunction(1) +0.25*father.getShapeFunction(3);
+    //  }
+    //  
+    //  if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+    //  {
+    //      return father.getShapeFunction(1)+father.getShapeFunction(0)+father.getShapeFunction(2) + 0.25*father.getShapeFunction(3) + 0.25*father.getShapeFunction(5);
+    //  }
+    // }
+
+
+        Amie::TriElement father(Amie::LINEAR) ;
+    //  Function f ;
+    //  for(size_t i = 0 ; i < t->getBoundingPoints().size() ; i++)
+    //  {
+    //      if(dofIds.find(&(t->getBoundingPoint(i))) != dofIds.end())
+    //          f += father.getShapeFunction(i) ;
+    //  }
+    //  return f ;
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return father.getShapeFunction(0) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return father.getShapeFunction(1) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return father.getShapeFunction(2) ;
+        }
+        
+        if(dofIds.find(t->first) == dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return Function("1")-father.getShapeFunction(0) ;
+        }
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) == dofIds.end() && dofIds.find(t->third) != dofIds.end())
+        {
+            return Function("1")-father.getShapeFunction(1) ;
+        }
+        
+        if(dofIds.find(t->first) != dofIds.end() && dofIds.find(t->second) != dofIds.end() && dofIds.find(t->third) == dofIds.end())
+        {
+            return Function("1")-father.getShapeFunction(2) ;
+        }
+        
+        return Amie::Function("1") ;
+    } ;
 
 void EnrichmentInclusion::update(Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
@@ -234,7 +316,7 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 		//this function returns the distance to the centre
 		Function position = f_sqrt((ring[i]->getXTransform()-getCenter().getX())*(ring[i]->getXTransform()-getCenter().getX()) +
 		                           (ring[i]->getYTransform()-getCenter().getY())*(ring[i]->getYTransform()-getCenter().getY())) ;
-		Function hat = 1.-f_abs(position-getRadius());
+		Function hat = Function("1")-f_abs(position-getRadius());
 			
 		for(size_t j = 0 ; j< ring[i]->getBoundingPoints().size() ; j++)
 		{
@@ -269,7 +351,10 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 			bool hinted = false ;
 			Function position = f_sqrt((t->getXTransform()-getCenter().getX())*(t->getXTransform()-getCenter().getX()) +
 		                           (t->getYTransform()-getCenter().getY())*(t->getYTransform()-getCenter().getY())) ; ;
-			Function hat = (getRadius()-f_abs(position-getRadius()))*blend;
+			Function hat("0") ;
+                        hat += getRadius() ;
+                        hat -= f_abs(position-getRadius()) ;
+                        hat *= blend;
 // 			Function hat = 1./(f_abs(position-getRadius())*0.2+2.*getRadius()) ;
 			
 			for(size_t k = 0 ; k< t->getBoundingPoints().size() ; k++)

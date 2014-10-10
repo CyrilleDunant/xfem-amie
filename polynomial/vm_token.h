@@ -32,11 +32,6 @@ double interpolate(const double a, const double b) ;
 namespace Amie
 {
 
-template<class ETYPE, class EABSTRACTTYPE>
-struct Mesh ;
-
-struct ElementarySurface ;
-struct ElementaryVolume ;
 typedef double (*unaryFunctionPointer)(const double) ;
 typedef double (*binaryFunctionPointer)(const double, double) ;
 typedef double (*trinaryFunctionPointer)(const double, double, double) ;
@@ -54,13 +49,9 @@ struct Memory
 	/** \brief Constructor. Initialises stack and heap to 0.
 	 * 
 	 */
-	Memory()
-	{
-	} ;
+	Memory();
 	
-	~Memory() 
-	{ 
-	} ;
+	~Memory() ;
 
 } ;
 
@@ -86,11 +77,7 @@ struct Context
 	 * @param v_ 
 	 * @param w_ 
 	 */
-	Context(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(w_) 
-	{ 
-
-	} ;
-
+	Context(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) ;
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
 	 * @param x_ 
@@ -100,10 +87,7 @@ struct Context
 	 * @param u_ 
 	 * @param v_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) : x(x_), y(y_), z(z_), t(t_), u(u_), v(v_), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -113,10 +97,7 @@ struct Context
 	 * @param t_ 
 	 * @param u_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_) : x(x_), y(y_), z(z_), t(t_), u(u_), v(0), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_, const double & u_) ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -125,10 +106,7 @@ struct Context
 	 * @param z_ 
 	 * @param t_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_, const double & t_) : x(x_), y(y_), z(z_), t(t_), u(0), v(0), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_, const double & y_, const double & z_, const double & t_) ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
@@ -136,37 +114,25 @@ struct Context
 	 * @param y_ 
 	 * @param z_ 
 	 */
-	Context(const double & x_, const double & y_, const double & z_) : x(x_), y(y_), z(z_), t(0), u(0), v(0), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_, const double & y_, const double & z_) ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
 	 * @param x_ 
 	 * @param y_ 
 	 */
-	Context(const double & x_, const double & y_) : x(x_), y(y_), z(0), t(0), u(0), v(0), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_, const double & y_) ;
 
 	/** \brief Constructor, initialises the argument values. arguments not set are 0
 	 * 
 	 * @param x_ 
 	 */
-	Context(const double & x_) : x(x_), y(0), z(0), t(0), u(0), v(0), w(0) 
-	{ 
-
-	} ;
+	Context(const double & x_) ;
 
 	/** \brief Constructor, initialises the arguments to 0
 	 * 
 	 */
-	Context() : x(0), y(0), z(0), t(0), u(0), v(0), w(0) 
-	{ 
-
-	} ;
+	Context() ;
 
 	/** \brief Sets the argument values.
 	 * 
@@ -178,16 +144,7 @@ struct Context
 	 * @param v_ 
 	 * @param w_ 
 	 */
-	void set(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ )
-	{
-		x = x_; 
-		y = y_;
-		z = z_;
-		t = t_; 
-		u = u_; 
-		v = v_; 
-		w = w_;
-	}
+	void set(const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ );
 
 	/** \brief Sets the argument values. Arguments not set are kept.
 	 * 
@@ -199,32 +156,20 @@ struct Context
 	 * @param v_ 
 	 * @param w_ 
 	 */
-	void set(const double & x_, const double & y_, const double & z_ )
-	{
-		x = x_; 
-		y = y_;
-		z = z_;
-	}
+	void set(const double & x_, const double & y_, const double & z_ );
 
 	/** \brief Sets the argument values. Arguments not set are kept.
 	 * 
 	 * @param x_ 
 	 * @param y_ 
 	 */
-	void set(const double & x_, const double & y_)
-	{
-		x = x_; 
-		y = y_;
-	}
+	void set(const double & x_, const double & y_);
 
 	/** \brief Sets the argument values. Arguments not set are kept.
 	 * 
 	 * @param x_ 
 	 */
-	void set(const double & x_)
-	{
-		x = x_; 
-	}
+	void set(const double & x_);
 } ;
 
 
@@ -287,7 +232,7 @@ typedef enum : unsigned char
 class GeometryOperation
 {
 public:
-	GeometryOperation() { } ;
+	GeometryOperation() ;
 	virtual void eval(double * a, double * b, double * c) const = 0;
 	virtual GeometryOperation * getCopy() const = 0;
 	virtual int adressOffset() const = 0 ;
@@ -299,49 +244,11 @@ class PositionOperation : public GeometryOperation
 	std::vector<Segment> s ;
 	Point w ;
 public:
-	PositionOperation(const Segment & s_ ) 
-	{
-		Point vector = s_.normal(Point(-1000, -1000));
-		w=( s_.midPoint()+vector*10.) ;
-		s.push_back(s_)  ;
-	}
-	
-	PositionOperation(const std::vector<Segment> & s_ ) 
-	{
-		for(size_t i = 0 ; i < s_.size() ; i++)
-		{
-			s.push_back(s_[i])  ;
-		}			
-		Point vector= s_[0].normal(Point(-1000, -1000));
-		w=( s_[0].midPoint()+vector*10.) ;
-	}
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		Point test(*a,*b) ;
-		int intersections = 0 ;
-		for(size_t i = 0 ; i < s.size() ; i++)
-		{
-			if(s[i].intersects(test, w))
-			{
-				intersections++ ;
-			}
-		}
-		
-		*c =  (intersections & 1) * 2 - 1;
-// 		if(intersections%2 == 1)
-// 		    *context.memory.getT()op_pos = -1 ;
-// 		else
-// 		    *context.memory.getT()op_pos = 1 ;
-	}
-  virtual GeometryOperation * getCopy() const 
-  {
-		return new PositionOperation(s) ;
-	};
-	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	PositionOperation(const Segment & s_ ) ;
+	PositionOperation(const std::vector<Segment> & s_ ) ;
+	virtual void eval(double * a, double * b, double * c) const;
+  virtual GeometryOperation * getCopy() const ;
+	virtual int adressOffset() const;
 } ;
 
 /** \brief Put the distance between a point defined by the two last positions on the stack and its projection on a Line on the stack. */
@@ -349,26 +256,13 @@ class LineDistanceOperation : public GeometryOperation
 {
 	Line l ;
 public:
-	LineDistanceOperation(const Line & l_ ) : l(l_)
-	{
-	}
+	LineDistanceOperation(const Line & l_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		Point test(*a, *b) ;
-		*c=  sqrt(squareDist2D(test,l.projection(test)));
-	}
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new LineDistanceOperation(l) ;
-	};
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 	
 } ;
 
@@ -379,21 +273,12 @@ class InHomogeneousProjectionOperation : public GeometryOperation
 	std::vector<Segment> outProjector ;
 public:
 	//by convention, the first point of each segment is assumed to be on the geometry
-	InHomogeneousProjectionOperation(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector) : inGeo(inGeo), inProjector(inProjector), outProjector(outProjector)
-	{
-	}
-
+	InHomogeneousProjectionOperation(Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector) ;
 	virtual void eval(double * a, double * b, double * c) const ;
 
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new InHomogeneousProjectionOperation(inGeo, inProjector, outProjector) ;
-	};
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 } ;
 
 
@@ -402,29 +287,11 @@ class DomainOperation : public GeometryOperation
 {
 	const Geometry* geo ;
 public:
-	DomainOperation(const Geometry * g ) 
-	{
-		geo = g ;
-	}
+	DomainOperation(const Geometry * g ) ;
+	virtual void eval(double * a, double * b, double * c) const;
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		Point p(*a,*b,*c) ;
-		if(geo->in(p))
-		    *c = 1 ;
-		else
-		    *c = -1 ;
-	}
-	
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new DomainOperation(geo) ;
-	};
-	
-	virtual int adressOffset() const
-	{
-		return -2 ;
-	}
+	virtual int adressOffset() const;
 
 } ;
 
@@ -433,30 +300,13 @@ class DomainBinaryOperation : public GeometryOperation
 {
 	const Geometry* geo ;
 public:
-	DomainBinaryOperation(const Geometry * g ) : geo(g)
-	{
-	}
+	DomainBinaryOperation(const Geometry * g ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		Point p(*a, *b) ;
-		if(geo->in(p))
-			*c = 1 ;
-		else
-			*c = -1 ;
-	}
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new DomainBinaryOperation(geo) ;
-	};
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
-
+	virtual int adressOffset() const;
 } ;
 
 
@@ -466,27 +316,12 @@ class PointDistanceBinaryOperation : public GeometryOperation
 	double x0 ;
 	double y0 ;
 public:
-	PointDistanceBinaryOperation(const Point & p ) :  x0(p.getX()), y0(p.getY())
-	{
-	}
+	PointDistanceBinaryOperation(const Point & p ) ;
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		double x = *a-x0 ;
-		double y = *b-y0 ;
-		*c = sqrt(x*x+y*y) ;
-
-	}
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new PointDistanceBinaryOperation(Point(x0, y0)) ;
-	};
-	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 } ;
 
 /** \brief Put on the stack the distance between a point defined by the last positions on the stack and a stored position. */
@@ -496,28 +331,13 @@ class PointDistanceTrinaryOperation : public GeometryOperation
 	double y0 ;
 	double z0 ;
 public:
-	PointDistanceTrinaryOperation(const Point & p ) : x0(p.getX()), y0(p.getY()), z0(p.getZ())
-	{
-	}
+	PointDistanceTrinaryOperation(const Point & p ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		double x = *a-x0 ;
-		double y = *b-y0 ;
-		double z = *c-z0 ;
-		*c = sqrt(x*x+y*y+z*z) ;
-
-	}
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual GeometryOperation * getCopy() const 
-  {
-		return new PointDistanceTrinaryOperation(Point(x0, y0, z0)) ;
-	};
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -2 ;
-	}
+	virtual int adressOffset() const;
 
 } ;
 
@@ -527,29 +347,11 @@ class RotationBinaryOperation : public GeometryOperation
 	double cangle ;
 	double sangle ;
 public:
-	RotationBinaryOperation(double a ) : cangle(cos(a)), sangle(sin(a))
-	{
-	}
+	RotationBinaryOperation(double a ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		double x = *a ;
-		double y =  *b ;
-		*a = x*cangle + y*sangle ;
-		*b = -x*sangle + y*cangle ;
-
-	}
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new RotationBinaryOperation(acos(cangle)) ;
-	}
-	
-	virtual int adressOffset() const
-	{
-		return 0 ;
-	}
-	
+	virtual void eval(double * a, double * b, double * c) const;
+	virtual GeometryOperation * getCopy() const ;
+	virtual int adressOffset() const;
 } ;
 
 /** \brief Put on the stack the angle between a point defined by the last positions on the stack and a stored position. */
@@ -559,30 +361,12 @@ class AngleBinaryOperation : public GeometryOperation
 	double sangle ;
 	Point pivot ;
 public:
-	AngleBinaryOperation(double a, const Point & p ) :cangle(cos(a)), sangle(sin(a)), pivot(p.getX()*cos(a)+p.getY()*sin(a), -p.getX()*sin(a)+p.getY()*cos(a))
-	{
-	}
+	AngleBinaryOperation(double a, const Point & p ) ;
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		double x = *a ;
-		double y =  *b ;
-		double x_t = x*cangle + y*sangle ;
-		double y_t = -x*sangle + y*cangle ;
-		*c = atan2(y_t-pivot.getY(), x_t-pivot.getX()) ;
-
-	}
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new AngleBinaryOperation(acos(cangle), pivot) ;
-	}
-	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 
 } ;
 
@@ -591,30 +375,12 @@ class PointSquareDistanceBinaryOperation : public GeometryOperation
 {
 	Point base ;
 public:
-	PointSquareDistanceBinaryOperation(const Point & p ) 
-	{
-		base = p ;
-	}
+	PointSquareDistanceBinaryOperation(const Point & p ) ;
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		Point p(*a, *b) ;
-
-		*c = squareDist2D(p, base) ;
-
-	}
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new PointSquareDistanceBinaryOperation(base) ;
-	}
-	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
-	
+	virtual int adressOffset() const;
 } ;
 
 /** \brief Put 1 one the stack if a point defined by the two last positions on the stack is not visible from a stored position given an obstructing Geometry, 0 otherwise. */
@@ -623,30 +389,13 @@ class LineOfSightOperation : public GeometryOperation
 	Point base ;
 	const Geometry * obstruction ;
 public:
-	LineOfSightOperation(const Point & p,  const Geometry * o) :  base(p), obstruction(o)
-	{
-	}
+	LineOfSightOperation(const Point & p,  const Geometry * o) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-		Point p(*a, *b) ;
-		
-
-		*c = Segment(base, p).intersects(obstruction) ;
-
-	}
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new LineOfSightOperation(base, obstruction) ;
-	}
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
-
+	virtual int adressOffset() const;
 } ;
 
 /** \brief put on the stack the distance between a point defined by the arguments and its projection on a stored Segment */
@@ -654,25 +403,11 @@ class ProjectionOperation3D : public GeometryOperation
 {
 	Segment s ;
 public:
-	ProjectionOperation3D(Segment s_ ) : s(s_)
-	{
-	}
+	ProjectionOperation3D(Segment s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-	   *c = dist(Point(*a, *b, *c), s.project(Point(*a, *b, *c))) ;
-	}
-	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new ProjectionOperation3D(s) ;
-	}
-	
-	virtual int adressOffset() const
-	{
-		return -2 ;
-	}
+	virtual void eval(double * a, double * b, double * c) const;
+	virtual GeometryOperation * getCopy() const ;
+	virtual int adressOffset() const;
 } ;
 
 /** \brief put on the stack the distance between a point defined by the arguments and its projection on a stored Segment */
@@ -680,25 +415,12 @@ class ProjectionOperation2D : public GeometryOperation
 {
 	Segment s ;
 public:
-	ProjectionOperation2D(Segment s_ ) : s(s_)
-	{
-	}
+	ProjectionOperation2D(Segment s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		
-	    *c = dist(Point(*a, *b), s.project(Point(*a, *b))) ;
-	}
+	virtual void eval(double * a, double * b, double * c) const;
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new ProjectionOperation2D(s) ;
-	}
-	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 } ;
 
 /** \brief put on the stack the distance between a point defined by the two last positions on the Stack and its projection on a stored Segment */
@@ -706,51 +428,17 @@ class ProjectionBinaryOperation : public GeometryOperation
 {
 	const Geometry * g ;
 public:
-	ProjectionBinaryOperation(const Geometry * s_ ) :  g(s_)
-	{
-	}
+	ProjectionBinaryOperation(const Geometry * s_ ) ;
 	
-	virtual void eval(double * a, double * b, double * c) const
-	{
-		Point p(*a, *b) ;
-		Point p_(p) ;
-		g->project(&p_) ;
-
-		*c = sqrt(squareDist2D(p, p_)) ;
-
-	}
+	virtual void eval(double * a, double * b, double * c) const;
 	
-	virtual GeometryOperation * getCopy() const 
-	{
-		return new ProjectionBinaryOperation(g) ;
-	}
+	virtual GeometryOperation * getCopy() const ;
 	
-	virtual int adressOffset() const
-	{
-		return -1 ;
-	}
+	virtual int adressOffset() const;
 } ;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-} ;
-
-
-
-
-
-
+}
 
 
 

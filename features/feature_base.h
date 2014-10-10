@@ -13,6 +13,7 @@
 #include "../mesher/mesh.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
+#include "../polynomial/vm_function_base.h"
 
 
 namespace Amie

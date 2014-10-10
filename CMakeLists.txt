@@ -47,6 +47,11 @@ features/sample.cpp
 features/vibratingcircularmembrane.cpp 
 filters/voxelfilter.cpp 
 filters/voxelporefilter.cpp 
+polynomial/vm_base.cpp 
+polynomial/vm_function_base.cpp 
+polynomial/vm_function_extra.cpp 
+polynomial/vm_function_matrix.cpp 
+polynomial/vm_token.cpp 
 geometry/geometry_2D.cpp 
 geometry/geometry_3D.cpp 
 geometry/geometry_base.cpp 
@@ -76,7 +81,6 @@ physics/damagemodels/fractiondamage.cpp
 physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/damagemodels/plasticstrain.cpp
-# physics/damagemodels/damageindexeddamage.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/material_laws/material_laws.cpp
 physics/material_laws/temperature_material_laws.cpp
@@ -138,11 +142,6 @@ physics/materials/rebar_behaviour.cpp
 physics/materials/steel_behaviour.cpp
 physics/materials/concrete_behaviour.cpp
 polynomial/scalarfield.cpp 
-polynomial/vm_base.cpp 
-polynomial/vm_function_base.cpp 
-polynomial/vm_function_matrix.cpp 
-polynomial/vm_refcount_token.cpp 
-polynomial/vm_token.cpp 
 solvers/assembly.cpp 
 geometry/space_time_geometry_2D.cpp 
 solvers/biconjugategradientstabilized.cpp 

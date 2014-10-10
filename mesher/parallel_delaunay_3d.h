@@ -83,9 +83,229 @@ public:
     
     virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1")) ;
     
+    virtual unsigned int generateCache () ;
+    
     Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) const ;
 
     Vector getField( FieldType f, int dummy = 0, double t = 0) const ;
+    
+    Vector getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) const ;
+    
+    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) const ;  
+      
+    class iterator
+    {
+    private:
+        ParallelDelaunayTree3D * msh ;
+        size_t cacheID ;
+        size_t position ;
+
+    public:
+        iterator( ParallelDelaunayTree3D * msh, size_t cacheID, size_t position ) : msh(msh), cacheID(cacheID), position(position) { } ;
+        iterator( ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
+        { 
+            if(msh->allElementsCacheID == -1)
+                msh->allElementsCacheID = msh->generateCache() ;
+            cacheID = msh->allElementsCacheID ;
+        } ;
+                bool operator ==(const iterator & i) const
+        {
+            return i.position == position ;
+        }
+        
+        bool operator <=(const iterator & i)const
+        {
+            return position <= i.position ;
+        }
+        bool operator <(const iterator & i) const
+        {
+            return position < i.position ;
+        }
+        bool operator >=(const iterator & i)const
+        {
+            return position >= i.position ;
+        }
+        bool operator >(const iterator & i) const
+        {
+            return position > i.position ;
+        }
+        
+        
+        iterator& operator++() {
+            position++ ;
+            // actual increment takes place here
+            return *this;
+        }
+        
+        iterator operator++(int) {
+            iterator tmp(*this); // copy
+            operator++(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        iterator& operator+=(int i) {
+            position +=i ;
+            return *this;
+        }
+        
+        friend iterator operator+(iterator lhs,  int i) 
+        {
+            return lhs += i; 
+        }
+        
+        iterator& operator--() {
+            position-- ;
+            return *this;
+        }
+        
+        iterator operator--(int) {
+            iterator tmp(*this); // copy
+            operator--(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        iterator& operator-=(int i) {
+            position -=i ;
+            return *this;
+        }
+        
+        friend iterator operator-(iterator lhs,  int i) 
+        {
+            return lhs -= i; 
+        }
+        
+        DelaunayTetrahedron * operator-> ( ) {
+            int meshId = msh->elementMap[cacheID][position] ;
+            int elemID = msh->caches[cacheID][position] ;
+            return static_cast<DelaunayTetrahedron *>(msh->meshes[meshId]->getInTree(elemID)) ;
+        }
+        
+    } ;
+    
+    class const_iterator
+    {
+    private:
+        ParallelDelaunayTree3D * msh ;
+        size_t cacheID ;
+        size_t position ;
+    public:
+        const_iterator( ParallelDelaunayTree3D * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        
+        const_iterator( ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
+        { 
+            if(msh->allElementsCacheID == -1)
+                msh->allElementsCacheID = msh->generateCache() ;
+            cacheID = msh->allElementsCacheID ;
+        } ;
+        
+        bool operator ==(const const_iterator & i) const
+        {
+            return i.position == position ;
+        }
+        bool operator <=(const const_iterator & i)const
+        {
+            return position <= i.position ;
+        }
+        bool operator <(const const_iterator & i) const
+        {
+            return position < i.position ;
+        }
+        bool operator >=(const const_iterator & i)const
+        {
+            return position >= i.position ;
+        }
+        bool operator >(const const_iterator & i) const
+        {
+            return position > i.position ;
+        }
+        
+        const_iterator& operator++() {
+            position++ ;
+            // actual increment takes place here
+            return *this;
+        }
+        
+        const_iterator operator++(int) {
+            const_iterator tmp(*this); // copy
+            operator++(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        const_iterator& operator+=(int i) {
+            position +=i ;
+            return *this;
+        }
+        
+        friend const_iterator operator+(const_iterator lhs,  int i) 
+        {
+            return lhs += i; 
+        }
+        
+        const_iterator& operator--() {
+            position-- ;
+            return *this;
+        }
+        
+        const_iterator operator--(int) {
+            const_iterator tmp(*this); // copy
+            operator--(); // pre-increment
+            return tmp;   // return old value
+        }
+        
+        const_iterator& operator-=(int i) {
+            position -=i ;
+            return *this;
+        }
+        
+        friend const_iterator operator-(const_iterator lhs,  int i) 
+        {
+            return lhs -= i; 
+        }
+        
+        const DelaunayTetrahedron * operator-> ( ) const { 
+            return static_cast<const DelaunayTetrahedron *> (msh->meshes[msh->elementMap[cacheID][position]]->getInTree(msh->caches[cacheID][position])) ;
+        }
+    } ;
+    
+    
+    iterator begin()
+    {
+        return iterator(this, 0) ;
+    }
+    const_iterator cbegin()
+    {
+        return const_iterator(this, 0) ;
+    }
+    iterator end()
+    {
+        if(allElementsCacheID == -1)
+            allElementsCacheID = generateCache() ;
+        return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
+    }
+    const_iterator cend()
+    {
+        if(allElementsCacheID == -1)
+            allElementsCacheID = generateCache() ;
+        return const_iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
+    }
+    
+    iterator begin( size_t cacheID)
+    {
+        return iterator(this, cacheID, 0) ;
+    }
+    const_iterator cbegin(size_t cacheID)
+    {
+        return const_iterator(this, cacheID, 0) ;
+    }
+    iterator end(size_t cacheID)
+    {
+        return iterator(this,cacheID, caches[cacheID].size()) ;
+    }
+    const_iterator cend(size_t cacheID)
+    {
+        return const_iterator(this,cacheID, caches[cacheID].size()) ;
+    }
+
     
 } ;
 } ;
