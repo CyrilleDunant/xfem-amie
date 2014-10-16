@@ -151,6 +151,39 @@ struct TimeIntegralMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct MinimumMaterialLaw : public ExternalMaterialLaw
+{
+    std::string external ;
+    std::vector<std::string> coordinates ;
+    bool add ;
+
+    MinimumMaterialLaw(std::string out, std::vector<std::string> coord, bool a = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), add(a) { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
+struct MaximumMaterialLaw : public ExternalMaterialLaw
+{
+    std::string external ;
+    std::vector<std::string> coordinates ;
+    bool add ;
+
+    MaximumMaterialLaw(std::string out, std::vector<std::string> coord, bool a = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), add(a) { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
+struct GetFieldMaterialLaw : public ExternalMaterialLaw
+{
+    FieldType field ;
+    std::string base ;
+
+    GetFieldMaterialLaw(FieldType f, std::string b, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), field(f), base(b) { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+
+    std::string getParameterName(size_t i) const ;
+} ;
 
 } ;
 

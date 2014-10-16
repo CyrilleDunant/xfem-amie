@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.2, creep_poisson = 0.2, creep_characteristic_time = 0.1") ;
     paste.addMaterialParameter("creep_modulus", atof(argv[1])*1e9) ;
-    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
+//    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
     LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
     box.setBehaviour( &paste );
@@ -121,8 +121,7 @@ int main(int argc, char *argv[])
     bool down = false ;
     bool up = false ;
     int incr = 10 ;
-	Point p ;
-	MultiTriangleWriter trg("toto","tata", &F, 1.) ;
+
     while(F.getCurrentTime() < 3000)
     {
 	    if(i%incr == 0)

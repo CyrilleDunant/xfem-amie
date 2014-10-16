@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
 	ConfigTreeItem * problem = ConfigParser::readFile(file) ;
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
+	if(problem->hasChildFromFullLabel("sample.sampling_number"))
+		F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
 	F.setDiscretizationParameters(problem->getChild("discretization")) ;
 	Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
 	if(problem->hasChild("inclusions"))

@@ -1,4 +1,5 @@
 #include "material_laws.h"
+#include "../../utilities/itoa.h"
 #include <stdlib.h>
 #include <fstream>
 
@@ -199,6 +200,48 @@ void TimeIntegralMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElemen
     double current = s.get(integral, defaultValues) ;
     double rate = s.get(base, defaultValues) ;
     s.set(integral, current + rate*dt) ;
+}
+
+void MaximumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+	Vector values(coordinates.size()) ;
+	values = 0. ;
+	for(size_t i = 0 ; i < coordinates.size() ; i++)
+		values[i] = s.get( coordinates[i], defaultValues) ;
+	double ret = values.max() ;
+	if(add)
+		ret += s.get(external, defaultValues) ;
+	s.set(external, ret) ;
+}
+
+void MinimumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+	Vector values(coordinates.size()) ;
+	values = 0. ;
+	for(size_t i = 0 ; i < coordinates.size() ; i++)
+		values[i] = s.get( coordinates[i], defaultValues) ;
+	double ret = values.min() ;
+	if(add)
+		ret += s.get(external, defaultValues) ;
+	s.set(external, ret) ;
+}
+
+void GetFieldMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+	Vector v( fieldTypeElementarySize(field, SPACE_TWO_DIMENSIONAL, 1) ) ;
+	s.getAverageField( field, v, nullptr, 0, 1.) ;
+	for(size_t i = 0 ; i < v.size() ; i++)
+	{
+		s.set( getParameterName(i), v[i] ) ;
+	}
+}
+
+std::string GetFieldMaterialLaw::getParameterName(size_t i) const 
+{
+	std::string b = base ;
+	b.append("_") ;
+	b.append(itoa(i)) ;
+	return b ;
 }
 
 

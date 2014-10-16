@@ -99,8 +99,9 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 		
 		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
 		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || intersections(inclusions[i], exclusionZones) )
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || intersections(inclusions[i], exclusionZones) && tries < triesMax)
 		{
+			tries++ ;
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			bbox = inclusions[i]->getBoundingBox() ;
 		}
@@ -111,8 +112,9 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 			
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))|| intersections(inclusions[i], exclusionZones) )
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))|| intersections(inclusions[i], exclusionZones) && tries < triesMax )
 			{
+				tries++ ;
 				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 				bbox = inclusions[i]->getBoundingBox() ;
 			}
@@ -169,8 +171,9 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 		
 		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
 		std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) )
+		while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3])) || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) && tries < triesMax)
 		{
+			tries++ ;
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			bbox = inclusions[i]->getBoundingBox() ;
 		}
@@ -181,8 +184,9 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 			
 			transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 			std::vector<Point> bbox = inclusions[i]->getBoundingBox() ;
-			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))  || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) )
+			while(!box->in(inclusions[i]->getCenter()) || !(box->in(bbox[0]) && box->in(bbox[1]) && box->in(bbox[2]) && box->in(bbox[3]))  || !isInside(inclusions[i], base) || intersections(inclusions[i], exclusionZones) && tries < triesMax)
 			{
+				tries++ ;
 				transform2D( inclusions[i], xDistribution, yDistribution, rDistribution);  
 				bbox = inclusions[i]->getBoundingBox() ;
 			}
@@ -200,7 +204,8 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 			}
 			ret.push_back(inclusions[i]);
 		}
-		  
+		
+
 	}
 	
 	std::cout << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;

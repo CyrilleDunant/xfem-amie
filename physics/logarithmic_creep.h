@@ -35,6 +35,8 @@ struct LogarithmicCreep : public Viscoelasticity
 	// material parameters
 	Matrix C ; //stiffness
 	Matrix E ; //viscosity
+	Matrix Eprev ;
+	Matrix Edot ;
 	double tau ; //characteristic time
     LogCreepStressAccumulator accumulator ;
 	bool fixCreepVariable ;

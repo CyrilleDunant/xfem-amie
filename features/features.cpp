@@ -3589,6 +3589,14 @@ void FeatureTree::setDiscretizationParameters(ConfigTreeItem * config, ConfigTre
 	setSamplingNumber( sampling ) ;
 	setOrder( ConfigTreeItem::translateOrder(order) ) ;
 	setSamplingRestriction( ConfigTreeItem::translateSamplingRestrictionType(restriction) ) ;
+
+	std::vector<ConfigTreeItem *> zones = config->getAllChildren("refinement_zone") ;
+	for(size_t i = 0 ; i < zones.size() ; i++)
+	{
+		Sample * s = zones[i]->getSample() ;
+		addRefinementZone( dynamic_cast<Rectangle *>(s) ) ;
+	}
+
 }
 
 Vector FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeItem * def)  
@@ -3608,13 +3616,31 @@ Vector FeatureTree::setSteppingParameters(ConfigTreeItem * config, ConfigTreeIte
 	setDeltaTime( deltaTime ) ;
 	setMinDeltaTime( minDeltaTime ) ;
 	setMaxIterationsPerStep( maxIter ) ;
-	Vector cinstants( nSteps ) ;
+	Vector cinstants( nSteps+1 ) ;
 	if(config->hasChild("list_of_time_steps"))
 		cinstants = config->getChild("list_of_time_steps")->readVectorFromFile() ;
 	else
 	{
-		for(size_t i = 0 ; i < cinstants.size() ; i++)
-			cinstants[i] = deltaTime*i ;
+		if(config->hasChild("next_time_step"))
+		{
+			Function f = config->getChild("next_time_step")->getFunction() ;
+			double t = 0. ;
+			double x = deltaTime ;
+			VirtualMachine vm ;
+			cinstants[0] = 0. ;
+			cinstants[1] = deltaTime ;
+			for(size_t i = 2 ; i < cinstants.size() ; i++)
+			{
+				x = vm.eval(f, x, 0.,0., t) ;
+				cinstants[i] = x ;
+				t = t+x ;
+			}
+		}
+		else
+		{
+			for(size_t i = 0 ; i < cinstants.size() ; i++)
+				cinstants[i] = deltaTime*i ;
+		}
 	}
 	return cinstants ;
 }

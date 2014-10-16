@@ -1,0 +1,1817 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{fullpage}
+
+\input{../notations}
+
+
+\begin{document}
+
+\title{\amie configuration documentation}
+\author{Alain B. Giorla}
+
+\maketitle
+
+This document shows how to write initiation files for \amie. These files can be used to set up variables in simulations without re-compiling the main executable. An example of initiation file usage in \amie can be found in the \verb+main_2d_composite+ example.
+
+\tableofcontents
+
+\section{First-level objects}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.sample+ & Sample & Box in which the simulation is performed. \\ 
+\verb+.discretization+ & Discretization & Parameters for the mesh generation. \\ 
+\verb+.stepping+ & Stepping & Parameters for the time-stepping and damage iterations. \\ 
+\verb+.output+ & Output & Exports specified field values in a table format. \\ 
+\verb+.export+ & Export & Exports the mesh in SVG files. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.inclusions+ & Inclusions & Defines the geometry and mechanical behaviour of the inclusions. \\ 
+\verb+.boundary_condition+ & BoundaryCondition & Mechanical boundary conditions applied to the sample. \\ 
+\hline 
+\end{tabularx} 
+
+\section{Behaviour}
+
+There are many types of mechanical behaviour available in \textsc{amie}. The main flag which differentiates them is:\\
+\verb+.behaviour+\\
+\verb+..type+
+
+\subsection{Common parameters}
+
+The following parameters can be used for all mechanical behaviours.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & Defines the general type of mechanical behaviour. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.additional_viscoelastic_variables+ & Numeral & In the case of a space-time finite element analysis, this indicates the number of unused visco-elastic displacement fields must be added to the model. The total number of used and unused visco-elastic displacement fields must be equal between all the Behaviour defined in the simulation.\\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} \textbf{Note:} in the following, each time the pair \verb+.young_modulus+/\verb+.poisson_ratio+ is found, it can be replaced with the pair \verb+.bulk_modulus+/\verb+.shear_modulus+, unless specified otherwise.
+
+\subsection{Elastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+ELASTICITY+ \\ 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Elastic and damage behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+ELASTICITY_AND_FRACTURE+ \\ 
+\verb+.fracture_criterion+ & FractureCriterion & Defines the failure surface and post-peak behaviour of the material.\\
+\verb+.damage_model+ & DamageModel & Defines the damage algorithm used.\\
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Elastic and imposed deformation behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+ELASTICITY_AND_FRACTURE+ \\ 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.imposed_deformation+ & Numeral & Imposed deformation of the material (in meter/meter). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Viscous behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+VISCOSITY+ \\ 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.characteristic_time+ & Numeral & Characteristic time of the dashpot unit (in days). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Kelvin-Voigt viscoelastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+KELVIN_VOIGT+ \\ 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.characteristic_time+ & Numeral & Characteristic time of the dashpot unit (in days). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Maxwell viscoelastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+MAXWELL+ \\ 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.characteristic_time+ & Numeral & Characteristic time of the dashpot unit (in days). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Burger viscoelastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+BURGER+ \\ 
+\verb+.kelvin_voigt+ & ViscoelasticUnit & Deredefined steelscribes the Kelvin-Voigt section of the behaviour. \\ 
+\verb+.maxwell+ & ViscoelasticUnit & Describes the Maxwell section of the behaviour. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Generalized Kelvin-Voigt viscoelastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+GENERALIZED_KELVIN_VOIGT+ \\ 
+\verb+.first_branch+ & ViscoelasticUnit & Describes the initial elastic stiffness of the visco-elastic model. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.branch+ & ViscoelasticUnit & Describes each Kelvin-Voigt unit in the model. The model can have as many branches as required. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Generalized Maxwell viscoelastic behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+GENERALIZED_MAXWELL+ \\ 
+\verb+.first_branch+ & ViscoelasticUnit & Describes the final relaxed stiffness of the visco-elastic model. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.branch+ & ViscoelasticUnit & Describes each Maxwell unit in the model. The model can have as many branches as required. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Predefined cement paste behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+PASTE_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.tensile_strain_limit+ & Numeral & Maximum tensile strain the material can be subjected to before failure (in meter/meter). This will not be used if the \verb+.damage+ variable is set to \verb+FALSE+\\
+\verb+.short_term_creep_modulus+ & Numeral & Elastic modulus of short-term Kelvin-Voigt unit. This will only be used in space-time finite element analysis.\\ 
+\verb+.long_term_creep_modulus+ & Numeral & Elastic modulus of long-term Kelvin-Voigt unit. This will only be used in space-time finite element analysis.\\ 
+\verb+.damage+ & Boolean & Indicates whether to activate the damage model for this behaviour. \\
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Predefined aggregate behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+AGGREGATE_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.tensile_strain_limit+ & Numeral & Maximum tensile strain the material can be subjected to before failure (in meter/meter). This will not be used if the \verb+.damage+ variable is set to \verb+FALSE+\\
+\verb+.damage+ & Boolean & Indicates whether to activate the damage model for this behaviour. \\
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Predefined alkali-silica reaction gel behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+ASR_GEL_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.imposed_deformation+ & Numeral & Imposed deformation of the material (in meter/meter). \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Predefined concrete behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+. This behaviour CANNOT be used in space-time finite element analysis.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+CONCRETE_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.compressive_strength+ & Numeral & Compressive strength of the material (in pascal). \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Predefined rebar behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+. This behaviour CANNOT be used in space-time finite element analysis.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+REBAR_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.tensile_strength+ & Numeral & Tensile strength of the material (in pascal). \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Predefined steel behaviour}
+
+For this behaviour, the pair \verb+.young_modulus+/\verb+.poisson_ratio+ CANNOT be replaced by \verb+.bulk_modulus+/ \verb+.shear_modulus+. This behaviour CANNOT be used in space-time finite element analysis.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+STEEL_BEHAVIOUR+ \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & Young's modulus of the material (in pascal). \\ 
+\verb+.poisson_ratio+ & Numeral & Poisson ratio of the material (arbitrary unit). \\ 
+\verb+.tensile_strength+ & Numeral & Tensile strength of the material (in pascal). \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} If the user does not provide the values for these parameters, the program will use the default values.
+
+\subsection{Generalized logarithmic creep behaviour}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & BehaviourType & \verb+LOGARITHMIC_CREEP+ \\ 
+\verb+.parameters+ & MaterialParameters & Lists of all material parameters used in the model.\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.fracture_criterion+ & FractureCriterion & Defines the failure surface and post-peak behaviour of the material.\\
+\verb+.damage_model+ & DamageModel & Defines the damage algorithm used.\\
+\verb+.material_law+ & MaterialLaw & Defines the evolution of the material parameters with time, or other material parameters. Any arbitrary number of material laws may be defined. \\ 
+\hline 
+\end{tabularx}
+
+\section{Boundary Conditions}
+
+\textbf{Note:} multiple \verb+.boundary_conditions+ can be defined as first-level objects. If several boundary conditions are defined on the same edge, their effects stack.
+
+\paragraph{} The boundary conditions can either be defined with constant values, or with values varying with time.
+
+\subsection{Common parameters}
+
+The following parameters can be used for both of the cases described below.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.condition+ & BoundaryConditionType & Defines which type of boundary condition is to be applied. \\ 
+\verb+.position+ & BoundingBoxPosition & Defines on which position of the sample the boundary condition must be applied.\\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.axis+ & Numeral & Indicates the index of the unknown on which the boundary condition acts. This is only used when making a space-time finite element analysis. See the BoundaryConditionType \verb+SET_ALONG_INDEXED_AXIS+ for more details.\\ 
+\hline 
+\end{tabularx}
+
+\subsection{Constant boundary conditions}
+
+The following parameters can be used for both of the cases described below.
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.value+ & Numeral & Defines the value of the imposed displacement (in meters) or stress (in pascals). Positive values correspond to tension, negative values to compression.\\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} If \verb+.value+ is not defined, it takes the value 0.
+
+\subsection{Time-dependent boundary conditions}
+
+The following parameters can be used for both of the cases described below.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.time_evolution+ & BCTimeEvolution & Indicates how the value of the boundary condition evolves in time.\\
+\hline 
+\end{tabularx}
+
+\section{Boundary Condition Time Evolution}
+
+One (and only one) of the three parameters below must be set:
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.file_name+ & String & Path to the file in the values of the boundary condition are stored. They must be set as a two-column file, the first column being the instants, the second the value at those instants. The value will be linearly interpolated between these points.\\ 
+\verb+.function+ & Function & The value will be set following a specified function of time. \\ 
+\verb+.rate+ & Numeral & The value will be set using a constant rate. \\ 
+\hline 
+\end{tabularx}
+
+\section{Damage Model}
+
+\subsection{Common parameters}
+
+The following parameters can be defined for all types of damage models.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & DamageModelType & Describes which damage model to use. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.maximum_damage+ & Numeral & Sets a threshold above which the material is considered to be totally damaged. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Isotropic Linear Damage}
+
+This damage model cannot be used for space-time finite element analysis.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & DamageModelType & \verb+ISOTROPIC_LINEAR_DAMAGE+. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Isotropic Incremental Linear Damage}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & DamageModelType & \verb+ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+. \\ 
+\verb+.damage_increment+ & Numeral & The damage increment to apply at each step of the algorithm. \\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.time_tolerance+ & Numeral & Tolerance in the detection of the instant at which damage occurs. This is not used in purely spatial finite element applications. \\
+\hline 
+\end{tabularx}
+
+\subsection{Plastic Strain}
+
+This damage model cannot be used for space-time finite element analysis.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & DamageModelType & \verb+PLASTIC_STRAIN+. \\ 
+\hline 
+\end{tabularx}
+
+\section{Discretization}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.sampling_number+ & Numeral & Number of mesh points on a edge of the sample. \\ 
+\verb+.order+ & ElementOrder & Order of the finite element discretization.\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.sampling_restriction+ & SamplingRestriction & Determines if the smallest inclusions are meshed or not. \\ 
+\hline 
+\end{tabularx} 
+
+\section{Export}
+
+\textbf{Note:} the \verb+.export+ object can be left empty, in which case no deformed mesh files will be extracted from the simulation.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.at_time_step+ & TimeStepOuput & Defines when at which time steps the deformed mesh files must be extracted. \\ 
+\verb+.file_name+ & String & Path template for the files in which the deformed mesh will be written. If these files already exist, their content will be overwritten.\\ 
+\verb+.field+ & ExtendedFieldType & Defines which fields will be exported.\\
+\hline 
+\end{tabularx}
+
+\paragraph{} The export will create a set of deformed mesh files which show the fields defined by \verb+.field+. All files will share the same base name, followed by a number which corresponds to the index of the file in the set. Two sets of files will be generated: one set of text files formatted for \textsc{amie} internal viewer, and one set of corresponding SVG files. Furthermore, the export will write one header file containing the list of all files generated.
+
+\section{Fracture Criterion}
+
+\subsection{Common parameters}
+
+The following parameters can be defined for all types of fracture criteria.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & Describes which fracture criterion to use. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.material_characteristic_radius+ & Numeral & Sets the characteristic radius of the non-local damage band. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Maximum tensile strain criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.MAXIMUM_TENSILE_STRAIN+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\subsection{Maximum tensile stress criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.MAXIMUM_TENSILE_STRESS+. \\ 
+\verb+.limit_tensile_stress+ & Numeral & The stress at which failure occurs (in pascal).\\
+\hline 
+\end{tabularx}
+
+\subsection{Maximum tensile strain criterion with linear softening}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure starts (in meter/meter).\\
+\verb+.limit_tensile_stress+ & Numeral & The corresponding stress (in pascal).\\
+\verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\subsection{Maximum tensile stress criterion with ellipsoidal softening}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure starts in instantaneous loading conditions (in meter/meter).\\
+\verb+.limit_tensile_stress+ & Numeral & The stress at which failure starts in infinitely slow loading conditions  (in pascal).\\
+\verb+.instantaneous_modulus+ & Numeral & The value of apparent elastic modulus of the material in instantaneous loading conditions (in pascal).\\
+\verb+.relaxed_modulus+ & Numeral & The value of apparent elastic modulus of the material in infinitely slow loading conditions (in pascal).\\
+\hline 
+\end{tabularx}
+
+\subsection{Mohr-Coulomb criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.MOHR_COULOMB+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
+\verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\subsection{Linear softening Mohr-Coulomb criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.LINEAR_SOFTENING_MOHR_COULOMB+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
+\verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
+\verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends in tension (in meter/meter).\\
+\verb+.maximum_compressive_strain+ & Numeral & The strain at which failure ends in compression (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\subsection{Exponential softening Mohr-Coulomb criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.EXPONENTIAL_SOFTENING_MOHR_COULOMB+. \\ 
+\verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
+\verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
+\verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends in tension (in meter/meter).\\
+\verb+.maximum_compressive_strain+ & Numeral & The strain at which failure ends in compression (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\subsection{Von Mises stress criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.VON_MISES+. \\ 
+\verb+.limit_tensile_stress+ & Numeral & The stress at which failure occurs (in pascal).\\
+\verb+.material_characteristic_radius+ & Numeral & Sets the characteristic radius of the non-local damage band. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Modified Compressive Field Theory criterion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+.MCFT+. \\ 
+\verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
+\verb+.material_characteristic_radius+ & Numeral & Sets the characteristic radius of the non-local damage band. \\ 
+\verb+.rebar+ & Rebar & Describes the location and diameter of the rebars. Several \verb+.rebar+ objects may be defined in the same criterion.\\
+\hline 
+\end{tabularx}
+
+\section{Geometry}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & GeometryType & Defines which type of inclusion to generate. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.aspect_ratio+ & Numeral & Defines the elongation of the inclusion. This parameter will not be used for circles or spheres. \\ 
+\verb+.orientation+ & Numeral & Defines the random spread of the orientation of the inclusions. This parameter will not be used for circles or spheres. \\ 
+\hline 
+\end{tabularx}
+
+\section{Inclusions}
+
+\textbf{Note:} multiple \verb+.inclusions+ may be defined in the same parent object, in which case each family of inclusion will be generated sequentially one after the other. \verb+.inclusions+ defined at the same level may not intersect nor overlap.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.behaviour+ & Behaviour & Defines the mechanical behaviour of the inclusions in the family. \\ 
+\verb+.particle_size_distribution+ & ParticleSizeDistribution & Defines the particle size distribution of the inclusions in the family.\\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.geometry+ & Geometry & Defines the mechanical behaviour of the inclusions in the family. \\ 
+\verb+.placement+ & Placement & Defines how the particles are placed in the sample.\\ 
+\verb+.inclusions+ & Inclusions & Generates families of inclusions within the current family of inclusion.\\
+\verb+.sampling_factor+ & Numeral & Multiplies the number of mesh points in all inclusions in the family.\\
+\verb+.intersection_sampling_factor+ & Numeral & Multiplies the number of mesh points in all inclusions in the family which intersects with the edges of the sample.\\
+\hline 
+\end{tabularx}
+
+
+\paragraph{} There are four different ways the inclusions might be generated. The choice of generation is controlled by the following flag:\\
+\verb+.inclusions+\\
+\verb+..particle_size_distribution+\\
+\verb+...type+
+
+\paragraph{} The four different methods are:
+\begin{itemize}
+	\item using an analytic particle size distribution curve,
+	\item using a particle size distribution defined in a text file,
+	\item using a pre-generated inclusion distribution defined in a text file (including a pre-defined placement of said inclusions)
+	\item creating the inclusions at the center of a parent list of inclusions.
+\end{itemize}
+
+These are explained in more details in the ParticleSizeDistribution object.
+
+\section{Material Parameters}
+
+This object is related to the generalized logarithmic creep behaviour. In addition to the common material properties, it allows the user to define any additional properties or local variables like temperature or relative humidity, which may then be used with the material laws.
+
+\subsection{Elastic behaviour}
+
+The following properties MUST be defined for any generalized logarithmic creep behaviour. The \verb+.young_modulus+/\verb+.poisson_ratio+ pair can be replaced with the \verb+.bulk_modulus+/\verb+shear_modulus+ pair (both values in pascal).\\
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & The elastic stiffness of the material (in pascal).\\
+\verb+.poisson_ratio+ & Numeral & The poisson ratio of the material (no unit).\\
+\hline 
+\end{tabularx}
+
+\subsection{Creep behaviour}
+
+The following properties describe the viscoelastic creep of the behaviour. If they are not defined, then the material behaves like an elastic material. The \verb+.creep_modulus+/\verb+.creep_poisson+ pair can be replaced with the \verb+.creep_bulk+/\verb+creep_shear+ pair (both values in pascal).\\
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.creep_modulus+ & Numeral & The initial creep viscosity of the material (in pascal).\\
+\verb+.creep_poisson+ & Numeral & The initial creep poisson ratio of the material (no unit).\\
+\verb+.creep_characteristic_time+ & Numeral & The characteristic time of the logarithmic creep law (in days).\\
+\hline 
+\end{tabularx}
+
+\subsection{Imposed deformation}
+
+The following properties describe the imposed deformation of the behaviour. If they are not defined, then the material has no imposed deformation and behaves as a elastic (or visco-elastic) material.\\
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.imposed_deformation+ & Numeral & The value of the imposed deformation.\\
+\hline 
+\end{tabularx}
+
+\subsection{Additional parameters}
+
+Any additional parameter can be defined. These parameters will not affect the material behaviour unless they are used in a subsequent material law.\\
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.$$$+ & Numeral & The value of the parameter called \verb+$$$+.\\
+\hline 
+\end{tabularx}
+
+\paragraph{} For example, the following object defines a temperature and relative humidity field with an initial value of 293 K and 95\%:\\
+\verb+.parameters+\\
+\verb+..temperature = 293+\\
+\verb+..relative_humidity = 0.95+\\
+
+If these values are not constant through the simulation (for example, if there is a gradient in temperature or if the temperature changes in time), then an appropriate Material Law must be defined to describe these evolutions.
+
+Note that these additional parameters do NOT affect the material behaviour (modulus, creep or imposed deformation) unless an according Material Law has been defined. For example, only defining the temperature field is not enough to simulate thermal expansion; a Thermal Expansion Material Law must be added to the model.
+
+\section{Material Law}
+
+These objects relate the material properties of a generalized logarithmic creep behaviour one to another, and allow changes to the elastic, viscoelastic or imposed deformation properties dynamically in the simulation according to various effects.
+
+\subsection{Common parameters}
+
+The following parameter must be defined for all types of material laws.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & Describes the type of material laws. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Thermal expansion}
+
+For this material law to be valid, the material parameters must include \verb+temperature+ (in Kelvin) and \verb+thermal_expansion_coefficient+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+THERMAL_EXPANSION+. \\ 
+\verb+.reference_temperature+ & Numeral & Temperature at which the mechanical properties of the material were measured (in Kelvin). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Drying shrinkage}
+
+For this material law to be valid, the material parameters must include \verb+relative_humidity+ (in Kelvin) and \verb+drying_shrinkage_coefficient+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+DRYING_SHRINKAGE+. \\ 
+\verb+.reference_relative_humidity+ & Numeral & Relative humidity above which there is no drying shrinkage. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Arrhenius law}
+
+For this material law to be valid, the material parameters must include \verb+temperature+ (in Kelvin), the selected parameter \verb+$$$+, and the activation energy \verb+$$$_activation_energy+ (in 1/Kelvin).
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+ARRHENIUS+. \\ 
+\verb+.parameter_affected+ & String & Name of the parameters affected by the Arrhenius law. \\
+\verb+.reference_temperature+ & Numeral & Temperature at which the nominal properties of the material were measured (in Kelvin). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Arrhenius law for the creep parameters}
+
+For this material law to be valid, the material parameters must include \verb+temperature+ (in Kelvin), the three creep parameters \verb+creep_modulus+, \verb+creep_poisson+ and \verb+creep_characteristic_time+, and the creep activation energy \verb+creep_activation_energy+ (in 1/Kelvin).
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+CREEP_ARRHENIUS+. \\ 
+\verb+.reference_temperature+ & Numeral & Temperature at which the creep properties of the material were measured (in Kelvin). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Relative humidity effect for the creep parameters}
+
+For this material law to be valid, the material parameters must include \verb+relative_humidity+, the three creep parameters \verb+creep_modulus+, \verb+creep_poisson+ and \verb+creep_characteristic_time+, and the creep relative humidity coefficient \verb+creep_humidity_coefficient+).
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+CREEP_HUMIDITY+. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Material law function of the space and time coordinates}
+
+This material laws sets one of the predefined internal variable as the result of a function of the space and time coordinates.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+SPACE_TIME_DEPENDENT+. \\ 
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\verb+.function+ & Function & The function to apply.\\
+\verb+.additive+ & Boolean & If \verb+TRUE+, then the result of the function will be added to the pre-existing value of the output parameter.\\
+\hline 
+\end{tabularx}
+
+\subsection{Material law function of a single parameter}
+
+This material laws sets one of the predefined internal variable as the result of a function of another existing internal variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+SIMPLE_DEPENDENT+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter used as the \verb+x+ argument of the function.\\
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\verb+.function+ & Function & The function to apply. This function must only be defined as a function of the \verb+x+ coordinate. Any other variable will be ignored. \\
+\verb+.additive+ & Boolean & If \verb+TRUE+, then the result of the function will be added to the pre-existing value of the output parameter.\\
+\hline 
+\end{tabularx}
+
+\subsection{Material law function of a set of parameters}
+
+This material laws sets one of the predefined internal variable as the result of a function of several existing internal variable or any of the space-time coordinate.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+VARIABLE_DEPENDENT+. \\ 
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\verb+.function+ & Function & The function to apply. \\
+\verb+.additive+ & Boolean & If \verb+TRUE+, then the result of the function will be added to the pre-existing value of the output parameter.\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.x+ & String & Replaces the \verb+x+ argument in the function with the variable defined here. \\ 
+\verb+.y+ & String & Replaces the \verb+y+ argument in the function with the variable defined here. \\ 
+\verb+.z+ & String & Replaces the \verb+z+ argument in the function with the variable defined here. \\ 
+\verb+.t+ & String & Replaces the \verb+t+ argument in the function with the variable defined here. \\ 
+\verb+.u+ & String & Replaces the \verb+u+ argument in the function with the variable defined here. \\ 
+\verb+.v+ & String & Replaces the \verb+v+ argument in the function with the variable defined here. \\ 
+\verb+.w+ & String & Replaces the \verb+w+ argument in the function with the variable defined here. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Linearly interpolated material law}
+
+This material laws sets one of the predefined internal variable as the result of the linear interpolation of another variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+LINEAR_INTERPOLATED+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter used as the argument of the function.\\
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\verb+.file_name+ & String & Path to the file in which the points for the linear interpolation are stored. The file must contain two columns, the first one being the values of the input parameter, the second the corresponding values of the output parameter.\\
+\hline 
+\end{tabularx}
+
+\subsection{Time derivative material law}
+
+This material laws sets one of the predefined internal variable as the time derivation of another variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+TIME_DERIVATIVE+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter to derive.\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.output_parameter+ & String & The name of the parameter in which the results of the derivation will be stored. If this is not defined, then the results will be stored in \verb+$$$_rate+, where \verb+$$$+ is the name of the input parameter.\\
+\hline 
+\end{tabularx}
+
+\subsection{Time integral material law}
+
+This material laws sets one of the predefined internal variable as the integration over time of another variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+TIME_INTEGRAL+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter to derive.\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.output_parameter+ & String & The name of the parameter in which the results of the derivation will be stored. If this is not defined, then the results will be stored in \verb+$$$_integral+, where \verb+$$$+ is the name of the input parameter.\\
+\hline 
+\end{tabularx}
+
+\section{Output}
+
+\textbf{Note:} the \verb+.output+ object can be left empty, in which case no results will be extracted from the simulation.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.at_time_step+ & TimeStepOuput & Defines at which time steps the results must be extracted. \\ 
+\verb+.file_name+ & String & Path to the file in which the results will be written. If the file already exists, its content will be overwritten.\\ 
+\verb+.field+ & FieldType & Defines which fields will be exported.\\
+\hline 
+\end{tabularx}
+
+\paragraph{} The output file is a simple text file containing a table describing the results. Each line corresponds to a time step of the simulation. Each column corresponds to the average value in the sample of the field specified in the \verb+.field+ objects (except for the first column, which corresponds to the current time of the simulation). The columns are ordered from the left to the right in the same order the \verb+.fields+ are declared (most fields span several columns).
+
+\section{Point}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.x+ & Numeral & Value of the \verb+x+ coordinate.\\ 
+\verb+.y+ & Numeral & Value of the \verb+y+ coordinate.\\ 
+\verb+.z+ & Numeral & Value of the \verb+z+ coordinate.\\ 
+\verb+.t+ & Numeral & Value of the \verb+t+ coordinate.\\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} The default values for any unspecified coordinate is equal to 0.
+
+\section{Particle Size Distribution}
+
+There are four different methods to generate particles:
+\begin{itemize}
+	\item using an analytic particle size distribution curve,
+	\item using a particle size distribution defined in a text file,
+	\item using a pre-generated inclusion distribution defined in a text file (including a pre-defined placement of said inclusions)
+	\item creating the inclusions at the center of a parent list of inclusions.
+\end{itemize}
+
+\subsection{Common parameters}
+
+The following parameters can be used for all type of particle size distributions.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & Indicates which generation method to use. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Analytic particle size distribution}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & \verb+CONSTANT+, \verb+BOLOME_A+, \verb+BOLOME_B+, \verb+BOLOME_C+, or \verb+BOLOME_D+. \\ 
+\verb+.rmax+ & Numeral & Radius of the largest inclusion. \\ 
+\verb+.number+ & Numeral & Number of inclusions to generate. \\ 
+\verb+.fraction+ & Numeral & Surface or volume fraction of the placement box to cover (no unit). \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Particle size distribution from file}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & \verb+FROM_CUMULATIVE_FILE+. \\ 
+\verb+.rmax+ & Numeral & Radius of the largest inclusion. \\ 
+\verb+.number+ & Numeral & Number of inclusions to generate. \\ 
+\verb+.fraction+ & Numeral & Surface or volume fraction of the placement box to cover (no unit). \\ 
+\verb+.file_name+ & String & Path to the file in which the particle size distribution is located.\\ 
+\verb+.psd_specification_type+ & PSDSpecificationType & Defines the format in which the file is written. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.factor+ & Numeral & Multiplies all radii in the distribution by the specified number. \\ 
+\verb+.cutoff+ & PSDCutoff & Removes the largest or smallest inclusions in the distribution. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Pregenerated inclusions}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & \verb+FROM_INCLUSION_FILE+. \\ 
+\verb+.number+ & Numeral & Number of inclusions to import. \\ 
+\verb+.file_name+ & String & Path to the file in which the inclusions geometric information is located.\\ 
+\verb+.column+ & ColumnIdentifier & Indicates the data contained in each column of the file to import. In general, several \verb+.column+ objects must be defined. \\ 
+\hline 
+\end{tabularx}
+
+\subsection{Concentric inclusions}
+
+This will generate the inclusions at the center the p%arent family of inclusion. This cannot be used as the first-level objects.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & \verb+FROM_PARENT_DISTRIBUTION+. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.layer_thickness+ & Numeral & Indicates the radius difference between the parent set of inclusions and the current. \\ 
+\verb+.layer_thickness_function+ & Function & Indicates the radius difference between the parent set of inclusions and the current as a function of the radius of the parent distribution. \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} \textbf{Note:} at least one parameter between \verb+.layer_thickness+  and \verb+.layer_thickness_function+ must be declared.
+
+\section{Particle Size Distribution Cutoff}
+
+Describes whether to include or remove the largest and/or smallest aggregates in a particle size distribution.
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.up+ & Numeral & Describes the largest aggregate radius authorized in the distribution. If it is not defined, then there is no upper limit.\\
+\verb+.down+ & Numeral & Describes the smallest aggregate radius authorized in the distribution. If it is not defined, then there is no lower limit.\\
+\hline 
+\end{tabularx}
+
+\section{Placement}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.tries+ & Numeral & Number of tries to make during the random placement of particles. \\ 
+\verb+.spacing+ & Numeral & Defines the minimum distance between two particles or one particle and the edges of the placing box. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.box+ & Sample & Defines a rectangle in which the particles will be generated. If this variable is not set, the first-level \verb+.sampl+ will be used instead. \\ 
+\verb+.orientation+ & Numeral & Defines the random spread of the orientation of the inclusions. This parameter will not be used for circles or spheres. \\ 
+\hline 
+\end{tabularx}
+
+\section{Rebar}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.location+ & Numeral & Position of the rebar (in meter). \\ 
+\verb+.diameter+ & Numeral & Diameter of the rebar (in meter).\\
+\hline 
+\end{tabularx}
+
+\section{Sample}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.width+ & Numeral & Width of the box (in meters). \\ 
+\verb+.height+ & Numeral & Height of the box (in meters). \\ 
+\verb+.behaviour+ & Behaviour & Mechanical behaviour of the matrix phase. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.center+ & Point & Coordinates of the center. \\ 
+\hline 
+\end{tabularx} 
+
+\section{Stepping}
+
+The stepping procedure can be initialized either with a constant predefined time steps, or from a file which lists the instants at which the simulation is carried out.
+
+\subsection{Common parameters}
+
+The following parameters can be used for both of the cases described below.
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.minimum_time_step+ & Numeral & Minimum duration between two damage events. \\ 
+\verb+.maximum_iterations_per_step+ & Numeral & Maximum number of iterations of the damage algorithm between two time steps.\\
+\hline 
+\end{tabularx}
+
+\subsection{Constant time step}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.time_step+ & Numeral & Duration of a time step (in days). \\ 
+\verb+.number_of_time_steps+ & Numeral & Number of time steps to perform.\\
+\hline 
+\end{tabularx}
+
+\subsection{File-defined time steps}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.list_of_time_steps+ & String & Path to the file which lists the instants at which calculations are performed. The file must contain only one column of increasing numbers starting with 0.\\ 
+\hline 
+\end{tabularx}
+
+\section{Time step output}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.at+ & TimeStepSelection & Defines at which time steps output or export must be done. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.every+ & Numeral & In case of a \verb+REGULAR+ type of output, this indicates at which time steps the output must be done.\\
+\hline 
+\end{tabularx}
+
+
+
+
+
+
+
+
+\section{Viscoelastic Unit}
+
+This object stores the mechanical properties of a spring-dashpot pair. However, their assembly (in parallel or in series) is managed by the parent viscoelastic behaviour object.
+
+\textbf{Note:} the \verb+.young_modulus+/\verb+.poisson_ratio+ pair can be replaced with the \verb+.bulk_modulus+/\verb+shear_modulus+ pair (both values in pascal).
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.young_modulus+ & Numeral & The elastic stiffness of the spring (in pascal).\\
+\verb+.poisson_ratio+ & Numeral & The poisson ratio of the spring (no unit).\\
+\verb+.characteristic_time+ & Numeral & The characteristic time of the dashpot (in days).\\
+\hline 
+\end{tabularx}
+
+
+
+
+
+
+\section{Enumerations}
+
+This section details the list of accepted values for the different enumerations found in the configuration.
+
+\subsection{Behaviour Type}
+
+	\verb+VOID_BEHAVIOUR+ (default value),\\
+	\verb+ELASTICITY+,\\
+	\verb+ELASTICITY_AND_FRACTURE+,\\
+	\verb+ELASTICITY_AND_IMPOSED_DEFORMATION+,\\
+	\verb+LOGARITHMIC_CREEP+,\\
+	\verb+PASTE_BEHAVIOUR+,\\
+	\verb+AGGREGATE_BEHAVIOUR+,\\
+	\verb+ASR_GEL_BEHAVIOUR+,\\
+	\verb+CONCRETE_BEHAVIOUR+,\\
+	\verb+REBAR_BEHAVIOUR+,\\
+	\verb+STEEL_BEHAVIOUR+,\\
+	\verb+VISCOSITY+,\\
+	\verb+KELVIN_VOIGT+,\\
+	\verb+MAXWELL+,\\
+	\verb+BURGER+,\\
+	\verb+GENERALIZED_KELVIN_VOIGT+,\\
+	\verb+GENERALIZED_MAXWELL+,\\
+	
+\subsection{Boolean}
+	\verb+TRUE+,\\
+	\verb+FALSE+
+
+
+\subsection{Boundary Condition Type}
+
+	\verb+GENERAL+,\\
+	\verb+FIX_ALONG_ALL+,\\
+	\verb+FIX_ALONG_XI+,\\
+	\verb+SET_ALONG_XI+,\\
+	\verb+FIX_ALONG_ETA+,\\
+	\verb+SET_ALONG_ETA+,\\
+	\verb+FIX_ALONG_ZETA+,\\
+	\verb+SET_ALONG_ZETA+,\\
+	\verb+FIX_ALONG_XI_ETA+,\\
+	\verb+SET_ALONG_XI_ETA+,\\
+	\verb+FIX_ALONG_XI_ZETA+,\\
+	\verb+SET_ALONG_XI_ZETA+,\\
+	\verb+FIX_ALONG_ETA_ZETA+,\\
+	\verb+SET_ALONG_ETA_ZETA+,\\
+	\verb+FIX_ALONG_INDEXED_AXIS+,\\
+	\verb+SET_ALONG_INDEXED_AXIS+,\\
+	\verb+SET_FORCE_XI+,\\
+	\verb+SET_FORCE_ETA+,\\
+	\verb+SET_FORCE_ZETA+,\\
+	\verb+SET_FORCE_INDEXED_AXIS+,\\
+	\verb+SET_FLUX_XI+,\\
+	\verb+SET_FLUX_ETA+,\\
+	\verb+SET_FLUX_ZETA+,\\
+	\verb+SET_VOLUMIC_STRESS_XI+,\\
+	\verb+SET_VOLUMIC_STRESS_ETA+,\\
+	\verb+SET_VOLUMIC_STRESS_ZETA+,\\
+	\verb+SET_STRESS_XI+,\\
+	\verb+SET_STRESS_ETA+,\\
+	\verb+SET_STRESS_ZETA+,\\
+	\verb+SET_NORMAL_STRESS+,\\
+	\verb+SET_TANGENT_STRESS+,\\
+	\verb+VERTICAL_PLANE_SECTIONS+,\\
+	\verb+HORIZONTAL_PLANE_SECTIONS+,\\
+	\verb+nullptr_CONDITION+,\\
+	\verb+SET_GLOBAL_FORCE_VECTOR+
+
+\subsection{Bounding Box Position}
+
+	\verb+TOP+,\\
+	\verb+LEFT+,\\
+	\verb+BOTTOM+,\\
+	\verb+RIGHT+,\\
+	\verb+FRONT+,\\
+	\verb+BACK+,\\
+	\verb+BEFORE+,\\
+	\verb+NOW+,\\
+	\verb+AFTER+,\\
+	\verb+TOP_LEFT+,\\
+	\verb+TOP_RIGHT+,\\
+	\verb+BOTTOM_LEFT+,\\
+	\verb+BOTTOM_RIGHT+,\\
+	\verb+FRONT_LEFT+,\\
+	\verb+FRONT_RIGHT+,\\
+	\verb+BACK_LEFT+,\\
+	\verb+BACK_RIGHT+,\\
+	\verb+FRONT_TOP+,\\
+	\verb+FRONT_BOTTOM+,\\
+	\verb+BOTTOM_BACK+,\\
+	\verb+TOP_BACK+,\\
+	\verb+TOP_LEFT_FRONT+,\\
+	\verb+TOP_LEFT_BACK+,\\
+	\verb+BOTTOM_LEFT_FRONT+,\\
+	\verb+BOTTOM_LEFT_BACK+,\\
+	\verb+TOP_RIGHT_FRONT+,\\
+	\verb+TOP_RIGHT_BACK+,\\
+	\verb+BOTTOM_RIGHT_FRONT+,\\
+	\verb+BOTTOM_RIGHT_BACK+,\\
+	\verb+TOP_BEFORE+,\\
+	\verb+LEFT_BEFORE+,\\
+	\verb+BOTTOM_BEFORE+,\\
+	\verb+RIGHT_BEFORE+,\\
+	\verb+FRONT_BEFORE+,\\
+	\verb+BACK_BEFORE+,\\
+	\verb+TOP_LEFT_BEFORE+,\\
+	\verb+TOP_RIGHT_BEFORE+,\\
+	\verb+BOTTOM_LEFT_BEFORE+,\\
+	\verb+BOTTOM_RIGHT_BEFORE+,\\
+	\verb+FRONT_LEFT_BEFORE+,\\
+	\verb+FRONT_RIGHT_BEFORE+,\\
+	\verb+BACK_LEFT_BEFORE+,\\
+	\verb+BACK_RIGHT_BEFORE+,\\
+	\verb+FRONT_TOP_BEFORE+,\\
+	\verb+FRONT_BOTTOM_BEFORE+,\\
+	\verb+TOP_LEFT_FRONT_BEFORE+,\\
+	\verb+TOP_LEFT_BACK_BEFORE+,\\
+	\verb+BOTTOM_LEFT_FRONT_BEFORE+,\\
+	\verb+BOTTOM_LEFT_BACK_BEFORE+,\\
+	\verb+TOP_RIGHT_FRONT_BEFORE+,\\
+	\verb+TOP_RIGHT_BACK_BEFORE+,\\
+	\verb+BOTTOM_RIGHT_FRONT_BEFORE+,\\
+	\verb+BOTTOM_RIGHT_BACK_BEFORE+,\\
+	\verb+BOTTOM_BACK_BEFORE+,\\
+	\verb+TOP_BACK_BEFORE+,	\\
+	\verb+TOP_NOW+,\\
+	\verb+LEFT_NOW+,\\
+	\verb+BOTTOM_NOW+,\\
+	\verb+RIGHT_NOW+,\\
+	\verb+FRONT_NOW+,\\
+	\verb+BACK_NOW+,\\
+	\verb+TOP_LEFT_NOW+,\\
+	\verb+TOP_RIGHT_NOW+,\\
+	\verb+BOTTOM_LEFT_NOW+,\\
+	\verb+BOTTOM_RIGHT_NOW+,\\
+	\verb+FRONT_LEFT_NOW+,\\
+	\verb+FRONT_RIGHT_NOW+,\\
+	\verb+BACK_LEFT_NOW+,\\
+	\verb+BACK_RIGHT_NOW+,\\
+	\verb+FRONT_TOP_NOW+,\\
+	\verb+FRONT_BOTTOM_NOW+,\\
+	\verb+TOP_LEFT_FRONT_NOW+,\\
+	\verb+TOP_LEFT_BACK_NOW+,\\
+	\verb+BOTTOM_LEFT_FRONT_NOW+,\\
+	\verb+BOTTOM_LEFT_BACK_NOW+,\\
+	\verb+TOP_RIGHT_FRONT_NOW+,\\
+	\verb+TOP_RIGHT_BACK_NOW+,\\
+	\verb+BOTTOM_RIGHT_FRONT_NOW+,\\
+	\verb+BOTTOM_RIGHT_BACK_NOW+,\\
+	\verb+TOP_AFTER+,\\
+	\verb+LEFT_AFTER+,\\
+	\verb+BOTTOM_AFTER+,\\
+	\verb+RIGHT_AFTER+,\\
+	\verb+FRONT_AFTER+,\\
+	\verb+BACK_AFTER+,\\
+	\verb+TOP_LEFT_AFTER+,\\
+	\verb+TOP_RIGHT_AFTER+,\\
+	\verb+BOTTOM_LEFT_AFTER+,\\
+	\verb+BOTTOM_RIGHT_AFTER+,\\
+	\verb+FRONT_LEFT_AFTER+,\\
+	\verb+FRONT_RIGHT_AFTER+,\\
+	\verb+BACK_LEFT_AFTER+,\\
+	\verb+BACK_RIGHT_AFTER+,\\
+	\verb+FRONT_TOP_AFTER+,\\
+	\verb+FRONT_BOTTOM_AFTER+,\\
+	\verb+TOP_LEFT_FRONT_AFTER+,\\
+	\verb+TOP_LEFT_BACK_AFTER+,\\
+	\verb+BOTTOM_LEFT_FRONT_AFTER+,\\
+	\verb+BOTTOM_LEFT_BACK_AFTER+,\\
+	\verb+TOP_RIGHT_FRONT_AFTER+,\\
+	\verb+TOP_RIGHT_BACK_AFTER+,\\
+	\verb+BOTTOM_RIGHT_FRONT_AFTER+,\\
+	\verb+BOTTOM_RIGHT_BACK_AFTER+,\\
+	\verb+BOTTOM_BACK_AFTER+,\\
+	\verb+TOP_BACK_AFTER+.
+	
+	\paragraph{} The bounding box positions involving \verb+TOP+ and \verb+BOTTOM+ are only used in three dimensions. The bounding box positions involving \verb+BEFORE+, \verb+NOW+ and \verb+AFTER+ are only used in space-time finite element analysis.
+
+\subsection{Column Identifier}
+
+\verb+RADIUS+,\\
+\verb+RADIUS_A+,\\
+\verb+RADIUS_B+,\\
+\verb+CENTER_X+,\\
+\verb+CENTER_Y+,\\
+\verb+CENTER_Z+,
+
+\subsection{Damage Model Type}
+
+\verb+ISOTROPIC_LINEAR_DAMAGE+,\\
+\verb+ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+,\\
+\verb+PLASTIC_STRAIN+,
+
+
+\subsection{Element Order}
+
+	\verb+CONSTANT+, \\
+	\verb+LINEAR+ (default value), \\
+	\verb+QUADRATIC+,\\
+    \verb+CUBIC+,\\
+    \verb+QUADRIC+,\\
+    \verb+QUINTIC+,\\
+    \verb+CONSTANT_TIME_LINEAR+,\\
+    \verb+CONSTANT_TIME_QUADRATIC+,\\
+    \verb+LINEAR_TIME_LINEAR+,\\
+    \verb+LINEAR_TIME_QUADRATIC+,\\
+    \verb+QUADRATIC_TIME_LINEAR+,\\
+    \verb+QUADRATIC_TIME_QUADRATIC+,\\
+    \verb+CUBIC_TIME_LINEAR+,\\
+    \verb+CUBIC_TIME_QUADRATIC+,\\
+    \verb+QUADRIC_TIME_LINEAR+,\\
+    \verb+QUADRIC_TIME_QUADRATIC+,\\
+    \verb+QUINTIC_TIME_LINEAR+,\\
+    \verb+QUINTIC_TIME_QUADRATIC+,\\
+    \verb+QUADTREE_REFINED+,\\
+    \verb+REGULAR_GRID+.
+
+\subsection{Extended Field Type}
+
+    \verb+CRITERION+,\\
+    \verb+STIFFNESS+,\\
+    \verb+VISCOSITY+.
+    
+\paragraph{} This object can also take the value of any Field Type defined above. They can also accept any String, as long as they correspond to material parameters defined in the case of generalized logarithmic creep behaviour.
+
+
+\subsection{Field Type}
+
+    \verb+DISPLACEMENT_FIELD+,\\
+    \verb+ENRICHED_DISPLACEMENT_FIELD+,\\
+    \verb+SPEED_FIELD+,\\
+    \verb+FLUX_FIELD+,\\
+    \verb+GRADIENT_FIELD+,\\
+    \verb+STRAIN_FIELD+,\\
+    \verb+STRAIN_RATE_FIELD+,\\
+    \verb+EFFECTIVE_STRESS_FIELD+,\\
+    \verb+REAL_STRESS_FIELD+,\\
+    \verb+PRINCIPAL_STRAIN_FIELD+,\\
+    \verb+PRINCIPAL_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+PRINCIPAL_REAL_STRESS_FIELD+,\\
+    \verb+NON_ENRICHED_STRAIN_FIELD+,\\
+    \verb+NON_ENRICHED_STRAIN_RATE_FIELD+,\\
+    \verb+NON_ENRICHED_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+NON_ENRICHED_REAL_STRESS_FIELD+,\\
+    \verb+VON_MISES_STRAIN_FIELD+,\\
+    \verb+VON_MISES_REAL_STRESS_FIELD+,\\
+    \verb+VON_MISES_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+PRINCIPAL_ANGLE_FIELD+,\\
+    \verb+INTERNAL_VARIABLE_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_SPEED_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_STRAIN_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD+,\\
+    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD+,
+
+\subsection{Fracture Criterion Type}
+
+\verb+MAXIMUM_TENSILE_STRAIN+,\\
+\verb+MAXIMUM_TENSILE_STRESS+,\\
+\verb+LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+,\\
+\verb+ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+,\\
+\verb+MOHR_COULOMB+,\\
+\verb+LINEAR_SOFTENING_MOHR_COULOMB+,\\
+\verb+EXPONENTIAL_SOFTENING_MOHR_COULOMB+,\\
+\verb+MCFT+,\\
+\verb+VON_MISES+
+
+\subsection{Geometry Type}
+
+\verb+CIRCLE+ (default value),\\
+\verb+LAYERED_CIRCLE+,\\
+\verb+TRIANGLE+,\\
+\verb+RECTANGLE+,\\
+\verb+PARALLELOGRAMME+,\\
+\verb+CONVEX_POLYGON+,\\
+\verb+SEGMENTED_LINE+,\\
+\verb+ORIENTABLE_CIRCLE+,\\
+\verb+CLOSED_NURB+,\\
+\verb+TETRAHEDRON+,\\
+\verb+HEXAHEDRON+,\\
+\verb+SPHERE+,\\
+\verb+LAYERED_SPHERE+,\\
+\verb+REGULAR_OCTAHEDRON+,\\
+\verb+ELLIPSE+,\\
+\verb+LEVEL_SET+,\\
+\verb+TIME_DEPENDENT_CIRCLE+,\\
+
+\subsection{Material Law Type}
+
+\verb+THERMAL_EXPANSION+,\\
+\verb+DRYING_SHRINKAGE+,\\
+\verb+ARRHENIUS+,\\
+\verb+CREEP_ARRHENIUS+,\\
+\verb+CREEP_HUMIDITY+,\\
+\verb+SPACE_TIME_DEPENDENT+,\\
+\verb+SIMPLE_DEPENDENT+,\\
+\verb+VARIABLE_DEPENDENT+,\\
+\verb+LINEAR_INTERPOLATED+,\\
+\verb+TIME_DERIVATIVE+,\\
+\verb+TIME_INTEGRAL+,\\
+
+\subsection{Particle Size Distribution Type}
+
+\verb+CONSTANT+ (default value),\\
+\verb+BOLOME_A+,\\
+\verb+BOLOME_B+,\\
+\verb+BOLOME_C+,\\
+\verb+BOLOME_D+,\\
+\verb+FROM_CUMULATIVE_FILE+,\\
+\verb+FROM_INCLUSION_FILE+,\\
+\verb+FROM_PARENT_DISTRIBUTION+,\\
+
+\subsection{Particle Size Distribution Specification Type}
+	\verb+CUMULATIVE_PERCENT+,\\
+	\verb+CUMULATIVE_FRACTION+,\\
+	\verb+CUMULATIVE_ABSOLUTE+,\\
+	\verb+CUMULATIVE_PERCENT_REVERSE+,\\
+	\verb+CUMULATIVE_FRACTION_REVERSE+,\\
+	\verb+CUMULATIVE_ABSOLUTE_REVERSE+
+
+
+\subsection{Sampling Restriction}
+
+		\verb+SAMPLE_RESTRICT_4+,\\
+		\verb+SAMPLE_RESTRICT_8+,\\
+		\verb+SAMPLE_RESTRICT_16+,\\
+		\verb+SAMPLE_NO_RESTRICTION+ (default value).
+
+
+
+\subsection{Time Step Selection}
+	\verb+NONE+\\
+	\verb+ALL+,\\
+	\verb+LAST+\\
+	\verb+REGULAR+
+
+
+\section{History}
+
+\subsection*{Version 1.0}
+\begin{itemize}
+	\item Initial version.
+\end{itemize}
+	
+
+
+
+\end{document}

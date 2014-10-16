@@ -271,17 +271,17 @@ Sample * ConfigTreeItem::getSample() const
 	return ret ;
 }
 
-Matrix ConfigTreeItem::getStiffnessMatrix(SpaceDimensionality dim) const 
+Matrix ConfigTreeItem::getStiffnessMatrix(SpaceDimensionality dim, planeType pt) const 
 {
 	if(hasChild("bulk_modulus"))
 	{
 		double k = getData("bulk_modulus",1e9) ;
 		double mu = getData("shear_modulus", 1e9) ;
-	        return Material::cauchyGreen( k, mu, false, dim) ;
+	        return Material::cauchyGreen( k, mu, false, dim, pt) ;
 	} else {
 		double E = getData("young_modulus",1e9) ;
 		double nu = getData("poisson_ratio", 0.2) ;
-	        return Material::cauchyGreen( E, nu, true, dim) ;
+	        return Material::cauchyGreen( E, nu, true, dim, pt) ;
 	}
 }
 
@@ -312,7 +312,6 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 	if(type == "THERMAL_EXPANSION")
 	{
 		ret = new ThermalExpansionMaterialLaw("temperature = 293") ;
-		std::cout << getData("reference_temperature", 293) << std::endl ;
 		ret->setDefaultValue("temperature", getData("reference_temperature", 293)) ;
 		return ret ;
 	}
@@ -344,7 +343,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		return ret ;
 	}
 
-	if(type == "CREEP_RELATIVE_HUMIDITY")
+	if(type == "CREEP_HUMIDITY")
 	{
 		ret = new CreepRelativeHumidityMaterialLaw() ;
 		ret->setDefaultValue("creep_humidity_coefficient",5.) ;
@@ -370,7 +369,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, hasChild("additive")) ;
+		ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, getStringData("additive", "FALSE") == "TRUE") ;
 		return ret ;
 	}
 
@@ -382,7 +381,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, hasChild("additive")) ;
+		ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, getStringData("additive", "FALSE") == "TRUE") ;
 		return ret ;
 	}
 
@@ -394,7 +393,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, hasChild("additive")) ;
+		ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, getStringData("additive", "FALSE") == "TRUE") ;
 		if(hasChild("x"))
 			dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsX( getStringData("x","x")) ;
 		if(hasChild("y"))
@@ -430,6 +429,31 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		return ret ;
 	}
 
+	if(type == "MINIMUM" || type == "MAXIMUM")
+	{
+		std::vector<ConfigTreeItem *> all = getAllChildren("input_parameter") ;
+		std::vector<std::string> coord ;
+		for(size_t i = 0 ; i < all.size() ; i++)
+			coord.push_back( all[i]->getStringData() ) ;
+		bool add = getStringData("additive", "FALSE") == "TRUE" ;
+		if(type == "MINIMUM")
+			ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+		else
+			ret = new MaximumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
+	}
+
+	if(type == "GET_FIELD")
+	{
+		bool isFieldType = false ;
+		std::string field =  getStringData("field", "NOT_A_FIELD") ;
+		FieldType f = ConfigTreeItem::translateFieldType( getStringData("field", "NOT_A_FIELD"), isFieldType ) ;
+		if(isFieldType)
+		{
+			std::transform(field.begin(), field.end(), field.begin(), ::tolower);
+			ret = new GetFieldMaterialLaw( f, field ) ;
+		}
+	}
+
 	return ret ;
 }
 
@@ -447,11 +471,11 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 		{
 			ret = new SpaceTimeNonLocalMaximumStress( getData( "limit_tensile_stress",1e6) ) ;
 		}
-		if(type == "TENSILE_LINEAR_SOFTENING")
+		if(type == "LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN")
 		{
 			ret = new SpaceTimeNonLocalLinearSofteningMaximumStrain( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("maximum_tensile_strain",0.002) ) ;
 		}
-		if(type == "TENSILE_STRESS_STRAIN_ELLIPSOIDAL_SOFTENING")
+		if(type == "ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS")
 		{
 			ret = new SpaceTimeNonLocalEllipsoidalMixedCriterion( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("instantaneous_modulus",10e9), getData( "relaxed_modulus",1e9) ) ;
 		}
@@ -472,7 +496,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 		}
 		if(type == "MCFT")
 		{
-			ret = new NonLocalMCFT( getData("limit_compressive_strain",0.001), getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001)) ;
+			ret = new NonLocalMCFT( getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001)) ;
 			std::vector<ConfigTreeItem *> rebarItems = getAllChildren("rebar") ;
 			std::vector<std::pair<double, double> > rebars ;
 			for(size_t i = 0 ; i < rebarItems.size() ; i++)
@@ -531,14 +555,18 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 	if(type == std::string("VOID_BEHAVIOUR"))
 		return new VoidForm() ;
 
+	planeType pt = PLANE_STRESS ;
+	if(hasChild("plane_type"))
+		pt = ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ;
+
 	if(type == std::string("ELASTICITY"))
 	{
 		if(spaceTime)
 		{
 			int blocks = getData("additional_viscoelastic_variables",0) ;
-			return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim), blocks) ;
+			return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), blocks) ;
 		}
-		return new Stiffness( getStiffnessMatrix(dim) ) ;
+		return new Stiffness( getStiffnessMatrix(dim, pt) ) ;
 	}
 
 	if(type == std::string("ELASTICITY_AND_FRACTURE"))
@@ -550,9 +578,9 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 			if(spaceTime)
 			{
 				int blocks = getData("additional_viscoelastic_variables",0) ;
-				return new ViscoelasticityAndFracture( PURE_ELASTICITY, getStiffnessMatrix(dim), frac, dam, blocks) ;
+				return new ViscoelasticityAndFracture( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), frac, dam, blocks) ;
 			}
-			return new StiffnessAndFracture( getStiffnessMatrix(dim), frac, dam ) ;
+			return new StiffnessAndFracture( getStiffnessMatrix(dim, pt), frac, dam ) ;
 		}
 		else
 		{
@@ -564,9 +592,9 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 			if(spaceTime)
 			{
 				int blocks = getData("additional_viscoelastic_variables",0) ;
-				return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim), blocks) ;
+				return new Viscoelasticity( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), blocks) ;
 			}
-			return new Stiffness( getStiffnessMatrix(dim) ) ;
+			return new Stiffness( getStiffnessMatrix(dim, pt) ) ;
 		}
 	}
 
@@ -576,9 +604,9 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 		{
 			int blocks = getData("additional_viscoelastic_variables",0) ;
 			Vector imp = getImposedDeformation(dim) ;
-			return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, getStiffnessMatrix(dim), imp, blocks) ;
+			return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, getStiffnessMatrix(dim, pt), imp, blocks) ;
 		}
-		return new StiffnessWithImposedDeformation( getStiffnessMatrix(dim), getImposedDeformation(dim) ) ;
+		return new StiffnessWithImposedDeformation( getStiffnessMatrix(dim, pt), getImposedDeformation(dim) ) ;
 	}
 
 	if(type == std::string("LOGARITHMIC_CREEP"))
@@ -655,8 +683,8 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 	if(type == std::string("ASR_GEL_BEHAVIOUR"))
 	{
 		if(spaceTime)
-			return new ViscoElasticOnlyGelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_expansion", 0.22), dim) ;
-		return new GelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_expansion", 0.22), dim) ;
+			return new ViscoElasticOnlyGelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_deformation", 0.22), dim) ;
+		return new GelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_deformation", 0.22), dim) ;
 	}
 
 	if(type == std::string("CONCRETE_BEHAVIOUR"))
@@ -692,26 +720,25 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 	if(type == std::string("VISCOSITY"))
 	{
 		int blocks = getData("additional_viscoelastic_variables",0) ;
-		return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim), blocks) ;
+		return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
 	}
 
 	if(type == std::string("KELVIN_VOIGT"))
 	{
 		int blocks = getData("additional_viscoelastic_variables",0) ;
-		return new Viscoelasticity( KELVIN_VOIGT, getChild("spring")->getStiffnessMatrix(dim), getChild("dashpot")->getStiffnessMatrix(dim), blocks) ;
+		return new Viscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
 	}
 
 	if(type == std::string("MAXWELL"))
 	{
 		int blocks = getData("additional_viscoelastic_variables",0) ;
-		return new Viscoelasticity( MAXWELL, getChild("spring")->getStiffnessMatrix(dim), getChild("dashpot")->getStiffnessMatrix(dim), blocks) ;
+		return new Viscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
 	}
 
 	if(type == std::string("BURGER"))
 	{
-		getChildFromFullLabel("kelvin_voigt.spring")->getStiffnessMatrix(dim) ;
 		int blocks = getData("additional_viscoelastic_variables",0) ;
-		return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt.spring")->getStiffnessMatrix(dim), getChildFromFullLabel("kelvin_voigt.dashpot")->getStiffnessMatrix(dim), getChildFromFullLabel("maxwell.spring")->getStiffnessMatrix(dim), getChildFromFullLabel("maxwell.dashpot")->getStiffnessMatrix(dim),blocks) ;
+		return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.),blocks) ;
 	}
 
 	if(type == std::string("GENERALIZED_KELVIN_VOIGT"))
@@ -720,8 +747,8 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 		std::vector<std::pair<Matrix, Matrix> > branches ;
 		std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
 		for(size_t i = 0 ; i < config.size() ; i++)
-			branches.push_back(std::make_pair( config[i]->getChild("spring")->getStiffnessMatrix(dim), config[i]->getChild("dashpot")->getStiffnessMatrix(dim) ) ) ;
-		return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("spring")->getStiffnessMatrix(dim), branches, blocks) ;
+			branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
+		return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
 	}
 
 	if(type == std::string("GENERALIZED_MAXWELL"))
@@ -730,8 +757,8 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 		std::vector<std::pair<Matrix, Matrix> > branches ;
 		std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
 		for(size_t i = 0 ; i < config.size() ; i++)
-			branches.push_back(std::make_pair( config[i]->getChild("spring")->getStiffnessMatrix(dim), config[i]->getChild("dashpot")->getStiffnessMatrix(dim) ) ) ;
-		return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("spring")->getStiffnessMatrix(dim), branches, blocks) ;
+			branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
+		return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
 	}
 
 	return new VoidForm() ;
@@ -813,6 +840,17 @@ SamplingRestrictionType ConfigTreeItem::translateSamplingRestrictionType( std::s
 	if(restriction == "SAMPLE_RESTRICT_16")
 		return SAMPLE_RESTRICT_16 ;
 	return SAMPLE_NO_RESTRICTION ;
+}
+
+planeType ConfigTreeItem::translatePlaneType( std::string type ) 
+{
+	if(type == "PLANE_STRAIN")
+		return PLANE_STRAIN ;
+	if(type == "PLANE_STRESS")
+		return PLANE_STRESS ;
+	if(type == "PLANE_STRESS_FREE_G")
+		return PLANE_STRESS_FREE_G ;
+	return PLANE_STRESS ;
 }
 
 PSDSpecificationType ConfigTreeItem::translatePSDSpecificationType( std::string specification ) 
@@ -955,7 +993,7 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vecto
 			return ret ;
 		}
 		GranuloFromFile granulo( filename, columns ) ;
-		std::string inclusion = getStringData("geometry.type","CIRCLE_INCLUSION") ;
+		std::string inclusion = getStringData("geometry.type","CIRCLE") ;
 		int n = psdConfig->getData("number",1) ;
 		ret = granulo.getFeatures( ConfigTreeItem::translateInclusionType( inclusion ), n ) ;
 		if(behaviour)
@@ -1006,11 +1044,11 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vecto
 		ParticleSizeDistribution * psd = psdConfig->getParticleSizeDistribution() ;
 		int n = psdConfig->getData("number",1) ;
 		double rmax = psdConfig->getData("rmax",0.1) ;
+		double fraction = psdConfig->getData("fraction", 0.8) ;
 		std::string geometry = getStringData("geometry.type","CIRCLE") ;
 		double aspectRatio = getData("geometry.aspect_ratio",1.) ;
 		double orientation = getData("geometry.orientation",M_PI) ;
 		Sample * placement = nullptr ;
-		double fraction = getData("placement.fraction", 0.8) ;
 		int tries = getData("placement.tries", 1e6) ;
 		double spacing = getData("placement.spacing",1e-5) ;
 		if(hasChildFromFullLabel("placement.box"))
@@ -1365,11 +1403,11 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition() const
 
 bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 {
-	if(getStringData() == "ALL")
+	if(getStringData("at","NONE") == "ALL")
 		return true ;
-	if(getStringData() == "LAST")
+	if(getStringData("at","NONE") == "LAST")
 		return i == nsteps-1 ;
-	if(getStringData() == "REGULAR")
+	if(getStringData("at","NONE") == "REGULAR")
 		return i%((int) getData("every", 2)) == 0 ;
 	return false ;
 }
@@ -1477,7 +1515,7 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps)
 		out.open(getStringData("file_name","output").c_str(), std::ios::out) ;
 		out.close() ;
 	}
-	if(getChild("at_time_step")->isAtTimeStep(i, nsteps))
+	if(getChild("time_step")->isAtTimeStep(i, nsteps))
 	{
 		std::fstream out ;
 		out.open(getStringData("file_name","output").c_str(), std::ios::out | std::ios::app) ;
@@ -1501,7 +1539,7 @@ void ConfigTreeItem::exportTriangles(FeatureTree * F, int i, int nsteps)
 	if(getStringData("file_name","file_not_found") == "file_not_found")
 		return ;
 
-	if(getChild("at_time_step")->isAtTimeStep(i, nsteps))
+	if(getChild("time_step")->isAtTimeStep(i, nsteps))
 	{
 		std::string instant = getStringData("instant","NOW") ;
 		TriangleWriter trg(getStringData("file_name","output_").append(itoa(i)), F, (instant == "AFTER") - (instant == "BEFORE") ) ;
@@ -1528,7 +1566,7 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
 	if(!trg)
 		return ;
 	
-	if(getChild("at_time_step")->isAtTimeStep(i, nsteps))
+	if(getChild("time_step")->isAtTimeStep(i, nsteps))
 	{
 		std::string instant = getStringData("instant","NOW") ;
 		trg->reset(F, (instant == "AFTER") - (instant == "BEFORE")) ;

@@ -162,7 +162,7 @@ public:
 	DamageModel * getDamageModel(bool spaceTime = false) const ;
 
 	/** Translates the current item in a Cauchy-Green stiffness matrix*/
-	Matrix getStiffnessMatrix(SpaceDimensionality dim) const ;
+	Matrix getStiffnessMatrix(SpaceDimensionality dim, planeType pt = PLANE_STRESS) const ;
 
 	/** Translates the current item in a vector of imposed strain*/
 	Vector getImposedDeformation(SpaceDimensionality dim) const ;
@@ -196,6 +196,8 @@ public:
 
 	/** Translate a string in a field type*/
 	static FieldType translateFieldType(std::string field, bool & ok) ;
+
+	static planeType translatePlaneType(std::string type) ;
 
 	/** Translate a string in a field type*/
 	static TWFieldType translateTriangleWriterFieldType(std::string field, bool & ok) ;

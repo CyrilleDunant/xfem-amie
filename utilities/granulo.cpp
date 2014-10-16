@@ -655,22 +655,23 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
         case CIRCLE_INCLUSION:
             // inclusions
             std::cout << "creating inclusions..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
                 inc.push_back(new Inclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i])) ;
             break ;
         case SPHERE_INCLUSION:
             // inclusions 3D
             std::cout << "creating 3D inclusions..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
                 inc.push_back(new Inclusion3D(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i])) ;
             break ;
         case ELLIPSE_INCLUSION:
             // ellipses
             std::cout << "creating ellipses..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
             {
                 Point center(fieldvalues[2][i], fieldvalues[3][i]) ;
                 Point a(fieldvalues[4][i], fieldvalues[5][i]) ;
+		a /= a.norm() ;
                 a *= fieldvalues[0][i] ;
                 double b = fieldvalues[1][i]/fieldvalues[0][i] ;
                 inc.push_back(new EllipsoidalInclusion(center,a,b)) ;
