@@ -54,29 +54,66 @@
 
 using namespace Amie ;
 
+void checkTriangle(DelaunayTriangle * trg)
+{
+	Point p ;
+//		triangles[i]->getBehaviour()->getTensor(p).print() ;
+	Matrix m = trg->getBehaviour()->getViscousTensor(p) ;
+	int k = 0 ;
+	for(size_t r = 0 ; r < 3 ; r++)
+	{
+		for(size_t c = 0 ; c < 3 ; c++)
+		{
+			if(m[r][c] > 1)
+				k++ ;
+			if(m[r+3][c] > 1)
+				k++ ;
+			if(m[r][c+3] > 1)
+				k++ ;
+		}
+	}
+	if(k > 0)
+		std::cout << k << " bad components" << std::endl ;
+}
+
 int main(int argc, char *argv[])
 {
+	omp_set_num_threads(4) ;
+	
+	int scenario = 4 ;//atof(argv[1]) ;
+
     Sample box(nullptr, 0.2,0.4,0.,0.) ;
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(128) ;
+    F.setSamplingNumber(32) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     double time_step = 0.01 ;
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
-    F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
+//    F.setSamplingFactor(&box, 0.25) ;
+    F.setSamplingRestriction( SAMPLE_RESTRICT_16 ) ;
 
-    LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.2, creep_poisson = 0.2, creep_characteristic_time = 0.1") ;
-    paste.addMaterialParameter("creep_modulus", atof(argv[1])*1e9) ;
-//    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
+    LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.3, creep_modulus = 5e9, creep_poisson = 0.3, creep_characteristic_time = 0.1") ;
+//    paste.addMaterialParameter("creep_modulus", atof(argv[1])*1e9) ;
+	if(scenario == 2)
+	    paste.setLogCreepAccumulator( LOGCREEP_AGEING ) ;
+	if(scenario == 3)
+	    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
     LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
-    box.setBehaviour( &paste );
+	Matrix x = (new ElasticOnlyPasteBehaviour(20e9))->param ;
 
-   std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, &aggregates, 5000, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1,0.,0.)) ;
+	if(scenario == 4)
+    		box.setBehaviour( new Viscoelasticity( MAXWELL, x, x*0.25 ) );
+	else
+   	 	box.setBehaviour( &paste );
+
+	Rectangle falseBox(0.199,0.399,0.,0.) ;
+
+   std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, &aggregates, 5000, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1.,0.,0.)) ;
     for(size_t i = 0 ; i < inc.size() ; i++)
     {
-	if(inc[i]->intersects(dynamic_cast<Rectangle *>(&box)))
+	if(inc[i]->intersects(&falseBox))
 		F.setSamplingFactor( inc[i], 3. ) ;
 	else
 		F.setSamplingFactor( inc[i], 2. ) ;
@@ -105,7 +142,10 @@ int main(int argc, char *argv[])
 		agg_index.push_back(i) ;
 	} 
 	else
+	{
 		paste_index.push_back(i) ;
+		checkTriangle( triangles[i] ) ;
+	}
     }
     std::cout << paste_index.size() << "\t" << triangles.size() << std::endl ;
     std::cout << "effective surface covered by aggregates: " << area << std::endl ;
@@ -116,26 +156,42 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(stress) ;
 
     std::fstream out ;
-    out.open("superposition_bengougam_tension_full", std::ios::out) ;
+    std::string file = "superposition_bengougam_tension_" ;
+    switch(scenario)
+    {
+	case 1:
+		file.append("stress") ;
+		break ;
+	case 2:
+		file.append("ageing") ;
+		break ;
+	case 3:
+		file.append("false_maxwell") ;
+		break ;
+	case 4:
+		file.append("maxwell") ;
+		break ;
+    }
+    out.open(file.c_str(), std::ios::out) ;
     int i = 0 ;
     bool down = false ;
     bool up = false ;
     int incr = 10 ;
 
-    while(F.getCurrentTime() < 3000)
+    while(F.getCurrentTime() < 20000)
     {
 	    if(i%incr == 0)
 	    {
-		F.setDeltaTime(std::min(1.,0.01+0.01*i/incr)) ;
+		F.setDeltaTime(0.01*std::pow(10.,i/incr)) ;
 		TriangleWriter trg("toto", &F, 1.) ;
 		trg.getField(STRAIN_FIELD) ;
-		trg.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
+		trg.getField(REAL_STRESS_FIELD) ;
 		trg.getField(TWFT_STIFFNESS) ;
 		trg.getField(TWFT_VISCOSITY) ;
 		trg.write() ;
 	    }
 
-	    if(!down && F.getCurrentTime() > 1288)
+/*	    if(!down && F.getCurrentTime() > 1288)
 	    {
 		down = true ;
 		stress->setData(0) ;
@@ -148,7 +204,13 @@ int main(int argc, char *argv[])
 		stress->setData(1e6) ;
 		F.setDeltaTime(0.01) ;
 		i = 0 ;
-	    }
+	    }/*
+
+/*	if(i == 5)
+	{
+		F.getAssembly()->print() ;
+		exit(0) ;
+	}*/
 
 
 	    bool goOn = F.step() ;
@@ -178,6 +240,7 @@ int main(int argc, char *argv[])
 		double a = triangles[paste_index[j]]->area() ;
 		stress_paste += str*a ;
 		area_paste += a ;
+		checkTriangle( triangles[paste_index[i]] ) ;
 	    }
 	    for(size_t j = 0 ; j < agg_index.size() ; j++)
 	    {
@@ -186,13 +249,20 @@ int main(int argc, char *argv[])
 		double a = triangles[agg_index[j]]->area() ;
 		stress_aggregates += str*a ;
 		area_aggregates += a ;
+//		if(i == 3)
+//		{
+//			Point p ;
+//			triangles[agg_index[j]]->getBehaviour()->getTensor(p).print() ;
+//			triangles[agg_index[j]]->getBehaviour()->getViscousTensor(p).print() ;
+//			exit(0) ;
+//		}
 	    }
 	    stress_paste /= area_paste ;
 	    stress_aggregates /= area_aggregates ;
 	
 
             out << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
-            std::cout << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
+            std::cout << F.getCurrentTime() << "\t" << strain[0]*1e6 << "\t" << strain[1]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
 	    i++ ;
     }
 
