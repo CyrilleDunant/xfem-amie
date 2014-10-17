@@ -100,7 +100,7 @@ GaussPointArray genEquivalentGaussPointArray3D( TetrahedralElement * tet, double
 	return gp ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t) 
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, std::vector< double > weights) 
 {
   bool cleanup = !vm ;
 	GaussPointArray gp = parent->getGaussPoints() ;
@@ -128,6 +128,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f,
 	if (cleanup) delete vm ;
 	ret /= total;
 	
+	double v = parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
+	return v ;
 }
 
 void  GeneralizedSpaceTimeViscoElasticElementState::step( double dt, const Vector *d )
@@ -540,13 +542,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields(Fie
 
 
 
-void GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t) 
+double GeneralizedSpaceTimeViscoElasticElementState::getAverageField( FieldType f1, FieldType f2, Vector & r1, Vector & r2, VirtualMachine * vm , int dummy , double t, std::vector< double > weights) 
 {	
 	bool cleanup = !vm ;
 	if(!vm) vm = new VirtualMachine() ;
 	getAverageField(f1, r1, vm, dummy, t) ;
-	getAverageField(f2, r2, vm, dummy, t) ;
+	double v = getAverageField(f2, r2, vm, dummy, t) ;
 	if (cleanup) delete vm ;
+	return v ;
 }
 
 void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm , int )  const 
@@ -1785,6 +1788,19 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField( FieldType f, const 
 				ret[i] = stresses[i] ;
 
 			ret -= getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+			Vector v = getParent()->getBehaviour()->getImposedStress(p_, parent) ;
+/*			if(std::abs(ret[0]) > 1e8)
+			{
+				std::cout << strains[0] << " " << strains[1] << " " << strains[2] << " " << strains[3] << " " << strains[4] << " " << strains[5] << std::endl ;
+				std::cout << speeds[0] << " " << speeds[1] << " " << speeds[2] << " " << speeds[3] << " " << speeds[4] << " " << speeds[5] << std::endl ;
+				Vector str = (Vector) (visco->getTensor(p_, parent) * strains) ;
+				Vector strp = (Vector) (visco->getViscousTensor(p_, parent) * speeds) ;
+				std::cout << str[0] << " " << str[1] << " " << str[2] << " " << str[3] << " " << str[4] << " " << str[5] << std::endl ;
+				std::cout << strp[0] << " " << strp[1] << " " << strp[2] << " " << strp[3] << " " << strp[4] << " " << strp[5] << std::endl ;
+				visco->getTensor(p_, parent).print() ;
+				visco->getViscousTensor(p_, parent).print() ;
+				exit(0) ;
+			}*/
 			if (cleanup) delete vm ;
 			return ;
 		}
