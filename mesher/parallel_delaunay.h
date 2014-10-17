@@ -45,10 +45,10 @@ public:
     virtual double getInternalScale() const {
         return meshes[0]->getInternalScale() ;
     } ;
+     virtual std::vector<DelaunayTriangle *> getElements() const ;
 public:
     ParallelDelaunayTree(Point * p0,  Point *p1,  Point *p2, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree() {} ;
-    virtual std::vector<DelaunayTriangle *> getElements() const ;
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Point  * p) ;
     virtual std::vector<DelaunayTriangle *> getConflictingElements(const Geometry * g) ;
 
@@ -111,7 +111,10 @@ public:
         {
             return i.position == position ;
         }
-        
+        bool operator !=(const iterator & i) const
+        {
+            return i.position != position ;
+        }
         bool operator <=(const iterator & i)const
         {
             return position <= i.position ;
@@ -176,6 +179,18 @@ public:
         DelaunayTriangle * operator-> ( ) { 
             return dynamic_cast<DelaunayTriangle *>(msh->meshes[msh->elementMap[cacheID][position]]->getInTree(msh->caches[cacheID][position])) ;
         }
+        operator DelaunayTriangle * (){ 
+            return static_cast< DelaunayTriangle *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosition() const
+        {
+            return position ;
+        }
         
     } ;
     
@@ -198,6 +213,10 @@ public:
         bool operator ==(const const_iterator & i) const
         {
             return i.position == position ;
+        }
+        bool operator !=(const const_iterator & i) const
+        {
+            return i.position != position ;
         }
         bool operator <=(const const_iterator & i)const
         {
@@ -261,6 +280,18 @@ public:
         
         const DelaunayTriangle * operator-> ( ) const { 
               return dynamic_cast<const DelaunayTriangle *>(msh->meshes[msh->elementMap[cacheID][position]]->getInTree(msh->caches[cacheID][position])) ;
+        }
+        
+        operator const DelaunayTriangle * () const { 
+            return static_cast<const DelaunayTriangle *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosition() const
+        {
+            return position ;
         }
         
     } ;

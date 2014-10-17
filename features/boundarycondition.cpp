@@ -3324,15 +3324,14 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 void applyVerticalPlaneSections ( double topY, double bottomY, Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
     std::vector<Point *> points ;
-    std::vector<DelaunayTriangle *> triangles = t->getElements() ;
 
-    for ( size_t i  = 0 ; i < triangles.size() ; i++ )
+    for ( auto i  = t->begin() ; i != t->end() ; i++ )
     {
-        for ( size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++ )
+        for ( size_t j = 0 ; j <i->getBoundingPoints().size() ; j++ )
         {
-            if ( triangles[i]->getBoundingPoint ( j ).getY() <= topY && triangles[i]->getBoundingPoint ( j ).getY() >= bottomY )
+            if ( i->getBoundingPoint ( j ).getY() <= topY && i->getBoundingPoint ( j ).getY() >= bottomY )
             {
-                points.push_back ( &triangles[i]->getBoundingPoint ( j ) );
+                points.push_back ( &i->getBoundingPoint ( j ) );
             }
         }
     }
@@ -3576,25 +3575,23 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
         return ;
     }
 
-    std::vector<DelaunayTriangle *> elements = t->getElements() ;
-
     std::set<Point *> points ;
 
-    for ( size_t i = 0 ; i < elements.size() ; i++ )
+    for ( auto i = t->begin() ; i != t->end() ; i++ )
     {
-        if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+        if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
         {
             continue ;
         }
 
-        for ( size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++ )
+        for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
         {
-            Point test ( elements[i]->getBoundingPoint ( j ) ) ;
+            Point test ( i->getBoundingPoint ( j ) ) ;
             surface->project ( &test );
 
-            if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < POINT_TOLERANCE_2D )
+            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE_2D )
             {
-                points.insert ( &elements[i]->getBoundingPoint ( j ) ) ;
+                points.insert ( &i->getBoundingPoint ( j ) ) ;
             }
         }
     }
@@ -3621,25 +3618,23 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
         return ;
     }
 
-    std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
-
     std::set<Point *> points ;
 
-    for ( size_t i = 0 ; i < elements.size() ; i++ )
+    for ( auto i = t->begin() ; i != t->end() ; i++ )
     {
-        if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+        if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
         {
             continue ;
         }
 
-        for ( size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++ )
+        for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
         {
-            Point test ( elements[i]->getBoundingPoint ( j ) ) ;
+            Point test ( i->getBoundingPoint ( j ) ) ;
             volume->project ( &test );
 
-            if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < POINT_TOLERANCE_3D )
+            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE_3D )
             {
-                points.insert ( &elements[i]->getBoundingPoint ( j ) ) ;
+                points.insert ( &i->getBoundingPoint ( j ) ) ;
             }
         }
     }
@@ -3848,60 +3843,59 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
     if ( cache.empty() )
     {
-        std::vector<DelaunayTriangle *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0 )
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
 
             }
@@ -3914,18 +3908,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         std::map<double, std::pair<Point, DelaunayTriangle*> > id  ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) )
                 {
-                    id[dist ( elements[i]->getBoundingPoint ( j ), nearest )] = std::make_pair ( elements[i]->getBoundingPoint ( j ), elements[i] ) ;
+                    id[dist ( i->getBoundingPoint ( j ), nearest )] = std::make_pair ( i->getBoundingPoint ( j ), i ) ;
                 }
             }
         }
@@ -3982,73 +3976,72 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0 )
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double minz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
-        double maxz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
+        double minz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
+        double maxz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() < minz )
+                if ( i->getBoundingPoint ( j ).getZ() < minz )
                 {
-                    minz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    minz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() > maxz )
+                if ( i->getBoundingPoint ( j ).getZ() > maxz )
                 {
-                    maxz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    maxz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
 
             }
@@ -4061,18 +4054,18 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         std::map<double, std::pair<Point, DelaunayTetrahedron*> > id  ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) )
                 {
-                    id[dist ( elements[i]->getBoundingPoint ( j ), nearest )] = std::make_pair ( elements[i]->getBoundingPoint ( j ), elements[i] ) ;
+                    id[dist ( i->getBoundingPoint ( j ), nearest )] = std::make_pair ( i->getBoundingPoint ( j ), i ) ;
                 }
             }
         }
@@ -4138,28 +4131,28 @@ void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<Delauna
         double tol = domain->getRadius() * .001 ;
 
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for (auto i = elements.begin() ; i != elements.end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( (*i)->getBehaviour()->getDamageModel() && (*i)->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < (*i)->getBoundingPoints().size() ; ++j )
             {
-                Point test = elements[i]->getBoundingPoint ( j ) ;
+                Point test = (*i)->getBoundingPoint ( j ) ;
                 domain->project ( &test );
 
-                if ( squareDist2D ( test, elements[i]->getBoundingPoint ( j ) ) < tol*tol )
+                if ( squareDist2D ( test, (*i)->getBoundingPoint ( j ) ) < tol*tol )
                 {
-                    id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    id.push_back ( (*i)->getBoundingPoint ( j ) ) ;
                 }
             }
             if ( !id.empty() )
             {
-                cache2d.push_back ( elements[i] );
+                cache2d.push_back ( (*i) );
                 cache.push_back ( id );
             }
 
@@ -4249,26 +4242,25 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTriangle *> elements = t->getElements() ;
         double tol = domain->getRadius() * .0001 ;
 
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                Circle c ( tol, elements[i]->getBoundingPoint ( j ) ) ;
+                Circle c ( tol, i->getBoundingPoint ( j ) ) ;
 
-                if ( domain->intersects ( &c ) || domain->in ( elements[i]->getBoundingPoint ( j ) ) )
+                if ( domain->intersects ( &c ) || domain->in ( i->getBoundingPoint ( j ) ) )
                 {
-                    id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    id.push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
             if ( id.empty() )
@@ -4277,26 +4269,26 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
             }
             else
             {
-                cache2d.push_back ( elements[i] );
+                cache2d.push_back ( i );
                 cache.push_back ( id );
             }
 
-            GaussPointArray gp = elements[i]->getGaussPoints() ;
-            std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+            GaussPointArray gp = i->getGaussPoints() ;
+            std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
             {
-                elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
             }
 
 
             if ( !function )
             {
-                apply2DBC ( elements[i],gp, Jinv, id, condition, data*getScale(), a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, data*getScale(), a ) ;
             }
             else
             {
-                apply2DBC ( elements[i],gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
+                apply2DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
             }
         }
     }
@@ -4329,25 +4321,24 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
         double tol = domain->getRadius() * .0001 ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                Sphere c ( tol, elements[i]->getBoundingPoint ( j ) ) ;
+                Sphere c ( tol, i->getBoundingPoint ( j ) ) ;
 
-                if ( domain->intersects ( &c ) || domain->in ( elements[i]->getBoundingPoint ( j ) ) )
+                if ( domain->intersects ( &c ) || domain->in ( i->getBoundingPoint ( j ) ) )
                 {
-                    id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    id.push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
             if ( id.empty() )
@@ -4356,25 +4347,25 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
             }
             else
             {
-                cache3d.push_back ( elements[i] );
+                cache3d.push_back ( i );
                 cache.push_back ( id );
             }
 
-            GaussPointArray gp = elements[i]->getGaussPoints() ;
-            std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+            GaussPointArray gp = i->getGaussPoints() ;
+            std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
             for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
             {
-                elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
             }
 
             if ( !function )
             {
-                apply3DBC ( elements[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+                apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
             }
             else
             {
-                apply3DBC ( elements[i],gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
+                apply3DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
             }
         }
     }
@@ -4407,60 +4398,59 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTriangle *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0 )
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
 
             }
@@ -4475,46 +4465,46 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
         Point rmax ( xmax, ymax ) ;
 
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
 
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) && isInBoundary2D ( elements[i]->getBoundingPoint ( j ), rmin, rmax ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) && isInBoundary2D ( i->getBoundingPoint ( j ), rmin, rmax ) )
                 {
-                    if ( cache2d.empty() || cache2d.back() != elements[i] )
+                    if ( cache2d.empty() || cache2d.back() != i )
                     {
                         cache.push_back ( std::vector<Point>() );
-                        cache2d.push_back ( elements[i] );
+                        cache2d.push_back ( i );
                     }
 
-                    cache.back().push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    cache.back().push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
 
-            if ( !cache2d.empty() && cache2d.back() == elements[i] )
+            if ( !cache2d.empty() && cache2d.back() == i )
             {
-                GaussPointArray gp = elements[i]->getGaussPoints() ;
-                std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+                GaussPointArray gp = i->getGaussPoints() ;
+                std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
                 if ( !function )
                 {
-                    apply2DBC ( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+                    apply2DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
                 }
                 else
                 {
-                    apply2DBC ( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+                    apply2DBC ( i,gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
                 }
             }
         }
@@ -4550,61 +4540,60 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
 
     if ( cache.empty() )
     {
-        std::vector<DelaunayTriangle *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0 )
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
             }
         }
@@ -4614,44 +4603,44 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
 
         double tol = std::max ( std::min ( std::min ( maxx - minx, maxy - miny ), maxt-mint ) * .001, POINT_TOLERANCE_2D ) ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) )
                 {
-                    if ( cache2d.empty() || cache2d.back() != elements[i] )
+                    if ( cache2d.empty() || cache2d.back() != i )
                     {
                         cache.push_back ( std::vector<Point>() );
-                        cache2d.push_back ( elements[i] );
+                        cache2d.push_back ( i );
                     }
 
-                    cache.back().push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    cache.back().push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
 
-            if ( !cache2d.empty() && cache2d.back() == elements[i] )
+            if ( !cache2d.empty() && cache2d.back() == i )
             {
-                GaussPointArray gp = elements[i]->getGaussPoints() ;
-                std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+                GaussPointArray gp = i->getGaussPoints() ;
+                std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
 
                 if ( !function )
                 {
-                    apply2DBC ( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+                    apply2DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
                 }
                 else
                 {
-                    apply2DBC ( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
+                    apply2DBC ( i,gp,Jinv, cache.back(), condition, dataFunction*getScale(), a, axis ) ;
                 }
             }
         }
@@ -4690,73 +4679,72 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0)
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double minz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
-        double maxz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
+        double minz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
+        double maxz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end()  ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() < minz )
+                if ( i->getBoundingPoint ( j ).getZ() < minz )
                 {
-                    minz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    minz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() > maxz )
+                if ( i->getBoundingPoint ( j ).getZ() > maxz )
                 {
-                    maxz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    maxz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
 
             }
@@ -4770,46 +4758,46 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
         Point rmin ( xmin, ymin, zmin ) ;
         Point rmax ( xmax, ymax, zmax ) ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end()  ; i++  )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) && isInBoundary3D ( elements[i]->getBoundingPoint ( j ), rmin, rmax ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) && isInBoundary3D ( i->getBoundingPoint ( j ), rmin, rmax ) )
                 {
-                    if ( cache3d.empty() || cache3d.back() != elements[i] )
+                    if ( cache3d.empty() || cache3d.back() != i )
                     {
                         cache.push_back ( std::vector<Point>() );
-                        cache3d.push_back ( elements[i] );
+                        cache3d.push_back ( i );
                     }
 
-                    cache.back().push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    cache.back().push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
 
 
-            if ( !cache3d.empty() && cache3d.back() == elements[i] )
+            if ( !cache3d.empty() && cache3d.back() == i )
             {
-                GaussPointArray gp = elements[i]->getGaussPoints() ;
-                std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+                GaussPointArray gp = i->getGaussPoints() ;
+                std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
                 if ( !function )
                 {
-                    apply3DBC ( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
                 }
                 else
                 {
-                    apply3DBC ( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
                 }
             }
         }
@@ -4843,73 +4831,72 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 {
     if ( cache.empty() )
     {
-        std::vector<DelaunayTetrahedron *> elements = t->getElements() ;
 
-        if ( elements.empty() )
+        if ( t->begin().size() == 0 )
         {
             std::cout << "no elements in assembly" << std::endl ;
             return ;
         }
 
-        double minx = elements.front()->getBoundingPoint ( 0 ).getX() ;
-        double maxx = elements.front()->getBoundingPoint ( 0 ).getX() ;
+        double minx = t->begin()->getBoundingPoint ( 0 ).getX() ;
+        double maxx = t->begin()->getBoundingPoint ( 0 ).getX() ;
 
-        double miny = elements.front()->getBoundingPoint ( 0 ).getY() ;
-        double maxy = elements.front()->getBoundingPoint ( 0 ).getY() ;
+        double miny = t->begin()->getBoundingPoint ( 0 ).getY() ;
+        double maxy = t->begin()->getBoundingPoint ( 0 ).getY() ;
 
-        double minz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
-        double maxz = elements.front()->getBoundingPoint ( 0 ).getZ() ;
+        double minz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
+        double maxz = t->begin()->getBoundingPoint ( 0 ).getZ() ;
 
-        double mint = elements.front()->getBoundingPoint ( 0 ).getT() ;
-        double maxt = elements.front()->getBoundingPoint ( 0 ).getT() ;
+        double mint = t->begin()->getBoundingPoint ( 0 ).getT() ;
+        double maxt = t->begin()->getBoundingPoint ( 0 ).getT() ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end()  ; i++  )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() || elements[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( elements[i]->getBoundingPoint ( j ).getX() < minx )
+                if ( i->getBoundingPoint ( j ).getX() < minx )
                 {
-                    minx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    minx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getX() > maxx )
+                if ( i->getBoundingPoint ( j ).getX() > maxx )
                 {
-                    maxx = elements[i]->getBoundingPoint ( j ).getX() ;
+                    maxx = i->getBoundingPoint ( j ).getX() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() < miny )
+                if ( i->getBoundingPoint ( j ).getY() < miny )
                 {
-                    miny = elements[i]->getBoundingPoint ( j ).getY() ;
+                    miny = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getY() > maxy )
+                if ( i->getBoundingPoint ( j ).getY() > maxy )
                 {
-                    maxy = elements[i]->getBoundingPoint ( j ).getY() ;
+                    maxy = i->getBoundingPoint ( j ).getY() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() < minz )
+                if ( i->getBoundingPoint ( j ).getZ() < minz )
                 {
-                    minz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    minz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getZ() > maxz )
+                if ( i->getBoundingPoint ( j ).getZ() > maxz )
                 {
-                    maxz = elements[i]->getBoundingPoint ( j ).getZ() ;
+                    maxz = i->getBoundingPoint ( j ).getZ() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() < mint )
+                if ( i->getBoundingPoint ( j ).getT() < mint )
                 {
-                    mint = elements[i]->getBoundingPoint ( j ).getT() ;
+                    mint = i->getBoundingPoint ( j ).getT() ;
                 }
 
-                if ( elements[i]->getBoundingPoint ( j ).getT() > maxt )
+                if ( i->getBoundingPoint ( j ).getT() > maxt )
                 {
-                    maxt = elements[i]->getBoundingPoint ( j ).getT() ;
+                    maxt = i->getBoundingPoint ( j ).getT() ;
                 }
 
             }
@@ -4920,46 +4907,46 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
         Point pmin ( minx,miny, minz, mint ) ;
         Point pmax ( maxx,maxy, maxz, maxt ) ;
 
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin() ; i != t->end()  ; i++  )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
             }
 
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                if ( isOnBoundary ( pos, elements[i]->getBoundingPoint ( j ), pmin, pmax, tol ) )
+                if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) )
                 {
-                    if ( cache3d.empty() || cache3d.back() != elements[i] )
+                    if ( cache3d.empty() || cache3d.back() != i )
                     {
                         cache.push_back ( std::vector<Point>() );
-                        cache3d.push_back ( elements[i] );
+                        cache3d.push_back ( i );
                     }
 
-                    cache.back().push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    cache.back().push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
 
 
-            if ( !cache3d.empty() && cache3d.back() == elements[i] )
+            if ( !cache3d.empty() && cache3d.back() == i )
             {
-                GaussPointArray gp = elements[i]->getGaussPoints() ;
-                std::valarray<Matrix> Jinv ( Matrix(), elements[i]->getGaussPoints().gaussPoints.size() ) ;
+                GaussPointArray gp = i->getGaussPoints() ;
+                std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    elements[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
                 if ( !function )
                 {
-                    apply3DBC ( elements[i],gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, data*getScale(), a , axis ) ;
                 }
                 else
                 {
-                    apply3DBC ( elements[i],gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
+                    apply3DBC ( i,gp,Jinv, cache.back(), condition, dataFunction*getScale(), a , axis ) ;
                 }
             }
         }
@@ -5006,76 +4993,75 @@ ProjectionDefinedBoundaryCondition::ProjectionDefinedBoundaryCondition ( Lagrang
 
 void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
-    std::vector<DelaunayTriangle *> tris = t->getElements() ;
 
-    for ( size_t i = 0 ; i < tris.size() ; i++ )
+    for ( auto i = t->begin() ; i != t->end()  ; i++  )
     {
         DelaunayTreeItem * VoidItem ;
         bool border = false ;
 
-        for ( size_t j = 0 ; j < tris[i]->neighbour.size() ; j++ )
+        for ( size_t j = 0 ; j < i->neighbour.size() ; j++ )
         {
-            bool voidNeighbour = ( tris[i]->getNeighbour ( j )->isTriangle
-                                   && dynamic_cast<DelaunayTriangle *> ( tris[i]->getNeighbour ( j ) )->getBehaviour()->type == VOID_BEHAVIOUR ) ;
-            border = border || tris[i]->getNeighbour ( j )->isPlane
+            bool voidNeighbour = ( i->getNeighbour ( j )->isTriangle
+                                   && dynamic_cast<DelaunayTriangle *> ( i->getNeighbour ( j ) )->getBehaviour()->type == VOID_BEHAVIOUR ) ;
+            border = border || i->getNeighbour ( j )->isPlane
                      || voidNeighbour ;
 
             if ( voidNeighbour )
             {
-                VoidItem = tris[i]->getNeighbour ( j ) ;
+                VoidItem = i->getNeighbour ( j ) ;
             }
 
-            if ( tris[i]->getNeighbour ( j )->isPlane )
+            if ( i->getNeighbour ( j )->isPlane )
             {
-                VoidItem = tris[i]->getNeighbour ( j ) ;
+                VoidItem = i->getNeighbour ( j ) ;
             }
         }
 
-        if ( tris[i]->getBehaviour()->type == VOID_BEHAVIOUR )
+        if ( i->getBehaviour()->type == VOID_BEHAVIOUR )
         {
             border = false ;
         }
 
         if ( border )
         {
-            std::pair<Point *, Point*> commonSurface = tris[i]->commonEdge ( VoidItem ) ;
+            std::pair<Point *, Point*> commonSurface = i->commonEdge ( VoidItem ) ;
 
-            Segment ray ( ( tris[i]->getCenter() ), ( tris[i]->getCenter() ) - direction* ( tris[i]->getRadius() ) ) ;
+            Segment ray ( ( i->getCenter() ), ( i->getCenter() ) - direction* ( i->getRadius() ) ) ;
             bool isOnTheRightSide = ray.intersects ( Segment ( *commonSurface.first, *commonSurface.second ) ) ;
 
             if ( isOnTheRightSide )
             {
                 std::vector<Point> id ;
 
-                for ( size_t j = 0 ; j < tris[i]->getBoundingPoints().size() ; j++ )
+                for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
                 {
 
-                    Line side ( tris[i]->getBoundingPoint ( j ), tris[i]->getBoundingPoint ( j ) - tris[i]->getBoundingPoint ( ( j + 1 ) % tris[i]->getBoundingPoints().size() ) ) ;
+                    Line side ( i->getBoundingPoint ( j ), i->getBoundingPoint ( j ) - i->getBoundingPoint ( ( j + 1 ) % i->getBoundingPoints().size() ) ) ;
 
                     if ( side.intersects ( ray ) )
                     {
-                        id.push_back ( tris[i]->getBoundingPoint ( j ) ) ;
-                        id.push_back ( tris[i]->getBoundingPoint ( ( j + 1 ) % tris[i]->getBoundingPoints().size() ) ) ;
+                        id.push_back ( i->getBoundingPoint ( j ) ) ;
+                        id.push_back ( i->getBoundingPoint ( ( j + 1 ) % i->getBoundingPoints().size() ) ) ;
                     }
                 }
 
-                GaussPointArray gp = tris[i]->getGaussPoints() ;
-                std::valarray<Matrix> Jinv ( Matrix(), tris[i]->getGaussPoints().gaussPoints.size() ) ;
+                GaussPointArray gp = i->getGaussPoints() ;
+                std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
                 for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
                 {
-                    tris[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
                 }
 
                 if ( !id.empty() )
                 {
                     if ( !function )
                     {
-                        apply2DBC ( tris[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+                        apply2DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
                     }
                     else
                     {
-                        apply2DBC ( tris[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+                        apply2DBC ( i,gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
                     }
                 }
             }
@@ -5085,17 +5071,16 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
 
 void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-    std::vector<DelaunayTetrahedron *> tris = t->getElements() ;
 
-    for ( size_t i = 0 ; i < tris.size() ; i++ )
+    for ( auto i = t->begin() ; i != t->end()  ; i++  )
     {
         std::vector<DelaunayDemiSpace *> space ;
 
-        for ( size_t j = 0 ; j < tris[i]->neighbour.size() ; j++ )
+        for ( size_t j = 0 ; j < i->neighbour.size() ; j++ )
         {
-            if ( tris[i]->getNeighbour ( j )->isSpace() )
+            if (i->getNeighbour ( j )->isSpace() )
             {
-                space.push_back ( static_cast<DelaunayDemiSpace *> ( tris[i]->getNeighbour ( j ) ) ) ;
+                space.push_back ( static_cast<DelaunayDemiSpace *> ( i->getNeighbour ( j ) ) ) ;
             }
         }
 
@@ -5103,15 +5088,15 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
 
         for ( size_t s = 0 ; s < space.size() ; s++ )
         {
-            Segment ray ( tris[i]->getCenter(), tris[i]->getCenter() - direction*2.*tris[i]->getRadius() ) ;
-            std::vector<Point *> points = space[s]->commonSurface ( tris[i] ) ;
+            Segment ray ( i->getCenter(), i->getCenter() - direction*2.*i->getRadius() ) ;
+            std::vector<Point *> points = space[s]->commonSurface ( i ) ;
             Plane surf ( *points[0], *points[1], *points[2] ) ;
 
-            for ( size_t j = 3 ; j < tris[i]->getBoundingPoints().size() ; j++ )
+            for ( size_t j = 3 ; j < i->getBoundingPoints().size() ; j++ )
             {
-                if ( isCoplanar ( *points[0], *points[1], *points[2], tris[i]->getBoundingPoint ( j ) ) )
+                if ( isCoplanar ( *points[0], *points[1], *points[2], i->getBoundingPoint ( j ) ) )
                 {
-                    points.push_back ( &tris[i]->getBoundingPoint ( j ) ) ;
+                    points.push_back ( &i->getBoundingPoint ( j ) ) ;
                 }
             }
 
@@ -5123,21 +5108,21 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
                 }
             }
         }
-        GaussPointArray gp = tris[i]->getGaussPoints() ;
-        std::valarray<Matrix> Jinv ( Matrix(), tris[i]->getGaussPoints().gaussPoints.size() ) ;
+        GaussPointArray gp = i->getGaussPoints() ;
+        std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;
 
         for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
         {
-            tris[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+            i->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
         }
 
         if ( !function )
         {
-            apply3DBC ( tris[i],gp,Jinv, id, condition, data*getScale(), a ) ;
+            apply3DBC ( i,gp,Jinv, id, condition, data*getScale(), a ) ;
         }
         else
         {
-            apply3DBC ( tris[i],gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
+            apply3DBC ( i,gp,Jinv, id, condition, dataFunction*getScale(), a ) ;
         }
     }
 }
@@ -5153,20 +5138,20 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 {
 
     t->getAdditionalPoints() ;
-    std::vector<DelaunayTriangle *> tri = t->getElements() ;
-    int j = -1 ;
+    auto j = t->begin() ;
     size_t dof = 0 ;
     while ( dof == 0 )
     {
-        j++ ;
-        if ( j >= tri.size() )
+        
+        if ( j == t->end() )
         {
             return ;
         }
-        dof = tri[j]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        dof = j->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        j++ ;
     }
 
-    size_t timePlanes = tri[j]->timePlanes() ;
+    size_t timePlanes = j->timePlanes() ;
 
     if ( timePlanes < 2 )
     {
@@ -5216,8 +5201,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
     t->getAdditionalPoints() ;
-    std::vector<DelaunayTetrahedron *> tri = t->getElements() ;
-    size_t timePlanes = tri[0]->timePlanes() ;
+    size_t timePlanes = t->begin()->timePlanes() ;
 
     if ( timePlanes < 2 )
     {
@@ -5226,7 +5210,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
 
     size_t ndofmax = a->getMaxDofID() ;
     size_t dofPerPlane = ndofmax / timePlanes ;
-    size_t dof = tri[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    size_t dof = t->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     previousDisp.resize ( a->getDisplacements().size() ) ;
     previousDisp = a->getDisplacements() ;

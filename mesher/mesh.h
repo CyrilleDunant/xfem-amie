@@ -428,7 +428,7 @@ public:
             caches[position].push_back ( getInTree(i)->index ) ;
             coefs[position].push_back ( std::vector<double>() ) ;
 
-            for ( size_t i = 0 ; i < dynamic_cast<ETYPE *>(getInTree(i))->getGaussPoints().gaussPoints.size() ; i++ )
+            for ( size_t j = 0 ; j < dynamic_cast<ETYPE *>(getInTree(i))->getGaussPoints().gaussPoints.size() ; j++ )
                 coefs[position].back().push_back ( 1 ) ;
         }
 
@@ -786,6 +786,10 @@ public:
         {
             return i.position == position ;
         }
+        bool operator !=(const iterator & i) const
+        {
+            return i.position != position ;
+        }
         
         bool operator <=(const iterator & i)const
         {
@@ -851,6 +855,19 @@ public:
             return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
         }
         
+        operator ETYPE * (){ 
+            return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosition() const
+        {
+            return position ;
+        }
+        
     } ;
     
     class const_iterator
@@ -872,6 +889,10 @@ public:
         bool operator ==(const const_iterator & i) const
         {
             return i.position == position ;
+        }
+        bool operator !=(const const_iterator & i) const
+        {
+            return i.position != position ;
         }
         bool operator <=(const const_iterator & i)const
         {
@@ -935,6 +956,19 @@ public:
         
         const ETYPE * operator-> ( ) const { 
             return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        }
+        
+        operator const ETYPE * () const { 
+            return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosition() const
+        {
+            return position ;
         }
         
     } ;

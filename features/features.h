@@ -114,7 +114,7 @@ protected:
 	
 	SamplingRestrictionType samplingRestriction ;
 	
-	std::vector<double> cachedVolumes ;
+	std::vector<std::vector<double>> cachedVolumes ;
 	std::vector<Point *> extraPoints ; 
 	std::vector<Point *> nodes ;
 	
@@ -245,14 +245,14 @@ protected:
 	void setElementBehavioursFromMesh( MTYPE * source, MTYPE * destination)
 	{
 		std::cout << "setting element behaviours from previous mesh... " << std::flush ;
-		std::vector<ETYPE * > elems = destination->getElements() ;
-#pragma omp parallel for schedule(runtime)
-		for(size_t i = 0 ; i < elems.size() ; i++)
+// // 		std::vector<ETYPE * > elems = destination->getElements() ;
+// #pragma omp parallel for schedule(runtime)
+		for(auto i = source->begin() ; i != source->end()  ;i++)
 		{
 // 			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;s
 // 			Circle c(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
 // 			Sphere s(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
-			std::vector<ETYPE * > conflicts =  source->getConflictingElements(&(elems[i]->getCircumCenter()) );
+			std::vector<ETYPE * > conflicts =  source->getConflictingElements(&(i->getCircumCenter()) );
 // 			if(elems[i]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
 // 				conflicts = source->getConflictingElements(&c) ;
 // 			else
@@ -262,7 +262,7 @@ protected:
 			if(!conflicts.empty())
 				main = conflicts.front() ;
 			else
-				conflicts = source->getConflictingElements(elems[i]->getPrimitive()) ;
+				conflicts = source->getConflictingElements(i->getPrimitive()) ;
 			
 			if(conflicts.size() == 1)
 			{
@@ -273,7 +273,7 @@ protected:
 			
 			std::vector<double> fractions ; 
 			for(size_t j = 0 ; j < conflicts.size() ; j++)
-				fractions.push_back(conflicts[j]->overlapFraction(elems[i]->getPrimitive())) ;
+				fractions.push_back(conflicts[j]->overlapFraction(i->getPrimitive())) ;
 			
 			if(!conflicts.empty())
 			{
@@ -289,30 +289,30 @@ protected:
 					}
 				}
 				
-				elems[i]->setBehaviour(destination,main->getBehaviour()->getCopy()) ;
+				i->setBehaviour(destination,main->getBehaviour()->getCopy()) ;
 				
-				if(elems[i]->getBehaviour()->getDamageModel())
+				if(i->getBehaviour()->getDamageModel())
 				{
-					elems[i]->getBehaviour()->getDamageModel()->getState(true) = 0 ;
+					i->getBehaviour()->getDamageModel()->getState(true) = 0 ;
 					double renorm(0) ;
 					for(size_t j = 0 ; j < conflicts.size() ; j++)
 					{
 						if(conflicts[j]->getBehaviour() &&
 							conflicts[j]->getBehaviour()->getDamageModel() && 
-							conflicts[j]->getBehaviour()->getDamageModel()->getState().size() == elems[i]->getBehaviour()->getDamageModel()->getState().size())
+							conflicts[j]->getBehaviour()->getDamageModel()->getState().size() == i->getBehaviour()->getDamageModel()->getState().size())
 						{
-							elems[i]->getBehaviour()->getDamageModel()->getState(true) += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
+							i->getBehaviour()->getDamageModel()->getState(true) += conflicts[j]->getBehaviour()->getDamageModel()->getState()*fractions[j] ;
 							renorm += fractions[j] ;
 						}
 					}
 					if(std::abs(renorm) > POINT_TOLERANCE_2D)
 					{
-						elems[i]->getBehaviour()->getDamageModel()->getState(true) /= renorm ;
+						i->getBehaviour()->getDamageModel()->getState(true) /= renorm ;
 					}
 				}
 			}
 			else
-				elems[i]->setBehaviour(nullptr,nullptr) ;
+				i->setBehaviour(nullptr,nullptr) ;
 		}
 		
 		std::cout << " ...done."<< std::endl ;
@@ -557,7 +557,10 @@ public:
 
 	void moveFirstTimePlanes(double d, std::vector<DelaunayTriangle *> & triangles ) ;
 	void moveFirstTimePlanes(double d, std::vector<DelaunayTetrahedron *> & tets )  ;
-	
+        
+        void moveFirstTimePlanes(double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end) ;
+	void moveFirstTimePlanes(double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end) ;
+        
 	void setMaxIterationsPerStep(size_t its) 
 		{maxitPerStep = its ;}
 	
@@ -634,12 +637,9 @@ public:
 /** \brief return the triangles lying next to a mesh border*/
 	std::vector<DelaunayTriangle *> getBoundingTriangles(const Feature * f = nullptr) ;	
 	
-/** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTriangle *t, int layer = -1, bool onlyUpdate = false) const ;
-
-/** \brief return the Behaviour of the argument, deduced from the Feature s*/
-	Form * getElementBehaviour(const DelaunayTetrahedron *t, int layer = -1, bool onlyUpdate = false) const ;
-	
+        Form * getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & t, int layer = -1,  bool onlyUpdate = false) const ;
+        
+        Form * getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & t, int layer = -1,  bool onlyUpdate = false ) const ;
 /** \brief insert a point in the mesh*/
 	void insert(Point * p ) ;
 	

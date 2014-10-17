@@ -340,6 +340,7 @@ protected:
 	size_t global_counter ;
 	bool fixedScale ;
 	std::vector<Point *> additionalPoints ;
+        virtual std::vector< DelaunayTetrahedron* > getElements() const {return getTetrahedrons() ;};
 	
 public:
     virtual size_t size() const { return tree.size() ; } ;
@@ -347,7 +348,7 @@ public:
 	virtual std::vector<Point * > & getAdditionalPoints() {return additionalPoints ; };
 	virtual const std::vector<Point * > & getAdditionalPoints() const {return additionalPoints ;};
 
-	virtual std::vector< DelaunayTetrahedron* > getElements() const {return getTetrahedrons() ;};
+	
 	virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Amie::Point* p) 
 	{
 		std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;

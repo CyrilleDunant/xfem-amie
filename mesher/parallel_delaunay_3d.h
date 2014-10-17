@@ -47,10 +47,10 @@ public:
     virtual double getInternalScale() const {
         return meshes[0]->getInternalScale() ;
     } ;
+    virtual std::vector<DelaunayTetrahedron *> getElements() const ;
 public:
     ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree3D() {} ;
-    virtual std::vector<DelaunayTetrahedron *> getElements() const ;
     virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Point  * p) ;
     virtual std::vector<DelaunayTetrahedron *> getConflictingElements(const Geometry * g) ;
 
@@ -108,11 +108,14 @@ public:
                 msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;
         } ;
-                bool operator ==(const iterator & i) const
+        bool operator ==(const iterator & i) const
         {
             return i.position == position ;
         }
-        
+        bool operator !=(const iterator & i) const
+        {
+            return i.position != position ;
+        }
         bool operator <=(const iterator & i)const
         {
             return position <= i.position ;
@@ -180,6 +183,19 @@ public:
             return static_cast<DelaunayTetrahedron *>(msh->meshes[meshId]->getInTree(elemID)) ;
         }
         
+         operator DelaunayTetrahedron *(){ 
+            return static_cast< DelaunayTetrahedron *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosistion() const
+        {
+            return position ;
+        }
+        
     } ;
     
     class const_iterator
@@ -201,6 +217,10 @@ public:
         bool operator ==(const const_iterator & i) const
         {
             return i.position == position ;
+        }
+        bool operator !=(const const_iterator & i) const
+        {
+            return i.position != position ;
         }
         bool operator <=(const const_iterator & i)const
         {
@@ -264,6 +284,18 @@ public:
         
         const DelaunayTetrahedron * operator-> ( ) const { 
             return static_cast<const DelaunayTetrahedron *> (msh->meshes[msh->elementMap[cacheID][position]]->getInTree(msh->caches[cacheID][position])) ;
+        }
+        operator const DelaunayTetrahedron * () const { 
+            return static_cast<const DelaunayTetrahedron *>(msh->getInTree(msh->caches[cacheID][position])) ;
+        } 
+        
+        size_t size() const
+        {
+            return msh->caches[cacheID].size() ;
+        }
+        size_t getPosistion() const
+        {
+            return position ;
         }
     } ;
     

@@ -346,6 +346,9 @@ protected:
     size_t global_counter ;
     std::vector<Point * > additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
+    virtual std::vector< DelaunayTriangle* > getElements() const {
+        return getTriangles() ;
+    };
 public:
 
     virtual size_t size() const {
@@ -378,9 +381,7 @@ public:
     virtual const std::vector<Point * > & getAdditionalPoints() const {
         return additionalPoints ;
     };
-    virtual std::vector< DelaunayTriangle* > getElements() const {
-        return getTriangles() ;
-    };
+
     virtual std::vector< DelaunayTriangle* > getConflictingElements(const Amie::Point* p)
     {
         std::vector< DelaunayTreeItem* > targets = conflicts(p) ;
