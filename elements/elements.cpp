@@ -570,7 +570,7 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 		}
 	}
 
-	if(t->moved && false)
+	if(t->moved)
 	{
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
@@ -582,7 +582,9 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
 	{
 // 		Matrix J ;
 // 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = t->area()*2. ;//1./det(J) ;
+		double j = t->area() ;//1./det(J) ;
+                if(order < CONSTANT_TIME_LINEAR)
+                    j *= 2. ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -977,7 +979,9 @@ const GaussPointArray & TriElement::genGaussPoints()
 	{
 // 		Matrix J ;
 // 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = area()*2. ;//1./jacobianAtPoint(fin[0].first) ;
+		double j = area() ;//1./jacobianAtPoint(fin[0].first) ;
+                if(order < CONSTANT_TIME_LINEAR)
+                    j *= 2. ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;
@@ -2803,7 +2807,9 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
 	{
 		Matrix J ;
 // 		getInverseJacobianMatrix(fin[0].first, J);
-		double j = volume()*6. ;
+		double j = volume()*3. ;
+                if(order < CONSTANT_TIME_LINEAR)
+                    j *= 2. ;
 		for(size_t i = 0 ; i < fin.size() ; i++)
 		{
 			fin[i].second *= j;

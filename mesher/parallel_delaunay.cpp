@@ -405,6 +405,13 @@ void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_pl
 
 void ParallelDelaunayTree::setElementOrder( Order elemOrder, double dt )
 {
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        elementMap[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
     switch( elemOrder )
     {
         case CONSTANT:
@@ -656,7 +663,7 @@ unsigned int ParallelDelaunayTree::generateCache ()
         }
 
     }
-    
+    allElementsCacheID = position ;
     return position ;
 };
 

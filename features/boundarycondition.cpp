@@ -4614,7 +4614,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
             {
                 if ( isOnBoundary ( pos, i->getBoundingPoint ( j ), pmin, pmax, tol ) )
                 {
-                    if ( cache2d.empty() || cache2d.back() != i )
+                    if ( cache2d.empty() || cache2d.back() != (DelaunayTriangle *)i )
                     {
                         cache.push_back ( std::vector<Point>() );
                         cache2d.push_back ( i );
@@ -4624,7 +4624,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
                 }
             }
 
-            if ( !cache2d.empty() && cache2d.back() == i )
+            if ( !cache2d.empty() && cache2d.back() == (DelaunayTriangle *)i )
             {
                 GaussPointArray gp = i->getGaussPoints() ;
                 std::valarray<Matrix> Jinv ( Matrix(), i->getGaussPoints().gaussPoints.size() ) ;

@@ -617,6 +617,12 @@ void DelaunayTree::extrude(const Vector & dt)
 
 void DelaunayTree::setElementOrder(Order elemOrder, double dt)
 {
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
     switch(elemOrder)
     {
     case CONSTANT:

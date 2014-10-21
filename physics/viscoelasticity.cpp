@@ -628,7 +628,7 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Function & data, size_
 //	std::cout << f1[0] << ";" ;
 	f += f1 ;
 	
-	return f ;
+	return f*0.5 ;
 }
 
 Vector Viscoelasticity::getImposedStress(const Point & p, IntegrableEntity * e, int g) const

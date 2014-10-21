@@ -104,8 +104,6 @@ public:
         iterator( ParallelDelaunayTree3D * msh, size_t cacheID, size_t position ) : msh(msh), cacheID(cacheID), position(position) { } ;
         iterator( ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
         { 
-            if(msh->allElementsCacheID == -1)
-                msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;
         } ;
         bool operator ==(const iterator & i) const
@@ -201,16 +199,14 @@ public:
     class const_iterator
     {
     private:
-        ParallelDelaunayTree3D * msh ;
+        const ParallelDelaunayTree3D * msh ;
         size_t cacheID ;
         size_t position ;
     public:
-        const_iterator( ParallelDelaunayTree3D * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        const_iterator( const ParallelDelaunayTree3D * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
         
-        const_iterator( ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
+        const_iterator( const ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
         { 
-            if(msh->allElementsCacheID == -1)
-                msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;
         } ;
         
@@ -304,7 +300,7 @@ public:
     {
         return iterator(this, 0) ;
     }
-    const_iterator cbegin()
+    const_iterator cbegin() const 
     {
         return const_iterator(this, 0) ;
     }
@@ -314,10 +310,8 @@ public:
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    const_iterator cend()
+    const_iterator cend() const 
     {
-        if(allElementsCacheID == -1)
-            allElementsCacheID = generateCache() ;
         return const_iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
     

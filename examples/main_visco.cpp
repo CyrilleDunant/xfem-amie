@@ -236,8 +236,7 @@ int main(int argc, char *argv[])
 	    for(size_t j = 0 ; j < paste_index.size() ; j++)
 	    {
 		Vector str = stress_paste*0. ;
-		triangles[paste_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-		double a = triangles[paste_index[j]]->area() ;
+		double a = triangles[paste_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
 		stress_paste += str*a ;
 		area_paste += a ;
 		checkTriangle( triangles[paste_index[i]] ) ;
@@ -245,8 +244,7 @@ int main(int argc, char *argv[])
 	    for(size_t j = 0 ; j < agg_index.size() ; j++)
 	    {
 		Vector str = stress_paste*0. ;
-		triangles[agg_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-		double a = triangles[agg_index[j]]->area() ;
+		double a = triangles[agg_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
 		stress_aggregates += str*a ;
 		area_aggregates += a ;
 //		if(i == 3)

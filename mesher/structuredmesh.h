@@ -18,7 +18,7 @@ protected:
     size_t global_counter ;
     std::vector <DelaunayTriangle *> tree ;
     virtual std::vector<DelaunayTriangle *> getElements() const ;
-    std::vector<Vector> coefs ;
+
 public:
     StructuredMesh ( double sizeX, double sizeY, int div, const Point & center ) ;
     virtual size_t size() const {

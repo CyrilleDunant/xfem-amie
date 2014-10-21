@@ -5534,11 +5534,11 @@ Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
 {
     if ( is2D() )
     {
-        return get2DMesh()->getField ( f, 0, t ) ;
+        return get2DMesh()->getField ( f, -1, t ) ;
     }
 
 
-    return get3DMesh()->getField ( f, 0, t ) ;
+    return get3DMesh()->getField ( f, -1, t ) ;
 
 }
 
@@ -5693,42 +5693,41 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain ( const Geometry * base
     {
         double size_x = dynamic_cast<const Rectangle *> ( base )->width() ;
         double size_y = dynamic_cast<const Rectangle *> ( base )->height() ;
-        std::vector<DelaunayTriangle *> elements = dtree->getElements() ;
         tol = .05*std::min ( size_x, size_y ) ;
         std::vector<double> dxp ;
         std::vector<double> dyp ;
         std::vector<double> dxm ;
         std::vector<double> dym ;
         std::set<int> doneIds ;
-        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        for (auto i = dtree->begin() ; i != dtree->end() ;i++ )
         {
-            if ( elements[i]->getBehaviour() && elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                for ( size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++ )
+                for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
                 {
 
-                    Point test ( elements[i]->getBoundingPoint ( j ) ) ;
+                    Point test ( i->getBoundingPoint ( j ) ) ;
 
                     base->project ( &test );
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX() +size_x*.5 ) ) < tol && doneIds.find ( 2*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX() +size_x*.5 ) ) < tol && doneIds.find ( 2*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxp.push_back ( disps[2*elements[i]->getBoundingPoint ( j ).getId()] ) ;
-                        doneIds.insert ( 2*elements[i]->getBoundingPoint ( j ).getId() );
+                        dxp.push_back ( disps[2*i->getBoundingPoint ( j ).getId()] ) ;
+                        doneIds.insert ( 2*i->getBoundingPoint ( j ).getId() );
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY() +size_y*.5 ) ) < tol&& doneIds.find ( 2*elements[i]->getBoundingPoint ( j ).getId() +1 ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY() +size_y*.5 ) ) < tol&& doneIds.find ( 2*i->getBoundingPoint ( j ).getId() +1 ) == doneIds.end() )
                     {
-                        dyp.push_back ( disps[2*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
-                        doneIds.insert ( 2*elements[i]->getBoundingPoint ( j ).getId() +1 );
+                        dyp.push_back ( disps[2*i->getBoundingPoint ( j ).getId() +1] ) ;
+                        doneIds.insert ( 2*i->getBoundingPoint ( j ).getId() +1 );
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol&& doneIds.find ( 2*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol&& doneIds.find ( 2*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxm.push_back ( disps[2*elements[i]->getBoundingPoint ( j ).getId()] ) ;
-                        doneIds.insert ( 2*elements[i]->getBoundingPoint ( j ).getId() );
+                        dxm.push_back ( disps[2*i->getBoundingPoint ( j ).getId()] ) ;
+                        doneIds.insert ( 2*i->getBoundingPoint ( j ).getId() );
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol&& doneIds.find ( 2*elements[i]->getBoundingPoint ( j ).getId() +1 ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol&& doneIds.find ( 2*i->getBoundingPoint ( j ).getId() +1 ) == doneIds.end() )
                     {
-                        dym.push_back ( disps[2*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
-                        doneIds.insert ( 2*elements[i]->getBoundingPoint ( j ).getId() +1 );
+                        dym.push_back ( disps[2*i->getBoundingPoint ( j ).getId() +1] ) ;
+                        doneIds.insert ( 2*i->getBoundingPoint ( j ).getId() +1 );
                     }
                 }
             }
@@ -5797,7 +5796,6 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain ( const Geometry * base
         double size_x = dynamic_cast<const Hexahedron *> ( base )->getXSize() ;
         double size_y = dynamic_cast<const Hexahedron *> ( base )->getYSize() ;
         double size_z = dynamic_cast<const Hexahedron *> ( base )->getZSize() ;
-        std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
         std::vector<double> dxp ;
         std::vector<double> dyp ;
         std::vector<double> dzp ;
@@ -5805,37 +5803,37 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain ( const Geometry * base
         std::vector<double> dym ;
         std::vector<double> dzm ;
         std::set<int> doneIds ;
-        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                for ( size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++ )
+                for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
                 {
-                    Point test ( elements[i]->getBoundingPoint ( j ) ) ;
+                    Point test ( i->getBoundingPoint ( j ) ) ;
                     base->project ( &test );
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId()] ) ;
+                        dxp.push_back ( disps[3*i->getBoundingPoint ( j ).getId()] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dyp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
+                        dyp.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +1] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getZ() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getZ() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dzp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +2] ) ;
+                        dzp.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +2] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxm.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId()] ) ;
+                        dxm.push_back ( disps[3*i->getBoundingPoint ( j ).getId()] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dym.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
+                        dym.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +1] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dzm.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +2] ) ;
+                        dzm.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +2] ) ;
                     }
                 }
             }
@@ -6009,7 +6007,7 @@ std::vector<double> FeatureTree::getMedianMacroscopicStrain ( const Geometry * b
         double size_x = dynamic_cast<const Hexahedron *> ( base )->getXSize() ;
         double size_y = dynamic_cast<const Hexahedron *> ( base )->getYSize() ;
         double size_z = dynamic_cast<const Hexahedron *> ( base )->getZSize() ;
-        std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
+        
         std::vector<double> dxp ;
         std::vector<double> dyp ;
         std::vector<double> dzp ;
@@ -6017,37 +6015,37 @@ std::vector<double> FeatureTree::getMedianMacroscopicStrain ( const Geometry * b
         std::vector<double> dym ;
         std::vector<double> dzm ;
         std::set<int> doneIds ;
-        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        for ( auto i = dtree3D->begin() ; i  != dtree3D->end() ; i++ )
         {
-            if ( elements[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                for ( size_t j = 0 ; j < elements[i]->getBoundingPoints().size() ; j++ )
+                for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
                 {
-                    Point test ( elements[i]->getBoundingPoint ( j ) ) ;
+                    Point test ( i->getBoundingPoint ( j ) ) ;
                     base->project ( &test );
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId()] ) ;
+                        dxp.push_back ( disps[3*i->getBoundingPoint ( j ).getId()] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dyp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
+                        dyp.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +1] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getZ() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getZ() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dzp.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +2] ) ;
+                        dzp.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +2] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getX() - ( base->getCenter().getX()-size_x*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dxm.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId()] ) ;
+                        dxm.push_back ( disps[3*i->getBoundingPoint ( j ).getId()] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getY()-size_y*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dym.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +1] ) ;
+                        dym.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +1] ) ;
                     }
-                    if ( dist ( test, elements[i]->getBoundingPoint ( j ) ) < tol && std::abs ( elements[i]->getBoundingPoint ( j ).getY() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*elements[i]->getBoundingPoint ( j ).getId() ) == doneIds.end() )
+                    if ( dist ( test, i->getBoundingPoint ( j ) ) < tol && std::abs ( i->getBoundingPoint ( j ).getY() - ( base->getCenter().getZ()-size_z*.5 ) ) < tol && doneIds.find ( 3*i->getBoundingPoint ( j ).getId() ) == doneIds.end() )
                     {
-                        dzm.push_back ( disps[3*elements[i]->getBoundingPoint ( j ).getId() +2] ) ;
+                        dzm.push_back ( disps[3*i->getBoundingPoint ( j ).getId() +2] ) ;
                     }
                 }
             }
@@ -6250,33 +6248,30 @@ bool FeatureTree::isStable()
 
     if ( is2D() )
     {
-        std::vector<DelaunayTriangle *> elements ;
         for ( auto j = layer2d.begin() ; j!=layer2d.end() ; ++j )
         {
-            auto etmp = j->second->getElements() ;
-            elements.insert ( elements.end(), etmp.begin(), etmp.end() ) ;
-        }
 
-        for ( size_t i = 0 ; i < elements.size() ; i++ )
-        {
-            if ( elements[i]->getBehaviour() && elements[i]->getBehaviour()->getFractureCriterion() && !elements[i]->getBehaviour()->fractured() )
+            for ( auto i = j->second->begin() ; i != j->second->end() && stable; i++ )
             {
-                if ( elements[i]->getBehaviour()->getFractureCriterion()->grade ( elements[i]->getState() ) > 0 )
+                if ( i->getBehaviour() && i->getBehaviour()->getFractureCriterion() && !i->getBehaviour()->fractured() )
                 {
-                    stable = false ;
-                    break ;
+                    if ( i->getBehaviour()->getFractureCriterion()->grade ( i->getState() ) > 0 )
+                    {
+                        stable = false ;
+                        break ;
+                    }
                 }
             }
+            
         }
     }
     else
     {
-        std::vector<DelaunayTetrahedron *> elements = dtree3D->getElements() ;
-        for ( size_t i = 0 ; i < elements.size() ; i++ )
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() && stable; i++ )
         {
-            if ( elements[i]->getBehaviour() && elements[i]->getBehaviour()->getFractureCriterion() )
+            if ( i->getBehaviour() && i->getBehaviour()->getFractureCriterion() )
             {
-                if ( elements[i]->getBehaviour()->getFractureCriterion()->grade ( elements[i]->getState() ) > 0 )
+                if ( i->getBehaviour()->getFractureCriterion()->grade ( i->getState() ) > 0 )
                 {
                     stable = false ;
                     break ;
@@ -6302,20 +6297,19 @@ double FeatureTree::getMaximumDisplacement()
 
     if ( is2D() )
     {
-        std::vector<DelaunayTriangle *> tri = dtree->getElements() ;
 
         double max = 0 ;
 
-        for ( std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i )
+        for ( auto i = dtree->begin() ; i != dtree->end() ; i++ )
         {
-            if ( ! ( *i )->getBehaviour() )
+            if ( ! i->getBehaviour() )
             {
                 continue ;
             }
 
-            if ( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                max = std::max ( max, ( *i )->getState().getDisplacements().max() ) ;
+                max = std::max ( max, i->getState().getDisplacements().max() ) ;
             }
         }
 
@@ -6323,20 +6317,19 @@ double FeatureTree::getMaximumDisplacement()
     }
     else if ( is3D() )
     {
-        std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 
         double max = 0 ;
 
-        for ( std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i )
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
-            if ( ! ( *i )->getBehaviour() )
+            if ( ! i->getBehaviour() )
             {
                 continue ;
             }
 
-            if ( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                max = std::max ( max, ( *i )->getState().getDisplacements().max() ) ;
+                max = std::max ( max, i->getState().getDisplacements().max() ) ;
             }
         }
 
@@ -6352,19 +6345,18 @@ double FeatureTree::getMinimumDisplacement()
 
     if ( is2D() )
     {
-        std::vector<DelaunayTriangle *> tri = dtree->getElements() ;
 
         double max = 0 ;
 
-        for ( std::vector<DelaunayTriangle *>::const_iterator i = tri.begin() ; i != tri.end() ; ++i )
+        for ( auto i = dtree->begin() ; i != dtree->end() ; i++ )
         {
-            if ( ! ( *i )->getBehaviour() )
+            if ( ! i->getBehaviour() )
             {
                 continue ;
             }
-            if ( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                max = std::min ( max, ( *i )->getState().getDisplacements().min() ) ;
+                max = std::min ( max, i->getState().getDisplacements().min() ) ;
             }
         }
 
@@ -6372,19 +6364,18 @@ double FeatureTree::getMinimumDisplacement()
     }
     else if ( is3D() )
     {
-        std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
 
         double max = 0 ;
 
-        for ( std::vector<DelaunayTetrahedron *>::const_iterator i = tets.begin() ; i != tets.end() ; ++i )
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
-            if ( ! ( *i )->getBehaviour() )
+            if ( ! i->getBehaviour() )
             {
                 continue ;
             }
-            if ( ( *i )->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                max = std::min ( max, ( *i )->getState().getDisplacements().min() ) ;
+                max = std::min ( max, i->getState().getDisplacements().min() ) ;
             }
         }
 
@@ -6461,25 +6452,24 @@ void FeatureTree::initializeElements( )
 
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
-            std::vector<DelaunayTriangle *> tris = j->second->getElements() ;
 
             int ecounter = 0 ;
-            for ( size_t i = 0 ; i < tris.size() ; i++ )
+            for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
             {
-                if ( !tris[i]->getBehaviour() )
+                if ( !i->getBehaviour() )
                 {
                     std::cout << "ouch" << std::endl ;
                 }
                 else
                 {
-                    tris[i]->refresh ( father2D );
-                    tris[i]->getState().initialize ( dtree ) ;
+                    i->refresh ( father2D );
+                    i->getState().initialize ( dtree ) ;
                     #pragma omp critical
                     {
                         ecounter++ ;
                         if ( ecounter % 100 == 0 )
                         {
-                            std::cerr << "\r initialising... element " << ecounter << "/" << tris.size() << std::flush ;
+                            std::cerr << "\r initialising... element " << ecounter << "/" << i.size() << std::flush ;
                         }
                     }
                 }
@@ -6505,43 +6495,41 @@ void FeatureTree::initializeElements( )
                 extra3dMeshes.push_back ( i->second ) ;
             }
         }
-        std::vector<DelaunayTetrahedron *> tets = dtree3D->getElements() ;
         std::cout << " initialising..." ;
 
-        #pragma omp parallel for schedule(runtime)
-        for ( size_t i = 0 ; i < tets.size() ; i++ )
+//         #pragma omp parallel for schedule(runtime)
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
         {
-            if ( !tets[i]->getBehaviour() )
+            if ( !i->getBehaviour() )
             {
                 continue ;
             }
-            tets[i]->refresh ( father3D );
-            tets[i]->getState().initialize ( dtree3D ) ;
+            i->refresh ( father3D );
+            i->getState().initialize ( dtree3D ) ;
         }
 
         gettimeofday ( &time1, nullptr );
         double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-        std::cout << "\r initialising... element " << tets.size() << "/" << tets.size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
+        std::cout << "\r initialising... element " << 0 << "/" << dtree3D->begin().size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
 
         for ( auto j = layer3d.begin() ; j != layer3d.end() ; j++ )
         {
             int ecounter = 0 ;
-            std::vector<DelaunayTetrahedron *> tetras = j->second->getElements() ;
 
-            for ( size_t i = 0 ; i < tetras.size() ; i++ )
+            for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
             {
-                if ( !tetras[i]->getBehaviour() )
+                if ( !i->getBehaviour() )
                 {
                     std::cout << "ouch" << std::endl ;
                 }
-                tetras[i]->refresh ( father3D );
-                tetras[i]->getState().initialize ( dtree3D ) ;
+                i->refresh ( father3D );
+                i->getState().initialize ( dtree3D ) ;
                 #pragma omp critical
                 {
                     ecounter++ ;
                     if ( ecounter % 100 == 0 )
                     {
-                        std::cerr << "\r initialising... element " << ecounter << "/" << tetras.size() << std::flush ;
+                        std::cerr << "\r initialising... element " << ecounter << "/" << i.size() << std::flush ;
                     }
                 }
             }
@@ -6615,62 +6603,6 @@ void FeatureTree::setDeltaTime ( double d )
     }
 }
 
-
-void FeatureTree::moveFirstTimePlanes ( double d, std::vector<DelaunayTriangle *> & triangles )
-{
-    double prev = 0.;
-    size_t i = 0 ;
-    size_t ndof = 0 ;
-    while ( ndof == 0 && i < triangles.size() )
-    {
-        ndof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-        i++ ;
-    }
-    Vector buff ( 0.,ndof ) ;
-
-    if ( dtree )
-    {
-        prev = triangles[0]->getBoundingPoint ( triangles[0]->getBoundingPoints().size() -1 ).getT() - triangles[0]->getBoundingPoint ( 0 ).getT() ;
-        VirtualMachine vm ;
-        if ( triangles.size() && triangles[0]->timePlanes() > 1 )
-        {
-
-            for ( size_t i = 0 ; i < triangles.size() ; i++ )
-            {
-                if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    size_t k0 = triangles[i]->getBoundingPoints().size() /triangles[i]->timePlanes() ;
-                    for ( size_t t = 0 ; t < triangles[i]->timePlanes() -1 ; t++ )
-                    {
-                        for ( size_t k = 0 ; k < k0 ; k++ )
-                        {
-//							std::cout << i << ";" << k << std::endl ;
-                            Point p ( triangles[i]->getBoundingPoint ( k+k0*t ).getX(),
-                                      triangles[i]->getBoundingPoint ( k+k0*t ).getY(),
-                                      0.,
-                                      triangles[i]->getBoundingPoint ( k+k0*t ).getT() + d* ( triangles[i]->timePlanes()-t ) /triangles[i]->timePlanes() ) ;
-                            triangles[i]->getStatePointer()->getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
-
-                            for ( size_t n = 0 ; n < ndof ; n++ )
-                            {
-                                double z = buff[n] ;
-                                K->setDisplacementByDof ( triangles[i]->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
-                            }
-//							std::cout << i << ";" << k << std::endl ;
-                        }
-                    }
-                }
-            }
-        }
-
-        if ( std::abs ( d ) > POINT_TOLERANCE_2D )
-        {
-            setDeltaTime ( prev - d ) ;
-        }
-
-    }
-}
-
 void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem >::iterator & end)
 {
     
@@ -6710,61 +6642,6 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
                             {
                                 double z = buff[n] ;
                                 K->setDisplacementByDof ( i->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
-                            }
-//							std::cout << i << ";" << k << std::endl ;
-                        }
-                    }
-                }
-            }
-        }
-
-        if ( std::abs ( d ) > POINT_TOLERANCE_2D )
-        {
-            setDeltaTime ( prev - d ) ;
-        }
-
-    }
-}
-
-void FeatureTree::moveFirstTimePlanes ( double d, std::vector<DelaunayTetrahedron *> & tets )
-{
-    double prev = 0.;
-    size_t i = 0 ;
-    size_t ndof = 0 ;
-    while ( ndof == 0 && i < tets.size() )
-    {
-        ndof = tets[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-        i++ ;
-    }
-    Vector buff ( 0.,ndof ) ;
-
-    if ( dtree )
-    {
-        prev = tets[0]->getBoundingPoint ( tets[0]->getBoundingPoints().size() -1 ).getT() - tets[0]->getBoundingPoint ( 0 ).getT() ;
-        VirtualMachine vm ;
-        if ( tets.size() && tets[0]->timePlanes() > 1 )
-        {
-
-            for ( size_t i = 0 ; i < tets.size() ; i++ )
-            {
-                if ( tets[i]->getBehaviour() && tets[i]->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    size_t k0 = tets[i]->getBoundingPoints().size() /tets[i]->timePlanes() ;
-                    for ( size_t t = 0 ; t < tets[i]->timePlanes() -1 ; t++ )
-                    {
-                        for ( size_t k = 0 ; k < k0 ; k++ )
-                        {
-//							std::cout << i << ";" << k << std::endl ;
-                            Point p ( tets[i]->getBoundingPoint ( k+k0*t ).getX(),
-                                      tets[i]->getBoundingPoint ( k+k0*t ).getY(),
-                                      tets[i]->getBoundingPoint ( k+k0*t ).getZ(),
-                                      tets[i]->getBoundingPoint ( k+k0*t ).getT() + d* ( tets[i]->timePlanes()-t ) /tets[i]->timePlanes() ) ;
-                            tets[i]->getStatePointer()->getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
-
-                            for ( size_t n = 0 ; n < ndof ; n++ )
-                            {
-                                double z = buff[n] ;
-                                K->setDisplacementByDof ( tets[i]->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
                             }
 //							std::cout << i << ";" << k << std::endl ;
                         }

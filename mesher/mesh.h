@@ -422,21 +422,22 @@ public:
         }
 
         for ( size_t i = 0 ;  i < size() ; i++ ) {
+            ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
 
-            if(!dynamic_cast<ETYPE *>(getInTree(i)))
+            if(!elem)
                 continue ;
             caches[position].push_back ( getInTree(i)->index ) ;
             coefs[position].push_back ( std::vector<double>() ) ;
 
-            for ( size_t j = 0 ; j < dynamic_cast<ETYPE *>(getInTree(i))->getGaussPoints().gaussPoints.size() ; j++ )
+            for ( size_t j = 0 ; j < elem->getGaussPoints().gaussPoints.size() ; j++ )
                 coefs[position].back().push_back ( 1 ) ;
         }
-
+        allElementsCacheID = position ;
         return position ;
     };
 //
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
-    Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) const {
+    Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) {
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -454,20 +455,41 @@ public:
         return ret/w ;
     }
 
-    Vector getField ( FieldType f, int dummy = 0, double t = 0 ) const {
+    Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
+        if(allElementsCacheID == -1)
+        {
+            VirtualMachine vm ;
+            size_t blocks = 0 ;
+
+            std::vector<ETYPE *> elems = getElements() ;
+            for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
+                blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
+            }
+            Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+            Vector buffer ( ret ) ;
+            double w = 0 ;
+            for ( size_t i = 0 ; i < elems.size() ; i++ ) {
+
+                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+                ret += buffer * v ;
+                w +=v ;
+            }
+            return ret/w ;
+        }
+        
         VirtualMachine vm ;
         size_t blocks = 0 ;
 
-        std::vector<ETYPE *> elems = getElements() ;
-        for ( size_t i = 0 ; i < elems.size() && !blocks; i++ ) {
-            blocks = elems[i]->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
+        
+        for ( auto i = begin() ; i  != end() && !blocks; i++ ) {
+            blocks = i->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
         }
         Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
         Vector buffer ( ret ) ;
         double w = 0 ;
-        for ( size_t i = 0 ; i < elems.size() ; i++ ) {
+        for ( auto i = begin() ; i  != end() ; i++ ) {
 
-            double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+            double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
             ret += buffer * v ;
             w +=v ;
         }
@@ -873,16 +895,14 @@ public:
     class const_iterator
     {
     private:
-        Mesh<ETYPE, EABSTRACTTYPE> * msh ;
+        const Mesh<ETYPE, EABSTRACTTYPE> * msh ;
         size_t cacheID ;
         size_t position ;
     public:
-        const_iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        const_iterator( const Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
         
-        const_iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
+        const_iterator( const Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
         { 
-            if(msh->allElementsCacheID == -1)
-                msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;
         } ;
         
@@ -977,7 +997,7 @@ public:
     {
         return iterator(this, 0) ;
     }
-    const_iterator cbegin()
+    const_iterator cbegin() const
     {
         return const_iterator(this, 0) ;
     }
@@ -987,7 +1007,7 @@ public:
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    const_iterator cend()
+    const_iterator cend() const 
     {
         if(allElementsCacheID == -1)
             allElementsCacheID = generateCache() ;
@@ -1140,6 +1160,12 @@ public:
     }
     /** Does nothing as this is a special-purpose mesh*/
     virtual void setElementOrder ( Order o, double dt = 0. ) {
+        if(Mesh<ETYPE, EABSTRACTTYPE>::allElementsCacheID != -1)
+        {
+            Mesh<ETYPE, EABSTRACTTYPE>::caches[Mesh<ETYPE, EABSTRACTTYPE>::allElementsCacheID].clear() ;
+            Mesh<ETYPE, EABSTRACTTYPE>::coefs[Mesh<ETYPE, EABSTRACTTYPE>::allElementsCacheID].clear() ;
+            Mesh<ETYPE, EABSTRACTTYPE>::allElementsCacheID = -1 ;
+        }
         switch ( o ) {
         case CONSTANT: {
             break ;

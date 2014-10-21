@@ -3551,6 +3551,12 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
 
 void DelaunayTree3D::setElementOrder( Order elemOrder, double dt )
 {
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
     switch( elemOrder )
     {
     case CONSTANT:

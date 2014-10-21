@@ -491,6 +491,13 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
 
 void ParallelDelaunayTree3D::setElementOrder( Order elemOrder, double dt )
 {
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        elementMap[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
     switch( elemOrder )
     {
         case CONSTANT:
@@ -744,7 +751,7 @@ unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const
         }
 
     }
-    
+    allElementsCacheID = position ;
     return position ;
 };
 

@@ -1824,7 +1824,7 @@ bool Function::isDifferentiable() const
 
 bool Function::isDifferentiable(const Variable v) const 
 {
-	if(derivative && derivative->size() > v) 
+	if(e_diff && derivative && derivative->size() > v) 
 	{
 		return (*derivative)[v] != nullptr ;
 	}
@@ -1833,7 +1833,7 @@ bool Function::isDifferentiable(const Variable v) const
 
 bool Function::isDifferentiable(size_t v) const 
 {
-	if(derivative && derivative->size() > v) 
+	if(e_diff && derivative && derivative->size() > v) 
 	{
 		return (*derivative)[v] != nullptr ;
 	}

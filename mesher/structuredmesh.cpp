@@ -197,6 +197,12 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Geo
 }
 void StructuredMesh::setElementOrder(Order o, double dt)
 {
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
 	switch(o)
 	{
 	case CONSTANT:

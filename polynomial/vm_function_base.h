@@ -114,7 +114,7 @@ protected:
 protected:
 
 
-    bool e_diff ;
+    bool e_diff = false;
     bool isBinaryOperator ( TokenOperationType t ) const ;
     bool isUnaryOperator ( TokenOperationType t ) const ;
     bool isBinaryVectorisableOperator ( TokenOperationType t ) const ;
