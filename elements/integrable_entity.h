@@ -401,9 +401,8 @@ struct GaussPointArray {
 
 /** \brief Abstract class for the representation of elements
  */
-class IntegrableEntity : public Geometry
+struct IntegrableEntity : public Geometry
 {
-protected:
 
     Order order ;
     ElementState * state ;
@@ -414,7 +413,7 @@ protected:
     };
     void setCachedGaussPoints ( GaussPointArray * gp ) ;
     std::vector<Function> blendfunc ;
-public:
+
     bool enrichmentUpdated ;
     bool behaviourUpdated ;
 

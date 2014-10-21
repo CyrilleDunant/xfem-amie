@@ -429,8 +429,8 @@ public:
             caches[position].push_back ( getInTree(i)->index ) ;
             coefs[position].push_back ( std::vector<double>() ) ;
 
-            for ( size_t j = 0 ; j < elem->getGaussPoints().gaussPoints.size() ; j++ )
-                coefs[position].back().push_back ( 1 ) ;
+//             for ( size_t j = 0 ; j < elem->getGaussPoints().gaussPoints.size() ; j++ )
+//                 coefs[position].back().push_back ( 1 ) ;
         }
         allElementsCacheID = position ;
         return position ;
@@ -1052,7 +1052,8 @@ protected:
 
     void addSharedNodes ( size_t nodes_per_side, size_t time_planes, double timestep ) {
         for ( auto  i = tree.begin() ; i != tree.end() ; ++i ) {
-
+            delete element->cachedGps ;
+            element->cachedGps = nullptr ;
             size_t nodes_per_plane = nodes_per_side*3+3 ;
 
             std::valarray<Point *> newPoints ( nodes_per_plane*time_planes ) ;

@@ -360,6 +360,8 @@ void DelaunayTree::addSharedNodes(size_t nodes_per_side, size_t time_planes, dou
 
     for(auto & i : tri)
     {
+        delete i->cachedGps ;
+        i->cachedGps = nullptr ;
         visited[i->index] = true ;
 
         size_t nodes_per_plane = nodes_per_side*3+3 ;

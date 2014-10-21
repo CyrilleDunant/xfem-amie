@@ -334,6 +334,7 @@ class DelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 friend class FeatureTree ;
 friend class ParallelDelaunayTree3D ;
 friend class Geometry ;
+friend class IntegrableEntity ;
 
 protected:
 	double internalScale ;
