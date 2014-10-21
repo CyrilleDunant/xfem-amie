@@ -325,6 +325,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
@@ -416,6 +418,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
@@ -505,6 +509,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             Segment edge ( *last, *first ) ;
             GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
             double enorm = edge.norm() *.5 ;
+             if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                enorm *= .5 ;
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
@@ -625,6 +631,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
@@ -743,6 +751,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() /2 ;
+                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
@@ -830,6 +840,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() /2 ;
+                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
+                    gpe.gaussPoints[i].second *= .5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
 
