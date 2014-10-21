@@ -407,6 +407,7 @@ void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
     {
         delete tet[i]->cachedGps ;
         tet[i]->cachedGps = nullptr ;
+        tet[i]->behaviourUpdated = true ;
 // 		if( tet[i]->volume() < 0 )
 // 		{
 // 			for( int j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )

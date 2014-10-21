@@ -310,6 +310,7 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 	{
             delete i->cachedGps ;
             i->cachedGps = nullptr ;
+            i->behaviourUpdated = true ;
 		visited[i->index] = true ;
 			
 		size_t nodes_per_plane = nodes_per_side*3+3 ;
