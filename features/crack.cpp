@@ -1486,7 +1486,7 @@ std::vector<DelaunayTriangle*> BranchedCrack::getElements2D(FeatureTree* dt)
 
 	for(size_t i = 0 ; i < branches.size() ; i++)
 	{
-		std::vector<DelaunayTriangle*> tris = dt->getElements2D(branches[i]) ;
+		std::vector<DelaunayTriangle*> tris = dt->get2DMesh()->getConflictingElements(branches[i]) ;
 		ret.insert(ret.end(), tris.begin(), tris.end()) ;
 	}
 	

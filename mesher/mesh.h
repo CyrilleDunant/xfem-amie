@@ -40,7 +40,7 @@ protected:
     std::vector<std::vector<int>> caches ;
     std::vector<std::vector<std::vector<double>>> coefs ;
     int allElementsCacheID ;
-    
+    virtual std::vector<ETYPE *> getElements() const = 0;
 public:
 
     virtual std::vector<int> & getCache ( unsigned int cacheID ) {
@@ -58,7 +58,7 @@ public:
 public:
     Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions), allElementsCacheID(-1) {} ;
     virtual ~Mesh() {} ;
-    virtual std::vector<ETYPE *> getElements() const = 0;
+    
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
@@ -890,6 +890,8 @@ public:
             return position ;
         }
         
+        size_t getId() const {return cacheID ; }
+        
     } ;
     
     class const_iterator
@@ -991,6 +993,8 @@ public:
             return position ;
         }
         
+        size_t getId() const {return cacheID ; }
+        
     } ;
     
     iterator begin()
@@ -1049,6 +1053,11 @@ protected:
         std::vector<ETYPE *> ret = { element };
         return ret ;
     };
+    virtual std::vector<ETYPE *> getElements() const {
+        std::vector<ETYPE *> ret ;
+        ret.push_back ( element ) ;
+        return ret ;
+    }
 
     void addSharedNodes ( size_t nodes_per_side, size_t time_planes, double timestep ) {
         for ( auto  i = tree.begin() ; i != tree.end() ; ++i ) {
@@ -1124,11 +1133,7 @@ public:
             delete points[i] ;
         }
     } ;
-    virtual std::vector<ETYPE *> getElements() const {
-        std::vector<ETYPE *> ret ;
-        ret.push_back ( element ) ;
-        return ret ;
-    }
+
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p ) {
         std::vector<ETYPE *> ret ;
         if ( element->in ( *p ) ) {

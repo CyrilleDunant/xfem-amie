@@ -41,7 +41,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
 	else
 		original = self->getBehaviour()->getCopy() ;
 
-	GeneralizedSelfConsistentComposite composite( mesh->getElements2D( self->getPrimitive() ) ) ;
+	GeneralizedSelfConsistentComposite composite( mesh->get2DMesh()->getConflictingElements ( self->getPrimitive() ) ) ;
 	equivalent = composite.getBehaviour() ;
 /* 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
  	std::cout << alpha[0] << std::endl ;*/
@@ -167,7 +167,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahe
 	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
 		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
-	GeneralizedSelfConsistentComposite composite( mesh->getElements3D( self->getPrimitive() ) ) ;
+	GeneralizedSelfConsistentComposite composite( mesh->get3DMesh()->getConflictingElements( self->getPrimitive() ) );
 	equivalent = composite.getBehaviour() ;
 
 	v.push_back( XI );

@@ -22,7 +22,7 @@ std::vector<DelaunayTriangle *> Pore::getElements2D( FeatureTree * dt)
 {
 	std::vector<DelaunayTriangle *> ret;
 	
-	std::vector<DelaunayTriangle *> temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *> temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -112,7 +112,7 @@ std::vector<Geometry *> Pore::getRefinementZones(size_t level) const
 std::vector<DelaunayTriangle *> TriangularPore::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *> ret ;
-	std::vector<DelaunayTriangle *> temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *> temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
 		bool inChild = false ;

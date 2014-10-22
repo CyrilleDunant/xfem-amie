@@ -130,8 +130,8 @@ int main(int argc, char *argv[])
 //    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT_AFTER, 1e6));
 
     double aggregateArea = 0. ;
-    std::vector<size_t> iAgg ;
-    std::vector<size_t> iCem ;
+    std::vector<bool> iAgg ;
+    std::vector<bool> iCem ;
     int done = 1 ;
 
     while(VirtualMachine().eval(f_neutron_fluence,0.0635/2.,0.,0.,F.getCurrentTime()) < 10.)
@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
         Vector strain = F.getAverageField(STRAIN_FIELD, -1, 1.) ;
         Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
 
-        std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
         Vector strainAgg(3) ;
         Vector strainCem(3) ;
         Vector stressAgg(3) ;
@@ -156,56 +155,66 @@ int main(int argc, char *argv[])
 
         if(aggregateArea < POINT_TOLERANCE_2D)
         {
-            for(size_t i = 0 ; i < trg.size() ; i++)
+            for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
             {
-                if(trg[i]->getBehaviour()->param[0][0] > 30e9)
+                if(i->getBehaviour()->param[0][0] > 30e9)
                 {
-                    aggregateArea += trg[i]->area() ;
-                    iAgg.push_back(i) ;
+                    aggregateArea += i->area() ;
+                    iAgg.push_back(true) ;
+                    iCem.push_back(false);
                 } else {
-                    iCem.push_back(i) ;
+                    iCem.push_back(true) ;
+                    iAgg.push_back(false);
                 }
             }
             std::cout << aggregateArea / (0.0635*0.0127) << std::endl ;
         }
 
-        for(size_t i = 0 ; i < iAgg.size() ; i++)
+        for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
         {
-            double a = trg[iAgg[i]]->area() ;
-            trg[iAgg[i]]->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
-            strainAgg += tmp*a ;
-            for(size_t j = 0 ; j < 3 ; j++)
+            if(iAgg[i.getPosition()])
             {
-                if(tmp[j] > strainMaxAgg[j])
-                    strainMaxAgg[j] = tmp[j] ;
-            }
-            trg[iAgg[i]]->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
-            stressAgg += tmp*a ;
-            for(size_t j = 0 ; j < 3 ; j++)
-            {
-                if(tmp[j] > stressMaxAgg[0])
-                    stressMaxAgg[0] = tmp[0] ;
+                double a = i->area() ;
+                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+                strainAgg += tmp*a ;
+                for(size_t j = 0 ; j < 3 ; j++)
+                {
+                    if(tmp[j] > strainMaxAgg[j])
+                        strainMaxAgg[j] = tmp[j] ;
+                }
+                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+                stressAgg += tmp*a ;
+                for(size_t j = 0 ; j < 3 ; j++)
+                {
+                    if(tmp[j] > stressMaxAgg[0])
+                        stressMaxAgg[0] = tmp[0] ;
+                }
             }
         }
+
         strainAgg /= aggregateArea ;
         stressAgg /= aggregateArea ;
 
-        for(size_t i = 0 ; i < iCem.size() ; i++)
+
+        for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
         {
-            double a = trg[iCem[i]]->area() ;
-            trg[iCem[i]]->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
-            strainCem += tmp*a ;
-            for(size_t j = 0 ; j < 3 ; j++)
+            if(iCem[i.getPosition()])
             {
-                if(tmp[j] > strainMaxCem[j])
-                    strainMaxCem[j] = tmp[j] ;
-            }
-            trg[iCem[i]]->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
-            stressCem+= tmp*a ;
-            for(size_t j = 0 ; j < 3 ; j++)
-            {
-                if(tmp[j] > stressMaxCem[j])
-                    stressMaxCem[j] = tmp[j] ;
+                double a = i->area() ;
+                i->getState().getAverageField(STRAIN_FIELD, tmp, nullptr, -1, 1.) ;
+                strainAgg += tmp*a ;
+                for(size_t j = 0 ; j < 3 ; j++)
+                {
+                    if(tmp[j] > strainMaxAgg[j])
+                        strainMaxAgg[j] = tmp[j] ;
+                }
+                i->getState().getAverageField(REAL_STRESS_FIELD, tmp, nullptr, -1, 1.) ;
+                stressAgg += tmp*a ;
+                for(size_t j = 0 ; j < 3 ; j++)
+                {
+                    if(tmp[j] > stressMaxAgg[0])
+                        stressMaxAgg[0] = tmp[0] ;
+                }
             }
         }
         strainCem /= box.area() - aggregateArea ;

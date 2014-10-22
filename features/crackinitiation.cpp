@@ -27,12 +27,11 @@ std::vector<EnrichmentFeature *> CrackInitiation::step(double delta,  Mesh<Delau
 {
 	std::vector<EnrichmentFeature *> ret ;
 	
-	std::vector<DelaunayTriangle *> triangles = dt->getElements() ;
 	std::vector<DelaunayTriangle *> brokenTriangles ;
-	for(size_t i = 0 ; i < triangles.size() ;i++)
+	for(auto i = dt->begin() ; i != dt->end() ;i++)
 	{
-		if(triangles[i]->getBehaviour()->fractured())
-			brokenTriangles.push_back(triangles[i]) ;
+		if(i->getBehaviour()->fractured())
+			brokenTriangles.push_back(i) ;
 	}
 	std::vector<std::vector<DelaunayTriangle *> > clusters ;
     std::valarray<bool> visited(false, dt->size()) ;

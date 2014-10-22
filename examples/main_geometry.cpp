@@ -125,15 +125,11 @@ int main(int argc, char *argv[])
   inclusions.close();
 	
   // generate elements and get list of tetrahedrons
-  std::vector<DelaunayTetrahedron *> tets = F.getElements3D() ;
   
   unsigned int node_counter = 1;
   typedef std::map<Point *, unsigned int> nodes_map;
   nodes_map node_index_mapping;
   std::vector<Point *> nodes;
-
-  std::vector<DelaunayTetrahedron *>::iterator it = tets.begin();
-  std::vector<DelaunayTetrahedron *>::iterator end = tets.end();
 
   std::ofstream mesh_file; mesh_file.open("mesh.msh");
   mesh_file << "$MeshFormat" << std::endl
@@ -144,13 +140,12 @@ int main(int argc, char *argv[])
   //   tets[i]->getBoundingPoints(j).getId();
   // tets[i]->getBoundingPoints().size()
 
-  for (;it != end; ++it) {
-    DelaunayTetrahedron & tetra = **it;
-    for (unsigned int n = 0; n < tetra.size(); ++n) {
-      nodes_map::iterator pid = node_index_mapping.find(tetra[n]);
+  for (auto it = F.get3DMesh()->begin() ;it != F.get3DMesh()->begin(); it++) {
+    for (unsigned int n = 0; n < it->size(); ++n) {
+      nodes_map::iterator pid = node_index_mapping.find(&it->getBoundingPoint(n));
       if(pid == node_index_mapping.end()) {
-	nodes.push_back(tetra[n]);
-	node_index_mapping[tetra[n]] = node_counter;
+	nodes.push_back(&it->getBoundingPoint(n));
+	node_index_mapping[&it->getBoundingPoint(n)] = node_counter;
 	node_counter++;
       }
     }
@@ -168,19 +163,18 @@ int main(int argc, char *argv[])
   mesh_file << "$EndNodes" << std::endl;
 
   mesh_file << "$Elements" << std::endl
-	    << tets.size() << std::endl;
+	    << F.get3DMesh()->begin().size() << std::endl;
 
-  it = tets.begin();
-  for (unsigned int t = 1; it != end; ++it, ++t) {
-    DelaunayTetrahedron & tetra = **it;
+  auto it = F.get3DMesh()->begin();
+  for (unsigned int t = 1; it != F.get3DMesh()->end(); ++it, ++t) {
     unsigned int msh_type = 0;
-    if(tetra.size() == 4) msh_type = 4;
-    else if(tetra.size() == 10) msh_type = 11;
+    if(it->size() == 4) msh_type = 4;
+    else if(it->size() == 10) msh_type = 11;
     assert(msh_type != 0);
 
     mesh_file << t << " " << msh_type << " 2 0 0";
-    for (unsigned int n = 0; n < tetra.size(); ++n) {
-      nodes_map::iterator pid = node_index_mapping.find(tetra[n]);
+    for (unsigned int n = 0; n < it->size(); ++n) {
+      nodes_map::iterator pid = node_index_mapping.find(&it->getBoundingPoint(n));
       mesh_file << " " << pid->second;
     }
     mesh_file << std::endl;

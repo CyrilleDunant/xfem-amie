@@ -457,13 +457,13 @@ bool EnrichmentInclusion3D::inBoundary(const Point & v) const {return false ; }
 	
 std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getElements3D( FeatureTree * dt) 
 { 
-	return dt->getElements3D(getPrimitive()) ;
+	return dt->get3DMesh()->getConflictingElements(getPrimitive()) ;
 }
 	
 std::vector<DelaunayTetrahedron *> EnrichmentInclusion3D::getBoundingElements3D( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTetrahedron *> disc = dt->getElements3D(getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> disc = dt->get3DMesh()->getConflictingElements(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTetrahedron *> ring ;

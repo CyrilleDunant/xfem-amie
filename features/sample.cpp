@@ -30,11 +30,7 @@ Sample::Sample( double x, double y, double originX, double originY) : Rectangle(
 std::vector<DelaunayTriangle *> Sample::getElements2D( FeatureTree * dt) 
 {
 	std::vector<DelaunayTriangle *>  ret ;
-	std::vector<DelaunayTriangle *>  temp ;
-	if(this->m_f == nullptr)
-		temp = dt->getElements2D() ;
-	else
-		temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>  temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

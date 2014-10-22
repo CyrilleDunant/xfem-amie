@@ -54,26 +54,25 @@ void step()
     {
         featureTree->step() ;
 
-        std::vector<DelaunayTriangle *> tets= featureTree->getElements2D() ;
         Vector x = featureTree->getDisplacements() ;
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
-        int npoints = tets[0]->getBoundingPoints().size() ;
+        int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
         double volume = 0 ;
 
         double xavg = 0 ;
 
-        for(size_t k = 0 ; k < tets.size() ; k++)
+        for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
         {
-            if(tets[k]->getBehaviour()->type != VOID_BEHAVIOUR )
+            if(k->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                double ar = tets[k]->area() ;
+                double ar = k->area() ;
                 volume += ar ;
                 for(size_t l = 0 ; l < npoints ; l++)
                 {
-                    xavg += x[tets[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
+                    xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
                 }
             }
         }

@@ -130,24 +130,25 @@ int main(int argc, char *argv[])
 
     F.step() ;
 
-    std::vector<DelaunayTriangle *> triangles = F.getElements2D() ;
     double area = 0. ;
-    std::vector<size_t> paste_index ;
-    std::vector<size_t> agg_index ;
-    for(size_t i = 0 ; i < triangles.size() ; i++)
+    std::vector<bool> paste_index ;
+    std::vector<bool> agg_index ;
+    for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
     {
-	if(triangles[i]->getBehaviour()->param[0][0] > 30e9)
+	if(i->getBehaviour()->param[0][0] > 30e9)
 	{
-		area += triangles[i]->area() ;
-		agg_index.push_back(i) ;
+		area += i->area() ;
+		agg_index.push_back(true) ;
+                paste_index.push_back(false);
 	} 
 	else
 	{
-		paste_index.push_back(i) ;
-		checkTriangle( triangles[i] ) ;
+		paste_index.push_back(true) ;
+                agg_index.push_back(false);
+		checkTriangle( i ) ;
 	}
     }
-    std::cout << paste_index.size() << "\t" << triangles.size() << std::endl ;
+    std::cout << paste_index.size() << "\t" << F.get2DMesh()->begin().size() << std::endl ;
     std::cout << "effective surface covered by aggregates: " << area << std::endl ;
 
 
@@ -233,28 +234,26 @@ int main(int argc, char *argv[])
 	    double area_paste = 0. ;
 	    stress_aggregates = 0. ;
 	    double area_aggregates = 0. ;
-	    for(size_t j = 0 ; j < paste_index.size() ; j++)
-	    {
-		Vector str = stress_paste*0. ;
-		double a = triangles[paste_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-		stress_paste += str*a ;
-		area_paste += a ;
-		checkTriangle( triangles[paste_index[i]] ) ;
-	    }
-	    for(size_t j = 0 ; j < agg_index.size() ; j++)
-	    {
-		Vector str = stress_paste*0. ;
-		double a = triangles[agg_index[j]]->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-		stress_aggregates += str*a ;
-		area_aggregates += a ;
-//		if(i == 3)
-//		{
-//			Point p ;
-//			triangles[agg_index[j]]->getBehaviour()->getTensor(p).print() ;
-//			triangles[agg_index[j]]->getBehaviour()->getViscousTensor(p).print() ;
-//			exit(0) ;
-//		}
-	    }
+            for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
+            {
+                if(paste_index[i.getPosition()])
+                {
+                    Vector str = stress_paste*0. ;
+                    double a = i->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
+                    stress_paste += str*a ;
+                    area_paste += a ;
+                    checkTriangle( i ) ;
+                }
+                if(agg_index[i.getPosition()])
+                {
+                    Vector str = stress_paste*0. ;
+                    double a = i->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
+                    stress_aggregates += str*a ;
+                    area_aggregates += a ;
+                }
+                
+            }
+
 	    stress_paste /= area_paste ;
 	    stress_aggregates /= area_aggregates ;
 	

@@ -328,13 +328,13 @@ bool EnrichmentRing::inBoundary(const Point *v) const { return false ;}
 	
 std::vector<DelaunayTriangle *> EnrichmentRing::getElements2D( FeatureTree * dt) 
 { 
-	return dt->getElements2D(getPrimitive()) ;
+	return dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 }
 	
 std::vector<DelaunayTriangle *> EnrichmentRing::getBoundingElements2D( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->getElements2D(static_cast<Circle *>(this)) ;
+	std::vector<DelaunayTriangle *> disc = dt->get2DMesh()->getConflictingElements(static_cast<Circle *>(this)) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

@@ -74,17 +74,16 @@ int main(int argc, char *argv[])
 
 	std::cout << strain[0] << "\t" << stress[0] << std::endl ;
 
-	std::vector<DelaunayTriangle *> triangles = F.getElements2D() ;
-	for(size_t i = 0 ; i < triangles.size() ; i++)
+	for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
 	{
-		if(dynamic_cast<HomogeneisedBehaviour *>(triangles[i]->getBehaviour()))
+		if(dynamic_cast<HomogeneisedBehaviour *>(i->getBehaviour()))
 			std::cout << "homogeneised" << std::endl ;
-		if(zone->intersects(dynamic_cast<Triangle*>(triangles[i])))
+		if(zone->intersects(i->getPrimitive()))
 			std::cout << "intersection" << std::endl  ;
-		for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)	
+		for(size_t j = 0 ; j < i->getBoundingPoints().size() ; j++)	
 		{
-			if(zone->in(triangles[i]->getBoundingPoint(j)))
-				triangles[i]->getBoundingPoint(j).print() ;
+			if(zone->in(i->getBoundingPoint(j)))
+				i->getBoundingPoint(j).print() ;
 		}
 	}
   

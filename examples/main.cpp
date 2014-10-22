@@ -105,7 +105,7 @@ void computeDisplacement()
 	x.resize(featureTree->getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 	Circle c(.0001, 0., 0.02) ;
-	std::vector<DelaunayTriangle *> t = featureTree->getElements2D(&c) ;
+	std::vector<DelaunayTriangle *> t = featureTree->get2DMesh()->getConflictingElements(&c) ;
 	std::vector<int> indices ;
 	for(size_t i = 0 ; i < t.size() ; i++)
 	{

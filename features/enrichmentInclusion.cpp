@@ -415,13 +415,13 @@ bool EnrichmentInclusion::inBoundary(const Point *v) const { return false ;}
 	
 std::vector<DelaunayTriangle *> EnrichmentInclusion::getElements2D( FeatureTree * dt) 
 { 
-	return dt->getElements2D(getPrimitive()) ;
+	return dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 }
 	
 std::vector<DelaunayTriangle *> EnrichmentInclusion::getIntersectingTriangles( FeatureTree * dt)
 {
 	//first we get All the triangles affected
-	std::vector<DelaunayTriangle *> disc = dt->getElements2D(getPrimitive()) ;
+	std::vector<DelaunayTriangle *> disc = dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 	
 	//then we select those that are cut by the circle
 	std::vector<DelaunayTriangle *> ring ;

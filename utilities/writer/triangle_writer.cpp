@@ -39,12 +39,12 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
-			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
-			nTriangles.push_back( tri.size() );
+
+			nTriangles.push_back( source->get2DMesh(layers[j])->begin().size() );
 			int count = 0 ;
 
-			for( int i = 0 ; i < nTriangles.back() ; i++ )
-				if( tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+			for( auto i = source->get2DMesh(layers[j])->begin() ; i != source->get2DMesh(layers[j])->end() ; i++ )
+				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 					count++ ;
 
 			nTriangles.back() = count ;
@@ -53,8 +53,8 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 			if( timePlane.back() < 0 )
 				timePlane.back() = 0 ;
 
-			if( timePlane.back() >= tri[0]->timePlanes() )
-				timePlane.back() = tri[0]->timePlanes() - 1 ;
+			if( timePlane.back() >= source->get2DMesh(layers[j])->begin()->timePlanes() )
+				timePlane.back() = source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
 			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
@@ -101,19 +101,18 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 		layers = source->listLayers() ;
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
-			std::vector<DelaunayTriangle *> tri =  source->getElements2DInLayer( layers[j] ) ;
 			
-			if(tri.empty())
+			if(source->get2DMesh()->begin().size() == 0)
 			{
 				continue ;
 			}
-			nTriangles.push_back( tri.size() );
+			nTriangles.push_back( source->get2DMesh()->begin().size() );
 			int count = 0 ;
 
-			for( int i = 0 ; i < nTriangles.back() ; i++ )
+			for( auto i = source->get2DMesh()->begin() ; i != source->get2DMesh()->end() ; i++ )
 			{
 				
-				if( tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					count++ ;
 				}
@@ -124,8 +123,8 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 			if( timePlane.back() < 0 )
 				timePlane.back() = 0 ;
 
-			if( timePlane.back() >= tri[0]->timePlanes() )
-				timePlane.back() = tri[0]->timePlanes() - 1 ;
+			if( timePlane.back() >= source->get2DMesh()->begin()->timePlanes() )
+				timePlane.back() = source->get2DMesh()->begin()->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
 			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
@@ -621,7 +620,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 	if( field == TWFT_GRADIENT || field == TWFT_GRADIENT_AND_FLUX || field == TWFT_FLUX )
 	{
 		std::pair<Vector, Vector> gradient_flux = source->getGradientAndFluxInLayer( layer, false ) ;
-		std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+// 		std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
 		switch( field )
 		{
@@ -629,21 +628,21 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 			case TWFT_FLUX:
 				gradient_flux.first.resize( 0 ) ;
 
-				for( int i = 0 ; i < triangles.size() ; i++ )
+				for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 				{
-					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && !i->getBehaviour()->fractured() )
 					{
 						// j11
-						ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
-						ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
-						ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
+						ret[5][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 4] ;
 
 						// j22
-						ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
-						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
-						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
+						ret[2][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.second[i.getPosition() * 3 * 2 + 5] ;
 					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
+					else if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR)
 					{
 												// j11
 						ret[5][iterator] = 0 ;
@@ -662,31 +661,31 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
 			case TWFT_GRADIENT_AND_FLUX:
 
-				for( int i = 0 ; i < triangles.size() ; i++ )
+				for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 				{
-					if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && !i->getBehaviour()->fractured() )
 					{
 						// d11
-						ret[11][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
-						ret[10][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
-						ret[9][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
+						ret[11][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 0] ;
+						ret[10][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 2] ;
+						ret[9][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 4] ;
 
 						// d22
-						ret[8][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
-						ret[7][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
-						ret[6][iterator] = gradient_flux.first[i * 3 * 2 + 5] ;
+						ret[8][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 1] ;
+						ret[7][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 3] ;
+						ret[6][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 5] ;
 
 						// j11
-						ret[5][iterator] = gradient_flux.second[i * 3 * 2 + 0] ;
-						ret[4][iterator] = gradient_flux.second[i * 3 * 2 + 2] ;
-						ret[3][iterator] = gradient_flux.second[i * 3 * 2 + 4] ;
+						ret[5][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 4] ;
 
 						// j22
-						ret[2][iterator] = gradient_flux.second[i * 3 * 2 + 1] ;
-						ret[1][iterator] = gradient_flux.second[i * 3 * 2 + 3] ;
-						ret[0][iterator++] = gradient_flux.second[i * 3 * 2 + 5] ;
+						ret[2][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.second[i.getPosition() * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.second[i.getPosition() * 3 * 2 + 5] ;
 					}
-					else if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					else if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						ret[11][iterator] = 0 ;
 						ret[10][iterator] = 0 ;
@@ -714,21 +713,21 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 			case TWFT_GRADIENT:
 				gradient_flux.second.resize( 0 ) ;
 
-				for( int i = 0 ; i < triangles.size() ; i++ )
+				for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 				{
-					if(  triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && !triangles[i]->getBehaviour()->fractured() )
+					if(  i->getBehaviour() &&i->getBehaviour()->type != VOID_BEHAVIOUR && !i->getBehaviour()->fractured() )
 					{
 						// d11
-						ret[5][iterator] = gradient_flux.first[i * 3 * 2 + 0] ;
-						ret[4][iterator] = gradient_flux.first[i * 3 * 2 + 2] ;
-						ret[3][iterator] = gradient_flux.first[i * 3 * 2 + 4] ;
+						ret[5][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 0] ;
+						ret[4][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 2] ;
+						ret[3][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 4] ;
 
 						// d22
-						ret[2][iterator] = gradient_flux.first[i * 3 * 2 + 1] ;
-						ret[1][iterator] = gradient_flux.first[i * 3 * 2 + 3] ;
-						ret[0][iterator++] = gradient_flux.first[i * 3 * 2 + 5] ;
+						ret[2][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 1] ;
+						ret[1][iterator] = gradient_flux.first[i.getPosition() * 3 * 2 + 3] ;
+						ret[0][iterator++] = gradient_flux.first[i.getPosition() * 3 * 2 + 5] ;
 					}
-					else if(triangles[i]->getBehaviour() &&triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+					else if(i->getBehaviour() &&i->getBehaviour()->type != VOID_BEHAVIOUR )
 					{
 						ret[5][iterator] = 0 ;
 						ret[4][iterator] = 0 ;
@@ -749,25 +748,25 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		if( field == TWFT_DISPLACEMENTS )
 		{
 			Vector x = source->getDisplacements(-1, false) ;
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-			int pointsPerTri = triangles[1]->getBoundingPoints().size() ;
+// 			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
+			int pointsPerTri = source->get2DMesh(layer)->begin()->getBoundingPoints().size() ;
 
-			int pointsPerTimePlanes = pointsPerTri / triangles[1]->timePlanes() ;
+			int pointsPerTimePlanes = pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 			int factor = pointsPerTimePlanes / 3 ;
-			if( timePlane[layerTranslator[layer]] >= triangles[1]->timePlanes() )
-				timePlane[layerTranslator[layer]] = triangles[1]->timePlanes() - 1 ;
+			if( timePlane[layerTranslator[layer]] >= source->get2DMesh(layer)->begin()->timePlanes() )
+				timePlane[layerTranslator[layer]] = source->get2DMesh(layer)->begin()->timePlanes() - 1 ;
 
-			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 
-			for( int i = 0 ; i < triangles.size() ; i++ )
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-				if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
-					size_t dof = triangles[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+					size_t dof = i->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 					
-					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).getId() ;
-					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).getId() ;
-					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).getId() ;
+					size_t id1 = i->getBoundingPoint( factor * 0 + time_offset ).getId() ;
+					size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
+					size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
 					ret[5][iterator] = x[id1 * dof] ;
 					ret[4][iterator] = x[id2 * dof] ;
@@ -781,22 +780,22 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		else if( field == TWFT_SCALAR )
 		{
 			Vector x = source->getDisplacements(-1, false) ;
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-			int pointsPerTri = triangles[1]->getBoundingPoints().size() ;
-			int pointsPerTimePlanes = pointsPerTri / triangles[1]->timePlanes() ;
+
+			int pointsPerTri = source->get2DMesh(layer)->begin()->getBoundingPoints().size() ;
+			int pointsPerTimePlanes = pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 			int factor = pointsPerTimePlanes / 3 ;
-			if( timePlane[layerTranslator[layer]] >= triangles[1]->timePlanes() )
-				timePlane[layerTranslator[layer]] = triangles[1]->timePlanes() - 1 ;
+			if( timePlane[layerTranslator[layer]] >= source->get2DMesh(layer)->begin()->timePlanes() )
+				timePlane[layerTranslator[layer]] = source->get2DMesh(layer)->begin()->timePlanes() - 1 ;
 
-			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[1]->timePlanes() ;
+			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 
-			for( int i = 0 ; i < triangles.size() ; i++ )
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-				if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
-					size_t id1 = triangles[i]->getBoundingPoint( factor * 0 + time_offset ).getId() ;
-					size_t id2 = triangles[i]->getBoundingPoint( factor * 1 + time_offset ).getId() ;
-					size_t id3 = triangles[i]->getBoundingPoint( factor * 2 + time_offset ).getId() ;
+					size_t id1 = i->getBoundingPoint( factor * 0 + time_offset ).getId() ;
+					size_t id2 = i->getBoundingPoint( factor * 1 + time_offset ).getId() ;
+					size_t id3 = i->getBoundingPoint( factor * 2 + time_offset ).getId() ;
 
 // 					std::cout << triangles[i]->index << "   "<< id1 << "   "<< id2 << "   " << id3 << "   " << x[id1  ] << std::endl ;
 					ret[2][iterator] = x[id1  ] ;
@@ -807,20 +806,19 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		}
 		else if( field == TWFT_DOH )
 		{
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
-			for( int i = 0 ; i < triangles.size() ; i++ )
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour()) )
+				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<HydratingDiffusionCementPaste *>(i->getBehaviour()) )
 				{
-					double d = dynamic_cast<HydratingDiffusionCementPaste *>(triangles[i]->getBehaviour())->doh ;
+					double d = dynamic_cast<HydratingDiffusionCementPaste *>(i->getBehaviour())->doh ;
 
 					ret[0][iterator] = d;
 					ret[1][iterator] = d ;
 					ret[2][iterator++] = d ;
 
 				}
-				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					ret[0][iterator] = 0;
 					ret[1][iterator] = 0 ;
@@ -859,16 +857,15 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 // 		}
 		else if( field == TWFT_DAMAGE)
 		{
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
 
-			for( int i = 0 ; i < triangles.size() ; i++ )
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() )
+				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR &&  i->getBehaviour()->getDamageModel() )
 				{
 					double d = 0 ;
-					for(size_t m = 0 ;  m <  triangles[i]->getBehaviour()->getDamageModel()->getState().size() ; m++)
-						d +=  triangles[i]->getBehaviour()->getDamageModel()->getState()[m] ;
-					if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
+					for(size_t m = 0 ;  m <  i->getBehaviour()->getDamageModel()->getState().size() ; m++)
+						d +=  i->getBehaviour()->getDamageModel()->getState()[m] ;
+					if( i->getBehaviour()->getDamageModel()->fractured() )
 						d = 1 ;
 
 					ret[0][iterator] = d;
@@ -876,7 +873,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					ret[2][iterator++] = d ;
 
 				}
-				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					ret[0][iterator] = 0;
 					ret[1][iterator] = 0 ;
@@ -886,17 +883,17 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		}
 		else if( field == TWFT_IMPOSED_STRESS_NORM )
 		{
-			std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-			Vector x( triangles.size() * 3 ) ;
 
-			for( int i = 0 ; i < triangles.size() ; i++ )
+			Vector x( source->get2DMesh(layer)->begin().size() * 3 ) ;
+
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->hasInducedForces() && triangles[i]->getBehaviour()->getDamageModel())
+				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR &&  i->getBehaviour()->hasInducedForces() && i->getBehaviour()->getDamageModel())
 				{
-					Vector dv = triangles[i]->getBehaviour()->getDamageModel()->getImposedStress(triangles[i]->getCenter());
+					Vector dv = i->getBehaviour()->getDamageModel()->getImposedStress(i->getCenter());
 
 					double d = sqrt(std::inner_product(&dv[0], &dv[dv.size()], &dv[0], 0.));
-					if( triangles[i]->getBehaviour()->getDamageModel()->fractured() )
+					if( i->getBehaviour()->getDamageModel()->fractured() )
 						d = 1 ;
 
 					ret[0][iterator] = d;
@@ -904,7 +901,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 					ret[2][iterator++] = d ;
 
 				}
-				else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					ret[0][iterator] = 0;
 					ret[1][iterator] = 0 ;
@@ -914,18 +911,17 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 		}
         else if( field == TWFT_INTERNAL_VARIABLE)
         {
-            std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
             std::map<std::string, double> empty ;
-            for( int i = 0 ; i < triangles.size() ; i++ )
+            for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
             {
-                if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(triangles[i]->getBehaviour()) )
+                if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR && dynamic_cast<LogarithmicCreepWithExternalParameters *>(i->getBehaviour()) )
                 {
-                    double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(triangles[i]->getState()).get(fieldName, empty ) - offset;
+                    double v = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(i->getState()).get(fieldName, empty ) - offset;
                     ret[0][iterator] = v ;
                     ret[1][iterator] = v ;
                     ret[2][iterator++] = v ;
                 }
-                else if ( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+                else if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
                     ret[0][iterator] = 0;
                     ret[1][iterator] = 0 ;
@@ -935,13 +931,12 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
         }
 		else
 		{
-			std::vector<DelaunayTriangle *> tri = source->getElements2DInLayer( layer ) ;
-
-			for( size_t i = 0 ; i < tri.size() ; i++ )
+			
+			for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 			{
-                std::pair<bool, std::vector<double> > val = getDoubleValue( tri[i], field , index) ;
+                std::pair<bool, std::vector<double> > val = getDoubleValue( i, field , index) ;
 
-				if(  tri[i]->getBehaviour() && tri[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+				if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 				{
 					if( val.first )
 					{
@@ -963,16 +958,15 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 	std::vector<std::valarray<double> > ret ;
 	int iterator = 0 ;
 	
-	std::vector<DelaunayTriangle *> triangles = source->getElements2DInLayer( layer ) ;
-	int blocks = triangles[0]->getBehaviour()->getNumberOfDegreesOfFreedom() / 2 ;
+	int blocks = source->get2DMesh(layer)->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() / 2 ;
 	int size = fieldTypeElementarySize( field, SPACE_TWO_DIMENSIONAL, blocks) ;
-	int pointsPerTri = triangles[0]->getBoundingPoints().size() ;
+	int pointsPerTri = source->get2DMesh(layer)->begin()->getBoundingPoints().size() ;
 	int pointsPerPlane = pointsPerTri ;
-	if(triangles[0]->timePlanes() > 1)
-		pointsPerPlane /= triangles[0]->timePlanes() ;
+	if(source->get2DMesh(layer)->begin()->timePlanes() > 1)
+		pointsPerPlane /= source->get2DMesh(layer)->begin()->timePlanes() ;
 	int factor = pointsPerPlane/3 ;
 
-	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / triangles[0]->timePlanes() ;
+	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 
 	for( int i = 0 ; i < size*3 ; i++ )
 	{
@@ -981,21 +975,21 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 	}
 	
 
-	for( size_t i = 0 ; i < triangles.size() ; i++ )
+	for( auto i = source->get2DMesh(layer)->begin() ; i != source->get2DMesh(layer)->end() ; i++ )
 	{
-		if(  triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR )
+		if(  i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
 		{
 			Vector first(size) ;
 			Vector second(size) ;
 			Vector third(size) ;
 
-			size_t n = triangles[i]->getBoundingPoints().size()/3 ;
-			if(triangles[i]->timePlanes() > 1)
-				n /= triangles[i]->timePlanes() ;
+			size_t n = i->getBoundingPoints().size()/3 ;
+			if(i->timePlanes() > 1)
+				n /= i->timePlanes() ;
 
-            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+0), first, false, 0);
-            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+n), second, false, 0);
-            triangles[i]->getState().getField(field,  triangles[i]->getBoundingPoint(time_offset+2*n), third, false, 0);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+0), first, false, 0);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+n), second, false, 0);
+            i->getState().getField(field,  i->getBoundingPoint(time_offset+2*n), third, false, 0);
 			
 			for(size_t j = 0 ; j < size ; j++)
 			{

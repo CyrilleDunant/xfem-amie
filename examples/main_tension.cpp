@@ -70,7 +70,6 @@ using namespace Amie ;
 
 
 FeatureTree * featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
 
 double E_min = 10;
@@ -174,7 +173,6 @@ void step ( size_t nsteps )
 // 			loadt->setData(0) ;
         }
 
-        triangles = featureTree->getActiveElements2D() ;
         x.resize ( featureTree->getDisplacements().size() ) ;
         x = featureTree->getDisplacements() ;
 
@@ -186,20 +184,20 @@ void step ( size_t nsteps )
         {
             dfile.open ( "dprofile", std::ios::out | std::ios::app ) ;
         }
-        for ( size_t k = 0 ; k < triangles.size() ; k++ )
+        for ( auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++ )
         {
-            if ( triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
+            if ( k->getBehaviour()->type != VOID_BEHAVIOUR )
             {
                 if ( go_on )
                 {
-                    dfile <<  triangles[k]->getCenter().getX() << "  "<< triangles[k]->getBehaviour()->getDamageModel()->getState().max() << "  " ;
+                    dfile <<  k->getCenter().getX() << "  "<< k->getBehaviour()->getDamageModel()->getState().max() << "  " ;
                 }
-                double ar = triangles[k]->area() ;
+                double ar = k->area() ;
                 volume += ar ;
-                for ( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
+                for ( size_t l = 0 ; l < k->getBoundingPoints().size() ; l++ )
                 {
-                    xavg += x[triangles[k]->getBoundingPoint ( l ).getId() *2]*ar/ triangles[k]->getBoundingPoints().size() ;
-                    yavg += x[triangles[k]->getBoundingPoint ( l ).getId() *2+1]*ar/ triangles[k]->getBoundingPoints().size() ;
+                    xavg += x[k->getBoundingPoint ( l ).getId() *2]*ar/ k->getBoundingPoints().size() ;
+                    yavg += x[k->getBoundingPoint ( l ).getId() *2+1]*ar/ k->getBoundingPoints().size() ;
                 }
             }
         }
@@ -360,7 +358,7 @@ int main ( int argc, char *argv[] )
 
     F.setOrder ( LINEAR ) ;
 // F.addPoint(new Point(0, 0)) ;
-    triangles = F.getElements2D() ;
+
     F.setMaxIterationsPerStep ( 3400 );
 
     step ( 1000 ) ;

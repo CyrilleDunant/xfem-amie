@@ -3423,15 +3423,14 @@ void applyVerticalPlaneSections ( double topY, double bottomY, Assembly * a, Mes
 void applyHorizontalPlaneSections ( double topX, double bottomX, Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
     std::vector<Point *> points ;
-    std::vector<DelaunayTriangle *> triangles = t->getElements() ;
 
-    for ( size_t i  = 0 ; i < triangles.size() ; i++ )
+    for ( auto i  = t->begin() ; i != t->end() ; i++ )
     {
-        for ( size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++ )
+        for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
         {
-            if ( triangles[i]->getBoundingPoint ( j ).getX() <= topX && triangles[i]->getBoundingPoint ( j ).getX() >= bottomX )
+            if ( i->getBoundingPoint ( j ).getX() <= topX && i->getBoundingPoint ( j ).getX() >= bottomX )
             {
-                points.push_back ( &triangles[i]->getBoundingPoint ( j ) );
+                points.push_back ( &i->getBoundingPoint ( j ) );
             }
         }
     }

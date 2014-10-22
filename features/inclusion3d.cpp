@@ -69,7 +69,7 @@ std::vector<DelaunayTriangle *> Inclusion3D::getElements2D( FeatureTree * dt)  {
 std::vector<DelaunayTetrahedron *> Inclusion3D::getElements3D( FeatureTree * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->get3DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -142,7 +142,7 @@ std::vector<DelaunayTetrahedron *> OctahedralInclusion::getElements3D( FeatureTr
 {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->get3DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -233,7 +233,7 @@ std::vector<DelaunayTriangle *> VirtualInclusion3D::getElements2D( FeatureTree *
 std::vector<DelaunayTetrahedron *> VirtualInclusion3D::getElements3D( FeatureTree * dt)  {
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->get3DMesh()->getConflictingElements(getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

@@ -23,7 +23,7 @@ std::vector<DelaunayTriangle *> Inclusion::getElements2D( FeatureTree* dt)
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getElements2D(getPrimitive()) ;
+	std::vector<DelaunayTriangle *>temp = dt->get2DMesh()->getConflictingElements(getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -105,7 +105,7 @@ std::vector<DelaunayTriangle *> TriangularInclusion::getElements2D( FeatureTree 
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
-	std::vector<DelaunayTriangle *>  temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>  temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -174,7 +174,7 @@ std::vector<DelaunayTriangle *> RectangularInclusion::getElements2D( FeatureTree
 {
 	std::vector<DelaunayTriangle *> ret ;
 	
-	std::vector<DelaunayTriangle *>  temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>  temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{
@@ -286,7 +286,7 @@ std::vector<DelaunayTriangle *> EllipsoidalInclusion::getElements2D( FeatureTree
 {
 	std::vector<DelaunayTriangle *>ret;
 	
-	std::vector<DelaunayTriangle *>temp = dt->getElements2D(this->getPrimitive()) ;
+	std::vector<DelaunayTriangle *>temp = dt->get2DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

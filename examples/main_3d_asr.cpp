@@ -45,7 +45,6 @@
 using namespace Amie ;
 
 FeatureTree *featureTree ;
-std::vector<DelaunayTetrahedron *> tets ;
 std::vector<bool> cracked ;
 
 double E_min = 10;
@@ -117,37 +116,36 @@ void step()
 			damaged_volume.push_back( featureTree->damagedVolume ) ;
 		}
 		
-		tets = featureTree->getElements3D() ;
 
-		Vector strain11(4*tets.size()) ;
-		Vector strain22(4*tets.size()) ;
-		Vector strain33(4*tets.size()) ;
-		Vector stress11(4*tets.size()) ;
-		Vector stress22(4*tets.size()) ;
-		Vector stress33(4*tets.size()) ;
+		Vector strain11(4*featureTree->get3DMesh()->begin().size()) ;
+		Vector strain22(4*featureTree->get3DMesh()->begin().size()) ;
+		Vector strain33(4*featureTree->get3DMesh()->begin().size()) ;
+		Vector stress11(4*featureTree->get3DMesh()->begin().size()) ;
+		Vector stress22(4*featureTree->get3DMesh()->begin().size()) ;
+		Vector stress33(4*featureTree->get3DMesh()->begin().size()) ;
 		{
-			Vector stress(24*tets.size()) ;
-			Vector strain(24*tets.size()) ;
+			Vector stress(24*featureTree->get3DMesh()->begin().size()) ;
+			Vector strain(24*featureTree->get3DMesh()->begin().size()) ;
 			{
 				std::pair<Vector,Vector> stress_strain ;
-				stress_strain.first.resize(24*tets.size()) ;
-				stress_strain.second.resize(24*tets.size()) ;
-				stress_strain = featureTree->getStressAndStrain(tets) ;		
+				stress_strain.first.resize(24*featureTree->get3DMesh()->begin().size()) ;
+				stress_strain.second.resize(24*featureTree->get3DMesh()->begin().size()) ;
+				stress_strain = featureTree->getStressAndStrain() ;		
 				stress = stress_strain.first ;
 				strain = stress_strain.second ;
 			}
 			
 			std::cout << "get stress and strain..." << std::endl ;		
-			for(size_t i = 0 ; i < tets.size() ; i++)
+			for(auto i = featureTree->get3DMesh()->begin() ; i != featureTree->get3DMesh()->end() ; i++)
 			{
 				for(size_t j = 0 ; j < 4 ; j++)
 				{
-					stress11[4*i+j] = stress[4*6*i+6*j+0] ;
-					stress22[4*i+j] = stress[4*6*i+6*j+1] ;
-					stress33[4*i+j] = stress[4*6*i+6*j+2] ;
-					strain11[4*i+j] = strain[4*6*i+6*j+0] ;
-					strain22[4*i+j] = strain[4*6*i+6*j+1] ;
-					strain33[4*i+j] = strain[4*6*i+6*j+2] ;
+					stress11[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+0] ;
+					stress22[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+1] ;
+					stress33[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+2] ;
+					strain11[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+0] ;
+					strain22[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+1] ;
+					strain33[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+2] ;
 				}
 			}
 		}
@@ -156,18 +154,18 @@ void step()
 		Vector average_stress(3) ;
 		Vector average_strain(3) ;
 		double total_volume = 0. ;
-		for(size_t i = 0 ; i < tets.size() ; i++)
+		for(auto i = featureTree->get3DMesh()->begin() ; i != featureTree->get3DMesh()->end() ; i++)
 		{
-			double volume = tets[i]->volume() ;
+			double volume = i->volume() ;
 			total_volume += volume ;
 			for(size_t j = 0 ; j < 4 ; j++)
 			{
-				average_stress[0] += stress11[4*i+j]*volume/4 ;
-				average_stress[1] += stress22[4*i+j]*volume/4 ;
-				average_stress[2] += stress33[4*i+j]*volume/4 ;
-				average_strain[0] += strain11[4*i+j]*volume/4 ;
-				average_strain[1] += strain22[4*i+j]*volume/4 ;
-				average_strain[2] += strain33[4*i+j]*volume/4 ;
+				average_stress[0] += stress11[4*i.getPosition()+j]*volume/4 ;
+				average_stress[1] += stress22[4*i.getPosition()+j]*volume/4 ;
+				average_stress[2] += stress33[4*i.getPosition()+j]*volume/4 ;
+				average_strain[0] += strain11[4*i.getPosition()+j]*volume/4 ;
+				average_strain[1] += strain22[4*i.getPosition()+j]*volume/4 ;
+				average_strain[2] += strain33[4*i.getPosition()+j]*volume/4 ;
 			}
 		}
 		

@@ -44,7 +44,6 @@ int viewangle = 0 ;
 int viewangle2 = 0 ;
 
 FeatureTree * featureTree ;
-std::vector<DelaunayTetrahedron *> tets ;
 std::vector<bool> cracked ;
 
 double E_min = 10;
@@ -355,7 +354,7 @@ int main(int argc, char *argv[])
 	{
 		F.step() ;
 		tets= F.getElements3D() ;
-		for(size_t i = 0 ; i < tets.size() ; i++)
+		for(size_t i = 0 ; i < F.get3DMesh()->begin().size() ; i++)
 		{
 			if(tets[i]->getBehaviour()->param[0][0] > 1.)
 			{
@@ -393,7 +392,6 @@ int main(int argc, char *argv[])
 
 	F.step() ;
 	
-	tets= F.getElements3D() ;
 	x.resize(F.getDisplacements().size()) ;
 	x = featureTree->getDisplacements() ;
 
@@ -401,26 +399,26 @@ int main(int argc, char *argv[])
 	{
 	case DIFFUSION:
 	{
-		Vector gradient11(4*tets.size()) ;
-		Vector gradient22(4*tets.size()) ;
-		Vector gradient33(4*tets.size()) ;
-		Vector flux11(4*tets.size()) ;
-		Vector flux22(4*tets.size()) ;
-		Vector flux33(4*tets.size()) ;
+		Vector gradient11(4*F.get3DMesh()->begin().size()) ;
+		Vector gradient22(4*F.get3DMesh()->begin().size()) ;
+		Vector gradient33(4*F.get3DMesh()->begin().size()) ;
+		Vector flux11(4*F.get3DMesh()->begin().size()) ;
+		Vector flux22(4*F.get3DMesh()->begin().size()) ;
+		Vector flux33(4*F.get3DMesh()->begin().size()) ;
 		{
-			Vector gradient(12*tets.size()) ;
-			Vector flux(12*tets.size()) ;
+			Vector gradient(12*F.get3DMesh()->begin().size()) ;
+			Vector flux(12*F.get3DMesh()->begin().size()) ;
 			{
 				std::pair<Vector,Vector> gradient_flux ;
-				gradient_flux.first.resize(12*tets.size()) ;
-				gradient_flux.second.resize(12*tets.size()) ;
-				gradient_flux = featureTree->getGradientAndFlux(tets) ;		
+				gradient_flux.first.resize(12*F.get3DMesh()->begin().size()) ;
+				gradient_flux.second.resize(12*F.get3DMesh()->begin().size()) ;
+				gradient_flux = featureTree->getGradientAndFlux(F.get3DMesh()->begin(),F.get3DMesh()->end()) ;		
 				gradient = gradient_flux.first ;
 				flux = gradient_flux.second ;
 			}
 
 			std::cout << "get gradient and flux..." << std::endl ;		
-			for(size_t i = 0 ; i < tets.size() ; i++)
+			for(size_t i = 0 ; i < F.get3DMesh()->begin().size() ; i++)
 			{
 				for(size_t j = 0 ; j < 4 ; j++)
 				{
@@ -438,18 +436,18 @@ int main(int argc, char *argv[])
 		Vector average_gradient(3) ;
 		Vector average_flux(3) ;
 		double total_volume = 0. ;
-		for(size_t i = 0 ; i < tets.size() ; i++)
+		for(auto i = F.get3DMesh()->begin() ; i != F.get3DMesh()->end() ; i++)
 		{
-			double volume = tets[i]->volume() ;
+			double volume = i->volume() ;
 			total_volume += volume ;
 			for(size_t j = 0 ; j < 4 ; j++)
 			{
-				average_gradient[0] += gradient11[4*i+j]*volume/4 ;
-				average_gradient[1] += gradient22[4*i+j]*volume/4 ;
-				average_gradient[2] += gradient33[4*i+j]*volume/4 ;
-				average_flux[0] += flux11[4*i+j]*volume/4 ;
-				average_flux[1] += flux22[4*i+j]*volume/4 ;
-				average_flux[2] += flux33[4*i+j]*volume/4 ;
+				average_gradient[0] += gradient11[4*i.getPosition()+j]*volume/4 ;
+				average_gradient[1] += gradient22[4*i.getPosition()+j]*volume/4 ;
+				average_gradient[2] += gradient33[4*i.getPosition()+j]*volume/4 ;
+				average_flux[0] += flux11[4*i.getPosition()+j]*volume/4 ;
+				average_flux[1] += flux22[4*i.getPosition()+j]*volume/4 ;
+				average_flux[2] += flux33[4*i.getPosition()+j]*volume/4 ;
 			}
 		}
 		
@@ -496,35 +494,35 @@ int main(int argc, char *argv[])
 	}
 	case ELASTICITY:
 	{
-		Vector strain11(4*tets.size()) ;
-		Vector strain22(4*tets.size()) ;
-		Vector strain33(4*tets.size()) ;
-		Vector stress11(4*tets.size()) ;
-		Vector stress22(4*tets.size()) ;
-		Vector stress33(4*tets.size()) ;
+		Vector strain11(4*F.get3DMesh()->begin().size()) ;
+		Vector strain22(4*F.get3DMesh()->begin().size()) ;
+		Vector strain33(4*F.get3DMesh()->begin().size()) ;
+		Vector stress11(4*F.get3DMesh()->begin().size()) ;
+		Vector stress22(4*F.get3DMesh()->begin().size()) ;
+		Vector stress33(4*F.get3DMesh()->begin().size()) ;
 		{
-			Vector stress(24*tets.size()) ;
-			Vector strain(24*tets.size()) ;
+			Vector stress(24*F.get3DMesh()->begin().size()) ;
+			Vector strain(24*F.get3DMesh()->begin().size()) ;
 			{
 				std::pair<Vector,Vector> stress_strain ;
-				stress_strain.first.resize(24*tets.size()) ;
-				stress_strain.second.resize(24*tets.size()) ;
-				stress_strain = featureTree->getStressAndStrain(tets) ;		
+				stress_strain.first.resize(24*F.get3DMesh()->begin().size()) ;
+				stress_strain.second.resize(24*F.get3DMesh()->begin().size()) ;
+				stress_strain = featureTree->getStressAndStrain(F.get3DMesh()->begin(),F.get3DMesh()->end()) ;		
 				stress = stress_strain.first ;
 				strain = stress_strain.second ;
 			}
 		
 			std::cout << "get stress and strain..." << std::endl ;		
-			for(size_t i = 0 ; i < tets.size() ; i++)
+			for(auto i = F.get3DMesh()->begin() ; i != F.get3DMesh()->end() ; i++)
 			{
 				for(size_t j = 0 ; j < 4 ; j++)
 				{
-					stress11[4*i+j] = stress[4*6*i+6*j+0] ;
-					stress22[4*i+j] = stress[4*6*i+6*j+1] ;
-					stress33[4*i+j] = stress[4*6*i+6*j+2] ;
-					strain11[4*i+j] = strain[4*6*i+6*j+0] ;
-					strain22[4*i+j] = strain[4*6*i+6*j+1] ;
-					strain33[4*i+j] = strain[4*6*i+6*j+2] ;
+					stress11[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+0] ;
+					stress22[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+1] ;
+					stress33[4*i.getPosition()+j] = stress[4*6*i.getPosition()+6*j+2] ;
+					strain11[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+0] ;
+					strain22[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+1] ;
+					strain33[4*i.getPosition()+j] = strain[4*6*i.getPosition()+6*j+2] ;
 				}
 			}
 		}
@@ -533,18 +531,18 @@ int main(int argc, char *argv[])
 		Vector average_stress(3) ;
 		Vector average_strain(3) ;
 		double total_volume = 0. ;
-		for(size_t i = 0 ; i < tets.size() ; i++)
+		for(auto i = F.get3DMesh()->begin() ; i != F.get3DMesh()->end() ; i++)
 		{
-			double volume = tets[i]->volume() ;
+			double volume = i->volume() ;
 			total_volume += volume ;
 			for(size_t j = 0 ; j < 4 ; j++)
 			{
-				average_stress[0] += stress11[4*i+j]*volume/4 ;
-				average_stress[1] += stress22[4*i+j]*volume/4 ;
-				average_stress[2] += stress33[4*i+j]*volume/4 ;
-				average_strain[0] += strain11[4*i+j]*volume/4 ;
-				average_strain[1] += strain22[4*i+j]*volume/4 ;
-				average_strain[2] += strain33[4*i+j]*volume/4 ;
+				average_stress[0] += stress11[4*i.getPosition()+j]*volume/4 ;
+				average_stress[1] += stress22[4*i.getPosition()+j]*volume/4 ;
+				average_stress[2] += stress33[4*i.getPosition()+j]*volume/4 ;
+				average_strain[0] += strain11[4*i.getPosition()+j]*volume/4 ;
+				average_strain[1] += strain22[4*i.getPosition()+j]*volume/4 ;
+				average_strain[2] += strain33[4*i.getPosition()+j]*volume/4 ;
 			}
 		}
 		

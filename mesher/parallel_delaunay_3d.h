@@ -193,6 +193,7 @@ public:
         {
             return position ;
         }
+        size_t getId() const {return cacheID ; }
         
     } ;
     
@@ -293,6 +294,7 @@ public:
         {
             return position ;
         }
+        size_t getId() const {return cacheID ; }
     } ;
     
     

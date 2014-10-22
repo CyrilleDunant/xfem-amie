@@ -206,7 +206,6 @@ int main(int argc, char *argv[])
 	double speed = 0.0005/totaltime ;
 	double totaldisp = 0.;
 	bool goOn = true ;
-	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 	std::cout << y[0] << std::endl ;
 
 	while(speed*F.getCurrentTime() <= 0.0005 && y[0] > -1.)
@@ -262,7 +261,7 @@ int main(int argc, char *argv[])
 		{
 	 		x = F.getAverageField(STRAIN_FIELD, -1, 1) ;
 	 		y = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
-			out << trg[0]->getBoundingPoint(3).getT() << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
+			out << F.get2DMesh()->begin()->getBoundingPoint(3).getT() << "\t" << (F.getCurrentTime()-totaltime/100.)*speed << "\t" << x[0] << "\t" << y[0] << "\t" << F.averageDamage << std::endl ;
 		}
 	}
 	

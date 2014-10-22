@@ -119,8 +119,6 @@ Point *pb = new Point(sample.getCenter().getX() + 2, sample.getCenter().getY()) 
 
 BranchedCrack * crack0 = new BranchedCrack(pa, pb) ;
 
-std::vector<DelaunayTriangle *> supertris = mesh->getElements() ;
-
 std::set<Point *> points0 ;
 
 LeastSquaresApproximation * ls0 ;
@@ -204,7 +202,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 {
 	trans0.clear();
 	idsall.clear();
-	std::vector< size_t > ids0 (supertris[0]->getState().getInterpolatingFactors(supertris[0]->getCenter(), false).size()) ; //= supertris[0]->getDofIds() ;
+	std::vector< size_t > ids0 (featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(featureTree->get2DMesh()->begin()->getCenter(), false).size()) ; //= supertris[0]->getDofIds() ;
 	for(size_t j = 0 ; j < ids0.size() ; j++)
 	{
 		trans0[j] = j ;
@@ -220,7 +218,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 	{
 		origXdisps0[indexj] = x[(*i)->getId()*2] ;
 		origYdisps0[indexj] = x[(*i)->getId()*2+1] ;
-		std::vector<double> interp = supertris[0]->getState().getInterpolatingFactors(*(*i), false) ;
+		std::vector<double> interp = featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(*(*i), false) ;
 		
 		for(size_t j = 0 ; j < interp.size() ; j++)
 		{
@@ -353,15 +351,13 @@ void step()
 		}
 
 		double da = 0 ;
-		
-		std::vector<DelaunayTriangle *> triangles = featureTree->getElements2D() ;
 
         Vector x = featureTree->getDisplacements() ;
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
 
-        int npoints = triangles[0]->getBoundingPoints().size() ;
+        int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
         std::string filename( "triangles" ) ;
 

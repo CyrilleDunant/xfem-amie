@@ -36,7 +36,6 @@ using namespace Amie ;
 
 
 FeatureTree * featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
 
 double E_min = 10;
 double E_max = 0;
@@ -155,305 +154,97 @@ void step()
 // 			tries++ ;
 // 		}
 
-		triangles = featureTree->getActiveElements2D() ;
 		x.resize( featureTree->getDisplacements(-1, false).size() ) ;
 		x = featureTree->getDisplacements(-1, false) ;
-
-
-
-		sigma.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
-		epsilon.resize( triangles.size()*triangles[0]->getBoundingPoints().size()*3 ) ;
-		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrainInAllLayers(false) ;
-		sigma.resize( sigma_epsilon.first.size() ) ;
-		sigma = sigma_epsilon.first ;
-		epsilon.resize( sigma_epsilon.second.size() ) ;
-		epsilon = sigma_epsilon.second ;
-		sigma11.resize( sigma.size() / 3 ) ;
-		sigma22.resize( sigma.size() / 3 ) ;
-		sigma12.resize( sigma.size() / 3 ) ;
-		epsilon11.resize( sigma.size() / 3 ) ;
-		fracCrit.resize( sigma.size() / 3 ) ;
-		epsilon22.resize( sigma.size() / 3 ) ;
-		epsilon12.resize( sigma.size() / 3 ) ;
-		vonMises.resize( sigma.size() / 3 ) ;
-		angle.resize( sigma.size() / 3 ) ;
 
 		Vector forces( featureTree->getAssembly()->getForces() ) ;
 
 		std::cerr << "unknowns :" << x.size() << std::endl ;
 
 
-		int npoints = triangles[0]->getBoundingPoints().size() ;
+		int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
-		double area = 0 ;
-		double avg_e_xx = 0;
-		double avg_e_yy = 0;
-		double avg_e_xy = 0;
-		double avg_s_xx = 0;
-		double avg_s_yy = 0;
-		double avg_s_xy = 0;
-		double e_xx_0 = 0 ;
-		double e_xx_1 = 1 ;
-		double ex_count_0 = 1 ;
-		double ex_count_1 = 1 ;
-		double avg_e_xx_nogel = 0;
-		double avg_e_yy_nogel = 0;
-		double avg_e_xy_nogel = 0;
-		double avg_s_xx_nogel = 0;
-		double avg_s_yy_nogel = 0;
-		double avg_s_xy_nogel = 0;
-		double nogel_area = 0 ;
-		double forceCheck = 0 ;
-
-		int tsize = 0 ;
-
-		double deltacount = 0 ;
-
-		double delta = 0 ;
-
-		std::set<Point *> used ;
-
-		for ( size_t k = 0 ; k < triangles.size() ; k++ )
+		double delta = 0;
+                double deltacount = 0;
+                double volume = 0 ;
+		double xavg = 0 ;
+		double yavg = 0 ;
+                
+		for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
 		{
-			bool in = false ;
-// 			if(v == 8)
-// 			{
-// 				if(triangles[k]-> getCenter().getX() < 0.1)
-// 				{
-// 					Vector stre = triangles[k]->getState().getStress(triangles[k]-> getCenter()) ;
-// 					std::cout << triangles[k]-> getCenter().getY() << "  "<< stre[0] << "  " << stre[1] << "  " << stre[2] << std::endl ;
-// 				}
-// 				if(k == triangles.size()-1)
-// 					exit(0) ;
-// 			}
-
-			for ( size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++ )
+			if(k->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
-				if ( triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
-				{
-					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2] > x_max )
-						x_max = x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
-
-					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2] < x_min )
-						x_min = x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
-
-					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2 + 1] > y_max )
-						y_max = x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
-
-					if ( x[triangles[k]->getBoundingPoint( p ).getId()*2 + 1] < y_min )
-						y_min = x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
-
-					if ( !triangles[k]->getBehaviour()->fractured() )
-					{
-						if ( used.find( &triangles[k]->getBoundingPoint( p ) ) == used.end() && triangles[k]->getBoundingPoint( p ).getX() <= .15 && triangles[k]->getBoundingPoint( p ).getY() > sampleHeight*.4999 )
-						{
-							used.insert( &triangles[k]->getBoundingPoint( p ) ) ;
-							forceCheck += forces[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
-						}
-
-						if (triangles[k]->getBoundingPoint( p ).getY() > sampleHeight*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < 0.0001 )
-						{
-							e_xx_0 = std::min(e_xx_0,x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1]) ;
-						}
-
-						if ( triangles[k]->getBoundingPoint( p ).getY() >= sampleHeight*.5 )
-						{
-							e_xx_1 = 0 ;
-// 							ex_count_1++ ;
-						}
-					}
-
-					if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 ), triangles[k]->getBoundingPoint( p ) ) < .1 )
-					{
-						deltacount++ ;
-						delta += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
-					}
-				}
-			}
-
-			area += triangles[k]->area() ;
-
-			if ( triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
-			{
-				tsize++ ;
-
-				if ( triangles[k]->getBehaviour()->param[0][0] > E_max )
-					E_max = triangles[k]->getBehaviour()->param[0][0] ;
-
-				if ( triangles[k]->getBehaviour()->param[0][0] < E_min )
-					E_min = triangles[k]->getBehaviour()->param[0][0] ;
-			}
-
-			sigma11[k*npoints] = sigma[k*npoints*3];
-
-			sigma22[k*npoints] = sigma[k*npoints*3+1];
-			sigma12[k*npoints] = sigma[k*npoints*3+2];
-			sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-			sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-			sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-			sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-			sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-			sigma12[k*npoints+2] = sigma[k*npoints*3+8];
-			if ( npoints > 3 )
-			{
-				sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-				sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-				sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-				sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-				sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-				sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-				sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-				sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-				sigma12[k*npoints+5] = sigma[k*npoints*3+17];
-			}
-
-			epsilon11[k*npoints] = epsilon[k*npoints*3];
-
-			epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-			epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-			epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-			epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-			epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-			epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-			epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-			epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
-
-			if ( npoints > 3 )
-			{
-				epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-				epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-				epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-				epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-				epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-				epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-				epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-				epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-				epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
-			}
-
-// 			std::cout << "VM start" << std::endl ;
-			for ( size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++ )
-			{
-				Vector vm0(0., 2) ;
-				triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
-				vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
-// 				if(vonMises[k*triangles[k]->getBoundingPoints().size()+l] > 1000)
-// 				{
-// 					triangles[k]->print() ;
-// 					std::cout << vonMises[k*triangles[k]->getBoundingPoints().size()+l] << std::endl ;
-// 					std::cout << vm0[0] << "  " << vm0[1] << std::endl ;
-// 					std::cout << x[triangles[k]->getBoundingPoint(0).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(0).getId()*2+1] << "  "<< x[triangles[k]->getBoundingPoint(1).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(1).getId()*2+1] << "  "<<  x[triangles[k]->getBoundingPoint(2).getId()*2] << ", " << x[triangles[k]->getBoundingPoint(2).getId()*2+1] << std::endl ;
-// 					exit(0) ;
-// 				}
-				
-				Vector agl(0., 1) ;
-				triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
-				angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
-
-				if ( triangles[k]->getBehaviour()->getFractureCriterion() )
-				{
-					fracCrit[k*triangles[k]->getBoundingPoints().size() + l] = triangles[k]->getBehaviour()->getFractureCriterion()->grade( triangles[k]->getState() ) ;
-				}
-			}
-// 			std::cout << "VM end" << std::endl ;
-			double ar = triangles[k]->area() ;
-
-			if(!haveStirrups)
-			{
-				if(k < triangles.size()/2)
-					ar *= 1.-phi ;
-				else
-					ar *= phi ;
-			}
-			else
-			{
-				if(k < triangles.size()/3)
-						ar *= 1.-phi-psi ;
-				else if( k < 2*triangles.size()/3)
-					ar *= phi ;
-				else
-					ar *= psi ;
-			}
-				
-			Vector avgsig(3) ;
-			Vector avgeps(3) ;
-			triangles[k]->getState().getAverageField(REAL_STRESS_FIELD, avgsig,0,0);
-			triangles[k]->getState().getAverageField(STRAIN_FIELD, avgeps,0,0);
 			
-			avg_e_xx += avgeps[0] * ar;
-			avg_e_yy += avgeps[1] * ar;
-			avg_e_xy += avgeps[2] * ar;
-			avg_s_xx += avgsig[0] * ar;
-			avg_s_yy += avgsig[1] * ar;
-			avg_s_xy += avgsig[2] * ar;
+                                double ar = k->area() ;
+                                volume += ar ;
+                                for(size_t p = 0 ; p < npoints ;p++)
+                                {
+                                        xavg += x[k->getBoundingPoint(p).getId()*2]*ar/npoints ;
+                                        yavg += x[k->getBoundingPoint(p).getId()*2+1]*ar/npoints ;
+                                
 
-// 			if ( triangles[k]->getEnrichmentFunctions().size() == 0 )
-// 			{
-// 				for ( int l = 0 ; l < npoints ;l++ )
-// 				{
-// 					avg_e_xx_nogel += ( epsilon11[k*npoints+l] / npoints ) * ar;
-// 					avg_e_yy_nogel += ( epsilon22[k*npoints+l] / npoints ) * ar;
-// 					avg_e_xy_nogel += ( epsilon12[k*npoints+l] / npoints ) * ar;
-// 					avg_s_xx_nogel += ( sigma11[k*npoints+l] / npoints ) * ar;
-// 					avg_s_yy_nogel += ( sigma22[k*npoints+l] / npoints ) * ar;
-// 					avg_s_xy_nogel += ( sigma12[k*npoints+l] / npoints ) * ar;
-// 
-// 				}
-// 
-// 				nogel_area += ar ;
-// 			}
+                                        if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 ), k->getBoundingPoint( p ) ) < .1 )
+                                        {
+                                                deltacount++ ;
+                                                delta += x[k->getBoundingPoint( p ).getId() * 2] ;
+                                        }
+                                }
+                                
+			}
 		}
+			
+		xavg /= volume ;
+		yavg /= volume ;
+                delta /= deltacount ;
+		std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
+		std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
+		std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
+		Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
+		Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
+		
+		std::cout << std::endl ;
+		std::cout << "max value :" << x.max() << std::endl ;
+		std::cout << "min value :" << x.min() << std::endl ;
+		std::cout << "avg x value :" << xavg << std::endl ;
+		std::cout << "avg y value :" << xavg << std::endl ;
 
+		std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
+		std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
+		std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
+		std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
+		std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
+		std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+		
+		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
+		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+		std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
+		std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
+		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+		
+		std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
+		std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
+		
+		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+		std::cout << "average sigma12 : " << stemp[2] << std::endl ;
+		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
+		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
+		std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
+		
+		std::cout << std::endl ;
+		
 		if ( go_on )
 		{
 			displacements.push_back( 1000.*(load->getData()+delta_d));
-			loads.push_back( avg_s_yy/1000. );
+			loads.push_back( stemp[1]/1000. );
 			deltas.push_back( delta/deltacount );
 			damages.push_back( featureTree->averageDamage );
 		}
 
-		if ( v % 5 == 0 )
-		{
-
-			std::cout << std::endl ;
-			std::cout << "load :" << avg_s_yy/1000. << std::endl ;
-			std::cout << "load check :" << .4*forceCheck / 1000 << std::endl ;
-			std::cout << "delta :" << delta*1000./deltacount << std::endl ;
-			std::cout << "displacement :" << 1000.*e_xx_0  << " ; " << 1000.*(load->getData()) << std::endl ;
-			std::cout << "max value :" << x_max << std::endl ;
-			std::cout << "min value :" << x_min << std::endl ;
-			std::cout << "max sigma11 :" << sigma11.max() / 1000000. << std::endl ;
-			std::cout << "min sigma11 :" << sigma11.min() / 1000000. << std::endl ;
-			std::cout << "max sigma12 :" << sigma12.max() / 1000000. << std::endl ;
-			std::cout << "min sigma12 :" << sigma12.min() / 1000000. << std::endl ;
-			std::cout << "max sigma22 :" << sigma22.max() / 1000000. << std::endl ;
-			std::cout << "min sigma22 :" << sigma22.min() / 1000000. << std::endl ;
-
-			std::cout << "max epsilon11 :" << epsilon11.max() << std::endl ;
-			std::cout << "min epsilon11 :" << epsilon11.min() << std::endl ;
-			std::cout << "max epsilon12 :" << epsilon12.max() << std::endl ;
-			std::cout << "min epsilon12 :" << epsilon12.min() << std::endl ;
-			std::cout << "max epsilon22 :" << epsilon22.max() << std::endl ;
-			std::cout << "min epsilon22 :" << epsilon22.min() << std::endl ;
-
-			std::cout << "max von Mises :" << vonMises.max() / 1000000. << std::endl ;
-			std::cout << "min von Mises :" << vonMises.min() / 1000000. << std::endl ;
-
-			std::cout << "average sigma11 : " << ( avg_s_xx / area ) / 1000000. << std::endl ;
-			std::cout << "average sigma22 : " << ( avg_s_yy / area ) / 1000000. << std::endl ;
-			std::cout << "average sigma12 : " << ( avg_s_xy / area ) / 1000000. << std::endl ;
-			std::cout << "average epsilon11 : " << avg_e_xx / area << std::endl ;
-			std::cout << "average epsilon22 : " << avg_e_yy / area << std::endl ;
-			std::cout << "average epsilon12 : " << avg_e_xy / area << std::endl ;
-
-		}
-		else
-		{
-			std::cout << " ( " << avg_s_yy/1000. << "  ,  " <<  1000.*(load->getData())  << " ) "<< std::endl ;
-		}
-
+		
 		if ( go_on )
-			std::cout << avg_s_yy/1000. << "  " << displacements.back() << "  " << damages.back() << std::endl ;
+			std::cout << stemp[1]/1000. << "  " << displacements.back() << "  " << damages.back() << std::endl ;
 
 		
 		std::fstream ldfile( "ldn", std::ios::out )  ;
@@ -463,7 +254,7 @@ void step()
 			
 		}
 		if(!go_on)
-		  ldfile <<  1000.*(load->getData()) << "   " << avg_s_yy/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
+		  ldfile <<  1000.*(load->getData()) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
 		ldfile.close();
 		
 		
@@ -751,7 +542,7 @@ int main( int argc, char *argv[] )
 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
 	F.setOrder( LINEAR ) ;
-	triangles = F.getElements2D() ;
+	
 	step() ;
 
 	return 0 ;

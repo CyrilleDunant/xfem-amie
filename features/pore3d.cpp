@@ -75,7 +75,7 @@ std::vector<DelaunayTriangle *> Pore3D::getElements2D( FeatureTree * dt){
 std::vector<DelaunayTetrahedron *> Pore3D::getElements3D( FeatureTree * dt){
 	std::vector<DelaunayTetrahedron *> ret  ;
 	
-	std::vector<DelaunayTetrahedron *> temp = dt->getElements3D(this->getPrimitive()) ;
+	std::vector<DelaunayTetrahedron *> temp = dt->get3DMesh()->getConflictingElements(this->getPrimitive()) ;
 	
 	for(size_t i = 0 ; i < temp.size() ; i++)
 	{

@@ -89,14 +89,13 @@ void step()
 			damaged_volume.push_back( featureTree->damagedVolume ) ;
 		}
 
-		std::vector<DelaunayTriangle *> triangles = featureTree->getElements2D() ;
 
 		Vector x = featureTree->getDisplacements() ;
 
 		std::cout << "unknowns :" << x.size() << std::endl ;
 
 
-		int npoints = triangles[0]->getBoundingPoints().size() ;
+		int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
 		std::string filename( "triangles" ) ;
 
@@ -123,19 +122,19 @@ void step()
 		double volume = 0 ;
 		double xavg = 0 ;
 		double yavg = 0 ;
-		for(size_t k = 0 ; k < triangles.size() ; k++)
+		for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
 		{
-			if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
+			if(k->getBehaviour()->type != VOID_BEHAVIOUR )
 			{
 
-				if(baseGeometry.in(triangles[k]->getCenter()))
+				if(baseGeometry.in(k->getCenter()))
 				{				
-					double ar = triangles[k]->area() ;
+					double ar = k->area() ;
 					volume += ar ;
 					for(size_t l = 0 ; l < npoints ;l++)
 					{
-						xavg += x[triangles[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
-						yavg += x[triangles[k]->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
+						xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
+						yavg += x[k->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
 					}
 				}
 			}

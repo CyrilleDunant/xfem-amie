@@ -199,7 +199,7 @@ Feature::~Feature()
 
 std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt) const 
 {
-	std::vector<DelaunayTriangle *> tri = dt->getElements2D(dynamic_cast<const Geometry *>(this)) ;
+	std::vector<DelaunayTriangle *> tri = dt->get2DMesh()->getConflictingElements(dynamic_cast<const Geometry *>(this)) ;
 	
 	std::vector<DelaunayTriangle *> ret  ;
 	
@@ -215,7 +215,7 @@ std::vector<DelaunayTriangle *> Feature::getBoundingElements2D( FeatureTree * dt
 
 std::vector<DelaunayTetrahedron *> Feature::getBoundingElements3D( FeatureTree * dt) const
 {
-	std::vector<DelaunayTetrahedron *> tri = dt->getElements3D(dynamic_cast<const Geometry *>(this)) ;
+	std::vector<DelaunayTetrahedron *> tri = dt->get3DMesh()->getConflictingElements(dynamic_cast<const Geometry *>(this)) ;
 	
 	std::vector<DelaunayTetrahedron *> ret  ;
 	

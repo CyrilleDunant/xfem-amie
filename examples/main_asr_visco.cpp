@@ -132,7 +132,6 @@ int main(int argc, char *argv[])
 	std::ofstream sinter ;
 	sinter.open(namebis.c_str(), std::ios::out) ;
 
-	std::vector<DelaunayTriangle *> trg ;
 	std::vector<Point *> nodes ;
 	int i = 0 ;
 	while(F.getCurrentTime() < 450)
@@ -142,9 +141,8 @@ int main(int argc, char *argv[])
 //		F.setMinDeltaTime(tau*1e-6) ;
 		F.step() ;
 		F.getAssembly()->setEpsilon(1e-8) ;
-		if(trg.size() == 0)
+		if(nodes.size() == 0)
 		{
-			trg = F.getElements2D() ;
 			nodes = F.getNodes() ;
 		}
 
@@ -169,7 +167,7 @@ int main(int argc, char *argv[])
 		Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1) ;
 		summary << strain[0] << "\t" << strain[1] << "\t" << strain[2] << "\t" ;
 		summary << stress[0] << "\t" << stress[1] << "\t" << stress[2] << "\t" ;
-		summary << F.damageAreaInAggregates(trg) << "\t" << F.damageAreaInPaste(trg) << "\t" << F.averageDamage << "\t" << std::endl ;
+		summary << F.damageAreaInAggregates(F.get2DMesh()->begin(), F.get2DMesh()->end()) << "\t" << F.damageAreaInPaste(F.get2DMesh()->begin(), F.get2DMesh()->end()) << "\t" << F.averageDamage << "\t" << std::endl ;
 		
 
 

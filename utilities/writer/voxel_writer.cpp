@@ -111,18 +111,17 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 	}
 	
 	
-	std::vector<DelaunayTetrahedron *> tris = F->getElements3D() ;
-	std::cerr << "generating values ( "<<filename << " )... " << count << "/" << tris.size() << std::flush ;
+	std::cerr << "generating values ( "<<filename << " )... " << count << "/" << F->get3DMesh()->begin().size() << std::flush ;
 	
-	for(size_t t = 0 ; t < tris.size() ; t++)
+	for(auto t = F->get3DMesh()->begin() ; t != F->get3DMesh()->end() ; t++)
 	{
-		double minx = tris[t]->getCircumCenter().getX() - tris[t]->getRadius()*1.01 ;
-		double miny = tris[t]->getCircumCenter().getY() - tris[t]->getRadius()*1.01 ;
-		double minz = tris[t]->getCircumCenter().getZ() - tris[t]->getRadius()*1.01 ;
+		double minx = t->getCircumCenter().getX() - t->getRadius()*1.01 ;
+		double miny = t->getCircumCenter().getY() - t->getRadius()*1.01 ;
+		double minz = t->getCircumCenter().getZ() - t->getRadius()*1.01 ;
 		
-		double maxx = tris[t]->getCircumCenter().getX() + tris[t]->getRadius()*1.01 ;
-		double maxy = tris[t]->getCircumCenter().getY() + tris[t]->getRadius()*1.01 ;
-		double maxz = tris[t]->getCircumCenter().getZ() + tris[t]->getRadius()*1.01 ;
+		double maxx = t->getCircumCenter().getX() + t->getRadius()*1.01 ;
+		double maxy = t->getCircumCenter().getY() + t->getRadius()*1.01 ;
+		double maxz = t->getCircumCenter().getZ() + t->getRadius()*1.01 ;
 		
 		for(int i = nVoxelX*(minx-bottom_left.getX())/((top_right.getX())-(bottom_left.getX())) ; i < nVoxelX*(maxx-bottom_left.getX())/((top_right.getX())-(bottom_left.getX())) ; i++)
 		{
@@ -141,19 +140,19 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 								p.getY() += ((top_right.getY())-(bottom_left.getY()))*((double)(j))/(double(nVoxelY-1)) ;
 								p.getZ() += ((top_right.getZ())-(bottom_left.getZ()))*((double)(k))/(double(nVoxelZ-1)) ;
 								
-								if(tris[t]->in(p) && tris[t]->getBehaviour() && tris[t]->getBehaviour()->type != VOID_BEHAVIOUR)
+								if(t->in(p) && t->getBehaviour() && t->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
-									std::pair<bool, std::vector<double> > val = getDoubleValue(tris[t],p,field) ;
+									std::pair<bool, std::vector<double> > val = getDoubleValue(t,p,field) ;
 									std::pair<bool, std::vector<double> > valAlternate ;
 									
 									if(val.first)
 									{
 										bool hasAlternate = false ;
-										for(size_t l = 0 ; l < tris[t]->neighbourhood.size() ; l++)
+										for(size_t l = 0 ; l < t->neighbourhood.size() ; l++)
 										{
-											if( tris[t]->getNeighbourhood(l)->in(p) && tris[t]->getNeighbourhood(l)->getBehaviour() && tris[t]->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
+											if( t->getNeighbourhood(l)->in(p) && t->getNeighbourhood(l)->getBehaviour() && t->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
 											{
-												valAlternate = getDoubleValue(tris[t]->getNeighbourhood(l),p,field) ; 
+												valAlternate = getDoubleValue(t->getNeighbourhood(l),p,field) ; 
 												hasAlternate = true ;
 												break ;
 											}
@@ -169,7 +168,7 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 										}
 									}
 								}
-								else if(tris[t]->in(p) && tris[t]->getBehaviour() && tris[t]->getBehaviour()->type == VOID_BEHAVIOUR)
+								else if(t->in(p) && t->getBehaviour() && t->getBehaviour()->type == VOID_BEHAVIOUR)
 								{
 									for(int m = 0 ; m < numberOfFields(field) ; m++)
 									{
@@ -183,11 +182,11 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 				}
 			}
 		}
-		if(t %100 == 0)
-					std::cerr << "\rgenerating values ( "<<filename << " )... " << t <<"/" << tris.size() << std::flush ;
+		if(t.getPosition() %100 == 0)
+					std::cerr << "\rgenerating values ( "<<filename << " )... " << t.getPosition() <<"/" << t.size() << std::flush ;
 	}
 
-	std::cerr << "\rgenerating values ( "<<filename << " )... " << tris.size()<< "/" << tris.size() << " ...done." << std::endl ;
+	std::cerr << "\rgenerating values ( "<<filename << " )... " << F->get3DMesh()->begin().size()<< "/" << F->get3DMesh()->begin().size() << " ...done." << std::endl ;
 	return ret ;
 }
 
@@ -389,7 +388,7 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
 			p += (xlocal*(double) i) ;
 			p += (ylocal*(double) j) ;
 			
-			std::vector<DelaunayTetrahedron *> tris = F->getElements3D(&p) ;
+			std::vector<DelaunayTetrahedron *> tris = F->get3DMesh()->getConflictingElements(&p) ;
 			bool done = false ;
 			if(!tris.empty())
 			{

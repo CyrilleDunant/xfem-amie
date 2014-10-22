@@ -348,6 +348,7 @@ void DelaunayTree3D::addSharedNodes(DelaunayTree3D * dt)
 
 void DelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
 {
+
     std::vector<DelaunayTetrahedron *> tet = getTetrahedrons() ;
     std::valarray<bool> visited(false, tree.size()) ;
 
@@ -2883,8 +2884,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementar
         getInverseJacobianMatrix( Point( .25, .25, .25 ), J ) ;
         Jinv.resize( getGaussPoints().gaussPoints.size(), J ) ;
     }
-
-// 	std::cout << "plouf" << std::endl ;
     VirtualMachine vm ;
 
     if(getBlendingFunctions().empty())

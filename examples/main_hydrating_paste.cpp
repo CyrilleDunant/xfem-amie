@@ -123,12 +123,11 @@ int main(int argc, char *argv[])
 	writerm.writeSvg(50, true) ;
 	exit(0) ;
 	
-	std::vector<DelaunayTriangle * > elements = Fd.getElements2D() ;
 	std::vector<DelaunayTriangle * > borderElements ;
-	for(size_t i = 0 ; i < elements.size() ; i++)
+	for(auto i = Fd.get2DMesh()->begin() ; i != Fd.get2DMesh()->end() ; i++)
 	{
-		if(std::abs(elements[i]->getCenter().norm() - 0.3) < elements[i]->getRadius())
-			borderElements.push_back(elements[i]);
+		if(std::abs(i->getCenter().norm() - 0.3) < i->getRadius())
+			borderElements.push_back(i);
 	}
 	
 	for(size_t j = 0 ; j < 5 ; j++)

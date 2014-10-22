@@ -44,7 +44,6 @@
 using namespace Amie ;
 
 FeatureTree * featureTree ;
-std::vector<DelaunayTriangle *> triangles ;
 std::vector<bool> cracked ;
 
 double E_min = 10;
@@ -185,11 +184,10 @@ void step(GeometryType ref, int samplingNumber)
 			damaged_volume.push_back(featureTree->damagedVolume) ;
 		}	
 	
-		triangles = featureTree->getElements2D() ;
 		x.resize(featureTree->getDisplacements().size()) ;
 		x = featureTree->getDisplacements() ;
-		sigma.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
-		epsilon.resize(triangles.size()*triangles[0]->getBoundingPoints().size()*3) ;
+		sigma.resize(featureTree->get2DMesh()->begin().size()*featureTree->get2DMesh()->begin()->getBoundingPoints().size()*3) ;
+		epsilon.resize(featureTree->get2DMesh()->begin().size()*featureTree->get2DMesh()->begin()->getBoundingPoints().size()*3) ;
 		
 		std::pair<Vector, Vector > sigma_epsilon = featureTree->getStressAndStrain() ;
 		sigma.resize(sigma_epsilon.first.size()) ;
@@ -210,7 +208,7 @@ void step(GeometryType ref, int samplingNumber)
 		
 		cracked.clear() ;
 		
-		int npoints = triangles[0]->getBoundingPoints().size() ;
+		int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 		
 		double area = 0 ;
 		double avg_e_xx = 0;
@@ -237,12 +235,12 @@ void step(GeometryType ref, int samplingNumber)
 		double e_yy_max_count = 0 ;
 		double e_yy_min_count = 0 ;
 
-		for(size_t k = 0 ; k < triangles.size() ; k++)
+		for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
 		{
 			bool in = false ;
 			for(size_t m = 0 ; m < tris__.size() ; m++)
 			{
-				if(triangles[k] == tris__[m])
+				if(k == tris__[m])
 				{
 					in = true ;
 					break ;
@@ -252,139 +250,139 @@ void step(GeometryType ref, int samplingNumber)
 			
 			
 			
-			if(!in /*&& !triangles[k]->getBehaviour()->fractured()*/)
+			if(!in /*&& !k->getBehaviour()->fractured()*/)
 			{
 				
-				for(size_t p = 0 ;p < triangles[k]->getBoundingPoints().size() ; p++)
+				for(size_t p = 0 ;p < k->getBoundingPoints().size() ; p++)
 				{
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2] > x_max)
-						x_max = x[triangles[k]->getBoundingPoint(p).getId()*2];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2] < x_min)
-						x_min = x[triangles[k]->getBoundingPoint(p).getId()*2];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] > y_max)
-						y_max = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
-					if(x[triangles[k]->getBoundingPoint(p).getId()*2+1] < y_min)
-						y_min = x[triangles[k]->getBoundingPoint(p).getId()*2+1];
-					if( triangles[k]->getBoundingPoint( p ).getX() > sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getY()) < .01 )
+					if(x[k->getBoundingPoint(p).getId()*2] > x_max)
+						x_max = x[k->getBoundingPoint(p).getId()*2];
+					if(x[k->getBoundingPoint(p).getId()*2] < x_min)
+						x_min = x[k->getBoundingPoint(p).getId()*2];
+					if(x[k->getBoundingPoint(p).getId()*2+1] > y_max)
+						y_max = x[k->getBoundingPoint(p).getId()*2+1];
+					if(x[k->getBoundingPoint(p).getId()*2+1] < y_min)
+						y_min = x[k->getBoundingPoint(p).getId()*2+1];
+					if( k->getBoundingPoint( p ).getX() > sample.width()*.4999 && std::abs(k->getBoundingPoint( p ).getY()) < .01 )
 					{
-//						if( e_xx_max < x[triangles[k]->getBoundingPoint( p ).getId() * 2] )
-						e_xx_max += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
+//						if( e_xx_max < x[k->getBoundingPoint( p ).getId() * 2] )
+						e_xx_max += x[k->getBoundingPoint( p ).getId() * 2] ;
  						e_xx_max_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).getX() < -sample.width()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getY()) < .01 )
+					if( k->getBoundingPoint( p ).getX() < -sample.width()*.4999 && std::abs(k->getBoundingPoint( p ).getY()) < .01 )
 					{
-//						if( e_xx_min > x[triangles[k]->getBoundingPoint( p ).getId() * 2] )
-						e_xx_min += x[triangles[k]->getBoundingPoint( p ).getId() * 2] ;
+//						if( e_xx_min > x[k->getBoundingPoint( p ).getId() * 2] )
+						e_xx_min += x[k->getBoundingPoint( p ).getId() * 2] ;
  						e_xx_min_count++ ;
 
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).getY() > sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < .01  )
+					if( k->getBoundingPoint( p ).getY() > sample.height()*.4999 && std::abs(k->getBoundingPoint( p ).getX()) < .01  )
 					{
-//						if( e_yy_max < x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] )
-						e_yy_max += x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
+//						if( e_yy_max < x[k->getBoundingPoint( p ).getId() * 2 + 1] )
+						e_yy_max += x[k->getBoundingPoint( p ).getId() * 2 + 1] ;
  						e_yy_max_count++ ;
 // 						ex_count++ ;
 					}
 
-					if( triangles[k]->getBoundingPoint( p ).getY() < -sample.height()*.4999 && std::abs(triangles[k]->getBoundingPoint( p ).getX()) < .01  )
+					if( k->getBoundingPoint( p ).getY() < -sample.height()*.4999 && std::abs(k->getBoundingPoint( p ).getX()) < .01  )
 					{
-// 						if( e_yy_min > x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] )
-						e_yy_min += x[triangles[k]->getBoundingPoint( p ).getId() * 2 + 1] ;
+// 						if( e_yy_min > x[k->getBoundingPoint( p ).getId() * 2 + 1] )
+						e_yy_min += x[k->getBoundingPoint( p ).getId() * 2 + 1] ;
  						e_yy_min_count++ ;
 
 // 						ex_count++ ;
 					}
 				}
-				area += triangles[k]->area() ;
-				if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR)
+				area += k->area() ;
+				if(k->getBehaviour()->type != VOID_BEHAVIOUR)
 				{
-					if(!triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] > E_max)
-						E_max = triangles[k]->getBehaviour()->param[0][0] ;
-					if(!triangles[k]->getBehaviour()->param.isNull() && triangles[k]->getBehaviour()->param[0][0] < E_min)
-						E_min = triangles[k]->getBehaviour()->param[0][0] ;
+					if(!k->getBehaviour()->param.isNull() && k->getBehaviour()->param[0][0] > E_max)
+						E_max = k->getBehaviour()->param[0][0] ;
+					if(!k->getBehaviour()->param.isNull() && k->getBehaviour()->param[0][0] < E_min)
+						E_min = k->getBehaviour()->param[0][0] ;
 				}
 					
-				sigma11[k*npoints] = sigma[k*npoints*3];
-				sigma22[k*npoints] = sigma[k*npoints*3+1];
-				sigma12[k*npoints] = sigma[k*npoints*3+2];
-				sigma11[k*npoints+1] = sigma[k*npoints*3+3];
-				sigma22[k*npoints+1] = sigma[k*npoints*3+4];
-				sigma12[k*npoints+1] = sigma[k*npoints*3+5];
-				sigma11[k*npoints+2] = sigma[k*npoints*3+6];
-				sigma22[k*npoints+2] = sigma[k*npoints*3+7];
-				sigma12[k*npoints+2] = sigma[k*npoints*3+8];
+				sigma11[k.getPosition()*npoints] = sigma[k.getPosition()*npoints*3];
+				sigma22[k.getPosition()*npoints] = sigma[k.getPosition()*npoints*3+1];
+				sigma12[k.getPosition()*npoints] = sigma[k.getPosition()*npoints*3+2];
+				sigma11[k.getPosition()*npoints+1] = sigma[k.getPosition()*npoints*3+3];
+				sigma22[k.getPosition()*npoints+1] = sigma[k.getPosition()*npoints*3+4];
+				sigma12[k.getPosition()*npoints+1] = sigma[k.getPosition()*npoints*3+5];
+				sigma11[k.getPosition()*npoints+2] = sigma[k.getPosition()*npoints*3+6];
+				sigma22[k.getPosition()*npoints+2] = sigma[k.getPosition()*npoints*3+7];
+				sigma12[k.getPosition()*npoints+2] = sigma[k.getPosition()*npoints*3+8];
 				
 				if(npoints >3)
 				{
-					sigma11[k*npoints+3] = sigma[k*npoints*3+9];
-					sigma22[k*npoints+3] = sigma[k*npoints*3+10];
-					sigma12[k*npoints+3] = sigma[k*npoints*3+11];
-					sigma11[k*npoints+4] = sigma[k*npoints*3+12];
-					sigma22[k*npoints+4] = sigma[k*npoints*3+13];
-					sigma12[k*npoints+4] = sigma[k*npoints*3+14];
-					sigma11[k*npoints+5] = sigma[k*npoints*3+15];
-					sigma22[k*npoints+5] = sigma[k*npoints*3+16];
-					sigma12[k*npoints+5] = sigma[k*npoints*3+17];
+					sigma11[k.getPosition()*npoints+3] = sigma[k.getPosition()*npoints*3+9];
+					sigma22[k.getPosition()*npoints+3] = sigma[k.getPosition()*npoints*3+10];
+					sigma12[k.getPosition()*npoints+3] = sigma[k.getPosition()*npoints*3+11];
+					sigma11[k.getPosition()*npoints+4] = sigma[k.getPosition()*npoints*3+12];
+					sigma22[k.getPosition()*npoints+4] = sigma[k.getPosition()*npoints*3+13];
+					sigma12[k.getPosition()*npoints+4] = sigma[k.getPosition()*npoints*3+14];
+					sigma11[k.getPosition()*npoints+5] = sigma[k.getPosition()*npoints*3+15];
+					sigma22[k.getPosition()*npoints+5] = sigma[k.getPosition()*npoints*3+16];
+					sigma12[k.getPosition()*npoints+5] = sigma[k.getPosition()*npoints*3+17];
 				}
 				
-				epsilon11[k*npoints] = epsilon[k*npoints*3];
-				epsilon22[k*npoints] = epsilon[k*npoints*3+1];
-				epsilon12[k*npoints] = epsilon[k*npoints*3+2];
-				epsilon11[k*npoints+1] = epsilon[k*npoints*3+3];
-				epsilon22[k*npoints+1] = epsilon[k*npoints*3+4];
-				epsilon12[k*npoints+1] = epsilon[k*npoints*3+5];
-				epsilon11[k*npoints+2] = epsilon[k*npoints*3+6];
-				epsilon22[k*npoints+2] = epsilon[k*npoints*3+7];
-				epsilon12[k*npoints+2] = epsilon[k*npoints*3+8];
+				epsilon11[k.getPosition()*npoints] = epsilon[k.getPosition()*npoints*3];
+				epsilon22[k.getPosition()*npoints] = epsilon[k.getPosition()*npoints*3+1];
+				epsilon12[k.getPosition()*npoints] = epsilon[k.getPosition()*npoints*3+2];
+				epsilon11[k.getPosition()*npoints+1] = epsilon[k.getPosition()*npoints*3+3];
+				epsilon22[k.getPosition()*npoints+1] = epsilon[k.getPosition()*npoints*3+4];
+				epsilon12[k.getPosition()*npoints+1] = epsilon[k.getPosition()*npoints*3+5];
+				epsilon11[k.getPosition()*npoints+2] = epsilon[k.getPosition()*npoints*3+6];
+				epsilon22[k.getPosition()*npoints+2] = epsilon[k.getPosition()*npoints*3+7];
+				epsilon12[k.getPosition()*npoints+2] = epsilon[k.getPosition()*npoints*3+8];
 				
 				if(npoints > 3)
 				{
-					epsilon11[k*npoints+3] = epsilon[k*npoints*3+9];
-					epsilon22[k*npoints+3] = epsilon[k*npoints*3+10];
-					epsilon12[k*npoints+3] = epsilon[k*npoints*3+11];
-					epsilon11[k*npoints+4] = epsilon[k*npoints*3+12];
-					epsilon22[k*npoints+4] = epsilon[k*npoints*3+13];
-					epsilon12[k*npoints+4] = epsilon[k*npoints*3+14];
-					epsilon11[k*npoints+5] = epsilon[k*npoints*3+15];
-					epsilon22[k*npoints+5] = epsilon[k*npoints*3+16];
-					epsilon12[k*npoints+5] = epsilon[k*npoints*3+17];
+					epsilon11[k.getPosition()*npoints+3] = epsilon[k.getPosition()*npoints*3+9];
+					epsilon22[k.getPosition()*npoints+3] = epsilon[k.getPosition()*npoints*3+10];
+					epsilon12[k.getPosition()*npoints+3] = epsilon[k.getPosition()*npoints*3+11];
+					epsilon11[k.getPosition()*npoints+4] = epsilon[k.getPosition()*npoints*3+12];
+					epsilon22[k.getPosition()*npoints+4] = epsilon[k.getPosition()*npoints*3+13];
+					epsilon12[k.getPosition()*npoints+4] = epsilon[k.getPosition()*npoints*3+14];
+					epsilon11[k.getPosition()*npoints+5] = epsilon[k.getPosition()*npoints*3+15];
+					epsilon22[k.getPosition()*npoints+5] = epsilon[k.getPosition()*npoints*3+16];
+					epsilon12[k.getPosition()*npoints+5] = epsilon[k.getPosition()*npoints*3+17];
 				}  
 				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
+				for(size_t l = 0 ; l < k->getBoundingPoints().size() ; l++)
 				{
 					Vector vm0(0., 3) ;
-					triangles[k]->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, triangles[k]->getBoundingPoint(l), vm0, false) ;
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
+					k->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, k->getBoundingPoint(l), vm0, false) ;
+					vonMises[k.getPosition()*k->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
 					Vector agl(0., 1) ;
-					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
+					k->getState().getField( PRINCIPAL_ANGLE_FIELD, k->getBoundingPoint(l), agl, false) ;
+					angle[k.getPosition()*k->getBoundingPoints().size()+l]  = agl[0] ;
 				}
 				
-				double ar = triangles[k]->area() ;
+				double ar = k->area() ;
 				for(size_t l = 0 ; l < npoints ;l++)
 				{
-					avg_e_xx += (epsilon11[k*npoints+l]/npoints)*ar;
-					avg_e_yy += (epsilon22[k*npoints+l]/npoints)*ar;
-					avg_e_xy += (epsilon12[k*npoints+l]/npoints)*ar;
-					avg_s_xx += (sigma11[k*npoints+l]/npoints)*ar;
-					avg_s_yy += (sigma22[k*npoints+l]/npoints)*ar;
-					avg_s_xy += (sigma12[k*npoints+l]/npoints)*ar;
+					avg_e_xx += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
+					avg_e_yy += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
+					avg_e_xy += (epsilon12[k.getPosition()*npoints+l]/npoints)*ar;
+					avg_s_xx += (sigma11[k.getPosition()*npoints+l]/npoints)*ar;
+					avg_s_yy += (sigma22[k.getPosition()*npoints+l]/npoints)*ar;
+					avg_s_xy += (sigma12[k.getPosition()*npoints+l]/npoints)*ar;
 				}
 				
-				if(triangles[k]->getEnrichmentFunctions().size() == 0)
+				if(k->getEnrichmentFunctions().size() == 0)
 				{
 					for(size_t l = 0 ; l < npoints ;l++)
 					{
-						avg_e_xx_nogel += (epsilon11[k*npoints+l]/npoints)*ar;
-						avg_e_yy_nogel += (epsilon22[k*npoints+l]/npoints)*ar;
-						avg_e_xy_nogel += (epsilon12[k*npoints+l]/npoints)*ar;
-						avg_s_xx_nogel += (sigma11[k*npoints+l]/npoints)*ar;
-						avg_s_yy_nogel += (sigma22[k*npoints+l]/npoints)*ar;
-						avg_s_xy_nogel += (sigma12[k*npoints+l]/npoints)*ar;
+						avg_e_xx_nogel += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
+						avg_e_yy_nogel += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
+						avg_e_xy_nogel += (epsilon12[k.getPosition()*npoints+l]/npoints)*ar;
+						avg_s_xx_nogel += (sigma11[k.getPosition()*npoints+l]/npoints)*ar;
+						avg_s_yy_nogel += (sigma22[k.getPosition()*npoints+l]/npoints)*ar;
+						avg_s_xy_nogel += (sigma12[k.getPosition()*npoints+l]/npoints)*ar;
 						
 					}
 					nogel_area+= ar ;
@@ -393,56 +391,56 @@ void step(GeometryType ref, int samplingNumber)
 			}
 			else
 			{
-				sigma11[k*npoints] = 0 ;
-				sigma22[k*npoints] = 0 ;
-				sigma12[k*npoints] = 0 ;
-				sigma11[k*npoints+1] = 0 ;
-				sigma22[k*npoints+1] = 0 ;
-				sigma12[k*npoints+1] = 0 ;
-				sigma11[k*npoints+2] = 0 ;
-				sigma22[k*npoints+2] = 0 ;
-				sigma12[k*npoints+2] = 0 ;
+				sigma11[k.getPosition()*npoints] = 0 ;
+				sigma22[k.getPosition()*npoints] = 0 ;
+				sigma12[k.getPosition()*npoints] = 0 ;
+				sigma11[k.getPosition()*npoints+1] = 0 ;
+				sigma22[k.getPosition()*npoints+1] = 0 ;
+				sigma12[k.getPosition()*npoints+1] = 0 ;
+				sigma11[k.getPosition()*npoints+2] = 0 ;
+				sigma22[k.getPosition()*npoints+2] = 0 ;
+				sigma12[k.getPosition()*npoints+2] = 0 ;
 				
 				if(npoints >3)
 				{
-					sigma11[k*npoints+3] = 0 ;
-					sigma22[k*npoints+3] = 0 ;
-					sigma12[k*npoints+3] = 0 ;
-					sigma11[k*npoints+4] = 0 ;
-					sigma22[k*npoints+4] = 0 ;
-					sigma12[k*npoints+4] = 0 ;
-					sigma11[k*npoints+5] = 0 ;
-					sigma22[k*npoints+5] = 0 ;
-					sigma12[k*npoints+5] =0 ;
+					sigma11[k.getPosition()*npoints+3] = 0 ;
+					sigma22[k.getPosition()*npoints+3] = 0 ;
+					sigma12[k.getPosition()*npoints+3] = 0 ;
+					sigma11[k.getPosition()*npoints+4] = 0 ;
+					sigma22[k.getPosition()*npoints+4] = 0 ;
+					sigma12[k.getPosition()*npoints+4] = 0 ;
+					sigma11[k.getPosition()*npoints+5] = 0 ;
+					sigma22[k.getPosition()*npoints+5] = 0 ;
+					sigma12[k.getPosition()*npoints+5] =0 ;
 				}
 				
-				epsilon11[k*npoints] = 0 ;
-				epsilon22[k*npoints] = 0 ;
-				epsilon12[k*npoints] = 0 ;
-				epsilon11[k*npoints+1] = 0 ;
-				epsilon22[k*npoints+1] = 0 ;
-				epsilon12[k*npoints+1] = 0 ;
-				epsilon11[k*npoints+2] = 0 ;
-				epsilon22[k*npoints+2] = 0 ;
-				epsilon12[k*npoints+2] = 0 ;
+				epsilon11[k.getPosition()*npoints] = 0 ;
+				epsilon22[k.getPosition()*npoints] = 0 ;
+				epsilon12[k.getPosition()*npoints] = 0 ;
+				epsilon11[k.getPosition()*npoints+1] = 0 ;
+				epsilon22[k.getPosition()*npoints+1] = 0 ;
+				epsilon12[k.getPosition()*npoints+1] = 0 ;
+				epsilon11[k.getPosition()*npoints+2] = 0 ;
+				epsilon22[k.getPosition()*npoints+2] = 0 ;
+				epsilon12[k.getPosition()*npoints+2] = 0 ;
 				
 				if(npoints > 3)
 				{
-					epsilon11[k*npoints+3] = 0 ;
-					epsilon22[k*npoints+3] = 0 ;
-					epsilon12[k*npoints+3] =0 ;
-					epsilon11[k*npoints+4] = 0 ;
-					epsilon22[k*npoints+4] = 0 ;
-					epsilon12[k*npoints+4] =0 ;
-					epsilon11[k*npoints+5] = 0 ;
-					epsilon22[k*npoints+5] =0 ;
-					epsilon12[k*npoints+5] = 0 ;
+					epsilon11[k.getPosition()*npoints+3] = 0 ;
+					epsilon22[k.getPosition()*npoints+3] = 0 ;
+					epsilon12[k.getPosition()*npoints+3] =0 ;
+					epsilon11[k.getPosition()*npoints+4] = 0 ;
+					epsilon22[k.getPosition()*npoints+4] = 0 ;
+					epsilon12[k.getPosition()*npoints+4] =0 ;
+					epsilon11[k.getPosition()*npoints+5] = 0 ;
+					epsilon22[k.getPosition()*npoints+5] =0 ;
+					epsilon12[k.getPosition()*npoints+5] = 0 ;
 				}  
 				
-				for(size_t l = 0 ; l < triangles[k]->getBoundingPoints().size() ; l++)
+				for(size_t l = 0 ; l < k->getBoundingPoints().size() ; l++)
 				{
-					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
-					angle[k*triangles[k]->getBoundingPoints().size()+l]  = 0 ;
+					vonMises[k.getPosition()*k->getBoundingPoints().size()+l]  = 0 ;
+					angle[k.getPosition()*k->getBoundingPoints().size()+l]  = 0 ;
 				}
 			}
 		}
@@ -1140,14 +1138,13 @@ double getAverageDamage( FeatureTree & F)
 {
 	double area = 0. ;
 	double damage = 0. ;
-	std::vector<DelaunayTriangle *> tri = F.getElements2D() ;
-	for(size_t i = 0 ; i < tri.size() ; i++)
+	for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
 	{
-		double ar = tri[i]->area() ;
+		double ar = i->area() ;
 		double d = 0. ;
-		if(tri[i]->getBehaviour() && tri[i]->getBehaviour()->getDamageModel())
+		if(i->getBehaviour() && i->getBehaviour()->getDamageModel())
 		{
-			d = tri[i]->getBehaviour()->getDamageModel()->getState().max() ;
+			d = i->getBehaviour()->getDamageModel()->getState().max() ;
 		}
 		damage += d*ar ;
 		area += ar ;
@@ -1196,7 +1193,6 @@ int main(int argc, char *argv[])
 	hop.append(std::string(argv[1])) ;
 	std::fstream out ;
 	out.open(hop.c_str(), std::ios::out) ;
-	std::vector<DelaunayTriangle *> trg = F.getElements2D() ;
 
 	for(size_t i = 0 ; i < 30 ; i++)
 	{
@@ -1211,11 +1207,11 @@ int main(int argc, char *argv[])
 		Vector disp = F.getDisplacements() ;
 		std::valarray<bool> done(disp.size()/2) ;
 		done = false ;
-		for(size_t j = 0 ; j < trg.size() ; j++)
+		for(auto j = featureTree->get2DMesh()->begin() ; j != featureTree->get2DMesh()->end() ; j++)
 		{
-			for(size_t k = 0 ; k < trg[j]->getBoundingPoints().size() ; k++)
+			for(size_t k = 0 ; k < j->getBoundingPoints().size() ; k++)
 			{
-				Point p = trg[j]->getBoundingPoint(k) ;
+				Point p = j->getBoundingPoint(k) ;
 				if(!done[p.getId()])
 				{
 					if(p.getX() > 0.035*0.999)

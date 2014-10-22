@@ -230,32 +230,27 @@ int main(int argc, char *argv[])
     F.step() ;
     F.getAssembly()->setEpsilon(1e-20);
 
-    std::vector<DelaunayTriangle *> elements = F.getElements2D() ;
-    std::vector<size_t> iAggregates ;
-    std::vector<size_t> iPaste ;
-    for(size_t i = 0 ; i < elements.size() ; i++)
+    double areaAggregates = 0. ;
+    double areaPaste = 0. ;
+    for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
     {
         bool inPaste = true ;
         for(size_t j = 0 ; j < inInclusions.size() ; j++)
         {
-            if(inInclusions[j]->in(elements[i]->getCenter()))
+            if(inInclusions[j]->in(i->getCenter()))
             {
-                iAggregates.push_back(i) ;
+                areaAggregates += i->area() ;
                 inPaste = false ;
             }
         }
         if(inPaste)
-            iPaste.push_back(i) ;
+        {
+            areaPaste += i->area() ;
+        }
     }
 
-    double areaAggregates = 0. ;
-    double areaPaste = 0. ;
-    for(size_t i = 0 ; i < iAggregates.size() ; i++)
-        areaAggregates += elements[iAggregates[i]]->area() ;
-    for(size_t i = 0 ; i < iPaste.size() ; i++)
-        areaPaste += elements[iPaste[i]]->area() ;
 
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(elements[0]->getStatePointer()) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(F.get2DMesh()->begin()->getStatePointer()) ;
     std::map<std::string, double> dummy ;
 
 //    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1) ;
@@ -296,10 +291,21 @@ int main(int argc, char *argv[])
         double damageAggregates = 0. ;
         if(brittle || plastic)
         {
-            for(size_t i = 0 ; i < iPaste.size() ; i++)
-                damagePaste += elements[iPaste[i]]->area()*elements[iPaste[i]]->getBehaviour()->getDamageModel()->getState().max() ;
-            for(size_t i = 0 ; i < iAggregates.size() ; i++)
-                damageAggregates += elements[iAggregates[i]]->area()*elements[iAggregates[i]]->getBehaviour()->getDamageModel()->getState().max() ;
+            for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
+            {
+                bool inPaste = true ;
+                for(size_t j = 0 ; j < inInclusions.size() ; j++)
+                {
+                    if(inInclusions[j]->in(i->getCenter()))
+                    {
+                        damagePaste += i->area()*i->getBehaviour()->getDamageModel()->getState().max() ;
+                    }
+                }
+                if(inPaste)
+                {
+                    damageAggregates += i->area()*i->getBehaviour()->getDamageModel()->getState().max() ;
+                }
+            }
         }
         damagePaste /= areaPaste ;
         damageAggregates /= areaAggregates ;
