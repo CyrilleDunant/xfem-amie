@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 {
 	omp_set_num_threads(4) ;
 	
-	int scenario = 4 ;//atof(argv[1]) ;
+	int scenario = 3 ;//atof(argv[1]) ;
 
     Sample box(nullptr, 0.2,0.4,0.,0.) ;
 

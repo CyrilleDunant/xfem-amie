@@ -34,7 +34,7 @@ using namespace Amie ;
 
 Mesh<DelaunayTriangle, DelaunayTreeItem> * FeatureTree::get2DMesh ( int g )
 {
-    state.setStateTo ( MESHED, false ) ;
+//     state.setStateTo ( MESHED, false ) ;
 
     if ( g == -1 )
     {
@@ -48,7 +48,7 @@ Mesh<DelaunayTriangle, DelaunayTreeItem> * FeatureTree::get2DMesh ( int g )
 
 Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * FeatureTree::get3DMesh ()
 {
-    state.setStateTo ( MESHED, false ) ;
+//     state.setStateTo ( MESHED, false ) ;
 
     return dtree3D ;
 
@@ -72,10 +72,12 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 {
     initialValue = 0 ;
     deltaTime = 0 ;
+    previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
+    behaviourSet =false ;
     damageConverged = false ;
     stateConverged = false ;
     dtree = nullptr ;
@@ -1560,8 +1562,6 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
 void FeatureTree::sample()
 {
-
-
     if ( samplingNumber != previousSamplingNumber )
     {
         meshPoints.clear();
@@ -1750,9 +1750,11 @@ void FeatureTree::sample()
             {
                 if ( tree[i]->isUpdated )
                 {
+                    #pragma omp critical
+                    {
                     grid->remove ( tree[i] ) ;
                     grid->forceAdd ( tree[i] );
-
+                    }
                     double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
 
                     if ( shape_factor < POINT_TOLERANCE_2D )
@@ -1790,8 +1792,11 @@ void FeatureTree::sample()
             {
                 if ( tree[i]->isUpdated )
                 {
+                    #pragma omp critical
+                    {
                     grid3d->remove ( tree[i] ) ;
                     grid3d->forceAdd ( tree[i] );
+                    }
                     std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
                     double shape_factor = tree[i]->area() / ( 4.*M_PI * tree[i]->getRadius() * tree[i]->getRadius() );
@@ -2962,7 +2967,61 @@ void FeatureTree::setElementBehaviours()
 
 
     }
+    if ( dtree )
+    {
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+        {
+            previousDeltaTime = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() - j->second->begin()->getBoundingPoint ( 0 ).getT() ;
+            double end = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() ;
+            double begin = j->second->begin()->getBoundingPoint ( 0 ).getT() ;
+            if ( j->second->begin().size() && j->second->begin()->timePlanes() > 1 )
+            {
+                for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
+                {
+                    size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
+                    for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
+                    {
+                        for ( size_t k = 0 ; k < k0 ; k++ )
+                        {
+                            i->getBoundingPoint ( k+k0*t ).getT() = end - deltaTime + deltaTime*t/ ( i->timePlanes()-1 ) ;
+                        }
+                    }
 
+                    if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                    {
+                        i->adjustElementaryMatrix ( previousDeltaTime, deltaTime ) ;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+
+        previousDeltaTime = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() - dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
+        double end = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() ;
+        double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
+        if ( dtree3D->begin().size() && dtree3D->begin()->timePlanes() > 1 )
+        {
+            for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+            {
+                size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
+                for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
+                {
+                    for ( size_t k = 0 ; k < k0 ; k++ )
+                    {
+                        i->getBoundingPoint ( k+k0*t ).getT() = end - deltaTime + deltaTime*t/ ( i->timePlanes()-1 ) ;
+                    }
+                }
+
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    i->adjustElementaryMatrix ( previousDeltaTime, deltaTime ) ;
+                }
+            }
+        }
+    }
+    behaviourSet = true ;
 }
 
 void FeatureTree::updateElementBehaviours()
@@ -6251,14 +6310,17 @@ void FeatureTree::initializeElements( )
 
 void FeatureTree::setDeltaTime ( double d )
 {
-    double prev = deltaTime ;
+    previousDeltaTime = deltaTime ;
     deltaTime = d ;
     realDeltaTime = d ;
+    if(needMeshing)
+        return ;
+    
     if ( dtree )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
-            prev = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() - j->second->begin()->getBoundingPoint ( 0 ).getT() ;
+            previousDeltaTime = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() - j->second->begin()->getBoundingPoint ( 0 ).getT() ;
             double end = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() ;
             double begin = j->second->begin()->getBoundingPoint ( 0 ).getT() ;
             if ( j->second->begin().size() && j->second->begin()->timePlanes() > 1 )
@@ -6276,7 +6338,7 @@ void FeatureTree::setDeltaTime ( double d )
 
                     if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                     {
-                        i->adjustElementaryMatrix ( prev, d ) ;
+                        i->adjustElementaryMatrix ( previousDeltaTime, d ) ;
                     }
                 }
             }
@@ -6285,28 +6347,28 @@ void FeatureTree::setDeltaTime ( double d )
     else
     {
 
-            prev = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() - dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
-            double end = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() ;
-            double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
-            if ( dtree3D->begin().size() && dtree3D->begin()->timePlanes() > 1 )
+        previousDeltaTime = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() - dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
+        double end = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() ;
+        double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
+        if ( dtree3D->begin().size() && dtree3D->begin()->timePlanes() > 1 )
+        {
+            for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
             {
-                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+                size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
+                for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
                 {
-                    size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
-                    for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
+                    for ( size_t k = 0 ; k < k0 ; k++ )
                     {
-                        for ( size_t k = 0 ; k < k0 ; k++ )
-                        {
-                            i->getBoundingPoint ( k+k0*t ).getT() = end - d + d*t/ ( i->timePlanes()-1 ) ;
-                        }
-                    }
-
-                    if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                    {
-                        i->adjustElementaryMatrix ( prev, d ) ;
+                        i->getBoundingPoint ( k+k0*t ).getT() = end - d + d*t/ ( i->timePlanes()-1 ) ;
                     }
                 }
+
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                {
+                    i->adjustElementaryMatrix ( previousDeltaTime, d ) ;
+                }
             }
+        }
     }
 }
 

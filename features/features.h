@@ -143,6 +143,7 @@ protected:
 
     double now ;
     double deltaTime ;
+    double previousDeltaTime ;
     double realDeltaTime ;
     double minDeltaTime ;
 
@@ -158,6 +159,7 @@ protected:
     bool needMeshing ;
     bool reuseDisplacements ;
     bool behaviourChange ;
+    bool behaviourSet ;
     bool solverConvergence ;
     bool setBehaviours ;
     bool enrichmentChange ;

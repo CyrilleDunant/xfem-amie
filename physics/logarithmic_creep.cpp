@@ -217,7 +217,7 @@ void LogarithmicCreep::makeEquivalentViscosity(double timeStep, ElementState & c
 			}
 		    }
 //		    std::cout << n << std::endl ;
-                    visc *= 1+std::abs(n)/tau ;
+                    visc *= 1.+std::abs(n)/tau ;
 		}
             }
             break ;
