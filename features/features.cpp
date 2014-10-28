@@ -1580,7 +1580,7 @@ void FeatureTree::sample()
             tree[0]->sample ( correctionfactor * samplingNumber * 4 ) ;
             int count = 0 ;
 
-// 			#pragma omp parallel for reduction(+:count) schedule(auto)
+            #pragma omp parallel for reduction(+:count) schedule(auto)
             for ( size_t i  = 1 ; i < tree.size() ; i++ )
             {
                 double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
@@ -3401,32 +3401,37 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
         int donecomputed = 0 ;
 // 
 //         #pragma omp parallel for shared(donecomputed) schedule(runtime)
-        for ( auto i = l->second->begin() ; i != l->second->end() ; i++ )
+        #pragma omp parallel
         {
-            if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+            #pragma omp single
+            for ( auto i = l->second->begin() ; i != l->second->end() ; i++ )
             {
-// 				std::valarray<Point *> pts(3) ;
-// 				pts[0] =  elements[i]->first ;
-// 				pts[1] =  elements[i]->second ;
-// 				pts[2] =  elements[i]->third ;
-
-                Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
-                Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
-                i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
-
-                for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                #pragma omp task firstprivate(i)
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
-                    stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+    // 				std::valarray<Point *> pts(3) ;
+    // 				pts[0] =  elements[i]->first ;
+    // 				pts[1] =  elements[i]->second ;
+    // 				pts[2] =  elements[i]->third ;
+
+                    Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
+                    Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
+                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
+
+                    for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                    {
+                        stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
+                        stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+                    }
+
+                    if ( donecomputed % 10000 == 0 )
+                    {
+                        std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
+                    }
                 }
 
-                if ( donecomputed % 10000 == 0 )
-                {
-                    std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
-                }
+                donecomputed++ ;
             }
-
-            donecomputed++ ;
         }
         
         std::cerr << " ...done." << std::endl ;
@@ -3440,34 +3445,38 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
         std::pair<Vector , Vector > stress_strain ( Vector ( 0.f, 4 * 6 * dtree3D->begin().size() ), Vector ( 0.f, 4 * 6 * dtree3D->begin().size() ) ) ;
         int donecomputed = 0 ;
 
-//         #pragma omp parallel for shared(donecomputed) schedule(runtime)
-        for ( auto i  = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+        #pragma omp parallel
         {
-            if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+            #pragma omp single
+            for ( auto i  = dtree3D->begin() ; i != dtree3D->end() ; i++ )
             {
-                std::valarray<Point *> pts ( 4 ) ;
-                pts[0] =  i->first ;
-                pts[1] =  i->second ;
-                pts[2] =  i->third ;
-                pts[3] =  i->fourth ;
-
-                Vector strain ( 0., 24 ) ;
-                Vector stress ( 0., 24 ) ;
-                i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
-
-                for ( size_t j = 0 ; j < 24 ; j++ )
+                #pragma omp task firstprivate(i)
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    stress_strain.first[i.getPosition() * 4 * 6 + j] = strain[j] ;
-                    stress_strain.second[i.getPosition() * 4 * 6 + j] = stress[j] ;
+                    std::valarray<Point *> pts ( 4 ) ;
+                    pts[0] =  i->first ;
+                    pts[1] =  i->second ;
+                    pts[2] =  i->third ;
+                    pts[3] =  i->fourth ;
+
+                    Vector strain ( 0., 24 ) ;
+                    Vector stress ( 0., 24 ) ;
+                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
+
+                    for ( size_t j = 0 ; j < 24 ; j++ )
+                    {
+                        stress_strain.first[i.getPosition() * 4 * 6 + j] = strain[j] ;
+                        stress_strain.second[i.getPosition() * 4 * 6 + j] = stress[j] ;
+                    }
                 }
-            }
 
-            if ( donecomputed % 1000 == 0 )
-            {
-                std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
-            }
+                if ( donecomputed % 1000 == 0 )
+                {
+                    std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
+                }
 
-            donecomputed++ ;
+                donecomputed++ ;
+            }
         }
 
         std::cerr << " ...done." << std::endl ;
@@ -3495,33 +3504,37 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
         std::pair<Vector , Vector > stress_strain ( Vector ( 0., msh->begin()->getBoundingPoints().size() * 3 * msh->begin().size() ), Vector ( 0., msh->begin()->getBoundingPoints().size() * 3 * msh->begin().size() ) ) ;
         int donecomputed = 0 ;
 
-//         #pragma omp parallel for shared(donecomputed) schedule(runtime)
-        for ( auto i  = msh->begin() ; i != msh->end() ; i++ )
+        #pragma omp parallel
         {
-            if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+            #pragma omp single
+            for ( auto i  = msh->begin() ; i != msh->end() ; i++ )
             {
-// 				std::valarray<Point *> pts(3) ;
-// 				pts[0] =  elements[i]->first ;
-// 				pts[1] =  elements[i]->second ;
-// 				pts[2] =  elements[i]->third ;
-
-                Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
-                Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
-                i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
-
-                for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                #pragma omp task firstprivate(i)
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
-                    stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+    // 				std::valarray<Point *> pts(3) ;
+    // 				pts[0] =  elements[i]->first ;
+    // 				pts[1] =  elements[i]->second ;
+    // 				pts[2] =  elements[i]->third ;
+
+                    Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
+                    Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
+                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
+
+                    for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                    {
+                        stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
+                        stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+                    }
+
+                    if ( donecomputed % 10000 == 0 )
+                    {
+                        std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
+                    }
                 }
 
-                if ( donecomputed % 10000 == 0 )
-                {
-                    std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
-                }
+                donecomputed++ ;
             }
-
-            donecomputed++ ;
         }
 
         std::cerr << " ...done." << std::endl ;
@@ -3539,34 +3552,38 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
         std::pair<Vector , Vector > stress_strain ( Vector ( 0.f, 4 * 6 * dtree3D->begin().size() ), Vector ( 0.f, 4 * 6 * dtree3D->begin().size() ) ) ;
         int donecomputed = 0 ;
 
-//         #pragma omp parallel for shared(donecomputed) schedule(runtime)
-        for ( auto i  = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+        #pragma omp parallel
         {
-            if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+            #pragma omp single
+            for ( auto i  = dtree3D->begin() ; i != dtree3D->end() ; i++ )
             {
-                std::valarray<Point *> pts ( 4 ) ;
-                pts[0] =  i->first ;
-                pts[1] =  i->second ;
-                pts[2] =  i->third ;
-                pts[3] =  i->fourth ;
-
-                Vector strain ( 0., 24 ) ;
-                Vector stress ( 0., 24 ) ;
-                i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
-
-                for ( size_t j = 0 ; j < 24 ; j++ )
+                #pragma omp task firstprivate(i)
+                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    stress_strain.first[i.getPosition() * 4 * 6 + j] = stress[j] ;
-                    stress_strain.second[i.getPosition() * 4 * 6 + j] = strain[j] ;
+                    std::valarray<Point *> pts ( 4 ) ;
+                    pts[0] =  i->first ;
+                    pts[1] =  i->second ;
+                    pts[2] =  i->third ;
+                    pts[3] =  i->fourth ;
+
+                    Vector strain ( 0., 24 ) ;
+                    Vector stress ( 0., 24 ) ;
+                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, pts, strain, stress, false, &vm ) ;
+
+                    for ( size_t j = 0 ; j < 24 ; j++ )
+                    {
+                        stress_strain.first[i.getPosition() * 4 * 6 + j] = stress[j] ;
+                        stress_strain.second[i.getPosition() * 4 * 6 + j] = strain[j] ;
+                    }
                 }
-            }
 
-            if ( donecomputed % 1000 == 0 )
-            {
-                std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
-            }
+                if ( donecomputed % 1000 == 0 )
+                {
+                    std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
+                }
 
-            donecomputed++ ;
+                donecomputed++ ;
+            }
         }
 
         std::cerr << " ...done." << std::endl ;
@@ -4293,15 +4310,21 @@ bool FeatureTree::stepElements()
                 //the behaviour updates might depend on the global state of the
                 //simulation.
                 std::cerr << " stepping through elements... " << std::flush ;
-//                 #pragma omp parallel for schedule(runtime)
-                for (  auto i = j->second->begin() ; i != j->second->end() ; i++ )
+                #pragma omp parallel
                 {
-                    if ( i.getPosition() % 1000 == 0 )
+                    #pragma omp single
+                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++ )
                     {
-                        std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
-                    }
+                        #pragma omp task firstprivate(i)
+                        {
+                            if ( i.getPosition() % 1000 == 0 )
+                            {
+                                std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
+                            }
 
-                    i->step ( deltaTime, &K->getDisplacements() ) ;
+                            i->step ( deltaTime, &K->getDisplacements() ) ;
+                        }
+                    }
                 }
 
                 std::cerr << " ...done" << std::endl ;
@@ -4333,60 +4356,63 @@ bool FeatureTree::stepElements()
 
     // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
-//                     #pragma omp parallel for
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    #pragma omp parallel
                     {
-
-                        double are = cachedVolumes[lcounter][i.getPosition()] ;
-
-                        if ( i.getPosition() % 10000 == 0 )
+                        #pragma omp single
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
-                            std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                        }
-
-                        if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
-                        {
-                            DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
-                            bool wasFractured = i->getBehaviour()->fractured() ;
-
-                            i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-                            #pragma omp critical
-                            if ( dmodel )
+                            #pragma omp task firstprivate(i)
                             {
-                                if ( !i->getBehaviour()->fractured() )
+                                double are = cachedVolumes[lcounter][i.getPosition()] ;
+
+                                if ( i.getPosition() % 10000 == 0 )
                                 {
-                                    adamage += are  * ( dmodel->getState().max() > 0. ) ;
-    // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
-    // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
-                                }
-                                else
-                                {
-                                    adamage += are ;    // * dmodel->getState().max() ;
+                                    std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
                                 }
 
-                            }
-                            #pragma omp critical
-                            if ( i->getBehaviour()->changed() )
-                            {
-                                needAssembly = true ;
-                                behaviourChange = true ;
-                                ccount++ ;
-                            }
-                            #pragma omp critical
-                            if ( i->getBehaviour()->fractured() )
-                            {
-                                fracturedCount++ ;
-                                crackedVolume += are ;
-
-                                if ( !wasFractured )
+                                if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
                                 {
-                                    needAssembly = true ;
-                                    behaviourChange = true ;
+                                    DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
+                                    bool wasFractured = i->getBehaviour()->fractured() ;
+
+                                    i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
+                                    #pragma omp critical
+                                    if ( dmodel )
+                                    {
+                                        if ( !i->getBehaviour()->fractured() )
+                                        {
+                                            adamage += are  * ( dmodel->getState().max() > 0. ) ;
+                                        }
+                                        else
+                                        {
+                                            adamage += are ;    // * dmodel->getState().max() ;
+                                        }
+
+                                    }
+                                    #pragma omp critical
+                                    if ( i->getBehaviour()->changed() )
+                                    {
+                                        needAssembly = true ;
+                                        behaviourChange = true ;
+                                        ccount++ ;
+                                    }
+                                    #pragma omp critical
+                                    if ( i->getBehaviour()->fractured() )
+                                    {
+                                        fracturedCount++ ;
+                                        crackedVolume += are ;
+
+                                        if ( !wasFractured )
+                                        {
+                                            needAssembly = true ;
+                                            behaviourChange = true ;
+                                        }
+                                    }
+                                    else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+                                    {
+                                        damagedVolume += are ;
+                                    }
                                 }
-                            }
-                            else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
-                            {
-                                damagedVolume += are ;
                             }
                         }
                     }
@@ -4491,12 +4517,6 @@ bool FeatureTree::stepElements()
                     else
                     {
 
-        // 				if(elements[0]->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0)
-        // 				{
-        // 					moveFirstTimePlanes( 0. , elements) ;
-        // 				}
-
-
 //                         #pragma omp parallel for
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
@@ -4505,22 +4525,8 @@ bool FeatureTree::stepElements()
                                 i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
                             }
                         }
+                    }
                 }
-                }
-
-
-
-                /*			Vector inter(12) ;
-                                    inter = 0 ;
-                                    inter[0] = nodes[0]->getT() ;
-                                    Vector stress = getAverageField(REAL_STRESS_FIELD, -1, -1) ;
-                                    Vector strain = getAverageField(STRAIN_FIELD, -1, -1) ;
-                                    inter[3] = strain[0] ; inter[4] = strain[1] ; inter[5] = strain[2] ;
-                                    inter[6] = stress[0] ; inter[7] = stress[1] ; inter[8] = stress[2] ;
-                                    inter[9] = damageAreaInAggregates( elements) ;
-                                    inter[10] = damageAreaInPaste( elements ) ;
-                                    inter[11] = averageDamage ;
-                                    intermediateStates.push_back(inter) ;*/
 
                 std::cerr << " ...done. " << std::endl ;
                 lcounter++ ;
@@ -4558,15 +4564,21 @@ bool FeatureTree::stepElements()
             //the behaviour updates might depend on the global state of the
             //simulation.
             std::cerr << " stepping through elements... " << std::flush ;
-//             #pragma omp parallel for
-            for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+            #pragma omp parallel
             {
-                if ( i.getPosition() % 1000 == 0 )
+                #pragma omp single
+                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
                 {
-                    std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
-                }
+                    #pragma omp task firstprivate(i)
+                    {
+                        if ( i.getPosition() % 1000 == 0 )
+                        {
+                            std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
+                        }
 
-                i->step ( deltaTime, &K->getDisplacements() ) ;
+                        i->step ( deltaTime, &K->getDisplacements() ) ;
+                    }
+                }
             }
 
             std::cerr << " ...done" << std::endl ;
@@ -4597,52 +4609,60 @@ bool FeatureTree::stepElements()
 
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
-// #pragma omp parallel for reduction(+:volume,adamage)
-                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+                #pragma omp parallel
                 {
-
-                    double are = cachedVolumes[0][i.getPosition()] ;
-
-                    if ( i.getPosition() % 10000 == 0 )
+                    #pragma omp single
+                    for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
                     {
-                        std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                    }
-
-                    if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
-                    {
-                        DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
-                        bool wasFractured = i->getBehaviour()->fractured() ;
-
-                        i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-                        if ( dmodel )
+                        #pragma omp task firstprivate(i)
                         {
-                            if ( !i->getBehaviour()->fractured() )
+
+                            double are = cachedVolumes[0][i.getPosition()] ;
+
+                            if ( i.getPosition() % 10000 == 0 )
                             {
-                                adamage += are * dmodel->getState().max() ;
-// 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
-// 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
+                                std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
                             }
-                        }
-                        if ( i->getBehaviour()->changed() )
-                        {
-                            needAssembly = true ;
-                            behaviourChange = true ;
-                            ccount++ ;
-                        }
-                        if ( i->getBehaviour()->fractured() )
-                        {
-                            fracturedCount++ ;
-                            crackedVolume += are ;
 
-                            if ( !wasFractured )
+                            if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
                             {
-                                needAssembly = true ;
-                                behaviourChange = true ;
+                                DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
+                                bool wasFractured = i->getBehaviour()->fractured() ;
+
+                                i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
+                                if ( dmodel )
+                                {
+                                    if ( !i->getBehaviour()->fractured() )
+                                    {
+                                        adamage += are * dmodel->getState().max() ;
+        // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
+        // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
+                                    }
+                                }
+                                #pragma omp critical
+                                if ( i->getBehaviour()->changed() )
+                                {
+                                    needAssembly = true ;
+                                    behaviourChange = true ;
+                                    ccount++ ;
+                                }
+                                #pragma omp critical
+                                if ( i->getBehaviour()->fractured() )
+                                {
+                                    fracturedCount++ ;
+                                    crackedVolume += are ;
+
+                                    if ( !wasFractured )
+                                    {
+                                        needAssembly = true ;
+                                        behaviourChange = true ;
+                                    }
+                                }
+                                else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+                                {
+                                    damagedVolume += are ;
+                                }
                             }
-                        }
-                        else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
-                        {
-                            damagedVolume += are ;
                         }
                     }
                 }
@@ -4650,23 +4670,29 @@ bool FeatureTree::stepElements()
 
                 std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 
-//                 #pragma omp parallel for
-                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+                #pragma omp parallel
                 {
-                    if ( i.getPosition() % 1000 == 0 )
+                    #pragma omp single
+                    for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
                     {
-                        std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                    }
-
-                    if ( i->getBehaviour()->getDamageModel() )
-                    {
-                        i->getBehaviour()->getDamageModel()->postProcess() ;
-                        if ( i->getBehaviour()->changed() )
+                        #pragma omp task firstprivate(i)
                         {
-                            #pragma omp critical
+                            if ( i.getPosition() % 1000 == 0 )
                             {
-                                needAssembly = true ;
-                                behaviourChange = true ;
+                                std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                            }
+
+                            if ( i->getBehaviour()->getDamageModel() )
+                            {
+                                i->getBehaviour()->getDamageModel()->postProcess() ;
+                                if ( i->getBehaviour()->changed() )
+                                {
+                                    #pragma omp critical
+                                    {
+                                        needAssembly = true ;
+                                        behaviourChange = true ;
+                                    }
+                                }
                             }
                         }
                     }
