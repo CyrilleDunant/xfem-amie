@@ -2967,7 +2967,7 @@ void FeatureTree::setElementBehaviours()
 
 
     }
-    if ( dtree )
+/*    if ( dtree )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
@@ -3020,7 +3020,7 @@ void FeatureTree::setElementBehaviours()
                 }
             }
         }
-    }
+    }*/
     behaviourSet = true ;
 }
 
