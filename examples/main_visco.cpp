@@ -72,195 +72,87 @@ void checkTriangle(DelaunayTriangle * trg)
 				k++ ;
 		}
 	}
-// 	if(k > 0)
-// 		std::cout << k << " bad components" << std::endl ;
+	if(k > 0)
+		std::cout << k << " bad components" << std::endl ;
 }
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(4) ;
-	
-	int scenario = 3 ;//atof(argv[1]) ;
+	double deltat = atof(argv[1]) ;
 
-    Sample box(nullptr, 0.2,0.4,0.,0.) ;
+	Sample box(nullptr, 0.2,0.4,0.,0.) ;
 
-    FeatureTree F(&box) ;
-    F.setSamplingNumber(32) ;
-    F.setOrder(LINEAR_TIME_LINEAR) ;
-    double time_step = 0.01 ;
-    F.setDeltaTime(time_step) ;
-    F.setMinDeltaTime(1e-9) ;
-//    F.setSamplingFactor(&box, 0.25) ;
-    F.setSamplingRestriction( SAMPLE_RESTRICT_16 ) ;
+	FeatureTree F(&box) ;
+	F.setSamplingNumber(16) ;
+	F.setOrder(LINEAR_TIME_LINEAR) ;
+	double time_step = deltat ;
+	F.setDeltaTime(time_step) ;
+	F.setMinDeltaTime(1e-9) ;
+	F.setSamplingRestriction( SAMPLE_RESTRICT_16 ) ;
 
-    LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.3, creep_modulus = 5e9, creep_poisson = 0.3, creep_characteristic_time = 0.1") ;
-//    paste.addMaterialParameter("creep_modulus", atof(argv[1])*1e9) ;
-	if(scenario == 2)
-	    paste.setLogCreepAccumulator( LOGCREEP_AGEING ) ;
-	if(scenario == 3)
-	    paste.setLogCreepAccumulator( LOGCREEP_CONSTANT ) ;
-    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
+	LogarithmicCreepWithExternalParameters paste("young_modulus = 20e9, poisson_ratio = 0.3, creep_modulus = 50e9, creep_poisson = 0.3, creep_characteristic_time = 0.1") ;
+	LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
-	Matrix x = (new ElasticOnlyPasteBehaviour(20e9))->param ;
+	box.setBehaviour( &paste );
 
-	if(scenario == 4)
-    		box.setBehaviour( new Viscoelasticity( MAXWELL, x, x*0.25 ) );
-	else
-   	 	box.setBehaviour( &paste );
-
-	Rectangle falseBox(0.199,0.399,0.,0.) ;
-
-   std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, &aggregates, 5000, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1.,0.,0.)) ;
-    for(size_t i = 0 ; i < inc.size() ; i++)
-    {
-	if(inc[i]->intersects(&falseBox))
-		F.setSamplingFactor( inc[i], 3. ) ;
-	else
-		F.setSamplingFactor( inc[i], 2. ) ;
-    }
-/*    F.addRefinementZone( new Rectangle(0.01,0.4,0.095,0.)) ;
-    F.addRefinementZone( new Rectangle(0.01,0.4,-0.095,0.)) ;
-    F.addRefinementZone( new Rectangle(0.18,0.01,0.,0.195)) ;
-    F.addRefinementZone( new Rectangle(0.18,0.01,0.,-0.195)) ;*/
-
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
-
-    F.step() ;
-
-    double area = 0. ;
-    std::vector<bool> paste_index ;
-    std::vector<bool> agg_index ;
-    for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
-    {
-	if(i->getBehaviour()->param[0][0] > 30e9)
+	std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, &aggregates, 10, 0.075, 0.0002, new GranuloFromCumulativePSD("../examples/data/bengougam/granulo_luzzone", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.8, new Rectangle(0.5,1.,0,0)) ;
+	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
-		area += i->area() ;
-		agg_index.push_back(true) ;
-                paste_index.push_back(false);
-	} 
-	else
-	{
-		paste_index.push_back(true) ;
-                agg_index.push_back(false);
-		checkTriangle( i ) ;
+		if(inc[i]->intersects(dynamic_cast<Rectangle*>(&box)))
+			F.setSamplingFactor( inc[i], 3. ) ;
+		else
+			F.setSamplingFactor( inc[i], 2. ) ;
 	}
-    }
-    std::cout << paste_index.size() << "\t" << F.get2DMesh()->begin().size() << std::endl ;
-    std::cout << "effective surface covered by aggregates: " << area << std::endl ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 1)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0, 3)) ;
 
+	F.step() ;
 
-    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6) ;
+	int pasteCachePosition = F.get2DMesh()->generateCache( new ViscosityHigherThanElementChecker(1.,3,3) ) ;
+	int aggregatesCachePosition = F.get2DMesh()->generateCache( new ViscosityLowerThanElementChecker(1.,3,3) ) ;
 
-    F.addBoundaryCondition(stress) ;
+	double agg = F.get2DMesh()->getArea(aggregatesCachePosition) ;
+	std::cout << "effective surface covered by aggregates: " << agg << std::endl ;
 
-    std::fstream out ;
-    std::string file = "superposition_bengougam_tension_" ;
-    switch(scenario)
-    {
-	case 1:
-		file.append("stress") ;
-		break ;
-	case 2:
-		file.append("ageing") ;
-		break ;
-	case 3:
-		file.append("false_maxwell") ;
-		break ;
-	case 4:
-		file.append("maxwell") ;
-		break ;
-    }
-    out.open(file.c_str(), std::ios::out) ;
-    int i = 0 ;
-    bool down = false ;
-    bool up = false ;
-    int incr = 10 ;
+	BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6) ;
 
-    while(F.getCurrentTime() < 20000)
-    {
-	    if(i%incr == 0)
-	    {
-		F.setDeltaTime(0.01*std::pow(10.,i/incr)) ;
-		TriangleWriter trg("toto", &F, 1.) ;
-		trg.getField(STRAIN_FIELD) ;
-		trg.getField(REAL_STRESS_FIELD) ;
-		trg.getField(TWFT_STIFFNESS) ;
-		trg.getField(TWFT_VISCOSITY) ;
-		trg.write() ;
-	    }
+	F.addBoundaryCondition(stress) ;
 
-/*	    if(!down && F.getCurrentTime() > 1288)
-	    {
-		down = true ;
-		stress->setData(0) ;
-		F.setDeltaTime(0.01) ;
-		i = 0 ;
-	    }
-	    if(!up && F.getCurrentTime() > 1448)
-	    {
-		up = true ;
-		stress->setData(1e6) ;
-		F.setDeltaTime(0.01) ;
-		i = 0 ;
-	    }/*
+	std::fstream out ;
+	std::string file = "superposition_bengougam_tension_" ;
+	file.append(argv[1]) ;
+	out.open(file.c_str(), std::ios::out) ;
+	int i = 0 ;
+	bool down = false ;
+	bool up = false ;
+	int incr = 10 ;
 
-/*	if(i == 5)
+	while(F.getCurrentTime() < 1e5)
 	{
-		F.getAssembly()->print() ;
-		exit(0) ;
-	}*/
+		F.setDeltaTime(deltat) ;
+		bool goOn = F.step() ;
+		if(!goOn)
+		{
+			TriangleWriter trg("tata", &F, 1.) ;
+			trg.getField(STRAIN_FIELD) ;
+			trg.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
+			trg.getField(TWFT_STIFFNESS) ;
+			trg.getField(TWFT_VISCOSITY) ;
+			trg.write() ;
+			return 0 ;
+		}
+
+	Vector strain = F.get2DMesh()->getField(STRAIN_FIELD, -1, 1.) ;
+	Vector stress = F.get2DMesh()->getField(REAL_STRESS_FIELD, -1, 1.) ;
+	Vector stress_paste = F.get2DMesh()->getField(REAL_STRESS_FIELD, pasteCachePosition, -1, 1.) ;
+	Vector stress_aggregates = F.get2DMesh()->getField(REAL_STRESS_FIELD, aggregatesCachePosition, -1, 1.) ;
 
 
-	    bool goOn = F.step() ;
-	    if(!goOn)
-	    {
-		TriangleWriter trg("tata", &F, 1.) ;
-		trg.getField(STRAIN_FIELD) ;
-		trg.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
-		trg.getField(TWFT_STIFFNESS) ;
-		trg.getField(TWFT_VISCOSITY) ;
-		trg.write() ;
-		return 0 ;
-	    }
-
-	    Vector strain = F.getAverageField(GENERALIZED_VISCOELASTIC_STRAIN_FIELD, -1, 1.) ;
-	    Vector stress = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
-	    Vector stress_paste = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
-	    Vector stress_aggregates = F.getAverageField(REAL_STRESS_FIELD, -1, 1.) ;
-	    stress_paste = 0. ;
-	    double area_paste = 0. ;
-	    stress_aggregates = 0. ;
-	    double area_aggregates = 0. ;
-            for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
-            {
-                if(paste_index[i.getPosition()])
-                {
-                    Vector str = stress_paste*0. ;
-                    double a = i->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-                    stress_paste += str*a ;
-                    area_paste += a ;
-                    checkTriangle( i ) ;
-                }
-                if(agg_index[i.getPosition()])
-                {
-                    Vector str = stress_paste*0. ;
-                    double a = i->getState().getAverageField(REAL_STRESS_FIELD, str, nullptr, -1., 1.) ;
-                    stress_aggregates += str*a ;
-                    area_aggregates += a ;
-                }
-                
-            }
-
-	    stress_paste /= area_paste ;
-	    stress_aggregates /= area_aggregates ;
-	
-
-            out << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
-            std::cout << F.getCurrentTime() << "\t" << strain[0]*1e6 << "\t" << strain[1]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
-	    i++ ;
+	out << F.getCurrentTime() << "\t" << strain[1]*1e6 << "\t" << strain[4]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
+	std::cout << F.getCurrentTime() << "\t" << strain[0]*1e6 << "\t" << strain[1]*1e6 << "\t" << stress[0] << "\t" << stress[1] << "\t" << stress_paste[0] << "\t" << stress_paste[1] <<  "\t" << stress_aggregates[0] << "\t" << stress_aggregates[1] << std::endl ;
+	i++ ;
     }
 
     return 0 ;

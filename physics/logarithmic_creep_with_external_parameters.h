@@ -34,14 +34,18 @@ namespace Amie
  */
 struct LogarithmicCreepWithExternalParameters : public LogarithmicCreepWithImposedDeformationAndFracture
 {
+public:
+    planeType plane ;
 protected:
     std::map<std::string, double> external ;
     std::vector< ExternalMaterialLaw * > relations ;
 
+    virtual void makeProperties(std::map<std::string, double> & values, double kvReduction = 1.) ;
+
 public:
     // the argument string contains the list of external variables and their default values (see the function parseDefaultValues() in external_material_laws.h for more details)
-    LogarithmicCreepWithExternalParameters(std::string args, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, char sep = ',') ;
-    LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, char sep = ',') ;
+    LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
+    LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     virtual ~LogarithmicCreepWithExternalParameters() { if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
 
     virtual ElementState * createElementState( IntegrableEntity * e) ;

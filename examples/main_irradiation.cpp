@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     limestone.addMaterialLaw(&radiationExpansion);
 //    limestone.addMaterialLaw(&radiationDamage);
     LogarithmicCreepWithExternalParameters paste("young_modulus=22e9, poisson_ratio=0.2, imposed_deformation=0, thermal_expansion_coefficient=10e-6, temperature=318, creep_modulus=4.5e9, creep_characteristic_time=0.25, creep_poisson = 0.2, creep_modulus_28days=4.5e9") ;
-    paste.setLogCreepAccumulator(LOGCREEP_CONSTANT);
+//    paste.setLogCreepAccumulator(LOGCREEP_CONSTANT);
     paste.addMaterialLaw( &ageingCreep ) ;
     paste.addMaterialLaw(&thermalExpansion) ;
     paste.addMaterialLaw(&neutronRadiation);

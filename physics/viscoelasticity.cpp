@@ -66,8 +66,8 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
 	
 	param.resize(rig.numRows()*(1+n), rig.numCols()*(1+n)) ;
 	eta.resize(rig.numRows()*(1+n), rig.numCols()*(1+n)) ;
-	param.array() = 0 ;
-	eta.array() = 0 ;
+	param = 0 ;
+	eta = 0 ;
 	
 	switch(model)
 	{
@@ -80,6 +80,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
 } ;
 
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (1+n+b+(m == MAXWELL))*(rig.numRows()/3+1)), model(m), blocks(1+n+b+(m==MAXWELL)), effblocks(1+(m==MAXWELL))

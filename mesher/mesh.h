@@ -25,6 +25,7 @@
 #include <vector>
 #include <limits>
 #include <set>
+#include "element_checker.h"
 #include "../elements/integrable_entity.h"
 
 namespace Amie
@@ -435,13 +436,47 @@ public:
         allElementsCacheID = position ;
         return position ;
     };
+
+    virtual unsigned int generateCache (ElementChecker * c)
+    {
+        //search for first empty cache slot ;
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+        for ( size_t i = 0 ;  i < size() ; i++ ) {
+            ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
+
+            if(!elem)
+                continue ;
+	    if(c->checkElement(elem))
+	    {
+		    caches[position].push_back ( getInTree(i)->index ) ;
+		    coefs[position].push_back ( std::vector<double>() ) ;
+	    }
+
+        }
+        return position ;
+    };
+
 //
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
     Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) {
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
-            blocks = getInTree ( caches[cacheID][i] )->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions ;
+            blocks = static_cast<ETYPE *>(getInTree ( caches[cacheID][i] ))->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions ;
         }
         Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
         Vector buffer ( ret ) ;
@@ -453,6 +488,22 @@ public:
             w +=v ;
         }
         return ret/w ;
+    }
+
+    double getArea( unsigned int cacheID)
+    {
+	double a = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) 
+            a += static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() ;
+        return a ;
+    }
+
+    double getVolume( unsigned int cacheID)
+    {
+	double v = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )  
+            v += static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->volume() ;
+        return v ;
     }
 
     Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
@@ -488,7 +539,6 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( auto i = begin() ; i  != end() ; i++ ) {
-
             double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
             ret += buffer * v ;
             w +=v ;

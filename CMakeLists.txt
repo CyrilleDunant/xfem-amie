@@ -59,6 +59,7 @@ geometry/geometry_with_exclusion.cpp
 geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
 mesher/delaunay.cpp 
+mesher/element_checker.cpp 
 mesher/parallel_delaunay.cpp 
 mesher/parallel_delaunay_3d.cpp 
 mesher/structuredmesh.cpp 
@@ -82,6 +83,7 @@ physics/damagemodels/strainbrokenisotropiclineardamage.cpp
 physics/damagemodels/lineardamage.cpp 
 physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/rotatingcrack.cpp
+physics/material_laws/logcreep_accumulator.cpp
 physics/material_laws/material_laws.cpp
 physics/material_laws/temperature_material_laws.cpp
 #physics/mad.cpp 

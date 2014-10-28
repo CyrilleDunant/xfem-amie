@@ -14,52 +14,32 @@
 
 #include "physics_base.h"
 #include "viscoelasticity.h"
+#include "material_laws/logcreep_accumulator.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/fiberbasedisotropiclineardamage.h"
 
 namespace Amie
 {
 
-typedef enum
-{
-    LOGCREEP_CONSTANT,
-    LOGCREEP_FORWARD,
-    LOGCREEP_PREDICTED,
-    LOGCREEP_AGEING,
-    LOGCREEP_EXPSTRAIN,
-} LogCreepStressAccumulator ;
-
-
 struct LogarithmicCreep : public Viscoelasticity
 {
 	// material parameters
 	Matrix C ; //stiffness
-	Matrix E ; //viscosity
-	Matrix Eprev ;
-	Matrix Edot ;
-	double tau ; //characteristic time
-    LogCreepStressAccumulator accumulator ;
-	bool fixCreepVariable ;
-
-	double accumulatedStress ;
-	double currentStress ;
-    double previousTimeStep ;
-    double reducedTimeStep ;
-	bool sign ;
-
-	Matrix accumulatedStressTensor ;
-	Matrix currentStressTensor ;
-
-/*    std::vector<Matrix> E_t ;
-    std::vector<Matrix> dE_dt ;*/
-
+	Matrix E ; //stiffness of KV spring
+	double tau ; //viscosity of material
+	double reducedTimeStep ;
+	LogCreepAccumulator * accumulator ;
 	bool isPurelyElastic ;
-    bool updated ;
+	bool updated ;
+	bool timeDependentIntegration ;
+	bool fixCreepVariable ;
+	Matrix prevParam ;
+	Matrix prevEta ;
 	
 	// constructor for pure elasticity
-	LogarithmicCreep( const Matrix & rig) ;
+	LogarithmicCreep( const Matrix & rig, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
 	// standard constructor
-	LogarithmicCreep( const Matrix & rig, const Matrix & v, double e) ;
+	LogarithmicCreep( const Matrix & rig, const Matrix & v, double t, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
 
 	virtual ~LogarithmicCreep() { } ;
 
@@ -71,12 +51,7 @@ struct LogarithmicCreep : public Viscoelasticity
 	virtual void print() const ;
 
 	virtual void preProcess( double timeStep, ElementState & currentState ) ;
-    virtual void step(double timestep, ElementState &s, double maxScore) ;
-
-    virtual void setLogCreepAccumulator( LogCreepStressAccumulator acc) ;
-
-    virtual void accumulateStress(double timeStep, ElementState & currentState) ;
-    virtual void makeEquivalentViscosity(double timeStep, ElementState & currentState) ;
+	virtual void step(double timestep, ElementState &s, double maxScore) ;
 
 	virtual bool hasInducedForces() const { return fixCreepVariable ; }
 
@@ -88,10 +63,10 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 {
 	// size = 0 indicates no imposed deformation
 	Vector imposed ;
-    Vector prevImposed ;
+	Vector prevImposed ;
 
-	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp ) ;
-	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp ) ;
+	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator() ) ;
+	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator() ) ;
 
 	virtual ~LogarithmicCreepWithImposedDeformation() { } ;
 
@@ -102,7 +77,7 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 
 	virtual bool hasInducedForces() const { return fixCreepVariable || imposed.size()>0 ; }
 
-    virtual void step(double timestep, ElementState &s, double maxScore) ;
+	virtual void preProcess( double timeStep, ElementState & currentState ) ;
 
 	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 } ;
@@ -114,10 +89,10 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
 	FractureCriterion * criterion ;
 	bool noFracture ;
 
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp) ;
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp) ;
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d) ;
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp, FractureCriterion * c, DamageModel * d) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
 
 	virtual ~LogarithmicCreepWithImposedDeformationAndFracture() { if(dfunc){delete dfunc ;} if(criterion){delete criterion ;} } 
 
@@ -126,21 +101,21 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
 	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
 
-    virtual bool changed() const { return (noFracture ? false : dfunc->changed()) ; }
-    virtual bool fractured() const { return (noFracture ? false : dfunc->fractured()) ; }
+	virtual bool changed() const { return (noFracture ? false : dfunc->changed()) ; }
+	virtual bool fractured() const { return (noFracture ? false : dfunc->fractured()) ; }
 
-    virtual void step(double timestep, ElementState &s, double maxScore) ;
+	virtual void step(double timestep, ElementState &s, double maxScore) ;
 
-    virtual FractureCriterion * getFractureCriterion() const { return criterion ; }
-    virtual DamageModel * getDamageModel() const { return dfunc ;}
-    virtual void setFractureCriterion(FractureCriterion *frac) ;
+	virtual FractureCriterion * getFractureCriterion() const { return criterion ; }
+	virtual DamageModel * getDamageModel() const { return dfunc ;}
+	virtual void setFractureCriterion(FractureCriterion *frac) ;
 
-    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
-    virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Matrix getViscousTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
-    virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 
-    virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
+	virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 } ;
 
