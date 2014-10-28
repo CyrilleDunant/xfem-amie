@@ -26,7 +26,7 @@ void LogarithmicCreep::apply(const Function & p_i, const Function & p_j, const G
     vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
     vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
     a += b ;
-			
+
     placeMatrixInBlock( a, 0,0, ret ) ;
     if(!isPurelyElastic)
     {
@@ -241,7 +241,6 @@ void LogarithmicCreep::makeEquivalentViscosity(double timeStep, ElementState & c
         }
     }
 
-
     placeMatrixInBlock(visc, 1,1, eta);
     Edot = visc-Eprev ;
 	if(timeStep > POINT_TOLERANCE_2D)
@@ -416,6 +415,10 @@ void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p
     vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
     a += b ;
 
+        std::cout << "..." << std::endl ;
+    b.print();
+    a.print();
+    std::cout << "..." << std::endl ;
     placeMatrixInBlock( a, 0,0, ret ) ;
     if(!isPurelyElastic)
     {

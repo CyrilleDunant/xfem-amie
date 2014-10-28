@@ -403,7 +403,15 @@ Matrix &Matrix::operator =(const Matrix &m)
 		v = new Vector(m.array()) ;
 	}
 	else if(!m.isNull())
+        {
+            if(r != m.numRows() || c != m.numCols())
+            {
+                r = m.numRows() ;
+		c = m.numCols() ;   
+                v->resize(m.array().size()) ;
+            }
 		*v = m.array() ;
+        }
 	else
 	{
 		delete v ;

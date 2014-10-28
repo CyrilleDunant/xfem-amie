@@ -72,8 +72,8 @@ void checkTriangle(DelaunayTriangle * trg)
 				k++ ;
 		}
 	}
-	if(k > 0)
-		std::cout << k << " bad components" << std::endl ;
+// 	if(k > 0)
+// 		std::cout << k << " bad components" << std::endl ;
 }
 
 int main(int argc, char *argv[])

@@ -170,11 +170,10 @@ public:
 	{
 		r = x ;
 		c = y ;
-		double zero(0);
 		if(v == nullptr)
-			v = new Vector(zero, x*y) ;
+			v = new Vector(0., x*y) ;
 		else
-			v->resize(x*y, zero) ;
+			v->resize(x*y, 0.) ;
 	}
 
 	/** \brief check if the matrix has initialised values*/

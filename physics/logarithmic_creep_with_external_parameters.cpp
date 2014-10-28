@@ -81,6 +81,7 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
         double nu_inst = state.get("poisson_ratio", external) ;
         C = Material::cauchyGreen( E_inst, nu_inst, true, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) ;
     }
+    
     placeMatrixInBlock( C, 0,0, param) ;
     if(state.has("creep_characteristic_time"))
     {
@@ -98,6 +99,7 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
             E = Material::cauchyGreen( E_visc, nu_visc, true, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL) ;
         }
         tau = state.get("creep_characteristic_time", external) ;
+        
         placeMatrixInBlock( C*(-1), 1,0, param) ;
         placeMatrixInBlock( C*(-1), 0,1, param) ;
         placeMatrixInBlock( C, 1,1, param) ;
