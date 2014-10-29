@@ -13,13 +13,13 @@
 
 namespace Amie {
 
-GaussSeidel::GaussSeidel(const Amie::CoordinateIndexedSparseMatrix& A_, const Vector& b_) :LinearSolver(A_, b_) { };
+GaussSeidel::GaussSeidel(Assembly * a) :LinearSolver(a) { };
 
 bool GaussSeidel::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
 	double err=10 ;
-	x.resize(b.size()) ;
-	if(x0.size() == b.size())
+	x.resize(assembly->getForces().size()) ;
+	if(x0.size() == assembly->getForces().size())
 	{
 		x = x0 ;
 	}
@@ -31,22 +31,22 @@ bool GaussSeidel::solve(const Vector &x0, Preconditionner * precond, const doubl
 	if(maxit > 0)
 		Maxit = maxit ;
 	else
-		Maxit = 2000*b.size() ;
+		Maxit = 2000*assembly->getForces().size() ;
 	
 // 	double omega = 1 ;
 	
-	Vector inverseDiagonal = A.inverseDiagonal() ;
-	int stride =A.stride ;
+	Vector inverseDiagonal = assembly->getMatrix().inverseDiagonal() ;
+	int stride =assembly->getMatrix().stride ;
 	Vector xprev = x ;
 	while((err > eps) && nit<Maxit)
 	{
 		for(size_t i = 0 ; i < x.size() ; i+=stride)
 		{
-			Vector delta = A[i]*x ;
+			Vector delta = assembly->getMatrix()[i]*x ;
 			for(size_t j = 0 ; j < delta.size() ; j++)
 			{
 				delta[j] -= x[i+j]/inverseDiagonal[i] ;
-				x[i+j] = (b[i+j] - delta[j]) * inverseDiagonal[i+j] ;
+				x[i+j] = (assembly->getForces()[i+j] - delta[j]) * inverseDiagonal[i+j] ;
 			}
 			
 		}

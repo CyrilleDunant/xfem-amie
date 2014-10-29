@@ -23,7 +23,7 @@ namespace Amie
 	{
 		Vector d ;
 		virtual ~LowerTriangular() { } ;
-		LowerTriangular(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) ;
+		LowerTriangular(Assembly * a) ;
 		virtual bool solve(const Vector &x0,  Preconditionner * precond= nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
@@ -32,7 +32,7 @@ namespace Amie
 	{
 		Vector d ;
 		virtual ~UpperTriangular() { } ;
-		UpperTriangular(const Amie::CoordinateIndexedSparseMatrix& A_, const Vector& b_) ;
+		UpperTriangular(Assembly *a) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	} ;
 	
@@ -42,7 +42,7 @@ namespace Amie
 		const Vector &d ;
 		Vector y ;
 		virtual ~CholeskiDecomposed() { } ;
-		CholeskiDecomposed(const Amie::CoordinateIndexedSparseMatrix& A_, const Vector& b_, const Vector& d_) ;
+		CholeskiDecomposed(Assembly * a, const Vector& d_) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 	};
 

@@ -24,7 +24,7 @@ namespace Amie
 struct GaussSeidel : public LinearSolver
 {
 	virtual ~GaussSeidel() { } ;
-	GaussSeidel(const Amie::CoordinateIndexedSparseMatrix& A_, const Vector& b_) ;
+	GaussSeidel(Assembly *a) ;
 	virtual bool solve(const Vector &x0, Preconditionner * precond= nullptr, const double eps = 1e-20, const int maxit = -1, bool verbose = false)  ;
 } ;
 

@@ -7,7 +7,7 @@
 
 using namespace Amie ;
 
-BiConjugateGradientStabilized::BiConjugateGradientStabilized(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_) { }
+BiConjugateGradientStabilized::BiConjugateGradientStabilized(Assembly * a) :LinearSolver(a) { }
 
 bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * precond, const double epsilon , const int maxit , bool verbose )
 {
@@ -16,9 +16,9 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	
 	bool cleanup = false ;
 	
-	x.resize(b.size(), 0.) ;
+	x.resize(assembly->getForces().size(), 0.) ;
 	
-	if(x0.size() == b.size())
+	if(x0.size() == assembly->getForces().size())
 	{
 		x = x0 ;
 	}
@@ -27,13 +27,13 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-		P = new InverseDiagonal(A) ;
+		P = new InverseDiagonal(assembly->getMatrix()) ;
 // 		P = new NullPreconditionner() ;
 	}
 	else
 		P = precond ;	
 	
-	Vector r = A*x-b ;
+	Vector r = assembly->getMatrix()*x-assembly->getForces() ;
 	r *= -1 ;
 	Vector r_(r) ;
 	P->precondition(r,r_) ;
@@ -48,7 +48,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	P->precondition(p,p_) ;
 	//Vector p_ = precondition(p) ;
 	int vsize = r.size() ;
-	Vector v = A*p_ ;
+	Vector v = assembly->getMatrix()*p_ ;
 	
 	double alpha = rho/parallel_inner_product(&r_[0], &v[0], vsize) ;
 	
@@ -66,7 +66,7 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	
 	P->precondition(s,s_) ;
 	
-	Vector t = A*s_ ;
+	Vector t = assembly->getMatrix()*s_ ;
 	Vector t__(t) ;
 	Vector s__(s) ;
 	P->precondition(t,t__) ;
@@ -79,9 +79,9 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	double err0 = sqrt( std::abs(parallel_inner_product(&r[0], &r[0], vsize))) ;
 	
 	int nit = 0 ;
-	int lastit = std::min(maxit, (int)b.size()/4) ;
+	int lastit = std::min(maxit, (int)assembly->getForces().size()/4) ;
 	if(maxit< 0)
-		lastit = b.size() ;
+		lastit = assembly->getForces().size() ;
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
 	
@@ -96,13 +96,13 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 		
 		P->precondition(p,p_) ;
 		//p_ = precondition(p) ;
-		assign(v, A*p_) ;
+		assign(v, assembly->getMatrix()*p_) ;
 		alpha = rho/parallel_inner_product(&r_[0], &v[0], vsize) ;
 		s = r - v*alpha ;
 		
 		//s_ = precondition(s) ;
 		P->precondition(s,s_) ;
-		assign(t, A*s_) ;
+		assign(t, assembly->getMatrix()*s_) ;
 
 		if(false) //two variants for preconditionning BiCGSTAB
 		{
@@ -128,9 +128,9 @@ bool BiConjugateGradientStabilized::solve(const Vector &x0, Preconditionner * pr
 	}
 	gettimeofday(&time1, nullptr);
 	double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-	std::cerr << "mflops: "<< nit*2*((2.)*A.array.size()+6*p.size())/delta << std::endl ;
+	std::cerr << "mflops: "<< nit*2*((2.)*assembly->getMatrix().array.size()+6*p.size())/delta << std::endl ;
 
-	assign(r,A*x-b) ;
+	assign(r,assembly->getMatrix()*x-assembly->getForces()) ;
 	double err = sqrt( parallel_inner_product(&r[0], &r[0], vsize)) ;
 	
 	if(verbose)

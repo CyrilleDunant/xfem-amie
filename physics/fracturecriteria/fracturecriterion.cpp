@@ -407,7 +407,6 @@ void FractureCriterion::step(ElementState &s)
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
 
-
     if(s.getParent()->getBehaviour()->fractured())
     {
         scoreAtState = -1 ;

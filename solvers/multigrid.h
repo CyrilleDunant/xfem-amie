@@ -24,7 +24,7 @@ namespace Amie
 	template<class MESH_T, class ETYPE>
 	struct MultiGrid : public LinearSolver
 	{
-		std::vector<const CoordinateIndexedSparseMatrix *> A1 ;
+		std::vector<Assembly *> A1 ;
 		MESH_T * mesh0 ;
 		std::vector<MESH_T *> mesh1 ;
 		Vector r0 ;
@@ -41,18 +41,18 @@ namespace Amie
 			delete gs0 ;
 			delete subsolver ;
 		} ;
-		MultiGrid(const CoordinateIndexedSparseMatrix & A0, const std::vector<const CoordinateIndexedSparseMatrix *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(A0, f), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(b.size()), r1(A1.back()->row_size.size()*A1.back()->stride)  
+		MultiGrid(Assembly * a, const std::vector<Assembly *> & A1, MESH_T * mesh0, const std::vector<MESH_T *> & mesh1, Vector & f) : LinearSolver(a), A1(A1), mesh0(mesh0), mesh1(mesh1), r0(0.,a->getMatrix().stride()*a->getMaxDofID()), r1(A1.back()->getMatrix().row_size.size()*A1.back()->getMatrix().stride)  
 		{ 
 			coarseSolved = false ;
-			cg0 = new ConjugateGradient(A0, f) ;
-			gs0 = new GaussSeidel(A0, f) ;
+			cg0 = new ConjugateGradient(a) ;
+			gs0 = new GaussSeidel(a) ;
 			if(mesh1.size() == 1)
 			{
-				subsolver = new ConjugateGradient(*A1.back(), r1) ;
+				subsolver = new ConjugateGradient(A1.back()) ;
 			}
 			else if (mesh1.size() > 1)
 			{
-				std::vector<const CoordinateIndexedSparseMatrix *> A1copy(A1.begin(), A1.end()-1) ;
+				std::vector<Assembly *> A1copy(A1.begin(), A1.end()-1) ;
 				std::vector<MESH_T *> mesh1copy(mesh1.begin(), mesh1.end()-1) ;
 				subsolver = new MultiGrid<MESH_T, ETYPE>(*(A1.back()), A1copy, mesh1.back(), mesh1copy, r1) ;
 			}
@@ -82,12 +82,12 @@ namespace Amie
 				Maxit = x.size() ;
 
 			
-			if(x0.size() == b.size())
+			if(x0.size() == assembly->getForces().size())
 				x = x0 ;
 			else
 				x = 0. ;
 			
-			assign(r0, A*x-b) ;
+			assign(r0, assembly->getMatrix()*x-assembly->getForces()) ;
 			r0 = -r0 ;			
 			if(std::abs(r0).max() < eps)
 			{
@@ -109,7 +109,7 @@ namespace Amie
 				{
 					cg0->solve(x, nullptr, std::max(std::abs(r0).max()*smoothingFactor, eps), smoothingSteps, verbose) ;
 					x = cg0->x ;
-					assign(r0, A*x-b) ;
+					assign(r0, assembly->getMatrix()*x-assembly->getForces()) ;
 					r0 = -r0 ;
 					if(verbose && nit%10 == 0)
 						std::cout << A1.size() << "  "<< std::abs(r0).max() << "  " << eps  << std::endl ;
@@ -127,7 +127,7 @@ namespace Amie
 					mesh1.back()->project(mesh0, r1, r0, false) ;
 					
 					//V iteration
-					subsolver->b = r1 ;
+					subsolver->assembly->getForces() = r1 ;
 					subsolver->x = 0 ;
 					subsolver->solve(subsolver->x, nullptr, eps, -1, false) ;
 						
@@ -164,7 +164,7 @@ namespace Amie
 					else
 					{
 						if(true)
-							std::cout << "Grid " << A1.size() << " not solved in " << nit << " iterations, err = "<< std::abs((Vector)(A*x-b)).max() << std::endl  ;
+							std::cout << "Grid " << A1.size() << " not solved in " << nit << " iterations, err = "<< std::abs((Vector)(assembly->getMatrix()*x-assembly->getForces())).max() << std::endl  ;
 						
 						return false ;
 					}

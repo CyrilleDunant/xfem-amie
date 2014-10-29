@@ -361,7 +361,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 1000 ) ;
+    step ( 10 ) ;
 
 
     return 0 ;

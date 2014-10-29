@@ -106,6 +106,8 @@ GaussPointArray genEquivalentGaussPointArray3D ( TetrahedralElement * tet, doubl
 
 double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy , double t, std::vector<double> weights )
 {
+    #pragma omp critical
+    {
     bool cleanup = !vm ;
     GaussPointArray gp = parent->getGaussPoints() ;
     ret = 0 ;
@@ -145,8 +147,9 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         delete vm ;
     }
     ret /= total;
+    
+    }
     return parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
-
 }
 
 void  GeneralizedSpaceTimeViscoElasticElementState::step ( double dt, const Vector *d )

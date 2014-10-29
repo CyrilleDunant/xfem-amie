@@ -2967,7 +2967,7 @@ void FeatureTree::setElementBehaviours()
 
 
     }
-/*    if ( dtree )
+    if ( dtree )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
@@ -3020,7 +3020,7 @@ void FeatureTree::setElementBehaviours()
                 }
             }
         }
-    }*/
+    }
     behaviourSet = true ;
 }
 
@@ -4333,22 +4333,31 @@ bool FeatureTree::stepElements()
                 int ccount = 0 ;
                 size_t changecount = 0 ;
 
+                
                 if ( !elastic )
                 {
                     double maxScoreInit = -1;
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    #pragma omp parallel
                     {
-                        if ( i.getPosition() % 200 == 0 )
+                        #pragma omp single
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
-                            std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                        }
-
-                        if ( i->getBehaviour()->getFractureCriterion() )
-                        {
-                            i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                            i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
-                            maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-
+                            #pragma omp task firstprivate(i)
+                            {
+                                if ( i.getPosition() % 200 == 0 )
+                                {
+                                    std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                }
+                                if ( i->getBehaviour()->getFractureCriterion() )
+                                {
+                                    i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
+                                    i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
+                                    #pragma omp critical
+                                    {
+                                    maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                                    }
+                                }
+                            }
                         }
                     }
 

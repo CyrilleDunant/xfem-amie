@@ -357,46 +357,50 @@ public:
     }
 
     virtual unsigned int generateCache ( const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
-        VirtualMachine vm ;
-        std::vector<double> co ;
-        std::vector<ETYPE *> elems = getConflictingElements ( locus ) ;
-        if(elems.empty())
-            elems = getConflictingElements ( &locus->getCenter() ) ;
-        //search for first empty cache slot ;
-        if ( caches.empty() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
         size_t position = 0;
-        for ( ; position < caches.size() ; position++ ) {
-            if ( caches[position].empty() ) {
-                break ;
+        #pragma omp critical
+        {
+            VirtualMachine vm ;
+            std::vector<double> co ;
+            std::vector<ETYPE *> elems = getConflictingElements ( locus ) ;
+            if(elems.empty())
+                elems = getConflictingElements ( &locus->getCenter() ) ;
+            //search for first empty cache slot ;
+            if ( caches.empty() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
             }
-        }
-        if ( position == caches.size() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
-
-        for ( auto & element : elems ) {
-            if ( source && element->getBehaviour()->getSource() != source ) {
-                continue ;
+            
+            for ( ; position < caches.size() ; position++ ) {
+                if ( caches[position].empty() ) {
+                    break ;
+                }
+            }
+            if ( position == caches.size() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
             }
 
-            if ( locus->in ( element->getCenter() ) ) {
-                caches[position].push_back ( element->index ) ;
-                coefs[position].push_back ( std::vector<double>() ) ;
-                Function x = element->getXTransform() ;
-                Function y = element->getYTransform() ;
-                Function z = element->getZTransform() ;
-                Function t = element->getTTransform() ;
-                for ( size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++ ) {
-                    double xx = vm.eval ( x, element->getGaussPoints().gaussPoints[i].first ) ;
-                    double xy = vm.eval ( y, element->getGaussPoints().gaussPoints[i].first ) ;
-                    double xz = vm.eval ( z, element->getGaussPoints().gaussPoints[i].first ) ;
-                    double xt = vm.eval ( t, element->getGaussPoints().gaussPoints[i].first ) ;
+            for ( auto & element : elems ) {
+                if ( source && element->getBehaviour()->getSource() != source ) {
+                    continue ;
+                }
 
-                    coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                if ( locus->in ( element->getCenter() ) ) {
+                    caches[position].push_back ( element->index ) ;
+                    coefs[position].push_back ( std::vector<double>() ) ;
+                    Function x = element->getXTransform() ;
+                    Function y = element->getYTransform() ;
+                    Function z = element->getZTransform() ;
+                    Function t = element->getTTransform() ;
+                    for ( size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++ ) {
+                        double xx = vm.eval ( x, element->getGaussPoints().gaussPoints[i].first ) ;
+                        double xy = vm.eval ( y, element->getGaussPoints().gaussPoints[i].first ) ;
+                        double xz = vm.eval ( z, element->getGaussPoints().gaussPoints[i].first ) ;
+                        double xt = vm.eval ( t, element->getGaussPoints().gaussPoints[i].first ) ;
+
+                        coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                    }
                 }
             }
         }
@@ -406,6 +410,8 @@ public:
 
     virtual unsigned int generateCache ()
     {
+        #pragma omp critical
+        {
         //search for first empty cache slot ;
         if ( caches.empty() ) {
             caches.push_back ( std::vector<int>() );
@@ -434,38 +440,44 @@ public:
 //                 coefs[position].back().push_back ( 1 ) ;
         }
         allElementsCacheID = position ;
-        return position ;
+        }
+        return allElementsCacheID ;
     };
 
     virtual unsigned int generateCache (ElementChecker * c)
     {
-        //search for first empty cache slot ;
-        if ( caches.empty() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
         size_t position = 0;
-        for ( ; position < caches.size() ; position++ ) {
-            if ( caches[position].empty() ) {
-                break ;
+        #pragma omp critical
+        {
+            
+            //search for first empty cache slot ;
+            if ( caches.empty() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
             }
-        }
-        if ( position == caches.size() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
+            
+            for ( ; position < caches.size() ; position++ ) {
+                if ( caches[position].empty() ) {
+                    break ;
+                }
+            }
+            if ( position == caches.size() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
+            }
 
-        for ( size_t i = 0 ;  i < size() ; i++ ) {
-            ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
+            for ( size_t i = 0 ;  i < size() ; i++ ) {
+                ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
 
-            if(!elem)
-                continue ;
-	    if(c->checkElement(elem))
-	    {
-		    caches[position].push_back ( getInTree(i)->index ) ;
-		    coefs[position].push_back ( std::vector<double>() ) ;
-	    }
+                if(!elem)
+                    continue ;
+                if(c->checkElement(elem))
+                {
+                        caches[position].push_back ( getInTree(i)->index ) ;
+                        coefs[position].push_back ( std::vector<double>() ) ;
+                }
 
+            }
         }
         return position ;
     };
@@ -483,7 +495,7 @@ public:
         double w = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
 
-            double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, &vm, dummy, t, coefs[cacheID][i] ) ;
+            double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, nullptr, dummy, t, coefs[cacheID][i] ) ;
             ret += buffer * v ;
             w +=v ;
         }
@@ -521,7 +533,7 @@ public:
             double w = 0 ;
             for ( size_t i = 0 ; i < elems.size() ; i++ ) {
 
-                double v = elems[i]->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+                double v = elems[i]->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
                 ret += buffer * v ;
                 w +=v ;
             }
@@ -539,7 +551,7 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( auto i = begin() ; i  != end() ; i++ ) {
-            double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
+            double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
             ret += buffer * v ;
             w +=v ;
         }
@@ -568,7 +580,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
                     if ( !strain.size() ) {
                         strain.resize ( 0., buffer.size() );
                     }
@@ -585,7 +597,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( 0., buffer.size() );
                     }
@@ -594,7 +606,7 @@ public:
                 }
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( 0., buffer.size() );
                     }
@@ -645,7 +657,7 @@ public:
             double sumFactors ( 0 ) ;
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                 if ( first.size() != buffer.size()) {
                     first.resize ( buffer.size(), 0. );
                 }
@@ -687,7 +699,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                         strain += buffer*v ;
                         sumFactors += v ;
                     }
@@ -712,7 +724,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }
@@ -723,7 +735,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
@@ -813,7 +825,7 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                 if ( !first.size() ) {
                     first.resize ( 0., buffer.size() );
                 }
@@ -823,7 +835,7 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
                     if ( !second.size() ) {
                         second.resize ( 0., buffer.size() );
                     }

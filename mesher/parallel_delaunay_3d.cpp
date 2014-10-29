@@ -770,7 +770,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, unsigned int cacheID, int 
     double w = 0 ;
     for(size_t i = 0 ; i < caches[cacheID].size() ; i++)
     {
-        double v = static_cast<DelaunayTetrahedron *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, &vm, dummy, t, coefs[cacheID][i]) ;
+        double v = static_cast<DelaunayTetrahedron *>(meshes[elementMap[cacheID][i]]->getInTree(caches[cacheID][i]))->getState().getAverageField(f, buffer, nullptr, dummy, t, coefs[cacheID][i]) ;
         ret += buffer * v ;
         w +=v ;
     }
@@ -792,7 +792,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
     double w = 0 ;
     for(size_t i = 0 ; i < elems.size() ; i++)
     { 
-        double v = elems[i]->getState().getAverageField(f, buffer, &vm, dummy, t) ;
+        double v = elems[i]->getState().getAverageField(f, buffer, nullptr, dummy, t) ;
         ret += buffer * v ;
         w +=v ;
     }
@@ -818,7 +818,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
                     if ( !strain.size() ) {
                         strain.resize ( 0., buffer.size() );
                     }
@@ -835,7 +835,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                     DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( 0., buffer.size() );
                     }
@@ -844,7 +844,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                 }
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( 0., buffer.size() );
                     }
@@ -895,7 +895,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
             double sumFactors ( 0 ) ;
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                 if ( first.size() != buffer.size()) {
                     first.resize ( buffer.size(), 0. );
                 }
@@ -934,7 +934,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
                     if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                         strain += buffer*v ;
                         sumFactors += v ;
                     }
@@ -959,7 +959,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                     DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }
@@ -970,7 +970,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
@@ -1060,7 +1060,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                 if ( !first.size() ) {
                     first.resize ( 0., buffer.size() );
                 }
@@ -1070,7 +1070,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t) const
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
                     if ( !second.size() ) {
                         second.resize ( 0., buffer.size() );
                     }

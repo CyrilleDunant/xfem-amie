@@ -143,6 +143,8 @@ protected:
     double timePos ;
     double previousTimePos ;
 
+    bool lock ;
+    
     IntegrableEntity * parent ;
 
     Mesh< DelaunayTriangle, DelaunayTreeItem > * mesh2d ;

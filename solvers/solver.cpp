@@ -13,7 +13,7 @@
 
 namespace Amie {
 
-Solver::Solver() : colstart(0), rowstart(0)
+Solver::Solver(Assembly * a) : colstart(0), rowstart(0), assembly(a), x(0., a->getMaxDofID()*a->getMatrix().stride)
 {
 }
 
@@ -22,10 +22,10 @@ Solver::~Solver()
 {
 }
 
-LinearSolver::LinearSolver(const CoordinateIndexedSparseMatrix &A_,const Vector &b_) : b(b_), A(A_), x(0., b.size()) {} ;
+LinearSolver::LinearSolver(Assembly * a) : Solver(a) {} ;
 
 
-NonLinearSolver::NonLinearSolver(Assembly * a) : assembly(a) { } ;
+NonLinearSolver::NonLinearSolver(Assembly * a) : Solver(a) { } ;
 
 
 }

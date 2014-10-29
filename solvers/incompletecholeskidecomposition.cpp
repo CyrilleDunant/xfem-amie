@@ -16,31 +16,31 @@
 
 using namespace Amie ;
 
-InCompleteCholesky::InCompleteCholesky(const CoordinateIndexedSparseMatrix &A_) : A(A_), d(A_.diagonal())
+InCompleteCholesky::InCompleteCholesky(Assembly * A_) : A(A_), d(A_->getMatrix().diagonal())
 {
 	stable = true ;
 	
-	for(int i = 0 ; i < (int)A.row_size.size()*A.stride ; i++)
+	for(int i = 0 ; i < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; i++)
 	{
 		d[i] = 1./d[i] ;
-		for(int j = i+1 ; j < (int)A.row_size.size()*A.stride ; j++)
-			d[j] = A[i][j]*d[i] ;
+		for(int j = i+1 ; j < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; j++)
+			d[j] = A->getMatrix()[i][j]*d[i] ;
 		
-		for(int j = i+1 ; j < (int)A.row_size.size()*A.stride ; j++)
+		for(int j = i+1 ; j < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; j++)
 		{
-			for(int k = j ; k < (int)A.row_size.size()*A.stride ; k++)
+			for(int k = j ; k < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; k++)
 			{
-				if( std::abs(A[k][j]) < POINT_TOLERANCE_2D )
+				if( std::abs(A->getMatrix()[k][j]) < POINT_TOLERANCE_2D )
 				{
-					double dummy = -A[i][j]*d[k] ;
-					A[k][k] += std::abs(dummy) ;
-					A[j][j] += std::abs(dummy) ;
+					double dummy = -A->getMatrix()[i][j]*d[k] ;
+					A->getMatrix()[k][k] += std::abs(dummy) ;
+					A->getMatrix()[j][j] += std::abs(dummy) ;
 				}
 				else
 				{
-					double dummy = A[i][j] ;
-					A[k][j] -= d[k]*dummy ;
-					A[j][k] -= d[k]*dummy ;
+					double dummy = A->getMatrix()[i][j] ;
+					A->getMatrix()[k][j] -= d[k]*dummy ;
+					A->getMatrix()[j][k] -= d[k]*dummy ;
 				}
 			}
 		}
@@ -51,13 +51,13 @@ void InCompleteCholesky::precondition(const Vector& v, Vector& t)
 {
 // 	if(stable)
 // 	{
-//		Vector y = UpperTriangular(A, v).solve(Vector(0), nullptr) ;
-//		Vector ret= LowerTriangular(A, y).solve(Vector(0), nullptr) ;
+//		Vector y = UpperTriangular(A->getMatrix(), v).solve(Vector(0), nullptr) ;
+//		Vector ret= LowerTriangular(A->getMatrix(), y).solve(Vector(0), nullptr) ;
 	Vector v_(v) ;
-	CholeskiDecomposed sv(A,v_,d) ;
+	CholeskiDecomposed sv(A, v_) ;
 	sv.solve(Vector(0), nullptr) ;
 	t = sv.x ;
 // 	}
 // 	else
-// 		return UpperTriangular(A, v).solve(Vector(0), nullptr) ;
+// 		return UpperTriangular(A->getMatrix(), v).solve(Vector(0), nullptr) ;
 }

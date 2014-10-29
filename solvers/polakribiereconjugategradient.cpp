@@ -37,7 +37,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	if(!nl) 
 	{
 		std::cerr << "Linear problem, falling back to linear CG" << std::endl;
-		ConjugateGradient cg(assembly->getMatrix(), b) ;
+		ConjugateGradient cg(assembly) ;
 		cg.colstart = this->colstart ;
 		cg.rowstart = this->rowstart ;
 //		std::cout << colstart << "\t" << rowstart << std::endl ;

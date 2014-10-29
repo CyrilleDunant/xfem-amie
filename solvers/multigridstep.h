@@ -43,10 +43,10 @@ struct MultiGridStep : public Preconditionner
 		delete subsolver ;
 	};
 	
-	MultiGridStep(MESH_T * mesh0, MESH_T * mesh1, const CoordinateIndexedSparseMatrix * A0,  const CoordinateIndexedSparseMatrix * A1, Vector &b) : elements0(mesh0->getElements()), elements1(mesh1->getElements()), mesh0(mesh0), mesh1(mesh1), v1(b), b(b), averageRadius(0), ivd(*A0)
+	MultiGridStep(MESH_T * mesh0, MESH_T * mesh1, Assembly * A0,  Assembly * A1, Vector &b) : elements0(mesh0->getElements()), elements1(mesh1->getElements()), mesh0(mesh0), mesh1(mesh1), v1(b), b(b), averageRadius(0), ivd(*A0)
 	{ 
 		count = 0 ;
-		subsolver = new ConjugateGradient(*A1, b) ;
+		subsolver = new ConjugateGradient(A1) ;
 // 		subsolver->solve(b, nullptr, 1e-9) ;
 // 		b = subsolver->getX() ;
 		
@@ -93,7 +93,7 @@ struct MultiGridStep : public Preconditionner
 			mesh1->project(mesh0, v1, v, false) ;
 			
 			//V iteration
-			subsolver->b = -v1;
+			subsolver->assembly->getForces() = -v1;
 			subsolver->x = 0 ;
 			subsolver->solve(subsolver->x, nullptr, 1e-9, -1, false) ;
 			subsolver->nit = 0 ;

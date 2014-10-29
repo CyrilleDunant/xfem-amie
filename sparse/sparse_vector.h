@@ -915,6 +915,17 @@ inline void reverseInnerProductAssignAndAdd(const Amie::ConstSparseVector & v0, 
 	t+=toAdd ;
 } ;
 
+inline void reverseInnerProductAssignAndAdd(const Amie::SparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
+{
+	int stride = v0.stride ;
+	int delta = stride+stride%2 ;
+	for(size_t j = v0.length+v0.start-1 ; v0.idx[j] > start   ; --j)
+	{
+		for(int i = 0 ; i < stride ; i++)
+			t += v1[v0.idx[j]*stride+i]*v0.val[j*stride*delta+i*delta] ;
+	}
+	t+=toAdd ;
+} ;
 
 inline void innerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t end)
 {
@@ -924,6 +935,18 @@ inline void innerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector 
 	{
 		for(int i = 0 ; i < stride ; i++)
 			t += v1[v0.column_index[j]*stride+i]*v0.array[j*stride*delta+i*delta] ;
+	}
+	t+=toAdd ;
+} ;
+
+inline void innerProductAssignAndAdd(const Amie::SparseVector & v0, Vector & v1, double &t,  double toAdd, size_t end)
+{
+	int stride = v0.stride ;
+	int delta = stride+stride%2 ;
+	for(size_t j =  v0.start; v0.idx[j] < end ; ++j)
+	{
+		for(int i = 0 ; i < stride ; i++)
+			t += v1[v0.idx[j]*stride+i]*v0.val[j*stride*delta+i*delta] ;
 	}
 	t+=toAdd ;
 } ;

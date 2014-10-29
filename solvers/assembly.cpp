@@ -1400,7 +1400,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
     if(this->coordinateIndexedMatrix == nullptr)
         make_final() ;
 
-    GaussSeidel gs(getMatrix(), externalForces) ;
+    GaussSeidel gs(this) ;
     bool ret = gs.solve(x0, nullptr) ;
     displacements.resize(gs.x.size()) ;
     displacements = gs.x ;
@@ -1469,7 +1469,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
         timeval time0, time1 ;
         gettimeofday(&time0, nullptr);
 
-        BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
+        BiConjugateGradientStabilized cg(this) ;
         ret = cg.solve(displacements, nullptr,1e-22, -1, true) ;
 
         gettimeofday(&time1, nullptr);
@@ -1506,7 +1506,7 @@ void Assembly::fix()
 bool Assembly::cgnpsolve(const Vector b, size_t maxit)
 {
     NullPreconditionner np ;
-    ConjugateGradient cg(getMatrix(), externalForces) ;
+    ConjugateGradient cg(this) ;
     bool ret = cg.solve(b, &np, 1e-15, -1) ;
     displacements.resize(cg.x.size()) ;
     displacements = cg.x ;

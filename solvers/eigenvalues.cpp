@@ -10,11 +10,11 @@
 
 namespace Amie
 {
-double largestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sym)
+double largestEigenValue(Assembly * a, bool sym)
 {
 	srand(0) ;
 	
-	std::valarray<double> x_(A.row_size.size()*A.stride) ;
+	std::valarray<double> x_(a->getMatrix().row_size.size()*a->getMatrix().stride) ;
 	for(size_t i = 0 ; i< x_.size() ; i++)
 	{
 		x_[i] = (double)rand()/RAND_MAX ;
@@ -25,23 +25,23 @@ double largestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sym
 	double eps = 1. ;
 	while ( eps > 1e-6 )
 	{
-		x = A*x_ ;
+		x = a->getMatrix()*x_ ;
 		x/= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
 		std::valarray<double> delta = x-x_ ;
 		eps = sqrt(std::inner_product(&delta[0], &delta[delta.size()], &delta[0], double(0))) ;
 		x_ = x ;
 	}
 	
-	x = A*x_ ;
+	x = a->getMatrix()*x_ ;
 	return std::inner_product(&x[0], &x[x.size()], &x_[0], double(0)) ;
 }
 
-double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sym)
+double smallestEigenValue(Assembly * a, bool sym)
 {
 	srand(0) ;
 	if(sym)
 	{
-		Vector x_(A.accumulated_row_size.size()*A.stride) ;
+		Vector x_(a->getMatrix().accumulated_row_size.size()*a->getMatrix().stride) ;
 		for(size_t i = 0 ; i< x_.size() ; i++)
 		{
 			x_[i] = (2.*(double)rand()/RAND_MAX-1) ;
@@ -51,10 +51,11 @@ double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sy
 			
 		double eps = 1. ;
 		size_t it = 0 ;
+                Assembly a_(*a) ;
 		while ( eps > 1e-6 )
 		{
-			x = A*x_ ;
-			Amie::ConjugateGradient cg(A, x) ;
+			a_.getForces() = a->getMatrix()*x_ ;
+			Amie::ConjugateGradient cg(a) ;
 			cg.solve(x, nullptr, 1e-14);
 			x = cg.x ;
 			x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
@@ -66,10 +67,10 @@ double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sy
 				std::cerr << eps << std::endl ;
 		}
 			
-		x = A*x_ ;
+		x = a->getMatrix()*x_ ;
 		return std::inner_product(&x[0], &x[x.size()], &x_[0], double(0)) ;
 	}
-	Vector x_(A.accumulated_row_size.size()*A.stride) ;
+	Vector x_(a->getMatrix().accumulated_row_size.size()*a->getMatrix().stride) ;
 	for(size_t i = 0 ; i< x_.size() ; i++)
 	{
 		x_[i] = (2.*(double)rand()/RAND_MAX-1) ;
@@ -79,10 +80,12 @@ double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sy
     
 	double eps = 1 ;
 	size_t it = 0 ;
+        Assembly a_(*a) ;
 	while ( eps > 1e-5 && it < 30)
 	{
-		x = A*x_ ;
-		Amie::BiConjugateGradientStabilized cg(A, x) ;
+		x = a->getMatrix()*x_ ;
+                a_.getForces() = x ;
+		Amie::BiConjugateGradientStabilized cg(&a_) ;
 		cg.solve(x, nullptr, 1e-14);
 		x = cg.x ;
 		x /= sqrt(std::inner_product(&x[0], &x[x.size()], &x[0], double(0)))  ;
@@ -94,7 +97,7 @@ double smallestEigenValue(const Amie::CoordinateIndexedSparseMatrix & A, bool sy
 			std::cerr << eps << std::endl ;
 	}
     
-	x = A*x_ ;
+	x = a->getMatrix()*x_ ;
 	return std::inner_product(&x[0], &x[x.size()], &x_[0], double(0)) ;
 }
 }

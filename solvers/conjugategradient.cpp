@@ -25,7 +25,7 @@
 
 using namespace Amie ;
 
-ConjugateGradient::ConjugateGradient(const CoordinateIndexedSparseMatrix &A_, const Vector &b_) :LinearSolver(A_, b_), r(b_.size()),z(b_.size()),p(b_.size()) ,q(b_.size()), cleanup(false), P(nullptr), nit(0) { };
+ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), cleanup(false), P(nullptr), nit(0) { };
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
@@ -34,8 +34,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	if(maxit != -1)
 		Maxit = maxit ;
 	else
-		Maxit = std::max(round(b.size()), 1000.) ;
-	if(x0.size() == b.size())
+		Maxit = std::max(round(x.size()), 1000.) ;
+	if(x0.size() == assembly->getForces().size())
 	{
 		x.resize(x0.size());
 		x = x0 ;
@@ -48,22 +48,22 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 			exit(0) ;
 // 		}
 		x = 0 ;
-		for(size_t i = 0 ; i < std::min(b.size(), x0.size()) ; i++)
+		for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
 			x[i] = x0[i] ;
 	}
 	
 	if(rowstart)
 	{
 		for(size_t i = 0 ; i < rowstart ; i++)
-			x[i] = b[i] ;
+			x[i] = assembly->getForces()[i] ;
 	}
 
-	InverseDiagonal P0(A) ;
+	InverseDiagonal P0(assembly->getMatrix()) ;
 	if(precond == nullptr && !cleanup)
 	{
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-		P = new InverseDiagonal(A) ;
+		P = new InverseDiagonal(assembly->getMatrix()) ;
         //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
         //   505     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
 // 		P = new Ssor(A, 1.5) ;
@@ -79,7 +79,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		P = precond ;
 	}
 
-	assign(r, A*x-b, rowstart, colstart) ;
+	assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
 	int vsize = r.size() ;
 	double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 	r*=-1 ;
@@ -98,7 +98,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	P->precondition(r,z) ;
 
 	p = z ;
-	q = A*p ;
+	q = assembly->getMatrix()*p ;
 	
 	double last_rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
 	double pq = parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
@@ -113,7 +113,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	nit++ ;
 	//****************************************
 	
-	assign(r, A*x-b, rowstart, colstart) ;
+	assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
 	#pragma omp parallel for schedule(static) if (vsize > 10000)
 	for(size_t i = rowstart ; i < vsize ; i++)
 			r[i] *= -1 ;
@@ -150,7 +150,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		for(size_t i = rowstart ; i < vsize ; i++)
 			p[i] = p[i]*beta+z[i] ;
 
-		assign(q, A*p, rowstart, colstart) ;
+		assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
 		pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
 		alpha = rho/pq;
 	
@@ -168,7 +168,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		
 		if(nit%256 == 0)
 		{
-			assign(r, A*x-b, rowstart, rowstart) ;
+			assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
 			#pragma omp parallel for schedule(static) if (vsize > 10000)
 			for(size_t i = rowstart ; i < vsize ; i++)
 				r[i] *= -1 ;
@@ -188,9 +188,9 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double delta = 1 ;
 #endif
 	
-	std::cerr << "mflops: "<< nit*((2.+2./256.)*A.array.size()+(4+1./256.)*p.size())/delta << std::endl ;
+	std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-	assign(r,A*x-b, rowstart, rowstart) ;
+	assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
 	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 	
 	if(verbose)

@@ -27,10 +27,11 @@ class Assembly ;
 	class Solver
 	{
 	public:
-		Solver();
+		Solver(Assembly * a);
 		unsigned long colstart ;
 		unsigned long rowstart ;
-	
+                Vector x ;
+                Assembly * assembly ;
 		virtual ~Solver();
 		
 		virtual bool solve(const Vector &x0 = Vector(0), Preconditionner * precond = nullptr, const double eps = 1e-9, const int maxit = -1, bool verbose = false)  = 0 ;
@@ -45,10 +46,8 @@ class Assembly ;
 	struct LinearSolver : public Solver
 	{
 		virtual ~LinearSolver() { } ;
-		const Vector & b ;
-		const CoordinateIndexedSparseMatrix & A ;
-		Vector x ;
-		LinearSolver(const CoordinateIndexedSparseMatrix &, const Vector &) ;
+		
+		LinearSolver(Assembly * ssembly) ;
 		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  = 0 ;
 	};
 	
@@ -59,8 +58,6 @@ class Assembly ;
 	*/
 	struct NonLinearSolver : public Solver
 	{
-		Assembly * assembly ;
-		Vector x ;
 		virtual ~NonLinearSolver() { } ;
 		NonLinearSolver(Assembly * a) ;
 		virtual bool solve(const Vector &x0 = Vector(0), Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  = 0 ;

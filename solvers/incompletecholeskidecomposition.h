@@ -19,13 +19,14 @@
 namespace Amie
 {
 
+    struct Assembly ;
 	struct InCompleteCholesky  : public Preconditionner
 	{
 		bool stable ;
 		Vector d ;
-		CoordinateIndexedSparseMatrix A ;
+		Assembly * A ;
 		virtual ~InCompleteCholesky() { } ;
-		InCompleteCholesky(const CoordinateIndexedSparseMatrix &A) ;
+		InCompleteCholesky(Assembly * A) ;
 		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 

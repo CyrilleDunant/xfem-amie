@@ -9,11 +9,12 @@
 
 namespace Amie
 {
+    struct Assembly ;
 /** \brief Utility. Return largest EigenValue of the argument*/
-  double largestEigenValue(const CoordinateIndexedSparseMatrix & A, bool sym = false) ;
+  double largestEigenValue( Amie::Assembly* a, bool sym = false ) ;
 
 /** \brief Utility. Return smallest EigenValue of the argument*/
-  double smallestEigenValue(const CoordinateIndexedSparseMatrix & A, bool sym = false) ;
+  double smallestEigenValue( Amie::Assembly* a, bool sym = false ) ;
   
 }
 

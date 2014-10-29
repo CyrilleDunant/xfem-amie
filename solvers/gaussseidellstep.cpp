@@ -13,12 +13,12 @@
 
 namespace Amie {
 
-GaussSeidellStep::GaussSeidellStep(const CoordinateIndexedSparseMatrix &A_) : b(0., A_.row_size.size()*(A_.stride+A_.stride%2)), gs(A_, b) { };
+GaussSeidellStep::GaussSeidellStep(Assembly * a) : b(0., a->getMatrix().row_size.size()*(a->getMatrix().stride+a->getMatrix().stride%2)), gs(a) { };
 
 void GaussSeidellStep::precondition(const Vector& v, Vector& t) 
 {
 
-	GaussSeidel gs_(gs.A, v); gs_.solve(v, nullptr, 0, 1, false) ;
+	GaussSeidel gs_(gs.assembly); gs_.solve(v, nullptr, 0, 1, false) ;
 	t = gs_.x ;
 }
 
