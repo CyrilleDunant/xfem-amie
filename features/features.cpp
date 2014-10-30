@@ -4352,10 +4352,10 @@ bool FeatureTree::stepElements()
                                 {
                                     i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
                                     i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
-                                    #pragma omp critical
-                                    {
-                                    maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-                                    }
+                                    #pragma omp flush(maxScoreInit)
+                                    double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                                    #pragma omp atomic write
+                                    maxScoreInit = tmpmax ;
                                 }
                             }
                         }
@@ -4385,40 +4385,50 @@ bool FeatureTree::stepElements()
                                     bool wasFractured = i->getBehaviour()->fractured() ;
 
                                     i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-                                    #pragma omp critical
+                                    
                                     if ( dmodel )
                                     {
                                         if ( !i->getBehaviour()->fractured() )
                                         {
+                                            #pragma omp atomic update
                                             adamage += are  * ( dmodel->getState().max() > 0. ) ;
                                         }
                                         else
                                         {
+                                            #pragma omp atomic update
                                             adamage += are ;    // * dmodel->getState().max() ;
                                         }
 
                                     }
-                                    #pragma omp critical
+                                    
                                     if ( i->getBehaviour()->changed() )
                                     {
+                                        #pragma omp atomic write
                                         needAssembly = true ;
+                                        #pragma omp atomic write
                                         behaviourChange = true ;
+                                        #pragma omp atomic update
                                         ccount++ ;
                                     }
-                                    #pragma omp critical
+                                    
                                     if ( i->getBehaviour()->fractured() )
                                     {
+                                        #pragma omp atomic update
                                         fracturedCount++ ;
+                                        #pragma omp atomic update
                                         crackedVolume += are ;
 
                                         if ( !wasFractured )
                                         {
+                                            #pragma omp atomic write
                                             needAssembly = true ;
+                                            #pragma omp atomic write
                                             behaviourChange = true ;
                                         }
                                     }
                                     else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
                                     {
+                                        #pragma omp atomic update
                                         damagedVolume += are ;
                                     }
                                 }
@@ -4429,53 +4439,84 @@ bool FeatureTree::stepElements()
 
                     std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
 
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    #pragma omp parallel
                     {
-                        if ( i.getPosition() % 1000 == 0 )
+                        #pragma omp single
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
-                            std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                        }
-
-                        if ( i->getBehaviour()->getDamageModel() )
-                        {
-                            i->getBehaviour()->getDamageModel()->postProcess() ;
-                            if ( i->getBehaviour()->changed() )
+                            #pragma omp task firstprivate(i)
                             {
-                                needAssembly = true ;
-                                behaviourChange = true ;
+                                if ( i.getPosition() % 1000 == 0 )
+                                {
+                                    std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                }
+
+                                if ( i->getBehaviour()->getDamageModel() )
+                                {
+                                    i->getBehaviour()->getDamageModel()->postProcess() ;
+                                    if ( i->getBehaviour()->changed() )
+                                    {
+                                        #pragma omp atomic write
+                                        needAssembly = true ;
+                                        #pragma omp atomic write
+                                        behaviourChange = true ;
+                                    }
+                                }
                             }
                         }
                     }
                     foundCheckPoint = true ;
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    #pragma omp parallel
                     {
-                        if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
-                        {
-                            foundCheckPoint = false ;
-                            maxScore = maxScoreInit ;
-                            break ;
-                        }
-                    }
-
-//                     #pragma omp parallel for
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                    {
-                        if ( i->getBehaviour()->getDamageModel() )
-                        {
-                            i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
-                        }
-                    }
-
-
-                    if ( !behaviourChange )
-                    {
+                        #pragma omp single
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
+                            bool done = false ;
+                            #pragma omp task firstprivate(i)
+                            if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
+                            {
+                                #pragma omp atomic write
+                                foundCheckPoint = false ;
+                                #pragma omp atomic write
+                                maxScore = maxScoreInit ;
+                                #pragma omp atomic write
+                                done = true ;
+                            }
+                            if(done)
+                                break ;
+                        }
+                    }
+
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                        {
+                            #pragma omp task firstprivate(i)
+                            if ( i->getBehaviour()->getDamageModel() )
+                            {
+                                i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
+                            }
+                        }
+                    }
+
+
+                    #pragma omp parallel
+                    if ( !behaviourChange )
+                    {
+                        #pragma omp single
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                        {
+                            bool done = false ;
+                            #pragma omp task firstprivate(i)
                             if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
                             {
                                 behaviourChange = true ;
-                                break ;
+                                #pragma omp atomic write
+                                done = true ;
                             }
+                            if(done)
+                                break ;
                         }
                     }
                     
@@ -4598,19 +4639,29 @@ bool FeatureTree::stepElements()
             if ( !elastic )
             {
                 double maxScoreInit = -1;
-                for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+                #pragma omp parallel
                 {
-                    if ( i.getPosition() % 200 == 0 )
+                    #pragma omp single
+                    for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
                     {
-                        std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                    }
+                        #pragma omp task firstprivate(i)
+                        {
+                            if ( i.getPosition() % 200 == 0 )
+                            {
+                                std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                            }
 
-                    if ( i->getBehaviour()->getFractureCriterion() )
-                    {
-                        i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                        i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
-                        maxScoreInit = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                            if ( i->getBehaviour()->getFractureCriterion() )
+                            {
+                                i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
+                                i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
+                                #pragma omp flush(maxScoreInit)
+                                double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                                #pragma omp atomic write
+                                maxScoreInit = tmpmax ;
 
+                            }
+                        }
                     }
                 }
 
