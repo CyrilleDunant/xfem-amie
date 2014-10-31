@@ -338,12 +338,14 @@ int main ( int argc, char *argv[] )
 
     t0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
-
-// 	F.addFeature(&samplef, &t0);
-// 	F.addFeature(&samplef, &t1);
     t0.setBehaviourSource ( &samplef );
     t1.setBehaviourSource ( &samplef );
-
+//     F.addFeature ( &samplef, &t0 );
+//     F.addFeature ( &samplef, &t1 );
+    
+    Pore pore(mradius*.25, samplef.getCenter()) ;
+    F.addFeature(&samplef, &pore);
+    F.setSamplingFactor(&pore, 1.5);
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
     samplef.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;

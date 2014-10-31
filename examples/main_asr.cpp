@@ -47,9 +47,9 @@ FeatureTree *featureTree ;
 
 double placed_area = 0 ;
 
+double basesize = 0.04 ;
 
-
-Rectangle baseGeometry( 0.07, 0.07, 0, 0 ) ;
+Rectangle baseGeometry( basesize, basesize, 0, 0 ) ;
 
 std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
@@ -357,7 +357,7 @@ int main( int argc, char *argv[] )
 	double restraintDepth = 0.01 ;
 	if(fact0 < 10 && fact < 10)
 		restraintDepth = 0 ;
-	Sample sample( nullptr, 0.07 + restraintDepth, 0.07 + restraintDepth, 0, 0 ) ;
+	Sample sample( nullptr, basesize + restraintDepth, basesize + restraintDepth, 0, 0 ) ;
 
 	Matrix m0_agg( 3, 3 ) ;
 	m0_agg[0][0] = E_agg / ( 1 - nu * nu ) ;
@@ -427,7 +427,7 @@ int main( int argc, char *argv[] )
 	for( size_t i = 0; i < feats.size() ; i++ )
 		inclusions.push_back( static_cast<Inclusion *>( feats[i] ) ) ;
 
-	Rectangle placeGeometry( 0.07, 0.07, 0, 0 ) ;
+	Rectangle placeGeometry( basesize, basesize, 0, 0 ) ;
 	int nAgg = 1 ;
 	feats = placement( &placeGeometry, feats, &nAgg, 1, 6400 );
 	double volume = 0 ;
@@ -548,8 +548,8 @@ int main( int argc, char *argv[] )
 
 	if( restraintDepth > 0 )
 	{
-// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, 0.07+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
-// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(0.07+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
+// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_XI, new Rectangle(0.035+restraintDepth*.5, basesize+restraintDepth*1.1, -(0.035+restraintDepth*.5)*.5, 0))) ;
+// 		F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(FIX_ALONG_ETA, new Rectangle(basesize+restraintDepth*1.1,0.035+restraintDepth*.5, 0,-(0.035+restraintDepth*.5)*.5))) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , LEFT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI , RIGHT ) ) ;
 		F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA , BOTTOM ) ) ;

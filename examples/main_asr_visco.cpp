@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
 	double timeScale = 450. ;//atof(argv[1]) ;
 	double tau = 30. ;
 	double timestep = tau ;
-	double appliedLoadEta = 0 ;//atof(argv[2])*(-1e6) ;
-	double appliedLoadXi = 0 ;//atof(argv[3])*(-1e6) ;
+	double appliedLoadEta = atof(argv[2])*(-1e6) ;
+	double appliedLoadXi = atof(argv[3])*(-1e6) ;
 	double degree = atof(argv[1]) ;
 	tau /= degree/0.001 ;
 		
