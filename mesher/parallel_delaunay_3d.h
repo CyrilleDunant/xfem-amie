@@ -81,6 +81,14 @@ public:
         return s ;
     }
     
+    virtual void clearCaches()
+    {
+        caches.clear();
+        coefs.clear();
+        elementMap.clear();
+        allElementsCacheID = -1 ;
+    }
+    
     virtual unsigned int generateCache(const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function("1")) ;
     
     virtual unsigned int generateCache () ;

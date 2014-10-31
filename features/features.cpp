@@ -1555,8 +1555,9 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
             }
         }
         std::cerr <<  " ...done. " << std::endl ;
-        if(cleanup)
-            dtree->deleteCache(cacheID);
+
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+            j->second->clearCaches();
     }
 }
 
@@ -2908,8 +2909,6 @@ void FeatureTree::setElementBehaviours()
 
         for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
         {
-
-
             int setcount = 0 ;
             std::cerr << "\r setting behaviours... triangle : layer (" << scalingFactors[i->first] << ") "<<i->first << "  " << setcount++ << "/" << i->second->begin().size() << "    " << std::flush ;
             for ( auto j = i->second->begin() ; j != i->second->end() ; j++ )
@@ -4223,11 +4222,10 @@ bool FeatureTree::stepElements()
                     cachedVolumes.push_back(std::vector<double>());
             }
             int lcounter = 0 ;
+            double volume = 0 ;
+            foundCheckPoint = true ;
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
-                
-                
-                
                 if ( cachedVolumes[lcounter].empty() )
                 {
                     for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
@@ -4242,19 +4240,25 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
+                volume += std::accumulate ( cachedVolumes[lcounter].begin(), cachedVolumes[lcounter].end(), double ( 0 ) ) ;
+                lcounter++ ;
+            }
                 
-                double volume = std::accumulate ( cachedVolumes[lcounter].begin(), cachedVolumes[lcounter].end(), double ( 0 ) ) ;
-                double previousAverageDamage = averageDamage ;
-                double adamage = 0 ;
-                if ( !elastic )
-                {
-                    crackedVolume = 0 ;
-                    damagedVolume = 0 ;
-                    averageDamage = 0. ;
-                }
-                //this will update the state of all elements. This is necessary as
-                //the behaviour updates might depend on the global state of the
-                //simulation.
+             
+            double previousAverageDamage = averageDamage ;
+            double adamage = 0 ;
+            if ( !elastic )
+            {
+                crackedVolume = 0 ;
+                damagedVolume = 0 ;
+                averageDamage = 0. ;
+            }
+            //this will update the state of all elements. This is necessary as
+            //the behaviour updates might depend on the global state of the
+            //simulation.
+            
+            for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+            {
                 std::cerr << " stepping through elements... " << std::flush ;
                 #pragma omp parallel
                 {
@@ -4272,17 +4276,21 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-
                 std::cerr << " ...done" << std::endl ;
+            }
 
-                int fracturedCount = 0 ;
-                int ccount = 0 ;
-                size_t changecount = 0 ;
+            
 
-                
-                if ( !elastic )
+            int fracturedCount = 0 ;
+            int ccount = 0 ;
+            size_t changecount = 0 ;
+
+            
+            if ( !elastic )
+            {
+                double maxScoreInit = -1;
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
-                    double maxScoreInit = -1;
                     #pragma omp parallel
                     {
                         #pragma omp single
@@ -4297,7 +4305,6 @@ bool FeatureTree::stepElements()
                                 if ( i->getBehaviour()->getFractureCriterion() )
                                 {
                                     i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                                    i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
                                     #pragma omp flush(maxScoreInit)
                                     double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
                                     #pragma omp atomic write
@@ -4306,11 +4313,15 @@ bool FeatureTree::stepElements()
                             }
                         }
                     }
+                }
 
-                    std::cerr << " ...done. " << std::endl ;
+                std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
 
-    // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
+// 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
+                lcounter = 0 ;
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
                     #pragma omp parallel
                     {
                         #pragma omp single
@@ -4381,10 +4392,14 @@ bool FeatureTree::stepElements()
                             }
                         }
                     }
-                    averageDamage = adamage/volume ;
+                    lcounter++ ;
+                }
+                averageDamage = adamage/volume ;
 
-                    std::cerr << " ...done. " << ccount << " elements changed." << std::endl ;
+                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
 
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
                     #pragma omp parallel
                     {
                         #pragma omp single
@@ -4411,7 +4426,10 @@ bool FeatureTree::stepElements()
                             }
                         }
                     }
-                    foundCheckPoint = true ;
+                }
+                
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
                     #pragma omp parallel
                     {
                         #pragma omp single
@@ -4424,15 +4442,18 @@ bool FeatureTree::stepElements()
                                 #pragma omp atomic write
                                 foundCheckPoint = false ;
                                 #pragma omp atomic write
-                                maxScore = maxScoreInit ;
-                                #pragma omp atomic write
                                 done = true ;
                             }
                             if(done)
                                 break ;
                         }
                     }
+                }
+                
+                std::cerr << "now max score is = " << maxScore << std::endl ;
 
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
                     #pragma omp parallel
                     {
                         #pragma omp single
@@ -4445,8 +4466,11 @@ bool FeatureTree::stepElements()
                             }
                         }
                     }
+                }
 
 
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
                     #pragma omp parallel
                     if ( !behaviourChange )
                     {
@@ -4465,14 +4489,16 @@ bool FeatureTree::stepElements()
                                 break ;
                         }
                     }
-                    
-                    if (foundCheckPoint )
+                }
+                
+                if (foundCheckPoint )
+                {
+                    needAssembly = true ;
+                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    maxScore = -1. ;
+                    maxTolerance = 1 ;
+                    for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
-                        needAssembly = true ;
-                        std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
-                        maxScore = -1. ;
-                        maxTolerance = 1 ;
-
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             if ( i->getBehaviour()->getFractureCriterion() )
@@ -4483,8 +4509,11 @@ bool FeatureTree::stepElements()
 
                             }
                         }
+                    }
 
-                        std::cout << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
+                    for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                    {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE_2D )
                         {
                             std::cerr << "adjusting time step..." << std::endl ;
@@ -4510,10 +4539,13 @@ bool FeatureTree::stepElements()
                             moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                         }
                     }
-                    else
-                    {
+                }
+                else
+                {
 
-//                         #pragma omp parallel for
+    //                         #pragma omp parallel for
+                    for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                    {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             if ( i->getBehaviour()->getFractureCriterion() )
@@ -4525,8 +4557,6 @@ bool FeatureTree::stepElements()
                 }
 
                 std::cerr << " ...done. " << std::endl ;
-                lcounter++ ;
-
             }
         }
         else if ( is3D() )
@@ -4600,7 +4630,6 @@ bool FeatureTree::stepElements()
                             if ( i->getBehaviour()->getFractureCriterion() )
                             {
                                 i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                                i->getBehaviour()->getFractureCriterion()->computeNonLocalState ( i->getState() ) ;
                                 #pragma omp flush(maxScoreInit)
                                 double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
                                 #pragma omp atomic write
@@ -5139,7 +5168,7 @@ bool FeatureTree::step()
             for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
             {
                 TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[k] ) ;
-                if ( timec != nullptr )
+                if ( timec )
                 {
                     timec->goToNext = stateConverged ;
                 }
@@ -6275,7 +6304,7 @@ void FeatureTree::initializeElements( )
                 else
                 {
                     i->refresh ( father2D );
-                    i->getState().initialize ( dtree ) ;
+                    i->getState().initialize ( j->second ) ;
                     #pragma omp critical
                     {
                         ecounter++ ;

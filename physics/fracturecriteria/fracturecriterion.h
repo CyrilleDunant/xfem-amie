@@ -124,7 +124,7 @@ public:
     virtual ~FractureCriterion();
 
     void step(Amie::ElementState& s) ;
-    void computeNonLocalState(ElementState &s) ;
+    
     bool isAtCheckpoint() const {
         return checkpoint ;
     }
@@ -170,9 +170,7 @@ public:
 
     virtual Material toMaterial() ;
 
-    double getScoreAtState() const {
-        return scoreAtState ;
-    }
+    double getScoreAtState() const ;
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;
 };

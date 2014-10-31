@@ -416,14 +416,13 @@ void FractureCriterion::step(ElementState &s)
     {
         scoreAtState = grade(s) ;
     }
-
-}
-
-void FractureCriterion::computeNonLocalState(ElementState &s)
-{
     metAtStep = scoreAtState > 0 ;
 
 }
+
+    double FractureCriterion::getScoreAtState() const {
+        return scoreAtState ;
+    }
 
 FractureCriterion::~FractureCriterion()
 {

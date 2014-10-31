@@ -77,63 +77,63 @@ std::vector< double > loads ;
 std::vector< double > deltas ;
 std::vector< double > displacements ;
 std::vector< double > damages ;
-Vector fracCrit( 0 ) ;
+Vector fracCrit ( 0 ) ;
 
-Vector b( 0 ) ;
-Vector x( 0 ) ;
-Vector sigma( 0 ) ;
-Vector sigma11( 0 ) ;
-Vector sigma22( 0 ) ;
-Vector sigma12( 0 ) ;
-Vector epsilon( 0 ) ;
-Vector epsilon11( 0 ) ;
-Vector epsilon22( 0 ) ;
-Vector epsilon12( 0 ) ;
-Vector vonMises( 0 ) ;
-Vector angle( 0 ) ;
+Vector b ( 0 ) ;
+Vector x ( 0 ) ;
+Vector sigma ( 0 ) ;
+Vector sigma11 ( 0 ) ;
+Vector sigma22 ( 0 ) ;
+Vector sigma12 ( 0 ) ;
+Vector epsilon ( 0 ) ;
+Vector epsilon11 ( 0 ) ;
+Vector epsilon22 ( 0 ) ;
+Vector epsilon12 ( 0 ) ;
+Vector vonMises ( 0 ) ;
+Vector angle ( 0 ) ;
 
-MultiTriangleWriter writer( "triangles_head", "triangles_layers", nullptr ) ;
-MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
+MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
-Function loadFunction("0") ;
+Function loadFunction ( "0" ) ;
 // BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -platewidth, platewidth, -10, 10, loadFunction ) ;
-BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0. ) ;
+BoundingBoxAndRestrictionDefinedBoundaryCondition * load = new BoundingBoxAndRestrictionDefinedBoundaryCondition ( SET_ALONG_ETA, TOP, -platewidth, platewidth, -10, 10, 0. ) ;
 
 //  BoundingBoxNearestNodeDefinedBoundaryCondition * load = new BoundingBoxNearestNodeDefinedBoundaryCondition(SET_ALONG_ETA, TOP, Point(0., sampleHeight*.5)) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP,0) ;
 // BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, 0) ;
 
-Rectangle bcbox(sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5) ;
-GeometryDefinedBoundaryCondition selfload( SET_VOLUMIC_STRESS_ETA, &bcbox , -9025.2 ) ;
-GeometryDefinedBoundaryCondition shrinkagey( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
-GeometryDefinedBoundaryCondition shrinkagex( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
+Rectangle bcbox ( sampleLength*.5001, sampleHeight*1.001, sampleLength*.25, sampleHeight*.5 ) ;
+GeometryDefinedBoundaryCondition selfload ( SET_VOLUMIC_STRESS_ETA, &bcbox , -9025.2 ) ;
+GeometryDefinedBoundaryCondition shrinkagey ( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
+GeometryDefinedBoundaryCondition shrinkagex ( SET_VOLUMIC_STRESS_ETA, &bcbox , -2e-3 ) ;
 int count = 0 ;
 double aggregateArea = 0;
 
 
 void step()
 {
-	
-	size_t nsteps = 600*4 ; //16*10;
-	size_t nit = 2 ;
-	size_t tries = 0 ;
-	int totit = 0 ;
-	double delta_d = 0.0175e-3 ;
 
-	for ( size_t v = 0 ; v < nsteps ; v++ )
-	{
-		y_max = 0 ;
-		x_max = 0 ;
-		y_min = 0 ;
-		x_min = 0 ;
-		
-		bool go_on = true ;
+    size_t nsteps = 2 ; 600*4 ; //16*10;
+    size_t nit = 2 ;
+    size_t tries = 0 ;
+    int totit = 0 ;
+    double delta_d = 0.0175e-3 ;
 
-		go_on = featureTree->step() ;
-		if ( go_on )
-		{
-			load->setData( load->getData()-delta_d ) ;
-		}
+    for ( size_t v = 0 ; v < nsteps ; v++ )
+    {
+        y_max = 0 ;
+        x_max = 0 ;
+        y_min = 0 ;
+        x_min = 0 ;
+
+        bool go_on = true ;
+
+        go_on = featureTree->step() ;
+        if ( go_on )
+        {
+            load->setData ( load->getData()-delta_d ) ;
+        }
 // 		if ( go_on  && v > 0)
 // 		{
 // 			Function x("x") ;
@@ -154,244 +154,251 @@ void step()
 // 			tries++ ;
 // 		}
 
-		x.resize( featureTree->getDisplacements(-1, false).size() ) ;
-		x = featureTree->getDisplacements(-1, false) ;
+        x.resize ( featureTree->getDisplacements ( -1, false ).size() ) ;
+        x = featureTree->getDisplacements ( -1, false ) ;
 
-		Vector forces( featureTree->getAssembly()->getForces() ) ;
+        Vector forces ( featureTree->getAssembly()->getForces() ) ;
 
-		std::cerr << "unknowns :" << x.size() << std::endl ;
+        std::cerr << "unknowns :" << x.size() << std::endl ;
 
 
-		int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
+        int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
 
-		double delta = 0;
-                double deltacount = 0;
-                double volume = 0 ;
-		double xavg = 0 ;
-		double yavg = 0 ;
-                
-		for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
-		{
-			if(k->getBehaviour()->type != VOID_BEHAVIOUR )
-			{
-			
-                                double ar = k->area() ;
-                                volume += ar ;
-                                for(size_t p = 0 ; p < npoints ;p++)
-                                {
-                                        xavg += x[k->getBoundingPoint(p).getId()*2]*ar/npoints ;
-                                        yavg += x[k->getBoundingPoint(p).getId()*2+1]*ar/npoints ;
-                                
+        double delta = 0;
+        double deltacount = 0;
+        double volume = 0 ;
+        double xavg = 0 ;
+        double yavg = 0 ;
 
-                                        if ( dist( Point( supportLever, -sampleHeight*.5 + 0.064 ), k->getBoundingPoint( p ) ) < .1 )
-                                        {
-                                                deltacount++ ;
-                                                delta += x[k->getBoundingPoint( p ).getId() * 2] ;
-                                        }
-                                }
-                                
-			}
-		}
-			
-		xavg /= volume ;
-		yavg /= volume ;
-                delta /= deltacount ;
-		std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
-		std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
-		std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
-		Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-		Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
-		
-		std::cout << std::endl ;
-		std::cout << "max value :" << x.max() << std::endl ;
-		std::cout << "min value :" << x.min() << std::endl ;
-		std::cout << "avg x value :" << xavg << std::endl ;
-		std::cout << "avg y value :" << xavg << std::endl ;
+        for ( auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++ )
+        {
+            if ( k->getBehaviour()->type != VOID_BEHAVIOUR )
+            {
 
-		std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
-		std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
-		std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
-		std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
-		std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
-		std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
-		
-		std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
-		std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
-		std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
-		std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
-		std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
-		std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
-		
-		std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
-		std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
-		
-		std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-		std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-		std::cout << "average sigma12 : " << stemp[2] << std::endl ;
-		std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
-		std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
-		std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
-		
-		std::cout << std::endl ;
-		
-		if ( go_on )
-		{
-			displacements.push_back( 1000.*(load->getData()+delta_d));
-			loads.push_back( stemp[1]/1000. );
-			deltas.push_back( delta/deltacount );
-			damages.push_back( featureTree->averageDamage );
-		}
+                double ar = k->area() ;
+                volume += ar ;
+                for ( size_t p = 0 ; p < npoints ; p++ )
+                {
+                    xavg += x[k->getBoundingPoint ( p ).getId() *2]*ar/npoints ;
+                    yavg += x[k->getBoundingPoint ( p ).getId() *2+1]*ar/npoints ;
 
-		
-		if ( go_on )
-			std::cout << stemp[1]/1000. << "  " << displacements.back() << "  " << damages.back() << std::endl ;
 
-		
-		std::fstream ldfile( "ldn", std::ios::out )  ;
-		for ( int j = 0 ; j < loads.size() ; j++ )
-		{
-			ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
-			
-		}
-		if(!go_on)
-		  ldfile <<  1000.*(load->getData()) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
-		ldfile.close();
-		
-		
-		if ( true )
-		{
-			writer.reset( featureTree ) ;
-			writer.getField( TWFT_PRINCIPAL_STRESS ) ;
-			writer.getField( TWFT_PRINCIPAL_STRAIN ) ;
-			writer.getField( TWFT_CRITERION ) ;
-			writer.getField( TWFT_STIFFNESS_X ) ;
-			writer.getField( TWFT_STIFFNESS_Y ) ;
-			writer.getField( TWFT_DAMAGE ) ;
-			writer.append() ;
-		}
-		
-		if ( go_on )
-		{
-			writerc.reset( featureTree ) ;
-			writerc.getField( TWFT_DAMAGE ) ;
-			writerc.append() ;
-			writerc.writeSvg(0.) ;
-		}
+                    if ( dist ( Point ( supportLever, -sampleHeight*.5 + 0.064 ), k->getBoundingPoint ( p ) ) < .1 )
+                    {
+                        deltacount++ ;
+                        delta += x[k->getBoundingPoint ( p ).getId() * 2] ;
+                    }
+                }
+
+            }
+        }
+
+        xavg /= volume ;
+        yavg /= volume ;
+        delta /= deltacount ;
+        std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax ( REAL_STRESS_FIELD ) ;
+        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
+        std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
+        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
+        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
+
+        std::cout << std::endl ;
+        std::cout << "max value :" << x.max() << std::endl ;
+        std::cout << "min value :" << x.min() << std::endl ;
+        std::cout << "avg x value :" << xavg << std::endl ;
+        std::cout << "avg y value :" << xavg << std::endl ;
+
+        std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
+        std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
+        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
+        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
+        std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
+        std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
+
+        std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
+        std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
+        std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
+        std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
+        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
+        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
+
+        std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
+        std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
+
+        std::cout << "average sigma11 : " << stemp[0] << std::endl ;
+        std::cout << "average sigma22 : " << stemp[1] << std::endl ;
+        std::cout << "average sigma12 : " << stemp[2] << std::endl ;
+        std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
+        std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
+        std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
+
+        std::cout << std::endl ;
+
+        if ( go_on )
+        {
+            displacements.push_back ( 1000.* ( load->getData() +delta_d ) );
+            loads.push_back ( stemp[1]/1000. );
+            deltas.push_back ( delta/deltacount );
+            damages.push_back ( featureTree->averageDamage );
+        }
+
+
+        if ( go_on )
+        {
+            std::cout << stemp[1]/1000. << "  " << displacements.back() << "  " << damages.back() << std::endl ;
+        }
+
+
+        std::fstream ldfile ( "ldn", std::ios::out )  ;
+        for ( int j = 0 ; j < loads.size() ; j++ )
+        {
+            ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
+
+        }
+        if ( !go_on )
+        {
+            ldfile <<  1000.* ( load->getData() ) << "   " << stemp[1]/1000. << "   " << featureTree->averageDamage << "   " << delta/deltacount << "\n" ;
+        }
+        ldfile.close();
+
+
+        if ( true )
+        {
+            writer.reset ( featureTree ) ;
+            writer.getField ( TWFT_PRINCIPAL_STRESS ) ;
+            writer.getField ( TWFT_PRINCIPAL_STRAIN ) ;
+            writer.getField ( TWFT_CRITERION ) ;
+            writer.getField ( TWFT_STIFFNESS_X ) ;
+            writer.getField ( TWFT_STIFFNESS_Y ) ;
+            writer.getField ( TWFT_DAMAGE ) ;
+            writer.append() ;
+        }
+
+        if ( go_on )
+        {
+            writerc.reset ( featureTree ) ;
+            writerc.getField ( TWFT_DAMAGE ) ;
+            writerc.append() ;
+            writerc.writeSvg ( 0. ) ;
+        }
 // 		if ( !go_on )
 // 			break ;
 
-		//(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
+        //(1./epsilon11.getX())*( stressMoyenne.getX()-stressMoyenne.getY()*modulePoisson);
 
-	}
+    }
 }
 
 
-int main( int argc, char *argv[] )
+int main ( int argc, char *argv[] )
 {
 
-	double softeningFactor = .85 ; .85 ;
-	
-	sampleLength = atof( argv[3] ) ;
-	sampleHeight = atof( argv[4] ) ;
-	supportLever = sampleLength*.5-.250 ;
+    double softeningFactor = .85 ;
+    .85 ;
 
-	std::cout << sampleLength << "  " << supportLever << std::endl ;
+    double  samplingNumber = atof ( argv[1] ) ;
+    haveStirrups = atof ( argv[2] ) ;
+    sampleLength = atof ( argv[3] ) ;
+    sampleHeight = atof ( argv[4] ) ;
+    supportLever = sampleLength*.5-.250 ;
 
-	double compressionCrit = -34.2e6 ;
+    std::cout << sampleLength << "  " << supportLever << std::endl ;
 
-	std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ; 
+    double compressionCrit = -34.2e6 ;
+
+    std::cout << "phi = "<< phi << ", psi = " << psi << std::endl ;
 // 	double mradius = 0.1; //0.015 ;//0.055 ;//.11 ; // .015
 // 	double nradius = mradius*2.5 ;
 
-	double E_steel = 200e9 * M_PI *.25*softeningFactor; 
-	double nu_steel = 0.2 ;
-	double nu = 0.3 ;
-	double E_paste = 32.4e9*softeningFactor ;
+    double E_steel = 200e9 * M_PI *.25*softeningFactor;
+    double nu_steel = 0.2 ;
+    double nu = 0.3 ;
+    double E_paste = 32.4e9*softeningFactor ;
 
-	double halfSampleOffset = sampleLength*.25 ;
-	
-	Matrix m0_paste = Material::cauchyGreen(std::make_pair(E_paste,nu), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-	
+    double halfSampleOffset = sampleLength*.25 ;
+
+    Matrix m0_paste = Material::cauchyGreen ( std::make_pair ( E_paste,nu ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN ) ;
+
 // 	//redimensionned so that we get in shear the right moment of inertia
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
-// 		
-	Matrix m0_steel = Material::cauchyGreen(std::make_pair(E_steel,nu_steel), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) ;
-	
+//
+    Matrix m0_steel = Material::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN ) ;
 
-	Sample sample( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-	Sample samplebulk( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-	Sample samplestirrupbulk( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-	
+
+    Sample sample ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+    Sample samplebulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+    Sample samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+
 // 	Sample topsupport( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	topsupport.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
 // 	topsupport.isVirtualFeature = true ;
-// 
+//
 // 	Sample topsupportbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	topsupportbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-// 	
+//
 // 	Sample topsupportstirrupbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	topsupportstirrupbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-// 	
+//
 // 	Sample toprightvoid( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	toprightvoid.setBehaviour( new VoidForm() ) ;
 // 	toprightvoid.isVirtualFeature = true ;
-// 	
+//
 // 	Sample toprightvoidbulk( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
 // 	toprightvoidbulk.setBehaviour( new VoidForm() ) ;
-	
-	Sample baseright( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baseright.setBehaviour(  new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
-// 	baseright.isVirtualFeature = true ;
-	
-	Sample baserightbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightbulk.setBehaviour(  new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
-	
-	Sample baserightstirrupbulk( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-	baserightstirrupbulk.setBehaviour( new ConcreteBehaviour( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL )/*new Stiffness( m0_steel )*/) ;
 
-	Sample bottomcentervoid( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
-	bottomcentervoid.setBehaviour( new VoidForm() ) ;
-	bottomcentervoid.isVirtualFeature = true ;
-	
-	Sample rightbottomvoid( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 )*.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
-	rightbottomvoid.setBehaviour( new VoidForm() ) ;
-	rightbottomvoid.isVirtualFeature = true ;
-	
-	Sample bottomcentervoidbulk( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 )*.5, -sampleHeight*.5 - plateHeight*.5 ) ;
-	bottomcentervoidbulk.setBehaviour( new VoidForm() ) ;
-	
-	
-	Sample rightbottomvoidbulk( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 )*.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
-	rightbottomvoidbulk.setBehaviour( new VoidForm() ) ;
-	
-	
-	double rebarcenter = (sampleLength*.5 - rebarEndCover)*.5 ;
-	double rebarlength = (sampleLength - rebarEndCover*2.)*.5 ;
-	Sample rebar0(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
-	rebar0.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+    Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    baseright.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+// 	baseright.isVirtualFeature = true ;
+
+    Sample baserightbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    baserightbulk.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+
+    Sample baserightstirrupbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
+    baserightstirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+
+    Sample bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+    bottomcentervoid.setBehaviour ( new VoidForm() ) ;
+    bottomcentervoid.isVirtualFeature = true ;
+
+    Sample rightbottomvoid ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+    rightbottomvoid.setBehaviour ( new VoidForm() ) ;
+    rightbottomvoid.isVirtualFeature = true ;
+
+    Sample bottomcentervoidbulk ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
+    bottomcentervoidbulk.setBehaviour ( new VoidForm() ) ;
+
+
+    Sample rightbottomvoidbulk ( supportMidPointToEndClearance - platewidth*.5, plateHeight, sampleLength*.5 - ( supportMidPointToEndClearance - platewidth*.5 ) *.5,  -sampleHeight*.5 - plateHeight*.5 ) ;
+    rightbottomvoidbulk.setBehaviour ( new VoidForm() ) ;
+
+
+    double rebarcenter = ( sampleLength*.5 - rebarEndCover ) *.5 ;
+    double rebarlength = ( sampleLength - rebarEndCover*2. ) *.5 ;
+    Sample rebar0 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
+    rebar0.setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-	Sample rebar1(&sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-	rebar1.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+    Sample rebar1 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
+    rebar1.setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
-	
-	Sample rebar2(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
-	rebar2.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+
+    Sample rebar2 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
+    rebar2.setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
 // 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
-	Sample rebar3(&sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-	rebar3.setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
+    Sample rebar3 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
+    rebar3.setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
 // 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
-	
 
-	std::vector<Sample*> stirrups ;
 
-	for ( size_t i = 0 ;  i < 7 ; i++ )
-	{
-		stirrups.push_back( new Sample( 0.0084261498, sampleHeight - 2.*( 0.064 ), 0.175 + i*0.35, 0. ) );
-		stirrups.back()->setBehaviour( new StiffnessAndFracture( m0_steel, new VonMises( 490e6 ) ) );
-		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
-	}
+    std::vector<Sample*> stirrups ;
+
+    for ( size_t i = 0 ;  i < 7 ; i++ )
+    {
+        stirrups.push_back ( new Sample ( 0.0084261498, sampleHeight - 2.* ( 0.064 ), 0.175 + i*0.35, 0. ) );
+        stirrups.back()->setBehaviour ( new StiffnessAndFracture ( m0_steel, new VonMises ( 490e6 ) ) );
+        stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius ( 0.01 );
+    }
 // 	for ( size_t i = 0 ;  i < 7 ; i++ )
 // 	{
 // 		stirrups.push_back( new Sample( 0.0084261498, sampleHeight - 2.*( 0.064 ), -0.175 - i*0.35, 0. ) );
@@ -399,151 +406,152 @@ int main( int argc, char *argv[] )
 // 		stirrups.back()->getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( mradius );
 // 	}
 
-	FeatureTree F( &samplebulk ) ;
+    FeatureTree F ( &samplebulk ) ;
 // 	F.addFeature(&box, &samplebulk);
-	featureTree = &F ;
+    featureTree = &F ;
 
-	
+
 // 	sample.setBehaviour( new Stiffness( m0_paste ) ) ;
 // 	samplebulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
-	
-	samplebulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+
+    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->variability = 0.00 ;
+    dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
+    dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
 // 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
 // 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
-	samplebulk.getBehaviour()->setSource(sample.getPrimitive());
-	
-	sample.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
-	sample.isVirtualFeature = true ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+    samplebulk.getBehaviour()->setSource ( sample.getPrimitive() );
+
+    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    sample.isVirtualFeature = true ;
+    dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->variability = 0.00 ;
+    dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
+    dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
-	
-	
-	samplestirrupbulk.setBehaviour( new ConcreteBehaviour( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
-	samplestirrupbulk.isVirtualFeature = true ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar0.getCenter().getY(),rebarDiametre));
-	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar1.getCenter().getY(),rebarDiametre));
+
+
+    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    samplestirrupbulk.isVirtualFeature = true ;
+    dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
+    dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
+    dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
 // 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
 // 	dynamic_cast<ConcreteBehaviour *>( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
-	samplestirrupbulk.getBehaviour()->setSource(sample.getPrimitive());
+    samplestirrupbulk.getBehaviour()->setSource ( sample.getPrimitive() );
 
-	int stirruplayer = 1 ;
-	int rebarlayer = 0 ;
+    int stirruplayer = 1 ;
+    int rebarlayer = 0 ;
 
-	F.addFeature( nullptr, &sample, rebarlayer, phi ) ;
-	F.addFeature( &samplebulk,&baserightbulk);
-	F.addFeature( &sample,&baseright, rebarlayer, phi ) ;
-	F.addFeature( &baseright,&bottomcentervoid, rebarlayer, phi);
-	F.addFeature( &baseright,&rightbottomvoid, rebarlayer, phi) ;
-	
-	Triangle fineZone(Point(0.,sampleHeight*.5), Point(0.,-sampleHeight*.5), Point(sampleLength*.5, -sampleHeight*.5)) ;
-	F.addRefinementZone(&fineZone);
-	
+    F.addFeature ( nullptr, &sample, rebarlayer, phi ) ;
+    F.addFeature ( &samplebulk,&baserightbulk );
+    F.addFeature ( &sample,&baseright, rebarlayer, phi ) ;
+    F.addFeature ( &baseright,&bottomcentervoid, rebarlayer, phi );
+    F.addFeature ( &baseright,&rightbottomvoid, rebarlayer, phi ) ;
+
+    Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.5, -sampleHeight*.5 ) ) ;
+    F.addRefinementZone ( &fineZone );
+
 // 	F.addFeature( nullptr, &topsupportbulk ) ;
 // 	F.addFeature( nullptr, &toprightvoid ) ;
-	
-
-	F.addFeature( &baserightbulk,&bottomcentervoidbulk);
-	F.addFeature( &baserightbulk,&rightbottomvoidbulk) ;
 
 
-	if ( atof( argv[2] ) )
-	{
-		haveStirrups = true ;
-		F.addFeature( nullptr, &samplestirrupbulk, stirruplayer, psi ) ;
+    F.addFeature ( &baserightbulk,&bottomcentervoidbulk );
+    F.addFeature ( &baserightbulk,&rightbottomvoidbulk ) ;
+
+
+    if ( haveStirrups )
+    {
+        F.addFeature ( nullptr, &samplestirrupbulk, stirruplayer, psi ) ;
 // 		F.addFeature( nullptr, &topsupportstirrupbulk, stirruplayer, psi ) ;
-		F.addFeature( &sample, stirrups[0], stirruplayer, psi ) ;
-		F.addFeature( nullptr,&baserightstirrupbulk, stirruplayer, psi);
-		F.setSamplingFactor( stirrups[0], 3 ) ;
+        F.addFeature ( &sample, stirrups[0], stirruplayer, psi ) ;
+        F.addFeature ( nullptr,&baserightstirrupbulk, stirruplayer, psi );
+        F.setSamplingFactor ( stirrups[0], 3 ) ;
 
-		int nstirrups = 7 ;
+        int nstirrups = 7 ;
 
-		if ( sampleLength < 5 )
-			nstirrups = 5 ;
+        if ( sampleLength < 5 )
+        {
+            nstirrups = 5 ;
+        }
 
-		for ( size_t i = 1 ;  i < nstirrups ; i++ )
-		{
-			F.addFeature( stirrups[i-1], stirrups[i], stirruplayer, psi ) ;
-			F.setSamplingFactor( stirrups[i], 3 ) ;
-		}
+        for ( size_t i = 1 ;  i < nstirrups ; i++ )
+        {
+            F.addFeature ( stirrups[i-1], stirrups[i], stirruplayer, psi ) ;
+            F.setSamplingFactor ( stirrups[i], 3 ) ;
+        }
 
-		F.addFeature( stirrups.back(), &rebar0, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar1, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar2, rebarlayer, phi ) ;
-		F.addFeature( stirrups.back(), &rebar3, rebarlayer, phi ) ;
+        F.addFeature ( stirrups.back(), &rebar0, rebarlayer, phi ) ;
+        F.addFeature ( stirrups.back(), &rebar1, rebarlayer, phi ) ;
+        F.addFeature ( stirrups.back(), &rebar2, rebarlayer, phi ) ;
+        F.addFeature ( stirrups.back(), &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;
 // 		F.addFeature( &sample, &vrebar3 ) ;
-	}
-	else
-	{
-		F.addFeature( &samplebulk, &rebar0, rebarlayer, phi ) ;
-		F.addFeature( &samplebulk, &rebar1, rebarlayer, phi ) ;
-		F.addFeature( &samplebulk, &rebar2, rebarlayer, phi ) ;
-		F.addFeature( &samplebulk, &rebar3, rebarlayer, phi ) ;
+    }
+    else
+    {
+        F.addFeature ( &samplebulk, &rebar0, rebarlayer, phi ) ;
+        F.addFeature ( &samplebulk, &rebar1, rebarlayer, phi ) ;
+        F.addFeature ( &samplebulk, &rebar2, rebarlayer, phi ) ;
+        F.addFeature ( &samplebulk, &rebar3, rebarlayer, phi ) ;
 // 		F.addFeature( &sample, &vrebar0 ) ;
 // 		F.addFeature( &sample, &vrebar1 ) ;
 // 		F.addFeature( &sample, &vrebar2 ) ;
 // 		F.addFeature( &sample, &vrebar3 ) ;
-	}
+    }
 
 
 // 	F.setSamplingFactor( &samplebulk, 3 ) ;
-	F.setSamplingFactor( &rebar0, 4 ) ;
-	F.setSamplingFactor( &rebar1, 4 ) ;
-	
-	F.setSamplingFactor( &bottomcentervoid, 1./3 ) ;
-	F.setSamplingFactor( &rightbottomvoid, 1./3 ) ;
-	F.setSamplingFactor( &bottomcentervoid, 1./3 ) ;
-	F.setSamplingFactor( &rightbottomvoid, 1./3 ) ;
-	
-	F.setSamplingFactor( &rebar2, 4 ) ;
-	F.setSamplingFactor( &rebar3, 4 ) ;
-	F.setSamplingNumber( atof( argv[1] ) ) ;
-	
-	F.setSamplingRestriction(SAMPLE_NO_RESTRICTION);
+    F.setSamplingFactor ( &rebar0, 4 ) ;
+    F.setSamplingFactor ( &rebar1, 4 ) ;
 
-	
+    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
+    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
+    F.setSamplingFactor ( &bottomcentervoid, 1./3 ) ;
+    F.setSamplingFactor ( &rightbottomvoid, 1./3 ) ;
+
+    F.setSamplingFactor ( &rebar2, 4 ) ;
+    F.setSamplingFactor ( &rebar3, 4 ) ;
+    F.setSamplingNumber ( samplingNumber ) ;
+
+    F.setSamplingRestriction ( SAMPLE_NO_RESTRICTION );
+
+
 // 	F.addPoint( new Point( supportLever+platewidth*.02, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.02, -sampleHeight*.5 ) ) ;
 
 
-	
+
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
-	F.setMaxIterationsPerStep( 3200 );
-	
-	
-	F.addPoint( new Point( supportLever,                -sampleHeight*.5-plateHeight ) ) ;
+    F.setMaxIterationsPerStep ( 3200 );
+
+
+    F.addPoint ( new Point ( supportLever,                -sampleHeight*.5-plateHeight ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.5,  -sampleHeight*.5-plateHeight ) ) ;
 // 	F.addPoint( new Point( supportLever+platewidth*.5,  -sampleHeight*.5-plateHeight ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5-plateHeight ) ) ;
 // 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5-plateHeight ) ) ;
-// 	
+//
 // 	F.addPoint( new Point( supportLever,                -sampleHeight*.5-plateHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.5,  -sampleHeight*.5-plateHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever+platewidth*.5,  -sampleHeight*.5-plateHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5-plateHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5-plateHeight*.5 ) ) ;
-// 	
+//
 // 	F.addPoint( new Point( supportLever-platewidth*.25, -sampleHeight*.5 ) ) ;
 // 	F.addPoint( new Point( supportLever+platewidth*.25, -sampleHeight*.5 ) ) ;
-	F.addPoint( new Point( platewidth, sampleHeight*.5 ) ) ;
-	F.addBoundaryCondition( load ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
+    F.addPoint ( new Point ( platewidth, sampleHeight*.5 ) ) ;
+    F.addBoundaryCondition ( load ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxNearestNodeDefinedBoundaryCondition ( FIX_ALONG_ETA, BOTTOM, Point ( supportLever, -sampleHeight*.5-plateHeight ) ) ) ;
 // 	F.addBoundaryCondition( new BoundingBoxNearestNodeDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM, Point( supportLever, -sampleHeight*.5-plateHeight)  )) ;
-	F.setOrder( LINEAR ) ;
-	
-	step() ;
+    F.setOrder ( LINEAR ) ;
 
-	return 0 ;
+    step() ;
+
+    return 0 ;
 }

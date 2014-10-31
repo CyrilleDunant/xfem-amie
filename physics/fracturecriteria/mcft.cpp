@@ -503,6 +503,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 		{
 			
 			ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
+
 			if(ccrit0 > 0)
 				firstMet = true ;
 		}
@@ -510,7 +511,8 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 		if(tpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus )
 		{
 			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
-			if(tcrit0 > 0)
+                      
+                        if(tcrit0 > 0)
 				firstMet = true ;
 		}
 		double c0 = std::max(ccrit0, tcrit0) ;
@@ -529,7 +531,8 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 		if(cpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus )
 		{
 			ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
-			if(ccrit1 > 0)
+                        
+                        if(ccrit1 > 0)
 			{
 				secondMet = true ;
 			}
@@ -554,7 +557,6 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 			secondCompression = false ;
 			secondTension = true ;
 		}
-
 
 		return std::max(c0, c1) ;
 	}

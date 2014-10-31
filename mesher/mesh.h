@@ -382,7 +382,7 @@ public:
             }
 
             for ( auto & element : elems ) {
-                if ( source && element->getBehaviour()->getSource() != source ) {
+                if ( source && element->getBehaviour()->getSource() != source || source == nullptr) {
                     continue ;
                 }
 
@@ -482,7 +482,12 @@ public:
         return position ;
     };
 
-//
+    virtual void clearCaches()
+    {
+        caches.clear();
+        coefs.clear();
+        allElementsCacheID = -1 ;
+    }
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
     Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) {
         VirtualMachine vm ;

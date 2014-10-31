@@ -323,12 +323,12 @@ int main ( int argc, char *argv[] )
     t0.isVirtualFeature = true ;
     t1.isVirtualFeature = true ;
 
-    Sample r0 ( mradius*.25, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY() ) ;
-    r0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*0.9,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
+    Sample r0 ( mradius, samplef.height(),samplef.getCenter().getX(), samplef.getCenter().getY() ) ;
+    r0.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*0.8,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( r0.getBehaviour() )->materialRadius = mradius ;
     r0.isVirtualFeature = true ;
     r0.setBehaviourSource ( &samplef );
-//     F.addFeature ( &samplef, &r0 );
+    F.addFeature ( &samplef, &r0 );
 
     PlasticStrain * t0damagemodel = new PlasticStrain() ;
     PlasticStrain * t1damagemodel = new PlasticStrain() ;
@@ -343,8 +343,8 @@ int main ( int argc, char *argv[] )
 //     F.addFeature ( &samplef, &t0 );
 //     F.addFeature ( &samplef, &t1 );
     
-    Pore pore(mradius*.25, samplef.getCenter()) ;
-    F.addFeature(&samplef, &pore);
+    Pore pore(mradius*.15, samplef.getCenter()) ;
+//     F.addFeature(&samplef, &pore);
     F.setSamplingFactor(&pore, 4);
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
     samplef.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
@@ -363,7 +363,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 10 ) ;
+    step ( 11 ) ;
 
 
     return 0 ;

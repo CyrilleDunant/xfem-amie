@@ -689,7 +689,7 @@ unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const
 
     for(auto & element : elems)
     {
-        if(source && element->getBehaviour()->getSource() != source)
+        if(source && element->getBehaviour()->getSource() != source || source == nullptr)
             continue ;
         
         if(locus->in(element->getCenter()))
