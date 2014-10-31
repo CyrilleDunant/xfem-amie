@@ -328,7 +328,7 @@ int main ( int argc, char *argv[] )
     dynamic_cast<ConcreteBehaviour *> ( r0.getBehaviour() )->materialRadius = mradius ;
     r0.isVirtualFeature = true ;
     r0.setBehaviourSource ( &samplef );
-    F.addFeature ( &samplef, &r0 );
+//     F.addFeature ( &samplef, &r0 );
 
     PlasticStrain * t0damagemodel = new PlasticStrain() ;
     PlasticStrain * t1damagemodel = new PlasticStrain() ;
@@ -345,7 +345,7 @@ int main ( int argc, char *argv[] )
     
     Pore pore(mradius*.25, samplef.getCenter()) ;
     F.addFeature(&samplef, &pore);
-    F.setSamplingFactor(&pore, 1.5);
+    F.setSamplingFactor(&pore, 4);
 // 	samplef.setBehaviour(new Stiffness(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN))) ;
     samplef.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( samplef.getBehaviour() )->materialRadius = mradius ;
