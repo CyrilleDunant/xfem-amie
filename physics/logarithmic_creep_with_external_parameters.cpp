@@ -143,6 +143,8 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 	}
 
 	accumulator->preProcess(timeStep, currentState) ;
+	if(external.find("imposed_deformation") != external.end())
+		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).set("imposed_deformation", external["imposed_deformation"]) ;
 	for(size_t i = 0 ; i < relations.size() ; i++)
 		relations[i]->preProcess( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState), timeStep ) ;
 	std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
