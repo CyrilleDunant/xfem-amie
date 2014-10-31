@@ -7,6 +7,7 @@ LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(s
 {
 	noFracture = (c == nullptr) ;
 	makeProperties(external) ;
+
 }
 
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), acc), external(parseDefaultValues(args, sep))
@@ -142,6 +143,8 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 	}
 
 	accumulator->preProcess(timeStep, currentState) ;
+	for(size_t i = 0 ; i < relations.size() ; i++)
+		relations[i]->preProcess( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState), timeStep ) ;
 	std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
 	makeProperties( prop, accumulator->getKelvinVoigtReduction() ) ;
 	currentState.getParent()->behaviourUpdated = true ;
