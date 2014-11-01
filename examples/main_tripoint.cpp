@@ -114,7 +114,7 @@ double aggregateArea = 0;
 void step()
 {
 
-    size_t nsteps = 2 ; 600*4 ; //16*10;
+    size_t nsteps = 600*4 ; //16*10;
     size_t nit = 2 ;
     size_t tries = 0 ;
     int totit = 0 ;
