@@ -74,8 +74,8 @@ GelBehaviour * gel = new GelBehaviour() ;
 
 void step()
 {
-	int nsteps = 30;
-	int nstepstot = 30;
+	int nsteps = 90;
+	int nstepstot = 90;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 
 	for( size_t i = 0 ; i < nsteps ; i++ )
@@ -104,8 +104,8 @@ void step()
 
 		if( !featureTree->solverConverged() )
 			filename = std::string( "failed-triangles" ) ;
-
-		filename.append( itoa( totit++, 10 ) ) ;
+                totit += go_on ;
+		filename.append( itoa( totit, 10 ) ) ;
 		std::cout << filename << std::endl ;
 
 		TriangleWriter writer(filename.c_str(), featureTree) ;
