@@ -351,14 +351,14 @@ int main ( int argc, char *argv[] )
     toprightvoidstirrupbulk.isVirtualFeature = true ;
 
     Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-    baseright.setBehaviour ( new ConcreteBehaviour ( new Stiffness ( m0_steel ) ) ;
+    baseright.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 // 	baseright.isVirtualFeature = true ;
 
     Sample baserightbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
     baserightbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
     Sample baserightstirrupbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-    baserightstirrupbulk.setBehaviour ( *new Stiffness ( m0_steel ) ) ;
+    baserightstirrupbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
     Sample bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
     bottomcentervoid.setBehaviour ( new VoidForm() ) ;
