@@ -104,8 +104,8 @@ void step()
 
 		if( !featureTree->solverConverged() )
 			filename = std::string( "failed-triangles" ) ;
-                totit += go_on ;
-		filename.append( itoa( totit, 10 ) ) ;
+                
+		filename.append( itoa( totit++, 10 ) ) ;
 		std::cout << filename << std::endl ;
 
 		TriangleWriter writer(filename.c_str(), featureTree) ;

@@ -329,32 +329,36 @@ int main ( int argc, char *argv[] )
     Sample samplebulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
     Sample samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
 
-// 	Sample topsupport( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-// 	topsupport.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-// 	topsupport.isVirtualFeature = true ;
-//
-// 	Sample topsupportbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-// 	topsupportbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-//
-// 	Sample topsupportstirrupbulk( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
-// 	topsupportstirrupbulk.setBehaviour( new VoidForm()/*Stiffness( m0_steel )*/ ) ;
-//
-// 	Sample toprightvoid( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
-// 	toprightvoid.setBehaviour( new VoidForm() ) ;
-// 	toprightvoid.isVirtualFeature = true ;
-//
-// 	Sample toprightvoidbulk( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth )*.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
-// 	toprightvoidbulk.setBehaviour( new VoidForm() ) ;
+    Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
+    topsupport.isVirtualFeature = true ;
+
+    Sample topsupportbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    topsupportbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
+
+    Sample topsupportstirrupbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
+    topsupportstirrupbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
+
+    Sample toprightvoid ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    toprightvoid.setBehaviour ( new VoidForm() ) ;
+    toprightvoid.isVirtualFeature = true ;
+
+    Sample toprightvoidbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    toprightvoidbulk.setBehaviour ( new VoidForm() ) ;
+    
+    Sample toprightvoidstirrupbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
+    toprightvoidstirrupbulk.setBehaviour ( new VoidForm() ) ;
+    toprightvoidstirrupbulk.isVirtualFeature = true ;
 
     Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-    baseright.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+    baseright.setBehaviour ( new ConcreteBehaviour ( new Stiffness ( m0_steel ) ) ;
 // 	baseright.isVirtualFeature = true ;
 
     Sample baserightbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-    baserightbulk.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+    baserightbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
 
     Sample baserightstirrupbulk ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
-    baserightstirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_steel, nu_steel, 1000.*compressionCrit,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) /*new Stiffness( m0_steel )*/ ) ;
+    baserightstirrupbulk.setBehaviour ( *new Stiffness ( m0_steel ) ) ;
 
     Sample bottomcentervoid ( supportLever - platewidth*.5, plateHeight, ( supportLever - platewidth*.5 ) *.5, -sampleHeight*.5 - plateHeight*.5 ) ;
     bottomcentervoid.setBehaviour ( new VoidForm() ) ;
@@ -450,12 +454,16 @@ int main ( int argc, char *argv[] )
     F.addFeature ( &sample,&baseright, rebarlayer, phi ) ;
     F.addFeature ( &baseright,&bottomcentervoid, rebarlayer, phi );
     F.addFeature ( &baseright,&rightbottomvoid, rebarlayer, phi ) ;
+    F.addFeature ( &samplebulk, &topsupportbulk);
+    F.addFeature ( &topsupportbulk, &toprightvoidbulk);
+    F.addFeature ( &sample, &topsupport, rebarlayer, phi);
+    F.addFeature ( &topsupport, &toprightvoid, rebarlayer, phi);
 
     Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.5, -sampleHeight*.5 ) ) ;
     F.addRefinementZone ( &fineZone );
 
-// 	F.addFeature( nullptr, &topsupportbulk ) ;
-// 	F.addFeature( nullptr, &toprightvoid ) ;
+    F.addFeature( nullptr, &topsupportbulk ) ;
+    F.addFeature( nullptr, &toprightvoid ) ;
 
 
     F.addFeature ( &baserightbulk,&bottomcentervoidbulk );
@@ -465,7 +473,7 @@ int main ( int argc, char *argv[] )
     if ( haveStirrups )
     {
         F.addFeature ( nullptr, &samplestirrupbulk, stirruplayer, psi ) ;
-// 		F.addFeature( nullptr, &topsupportstirrupbulk, stirruplayer, psi ) ;
+        F.addFeature( &samplestirrupbulk, &topsupportstirrupbulk, stirruplayer, psi ) ;
         F.addFeature ( &sample, stirrups[0], stirruplayer, psi ) ;
         F.addFeature ( nullptr,&baserightstirrupbulk, stirruplayer, psi );
         F.setSamplingFactor ( stirrups[0], 3 ) ;
