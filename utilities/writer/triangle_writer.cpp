@@ -102,14 +102,14 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 		for( size_t j = 0 ; j < layers.size() ; j++ )
 		{
 			
-			if(source->get2DMesh()->begin().size() == 0)
+			if(source->get2DMesh(layers[j])->begin().size() == 0)
 			{
 				continue ;
 			}
-			nTriangles.push_back( source->get2DMesh()->begin().size() );
+			nTriangles.push_back( source->get2DMesh(layers[j])->begin().size() );
 			int count = 0 ;
 
-			for( auto i = source->get2DMesh()->begin() ; i != source->get2DMesh()->end() ; i++ )
+			for( auto i = source->get2DMesh(layers[j])->begin() ; i != source->get2DMesh(layers[j])->end() ; i++ )
 			{
 				
 				if( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
@@ -123,8 +123,8 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 			if( timePlane.back() < 0 )
 				timePlane.back() = 0 ;
 
-			if( timePlane.back() >= source->get2DMesh()->begin()->timePlanes() )
-				timePlane.back() = source->get2DMesh()->begin()->timePlanes() - 1 ;
+			if( timePlane.back() >= source->get2DMesh(layers[j])->begin()->timePlanes() )
+				timePlane.back() = source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
 			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );

@@ -325,9 +325,9 @@ int main ( int argc, char *argv[] )
     Matrix m0_steel = Material::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRAIN ) ;
 
 
-    Sample sample ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-    Sample samplebulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
-    Sample samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+plateHeight, halfSampleOffset, -plateHeight*.5 ) ;
+    Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
+    Sample samplebulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
+    Sample samplestirrupbulk ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
 
     Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
