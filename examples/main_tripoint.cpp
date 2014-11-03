@@ -331,7 +331,6 @@ int main ( int argc, char *argv[] )
 
     Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
-    topsupport.isVirtualFeature = true ;
 
     Sample topsupportbulk ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupportbulk.setBehaviour ( new Stiffness ( m0_steel ) ) ;
@@ -341,14 +340,12 @@ int main ( int argc, char *argv[] )
 
     Sample toprightvoid ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoid.setBehaviour ( new VoidForm() ) ;
-    toprightvoid.isVirtualFeature = true ;
 
     Sample toprightvoidbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoidbulk.setBehaviour ( new VoidForm() ) ;
     
     Sample toprightvoidstirrupbulk ( nullptr, sampleLength*.5 - platewidth, plateHeight, ( sampleLength*.5 - platewidth ) *.5 + platewidth, sampleHeight*.5 + plateHeight*.5 ) ;
     toprightvoidstirrupbulk.setBehaviour ( new VoidForm() ) ;
-    toprightvoidstirrupbulk.isVirtualFeature = true ;
 
     Sample baseright ( platewidth, plateHeight, supportLever, -sampleHeight*.5 - plateHeight*.5 ) ;
     baseright.setBehaviour ( new Stiffness ( m0_steel ) ) ;
@@ -455,16 +452,12 @@ int main ( int argc, char *argv[] )
     F.addFeature ( &baseright,&bottomcentervoid, rebarlayer, phi );
     F.addFeature ( &baseright,&rightbottomvoid, rebarlayer, phi ) ;
     F.addFeature ( &samplebulk, &topsupportbulk);
-    F.addFeature ( &topsupportbulk, &toprightvoidbulk);
     F.addFeature ( &sample, &topsupport, rebarlayer, phi);
+    F.addFeature ( &topsupportbulk, &toprightvoidbulk);
     F.addFeature ( &topsupport, &toprightvoid, rebarlayer, phi);
 
     Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.5, -sampleHeight*.5 ) ) ;
     F.addRefinementZone ( &fineZone );
-
-    F.addFeature( nullptr, &topsupportbulk ) ;
-    F.addFeature( nullptr, &toprightvoid ) ;
-
 
     F.addFeature ( &baserightbulk,&bottomcentervoidbulk );
     F.addFeature ( &baserightbulk,&rightbottomvoidbulk ) ;
