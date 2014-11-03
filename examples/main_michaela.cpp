@@ -36,6 +36,7 @@
 #include "../features/features.h"
 #include "../features/enrichmentInclusion.h"
 #include "../mesher/delaunay_3d.h"
+#include "../polynomial/vm_function_extra.h"
 #include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
