@@ -10,8 +10,8 @@
 \usepackage{xspace}
 \usepackage{fullpage}
 
-\input{../notations}
-
+%\input{../notations}
+\newcommand{\amie}{\textsc{amie}\xspace}
 
 \begin{document}
 
@@ -1633,6 +1633,88 @@ The following example can be used to simulate the serpentine aggregates used in 
 \verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
 \verb+...damage_increment = 0.01+\\
 \verb+...time_tolerance = 1e-9+
+
+\section{Using templates}
+
+Templates are a way to use the same general setup with variations. It is an effective way to do parametric studies, or to simulate set of experiments in which only a few parameters change.
+
+You can call a template with the following syntax:\\
+
+\noindent \verb+.template+\\
+\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+\verb+..replace+\\
+\verb+...sample.behaviour.young_modulus = 20e9+
+
+\paragraph{} This example will import all information from \verb+../examples/data/composite/test_2d_composite.ini+ and replace the value of the \verb+young_modulus+ of the sample by $20 \times 10^{9}$.
+
+\paragraph{} When using a template, any information not stored under \verb+.template+ will be ignored! Therefore, it is best to verify that the \verb+..source+ file contains all necessary information for \amie to run.
+
+\paragraph{} \textsc{amie} will first load the template, then perform the following operations, and finally run the simulation with the modified script.
+
+\begin{enumerate}
+	\item Remove unnecessary source components.
+	\item Replace source components by new ones.
+	\item Attach new components to the source components.
+	\item Add new components to the source.
+\end{enumerate}
+
+The source components are defined by their full path. In the previous example, \verb+sample.behaviour.young_modulus+ points to the following element in the \verb+source+ file:\\
+
+\noindent \verb+.sample+\\
+\verb+..behaviour+\\
+\verb+...young_modulus = # original value+
+
+\paragraph{} The example below is entirely different from the example above:\\
+
+\noindent \verb+.template+\\
+\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+\verb+..replace+\\
+\verb+...sample+\\
+\verb+....behaviour+\\
+\verb+.....young_modulus = 20e9+
+
+\paragraph{} Indeed, the second example will replace the entire \verb+.sample+ section of the original \verb+source+ file with the indicated section. Information about the dimensions of the sample and the mechanical behaviour will be lost. The first example only replaces the \verb+young_modulus+ value.
+
+\subsection{Remove components}
+
+\noindent \verb+.template+\\
+\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+\verb+..remove+\\
+\verb+...inclusions.inclusions+\\
+\verb+...export+
+
+\paragraph{} Any element placed under the \verb+remove+ keyword will be removed from the tree. In case of multiple definitions, all elements with the same path will be removed. Therefore, the example above removes all second-level inclusions, as well as the mesh export definition.
+
+\subsection{Replace components}
+
+Components with an associated numeric or string value can be simply replaced as shown above. Any arbitrary number of components can be replaced:\\
+
+\noindent \verb+.template+\\
+\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+\verb+..replace+\\
+\verb+...sample.behaviour.young_modulus = 20e9+\\
+\verb+...inclusions.behaviour.young_modulus = 70e9+
+
+\paragraph{} If the targeted component does not exists, nothing will happen (the component will not be created!)
+
+\paragraph{} Entire blocks can be replaced as in the following example:\\
+
+\noindent \verb+.template+\\
+\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+\verb+..replace+\\
+\verb+...sample.behaviour+\\
+\verb+....type = PASTE_BEHAVIOUR+
+
+
+
+\subsection{Attach components}
+
+\subsection{Add components}
+
+
+
+
+
 
 \section{Future features}
 

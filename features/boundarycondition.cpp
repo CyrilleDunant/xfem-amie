@@ -284,19 +284,19 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
                         {
-                            first = &e->getBoundingPoint ( i )  ;
+                            first = &e->getBoundingPoint ( i ) ;
                         }
                         else
                         {
                             if ( !last )
                             {
-                                last = &e->getBoundingPoint ( i )  ;
+                                last = &e->getBoundingPoint ( i ) ;
                             }
                             else
                             {
                                 if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( i ) ) )
                                 {
-                                    last = &e->getBoundingPoint ( i )  ;
+                                    last = &e->getBoundingPoint ( i ) ;
                                 }
                             }
                         }
@@ -326,10 +326,9 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
                 gpe.gaussPoints[i].second *= edge.norm() *.5 ;
                 if(e->getOrder() >= CONSTANT_TIME_LINEAR)
-                    gpe.gaussPoints[i].second *= edge.norm() *.5 ;
+                    gpe.gaussPoints[i].second *= .5 ;
                 e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
             }
-
 
 
             std::vector<Variable> v ( 2 ) ;

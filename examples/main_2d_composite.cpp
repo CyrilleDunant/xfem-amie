@@ -28,12 +28,15 @@ int main(int argc, char *argv[])
 		file = std::string(argv[1]) ;
 
 	ConfigTreeItem * problem = ConfigParser::readFile(file) ;
+	if(problem->hasChild("template"))
+		problem = problem->getChild("template")->makeTemplate() ;
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))
 		F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;
 	F.setDiscretizationParameters(problem->getChild("discretization")) ;
 	Vector instants = F.setSteppingParameters(problem->getChild("stepping")) ;
+	std::vector<std::vector<Geometry *> > allFeatures ;
 	if(problem->hasChild("inclusions"))
 	{
 		std::vector<Geometry *> inclusions ;
@@ -41,13 +44,31 @@ int main(int argc, char *argv[])
 		std::vector<ConfigTreeItem *> newInclusions = problem->getAllChildren("inclusions") ;
 		for(size_t i = 0 ; i < newInclusions.size() ; i++)
 		{
-			std::vector<Feature *> tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions ) ;
+			std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( &F, dummy, inclusions ) ;
+			for(size_t j = 0 ; j < tmp[0].size() ; j++)
+				inclusions.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
 			for(size_t j = 0 ; j < tmp.size() ; j++)
-				inclusions.push_back( dynamic_cast<Geometry *>(tmp[j]) ) ;
+			{
+				std::vector<Geometry *> geom ;
+				for(size_t k = 0 ; k < tmp[j].size() ; k++)
+					geom.push_back( dynamic_cast<Geometry *>(tmp[j][k]) ) ;
+				allFeatures.push_back( geom ) ;
+			}
 		}
 	}
 
 	F.step() ;
+	std::vector<unsigned int> cacheIndex ;
+	std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
+	cacheIndex.push_back( F.get2DMesh()->generateCache( F.getFeature(0)) ) ;
+	for(size_t i = 0 ; i < allFeatures.size() ; i++)
+	{
+		std::cout << "\rgenerating cache for inclusion family " << i+1 << "/" << allFeatures.size() ;
+		cacheIndex.push_back( F.get2DMesh()->generateCache( allFeatures[i] ) ) ;
+	}
+	std::cout << "... done" << std::endl ;
+	for(size_t i = 0 ; i < cacheIndex.size() ; i++)
+		std::cout << "inclusion family " << i << " covering surface " << F.get2DMesh()->getArea( cacheIndex[i] ) << std::endl ;
 
 	std::vector<ConfigTreeItem *> bcItem = problem->getAllChildren("boundary_condition") ;
 	std::vector<std::pair<BoundaryCondition *, LinearInterpolatedExternalMaterialLaw *> > interpolatedBC ;
@@ -95,8 +116,10 @@ int main(int argc, char *argv[])
 			functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., instants[i] ) ) ;
 
 		F.step() ;
-		problem->getChild("output")->writeOutput(&F, i, instants.size()) ;
-		problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size()) ;
+		if(problem->hasChild("output"))
+			problem->getChild("output")->writeOutput(&F, i, instants.size(), cacheIndex) ;
+		if(problem->hasChild("export"))
+			problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size()) ;
 	}
 		
 	return 0 ;

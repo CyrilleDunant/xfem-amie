@@ -8,10 +8,12 @@
 #ifndef GENERALIZED_SPACETIME_VISCOELASTIC_ELEMENT_STATE
 #define GENERALIZED_SPACETIME_VISCOELASTIC_ELEMENT_STATE
 
+#include "elements.h"
 #include "integrable_entity.h"
 
 namespace Amie
 {
+
 
 class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
 {
@@ -23,6 +25,13 @@ class GeneralizedSpaceTimeViscoElasticElementState : public ElementState
 	
 	Vector averagestrainratebefore ;
 	Vector averagestrainrateafter ;
+
+	Vector genStrainAtGaussPointBefore ;
+	Vector genStrainAtGaussPointAfter ;
+	Vector genStrainRateAtGaussPointBefore ;
+	Vector genStrainRateAtGaussPointAfter ;
+
+
 public:
 	
 	void getEssentialAverageFields(FieldType f, Vector & stress, Vector & strain, Vector & strain_rate, VirtualMachine * vm, double t) ;
@@ -43,6 +52,24 @@ public:
 	virtual double getAverageField( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm = nullptr, int dummy= 0, double t = 0, std::vector< double > weights = std::vector<double>())  ;
 	
 	virtual void step( double dt, const Vector *d ) ;
+
+	Vector getCachedFieldAtGaussPointBefore( FieldType f, GaussPointArray & gp, size_t i, VirtualMachine * vm) ;
+	Vector getCachedFieldAtGaussPointAfter( FieldType f, GaussPointArray & gp, size_t g, VirtualMachine * vm) ;
+
+
+	static GaussPointArray genEquivalentGaussPointArray2D ( TriElement * trg, double time ) ;
+
+	static GaussPointArray genEquivalentGaussPointArray3D ( TetrahedralElement * tet, double time ) ;
+
+	static GaussPointArray genEquivalentGaussPointArray ( IntegrableEntity * e, double time ) 
+	{
+		if(e->spaceDimensions() == SPACE_TWO_DIMENSIONAL && dynamic_cast<TriElement *>(e))
+			return GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray2D( dynamic_cast<TriElement *>(e), time) ;
+		if(e->spaceDimensions() == SPACE_THREE_DIMENSIONAL && dynamic_cast<TetrahedralElement *>(e))
+			return GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray3D( dynamic_cast<TetrahedralElement *>(e), time) ;
+		return e->getGaussPoints() ;
+	}
+
 } ;
 
 class GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables : public GeneralizedSpaceTimeViscoElasticElementState

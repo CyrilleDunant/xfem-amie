@@ -58,42 +58,39 @@ int main(int argc, char *argv[])
 {
     Sample box(nullptr, 0.2,0.2,0.,0.) ;
 
+
     FeatureTree F(&box) ;
-    F.setSamplingNumber(128) ;
-    F.setOrder(LINEAR) ;
+    F.setSamplingNumber(20) ;
+    F.setOrder(LINEAR_TIME_LINEAR) ;
     double time_step = 0.01 ;
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
     F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 
-    ElasticOnlyPasteBehaviour paste ;
+    ViscoDamagePasteBehaviour paste ;
     box.setBehaviour( &paste );
-
-    std::vector<Feature *> inc = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(), 1, 0.04, 0.0002, new ConstantSizeDistribution(), ELLIPSE, 0.7, M_PI, 10, 0.8) ;
-
-	std::vector<Geometry *> buffer ;
-	for(size_t i = 0 ; i < inc.size() ; i++)
-	{
-		buffer.push_back(dynamic_cast<Geometry *>(inc[i])) ;
-	}
-
-    std::vector<Feature *> inc2 = PSDGenerator::get2DConcrete(&F, new ElasticOnlyAggregateBehaviour(30e9), 1, 0.05, 0.0002, new ConstantSizeDistribution(), CIRCLE, 1., M_PI, 1000, 0.8, nullptr, buffer) ;
-
-	std::vector<Feature *> inc3 = PSDGenerator::get2DEmbeddedInclusions(&F, new VoidForm(), inc2, 3, 0.01, 0.0001, new ConstantSizeDistribution(), CIRCLE, 1, M_PI, 100, 0.8) ;
-
-	std::vector<Geometry *> buffer2 ;
-	for(size_t i = 0 ; i < inc3.size() ; i++)
-	{
-		buffer2.push_back(dynamic_cast<Geometry *>(inc3[i])) ;
-	}
-
-	PSDGenerator::get2DEmbeddedInclusions(&F, new VoidForm(), inc2, 20, 0.005, 0.0001, new ConstantSizeDistribution(), ELLIPSE, 0.8, M_PI, 1000, 0.8, nullptr, buffer2) ;
 
     F.step() ;
 
-	TriangleWriter trg("toto", &F, 1.) ;
-	trg.getField(TWFT_STIFFNESS) ;
-	trg.write() ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 1 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 3 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 5 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 0 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 2 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 4 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.0001, 1 ) ) ;
+
+    F.setMaxIterationsPerStep(1024) ;
+
+    timeval time0, time1 ;
+    gettimeofday ( &time0, nullptr );
+
+    F.step() ;
+
+    gettimeofday ( &time1, nullptr );
+
+    double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+    std::cout << delta/1e6 << std::endl ;
 
     return 0 ;
 

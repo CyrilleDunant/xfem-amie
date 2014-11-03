@@ -26,6 +26,7 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "writer/triangle_writer.h"
+#include "parser.h"
 #include "iostream"
 #include "fstream"
 
@@ -118,6 +119,52 @@ ConfigTreeItem * ConfigTreeItem::getChildFromFullLabel(std::string childLabel)  
 	return getChild( ConfigTreeItem::decompose( childLabel ) ) ;
 }
 
+void ConfigTreeItem::removeAllChildren() 
+{
+	for(size_t i = 0 ; i < children.size() ; i++)
+		children[i]->setFather( nullptr ) ;
+	children.resize(0) ;
+}
+
+void ConfigTreeItem::removeChild(std::string childLabel) 
+{
+	if(!hasChild(childLabel))
+		return ;
+
+	std::vector<ConfigTreeItem *> next ;
+	for(size_t i = 0 ; i < children.size() ; i++) 
+	{
+		if(children[i]->is(childLabel))
+			children[i]->setFather( nullptr ) ;
+		else
+			next.push_back( children[i] ) ;
+	}
+
+	children.resize(0) ;
+	for(size_t i = 0 ; i < next.size() ; i++)
+		addChild( next[i] ) ;
+}
+
+void ConfigTreeItem::removeChild(std::vector<std::string> childLabelDecomposed) 
+{
+	if(childLabelDecomposed.size() == 1)
+	{
+		removeChild(childLabelDecomposed[0]) ;
+		return ;
+	}
+	std::vector<std::string> nextChildLabelDecomposed ;
+	for(size_t i = 1 ; i < childLabelDecomposed.size() ; i++)
+		nextChildLabelDecomposed.push_back( childLabelDecomposed[i] ) ;
+	std::vector<ConfigTreeItem *> all = getAllChildren(childLabelDecomposed[0]);
+	for(size_t i = 0 ; i < all.size() ; i++)
+		all[i]->removeChild( nextChildLabelDecomposed ) ;
+}
+
+void ConfigTreeItem::removeChildFromFullLabel(std::string childLabel) 
+{
+	removeChild( ConfigTreeItem::decompose( childLabel ) ) ;
+}
+
 void ConfigTreeItem::addChild(ConfigTreeItem * c) 
 {
 	if(c)
@@ -125,6 +172,12 @@ void ConfigTreeItem::addChild(ConfigTreeItem * c)
 		children.push_back(c) ;
 		c->setFather(this) ;
 	}
+}
+
+void ConfigTreeItem::addChildren(std::vector<ConfigTreeItem *> c) 
+{
+	for(size_t i = 0 ; i < c.size() ; i++)
+		addChild(c[i]) ;
 }
 
 void ConfigTreeItem::setFather(ConfigTreeItem * f) 
@@ -968,12 +1021,13 @@ GeometryType ConfigTreeItem::translateGeometryType(std::string type)
 }
 
 
-std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers) const 
+std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers) const 
 {
 	std::vector<Feature *> ret ;
+	std::vector<std::vector<Feature *> > out ;
 	ConfigTreeItem * psdConfig = getChild("particle_size_distribution") ;
 	if(!psdConfig)
-		return ret ;
+		return out ;
 	std::string type = psdConfig->getStringData("type","CONSTANT") ;
 
 	Form * behaviour = nullptr ;
@@ -990,7 +1044,7 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vecto
 		if(filename == std::string("file_not_found"))
 		{
 			std::cout << "no inclusion file specified" << std::endl ;
-			return ret ;
+			return out ;
 		}
 		GranuloFromFile granulo( filename, columns ) ;
 		std::string inclusion = getStringData("geometry.type","CIRCLE") ;
@@ -1081,6 +1135,8 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vecto
 		}
 	}
 
+	out.push_back(ret) ;
+
 	if(hasChild("inclusions"))
 	{
 		std::vector<Feature *> newbase = ret ;
@@ -1088,13 +1144,15 @@ std::vector<Feature *> ConfigTreeItem::getInclusions(FeatureTree * F, std::vecto
 		std::vector<ConfigTreeItem *> newInclusions = getAllChildren("inclusions") ;
 		for(size_t i = 0 ; i < newInclusions.size() ; i++)
 		{
-			std::vector<Feature *> tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
+			std::vector<std::vector<Feature *> > tmp = newInclusions[i]->getInclusions( F, newbase, newbrothers ) ;
+			for(size_t j = 0 ; j < tmp[0].size() ; j++)
+				newbrothers.push_back( dynamic_cast<Geometry *>(tmp[0][j]) ) ;
 			for(size_t j = 0 ; j < tmp.size() ; j++)
-				newbrothers.push_back( dynamic_cast<Geometry *>(tmp[j]) ) ;
+				out.push_back(tmp[j]) ;
 		}
 	}
 
-	return ret ;
+	return out ;
 }
 
 LagrangeMultiplierType ConfigTreeItem::translateLagrangeMultiplierType(std::string type) 
@@ -1503,8 +1561,82 @@ FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
 	return DISPLACEMENT_FIELD ;
 }
 
+ConfigTreeItem * ConfigTreeItem::makeTemplate() 
+{
+	std::string source = getStringData("source","file_not_found") ;
+	if(source == "file_not_found")
+	{
+		std::cout << "template without source file! exiting now" << std::endl ;
+		exit(0) ;
+	}
+	ConfigTreeItem * ret = ConfigParser::readFile(source) ;
 
-void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps) 
+/*	std::vector<ConfigTreeItem *> toAdd = getAllChildren("add") ;
+	for(size_t i = 0 ; i < toAdd.size() ; i++)
+	{
+		ConfigTreeItem * newFather = ret ;
+		if(toAdd[i]->hasChild("destination"))
+			newFather = ret->getChildFromFullLabel( toAdd[i]->getStringData("destination",".") ) ;
+		toAdd[i]->setLabel( toAdd[i]->getStringData("label","label") ) ;
+		newFather->addChild( toAdd[i] ) ;
+	}*/
+
+	if(hasChild("remove"))
+	{
+		ConfigTreeItem * remove = getChild("remove") ;
+		std::vector<ConfigTreeItem *> toRemove = remove->getAllChildren() ;
+		for(size_t i = 0 ; i < toRemove.size() ; i++)
+		{
+			ret->removeChildFromFullLabel( toRemove[i]->getLabel() ) ;
+		}
+	}
+
+	if(hasChild("replace"))
+	{
+		ConfigTreeItem * replace = getChild("replace") ;
+		std::vector<ConfigTreeItem *> toReplace = replace->getAllChildren() ;
+		for(size_t i = 0 ; i < toReplace.size() ; i++)
+		{
+			if(ret->hasChildFromFullLabel( toReplace[i]->getLabel() ))
+			{
+				ConfigTreeItem * previous = ret->getChildFromFullLabel( toReplace[i]->getLabel() ) ;
+				ConfigTreeItem * next = toReplace[i] ;
+				if(toReplace[i]->getAllChildren().size() > 0)
+				{
+					previous->removeAllChildren() ;
+					previous->addChildren( next->getAllChildren() ) ;
+				}
+				previous->setData( next->getData() ) ;
+				previous->setStringData( next->getStringData() ) ;
+			}
+		}
+	}
+	
+	if(hasChild("add"))
+	{
+		ConfigTreeItem * add = getChild("add") ;
+		std::vector<ConfigTreeItem *> toAdd = add->getAllChildren() ;
+		ret->addChildren(toAdd) ;
+	}
+
+	if(hasChild("attach"))
+	{
+		ConfigTreeItem * attach = getChild("attach") ;
+		std::vector<ConfigTreeItem *> toAttach = attach->getAllChildren() ;
+		for(size_t i = 0 ; i < toAttach.size() ; i++)
+		{
+			ConfigTreeItem * nextFather = ret->getChildFromFullLabel( toAttach[i]->getLabel() ) ;
+			std::vector<ConfigTreeItem *> nextChildren = toAttach[i]->getAllChildren() ;
+			nextFather->addChildren( nextChildren ) ;
+		}
+	}
+
+
+	return ret ;
+	
+}
+
+void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector<unsigned int> cacheIndex) 
 {
 	if(getStringData("file_name","file_not_found") == "file_not_found")
 		return ;
@@ -1519,16 +1651,38 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps)
 	{
 		std::fstream out ;
 		out.open(getStringData("file_name","output").c_str(), std::ios::out | std::ios::app) ;
+		std::cout << F->getCurrentTime() << "\t" ;
 		out << F->getCurrentTime() << "\t" ;
-		std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
 		std::string instant = getStringData("instant","NOW") ;
+		std::vector<ConfigTreeItem *> fields = getAllChildren("field") ;
 		for(size_t i = 0 ; i < fields.size() ; i++)
 		{
 			bool isFieldType = true ;
 			Vector f = F->getAverageField( ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ), -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
 			for(size_t j = 0 ; j < f.size() ; j++)
+			{
+				std::cout << f[j] << "\t" ;
 				out << f[j] << "\t" ;
+			}
 		}
+		std::vector<ConfigTreeItem *> families = getAllChildren("inclusions") ;
+		for(size_t i = 0 ; i < families.size() ; i++)
+		{
+			int index = families[i]->getData("index", 0) ;
+			std::vector<ConfigTreeItem *> ffields = families[i]->getAllChildren("field") ;
+			for(size_t i = 0 ; i < ffields.size() ; i++)
+			{
+				bool isFieldType = true ;
+				Vector f = F->get2DMesh()->getField( ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ), cacheIndex[index], -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+				for(size_t j = 0 ; j < f.size() ; j++)
+				{
+					std::cout << f[j] << "\t" ;
+					out << f[j] << "\t" ;
+				}
+			}
+			
+		}
+		std::cout << std::endl ;
 		out << std::endl ;
 		out.close() ;
 	}

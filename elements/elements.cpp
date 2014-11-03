@@ -2603,10 +2603,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		invert3x3Matrix(ret) ;
 		if(cachedJinv.empty() && !isMoved())
 			cachedJinv.push_back(ret) ;
-			
-// 		ret.print() ;
-// 		exit(0) ;
-		
 	}
 }
 	

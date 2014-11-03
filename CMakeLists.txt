@@ -352,6 +352,9 @@ target_link_libraries( elleuch Amie ${ALL_LINK_FLAGS})
 add_executable(asr examples/main_asr.cpp )
 target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
 
+add_executable(michaela examples/main_michaela.cpp )
+target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
+
 add_executable(asr_simple examples/main_asr_simple.cpp )
 target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
 

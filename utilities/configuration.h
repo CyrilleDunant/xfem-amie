@@ -86,8 +86,15 @@ public:
 	/** Accessor, returns the last direct child.*/
 	ConfigTreeItem * getLastChild() const ;
 
+	void removeAllChildren() ;
+	void removeChild(std::string childLabel) ;
+	void removeChild(std::vector<std::string> childLabelDecomposed) ;
+	void removeChildFromFullLabel(std::string childLabel) ;
+
 	/** Adds a child.*/
 	void addChild(ConfigTreeItem * c) ;
+
+	void addChildren(std::vector<ConfigTreeItem *> c) ;
 
 	/** Sets the father.*/
 	void setFather(ConfigTreeItem * f) ;
@@ -124,6 +131,10 @@ public:
 	
 	/** Set the label for this atom. */
 	void setLabel(std::string label) ;
+
+	void setData(double d) { data = d ; }
+
+	void setStringData(std::string s) { str = s ; }
 
 	/** Returns the numeral data of the current item */
 	double getData() const { return data ; }
@@ -174,7 +185,7 @@ public:
 	ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
 	/** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
-	std::vector<Feature *> getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) const ;
+	std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) const ;
 
 	/** Translates the current item in a boundary condition*/
 	BoundaryCondition * getBoundaryCondition() const ;
@@ -183,13 +194,16 @@ public:
 	bool isAtTimeStep(int i, int nmax) const ;
 
 	/** Writes average field values taken from f in a determined output file*/
-	void writeOutput(FeatureTree * f, int n, int nmax) ;
+	void writeOutput(FeatureTree * f, int n, int nmax, std::vector<unsigned int> cacheIndex) ;
 
 	/** Writes field values taken from f in a determined triangle file*/
 	void exportTriangles(FeatureTree * f, int n, int nmax) ;
 
 	/** Writes field values taken from f in a determined svg triangle file*/
 	void exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree * f, int n, int nmax) ;
+
+	/** Reads a template file and modifies it according to a set of rules*/
+	ConfigTreeItem * makeTemplate() ;
 
 	/** Translate a string in an element order*/
 	static Order translateOrder(std::string order) ;

@@ -136,6 +136,10 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 	}
 	
 	std::cout << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;
+	double area = 0. ;
+	for(size_t i = 0. ; i < ret.size() ; i++)
+		area += ret[i]->area() ;
+	std::cout << "surface covered by the inclusions: " << area << std::endl ;
 	
 	return ret ;
 }

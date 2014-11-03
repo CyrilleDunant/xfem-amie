@@ -27,6 +27,7 @@
 #include <set>
 #include "element_checker.h"
 #include "../elements/integrable_entity.h"
+#include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
 namespace Amie
 {
@@ -356,6 +357,74 @@ public:
         coefs[cacheID].clear() ;
     }
 
+    virtual unsigned int generateCache( Geometry * source) {
+        //search for first empty cache slot ;
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+        std::vector<ETYPE *> elems = getConflictingElements ( source ) ;
+        if(elems.empty())
+            elems = getConflictingElements ( &source->getCenter() ) ;
+
+        for ( auto & element : elems ) {
+		if(source->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source)
+		{
+		        caches[position].push_back ( element->index ) ;
+		        coefs[position].push_back ( std::vector<double>() ) ;
+		}
+	}
+        return position ;
+
+    } 
+
+    virtual unsigned int generateCache( std::vector<Geometry *> source) {
+        //search for first empty cache slot ;
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+	for(size_t i = 0 ; i < source.size() ; i++)
+	{
+		std::vector<ETYPE *> elems = getConflictingElements ( source[i] ) ;
+		if(elems.empty())
+		    elems = getConflictingElements ( &source[i]->getCenter() ) ;
+
+		for ( auto & element : elems ) {
+			if(source[i]->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source[i])
+			{
+				caches[position].push_back ( element->index ) ;
+				coefs[position].push_back ( std::vector<double>() ) ;
+			}
+		}
+	}
+
+        return position ;
+
+    } 
+
     virtual unsigned int generateCache ( const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
         size_t position = 0;
         #pragma omp critical
@@ -393,11 +462,14 @@ public:
                     Function y = element->getYTransform() ;
                     Function z = element->getZTransform() ;
                     Function t = element->getTTransform() ;
-                    for ( size_t i = 0 ; i < element->getGaussPoints().gaussPoints.size() ; i++ ) {
-                        double xx = vm.eval ( x, element->getGaussPoints().gaussPoints[i].first ) ;
-                        double xy = vm.eval ( y, element->getGaussPoints().gaussPoints[i].first ) ;
-                        double xz = vm.eval ( z, element->getGaussPoints().gaussPoints[i].first ) ;
-                        double xt = vm.eval ( t, element->getGaussPoints().gaussPoints[i].first ) ;
+		    GaussPointArray gp = element->getGaussPoints() ;
+		    if(element->getOrder() >= CONSTANT_TIME_LINEAR)
+			    gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+                    for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                        double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                        double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                        double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+                        double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
 
                         coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
                     }
@@ -587,7 +659,7 @@ public:
 
                     double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
                     if ( !strain.size() ) {
-                        strain.resize ( 0., buffer.size() );
+                        strain.resize ( buffer.size(), 0. );
                     }
                     strain += buffer*v ;
                     sumFactors += v ;
@@ -604,7 +676,7 @@ public:
 
                     double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
-                        tmpstrain.resize ( 0., buffer.size() );
+                        tmpstrain.resize ( buffer.size(), 0. );
                     }
                     tmpstrain += buffer*v ;
                     sumFactors += v ;
@@ -613,7 +685,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
-                        tmpstrainrate.resize ( 0., buffer.size() );
+                        tmpstrainrate.resize ( buffer.size(), 0. );
                     }
                     tmpstrainrate += buffer*v ;
                 }
@@ -623,11 +695,13 @@ public:
                 Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
+		Vector imposed = e->getBehaviour()->getImposedStress( Point() ) ;
                 for ( size_t i = 0 ; i < tsize ; i++ ) {
-                    stress[i] = tmpstress[i] ;
+                    stress[i] = tmpstress[i]-imposed[i] ;
                     strain[i] = tmpstrain[i] ;
                 }
             }
+//            std::cout << "here" << strain.size() << std::endl ;
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
                 first.resize ( psize );

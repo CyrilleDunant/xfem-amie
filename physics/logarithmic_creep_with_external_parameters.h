@@ -45,7 +45,7 @@ protected:
 public:
     // the argument string contains the list of external variables and their default values (see the function parseDefaultValues() in external_material_laws.h for more details)
     LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
-    LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
+    LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     virtual ~LogarithmicCreepWithExternalParameters() { if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
 
     virtual ElementState * createElementState( IntegrableEntity * e) ;

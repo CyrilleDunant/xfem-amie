@@ -130,6 +130,40 @@ struct FieldLowerThanElementChecker : public ElementChecker
 	}	
 } ;
 
+/*struct InFeatureElementChecker : public ElementChecker
+{
+	std::vector<Feature *> inclusions ;
+
+	InFeatureElementChecker(std::vector<Feature *> inc) : ElementChecker(), inclusions(inc) { } ;
+	virtual bool checkElement(IntegrableEntity * e) const 
+	{ 
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			if(inclusions[i]->in(e->getCenter()))
+				return true ;
+		}
+		return false ;
+	}	
+	
+
+} ;
+
+struct NotInFeatureElementChecker : public InFeatureElementChecker
+{
+	NotInFeatureElementChecker(std::vector<Feature *> inc) : InFeatureElementChecker(inc) { } ;
+	virtual bool checkElement(IntegrableEntity * e) const 
+	{ 
+		for(size_t i = 0 ; i < inclusions.size() ; i++)
+		{
+			if(inclusions[i]->in(e->getCenter()))
+				return false ;
+		}
+		return true
+ ;
+	}	
+	
+
+} ;*/
 
 }
 
