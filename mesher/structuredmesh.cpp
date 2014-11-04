@@ -98,7 +98,7 @@ StructuredMesh::~StructuredMesh()
 		delete points[i] ;
 	
 }
-std::vector<DelaunayTriangle *> StructuredMesh::getElements() const 
+std::vector<DelaunayTriangle *> StructuredMesh::getElements() 
 {
 	std::vector<DelaunayTriangle *> triangles ;
 	for(size_t i = 0 ; i < tree.size() ; i++)

@@ -17,7 +17,7 @@ protected:
     void addSharedNodes ( size_t nodes_per_side, size_t time_planes, double timestep ) ;
     size_t global_counter ;
     std::vector <DelaunayTriangle *> tree ;
-    virtual std::vector<DelaunayTriangle *> getElements() const ;
+    virtual std::vector<DelaunayTriangle *> getElements() ;
 
 public:
     StructuredMesh ( double sizeX, double sizeY, int div, const Point & center ) ;

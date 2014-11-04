@@ -341,7 +341,8 @@ protected:
 	size_t global_counter ;
 	bool fixedScale ;
 	std::vector<Point *> additionalPoints ;
-        virtual std::vector< DelaunayTetrahedron* > getElements() const {return getTetrahedrons() ;};
+        virtual std::vector< DelaunayTetrahedron* > getElements() {return getTetrahedrons() ;};
+    bool neighbourhood ;
 	
 public:
     virtual size_t size() const { return tree.size() ; } ;
@@ -431,7 +432,7 @@ public:
 	 * 
 	 * @return all the living triangles resulting from the triangulation.
 	 */
-	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) const ;
+	std::vector<DelaunayTetrahedron *> getTetrahedrons(bool buildNeighbourhood = true) ;
 	
 	void addSharedNodes(size_t nodes_per_side, const TetrahedralElement * father = nullptr) ; 
 	void addSharedNodes(size_t nodes_per_side, size_t time_planes = 2, double timestep = 2, const TetrahedralElement * father = nullptr) ;

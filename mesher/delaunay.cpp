@@ -1975,6 +1975,7 @@ const Point * Star::getEdge(size_t i) const
 
 DelaunayTree::DelaunayTree(Point * p0, Point *p1, Point *p2): Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >(SPACE_TWO_DIMENSIONAL)
 {
+    neighbourhood = false ;
     this->global_counter = 3;
     p0->setId(0) ;
     p1->setId(1)  ;
@@ -2052,6 +2053,7 @@ void DelaunayTree::insertIf( Point *p, std::vector<SamplingCriterion *> v, doubl
             else
             {
                 p->setId(this->global_counter++) ;
+                neighbourhood = false ;
             }
         }
     }
@@ -2171,6 +2173,7 @@ std::vector<DelaunayTreeItem *> DelaunayTree::addElements(std::vector<DelaunayTr
 
 void DelaunayTree::insert(Point *p)
 {
+    neighbourhood = false ;
     std::vector<DelaunayTreeItem *> cons = this->conflicts(p) ;
     if(cons.empty())
     {
@@ -2264,18 +2267,14 @@ std::vector<DelaunayDemiPlane *> * DelaunayTree::getConvexHull()
     return ret ;
 }
 
-std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood) const 
+std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourhood)
 {
-
     std::vector<DelaunayTriangle *> ret ;
-    bool neighbourhood = false;
     for(size_t i = 0 ; i < tree.size() ; i++)
     {
         if(tree[i]->isTriangle && !tree[i]->isDeadTriangle)
         {
             ret.push_back((DelaunayTriangle *)(tree[i])) ;
-            if(!neighbourhood && ret.back()->neighbourhood.size())
-                neighbourhood = true ;
         }
     }
     
@@ -2283,6 +2282,7 @@ std::vector<DelaunayTriangle *> DelaunayTree::getTriangles(bool buildNeighbourho
 
     if(!neighbourhood && buildNeighbourhood)
     {
+        neighbourhood = true ;
 // 		std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
         for( size_t i = 0 ; i < ret.size() ; i++)
         {

@@ -260,7 +260,7 @@ void ParallelDelaunayTree::insert(Point * p)
     }
 }
 
-std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements() const
+std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
 {
     std::vector<std::vector<DelaunayTriangle *>> tris(meshes.size()) ;
 
@@ -602,7 +602,7 @@ unsigned int ParallelDelaunayTree::generateCache(const Geometry * locus, const G
 
     for(auto & element : elems)
     {
-        if(source && element->getBehaviour()->getSource() != source || source == nullptr)
+        if(source && element->getBehaviour()->getSource() != source)
             continue ;
         
         if(locus->in(element->getCenter()))
@@ -610,6 +610,8 @@ unsigned int ParallelDelaunayTree::generateCache(const Geometry * locus, const G
             caches[position].push_back(element->index) ;
             elementMap[position].push_back(getDomain(element));
             coefs[position].push_back(std::vector<double>()) ;
+            if(!source)
+               continue ;
             Function x = element->getXTransform() ;
             Function y = element->getYTransform() ;
             Function t = element->getTTransform() ;
@@ -667,7 +669,7 @@ unsigned int ParallelDelaunayTree::generateCache ()
     return position ;
 };
 
-Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int dummy, double t) const 
+Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int dummy, double t) 
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -689,7 +691,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int du
     return ret/w ;
 }
 
-Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) const
+Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) 
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -711,7 +713,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) const
     return ret/w ;
 }
 
-    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy , double t ) const {
+    Vector ParallelDelaunayTree::getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy , double t ) {
     Vector first ;
     Vector strain ;
     Vector stress ;
@@ -822,7 +824,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t) const
     return first ;
 }
 
-std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy , double t ) const {
+std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy , double t ) {
     Vector first ;
     Vector second ;
     Vector strain ;

@@ -1,5 +1,8 @@
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QFileDialog>
+
+#include <QApplication>
+#include <QFileDialog>
+//#include <QtWidgets/QApplication>
+//#include <QtWidgets/QFileDialog>
 #include <unistd.h>
 #include <fstream>
 #include <iostream>

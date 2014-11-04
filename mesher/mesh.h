@@ -42,7 +42,7 @@ protected:
     std::vector<std::vector<int>> caches ;
     std::vector<std::vector<std::vector<double>>> coefs ;
     int allElementsCacheID ;
-    virtual std::vector<ETYPE *> getElements() const = 0;
+    virtual std::vector<ETYPE *> getElements() = 0;
 public:
 
     virtual std::vector<int> & getCache ( unsigned int cacheID ) {
@@ -60,7 +60,7 @@ public:
 public:
     Mesh(SpaceDimensionality spaceDimensions) : spaceDimensions(spaceDimensions), allElementsCacheID(-1) {} ;
     virtual ~Mesh() {} ;
-    
+
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
@@ -379,15 +379,15 @@ public:
             elems = getConflictingElements ( &source->getCenter() ) ;
 
         for ( auto & element : elems ) {
-		if(source->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source)
-		{
-		        caches[position].push_back ( element->index ) ;
-		        coefs[position].push_back ( std::vector<double>() ) ;
-		}
-	}
+            if(source->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source)
+            {
+                caches[position].push_back ( element->index ) ;
+                coefs[position].push_back ( std::vector<double>() ) ;
+            }
+        }
         return position ;
 
-    } 
+    }
 
     virtual unsigned int generateCache( std::vector<Geometry *> source) {
         //search for first empty cache slot ;
@@ -406,24 +406,24 @@ public:
             coefs.push_back ( std::vector<std::vector<double>>() );
         }
 
-	for(size_t i = 0 ; i < source.size() ; i++)
-	{
-		std::vector<ETYPE *> elems = getConflictingElements ( source[i] ) ;
-		if(elems.empty())
-		    elems = getConflictingElements ( &source[i]->getCenter() ) ;
+        for(size_t i = 0 ; i < source.size() ; i++)
+        {
+            std::vector<ETYPE *> elems = getConflictingElements ( source[i] ) ;
+            if(elems.empty())
+                elems = getConflictingElements ( &source[i]->getCenter() ) ;
 
-		for ( auto & element : elems ) {
-			if(source[i]->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source[i])
-			{
-				caches[position].push_back ( element->index ) ;
-				coefs[position].push_back ( std::vector<double>() ) ;
-			}
-		}
-	}
+            for ( auto & element : elems ) {
+                if(source[i]->in(element->getCenter()) && element->getBehaviour() && element->getBehaviour()->getSource() == source[i])
+                {
+                    caches[position].push_back ( element->index ) ;
+                    coefs[position].push_back ( std::vector<double>() ) ;
+                }
+            }
+        }
 
         return position ;
 
-    } 
+    }
 
     virtual unsigned int generateCache ( const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
         size_t position = 0;
@@ -439,10 +439,12 @@ public:
                 caches.push_back ( std::vector<int>() );
                 coefs.push_back ( std::vector<std::vector<double>>() );
             }
-            
-            for ( ; position < caches.size() ; position++ ) {
-                if ( caches[position].empty() ) {
-                    break ;
+            else
+            {
+                for ( ; position < caches.size() ; position++ ) {
+                    if ( caches[position].empty() ) {
+                        break ;
+                    }
                 }
             }
             if ( position == caches.size() ) {
@@ -451,20 +453,22 @@ public:
             }
 
             for ( auto & element : elems ) {
-                if ( source && element->getBehaviour()->getSource() != source || source == nullptr) {
+                if ( source && element->getBehaviour()->getSource() != source) {
                     continue ;
                 }
 
                 if ( locus->in ( element->getCenter() ) ) {
                     caches[position].push_back ( element->index ) ;
                     coefs[position].push_back ( std::vector<double>() ) ;
+                    if(!source)
+                        continue ;
                     Function x = element->getXTransform() ;
                     Function y = element->getYTransform() ;
                     Function z = element->getZTransform() ;
                     Function t = element->getTTransform() ;
-		    GaussPointArray gp = element->getGaussPoints() ;
-		    if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-			    gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+                    GaussPointArray gp = element->getGaussPoints() ;
+                    if(element->getOrder() >= CONSTANT_TIME_LINEAR)
+                        gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
                     for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
                         double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
                         double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
@@ -484,34 +488,34 @@ public:
     {
         #pragma omp critical
         {
-        //search for first empty cache slot ;
-        if ( caches.empty() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
-        size_t position = 0;
-        for ( ; position < caches.size() ; position++ ) {
-            if ( caches[position].empty() ) {
-                break ;
+            //search for first empty cache slot ;
+            if ( caches.empty() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
             }
-        }
-        if ( position == caches.size() ) {
-            caches.push_back ( std::vector<int>() );
-            coefs.push_back ( std::vector<std::vector<double>>() );
-        }
+            size_t position = 0;
+            for ( ; position < caches.size() ; position++ ) {
+                if ( caches[position].empty() ) {
+                    break ;
+                }
+            }
+            if ( position == caches.size() ) {
+                caches.push_back ( std::vector<int>() );
+                coefs.push_back ( std::vector<std::vector<double>>() );
+            }
 
-        for ( size_t i = 0 ;  i < size() ; i++ ) {
-            ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
+            for ( size_t i = 0 ;  i < size() ; i++ ) {
+                ETYPE * elem = dynamic_cast<ETYPE *>(getInTree(i)) ;
 
-            if(!elem)
-                continue ;
-            caches[position].push_back ( getInTree(i)->index ) ;
-            coefs[position].push_back ( std::vector<double>() ) ;
+                if(!elem)
+                    continue ;
+                caches[position].push_back ( getInTree(i)->index ) ;
+                coefs[position].push_back ( std::vector<double>() ) ;
 
 //             for ( size_t j = 0 ; j < elem->getGaussPoints().gaussPoints.size() ; j++ )
 //                 coefs[position].back().push_back ( 1 ) ;
-        }
-        allElementsCacheID = position ;
+            }
+            allElementsCacheID = position ;
         }
         return allElementsCacheID ;
     };
@@ -521,13 +525,13 @@ public:
         size_t position = 0;
         #pragma omp critical
         {
-            
+
             //search for first empty cache slot ;
             if ( caches.empty() ) {
                 caches.push_back ( std::vector<int>() );
                 coefs.push_back ( std::vector<std::vector<double>>() );
             }
-            
+
             for ( ; position < caches.size() ; position++ ) {
                 if ( caches[position].empty() ) {
                     break ;
@@ -545,8 +549,8 @@ public:
                     continue ;
                 if(c->checkElement(elem))
                 {
-                        caches[position].push_back ( getInTree(i)->index ) ;
-                        coefs[position].push_back ( std::vector<double>() ) ;
+                    caches[position].push_back ( getInTree(i)->index ) ;
+                    coefs[position].push_back ( std::vector<double>() ) ;
                 }
 
             }
@@ -581,16 +585,16 @@ public:
 
     double getArea( unsigned int cacheID)
     {
-	double a = 0 ;
-        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) 
+        double a = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )
             a += static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() ;
         return a ;
     }
 
     double getVolume( unsigned int cacheID)
     {
-	double v = 0 ;
-        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )  
+        double v = 0 ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )
             v += static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->volume() ;
         return v ;
     }
@@ -616,11 +620,11 @@ public:
             }
             return ret/w ;
         }
-        
+
         VirtualMachine vm ;
         size_t blocks = 0 ;
 
-        
+
         for ( auto i = begin() ; i  != end() && !blocks; i++ ) {
             blocks = i->getBehaviour()->getNumberOfDegreesOfFreedom() /spaceDimensions ;
         }
@@ -695,7 +699,7 @@ public:
                 Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
-		Vector imposed = e->getBehaviour()->getImposedStress( Point() ) ;
+                Vector imposed = e->getBehaviour()->getImposedStress( Point() ) ;
                 for ( size_t i = 0 ; i < tsize ; i++ ) {
                     stress[i] = tmpstress[i]-imposed[i] ;
                     strain[i] = tmpstrain[i] ;
@@ -740,7 +744,7 @@ public:
                 if ( first.size() != buffer.size()) {
                     first.resize ( buffer.size(), 0. );
                 }
-                
+
                 first += buffer*v ;
                 sumFactors += v ;
             }
@@ -928,7 +932,7 @@ public:
 
         return std::make_pair ( first, second ) ;
     }
-    
+
     class iterator
     {
     private:
@@ -938,13 +942,13 @@ public:
 
     public:
         iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
-        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
-        { 
+        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position)
+        {
             if(msh->allElementsCacheID == -1)
                 msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;
         } ;
-        
+
         bool operator ==(const iterator & i) const
         {
             return i.position == position ;
@@ -953,7 +957,7 @@ public:
         {
             return i.position != position ;
         }
-        
+
         bool operator <=(const iterator & i)const
         {
             return position <= i.position ;
@@ -970,58 +974,58 @@ public:
         {
             return position > i.position ;
         }
-        
+
         iterator& operator++() {
             position++ ;
             // actual increment takes place here
             return *this;
         }
-        
+
         iterator operator++(int) {
             iterator tmp(*this); // copy
             operator++(); // pre-increment
             return tmp;   // return old value
         }
-        
+
         iterator& operator+=(int i) {
             position +=i ;
             return *this;
         }
-        
-        friend iterator operator+(iterator lhs,  int i) 
+
+        friend iterator operator+(iterator lhs,  int i)
         {
-            return lhs += i; 
+            return lhs += i;
         }
-        
+
         iterator& operator--() {
             position-- ;
             return *this;
         }
-        
+
         iterator operator--(int) {
             iterator tmp(*this); // copy
             operator--(); // pre-increment
             return tmp;   // return old value
         }
-        
+
         iterator& operator-=(int i) {
             position -=i ;
             return *this;
         }
-        
-        friend iterator operator-(iterator lhs,  int i) 
+
+        friend iterator operator-(iterator lhs,  int i)
         {
-            return lhs -= i; 
+            return lhs -= i;
         }
-        
-        ETYPE * operator-> ( ) { 
+
+        ETYPE * operator-> ( ) {
             return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
         }
-        
-        operator ETYPE * (){ 
+
+        operator ETYPE * () {
             return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
-        } 
-        
+        }
+
         size_t size() const
         {
             return msh->caches[cacheID].size() ;
@@ -1030,11 +1034,13 @@ public:
         {
             return position ;
         }
-        
-        size_t getId() const {return cacheID ; }
-        
+
+        size_t getId() const {
+            return cacheID ;
+        }
+
     } ;
-    
+
     class const_iterator
     {
     private:
@@ -1043,12 +1049,12 @@ public:
         size_t position ;
     public:
         const_iterator( const Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
-        
-        const_iterator( const Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position) 
-        { 
+
+        const_iterator( const Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position)
+        {
             cacheID = msh->allElementsCacheID ;
         } ;
-        
+
         bool operator ==(const const_iterator & i) const
         {
             return i.position == position ;
@@ -1073,58 +1079,58 @@ public:
         {
             return position > i.position ;
         }
-        
+
         const_iterator& operator++() {
             position++ ;
             // actual increment takes place here
             return *this;
         }
-        
+
         const_iterator operator++(int) {
             iterator tmp(*this); // copy
             operator++(); // pre-increment
             return tmp;   // return old value
         }
-        
+
         const_iterator& operator+=(int i) {
             position +=i ;
             return *this;
         }
-        
-        friend const_iterator operator+(const_iterator lhs,  int i) 
+
+        friend const_iterator operator+(const_iterator lhs,  int i)
         {
-            return lhs += i; 
+            return lhs += i;
         }
-        
+
         const_iterator& operator--() {
             position-- ;
             return *this;
         }
-        
+
         const_iterator operator--(int) {
             iterator tmp(*this); // copy
             operator--(); // pre-increment
             return tmp;   // return old value
         }
-        
+
         const_iterator& operator-=(int i) {
             position -=i ;
             return *this;
         }
-        
-        friend const_iterator operator-(const_iterator lhs,  int i) 
+
+        friend const_iterator operator-(const_iterator lhs,  int i)
         {
-            return lhs -= i; 
+            return lhs -= i;
         }
-        
-        const ETYPE * operator-> ( ) const { 
+
+        const ETYPE * operator-> ( ) const {
             return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
         }
-        
-        operator const ETYPE * () const { 
+
+        operator const ETYPE * () const {
             return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
-        } 
-        
+        }
+
         size_t size() const
         {
             return msh->caches[cacheID].size() ;
@@ -1133,11 +1139,13 @@ public:
         {
             return position ;
         }
-        
-        size_t getId() const {return cacheID ; }
-        
+
+        size_t getId() const {
+            return cacheID ;
+        }
+
     } ;
-    
+
     iterator begin()
     {
         return iterator(this, 0) ;
@@ -1152,13 +1160,13 @@ public:
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    const_iterator cend() const 
+    const_iterator cend() const
     {
         if(allElementsCacheID == -1)
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
-    
+
     iterator begin( size_t cacheID)
     {
         return iterator(this, cacheID, 0) ;
@@ -1194,7 +1202,7 @@ protected:
         std::vector<ETYPE *> ret = { element };
         return ret ;
     };
-    virtual std::vector<ETYPE *> getElements() const {
+    virtual std::vector<ETYPE *> getElements() {
         std::vector<ETYPE *> ret ;
         ret.push_back ( element ) ;
         return ret ;

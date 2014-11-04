@@ -343,10 +343,11 @@ class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
     friend class DelaunayTriangle ;
 
 protected:
+    bool neighbourhood ;
     size_t global_counter ;
     std::vector<Point * > additionalPoints ;
     std::vector<DelaunayTreeItem *> tree ;
-    virtual std::vector< DelaunayTriangle* > getElements() const {
+    virtual std::vector< DelaunayTriangle* > getElements() {
         return getTriangles() ;
     };
 public:
@@ -452,7 +453,7 @@ public:
      *
      * @return all the living triangles resulting from the triangulation.
      */
-    std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) const ;
+    std::vector<DelaunayTriangle *> getTriangles(bool buildNeighbourhood = true) ;
 
     void addSharedNodes(size_t nodes_per_side, size_t time_planes = 1, double timestep = 2, const TriElement * father = nullptr) ;
     void addSharedNodes(DelaunayTree * dt) ;

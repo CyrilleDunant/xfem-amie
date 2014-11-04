@@ -1250,6 +1250,7 @@ void FeatureTree::stitch()
             layer2d.begin()->second->setElementOrder ( elemOrder, realDeltaTime ) ;
             for ( auto i = ++layer2d.begin() ; i != layer2d.end() ; i++ )
             {
+                i->second->clearCaches();
                 dynamic_cast<DelaunayTree *> ( i->second )->addSharedNodes ( dynamic_cast<DelaunayTree *> ( layer2d.begin()->second ) ) ;
             }
 
@@ -4312,10 +4313,11 @@ bool FeatureTree::stepElements()
                                 }
                             }
                         }
+                        std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
                     }
                 }
 
-                std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
+                
 
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
@@ -5376,7 +5378,13 @@ Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
 {
     if ( is2D() )
     {
-        return get2DMesh()->getField ( f, -1, t ) ;
+        Vector ret = get2DMesh()->getField ( f, -1, t ) ;
+        for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
+        {
+            if(layer->second != dtree)
+                ret += layer->second->getField ( f, -1, t ) ;
+        }
+        return ret ;
     }
 
 
@@ -5967,29 +5975,32 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
     VirtualMachine vm ;
     if ( is2D() )
     {
-        size_t blocks = dtree->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() /2 ;
-        min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
-        max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
-        buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
-        buffer = 0 ;
-        auto start = dtree->begin() ;
-        while ( start->getBehaviour()->type == VOID_BEHAVIOUR && start != dtree->end() )
+        for ( auto layer = layer2d.begin() ; layer!=layer2d.end() ; layer++ )
         {
-            start++ ;
-        }
-        start->getState().getAverageField ( f, buffer ) ;
-        min = buffer ;
-        max = buffer ;
-        start++ ;
-        for (  ; start != dtree->end() ; start++ )
-        {
-            if ( start->getBehaviour()->type != VOID_BEHAVIOUR )
+            size_t blocks = layer->second->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() /2 ;
+            min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
+            max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
+            buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL, blocks ) ) ;
+            buffer = 0 ;
+            auto start = layer->second->begin() ;
+            while ( start->getBehaviour()->type == VOID_BEHAVIOUR && start != layer->second->end() )
             {
-                start->getState().getAverageField ( f, buffer,&vm, -1, t ) ;
-                for ( size_t j = 0 ; j < min.size() ; j++ )
+                start++ ;
+            }
+            start->getState().getAverageField ( f, buffer ) ;
+            min = buffer ;
+            max = buffer ;
+            start++ ;
+            for (  ; start != layer->second->end() ; start++ )
+            {
+                if ( start->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-                    min[j] = std::min ( min[j], buffer[j] ) ;
-                    max[j] = std::max ( max[j], buffer[j] ) ;
+                    start->getState().getAverageField ( f, buffer,&vm, -1, t ) ;
+                    for ( size_t j = 0 ; j < min.size() ; j++ )
+                    {
+                        min[j] = std::min ( min[j], buffer[j] ) ;
+                        max[j] = std::max ( max[j], buffer[j] ) ;
+                    }
                 }
             }
         }
@@ -6028,25 +6039,25 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
 
 std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri )
 {
-    Vector min ;
-    Vector max ;
-    Vector buffer ;
-    min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-    max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-    buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-    tri[0]->getState().getAverageField ( f, buffer ) ;
-    min = buffer ;
-    max = buffer ;
-    for ( size_t i = 1 ; i < tri.size() ; i++ )
-    {
-        tri[i]->getState().getAverageField ( f, buffer ) ;
-        for ( size_t j = 0 ; j < min.size() ; j++ )
+        Vector min ;
+        Vector max ;
+        Vector buffer ;
+        min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+        max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+        buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+        tri[0]->getState().getAverageField ( f, buffer ) ;
+        min = buffer ;
+        max = buffer ;
+        for ( size_t i = 1 ; i < tri.size() ; i++ )
         {
-            min[j] = std::min ( min[j], buffer[j] ) ;
-            max[j] = std::max ( max[j], buffer[j] ) ;
+            tri[i]->getState().getAverageField ( f, buffer ) ;
+            for ( size_t j = 0 ; j < min.size() ; j++ )
+            {
+                min[j] = std::min ( min[j], buffer[j] ) ;
+                max[j] = std::max ( max[j], buffer[j] ) ;
+            }
         }
-    }
-    return std::make_pair ( min, max ) ;
+        return std::make_pair ( min, max ) ;
 }
 
 std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet )

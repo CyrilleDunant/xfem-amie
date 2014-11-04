@@ -47,7 +47,7 @@ public:
     virtual double getInternalScale() const {
         return meshes[0]->getInternalScale() ;
     } ;
-    virtual std::vector<DelaunayTetrahedron *> getElements() const ;
+    virtual std::vector<DelaunayTetrahedron *> getElements() ;
 public:
     ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) ;
     virtual ~ParallelDelaunayTree3D() {} ;
@@ -93,13 +93,13 @@ public:
     
     virtual unsigned int generateCache () ;
     
-    Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) const ;
+    Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) ;
 
-    Vector getField( FieldType f, int dummy = 0, double t = 0) const ;
+    Vector getField( Amie::FieldType f, int dummy = 0, double t = 0) ;
     
-    Vector getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) const ;
+    Vector getSmoothedField (  Amie::FieldType f0, unsigned int cacheID, Amie::IntegrableEntity* e, int dummy = 0, double t = 0 ) ;
     
-    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) const ;  
+    std::pair<Vector, Vector> getSmoothedFields ( Amie::FieldType f0, Amie::FieldType f1, unsigned int cacheID, Amie::IntegrableEntity* e, int dummy = 0, double t = 0 ) ;  
       
     class iterator
     {
