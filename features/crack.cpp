@@ -304,7 +304,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 					
 					if ( currentDir.norm() > 1e-8 )
 					{
-						current->getState().getField( PRINCIPAL_ANGLE_FIELD, current->getBoundingPoint(j), a, false) ;
+						current->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, current->getBoundingPoint(j), a, false) ;
 						aangle += a[0] ;
 						acount++ ;
 					}
@@ -1652,7 +1652,7 @@ void BranchedCrack::step(double dt, Vector* v, Mesh< DelaunayTriangle, DelaunayT
 				tipsToGrow.push_back(tips[i].first) ;
 				changed = true ;
 				isUpdated = true ;
-				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD, tri->getState())[0]+M_PI*.5) ;
+				angles.push_back(tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_STRESS_ANGLE_FIELD, tri->getState())[0]+M_PI*.5) ;
 			}
 		}
 	}

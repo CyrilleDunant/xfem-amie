@@ -200,7 +200,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 		case VWFT_PRINCIPAL_ANGLE:
 		{
 			Vector v(0.,1) ;
-			tet->getState().getField( PRINCIPAL_ANGLE_FIELD, tet->inLocalCoordinates(p), v, true) ;
+			tet->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, tet->inLocalCoordinates(p), v, true) ;
 			ret[0]=v[0] ;
 			found = true ;	
 			break ;

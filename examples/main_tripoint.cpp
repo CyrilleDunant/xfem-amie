@@ -292,6 +292,7 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
+    double E_steel_effective = 1./(1./E_steel+.8/E_paste) ;
 
     double halfSampleOffset = sampleLength*.25 ;
 
@@ -301,6 +302,7 @@ int main ( int argc, char *argv[] )
 // 	Matrix m0_steel = Material::orthothropicCauchyGreen(E_steel, E_steel, E_steel*(1.-nu_steel)*.5*.13/(1.-nu_steel*nu_steel), nu_steel,PLANE_STRESS_FREE_G) ;
 //
     Matrix m0_steel = Material::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
+    Matrix m0_steel_effective = Material::cauchyGreen ( std::make_pair ( E_steel_effective,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
 
 
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ;
@@ -354,19 +356,19 @@ int main ( int argc, char *argv[] )
     double rebarcenter = ( sampleLength*.5 - rebarEndCover ) *.5 ;
     double rebarlength = ( sampleLength - rebarEndCover*2. ) *.5 ;
     Sample rebar0 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 ) ;
-    rebar0.setBehaviour ( new StiffnessAndFracture ( m0_steel*softeningFactor, new VonMises ( 490e6 ) ) );
+    rebar0.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar0.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
     Sample rebar1 ( &sample, rebarlength, rebarDiametre, rebarcenter,  -sampleHeight*.5 + 0.064 + 0.085 ) ;
-    rebar1.setBehaviour ( new StiffnessAndFracture ( m0_steel*softeningFactor, new VonMises ( 490e6 ) ) );
+    rebar1.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar1.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
     Sample rebar2 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 ) ;
-    rebar2.setBehaviour ( new StiffnessAndFracture ( m0_steel*softeningFactor, new VonMises ( 490e6 ) ) );
+    rebar2.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar2.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
     Sample rebar3 ( &sample, rebarlength, rebarDiametre, rebarcenter,  sampleHeight*.5 - 0.064 - 0.085 ) ;
-    rebar3.setBehaviour ( new StiffnessAndFracture ( m0_steel*softeningFactor, new VonMises ( 490e6 ) ) );
+    rebar3.setBehaviour ( new StiffnessAndFracture ( m0_steel_effective*softeningFactor, new VonMises ( 490e6 ) ) );
 // 	rebar3.getBehaviour()->getFractureCriterion()->setMaterialCharacteristicRadius( 0.01 );
 
 
@@ -395,7 +397,7 @@ int main ( int argc, char *argv[] )
 // 	samplestirrupbulk.setBehaviour( new Stiffness( m0_paste ) ) ;
 
 
-    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, 0.5*compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    samplebulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
     dynamic_cast<ConcreteBehaviour *> ( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
@@ -403,7 +405,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( samplebulk.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
     samplebulk.getBehaviour()->setSource ( sample.getPrimitive() );
 
-    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, 0.5*compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
     sample.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
@@ -412,7 +414,7 @@ int main ( int argc, char *argv[] )
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 
 
-    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, 0.5*compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    samplestirrupbulk.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
     samplestirrupbulk.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( samplestirrupbulk.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );

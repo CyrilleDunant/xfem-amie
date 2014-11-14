@@ -22,7 +22,7 @@ namespace Amie
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ /*.33e6*sqrt(-down*1e-6)*/ 1.8e6), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
@@ -512,7 +512,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 		{
 			tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
                       
-                        if(tcrit0 > 0)
+            if(tcrit0 > 0 && tcrit0 > ccrit0)
 				firstMet = true ;
 		}
 		double c0 = std::max(ccrit0, tcrit0) ;
@@ -532,18 +532,20 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 		{
 			ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
                         
-                        if(ccrit1 > 0)
+            if(ccrit1 > 0 && ccrit1 > ccrit0 && ccrit1 > tcrit0)
 			{
 				secondMet = true ;
+                firstMet = false ;
 			}
 		}
 		
 		if(tpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus )
 		{
 			tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
-			if(tcrit1 > 0)
+			if(tcrit1 > 0 && tcrit1 > ccrit0 && tcrit1 > tcrit0 && tcrit1 > ccrit1)
 			{
 				secondMet = true ;
+                firstMet = false ;
 			}
 		}
 		double c1 = std::max(ccrit1, tcrit1) ;

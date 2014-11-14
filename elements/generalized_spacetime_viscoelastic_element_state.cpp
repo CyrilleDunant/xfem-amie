@@ -2682,7 +2682,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             }
         }
         return ;
-    case PRINCIPAL_ANGLE_FIELD:
+    case PRINCIPAL_STRESS_ANGLE_FIELD:
     {
         if ( !vm )
         {

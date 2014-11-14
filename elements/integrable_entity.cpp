@@ -22,7 +22,8 @@ size_t Amie::fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, siz
     case VON_MISES_STRAIN_FIELD :
     case VON_MISES_REAL_STRESS_FIELD :
     case VON_MISES_EFFECTIVE_STRESS_FIELD :
-    case PRINCIPAL_ANGLE_FIELD :
+    case PRINCIPAL_STRESS_ANGLE_FIELD :
+    case PRINCIPAL_STRAIN_ANGLE_FIELD :
         return 1 ;
 
     case DISPLACEMENT_FIELD :
@@ -482,12 +483,17 @@ Vector Amie::toPrincipal ( const Vector & stressOrStrain )
     Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
     if ( ret.size() == 2 )
     {
-        ret[0] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 +
-                 sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
-                        ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
-        ret[1] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 -
-                 sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
-                        ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
+        double trace = stressOrStrain[0] + stressOrStrain[1] ;
+        double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
+        double delta = sqrt(trace*trace-det) ;
+        ret[0] = (trace + delta)*.5 ;
+        ret[1] = (trace - delta)*.5 ;
+//         ret[0] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 +
+//                  sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
+//                         ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
+//         ret[1] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 -
+//                  sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
+//                         ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
     }
     else if ( ret.size() == 3 )
     {
@@ -1096,10 +1102,39 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete vm ;
         }
         return ;
-    case PRINCIPAL_ANGLE_FIELD:
+    case PRINCIPAL_STRESS_ANGLE_FIELD:
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         getField ( REAL_STRESS_FIELD,  p_, strains, true ) ;
+        if ( std::abs ( strains ).max() < POINT_TOLERANCE_2D )
+        {
+            ret = 0 ;
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+            return ;
+        }
+        if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+        {
+            ret[0] =  atan2 ( strains[0] - strains[1] , strains[2] ) ;
+        }
+        else
+        {
+            ret[0] = atan2 ( strains[0] - strains[1], strains[3] ) ;
+            ret[1] = atan2 ( strains[0] - strains[2], strains[4] ) ;
+            ret[2] = atan2 ( strains[1] - strains[2], strains[5] ) ;
+        }
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    }
+    case PRINCIPAL_STRAIN_ANGLE_FIELD:
+    {
+        Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
+        getField ( STRAIN_FIELD,  p_, strains, true ) ;
         if ( std::abs ( strains ).max() < POINT_TOLERANCE_2D )
         {
             ret = 0 ;
@@ -1679,6 +1714,173 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         #pragma atomic write
         lock = false ;
         return v;
+        
+     case PRINCIPAL_STRESS_ANGLE_FIELD:
+        if ( stressAtGaussPoints.size() !=  parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        {
+            stressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( stressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+                getField ( REAL_STRESS_FIELD, gp.gaussPoints[i].first, tmp, true, vm, i ) ;
+                for ( size_t j = 0 ; j < tmp.size() ; j++ )
+                {
+                    stressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
+                }
+                if(ret.size() != 1)
+                    ret.resize(1, 0.);
+                
+ 
+                if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+                {
+                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                else
+                {
+                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                 total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        else
+        {
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( stressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+                for ( size_t j = 0 ; j < tmp.size() ; j++ )
+                {
+                    tmp[j] = stressAtGaussPoints[i*tmp.size() +j];
+                }
+                if(ret.size() != 1)
+                    ret.resize(1, 0.);
+                
+                if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+                {
+                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                else
+                {
+                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                 total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        #pragma atomic write
+        lock = false ;
+        return v;
+        
+     case PRINCIPAL_STRAIN_ANGLE_FIELD:
+        if ( strainAtGaussPoints.size() !=  parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        {
+            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true, vm, i ) ;
+                for ( size_t j = 0 ; j < tmp.size() ; j++ )
+                {
+                    strainAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
+                }
+                if(ret.size() != 1)
+                    ret.resize(1, 0.);
+                
+ 
+                if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+                {
+                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                else
+                {
+                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                 total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        else
+        {
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+                for ( size_t j = 0 ; j < tmp.size() ; j++ )
+                {
+                    tmp[j] = strainAtGaussPoints[i*tmp.size() +j];
+                }
+                if(ret.size() != 1)
+                    ret.resize(1, 0.);
+                
+                if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
+                {
+                    ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                else
+                {
+                    ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
+                    ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
+                }
+                 total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        #pragma atomic write
+        lock = false ;
+        return v; 
+         
     default :
 
         Vector tmp (ret) ;

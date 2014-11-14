@@ -358,7 +358,7 @@ void step(GeometryType ref, int samplingNumber)
 					vonMises[k.getPosition()*k->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
 					Vector agl(0., 1) ;
-					k->getState().getField( PRINCIPAL_ANGLE_FIELD, k->getBoundingPoint(l), agl, false) ;
+					k->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, k->getBoundingPoint(l), agl, false) ;
 					angle[k.getPosition()*k->getBoundingPoints().size()+l]  = agl[0] ;
 				}
 				

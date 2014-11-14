@@ -272,7 +272,7 @@ void step ( size_t nsteps )
             writer.getField ( TWFT_CRITERION ) ;
             writer.getField ( TWFT_STIFFNESS_X ) ;
             writer.getField ( TWFT_STIFFNESS_Y ) ;
-            writer.getField ( PRINCIPAL_ANGLE_FIELD ) ;
+            writer.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
             writer.getField ( TWFT_DAMAGE ) ;
             writer.append() ;
         }
@@ -282,7 +282,7 @@ void step ( size_t nsteps )
             writerc.getField ( TWFT_CRITERION ) ;
             writerc.getField ( TWFT_STIFFNESS_X ) ;
             writerc.getField ( TWFT_STIFFNESS_Y ) ;
-            writerc.getField ( PRINCIPAL_ANGLE_FIELD ) ;
+            writerc.getField ( PRINCIPAL_STRESS_ANGLE_FIELD ) ;
             writerc.getField ( TWFT_DAMAGE ) ;
             writerc.append() ;
         }

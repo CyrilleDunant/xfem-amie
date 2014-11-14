@@ -1525,8 +1525,8 @@ FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
 		return VON_MISES_EFFECTIVE_STRESS_FIELD ;
 	if(field == "VON_MISES_REAL_STRESS_FIELD")
 		return VON_MISES_REAL_STRESS_FIELD ;
-	if(field == "PRINCIPAL_ANGLE_FIELD")
-		return PRINCIPAL_ANGLE_FIELD ;
+	if(field == "PRINCIPAL_STRESS_ANGLE_FIELD")
+		return PRINCIPAL_STRESS_ANGLE_FIELD ;
 	if(field == "INTERNAL_VARIABLE_FIELD")
 		return INTERNAL_VARIABLE_FIELD ;
 	if(field == "GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD")

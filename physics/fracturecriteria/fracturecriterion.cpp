@@ -29,7 +29,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     criterionDamageDifferential(0),
     mesh2d(nullptr), mesh3d(nullptr),
     stable(true), checkpoint(true), inset(false),inIteration(false),
-    scoreTolerance(1e-3),
+    scoreTolerance(5e-3),
     initialScore(1),
     cachedInfluenceRatio(1),
     minDeltaInNeighbourhood(1),
@@ -404,12 +404,14 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
 void FractureCriterion::step(ElementState &s)
 {
+    
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
 
     if(s.getParent()->getBehaviour()->fractured())
     {
         scoreAtState = -1 ;
+        metAtStep = false ;
         return ;
     }
     if(checkpoint || inIteration)

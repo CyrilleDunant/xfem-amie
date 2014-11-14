@@ -326,7 +326,7 @@ void step()
 					vonMises[k*triangles[k]->getBoundingPoints().size()+l]  = sqrt(((vm0[0]-vm0[1])*(vm0[0]-vm0[1]))/2.) ;
 	
 					Vector agl(0., 1) ;
-					triangles[k]->getState().getField( PRINCIPAL_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
+					triangles[k]->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, triangles[k]->getBoundingPoint(l), agl, false) ;
 					angle[k*triangles[k]->getBoundingPoints().size()+l]  = agl[0] ;
 				}
 				

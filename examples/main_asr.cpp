@@ -403,8 +403,8 @@ int main( int argc, char *argv[] )
 
 
 	double itzSize = 0.00002;
-//	int inclusionNumber = 1 ;
- 	int inclusionNumber = 8172 ;
+	int inclusionNumber = 10 ;
+// 	int inclusionNumber = 8172 ;
 // 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 //
 // // 	if(inclusionNumber)
@@ -541,10 +541,8 @@ int main( int argc, char *argv[] )
 		std::cout << "placed area = " <<  placed_area << std::endl ;
 	}
 
-	Circle cercle( .5, 0, 0 ) ;
-
 	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-	F.setSamplingNumber( 80 ) ;
+	F.setSamplingNumber( 32 ) ;
 
 	if( restraintDepth > 0 )
 	{

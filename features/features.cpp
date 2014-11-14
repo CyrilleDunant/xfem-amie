@@ -4264,6 +4264,7 @@ bool FeatureTree::stepElements()
                 #pragma omp parallel
                 {
                     #pragma omp single
+                    {
                     for (  auto i = j->second->begin() ; i != j->second->end() ; i++ )
                     {
                         #pragma omp task firstprivate(i)
@@ -4275,6 +4276,7 @@ bool FeatureTree::stepElements()
 
                             i->step ( deltaTime, &K->getDisplacements() ) ;
                         }
+                    }
                     }
                 }
                 std::cerr << " ...done" << std::endl ;
@@ -4295,6 +4297,7 @@ bool FeatureTree::stepElements()
                     #pragma omp parallel
                     {
                         #pragma omp single
+                        {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             #pragma omp task firstprivate(i)
@@ -4314,7 +4317,8 @@ bool FeatureTree::stepElements()
                             }
                         }
                         std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
-                    }
+                   }                    
+                   }
                 }
 
                 
@@ -4327,6 +4331,7 @@ bool FeatureTree::stepElements()
                     #pragma omp parallel
                     {
                         #pragma omp single
+                        {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             #pragma omp task firstprivate(i)
@@ -4342,7 +4347,6 @@ bool FeatureTree::stepElements()
                                 {
                                     DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
                                     bool wasFractured = i->getBehaviour()->fractured() ;
-
                                     i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
                                     
                                     if ( dmodel )
@@ -4393,18 +4397,20 @@ bool FeatureTree::stepElements()
                                 }
                             }
                         }
+                        }
                     }
                     lcounter++ ;
                 }
                 averageDamage = adamage/volume ;
 
-                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
+                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed."  << std::endl ;
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel
                     {
                         #pragma omp single
+                        {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             #pragma omp task firstprivate(i)
@@ -4427,14 +4433,17 @@ bool FeatureTree::stepElements()
                                 }
                             }
                         }
+                        }
                     }
                 }
-                
+               std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
+
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel
                     {
                         #pragma omp single
+                        {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             bool done = false ;
@@ -4449,16 +4458,16 @@ bool FeatureTree::stepElements()
                             if(done)
                                 break ;
                         }
+                        }
                     }
                 }
                 
-                std::cerr << "now max score is = " << maxScore << std::endl ;
-
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel
                     {
                         #pragma omp single
+                        {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                         {
                             #pragma omp task firstprivate(i)
@@ -4467,32 +4476,32 @@ bool FeatureTree::stepElements()
                                 i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
                             }
                         }
-                    }
-                }
-
-
-                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-                    #pragma omp parallel
-                    if ( !behaviourChange )
-                    {
-                        #pragma omp single
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            bool done = false ;
-                            #pragma omp task firstprivate(i)
-                            if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
-                            {
-                                behaviourChange = true ;
-                                #pragma omp atomic write
-                                done = true ;
-                            }
-                            if(done)
-                                break ;
                         }
                     }
                 }
-                
+
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                     #pragma omp parallel
+		    {
+			#pragma omp single
+                        {
+                        if ( !behaviourChange )
+                        {
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                            {
+                                #pragma omp task firstprivate(i)
+                                if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
+                                {
+                                    #pragma omp atomic write
+                                    behaviourChange = true ;
+                                }
+                            }
+                        }
+                        }
+                    }
+                }
+
                 if (foundCheckPoint )
                 {
                     needAssembly = true ;
@@ -4501,14 +4510,23 @@ bool FeatureTree::stepElements()
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                        #pragma omp parallel
                         {
-                            if ( i->getBehaviour()->getFractureCriterion() )
+                            #pragma omp single
                             {
-                                i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
-                                maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
-                                maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
-
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                            {
+                                #pragma omp task firstprivate(i)
+                                if ( i->getBehaviour()->getFractureCriterion() )
+                                {
+                                    i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+				    #pragma omp critical
+                                    {
+                                    maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
+                                    maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
+                                    }
+                                }
+                            }
                             }
                         }
                     }
@@ -5104,19 +5122,11 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     {
         return ;
     }
-
     if ( !xfemStepped )
     {
         ft->stepXfem();
         xfemStepped = true ;
     }
-    if ( s == XFEM_STEPPED )
-    {
-        return ;
-    }
-
-
-
 }
 
 void FeatureTree::resetBoundaryConditions()
@@ -5212,6 +5222,13 @@ bool FeatureTree::step()
             needexit = true ;
         }
         ++it ;
+        
+        std::cout << "( " <<  behaviourChanged() 
+        << " || " << !solverConverged() 
+        << " || " <<  enrichmentChange 
+        << " ) && ! ( " << !solverConverged() 
+        << " && " << !reuseDisplacements 
+        << " ) && (" <<  (notConvergedCounts < 20) << " ) " << std::endl ;
 
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&

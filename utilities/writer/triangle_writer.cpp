@@ -1031,11 +1031,11 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			case TWFT_PRINCIPAL_ANGLE:
 			{
 				Vector v(0., 1) ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false , 0) ;
+				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->first, v, false , 0) ;
 				ret[2] = 180.*v[0]/M_PI ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false, 0 ) ;
+				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->second, v, false, 0 ) ;
 				ret[1] = 180.*v[0]/M_PI ;
-				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false , 0) ;
+				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->third, v, false , 0) ;
 				ret[0] = 180.*v[0]/M_PI ;
 
 				found = true ;
@@ -1049,11 +1049,11 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 				ret[2] = a/(M_PI*r*r) ;
 				ret[1] = a/(M_PI*r*r) ;
 				ret[0] = a/(M_PI*r*r) ;
-// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->first, v, false ) ;
+// 				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->first, v, false ) ;
 // 				ret[2] = 180.*v[0]/M_PI ;
-// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->second, v, false ) ;
+// 				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->second, v, false ) ;
 // 				ret[1] = 180.*v[0]/M_PI ;
-// 				tri->getState().getField( PRINCIPAL_ANGLE_FIELD, *tri->third, v, false ) ;
+// 				tri->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, *tri->third, v, false ) ;
 // 				ret[0] = 180.*v[0]/M_PI ;
 
 				found = true ;
@@ -1091,7 +1091,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			{
 				if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
 				{
-					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_ANGLE_FIELD,  tri->getState())[0]/M_PI ;
+					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_STRESS_ANGLE_FIELD,  tri->getState())[0]/M_PI ;
 					while (angle < 0)
 						angle += 90 ;
 					ret[2] =  angle ;
@@ -1517,7 +1517,7 @@ std::string nameOfField(FieldType field)
 			return std::string("Von Mises Stress") ;
 		case VON_MISES_EFFECTIVE_STRESS_FIELD :
 			return std::string("") ;
-		case PRINCIPAL_ANGLE_FIELD :
+		case PRINCIPAL_STRESS_ANGLE_FIELD :
 			return std::string("Principal Angle") ;
 		case INTERNAL_VARIABLE_FIELD :
 			return std::string("") ;
@@ -1595,7 +1595,7 @@ int numberOfFields( FieldType field )
 			return 3 ;
 		case VON_MISES_EFFECTIVE_STRESS_FIELD :
 			return 3 ;
-		case PRINCIPAL_ANGLE_FIELD :
+		case PRINCIPAL_STRESS_ANGLE_FIELD :
 			return 3 ;
 		case INTERNAL_VARIABLE_FIELD :
 			return 3 ;

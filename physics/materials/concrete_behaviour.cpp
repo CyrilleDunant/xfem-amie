@@ -18,7 +18,7 @@ using namespace Amie ;
 
 ConcreteBehaviour::ConcreteBehaviour(double E, double nu, double compressive, planeType pt, RedistributionType rtype, SpaceDimensionality dim, MirrorState mirroring , double dx ,double  dy, double dz) : WeibullDistributedStiffness(E,nu, dim, compressive,0, pt, mirroring, dx , dy , dz ), rtype(rtype)
 {
-	materialRadius = 0.08 ;
+	materialRadius = 0.05 ;
 	variability = 0.0 ;
 }
 
