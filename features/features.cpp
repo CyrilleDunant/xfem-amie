@@ -5223,13 +5223,6 @@ bool FeatureTree::step()
         }
         ++it ;
         
-        std::cout << "( " <<  behaviourChanged() 
-        << " || " << !solverConverged() 
-        << " || " <<  enrichmentChange 
-        << " ) && ! ( " << !solverConverged() 
-        << " && " << !reuseDisplacements 
-        << " ) && (" <<  (notConvergedCounts < 20) << " ) " << std::endl ;
-
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
             ! ( !solverConverged() && !reuseDisplacements ) &&

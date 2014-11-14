@@ -403,24 +403,12 @@ int main( int argc, char *argv[] )
 
 
 	double itzSize = 0.00002;
-	int inclusionNumber = 10 ;
-// 	int inclusionNumber = 8172 ;
-// 	std::vector<Inclusion *> inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
-//
-// // 	if(inclusionNumber)
-// // 		itzSize = inclusions[inclusions.size()/4]->getRadius() ;
-// 	for(size_t i = 0; i < inclusions.size() ; i++)
-// 		delete inclusions[i] ;
+//	int inclusionNumber = 10 ;
+ 	int inclusionNumber = 8172 ;
 
 	double masseInitiale = 1.06366e-05 * .9;
 	double densite = 1.;
 
-//	std::vector<Inclusion *> inclusions = GranuloBolome( masseInitiale, densite, BOLOME_A )( dmax, .0001, inclusionNumber, itzSize );
-// 	std::vector<Inclusion *> inclusions = GranuloBolome(0.0000416, 1, BOLOME_D)(.0025, .1, inclusionNumber, itzSize);
-// 	std::vector<Inclusion *> inclusions = ParticleSizeDistribution::get2DConcrete(dmax*0.5) ;//, masseInitiale, BOLOME_A, PSDEndCriteria(-1, 0.001, inclusionNumber)) ;
-
-	
-	
 	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
 	std::vector<Inclusion *> inclusions ;
 	
@@ -542,7 +530,7 @@ int main( int argc, char *argv[] )
 	}
 
 	zones = generateExpansiveZonesHomogeneously(nzones, placedinclusions, F , sample) ;
-	F.setSamplingNumber( 32 ) ;
+	F.setSamplingNumber( 80 ) ;
 
 	if( restraintDepth > 0 )
 	{
