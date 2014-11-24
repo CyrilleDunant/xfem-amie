@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 		file = std::string(argv[1]) ;
 
 	ConfigTreeItem * problem = ConfigParser::readFile(file) ;
-	if(problem->hasChild("template"))
-		problem = problem->getChild("template")->makeTemplate() ;
+
+	problem->printTree() ;
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))
