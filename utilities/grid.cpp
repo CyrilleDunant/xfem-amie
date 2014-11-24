@@ -11,7 +11,14 @@ Voxel::Voxel()
 	filled = false ;
 }
 
-Voxel::Voxel(double x, double y, double z ,double s) : tlf(x-s*.5, y+s*.5, z+s*.5), trf(x+s*.5, y+s*.5, z+s*.5), blf(x-s*.5, y-s*.5, z+s*.5), brf(x+s*.5, y-s*.5, z+s*.5),tlb(x-s*.5, y+s*.5, z-s*.5), trb(x+s*.5, y+s*.5, z-s*.5), blb(x-s*.5, y-s*.5, z-s*.5), brb(x+s*.5, y-s*.5, z-s*.5), filled(false)
+Voxel::Voxel(double x, double y, double z ,double s) : tlf(x-s*.5, y+s*.5, z+s*.5), 
+                                                       trf(x+s*.5, y+s*.5, z+s*.5), 
+                                                       blf(x-s*.5, y-s*.5, z+s*.5), 
+                                                       brf(x+s*.5, y-s*.5, z+s*.5),
+                                                       tlb(x-s*.5, y+s*.5, z-s*.5), 
+                                                       trb(x+s*.5, y+s*.5, z-s*.5), 
+                                                       blb(x-s*.5, y-s*.5, z-s*.5), 
+                                                       brb(x+s*.5, y-s*.5, z-s*.5), filled(false)
 {
 }
 
@@ -68,6 +75,37 @@ void Voxel::coOccuringFeatures(std::vector<const Geometry *> &f , const Point & 
 
 bool Voxel::coOccur(const Geometry * inc) const
 {
+    std::vector<Point> bbox = inc->getBoundingBox() ;
+    Hexahedron test((tlf.getX()+trf.getX())*.5, (tlf.getY()+blb.getY())*.5, (tlf.getZ()+blb.getZ())*.5, trf.getX()-tlf.getX(), tlb.getY()-blf.getY(), blf.getZ()-tlb.getZ()) ;
+    bool ret = inc->in(tlf) 
+        || inc->in(trf) 
+        || inc->in(brf) 
+        || inc->in(blf) 
+        || inc->in(tlb) 
+        || inc->in(trb) 
+        || inc->in(brb) 
+        || inc->in(blb)
+        || inc->in((trf+blb)*.5)
+        || in(inc->getCenter()+Point(inc->getRadius(), 0, 0))
+        || in(inc->getCenter())
+        || in(inc->getCenter()+Point(-inc->getRadius(), 0, 0)) 
+        || in(inc->getCenter()+Point(0,inc->getRadius(), 0)) 
+        || in(inc->getCenter()+Point(0,-inc->getRadius(), 0))
+        || in(inc->getCenter()+Point(0, 0,inc->getRadius())) 
+        || in(inc->getCenter()+Point(0, 0,-inc->getRadius()))
+        || in(bbox[0])
+        || in(bbox[1])
+        || in(bbox[2]) 
+        || in(bbox[3])  
+        || in(bbox[4])
+        || in(bbox[5])
+        || in(bbox[6]) 
+        || in(bbox[7])  
+        || test.intersects(inc);
+    return ret ;
+    
+    
+    
 	if(inc->getGeometryType() == TETRAHEDRON)
 	{
 		const Tetrahedron * t = dynamic_cast<const Tetrahedron *>(inc) ;
@@ -665,7 +703,11 @@ bool Grid3D::add(const Geometry * inc)
 	
 	std::vector<const Geometry *> toTest = coOccur(inc);
 	for(size_t i = 0 ; i < toTest.size() ; i++)
-		if(inc->intersects(toTest[i]))
+		if(
+            inc->intersects(toTest[i])
+            || inc->in(toTest[i]->getCenter())
+            || toTest[i]->in(inc->getCenter())
+        )
 			return false ;
 	
 	forceAdd(inc) ;
@@ -821,7 +863,6 @@ std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 		endK = std::min(endZ/psize + 2, (double)pixels[0][0].size());
 	}*/
 	
-	bool foundPixel = false ;
 	for(int i = startI ; i < endI ; i++)
 	{
 		for(int j = startJ ; j < endJ ; j++)
@@ -836,7 +877,6 @@ std::vector<const Geometry *> Grid3D::coOccur(const Geometry * geo) const
 // 			{
 				if(pixels[i][j][k]->coOccur(geo))
 				{
-					foundPixel = true ;
 					pixels[i][j][k]->coOccuringFeatures(ret,geo) ;
 				}
 			}

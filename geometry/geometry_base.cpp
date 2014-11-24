@@ -545,7 +545,12 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
         }
         if(this->gType == CIRCLE)
         {
-            dynamic_cast<Circle *>(this)->setRadius( getRadius()*p.getX() );
+            static_cast<Circle *>(this)->setRadius( getRadius()*p.getX() );
+            return ;
+        }
+        if(this->gType == SPHERE)
+        {
+            static_cast<Sphere *>(this)->setRadius( getRadius()*p.getX() );
             return ;
         }
 
@@ -578,6 +583,10 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
     case ROTATE:
     {
         if(this->gType == CIRCLE)
+        {
+            return ;
+        }
+        if(this->gType == SPHERE)
         {
             return ;
         }
@@ -1569,6 +1578,23 @@ bool Geometry::intersects(const Geometry *g) const
         }
         if(g->getGeometryType() == HEXAHEDRON)
         {
+            if(getCenter().getX() < g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
+               getCenter().getX() > g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius()||
+               getCenter().getX() < g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
+               getCenter().getX() > g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius()||
+               getCenter().getY() < g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
+               getCenter().getY() > g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius()||
+               getCenter().getY() < g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
+               getCenter().getY() > g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius()||
+               getCenter().getZ() < g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
+               getCenter().getZ() > g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius()|| 
+               getCenter().getZ() < g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
+               getCenter().getZ() > g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius()
+            )
+                return true ;
+            
+            return false ;
+            
             Point proj0(g->getCenter()) ;
             project(&proj0) ;
             Point proj1(getCenter()) ;

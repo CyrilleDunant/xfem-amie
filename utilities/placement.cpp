@@ -68,6 +68,12 @@ void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistr
 	inc->transform(ROTATE, theta) ;
 }
 
+void transform3D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution,  RandomDistribution & zDistribution)
+{
+    Point c( xDistribution.draw(), yDistribution.draw() , zDistribution.draw() ) ;
+    inc->setCenter( c ) ;
+}
+
 std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
 {
 	std::vector<Feature *> ret ;
@@ -143,6 +149,115 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 	
 	return ret ;
 }
+
+std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
+{
+    std::vector<Feature *> ret ;
+    int tries = 0 ;
+    
+    std::vector<Point> boundingBox = box->getBoundingBox() ;
+    double min_x = box->getCenter().getX(), min_y = box->getCenter().getY(), max_x = box->getCenter().getX(), max_y = box->getCenter().getY(), max_z = box->getCenter().getZ(), min_z = box->getCenter().getZ();
+
+    for ( size_t j  =  0 ; j <  boundingBox.size() ; j++ )
+    {
+        if ( boundingBox[j].getY() < min_y )
+        {
+            min_y = boundingBox[j].getY() ;
+        }
+
+        if ( boundingBox[j].getY() > max_y )
+        {
+            max_y = boundingBox[j].getY() ;
+        }
+
+        if ( boundingBox[j].getX() < min_x )
+        {
+            min_x = boundingBox[j].getX() ;
+        }
+
+        if ( boundingBox[j].getX() > max_x )
+        {
+            max_x = boundingBox[j].getX() ;
+        }
+
+        if ( boundingBox[j].getZ() < min_z )
+        {
+            min_z = boundingBox[j].getZ() ;
+        }
+
+        if ( boundingBox[j].getZ() > max_z )
+        {
+            max_z = boundingBox[j].getZ() ;
+        }
+    }
+    UniformDistribution xDistribution( min_x, max_x ) ;
+    UniformDistribution yDistribution( min_y, max_y ) ;
+    UniformDistribution zDistribution( min_z, max_z ) ;
+    Grid3D grid(max_x- min_x, max_y- min_y, max_z- min_z, 50, box->getCenter()) ;
+
+    for(size_t i = 0 ; i < placedAggregates ; i++)
+    {
+        ret.push_back(inclusions[i]);
+        grid.add(inclusions[i]) ;
+    }
+
+    for(size_t i = placedAggregates ; i < inclusions.size() && tries < triesMax ; i++)
+    {
+        tries++ ;
+        
+        double scale = 1. ;
+        if(minDist > POINT_TOLERANCE_2D)
+        {
+            scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
+            Point s( scale, scale, scale ) ;
+            inclusions[i]->transform(SCALE, s) ;
+        }
+        
+        transform3D( inclusions[i], xDistribution, yDistribution, zDistribution); 
+
+        while((box->intersects(inclusions[i]) || intersections(inclusions[i], exclusionZones)) && tries < triesMax)
+        {
+            tries++ ;
+            transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);  
+        }
+        
+        while(!grid.add(inclusions[i]) && tries < triesMax)
+        {
+            tries++ ;
+            
+            transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);  
+            while((box->intersects(inclusions[i])|| intersections(inclusions[i], exclusionZones)) && tries < triesMax )
+            {
+                tries++ ;
+                transform3D( inclusions[i], xDistribution, yDistribution, zDistribution);  
+            }
+            
+        }
+        
+        if(tries < triesMax)
+        {
+            if(i%100 == 0)
+                std::cerr << "\rplaced " << i << " particles (tries " << tries << "/" << triesMax << ")" << std::flush ;
+            if(scale > 1.)
+            {
+                Point s(1./scale, 1./scale, 1./scale) ;
+                inclusions[i]->transform( SCALE , s) ;
+            }
+            ret.push_back(inclusions[i]);
+            tries = 0 ;
+        }
+          
+    }
+    
+    std::cerr << "\n" << ret.size() << " inclusions placed after " << tries << " tries" << std::endl ;
+    double area = 0. ;
+    for(size_t i = 0. ; i < ret.size() ; i++)
+        area += ret[i]->volume() ;
+    std::cerr << "volume covered by the inclusions: " << area << std::endl ;
+    
+    return ret ;
+}
+
 
 std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist, int placedAggregates, int triesMax, double orientation,  std::vector<Geometry *> exclusionZones) 
 {
@@ -394,9 +509,10 @@ std::vector<Feature *> Amie::placement(const Geometry * box, std::vector<Feature
 			{
 				if(verbose)
 					std::cout << "\rplaced " << i << " particles" << std::flush ;
-				break ;			
+                                delete grid ;
+                                return ret ;	
 			}
-			}
+                }
 		
 		if(verbose)
 			std::cout << "\n placed aggregate volume = " << volume << std::endl ;

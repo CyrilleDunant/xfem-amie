@@ -5233,12 +5233,12 @@ bool FeatureTree::step()
     {
         ret = false ;
     }
-    std::cout << std::endl ;
+    std::cerr << std::endl ;
     if ( ret )
     {
         setDeltaTime ( realDeltaTime ) ;
     }
-    std::cout << it << "/" << maxitPerStep << "." << std::flush ;
+    std::cerr << it << "/" << maxitPerStep << "." << std::flush ;
     damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( it < maxitPerStep ) ;
 
     return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
@@ -6349,7 +6349,7 @@ void FeatureTree::initializeElements( )
     if ( is3D() )
     {
       
-        std::cout << " initialising..." ;
+        std::cerr << " initialising..." ;
 
 //         #pragma omp parallel for schedule(runtime)
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
@@ -6364,7 +6364,7 @@ void FeatureTree::initializeElements( )
 
         gettimeofday ( &time1, nullptr );
         double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-        std::cout << "\r initialising... element " << 0 << "/" << dtree3D->begin().size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
+        std::cerr << "\r initialising... element " << 0 << "/" << dtree3D->begin().size() << ". Time to initialise (s) " << delta / 1e6 << std::endl ;
 
 
         int ecounter = 0 ;
@@ -6594,7 +6594,7 @@ void FeatureTree::generateElements()
         pointDensity = pow ( tree[0]->volume() / ( tree[0]->getBoundingPoints().size() + tree[0]->getInPoints().size() ), .33333333333 ) ;
     }
 
-    std::cout << "space meshed with " << pointDensity << " points per unit length" << std::endl ;
+    std::cerr << "space meshed with " << pointDensity << " points per unit length" << std::endl ;
 
     std::vector<Point> bbox = tree[0]->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;

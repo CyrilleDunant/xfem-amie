@@ -1854,15 +1854,19 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
+                    if(ret.size() != 1)
+                        ret.resize(1, 0.);
                     ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
                 }
                 else
                 {
+                    if(ret.size() != 3)
+                        ret.resize(3, 0.);
                     ret[0] += atan2 ( tmp[0] - tmp[1], tmp[3] )*gp.gaussPoints[i].second*weights[i] ;
                     ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
                     ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
                 }
-                 total += gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
             }
             if ( total > POINT_TOLERANCE_2D )
             {

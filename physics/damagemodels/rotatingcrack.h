@@ -79,6 +79,8 @@ public:
 	virtual bool fractured() const  ;
 	
 	virtual void postProcess() ;
+    
+    virtual void step(ElementState & s, double maxscore)  ;
 	
 	virtual DamageModel * getCopy() const { return new RotatingCrack(E, nu) ;}
 	

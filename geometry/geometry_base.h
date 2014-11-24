@@ -36,6 +36,10 @@ virtual GeometryType getGeometryType() const               \
 {                                                          \
 return this->__geo_type__::gType ;                         \
 }                                                          \
+virtual void setCenter(const Point & newCenter)            \
+{                                                          \
+      this->__geo_type__::setCenter (newCenter)        ;  \
+}                                                          \
 virtual const Point & getBoundingPoint(size_t i) const     \
 {                                                          \
 return this->__geo_type__::getBoundingPoint(i) ;           \

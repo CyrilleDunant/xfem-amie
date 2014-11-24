@@ -81,15 +81,10 @@ double RotatingCrack::getAngleShift() const
     return 0 ;
 }
 
-std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState &s )
+
+void RotatingCrack::step(ElementState & s, double maxscore)
 {
-    Vector range ( 1., 4 ) ;
-    es = &s ;
-    if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
-    {
-        postprocheck = true ;
-    }
-    
+
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
 
@@ -127,6 +122,23 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
             stiff->setAngle ( -ang ) ;
         }
     }
+    
+    DamageModel::step(s, maxscore) ;
+    
+}
+
+std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState &s )
+{
+    Vector range = getState() +.1 ;
+    
+    for(size_t i = 0 ; i < 4 ; i++)
+        range[i] = std::min(range[i], 1.) ;
+    
+    es = &s ;
+//     if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
+//     {
+//         postprocheck = true ;
+//     }
 
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
@@ -276,7 +288,7 @@ void addAndConsolidate ( std::vector<std::pair<double, double> > & target, std::
 
 void RotatingCrack::postProcess()
 {
-
+/*
 
     if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
@@ -302,7 +314,7 @@ void RotatingCrack::postProcess()
 //         std::cout << "...." << std::endl ;
         }
 
-    }
+    }*/
 
 }
 

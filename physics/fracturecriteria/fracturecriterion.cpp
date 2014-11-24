@@ -108,24 +108,22 @@ double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
     
     if(mesh2d)
     {
-        for(size_t i = 0 ; i< mesh2d->getCache(cacheID).size() ; i++)
+        for(auto i =  mesh2d->begin(cacheID) ; i !=  mesh2d->end(cacheID) ; i++)
         {
-            DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(mesh2d->getCache(cacheID)[i])) ;
-            if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
+            if(i->getBehaviour()->getFractureCriterion() && !i->getBehaviour()->fractured())
             {
-                double renormScore = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
+                double renormScore = i->getBehaviour()->getFractureCriterion()->scoreAtState ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
         }
     }
     else
     {
-        for(size_t i = 0 ; i< mesh3d->getCache(cacheID).size() ; i++)
+        for(auto i =  mesh3d->begin(cacheID) ; i !=  mesh3d->end(cacheID) ; i++)
         {
-            DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(mesh3d->getCache(cacheID)[i])) ;
-            if(ci->getBehaviour()->getFractureCriterion() && !ci->getBehaviour()->fractured())
+            if(i->getBehaviour()->getFractureCriterion() && !i->getBehaviour()->fractured())
             {
-                double renormScore = ci->getBehaviour()->getFractureCriterion()->scoreAtState ;
+                double renormScore = i->getBehaviour()->getFractureCriterion()->scoreAtState ;
                 maxScore = std::max(maxScore, renormScore) ;
             }
         }
