@@ -40,11 +40,12 @@ protected:
     std::map<std::string, double> external ;
     std::vector< ExternalMaterialLaw * > relations ;
 
-    virtual void makeProperties(std::map<std::string, double> & values, double kvReduction = 1.) ;
+    virtual void makeProperties(std::map<std::string, double> & values, double kvSpringReduction = 1., double kvDashpotReduction = 1.) ;
 
 public:
     // the argument string contains the list of external variables and their default values (see the function parseDefaultValues() in external_material_laws.h for more details)
     LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
+    LogarithmicCreepWithExternalParameters(std::string args, std::string ptension, std::string pcompression , DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     virtual ~LogarithmicCreepWithExternalParameters() { if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
 
@@ -59,9 +60,9 @@ public:
     void setMaterialParameters( std::map<std::string, double> & e) { external = e ; }
     void addMaterialParameter( std::string name, double defaultValue = 0) { external[name] = defaultValue ; }
 
-    void addMaterialLaw( ExternalMaterialLaw * law) { relations.push_back(law) ; }
-    void addMaterialLaws( std::vector<ExternalMaterialLaw *> laws) { for(size_t i = 0 ; i < laws.size() ; i++) {relations.push_back(laws[i]);} }
-    void addMaterialLaws( ExternalMaterialLaw* laws[]) { int length = sizeof(laws)/sizeof(ExternalMaterialLaw*) ; for(size_t i = 0 ; i < length ; i++) {relations.push_back(laws[i]);} }
+    void addMaterialLaw( ExternalMaterialLaw * law) { if(law){ relations.push_back(law) ; } }
+    void addMaterialLaws( std::vector<ExternalMaterialLaw *> laws) { for(size_t i = 0 ; i < laws.size() ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
+    void addMaterialLaws( ExternalMaterialLaw* laws[]) { int length = sizeof(laws)/sizeof(ExternalMaterialLaw*) ; for(size_t i = 0 ; i < length ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
 
 
 } ;

@@ -5,16 +5,6 @@
 
 using namespace Amie ;
 
-
-double TimeUnderLoadLogCreepAccumulator::getKelvinVoigtReduction() const 
-{
-	double x = 1. ;
-	if(currentStress > POINT_TOLERANCE_2D)
-		x = 1.+accumulatedStress/(currentStress*tau) ;
-	return 1./(1./x+std::log(x)) ;
-}
-
-
 LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
 {
 
@@ -149,9 +139,9 @@ Form * LogarithmicCreep::getCopy() const
 {
 	LogarithmicCreep * copy ;
 	if(isPurelyElastic)
-		copy = new LogarithmicCreep( C, accumulator ) ;
+		copy = new LogarithmicCreep( C, accumulator->getCopy() ) ;
 	else
-		copy = new LogarithmicCreep( C, E, tau, accumulator ) ;
+		copy = new LogarithmicCreep( C, E, tau, accumulator->getCopy() ) ;
 	return copy ; 
 }
 
@@ -177,9 +167,9 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 			placeMatrixInBlock(R,0,1,param) ;
 			placeMatrixInBlock(R,1,0,param) ;
 			placeMatrixInBlock(C,1,1,param) ;
-			R = E*(accumulator->getKelvinVoigtReduction()) ;
+			R = E*(accumulator->getKelvinVoigtSpringReduction()) ;
 			addMatrixInBlock(R,1,1,param) ;
-			R *= tau ;
+			R = E*accumulator->getKelvinVoigtDashpotReduction() ;
 			placeMatrixInBlock(R,1,1,eta) ;
 		}
 	}
@@ -229,9 +219,9 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
 {
     LogarithmicCreepWithImposedDeformation * copy ;
     if(isPurelyElastic)
-        copy = new LogarithmicCreepWithImposedDeformation( C, imposed, accumulator ) ;
+        copy = new LogarithmicCreepWithImposedDeformation( C, imposed, accumulator->getCopy() ) ;
     else
-        copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed, accumulator ) ;
+        copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed, accumulator->getCopy() ) ;
     return copy ;
 }
 
@@ -315,15 +305,15 @@ Form * LogarithmicCreepWithImposedDeformationAndFracture::getCopy() const
     if(noFracture)
     {
 	    if(isPurelyElastic)
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, accumulator ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, accumulator->getCopy() ) ;
 	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, accumulator ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, accumulator->getCopy() ) ;
     } else {
 
 	    if(isPurelyElastic)
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
 	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
 	    copy->dfunc->getState(true).resize(dfunc->getState().size());
 	    copy->dfunc->getState(true) = dfunc->getState() ;
 	    copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;

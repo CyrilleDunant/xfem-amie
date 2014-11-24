@@ -69,6 +69,7 @@ physics/fracturecriteria/confinedmohrcoulomb.cpp
 physics/fracturecriteria/confinedmohrcoulombwithstrain.cpp
 physics/fracturecriteria/confinedvonmises.cpp
 physics/fracturecriteria/nonlocalvonmises.cpp 
+physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.cpp 
 physics/fracturecriteria/druckerprager.cpp 
 physics/fracturecriteria/boundedvonmises.cpp 
 physics/fracturecriteria/creeprupture.cpp 

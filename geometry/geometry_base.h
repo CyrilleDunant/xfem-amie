@@ -993,6 +993,9 @@ public:
 	
 	/** \brief return the origin point*/
 	const Point & origin() const ;
+
+	void setOrigin( const Point & p_ ) { p = p_  ; }
+	void setVector( const Point & p_ ) { v = p_  ; }
 	
 	/** \brief Return the projection of the argument on this line*/
 	Point projection(const Point &p ) const ;

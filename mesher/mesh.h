@@ -420,6 +420,7 @@ public:
                 }
             }
         }
+	std::cout << caches[position].size() << std::endl ;
 
         return position ;
 
@@ -818,7 +819,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }

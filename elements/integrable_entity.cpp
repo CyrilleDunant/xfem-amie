@@ -24,6 +24,7 @@ size_t Amie::fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, siz
     case VON_MISES_EFFECTIVE_STRESS_FIELD :
     case PRINCIPAL_STRESS_ANGLE_FIELD :
     case PRINCIPAL_STRAIN_ANGLE_FIELD :
+    case SCALAR_DAMAGE_FIELD :
         return 1 ;
 
     case DISPLACEMENT_FIELD :
@@ -578,6 +579,16 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
     switch ( f )
     {
+    case SCALAR_DAMAGE_FIELD:
+	if(parent->getBehaviour()->getDamageModel())
+		ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
+	else
+		ret[0] = 0. ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
     case DISPLACEMENT_FIELD:
         n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
@@ -1316,7 +1327,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             break ;
         }
     }
-    
+   
     bool cleanup = !vm ;
     if ( !vm )
     {

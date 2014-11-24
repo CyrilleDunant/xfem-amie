@@ -4206,8 +4206,8 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
             Segment test(g->getBoundingPoint(i), g->getBoundingPoint(i+1)) ;
             if(test.intersects(*this))
                 ret.push_back(test.intersection(*this)) ;
+	   
         }
-
         return ret ;
     }
     case SPHERE:
@@ -4690,13 +4690,13 @@ Point Segment::intersection(const Segment &l) const
     if (isAligned(l.first(), s, f) && isAligned(l.second(), s, f))
     {
         if(on(l.first()) && on(l.second())) ;
-        return l.midPoint() ;
+            return l.midPoint() ;
         if(on(l.first()))
             return l.first() ;
         if(on(l.second()))
             return l.second() ;
         if(l.on(f) && l.on(s)) ;
-        return midPoint() ;
+            return midPoint() ;
         if(l.on(f))
             return f ;
         if(l.on(s))

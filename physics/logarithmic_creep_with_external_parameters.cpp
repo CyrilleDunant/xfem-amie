@@ -1,5 +1,6 @@
 #include "logarithmic_creep_with_external_parameters.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
+#include "fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 
 using namespace Amie ;
 
@@ -10,13 +11,31 @@ LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(s
 
 }
 
+LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, std::string ftension, std::string fcompression, DamageModel * d, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), nullptr,d, acc), external(parseDefaultValues(args, sep)), plane(pt)
+{
+	double E = 0. ;	
+	if(external.find("bulk_modulus") != external.end())
+	{
+		double k = external["bulk_modulus"] ;
+		double mu = external["shear_modulus"] ;
+		E = (9.*k*mu)/(3.*k+mu) ;
+	}
+	else
+		E = external["young_modulus"] ;
+	criterion = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ftension, fcompression, E ) ;
+
+	noFracture = false ;
+	makeProperties(external) ;
+
+}
+
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), acc), external(parseDefaultValues(args, sep))
 {
 	noFracture = true ;
 	makeProperties(external) ;
 }
 
-void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string, double> & values, double kvReduction) 
+void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string, double> & values, double kvSpringReduction, double kvDashpotReduction) 
 {
 	prevParam = param ;
 	prevEta = eta ;
@@ -54,8 +73,8 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		tau = values["creep_characteristic_time"] ;
 		placeMatrixInBlock( C*(-1), 1,0, param) ;
 		placeMatrixInBlock( C*(-1), 0,1, param) ;
-		placeMatrixInBlock( C+E*kvReduction, 1,1, param) ;
-		placeMatrixInBlock( E*kvReduction*tau, 1,1, eta) ;
+		placeMatrixInBlock( C+E*kvSpringReduction, 1,1, param) ;
+		placeMatrixInBlock( E*tau*kvDashpotReduction, 1,1, eta) ;
 
 		model = GENERALIZED_KELVIN_VOIGT ;
 
@@ -86,6 +105,46 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		prevImposed = 0. ;
 	}
 
+	if(!noFracture)
+	{
+		AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion* crit = dynamic_cast< AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion* >(criterion) ;
+		if(crit)
+		{
+			double tensileStrength = -1 ;
+			double tensileUltimateStrength = -1 ;
+			if(values.find("tensile_strength")!= values.end())
+				tensileStrength = values["tensile_strength"] ;
+			if(values.find("tensile_ultimate_strength")!= values.end())
+				tensileUltimateStrength = values["tensile_ultimate_strength"] ;
+			double compressiveStrength = 1 ;
+			double compressiveUltimateStrength = 1 ;
+			if(values.find("compressive_strength")!= values.end())
+				compressiveStrength = values["compressive_strength"] ;
+			if(values.find("compressive_ultimate_strength")!= values.end())
+				compressiveUltimateStrength = values["compressive_ultimate_strength"] ;
+			double tensileStrain = -1 ;
+			double tensileUltimateStrain = -1 ;
+			if(values.find("tensile_strain")!= values.end())
+				tensileStrain = values["tensile_strain"] ;
+			if(values.find("tensile_ultimate_strain")!= values.end())
+				tensileUltimateStrain = values["tensile_ultimate_strain"] ;
+			double compressiveStrain = 1 ;
+			double compressiveUltimateStrain = 1 ;
+			if(values.find("compressive_strain")!= values.end())
+				compressiveStrain = values["compressive_strain"] ;
+			if(values.find("compressive_ultimate_strain")!= values.end())
+				compressiveUltimateStrain = values["compressive_ultimate_strain"] ;
+
+			crit->setMaximumTensileStress( tensileStrength, tensileUltimateStrength ) ;
+			crit->setMaximumTensileStrain( tensileStrain, tensileUltimateStrain ) ;
+			crit->setMaximumCompressiveStress( compressiveStrength, compressiveUltimateStrength ) ;
+			crit->setMaximumCompressiveStrain( compressiveStrain, compressiveUltimateStrain ) ;
+
+		}
+			
+		
+	}
+
 }
 
 ElementState * LogarithmicCreepWithExternalParameters::createElementState( IntegrableEntity * e)
@@ -108,11 +167,11 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 
 	if(noFracture)
 	{
-		copy = new LogarithmicCreepWithExternalParameters( args,  accumulator, (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane)  ;
+		copy = new LogarithmicCreepWithExternalParameters( args,  accumulator->getCopy(), (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane)  ;
 	}
 	else
 	{
-		copy = new LogarithmicCreepWithExternalParameters( args,criterion->getCopy(), dfunc->getCopy(),  accumulator, (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
+		copy = new LogarithmicCreepWithExternalParameters( args,criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
 		copy->dfunc->getState(true).resize(dfunc->getState().size());
 		copy->dfunc->getState(true) = dfunc->getState() ;
 		copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
@@ -148,6 +207,6 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 	for(size_t i = 0 ; i < relations.size() ; i++)
 		relations[i]->preProcess( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState), timeStep ) ;
 	std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
-	makeProperties( prop, accumulator->getKelvinVoigtReduction() ) ;
+	makeProperties( prop, accumulator->getKelvinVoigtSpringReduction(), accumulator->getKelvinVoigtDashpotReduction() ) ;
 	currentState.getParent()->behaviourUpdated = true ;
 }

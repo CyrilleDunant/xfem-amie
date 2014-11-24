@@ -11,6 +11,7 @@
 //
 #include "maxstrain.h"
 #include "../damagemodels/damagemodel.h"
+#include <fstream>
 
 namespace Amie {
 
@@ -125,7 +126,9 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 /*	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
 	Point after( (stateAfter.second).max(), (stateAfter.first).max()/1e6 ) ;
 
-	
+		SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::vector<Point> p, double E_, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
+
 
 	Segment history(before, after) ;
 	Line current(history) ;
@@ -305,3 +308,4 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 }
 
 }
+

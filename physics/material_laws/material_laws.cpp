@@ -68,6 +68,11 @@ void SimpleDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoEl
     s.set(external, ret) ;
 }
 
+void AssignExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+    s.set(target, s.get(input, defaultValues)) ;
+}
+
 void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p ;
@@ -224,6 +229,16 @@ void MinimumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStat
 	if(add)
 		ret += s.get(external, defaultValues) ;
 	s.set(external, ret) ;
+}
+
+void ExponentiallyDecreasingMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
+{
+	double targetValue = s.get(target, defaultValues) ;
+	double currentValue = s.get(output, defaultValues) ;
+	double tau = s.get(coefficient, defaultValues) ;
+	double nextValue = targetValue + (currentValue-targetValue)*(1-exp(-dt/tau)) ;
+	s.set( output, nextValue ) ;
+
 }
 
 void GetFieldMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)

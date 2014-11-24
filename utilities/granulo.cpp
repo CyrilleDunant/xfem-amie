@@ -823,8 +823,6 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 		std::reverse(fraction.begin(), fraction.end());
 		std::reverse(radius.begin(), radius.end());
 	}
-// 	for( size_t i = 0  ; i < radius.size() ; i++)
-// 		std::cout << fraction[i] << "  " << radius[i] << std::endl ;
 // 	
 // 	exit(0) ;
 	

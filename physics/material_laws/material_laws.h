@@ -73,6 +73,17 @@ struct SimpleDependentExternalMaterialLaw: public SpaceTimeDependentExternalMate
 
 } ;
 
+struct AssignExternalMaterialLaw: public ExternalMaterialLaw
+{
+    std::string input ;
+    std::string target ;
+
+    AssignExternalMaterialLaw( std::string e, std::string c, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), input(e), target(c) { }
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+
+} ;
+
 /* Generic material law to set an external variable from an analytical function of other variables and/or the space-time coordinates
  * "coordinates" maps the coordinate axis (valid values are: x y z t u v w) to the name of the external variable to consider on each axis
  * If useSpaceTimeCoordinates is set to true, any x,y,z,t coordinates not specified as external variables will be set as the space-time coordinates of the element's center
@@ -169,6 +180,17 @@ struct MaximumMaterialLaw : public ExternalMaterialLaw
     bool add ;
 
     MaximumMaterialLaw(std::string out, std::vector<std::string> coord, bool a = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), add(a) { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+} ;
+
+struct ExponentiallyDecreasingMaterialLaw : public ExternalMaterialLaw
+{
+    std::string output ;
+    std::string target ;
+    std::string coefficient ;
+
+    ExponentiallyDecreasingMaterialLaw(std::string out, std::string tar, std::string coef, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), output(out), target(tar), coefficient(coef) { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 } ;

@@ -77,9 +77,6 @@ int main(int argc, char *argv[])
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/500.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
-	size_t seed = atof(argv[3]) ;
-	ShortTermViscoElasticOnlyPasteBehaviour pastenodamage(16e9,0.3,5.) ;
-	ShortTermViscoElasticOnlyPasteBehaviour virtualpastenodamage(16e9,0.3,2.5) ;
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
@@ -108,31 +105,6 @@ int main(int argc, char *argv[])
 // 	F.addRefinementZone( &refinement5 ) ;
 // 	F.addRefinementZone( &refinement6 ) ;
 	
-	ShortTermViscoDamagePasteBehaviour paste(16e9,0.3,2.5) ;
-	paste.freeblocks = 0 ;
-	if(argv[2] == std::string("strain"))
-	{
-		paste.ctype = STRAIN_CRITERION ;
-		paste.up = 0.00035 ;
-	}
-	if(argv[2] == std::string("stress"))
-	{
-		paste.ctype = STRESS_CRITERION ;
-		paste.up = 0.00025 ;
-	}
-	if(argv[2] == std::string("mixed"))
-	{
-		paste.ctype = MIXED_CRITERION ;
-		paste.up = 0.00025 ;
-		paste.stressFraction = 0.714 ;
-	}
-	paste.materialRadius = 0.002 ;
-
-	if(argv[2] == std::string("elastic"))
-		box.setBehaviour( &virtualpastenodamage ) ;
-	else
-		box.setBehaviour( &paste ) ;
-
 	top.setBehaviour( new VoidForm() ) ;
 	notch.setBehaviour( new VoidForm() ) ;
 

@@ -3662,6 +3662,8 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
         def->addChild ( new ConfigTreeItem ( def, "minimum_time_step", 1e-9 ) ) ;
         def->addChild ( new ConfigTreeItem ( def, "maximum_iterations_per_step", 256 ) ) ;
         def->addChild ( new ConfigTreeItem ( def, "number_of_time_steps", 1 ) ) ;
+        def->addChild ( new ConfigTreeItem ( def, "first_time_step", 0.1 ) ) ;
+        def->addChild ( new ConfigTreeItem ( def, "logarithmic", "FALSE" ) ) ;
     }
     double deltaTime = config->getData ( "time_step", def->getData ( "time_step" ) ) ;
     double minDeltaTime = config->getData ( "minimum_time_step", def->getData ( "minimum_time_step" ) ) ;
@@ -3694,10 +3696,24 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
         }
         else
         {
-            for ( size_t i = 0 ; i < cinstants.size() ; i++ )
-            {
-                cinstants[i] = deltaTime*i ;
-            }
+	    if( config->getStringData("logarithmic", def->getStringData("logarithmic")) == "TRUE" )
+	    {
+		cinstants[0] = 0. ;
+		cinstants[1] = config->getData ( "first_time_step", def->getData ( "first_time_step" ) ) ;
+		for(size_t i = 2 ; i < cinstants.size() ; i++)
+		{
+			double logprev = std::log10(cinstants[i-1]) ;
+			double lognext = logprev+deltaTime ;
+			cinstants[i] = std::pow(10., lognext) ;
+		}
+	    }
+	    else
+	    {
+		    for ( size_t i = 0 ; i < cinstants.size() ; i++ )
+		    {
+		        cinstants[i] = deltaTime*i ;
+		    }
+	    }
         }
     }
     return cinstants ;

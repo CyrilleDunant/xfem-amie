@@ -23,6 +23,7 @@
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/fracturecriteria/maxstrain.h"
+#include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "writer/triangle_writer.h"
@@ -242,7 +243,7 @@ void ConfigTreeItem::print() const
 	if(isLeaf())
 	{
 		std::cout << " = " ;
-		if(str.size() > 0)
+		if(str.size() > 0 && str[0] != '$')
 			std::cout << str ;
 		else
 			std::cout << data ;
@@ -292,6 +293,45 @@ bool ConfigTreeItem::hasChild( std::vector<std::string> childLabelDecomposed )  
 	else
 		return false ;
 	
+}
+
+std::map<std::string, double> ConfigTreeItem::makeDefinition() const 
+{
+	std::map<std::string, double> ret ;
+	for(size_t i = 0 ; i < children.size() ; i++)
+	{
+		if(children[i]->getLabel()[0] == '$')
+			ret[children[i]->getLabel()] = children[i]->getData() ;
+	}
+	return ret ;
+}
+
+void ConfigTreeItem::define() 
+{
+	if(hasChild("define"))
+	{
+		std::map<std::string, double> def = getChild("define")->makeDefinition() ;
+		for(size_t i = 0 ; i < children.size() ; i++)
+		{
+			if(!children[i]->is("define"))
+				children[i]->define(def) ;
+		}
+	}
+
+}
+
+void ConfigTreeItem::define(std::map<std::string, double> def) 
+{
+	if( str.size() > 0 && str[0] == '$' && def.find(str) != def.end())
+	{
+		data = def[str] ;
+	}
+
+	for(size_t i = 0 ; i < children.size() ; i++)
+	{
+		if(!children[i]->is("define"))
+			children[i]->define(def) ;
+	}
 }
 
 double ConfigTreeItem::getData(std::string path, double defaultValue) const 
@@ -376,7 +416,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "DRYING_SHRINKAGE")
 	{
-		ret = new RadiationInducedExpansionMaterialLaw() ;
+		ret = new DryingShrinkageMaterialLaw() ;
 		ret->setDefaultValue("relative_humidity", getData("reference_relative_humidity", 1.)) ;
 		return ret ;
 	}
@@ -411,6 +451,14 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		{
 			ret->setDefaultValue( parameters[i]->getLabel(), parameters[i]->getData() ) ;
 		}
+		return ret ;
+	}
+
+	if(type == "ASSIGN")
+	{
+		std::string in = getStringData("input", "FIELD_NOT_FOUND") ;
+		std::string out = getStringData("output", "FIELD_NOT_FOUND") ;
+		ret = new AssignExternalMaterialLaw(in, out) ;
 		return ret ;
 	}
 
@@ -532,6 +580,25 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 		{
 			ret = new SpaceTimeNonLocalEllipsoidalMixedCriterion( getData("limit_tensile_strain",0.001), getData("limit_tensile_stress",1e6), getData("instantaneous_modulus",10e9), getData( "relaxed_modulus",1e9) ) ;
 		}
+
+		if(type == "MULTI_LINEAR_SOFTENING_TENSILE_STRESS")
+		{
+			double E = getFather()->getData("parameters.young_modulus",1e9) ;
+			double e_ = getData( "strain_renormalization_factor", 1e4) ;
+			double s_ = getData( "stress_renormalization_factor", 1e-6) ;
+			std::string file = getStringData("file_name", "file_not_found") ;
+			ret = new SpaceTimeNonLocalMultiLinearSofteningFractureCriterion(file, E, e_, s_) ;
+		}
+		if(type == "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS")
+		{
+			double E = getFather()->getData("parameters.young_modulus",1e9) ;
+			double e_ = getData( "strain_renormalization_factor", 1e4) ;
+			double s_ = getData( "stress_renormalization_factor", 1e-6) ;
+			std::string tfile = getStringData("tension_file_name", "") ;
+			std::string cfile = getStringData("compression_file_name", "") ;
+			ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, e_, s_) ;
+		}
+
 	}
 	else
 	{
@@ -1071,6 +1138,46 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 				F->addFeature( F->getFeature(0), ret[i]) ;
 		}
 	}
+	else if(type == "UNIQUE")
+	{
+		std::string inclusion = getStringData("geometry.type","CIRCLE") ;
+		if(inclusion == "CIRCLE")
+		{
+			double r = getData("geometry.radius",0.1) ;
+			double x = getData("geometry.center.x",0.) ;
+			double y = getData("geometry.center.y",0.) ;
+			Inclusion * inc = new Inclusion( r, x, y) ;
+			inc->setBehaviour(behaviour) ;
+			Feature * f = F->getFeature(0) ;
+			Point p(x,y) ;
+			for(size_t i = 0 ; i < base.size() ; i++)
+			{
+				if(base[i]->in(p))
+					f = base[i] ;
+			}
+			F->addFeature( f, inc) ;
+			ret.push_back(inc) ;
+		}
+		if(inclusion == "RECTANGLE")
+		{
+			double h = getData("geometry.height",0.1) ;
+			double w = getData("geometry.width",0.1) ;
+			double x = getData("geometry.center.x",0.) ;
+			double y = getData("geometry.center.y",0.) ;
+			Sample * inc = new Sample( nullptr, w, h, x, y) ;
+			inc->setBehaviour(behaviour) ;
+			Feature * f = F->getFeature(0) ;
+			Point p(x,y) ;
+			for(size_t i = 0 ; i < base.size() ; i++)
+			{
+				if(base[i]->in(p))
+					f = base[i] ;
+			}
+			F->addFeature( f, inc) ;
+			ret.push_back(inc) ;
+		}
+
+	}
 	else if(type == "FROM_PARENT_DISTRIBUTION")
 	{
 		Function f("x") ;
@@ -1465,6 +1572,8 @@ bool ConfigTreeItem::isAtTimeStep(int i, int nsteps) const
 		return true ;
 	if(getStringData("at","NONE") == "LAST")
 		return i == nsteps-1 ;
+	if(getStringData("at","NONE") == "FIRST")
+		return i == 1 ;
 	if(getStringData("at","NONE") == "REGULAR")
 		return i%((int) getData("every", 2)) == 0 ;
 	return false ;

@@ -187,6 +187,19 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     #pragma atomic write
     lock = false ;
 
+/*	if(dummy == 0)
+	{
+		int * p = nullptr ;
+		*p = 3 ;
+	}
+
+	std::cout << "weight=" << weights.size() << std::endl ;
+	std::cout << "time=" << t << std::endl ;
+	std::cout << "field=" << f << std::endl ;
+	std::cout << "dummy=" << dummy << std::endl ;
+	std::cout << "area=" <<(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume()) << std::endl ;
+	std::cout << "total=" << total << std::endl ;*/
+
     return parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
 }
 
@@ -908,13 +921,23 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
 
     Form * visco = ( parent->getBehaviour() ) ;
     bool cleanup = !vm ;
+    if ( !vm )
+    {
+        vm = new VirtualMachine() ;
+    }
     switch ( f )
     {
-    case DISPLACEMENT_FIELD:
-        if ( !vm )
+    case SCALAR_DAMAGE_FIELD:
+	if(parent->getBehaviour()->getDamageModel())
+		ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
+	else
+		ret[0] = 0. ;
+        if ( cleanup )
         {
-            vm = new VirtualMachine() ;
+            delete vm ;
         }
+        return ;
+    case DISPLACEMENT_FIELD:
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm->eval ( parent->getShapeFunction ( j ) , p_ ) ;

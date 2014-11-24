@@ -157,6 +157,12 @@ public:
 	/** Read a vector of double from a file*/
 	Vector readVectorFromFile() const ;
 
+	std::map<std::string, double> makeDefinition() const ;
+
+	void define() ;
+
+	void define(std::map<std::string, double> def) ;
+
 	/** Translates the current item in a function*/
 	Function getFunction() const ;
 

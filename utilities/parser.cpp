@@ -436,6 +436,7 @@ void ConfigParser::readData()
 			else if(l == 0 || l > level+1)
 			{
 				std::cout << "parsing error in file " << filename << std::endl ;
+				current->print() ;
 				exit(0) ;
 			}
 			else // (l between 1 and level-1)
@@ -448,7 +449,9 @@ void ConfigParser::readData()
 			}
 			if(sep == std::string::npos)
 			{
+//				std::cout << line.substr(level) << std::endl ;
 				ConfigTreeItem * cnf = new ConfigTreeItem( current , line.substr(level) ) ;
+//				current->printTree() ;
 			}
 			else
 			{
@@ -509,7 +512,11 @@ ConfigTreeItem * ConfigParser::readFile(std::string f)
 {
 	ConfigParser parser(f) ;	
 	parser.readData() ;
-	return parser.getData() ;
+	ConfigTreeItem * ret = parser.getData() ;
+	if(ret->hasChild("template"))
+		ret = ret->getChild("template")->makeTemplate() ;
+	ret->define() ;
+	return ret ;
 }
 
 

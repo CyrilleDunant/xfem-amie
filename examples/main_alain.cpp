@@ -17,6 +17,7 @@
 #include "../physics/parallel_behaviour.h"
 //#include "../physics/generalized_spacetime_viscoelasticity.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/weibull_distributed_stiffness.h"
 #include "../features/pore.h"
@@ -56,41 +57,41 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-    Sample box(nullptr, 0.2,0.2,0.,0.) ;
+    omp_set_num_threads(1) ;
+
+    Sample box(nullptr, 0.02,0.02,0.,0.) ;
 
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(20) ;
+    F.setSamplingNumber(1) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     double time_step = 0.01 ;
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
     F.setSamplingRestriction( SAMPLE_RESTRICT_4 ) ;
 
-    ViscoDamagePasteBehaviour paste ;
+    std::vector<Point> p ;
+    p.push_back( Point( 1e6/1e9, 1e6 ) ) ;
+    p.push_back( Point( 4e6/1e9, 0e6 ) ) ;
+    SpaceTimeNonLocalMultiLinearSofteningFractureCriterion crit( p, 1e9 ) ;
+    
+    LogarithmicCreepWithExternalParameters paste("young_modulus = 1e9, poisson_ratio = 0.2", &crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 0.99)) ;
     box.setBehaviour( &paste );
 
     F.step() ;
 
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 1 ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 3 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 5 ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 0 ) ) ;
     F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 2 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 4 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.0001, 1 ) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0.00005, 1 ) ) ;
 
     F.setMaxIterationsPerStep(1024) ;
 
-    timeval time0, time1 ;
-    gettimeofday ( &time0, nullptr );
-
     F.step() ;
 
-    gettimeofday ( &time1, nullptr );
-
-    double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cout << delta/1e6 << std::endl ;
+	std::cout << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << std::endl; 
+	std::cout << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl; 
 
     return 0 ;
 
