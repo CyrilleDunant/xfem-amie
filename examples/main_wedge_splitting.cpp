@@ -54,6 +54,7 @@
 using namespace Amie ;
 
 // see Cecot 2001, p98, for sample dimensions
+// Warning: transitory version between creep models
 
 double length = 0.2 ; //5.5 ;
 double width = 0.045 ;
@@ -77,6 +78,9 @@ int main(int argc, char *argv[])
 	double totaltime = atof(argv[1]) ;
 	F.setDeltaTime(totaltime/500.) ;
 	F.setMinDeltaTime((totaltime/100.)*1e-9) ;
+
+	ViscoElasticOnlyPasteBehaviour paste ;
+	ViscoElasticOnlyPasteBehaviour pastenodamage ;
 
 	Rectangle * placement= new Rectangle(width,nnotch*1.1, 0., nnotch*0.552) ;
 
@@ -113,6 +117,7 @@ int main(int argc, char *argv[])
 
 	std::vector<Geometry *> exclusionZones ;
 	exclusionZones.push_back( notch.getPrimitive() ) ;
+	size_t seed = 0 ;
 
 	std::vector<Feature *> aggregates = PSDGenerator::get2DConcrete( &F, &agg, 200, 0.008, 0.0003, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones, seed ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
