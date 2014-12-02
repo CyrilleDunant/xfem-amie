@@ -67,6 +67,11 @@ public:
 	void setMaximumTensileStrain(double e = -1, double emax = -1) ;
 	void setMaximumCompressiveStress(double s = 1, double smax = 1) ;
 	void setMaximumCompressiveStrain(double e = 1, double emax = 1) ;
+
+	double getTensileStrength() const ;
+	double getTensileStrain() const ;
+	double getCompressiveStrength() const ;
+	double getCompressiveStrain() const ;
 } ;
 
 

@@ -586,6 +586,38 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 	}
 }
 
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getTensileStrength() const 
+{
+	if(!tensileStressStrainCurve)
+		return -1 ;
+
+	return tensileStressStrainCurve->getPoint(0).getY()/renormStress ;
+}
+
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getTensileStrain() const 
+{
+	if(!tensileStressStrainCurve)
+		return -1 ;
+
+	return tensileStressStrainCurve->getPoint(0).getX()/renormStrain ;
+}
+
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getCompressiveStrength() const 
+{
+	if(!compressiveStressStrainCurve)
+		return -1 ;
+
+	return compressiveStressStrainCurve->getPoint(0).getY()/renormStress ;
+}
+
+double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getCompressiveStrain() const 
+{
+	if(!compressiveStressStrainCurve)
+		return -1 ;
+
+	return compressiveStressStrainCurve->getPoint(0).getX()/renormStrain ;
+}
+
 
 }
 

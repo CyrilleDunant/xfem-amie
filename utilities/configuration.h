@@ -159,24 +159,24 @@ public:
 
 	std::map<std::string, double> makeDefinition() const ;
 
-	void define() ;
+	void define(ConfigTreeItem * definition, bool over) ;
 
-	void define(std::map<std::string, double> def) ;
+	void define(ConfigTreeItem * definition) ;
 
 	/** Translates the current item in a function*/
 	Function getFunction() const ;
 
 	/** Translates the current item in a 2D sample*/
-	Sample * getSample() const ;
+	Sample * getSample() ;
 
 	/** Translates the current item in a mechanical behaviour*/
-	Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false) const ;
+	Form * getBehaviour(SpaceDimensionality dim, bool spaceTime = false) ;
 
 	/** Translates the current item in a fracture criterion*/
-	FractureCriterion * getFractureCriterion(bool spaceTime = false) const ;
+	FractureCriterion * getFractureCriterion(bool spaceTime = false) ;
 
 	/** Translates the current item in a damage model*/
-	DamageModel * getDamageModel(bool spaceTime = false) const ;
+	DamageModel * getDamageModel(bool spaceTime = false) ;
 
 	/** Translates the current item in a Cauchy-Green stiffness matrix*/
 	Matrix getStiffnessMatrix(SpaceDimensionality dim, planeType pt = PLANE_STRESS) const ;
@@ -191,7 +191,7 @@ public:
 	ExternalMaterialLaw * getExternalMaterialLaw() const ;
 
 	/** Translates the current item in a vector of inclusions, and places them into a FeatureTree object*/
-	std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) const ;
+	std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) ;
 
 	/** Translates the current item in a boundary condition*/
 	BoundaryCondition * getBoundaryCondition() const ;

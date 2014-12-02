@@ -507,6 +507,50 @@ This feature can also make use of \textsc{amie} functions using \verb+layer_thic
 \verb+...behaviour+\\
 \verb+....type = VOID_BEHAVIOUR+
 
+\subsection{Placing a single inclusion}
+
+It is possible to place a single inclusions at a very specific position in the microstructure, using the \verb+UNIQUE+ keyword. Valid geometries are \verb+CIRCLE+, \verb+ELLIPSE+ and \verb+RECTANGLE+. For example, circular inclusions can be created with:
+
+\noindent \verb+.inclusions+\\
+\verb+..particle_size_distribution+\\
+\verb+...type = UNIQUE+\\
+\verb+..geometry+\\
+\verb+...type = CIRCLE+\\
+\verb+...radius = 0.1+\\
+\verb+...center+\\
+\verb+....x = 0+\\
+\verb+....y = 0+
+
+\paragraph{}Ellipses require a \verb+major_radius+ and \verb+minor_radius+, as well as a \verb+major_axis+ direction (a vector of norm 1):\\
+
+\noindent \verb+.inclusions+\\
+\verb+..particle_size_distribution+\\
+\verb+...type = UNIQUE+\\
+\verb+..geometry+\\
+\verb+...type = ELLIPSE+\\
+\verb+...major_radius = 0.1+\\
+\verb+...minor_radius = 0.05+\\
+\verb+...center+\\
+\verb+....x = 0+\\
+\verb+....y = 0+\\
+\verb+...major_axis+\\
+\verb+....x = 1+\\
+\verb+....y = 0+
+
+\paragraph{}Rectangles are defined as a \verb+sample+ object. They cannot be oriented.\\
+
+\noindent \verb+.inclusions+\\
+\verb+..particle_size_distribution+\\
+\verb+...type = UNIQUE+\\
+\verb+..geometry+\\
+\verb+...type = RACTANGLE+\\
+\verb+...center+\\
+\verb+....x = 0+\\
+\verb+....y = 0+\\
+\verb+...height = 0.1+\\
+\verb+...width = 0.05+
+
+
 \subsection{Combining the different techniques}
 
 All of the previous features can be combined one with another to generate arbitrarily complex microstructures. However, be mindful of the following:
@@ -616,7 +660,7 @@ The mesh density can be changed inside the matrix (that is, outised of any inclu
 
 \section{Defining a time step}
 
-The easiest way to manage the time stepping is to use a constant time step. However, two other methods are also available.
+The easiest way to manage the time stepping is to use a constant time step (or a logarithmic-constant time step). However, two other methods are also available.
 
 \subsection{Importing a list of time steps from a file}
 
@@ -722,6 +766,29 @@ There are three ways to define a time-dependent boundary condition. The easiest 
 \verb+0.99999 0+\\
 \verb+1       1e6+\\
 \verb+2       1e6+\\
+
+\section{Extracting the average stress and strain over certain families of inclusions}
+
+For each family of inclusion it is possible to extract in the \verb+output+ the average stress, strain (or other values) for these inclusions only. Tpo do so, the following syntax is used:\\
+
+\verb+.output+\\
+\verb+..file_name = output_file+\\
+\verb+..time_step+\\
+\verb+...at = ALL+\\
+\verb+..field = REAL_STRESS_FIELD+\\
+\verb+..field = STRAIN_FIELD+\\
+\verb+..inclusions+\\
+\verb+...index = 0+\\
+\verb+...field = REAL_STRESS_FIELD+\\
+\verb+...field = STRAIN_FIELD+\\
+\verb+..inclusions+\\
+\verb+...index = 1+\\
+\verb+...field = REAL_STRESS_FIELD+\\
+\verb+...field = STRAIN_FIELD+
+
+\paragraph{} Any number of \verb+inclusions+ objects can be defined (up to the actual number of inclusion families + 1). The index 0 denotes the matrix. Higher indexes indicate the corresponding family of inclusions, ranked in the order in which they are generated (that is, they are ranked in the order in which they appear in the script file).
+
+
 
 \section{Defining behaviours}
 
@@ -1130,7 +1197,7 @@ The parameters are declared with their default values in a \verb+parameters+ obj
 
 \noindent \verb+imposed_deformation+
 
-\paragraph{} In the current version of \textsc{amie}, the internal parameters are not related with the fracture criterion and the damage model. To use damage with a \verb+LOGARITHMIC_CREEP+ behaviour, one must define a \verb+fracture_criterion+ and \verb+damage_model+ as follow:\\
+\paragraph{} In order to use a damage and creep behaviour, one can either define explicitly a \verb+fracture_criterion+ and \verb+damage_model+ as follow (in which case \textsc{amie} will be unable to change the fracture properties as a function of the internal parameters), or use the method described below.\\
 
 \noindent \verb+.behaviour+\\
 \verb+..type = LOGARITHMIC_CREEP+\\
@@ -1140,6 +1207,100 @@ The parameters are declared with their default values in a \verb+parameters+ obj
 \verb+# definition of the fracture criterion+\\
 \verb+..damage_model+\\
 \verb+# definition of the damage model+
+
+\subsection{Embedded fracture criterion for the logarithmic creep behaviour}
+
+There are two options available:
+
+\begin{itemize}
+	\item Import stress-strain curves from a text file
+	\item Explicitly declare the maximum stress and strain in the input file
+\end{itemize}
+
+The two methods cannot be combined. If both are defined, then the import will be used, and the other parameters will not be accounted for.
+
+\subsubsection{Import stress-strain curves}
+
+\noindent \verb+.behaviour+\\
+\verb+..type = LOGARITHMIC_CREEP+\\
+\verb+..parameters+\\
+\verb+...tension_file_name = /path/to/the/stress/strain/curve/in/tension+\\
+\verb+...compression_file_name = /path/to/the/stress/strain/curve/in/compression+\\
+\verb+...material_characteristic_radius = # value+\\
+\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
+\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
+\verb+...damage_increment = # value+\\
+\verb+...maximum_damage = # value+\\
+\verb+...time_tolerance = # optional, default value = 1e-9+
+
+\paragraph{} The behaviour can be defined in tension, compression, or both. If \verb+tension_file_name+ (alternatively \verb+compression_file_name+) is not defined, then the material will not fail in tension (or in compression). If none of them are defined, then \textsc{amie} will try to use the other method described below.
+
+\paragraph{} The text files must contain a table with the strain (first column) and stress (second column), in SI units. The file for tension must contain only positive (or zero) values, and the file for compression must contain only negative (or zero) values. Furthermore, it is preferable for the strain to be strictly increasing in the table.
+
+\paragraph{}For each element, \textsc{amie} will create the following variables, which can then be acted upon using material laws (see below):\\
+
+\noindent \verb+tensile_strength+\\
+\verb+tensile_strain+\\
+\verb+tensile_ultimate_strength+\\
+\verb+tensile_ultimate_strain+\\
+\verb+compressive_strength+\\
+\verb+compressive_strain+\\
+\verb+compressive_ultimate_strength+\\
+\verb+compressive_ultimate_strain+
+
+\subsubsection{Declare the maximum stress and strain}
+
+\noindent \verb+.behaviour+\\
+\verb+..type = LOGARITHMIC_CREEP+\\
+\verb+..parameters+\\
+\verb+...tensile_strength = # stress at the peak+\\
+\verb+...tensile_ultimate_strength = # stress at the end of the damage process+\\
+\verb+...tensile_ultimate_strain = # strain at the end of the damage process+\\
+\verb+...compressive_strength = # stress at the peak+\\
+\verb+...compressive_ultimate_strength = # stress at the end of the damage process+\\
+\verb+...compressive_ultimate_strain = # strain at the end of the damage process+\\
+\verb+...material_characteristic_radius = # value+\\
+\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
+\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
+\verb+...damage_increment = # value+\\
+\verb+...maximum_damage = # value+\\
+\verb+...time_tolerance = # optional, default value = 1e-9+
+
+\paragraph{}The behaviour can be defined in tension, in compression, or both. If no \verb+tensile strength+ (alternatively \verb+compressive_strength+) is found, then the material will not fail in tension (or in compression). If none of them are defined (and no stress-strain curve files are defined), then the material will not fail.
+
+\paragraph{}The behaviour will be assumed linear between the peak and the ultimate value.
+
+\paragraph{}Tensile strength and strain must be positive, compressive strength and strain must be negative.
+
+\paragraph{}\verb+tensile_strength+ (alternatively \verb+compressive_strength+) can be replaced with \verb+tensile_strain+ (or \verb+compressive_strain+), the strain at the peak. The \verb+tensile_strength+ will then be derived from the \verb+young_modulus+ of the material.
+
+\paragraph{}The ultimate values are not required. If they are not defined, then the material will only fail when its stress reaches the prescribed strength.
+
+\paragraph{}\verb+tensile_ultimate_strength+ can be replaced with \verb+tensile_strength_decrease_factor+, a scalar between 0 and 1. It is then calculated from the \verb+tensile_strength+ using:
+
+\begin{equation}
+	\verb+tensile_ultimate_strength+ = \verb+tensile_strength+ \times ( 1 - \verb+tensile_strength_decrease_factor+)
+\end{equation} 
+
+\paragraph{}\verb+tensile_ultimate_strain+ can be replaced with \verb+tensile_strain_increase_factor+, a scalar higher than 1. It is then calculated from the \verb+tensile_strain+ using:
+
+\begin{equation}
+	\verb+tensile_ultimate_strain+ = \verb+tensile_strain+ \times \verb+tensile_strain_increase_factor+
+\end{equation} 
+
+\paragraph{}The same manipulation can be made for the \verb+compressive_ultimate_strength+ and \verb+compressive_ultimate_strain+.
+
+\subsubsection{Common parameters}
+
+The \verb+strain_renormalization_factor+ and \verb+stress_renormalization_factor+ are introduced to increase the numerical precision of the damage algorithm. They should be chosen so that the quantities \\ \verb+tensile_strain+$\times$\verb+strain_renormalization_factor+ and \verb+tensile_strength+$\times$\verb+stress_renormalization_factor+ are approximately on the same order of magnitude. The default values should be valid in most cases.
+
+\paragraph{} The \verb+material_characteristic_radius+ is the characteristic length for the non-local averaging of the strain and depends on the materialś underlying microstructure.
+
+\paragraph{} The \verb+damage_increment+ controls how much damage is applied at each step of the algorithm (the value should be between 0 and 1, and at least lower than 0.1), while the \verb+time_tolerance+ controls how many elements can be damaged at each step of the algorithm (the smaller \verb+time_tolerance+, the less elements are damaged at each step). The default \verb+time_tolerance+ should be valid in most cases.
+
+\paragraph{}\verb+maximum_damage+ controls how much damage an element can sustain before failing completely. 
+
+\paragraph{}Note that none of these parameters can be changed during the simulation.
 
 \subsection{Material laws}
 
@@ -1600,6 +1761,14 @@ The following example can be used to simulate the serpentine aggregates used in 
 \verb+...radiation_expansion_delay = 84.268+\\
 \verb+...maximum_radiation_expansion = 0.0972+\\
 \verb+...neutron_fluence_correction = 0.0099+\\
+\verb+# damage parameters, purely brittle material in tension+\\
+\verb+...tensile_strain = 0.00039+\\
+\verb+...tensile_ultimate_strength = 0+\\
+\verb+...tensile_ultimate_strain = 0.00039+\\
+\verb+...material_characteristic_radius = 0.001+\\
+\verb+...damage_increment = 0.01+\\
+\verb+...maximum_damage = 0.999+\\
+\verb+...time_tolerance = 1e-9+
 \verb+# define temperature as function of time+\\
 \verb+..material_law+\\
 \verb+...type = LINEAR_INTERPOLATED+\\
@@ -1625,96 +1794,119 @@ The following example can be used to simulate the serpentine aggregates used in 
 \verb+...input_parameter = neutron_fluence+\\
 \verb+...output_parameter = young_modulus+\\
 \verb+...file_name = ../examples/data/elleuch/aggregate_damage+\\
-\verb+# damage parameters+\\
-\verb+..fracture_criterion+\\
-\verb+...type = MAXIMUM_TENSILE_STRAIN+\\
-\verb+...limit_tensile_strain = 0.00039+\\
-\verb+..damage_model+\\
-\verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
-\verb+...damage_increment = 0.01+\\
-\verb+...time_tolerance = 1e-9+
 
 \section{Using templates}
 
 Templates are a way to use the same general setup with variations. It is an effective way to do parametric studies, or to simulate set of experiments in which only a few parameters change.
 
-You can call a template with the following syntax:\\
+Templates use two files: a \verb+source+ which contains the main parameters of the simulation, as well an \verb+specification+ file which changes a few parameters of the simulation.
 
-\noindent \verb+.template+\\
-\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-\verb+..replace+\\
-\verb+...sample.behaviour.young_modulus = 20e9+
+\subsection{Source file}
 
-\paragraph{} This example will import all information from \verb+../examples/data/composite/test_2d_composite.ini+ and replace the value of the \verb+young_modulus+ of the sample by $20 \times 10^{9}$.
+The \verb+source+ file is a \verb+*.ini+ file as described above. In addition, you can define named variables using the \verb+.define+ structure. Named variables are composed by a string starting with the character \verb+@+. Later during the file, you can set any element to the value of the named variable. For example, the following file defines a variable named \verb+@paste_young_modulus+ (which has a default value of 12 GPa), and attributes the value of the variable \verb+@paste_young_modulus+ to the elastic modulus of the sample:\\
 
-\paragraph{} When using a template, any information not stored under \verb+.template+ will be ignored! Therefore, it is best to verify that the \verb+..source+ file contains all necessary information for \amie to run.
-
-\paragraph{} \textsc{amie} will first load the template, then perform the following operations, and finally run the simulation with the modified script.
-
-\begin{enumerate}
-	\item Remove unnecessary source components.
-	\item Replace source components by new ones.
-	\item Attach new components to the source components.
-	\item Add new components to the source.
-\end{enumerate}
-
-The source components are defined by their full path. In the previous example, \verb+sample.behaviour.young_modulus+ points to the following element in the \verb+source+ file:\\
-
-\noindent \verb+.sample+\\
+\noindent \verb+.define+\\
+\verb+..@paste_young_modulus = 12e9+\\
+\verb+.sample+\\
+\verb+..height = 0.1+\\
+\verb+..width = 0.1+\\
 \verb+..behaviour+\\
-\verb+...young_modulus = # original value+
+\verb+...type = ELASTICITY+\\
+\verb+...young_modulus = @paste_young_modulus+
 
-\paragraph{} The example below is entirely different from the example above:\\
+\paragraph{} You can define as many named variables as required. Named variables are unique: if two share the same name, then the second will be ignored. If you do not define a named variable, then the program stops. Named variables can either be numbers or strings. 
 
-\noindent \verb+.template+\\
-\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-\verb+..replace+\\
-\verb+...sample+\\
-\verb+....behaviour+\\
-\verb+.....young_modulus = 20e9+
+\paragraph{} The \verb+source+ file should be able to run with \textsc{amie} without any change.
 
-\paragraph{} Indeed, the second example will replace the entire \verb+.sample+ section of the original \verb+source+ file with the indicated section. Information about the dimensions of the sample and the mechanical behaviour will be lost. The first example only replaces the \verb+young_modulus+ value.
+\subsection{Specification file}
 
-\subsection{Remove components}
+The \verb+specification+ file is a \verb+*.ini+ file which contains only the path to the \verb+source+ file and a set of named variables definition. By calling the \verb+specification+ file, the associated \verb+source+ file will be run, except that all named variables in the \verb+source+ file will be given the values attributed in the \verb+specification+ file. An example of \verb+specification+ file would be:\\
 
 \noindent \verb+.template+\\
-\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-\verb+..remove+\\
-\verb+...inclusions.inclusions+\\
-\verb+...export+
+\verb+..source = path/to/the/source/file.ini+\\
+\verb+..define+\\
+\verb+...@paste_young_modulus = 20e9+
 
-\paragraph{} Any element placed under the \verb+remove+ keyword will be removed from the tree. In case of multiple definitions, all elements with the same path will be removed. Therefore, the example above removes all second-level inclusions, as well as the mesh export definition.
+\subsection{Command line arguments}
 
-\subsection{Replace components}
+Instead of a \verb+specification+ file it is possible to set the named variables directly from the command line arguments. The following syntax is equivalent to the previous \verb+specification+ file:\\
 
-Components with an associated numeric or string value can be simply replaced as shown above. Any arbitrary number of components can be replaced:\\
+\verb+./2d_composite path/to/the/source/file.ini @paste_young_modulus 20e9+
 
-\noindent \verb+.template+\\
-\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-\verb+..replace+\\
-\verb+...sample.behaviour.young_modulus = 20e9+\\
-\verb+...inclusions.behaviour.young_modulus = 70e9+
+\paragraph{} There should be a space between the name of the variable and its value (and no other characters). Any named variable without a corresponding value will be ignored.
 
-\paragraph{} If the targeted component does not exists, nothing will happen (the component will not be created!)
+%You can call a template with the following syntax:\\
 
-\paragraph{} Entire blocks can be replaced as in the following example:\\
+%\noindent \verb+.template+\\
+%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+%\verb+..replace+\\
+%\verb+...sample.behaviour.young_modulus = 20e9+
 
-\noindent \verb+.template+\\
-\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
-\verb+..replace+\\
-\verb+...sample.behaviour+\\
-\verb+....type = PASTE_BEHAVIOUR+
+%\paragraph{} This example will import all information from \verb+../examples/data/composite/test_2d_composite.ini+ and replace the value of the \verb+young_modulus+ of the sample by $20 \times 10^{9}$.
+
+%\paragraph{} When using a template, any information not stored under \verb+.template+ will be ignored! Therefore, it is best to verify that the \verb+..source+ file contains all necessary information for \amie to run.
+
+%\paragraph{} \textsc{amie} will first load the template, then perform the following operations, and finally run the simulation with the modified script.
+
+%\begin{enumerate}
+%	\item Remove unnecessary source components.
+%	\item Replace source components by new ones.
+%	\item Attach new components to the source components.
+%	\item Add new components to the source.
+%\end{enumerate}
+
+%The source components are defined by their full path. In the previous example, \verb+sample.behaviour.young_modulus+ points to the following element in the \verb+source+ file:\\
+
+%\noindent \verb+.sample+\\
+%\verb+..behaviour+\\
+%\verb+...young_modulus = # original value+
+
+%\paragraph{} The example below is entirely different from the example above:\\
+
+%\noindent \verb+.template+\\
+%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+%\verb+..replace+\\
+%\verb+...sample+\\
+%\verb+....behaviour+\\
+%\verb+.....young_modulus = 20e9+
+
+%\paragraph{} Indeed, the second example will replace the entire \verb+.sample+ section of the original \verb+source+ file with the indicated section. Information about the dimensions of the sample and the mechanical behaviour will be lost. The first example only replaces the \verb+young_modulus+ value.
+
+%\subsection{Remove components}
+
+%\noindent \verb+.template+\\
+%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+%\verb+..remove+\\
+%\verb+...inclusions.inclusions+\\
+%\verb+...export+
+
+%\paragraph{} Any element placed under the \verb+remove+ keyword will be removed from the tree. In case of multiple definitions, all elements with the same path will be removed. Therefore, the example above removes all second-level inclusions, as well as the mesh export definition.
+
+%\subsection{Replace components}
+
+%Components with an associated numeric or string value can be simply replaced as shown above. Any arbitrary number of components can be replaced:\\
+
+%\noindent \verb+.template+\\
+%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+%\verb+..replace+\\
+%\verb+...sample.behaviour.young_modulus = 20e9+\\
+%\verb+...inclusions.behaviour.young_modulus = 70e9+
+
+%\paragraph{} If the targeted component does not exists, nothing will happen (the component will not be created!)
+
+%\paragraph{} Entire blocks can be replaced as in the following example:\\
+
+%\noindent \verb+.template+\\
+%\verb+..source = ../examples/data/composite/test_2d_composite.ini+\\
+%\verb+..replace+\\
+%\verb+...sample.behaviour+\\
+%\verb+....type = PASTE_BEHAVIOUR+
 
 
 
-\subsection{Attach components}
+%\subsection{Attach components}
 
-\subsection{Add components}
-
-
-
-
-
+%\subsection{Add components}
 
 \section{Future features}
 
@@ -1723,9 +1915,8 @@ The following features might be implemented/corrected at some point in the futur
 \begin{itemize}
 	\item The first SVG output file seems to have more fields than required. This is a bug.
 	\item Possibility to refine locally the mesh.
-	\item Possibility to add pre-placed rectangular inclusions (for rebars, notches, etc).
+	\item Possibility to not use the SVG output.
 	\item Possibility to limit the location of the boundary conditions to a certain part of an edge, or a certain point.
-	\item Possibility for the logarithmic creep behaviour to affect the damage parameters.
 \end{itemize}
 
 

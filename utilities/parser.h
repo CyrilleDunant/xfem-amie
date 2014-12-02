@@ -238,7 +238,7 @@ public:
 	virtual void readData() ;
 	ConfigTreeItem * getData() { return trunk; }
 
-	static ConfigTreeItem * readFile(std::string f) ;
+	static ConfigTreeItem * readFile(std::string f, ConfigTreeItem * def, bool define = true) ;
 
 } ;
 

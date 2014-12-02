@@ -27,9 +27,24 @@ int main(int argc, char *argv[])
 	if(argc > 1)
 		file = std::string(argv[1]) ;
 
-	ConfigTreeItem * problem = ConfigParser::readFile(file) ;
+	ConfigTreeItem * define = nullptr ;
+	for(int i = 2 ; i < argc ; i+=2)
+	{
+		std::string test = std::string(argv[i]) ;
+		if(test[0] == '@')
+		{
+			if(!define)
+				define = new ConfigTreeItem(nullptr, "define") ;
+			std::string testval = std::string(argv[i+1]) ;
+			bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
+			if(isDouble)
+				ConfigTreeItem * next = new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
+			else
+				ConfigTreeItem * next = new ConfigTreeItem( define, test, testval ) ;
+		}
+	}
 
-	problem->printTree() ;
+	ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))

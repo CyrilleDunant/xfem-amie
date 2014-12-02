@@ -116,24 +116,68 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 				tensileStrength = values["tensile_strength"] ;
 			if(values.find("tensile_ultimate_strength")!= values.end())
 				tensileUltimateStrength = values["tensile_ultimate_strength"] ;
+			if(values.find("tensile_strength_decrease_factor")!= values.end())
+			{
+				if(values.find("tensile_strength")!= values.end())
+					tensileUltimateStrength = tensileStrength*values["tensile_strength_decrease_factor"] ;
+				else
+				{
+					tensileStrength = crit->getTensileStrength() ;
+					if(tensileStrength > 0)
+						tensileUltimateStrength = tensileStrength*(1.-values["tensile_strength_decrease_factor"]) ;
+				}
+			}
 			double compressiveStrength = 1 ;
 			double compressiveUltimateStrength = 1 ;
 			if(values.find("compressive_strength")!= values.end())
 				compressiveStrength = values["compressive_strength"] ;
 			if(values.find("compressive_ultimate_strength")!= values.end())
 				compressiveUltimateStrength = values["compressive_ultimate_strength"] ;
+			if(values.find("compressive_strength_decrease_factor")!= values.end())
+			{
+				if(values.find("compressive_strength")!= values.end())
+					compressiveUltimateStrength = compressiveStrength*(1.-values["compressive_strength_decrease_factor"]) ;
+				else
+				{
+					compressiveStrength = crit->getTensileStrength() ;
+					if(compressiveStrength < 0)
+						compressiveUltimateStrength = compressiveStrength*values["compressive_strength_decrease_factor"] ;
+				}
+			}
 			double tensileStrain = -1 ;
 			double tensileUltimateStrain = -1 ;
 			if(values.find("tensile_strain")!= values.end())
 				tensileStrain = values["tensile_strain"] ;
 			if(values.find("tensile_ultimate_strain")!= values.end())
 				tensileUltimateStrain = values["tensile_ultimate_strain"] ;
+			if(values.find("tensile_strain_increase_factor")!= values.end())
+			{
+				if(values.find("tensile_strain")!= values.end())
+					tensileUltimateStrain = tensileStrain*values["tensile_strain_increase_factor"] ;
+				else
+				{
+					tensileStrain = crit->getTensileStrain() ;
+					if(tensileStrain > 0)
+						tensileUltimateStrain = tensileStrain*values["tensile_strain_increase_factor"] ;
+				}
+			}
 			double compressiveStrain = 1 ;
 			double compressiveUltimateStrain = 1 ;
 			if(values.find("compressive_strain")!= values.end())
 				compressiveStrain = values["compressive_strain"] ;
 			if(values.find("compressive_ultimate_strain")!= values.end())
 				compressiveUltimateStrain = values["compressive_ultimate_strain"] ;
+			if(values.find("compressive_strain_increase_factor")!= values.end())
+			{
+				if(values.find("compressive_strain")!= values.end())
+					compressiveUltimateStrain = compressiveStrain*values["compressive_strain_increase_factor"] ;
+				else
+				{
+					compressiveStrain = crit->getCompressiveStrain() ;
+					if(compressiveStrain < 0)
+						compressiveUltimateStrain = compressiveStrain*values["compressive_strain_increase_factor"] ;
+				}
+			}
 
 			crit->setMaximumTensileStress( tensileStrength, tensileUltimateStrength ) ;
 			crit->setMaximumTensileStrain( tensileStrain, tensileUltimateStrain ) ;

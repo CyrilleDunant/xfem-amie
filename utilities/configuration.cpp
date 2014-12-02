@@ -243,7 +243,7 @@ void ConfigTreeItem::print() const
 	if(isLeaf())
 	{
 		std::cout << " = " ;
-		if(str.size() > 0 && str[0] != '$')
+		if(str.size() > 0 && str[0] != '@')
 			std::cout << str ;
 		else
 			std::cout << data ;
@@ -300,37 +300,63 @@ std::map<std::string, double> ConfigTreeItem::makeDefinition() const
 	std::map<std::string, double> ret ;
 	for(size_t i = 0 ; i < children.size() ; i++)
 	{
-		if(children[i]->getLabel()[0] == '$')
+		if(children[i]->getLabel()[0] == '@')
 			ret[children[i]->getLabel()] = children[i]->getData() ;
 	}
 	return ret ;
 }
 
-void ConfigTreeItem::define() 
+void ConfigTreeItem::define(ConfigTreeItem * def, bool over) 
 {
+	if(hasChild("define") && def && over)
+	{
+//		ConfigTreeItem * def = ret->getChild("define") ;
+		ConfigTreeItem * current = getChild("define") ;
+		std::vector<ConfigTreeItem *> toDefine = def->getAllChildren() ;
+		for(size_t i = 0 ; i < toDefine.size() ; i++)
+		{
+			if(current->hasChild(toDefine[i]->getLabel()))
+			{
+				ConfigTreeItem * toBeDefined = current->getChild( toDefine[i]->getLabel() ) ;
+				toBeDefined->setData( toDefine[i]->getData() ) ;
+				toBeDefined->setStringData( toDefine[i]->getStringData() ) ;
+			}
+		}
+		
+	}
+
+
 	if(hasChild("define"))
 	{
-		std::map<std::string, double> def = getChild("define")->makeDefinition() ;
+		ConfigTreeItem * definition = getChild("define") ;
+//		std::map<std::string, double> def = getChild("define")->makeDefinition() ;
 		for(size_t i = 0 ; i < children.size() ; i++)
 		{
 			if(!children[i]->is("define"))
-				children[i]->define(def) ;
+				children[i]->define(definition) ;
 		}
 	}
 
 }
 
-void ConfigTreeItem::define(std::map<std::string, double> def) 
+void ConfigTreeItem::define(ConfigTreeItem * definition) 
 {
-	if( str.size() > 0 && str[0] == '$' && def.find(str) != def.end())
+	if( str.size() > 0 && str[0] == '@' && definition->hasChild(str))
 	{
-		data = def[str] ;
+		ConfigTreeItem * local = definition->getChild(str) ;
+		data = local->getData() ;
+		str = local->getStringData() ;
+	}
+	else if( str.size() > 0 && str[0] == '@' )
+	{
+		std::cout << "named variable " << str << " not defined in input file!" << std::endl ;
+		exit(0) ;
 	}
 
 	for(size_t i = 0 ; i < children.size() ; i++)
 	{
 		if(!children[i]->is("define"))
-			children[i]->define(def) ;
+			children[i]->define(definition) ;
 	}
 }
 
@@ -348,7 +374,7 @@ std::string ConfigTreeItem::getStringData(std::string path, std::string defaultV
 	return defaultValue ;
 }
 
-Sample * ConfigTreeItem::getSample() const
+Sample * ConfigTreeItem::getSample() 
 {
 	bool spaceTime = (ConfigTreeItem::translateOrder(getRoot()->getStringData("discretization.order","LINEAR")) >= CONSTANT_TIME_LINEAR) ;
 	double sampleWidth = getData("width",1) ;
@@ -456,8 +482,8 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "ASSIGN")
 	{
-		std::string in = getStringData("input", "FIELD_NOT_FOUND") ;
-		std::string out = getStringData("output", "FIELD_NOT_FOUND") ;
+		std::string in = getStringData("input_parameter", "FIELD_NOT_FOUND") ;
+		std::string out = getStringData("output_parameter", "FIELD_NOT_FOUND") ;
 		ret = new AssignExternalMaterialLaw(in, out) ;
 		return ret ;
 	}
@@ -558,7 +584,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 	return ret ;
 }
 
-FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const 
+FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) 
 {
 	FractureCriterion * ret = nullptr ;
 	std::string type = getStringData("type","ABSTRACT") ;
@@ -592,11 +618,80 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 		if(type == "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS")
 		{
 			double E = getFather()->getData("parameters.young_modulus",1e9) ;
+			if(! getFather()->hasChildFromFullLabel("parameters.young_modulus"))
+			{
+				double k = getFather()->getData("parameters.bulk_modulus",1e9) ;
+				double mu = getFather()->getData("parameters.shear_modulus",1e9) ;
+				E = (9*k*mu)/(3*k+mu) ;
+			}		
 			double e_ = getData( "strain_renormalization_factor", 1e4) ;
 			double s_ = getData( "stress_renormalization_factor", 1e-6) ;
-			std::string tfile = getStringData("tension_file_name", "") ;
-			std::string cfile = getStringData("compression_file_name", "") ;
-			ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, e_, s_) ;
+			if(hasChild("tension_file_name") || hasChild("compression_file_name"))
+			{
+				std::string tfile = getStringData("tension_file_name", "") ;
+				std::string cfile = getStringData("compression_file_name", "") ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, e_, s_) ;
+			}
+			else
+			{
+				std::vector<Point> ptension ;
+				double tensileStrength = getFather()->getData("parameters.tensile_strength",-1) ;
+				double tensileStrain = getFather()->getData("parameters.tensile_strain",-1) ;
+				if(tensileStrength > 0 && tensileStrain < 0)
+					tensileStrain = tensileStrength/E ;
+				if(tensileStrength < 0 && tensileStrain > 0)
+					tensileStrength = tensileStrain/E ;
+				if(tensileStrength > 0 && tensileStrain > 0)
+					ptension.push_back( Point(tensileStrain, tensileStrength) ) ;
+				if(ptension.size() > 0)
+				{
+					double ultimateTensileStrength = getFather()->getData("parameters.tensile_ultimate_strength",-1) ;
+					double ultimateTensileStrain = getFather()->getData("parameters.tensile_ultimate_strain",-1) ;
+					if(ultimateTensileStrength < 0 && tensileStrength > 0)
+					{
+						double tensileStrengthDecreaseFactor = getFather()->getData("parameters.tensile_strength_decrease_factor",-1) ;
+						if(tensileStrengthDecreaseFactor > -POINT_TOLERANCE_2D)
+							ultimateTensileStrength = tensileStrength*(1.-tensileStrengthDecreaseFactor) ;
+					}
+					if(ultimateTensileStrain < 0 && tensileStrain > 0)
+					{
+						double tensileStrainIncreaseFactor = getFather()->getData("parameters.tensile_strain_increase_factor",-1) ;
+						if(tensileStrainIncreaseFactor > -POINT_TOLERANCE_2D)
+							ultimateTensileStrain = tensileStrain*tensileStrainIncreaseFactor ;
+					}
+					if(ultimateTensileStrength > -POINT_TOLERANCE_2D && ultimateTensileStrain > 0)
+						ptension.push_back( Point(ultimateTensileStrain, ultimateTensileStrength) ) ;
+				}
+				std::vector<Point> pcompression ;
+				double compressiveStrength = getFather()->getData("parameters.tensile_strength",1) ;
+				double compressiveStrain = getFather()->getData("parameters.tensile_strain",1) ;
+				if(compressiveStrength < 0 && compressiveStrain > 0)
+					compressiveStrain = compressiveStrength/E ;
+				if(compressiveStrength > 0 && compressiveStrain < 0)
+					compressiveStrength = compressiveStrain/E ;
+				if(compressiveStrength < 0 && compressiveStrain < 0)
+					pcompression.push_back( Point(compressiveStrain, compressiveStrength) ) ;
+				if(pcompression.size() > 0)
+				{
+					double ultimateCompressiveStrength = getFather()->getData("parameters.tensile_ultimate_strength",1) ;
+					double ultimateCompressiveStrain = getFather()->getData("parameters.tensile_ultimate_strain",1) ;
+					if(ultimateCompressiveStrength > 0 && compressiveStrength < 0)
+					{
+						double compressiveStrengthDecreaseFactor = getFather()->getData("parameters.tensile_strength_decrease_factor",-1) ;
+						if(compressiveStrengthDecreaseFactor > -POINT_TOLERANCE_2D)
+							ultimateCompressiveStrength = compressiveStrength*(1.-compressiveStrengthDecreaseFactor) ;
+					}
+					if(ultimateCompressiveStrain > 0 && compressiveStrain < 0)
+					{
+						double compressiveStrainIncreaseFactor = getFather()->getData("parameters.tensile_strain_increase_factor",-1) ;
+						if(compressiveStrainIncreaseFactor > -POINT_TOLERANCE_2D)
+							ultimateCompressiveStrain = compressiveStrain*compressiveStrainIncreaseFactor ;
+					}
+					if(ultimateCompressiveStrength < POINT_TOLERANCE_2D && ultimateCompressiveStrain < 0)
+						pcompression.push_back( Point(ultimateCompressiveStrain, ultimateCompressiveStrength) ) ;
+				}
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, e_, s_) ;
+			}
 		}
 
 	}
@@ -635,7 +730,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime) const
 	return ret ;
 }
 
-DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime) const 
+DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime) 
 {
 	DamageModel * ret = nullptr ;
 	std::string type = getStringData("type","ABSTRACT") ;
@@ -668,7 +763,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime) const
 	return ret ;
 }
 
-Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) const
+Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 {
 	std::string type = getStringData("type","VOID_BEHAVIOUR") ;
 
@@ -738,6 +833,38 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 
 		LogarithmicCreepWithExternalParameters * log = nullptr;
 
+		if(!hasChild("parameters"))
+		{
+			std::cout << "log-creep law without parameters!" << std::endl ;
+			return nullptr ;
+		}
+
+		if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") )
+		{
+			if(!hasChild("fracture_criterion"))
+			{
+				ConfigTreeItem * crit = new ConfigTreeItem(nullptr, "fracture_criterion") ;
+				ConfigTreeItem * critType = new ConfigTreeItem(crit, "type", "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS") ;
+				ConfigTreeItem * critRad = new ConfigTreeItem(crit, "material_characteristic_radius", getData("parameters.material_characteristic_radius", 1e4)) ;
+				ConfigTreeItem * critStrain = new ConfigTreeItem(crit, "strain_renormalization_factor", getData("parameters.strain_renormalization_factor", 1e4)) ;
+				ConfigTreeItem * critStress = new ConfigTreeItem(crit, "stress_renormalization_factor", getData("parameters.stress_renormalization_factor", 1e-6)) ;
+				if(hasChildFromFullLabel("parameters.tension_file_name"))
+					ConfigTreeItem * critTFile = new ConfigTreeItem(crit, "tension_file_name", getStringData("parameters.tension_file_name", "")) ;
+				if(hasChildFromFullLabel("parameters.compression_file_name"))
+					ConfigTreeItem * critCFile = new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
+				this->addChild(crit) ;
+			}
+			if(!hasChild("damage_model"))
+			{
+				ConfigTreeItem * dam = new ConfigTreeItem(nullptr, "damage_model") ;
+				ConfigTreeItem * damType = new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
+				ConfigTreeItem * damIncr = new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
+				ConfigTreeItem * damMax = new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
+				ConfigTreeItem * damTol = new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
+				this->addChild(dam) ;
+			}
+		}
+
 		if(hasChild("fracture_criterion") && hasChild("damage_model"))
 		{
 			FractureCriterion * frac = getChild("fracture_criterion")->getFractureCriterion(true) ;
@@ -748,12 +875,6 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime) con
 
 		if(!log)
 			log = new LogarithmicCreepWithExternalParameters(std::string()) ;
-
-		if(!hasChild("parameters"))
-		{
-			std::cout << "log-creep law without parameters!" << std::endl ;
-			return nullptr ;
-		}
 
 		std::vector<ConfigTreeItem *> parameters = getChild("parameters")->getAllChildren() ;
 		for(size_t i = 0 ; i < parameters.size() ; i++)
@@ -1088,7 +1209,7 @@ GeometryType ConfigTreeItem::translateGeometryType(std::string type)
 }
 
 
-std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers) const 
+std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers) 
 {
 	std::vector<Feature *> ret ;
 	std::vector<std::vector<Feature *> > out ;
@@ -1147,6 +1268,41 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 			double x = getData("geometry.center.x",0.) ;
 			double y = getData("geometry.center.y",0.) ;
 			Inclusion * inc = new Inclusion( r, x, y) ;
+			inc->setBehaviour(behaviour) ;
+			Feature * f = F->getFeature(0) ;
+			Point p(x,y) ;
+			for(size_t i = 0 ; i < base.size() ; i++)
+			{
+				if(base[i]->in(p))
+					f = base[i] ;
+			}
+			F->addFeature( f, inc) ;
+			ret.push_back(inc) ;
+		}
+		if(inclusion == "ELLIPSE")
+		{
+			double a = getData("geometry.major_radius",0.1) ;
+			double b = getData("geometry.minor_radius",0.1) ;
+			if(b > a)
+			{
+				double tmp = a ;
+				a = b ;
+				b = tmp ;
+			}
+			double x = getData("geometry.center.x",0.) ;
+			double y = getData("geometry.center.y",0.) ;
+			double ax = getData("geometry.major_axis.x",1.) ;
+			double ay = getData("geometry.major_axis.y",0.) ;
+			if(ax*ax+ay*ay != 1)
+			{
+				double tmp = sqrt(ax*ax+ay*ay) ;
+				ax /= tmp ;
+				ay /= tmp ;
+			}
+			Point C(x,y) ;
+			Point A(ax*a, ay*a) ;
+			Point B(-ay*b, ax*b) ;
+			EllipsoidalInclusion * inc = new EllipsoidalInclusion( C, A , B) ;
 			inc->setBehaviour(behaviour) ;
 			Feature * f = F->getFeature(0) ;
 			Point p(x,y) ;
@@ -1678,7 +1834,7 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
 		std::cout << "template without source file! exiting now" << std::endl ;
 		exit(0) ;
 	}
-	ConfigTreeItem * ret = ConfigParser::readFile(source) ;
+	ConfigTreeItem * ret = ConfigParser::readFile(source, nullptr, false) ;
 
 /*	std::vector<ConfigTreeItem *> toAdd = getAllChildren("add") ;
 	for(size_t i = 0 ; i < toAdd.size() ; i++)
@@ -1690,7 +1846,24 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
 		newFather->addChild( toAdd[i] ) ;
 	}*/
 
-	if(hasChild("remove"))
+	if(hasChild("define") && ret->hasChild("define"))
+	{
+		ConfigTreeItem * def = ret->getChild("define") ;
+		ConfigTreeItem * current = getChild("define") ;
+		std::vector<ConfigTreeItem *> toDefine = current->getAllChildren() ;
+		for(size_t i = 0 ; i < toDefine.size() ; i++)
+		{
+			if(def->hasChild(toDefine[i]->getLabel()))
+			{
+				ConfigTreeItem * toBeDefined = def->getChild( toDefine[i]->getLabel() ) ;
+				toBeDefined->setData( toDefine[i]->getData() ) ;
+				toBeDefined->setStringData( toDefine[i]->getStringData() ) ;
+			}
+		}
+		
+	}
+
+/*	if(hasChild("remove"))
 	{
 		ConfigTreeItem * remove = getChild("remove") ;
 		std::vector<ConfigTreeItem *> toRemove = remove->getAllChildren() ;
@@ -1738,7 +1911,7 @@ ConfigTreeItem * ConfigTreeItem::makeTemplate()
 			std::vector<ConfigTreeItem *> nextChildren = toAttach[i]->getAllChildren() ;
 			nextFather->addChildren( nextChildren ) ;
 		}
-	}
+	}*/
 
 
 	return ret ;

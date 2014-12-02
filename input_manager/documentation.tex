@@ -659,7 +659,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.MAXIMUM_TENSILE_STRAIN+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+MAXIMUM_TENSILE_STRAIN+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs (in meter/meter).\\
 \hline 
 \end{tabularx}
@@ -672,7 +672,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.MAXIMUM_TENSILE_STRESS+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+MAXIMUM_TENSILE_STRESS+. \\ 
 \verb+.limit_tensile_stress+ & Numeral & The stress at which failure occurs (in pascal).\\
 \hline 
 \end{tabularx}
@@ -685,7 +685,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure starts (in meter/meter).\\
 \verb+.limit_tensile_stress+ & Numeral & The corresponding stress (in pascal).\\
 \verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends (in meter/meter).\\
@@ -700,7 +700,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+ELLIPSOIDAL_SOFTENING_MAXIMUM_TENSILE_STRESS+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure starts in instantaneous loading conditions (in meter/meter).\\
 \verb+.limit_tensile_stress+ & Numeral & The stress at which failure starts in infinitely slow loading conditions  (in pascal).\\
 \verb+.instantaneous_modulus+ & Numeral & The value of apparent elastic modulus of the material in instantaneous loading conditions (in pascal).\\
@@ -716,7 +716,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.MOHR_COULOMB+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+MOHR_COULOMB+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
 \verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
 \hline 
@@ -730,7 +730,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.LINEAR_SOFTENING_MOHR_COULOMB+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+LINEAR_SOFTENING_MOHR_COULOMB+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
 \verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
 \verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends in tension (in meter/meter).\\
@@ -746,7 +746,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.EXPONENTIAL_SOFTENING_MOHR_COULOMB+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+EXPONENTIAL_SOFTENING_MOHR_COULOMB+. \\ 
 \verb+.limit_tensile_strain+ & Numeral & The strain at which failure occurs in tension (in meter/meter).\\
 \verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
 \verb+.maximum_tensile_strain+ & Numeral & The strain at which failure ends in tension (in meter/meter).\\
@@ -762,7 +762,7 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.VON_MISES+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+VON_MISES+. \\ 
 \verb+.limit_tensile_stress+ & Numeral & The stress at which failure occurs (in pascal).\\
 \verb+.material_characteristic_radius+ & Numeral & Sets the characteristic radius of the non-local damage band. \\ 
 \hline 
@@ -776,10 +776,37 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.type+ & FractureCriterionType & \verb+.MCFT+. \\ 
+\verb+.type+ & FractureCriterionType & \verb+MCFT+. \\ 
 \verb+.limit_compressive_strain+ & Numeral & The strain at which failure occurs in compression (in meter/meter).\\
 \verb+.material_characteristic_radius+ & Numeral & Sets the characteristic radius of the non-local damage band. \\ 
 \verb+.rebar+ & Rebar & Describes the location and diameter of the rebars. Several \verb+.rebar+ objects may be defined in the same criterion.\\
+\hline 
+\end{tabularx}
+
+\subsection{Space-time asymmetric multi-linear softening fracture criterion}
+
+For this criterion, the parent behaviour must have the properties \verb+parameters.young_modulus+ explicitly defined.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & FractureCriterionType & \verb+MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS+. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.strain_renormalization_factor+ & Numeral & Arbitrary scaling coefficient to avoid geometrical singularities (default value $10^4$).\\
+\verb+.stress_renormalization_factor+ & Numeral & Arbitrary scaling coefficient to avoid geometrical singularities (default value $10^{-6}$).\\
+\verb+.tension_file_name+ & String & Path to the file containing the strain-stress values for the tensile part of the behaviour. If no file is defined, then the material does not fail in tension.\\
+\verb+.compression_file_name+ & String & Path to the file containing the strain-stress values for the compressive part of the behaviour (all values should be negative). If no file is defined, then the material does not fail in compression.\\
 \hline 
 \end{tabularx}
 
@@ -850,6 +877,22 @@ Object & Type & Description \\
 \end{itemize}
 
 These are explained in more details in the ParticleSizeDistribution object.
+
+\section{Inclusion Output}
+
+These objects are used in the \verb+output+ to extract the average fields over certain inclusions.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.index+ & Numeral & Indicates the family of inclusions on which the fields will be computed. 0 denotes the material matrix. Other number indicates the \verb+inclusions+ families define above, in the order in which they are generated. \\ 
+\verb+.field+ & FieldType & Indicates the field to export in the output. Several of these can be defined.\\
+\hline 
+\end{tabularx}
+
 
 \section{Material Parameters}
 
@@ -1093,6 +1136,69 @@ Object & Type & Description \\
 \hline 
 \end{tabularx}
 
+\subsection{Assignment material law}
+
+This material laws assigns the value of the input variable to the output variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+ASSIGN+. \\ 
+\verb+.input_parameter+ & String & The name of the input parameter.\\
+\verb+.output_parameter+ & String & The name of the output parameter.\\
+\hline 
+\end{tabularx}
+
+\subsection{Minimum material law}
+
+This material laws extracts the minimum value of a set of input parameters.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+MINIMUM+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter used as the argument of the minimum function. Several of these parameters may be defined.\\
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\hline 
+\end{tabularx}
+
+\subsection{Maximum material law}
+
+This material laws extracts the maximum value of a set of input parameters.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+MAXIMUM+. \\ 
+\verb+.input_parameter+ & String & The name of the parameter used as the argument of the maximum function. Several of these parameters may be defined.\\
+\verb+.output_parameter+ & String & The name of the parameter in which the results will be stored.\\
+\hline 
+\end{tabularx}
+
+\subsection{Field extractor material law}
+
+This material laws extracts the value of one standard field (strain, stress, etc) and assigns it to a specific internal variable.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & MaterialLawType & \verb+GET_FIELD+. \\ 
+\verb+.field+ & FieldType & Defines which field to extract.\\
+\hline 
+\end{tabularx}
+
 \subsection{Time derivative material law}
 
 This material laws sets one of the predefined internal variable as the time derivation of another variable.
@@ -1107,6 +1213,7 @@ Object & Type & Description \\
 \verb+.input_parameter+ & String & The name of the parameter to derive.\\
 \hline 
 \end{tabularx}
+
 
 \subsubsection*{Optional parameters}
 
@@ -1159,6 +1266,16 @@ Object & Type & Description \\
 \hline 
 \end{tabularx}
 
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.inclusions+ & InclusionOuput & Defines families of inclusion from which fields can be extracted. \\ 
+\hline 
+\end{tabularx}
+
 \paragraph{} The output file is a simple text file containing a table describing the results. Each line corresponds to a time step of the simulation. Each column corresponds to the average value in the sample of the field specified in the \verb+.field+ objects (except for the first column, which corresponds to the current time of the simulation). The columns are ordered from the left to the right in the same order the \verb+.fields+ are declared (most fields span several columns).
 
 \section{Point}
@@ -1205,7 +1322,7 @@ Object & Type & Description \\
 \subsection{Analytic particle size distribution}
 
 \subsubsection*{Required parameters}
-
+compute
 \begin{tabularx}{\textwidth}{llX}
 \hline 
 Object & Type & Description \\ 
@@ -1392,6 +1509,34 @@ Object & Type & Description \\
 \hline 
 \verb+.time_step+ & Numeral & Duration of a time step (in days). \\ 
 \verb+.number_of_time_steps+ & Numeral & Number of time steps to perform.\\
+\hline 
+\end{tabularx}
+
+\subsection{Logarithmic time step}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.logarithmic+ & Boolean & Must be \verb+TRUE+ to use a time step constant in the logarithmic space. \\ 
+\verb+.first_time_step+ & Numeral & Duration of the first time step (in the normal time space). \\ 
+\verb+.time_step+ & Numeral & Duration of a time step in the logarithmic space. \\ 
+\verb+.number_of_time_steps+ & Numeral & Number of time steps to perform.\\
+\hline 
+\end{tabularx}
+
+\subsection{Function-defined time step}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.time_step+ & Numeral & Duration of the first time step (in days). \\ 
+\verb+.next_time_step+ & Function & Function used to compute the next time step from the previous, with \verb+"x"+ being the previous time step and \verb+"t"+ the actual time at the end of the previous time step. \\ 
 \hline 
 \end{tabularx}
 
@@ -1720,7 +1865,8 @@ This section details the list of accepted values for the different enumerations 
     \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD+,\\
     \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD+,\\
     \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD+,\\
-    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD+,
+    \verb+GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD+,\\
+    \verb+SCALAR_DAMAGE_FIELD+
 
 \subsection{Fracture Criterion Type}
 
@@ -1732,7 +1878,9 @@ This section details the list of accepted values for the different enumerations 
 \verb+LINEAR_SOFTENING_MOHR_COULOMB+,\\
 \verb+EXPONENTIAL_SOFTENING_MOHR_COULOMB+,\\
 \verb+MCFT+,\\
-\verb+VON_MISES+
+\verb+VON_MISES+,\\
+\verb+MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS+,
+
 
 \subsection{Geometry Type}
 
@@ -1765,6 +1913,10 @@ This section details the list of accepted values for the different enumerations 
 \verb+SIMPLE_DEPENDENT+,\\
 \verb+VARIABLE_DEPENDENT+,\\
 \verb+LINEAR_INTERPOLATED+,\\
+\verb+ASSIGN+,\\
+\verb+MINIMUM+,\\
+\verb+MAXIMUM+,\\
+\verb+GET_FIELD+,\\
 \verb+TIME_DERIVATIVE+,\\
 \verb+TIME_INTEGRAL+,\\
 
@@ -1805,6 +1957,15 @@ This section details the list of accepted values for the different enumerations 
 
 
 \section{History}
+
+\subsection*{Version 1.1}
+\begin{itemize}
+	\item Added Space-time asymmetric multi-linear softening fracture criterion.
+	\item Added Inclusion Output.
+	\item Added Assignment, Minimum, Maximum and Field extractor material laws.
+	\item Completed Output.
+	\item Added logarithmic and incremental time stepping.
+\end{itemize}
 
 \subsection*{Version 1.0}
 \begin{itemize}

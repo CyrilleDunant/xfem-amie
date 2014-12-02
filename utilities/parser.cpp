@@ -465,7 +465,7 @@ void ConfigParser::readData()
 				}
 				else
 				{
-					if(right.find("@") == 0 && authorizeIncludes)
+/*					if(right.find("@") == 0 && authorizeIncludes)
 					{
 						right = right.substr(1) ;
 						ConfigParser includes( right, false) ;
@@ -487,7 +487,7 @@ void ConfigParser::readData()
 							children[i]->setFather( current ) ;
 						}
 					}
-					else
+					else*/
 						ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;			
 				}
 			}
@@ -508,14 +508,15 @@ void ConfigParser::readData()
 
 }
 
-ConfigTreeItem * ConfigParser::readFile(std::string f) 
+ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, bool define) 
 {
 	ConfigParser parser(f) ;	
 	parser.readData() ;
 	ConfigTreeItem * ret = parser.getData() ;
 	if(ret->hasChild("template"))
 		ret = ret->getChild("template")->makeTemplate() ;
-	ret->define() ;
+	if(define)
+		ret->define(def, true) ;
 	return ret ;
 }
 
