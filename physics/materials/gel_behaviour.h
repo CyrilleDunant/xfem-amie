@@ -15,7 +15,7 @@ namespace Amie
 {
 	struct GelBehaviour : public StiffnessWithImposedDeformation
 	{
-		GelBehaviour(double E=6e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		GelBehaviour(double E=22e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 	} ;
 	

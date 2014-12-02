@@ -408,6 +408,26 @@ void FeatureTree::addFeature ( Feature *father, Feature *f, int layer, double fr
 
 }
 
+
+void FeatureTree::addFeature ( Feature * const father, EnrichmentManager * fm, int layer, double fraction)
+{
+    enrichmentManagers.push_back(fm);
+    std::vector<EnrichmentFeature *> ff = fm->getFeatures() ;
+    for(auto & f : ff)
+    {
+        f->setLayer ( layer ) ;
+        f->setFraction ( fraction ) ;
+        scalingFactors[layer] = fraction ;
+
+        f->setFather ( father ) ;
+
+        if ( father != nullptr )
+        {
+            father->addChild ( f ) ;
+        }
+    }
+}
+
 FeatureTree::~FeatureTree()
 {
     delete father3D ;
@@ -4143,28 +4163,46 @@ void FeatureTree::stepXfem()
 
     if ( solverConvergence )
     {
+        double maxScore = -1 ;
+        std::vector<EnrichmentFeature *> featuresToStep ;
+        for ( size_t i = 0 ; i < tree.size() ; i++ )
+        {
+            if ( tree[i]->isEnrichmentFeature )
+            {
+
+                    featuresToStep.push_back(dynamic_cast<EnrichmentFeature *> ( tree[i] ));
+            }
+        }
         if ( is2D() )
         {
 
 // 			#pragma omp parallel for schedule(runtime)
+            
+            for ( size_t i = 0 ; i < featuresToStep.size() ; i++ )
+            {
+                featuresToStep[i]->step( deltaTime, &K->getForces(), dtree ) ;
+                bool moved = featuresToStep[i]->moved() ;
+                enrichmentChange = enrichmentChange || moved;
+
+                if ( moved )
+                {
+                    reuseDisplacements = false ;
+                    needAssembly = true ;
+                }
+            }
+            for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
+            {
+                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree) || moved ;
+                if ( moved )
+                {
+                    reuseDisplacements = false ;
+                    needAssembly = true ;
+                }
+            }
+            
             for ( size_t i = 0 ; i < tree.size() ; i++ )
             {
-                if ( tree[i]->isEnrichmentFeature )
-                {
-
-                    dynamic_cast<EnrichmentFeature *> ( tree[i] )->step ( deltaTime, &K->getForces(), dtree ) ;
-                    bool moved = dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() ;
-                    enrichmentChange = enrichmentChange || moved;
-
-                    if ( moved )
-                    {
-                        reuseDisplacements = false ;
-                        needAssembly = true ;
-                    }
-
-
-                }
-                else if ( tree[i]->isUpdated )
+                if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
 // 					tree[i]->print() ;
 // 					std::cout << "update ! " << std::endl ;
@@ -4178,27 +4216,33 @@ void FeatureTree::stepXfem()
         else if ( is3D() )
         {
 
-// 			#pragma omp parallel for schedule(runtime)
+            for ( size_t i = 0 ; i < featuresToStep.size() ; i++ )
+            {
+                featuresToStep[i]->step( deltaTime, &K->getForces(), dtree3D ) ;
+                bool moved = featuresToStep[i]->moved() ;
+                enrichmentChange = enrichmentChange || moved;
+
+                if ( moved )
+                {
+                    reuseDisplacements = false ;
+                    needAssembly = true ;
+                }
+            }
+            for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
+            {
+                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree3D) || moved ;
+                if ( moved )
+                {
+                    reuseDisplacements = false ;
+                    needAssembly = true ;
+                }
+            }
             for ( size_t i = 0 ; i < tree.size() ; i++ )
             {
-                if ( tree[i]->isEnrichmentFeature )
+                if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
-                    dynamic_cast<EnrichmentFeature *> ( tree[i] )->step ( deltaTime, &K->getForces(), dtree ) ;
-                    bool moved =
-                        enrichmentChange = enrichmentChange || dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() ;
-
-                    if ( enrichmentChange )
-                    {
-                        needAssembly = true ;
-                    }
-
-                    if ( moved )
-                    {
-                        reuseDisplacements = false ;
-                    }
-                }
-                else if ( tree[i]->isUpdated )
-                {
+//                                      tree[i]->print() ;
+//                                      std::cout << "update ! " << std::endl ;
                     needAssembly = true ;
                     needMeshing = true ;
                     reuseDisplacements = false ;

@@ -2824,7 +2824,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     }
 
     GaussPointArray gp = getGaussPoints() ;
-    size_t numberOfRefinements = 3 ;
+    size_t numberOfRefinements = 5 ;
     if(getEnrichmentFunctions().size() > 3)
         numberOfRefinements = 6 ;
     double tol = 1e-8 ;
@@ -2833,9 +2833,8 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     if(getEnrichmentFunctions().size() > 0)
     {
         double originalSum = 0 ;
-        for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-            originalSum+=gp.gaussPoints[i].second ;
-
+        for(auto & i : gp.gaussPoints)
+            originalSum += i.second ;
         std::vector<std::pair<Point, double> > gp_alternative ;
         if( order >= CONSTANT_TIME_LINEAR )
         {
@@ -2885,21 +2884,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
             }
 
-
-            /*
-
-            			while(npoints > 0)
-            			{
-            				double x = (double)random()/RAND_MAX ;
-            				double y = (double)random()/RAND_MAX ;
-            				if(x+y < 1)
-            				{
-            					gp_alternative.push_back(std::make_pair(Point(x,y,0,-a), 5./18));
-            					gp_alternative.push_back(std::make_pair(Point(x,y,0,0), 8./18));
-            					gp_alternative.push_back(std::make_pair(Point(x,y,0,a), 5./18));
-            					npoints-- ;
-            				}
-            			}*/
             double jac = 2.*area() ;
 
             for(size_t i = 0 ; i < gp_alternative.size() ; i++)
@@ -2914,50 +2898,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 gp_alternative[i].second *= originalSum/fsum ;
             }
 
-            /*			std::cout << "originalSum = " << originalSum << "fsum = " << fsum << std::endl ;
-            			exit(0) */;
             delete dt ;
-// 			std::cout << "out!" << std::endl ;
-
-//			double div = 20 ;
-            /*			for(double x = 1./div ; x < 1. ; x += 2./div)
-            			{
-            // 				for(double y = 1./div ; y < 1.-x-0.25/div ; y += 2./div)
-            // 				{
-            // 					for(double t = -1. + 2./div ; t < 1. ; t += 4./div)
-            // 					{
-            // // 						std::cout << x << "\t" << y << "\t" << t << std::endl ;
-            // 						gp_alternative.push_back(std::make_pair(Point(x,y,0,t), 1.));
-            // 					}
-            // 				}
-            				for(double y = 1./div ; y < 1.-x ; y += 2./div)
-            				{
-            					for(double t = -1. + 2./div ; t < 1. ; t += 4./div)
-            					{
-            // 						std::cout << x << "\t" << y << "\t" << t << std::endl ;
-            						gp_alternative.push_back(std::make_pair(Point(x,y,0,t), 1.));
-            					}
-            				}
-            			}*/
-
-
-
-
-// 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-// 			{
-// 				gp_alternative[i].second *= jac/gp_alternative.size() ;
-// 			}
-//
-// 			double w1 = 0 ;
-// 			for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
-// 				w1 += gp.gaussPoints[i].second ;
-// 			double w2 = 0 ;
-// 			for(size_t i = 0 ; i < gp_alternative.size() ; i++)
-// 				w2 += gp_alternative[i].second ;
-//
-// 			std::cout << w1 << "\t" << w2 << std::endl ;
-
-//			exit(0) ;
 
 
         }
@@ -3010,10 +2951,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                 setCachedGaussPoints( new GaussPointArray( gp ) ) ;
                 return *getCachedGaussPoints() ;
             }
-
-
-// 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)
-// 			return *getCachedGaussPoints() ;
 
 
             VirtualMachine vm ;
@@ -3158,7 +3095,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints(const Fu
     if(getEnrichmentFunctions().size() > 0 )
     {
         VirtualMachine vm ;
-        double ndivs = 2 ;
+        double ndivs = 4 ;
 
 
 // 		if(getCachedGaussPoints()->getId() == REGULAR_GRID)

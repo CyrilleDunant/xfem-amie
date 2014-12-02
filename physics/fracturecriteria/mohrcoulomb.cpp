@@ -255,22 +255,37 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	metInCompression = false ;
 	metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
 	metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
-
+        
+        double d = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
+        if(1.-d < POINT_TOLERANCE_2D)
+        {
+            double c0 = std::abs(maxStress/upVal) ;
+            double c1 = std::abs(minStress/downVal) ;
+            return std::max(c0, c1) ;
+        }
+        
+        double effMaxStress = std::max(limittstrain/(limittstrain-upVal/stiffness-1./(stiffness*(1.-d))), 0.) ;
+        double effMinStress = std::max(std::abs(limitcstrain)/(std::abs(limitcstrain)-std::abs(downVal)/stiffness-1./(stiffness*(1.-d))), 0.) ;
+        
+        double c0 = std::abs(maxStress/upVal)-effMaxStress ;
+        double c1 = std::abs(minStress/downVal)-effMinStress ;
+        return std::max(c0, c1) ;
+        
 	double effectiveStiffness = stiffness ;
 	if(s.getParent()->getBehaviour()->getDamageModel())
 		effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 	
 	double tfactor = 1.-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness) ;
-	if(maxStrain > limittstrain)
-		return POINT_TOLERANCE_2D ;
-	if(maxStrain <= upVal/stiffness)
-		tfactor = 1 ;
+// 	if(maxStrain > limittstrain)
+// 		return POINT_TOLERANCE_2D ;
+// 	if(maxStrain <= upVal/stiffness)
+// 		tfactor = 1 ;
 	
 	double cfactor = 1.-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness) ;
-	if(minStrain < limitcstrain)
-		return POINT_TOLERANCE_2D ;
-	if(minStrain > downVal/stiffness)
-		cfactor = 1 ;
+// 	if(minStrain < limitcstrain)
+// 		return POINT_TOLERANCE_2D ;
+// 	if(minStrain > downVal/stiffness)
+// 		cfactor = 1 ;
 // 	
 	double  upStrain = tfactor*upVal/effectiveStiffness ;
 	double  downStrain = cfactor*downVal/effectiveStiffness ;
@@ -279,7 +294,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	if( maxStrain >= upStrain && maxStrain > 0 )
 	{
 		metInTension = true;
-		scores.push_back(1. - std::abs( upStrain / maxStrain ));
+		scores.push_back(std::abs( maxStrain / upStrain ));
 	}
 	else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
 		scores.push_back(-1. + std::abs( maxStrain / upStrain ));
@@ -289,7 +304,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 	if( minStrain <= downStrain && minStrain < 0 )
 	{
 		metInCompression = true ;
-		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
+		scores.push_back(std::abs( minStrain / downStrain )) ;
 	}
 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
 		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;

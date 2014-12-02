@@ -3612,7 +3612,7 @@ Point Segment::normal() const
 
 Point Segment::normal(const Point & inside) const
 {
-    bool sameSide = isOnTheSameSide(inside, mid+normal(), f, s) ;
+    bool sameSide = (mid-inside)*normal() > 0 ;
     double sign = 1. ;
     if(!sameSide)
         sign = -1 ;
@@ -3627,7 +3627,7 @@ Point Segment::normal(const Point & inside) const
 
 Vector Segment::normalv(const Point & p) const
 {
-    bool sameSide = isOnTheSameSide(p, mid+normal(), f, s) ;
+    bool sameSide = (mid-p)*normal() > 0 ;
     double sign = 1. ;
     if(!sameSide)
         sign = -1 ;
@@ -4763,6 +4763,9 @@ bool isInTriangle(const Point & test, const Point&  p0, const Point & p1, const 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, double norm)
 {
+    
+    Point mid = (f0+f1)*.5 ;
+    return (mid-test)*(mid-witness) > 0 ;
     Point frontier(f1.getX()*norm-f0.getX()*norm,f1.getY()*norm-f0.getY()*norm,f1.getZ()*norm-f0.getZ()*norm) ;
     Point yes(witness.getX()*norm-f0.getX()*norm,witness.getY()*norm-f0.getY()*norm,witness.getZ()*norm-f0.getZ()*norm) ;
     Point perhaps(test.getX()*norm-f0.getX()*norm,test.getY()*norm-f0.getY()*norm,test.getZ()*norm-f0.getZ()*norm) ;
@@ -4777,6 +4780,9 @@ bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, 
 
 bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0, const Point & f1, const Point & f2, double renorm)
 {
+    Point mid = (f0+f1+f2)*.3333333 ;
+    return (mid-test)*(mid-witness) > 0 ;
+    
     Point f2test((f2.getX()-test.getX())*renorm,(f2.getY()-test.getY())*renorm,(f2.getZ()-test.getZ())*renorm) ;
     Point f1test((f1.getX()-test.getX())*renorm,(f1.getY()-test.getY())*renorm,(f1.getZ()-test.getZ())*renorm) ;
     Point f0test((f0.getX()-test.getX())*renorm,(f0.getY()-test.getY())*renorm,(f0.getZ()-test.getZ())*renorm) ;

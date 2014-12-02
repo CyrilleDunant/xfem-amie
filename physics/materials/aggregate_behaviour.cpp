@@ -23,7 +23,7 @@ using namespace Amie ;
 
 AggregateBehaviour::AggregateBehaviour(double E, double nu, double up_, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up_), yield(yield), c(c)
 {
-	materialRadius = 0.000075 ;
+	materialRadius = 0.0001 ;
 }
 
 Form * AggregateBehaviour::getCopy() const 
@@ -31,7 +31,7 @@ Form * AggregateBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 //	return new Stiffness(param*factor) ;
-	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalMohrCoulomb(up*factor,-8.*up*factor, E*factor), new FiberBasedIsotropicLinearDamage(0.1,0.8)) ;
+	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-800.*up*factor, 3.*factor*up/E, -factor*2400.*up/E,E), new FiberBasedIsotropicLinearDamage(0.05,0.99)) ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
 // 	ret->dfunc->setThresholdDamageDensity(1.);
 /*	if(getExtra2dMeshes())

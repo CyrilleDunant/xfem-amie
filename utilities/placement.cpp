@@ -278,6 +278,7 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 
 	for(size_t i = placedAggregates ; i < inclusions.size() && tries < triesMax ; i++)
 	{
+            
 		tries++ ;
 		
 		double scale = 1. ;

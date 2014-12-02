@@ -1,5 +1,5 @@
-// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2011
-// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2011
+// Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2005-2014
+// Author: Alain Giorla <alain.giorla@epfl.ch>, (C) 2009-2014
 //
 // Copyright: See COPYING file that comes with this distribution
 //
@@ -41,6 +41,7 @@ typedef enum {
 } SamplingRestrictionType ;
 
 class ConfigTreeItem ;
+class EnrichmentManager ;
 
 /** \brief Container for the features defining the setup.
  *
@@ -117,6 +118,7 @@ protected:
     std::vector< BoundaryCondition * > boundaryCondition ;
     /** \brief Contains all the features. */
     std::vector<Feature *> tree ;
+    std::vector<EnrichmentManager *> enrichmentManagers ;
     std::vector<Feature *> refinedFeatures ;
 
     /** \brief For fast Access*/
@@ -492,6 +494,7 @@ public:
      * @param t daughter feature.
      */
     void addFeature ( Feature * const father, Feature * const f, int layer = -1, double fraction = 1 ) ;
+    void addFeature ( Feature * const father, EnrichmentManager * fm, int layer = -1, double fraction = 1 ) ;
 
     void removeFeature ( Feature * f ) ;
 
@@ -677,6 +680,58 @@ public:
     std::vector<DelaunayTriangle> getSnapshot2D() const ;
 
 
+} ;
+
+class EnrichmentManager
+{
+protected :
+    std::vector<EnrichmentFeature *> featureSet ;
+    bool stable ;
+public:
+    EnrichmentManager(EnrichmentFeature * first) : stable(true) {featureSet.push_back(first);} ;
+    void addFeature(EnrichmentFeature * f) {featureSet.push_back(f);};
+    void removeFeature(EnrichmentFeature * f) 
+    {
+        for(auto fs = featureSet.begin() ; fs != featureSet.end() ; fs++)
+        {
+            if(*fs == f)
+            {
+                featureSet.erase(fs) ;
+                return ;
+            }
+        }
+    };
+    
+        /** \brief update enrichment geometry*/
+    virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
+    { 
+        bool moved = false ;
+        for(auto i : featureSet)
+        {
+            i->step(dt, v, dtree) ;
+            moved = moved || i->moved() ;
+        }
+        return moved ;
+        
+    };
+
+        /** \brief update enrichment geometry*/
+    virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) 
+    { 
+        
+        bool moved = false ;
+        for(auto i : featureSet)
+        {
+            i->step(dt, v, dtree) ;
+            moved = moved || i->moved() ;
+        }
+        return moved ;
+    };
+        
+    virtual std::vector<EnrichmentFeature *> & getFeatures() { return featureSet ;}
+    virtual const std::vector<EnrichmentFeature *> & getFeatures() const { return featureSet ;}
+    
+    bool converged() { return stable ; } ;
 } ;
 
 

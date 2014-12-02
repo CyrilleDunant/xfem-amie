@@ -13,6 +13,9 @@
 #include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/aggregate_behaviour.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
@@ -41,21 +44,27 @@
 
 using namespace Amie ;
 
-
+std::vector<Feature *> pockets ;
 FeatureTree * featureTree ;
 
 void step()
 {
 
-    int nsteps = 1;// number of steps between two clicks on the opengl thing
-    featureTree->setMaxIterationsPerStep(50) ;
-
-    for(size_t i = 0 ; i < nsteps ; i++)
+    int nsteps = 200 ;
+    featureTree->setMaxIterationsPerStep(100) ;
+    MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+    for(size_t i = 0 ; i < nsteps ; )
     {
-        featureTree->step() ;
+        double converged = featureTree->step() ;
 
         Vector x = featureTree->getDisplacements() ;
 
+        if(converged)
+        {
+            i++ ;
+            for(size_t j = 0 ; j < pockets.size() ; j++)
+                dynamic_cast<ExpansiveZone *>(pockets[j])->setRadius(pockets[j]->getRadius()+0.000001) ;
+        }
         std::cout << "unknowns :" << x.size() << std::endl ;
 
         int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
@@ -113,12 +122,15 @@ void step()
         std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
         std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
 
-        MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-        writerc.reset( featureTree ) ;
-        writerc.getField( REAL_STRESS_FIELD ) ;
-        writerc.getField( STRAIN_FIELD ) ;
-        writerc.append() ;
-        writerc.writeSvg(0., true) ;
+        if(converged)
+        {
+            writerc.reset( featureTree ) ;
+            writerc.getField( REAL_STRESS_FIELD ) ;
+            writerc.getField( STRAIN_FIELD ) ;
+            writerc.getField( TWFT_DAMAGE ) ;
+            writerc.append() ;
+//             writerc.writeSvg(0., true) ;
+        }
     }
 
     exit(0) ;
@@ -133,38 +145,37 @@ double partitionScore(const std::vector<int> & triplet)
 int main(int argc, char *argv[])
 {
 
-    Sample samplers(nullptr, 400,400,200,200) ;
+    Sample samplers(nullptr, 0.02,0.02,0,0) ;
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;
     
-    double nu = 0.2 ;
-    double E = 1 ;
-    Matrix m0(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN)) ;
 
-    nu = 0.2 ;
-    E = 10 ;
-    Matrix m1(Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN)) ;
-
-    MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
-    StiffnessAndFracture * sf = new StiffnessAndFracture(m0*0.5, mc) ;
-    Stiffness * s = new Stiffness(m0) ;
-    Stiffness * ss = new Stiffness(m1) ;
-
-    samplers.setBehaviour(new Stiffness(m0)) ;
+    samplers.setBehaviour(new PasteBehaviour()) ;
     Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
 // 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-    Inclusion inc(100, 200, 200) ;
+    Inclusion inc( 0.008, 0, 0) ;
 
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 // 	inc.setBehaviour(new Stiffness(m1*4)) ;
-    inc.setBehaviour(new VoidForm()) ;
+    inc.setBehaviour(new AggregateBehaviour()) ;
 
 
-//     F.addFeature(&samplers, &inc) ;
+    F.addFeature(&samplers, &inc) ;
 // 	F.addFeature(&samplers, inc0) ;
     F.setSamplingNumber(atof(argv[1])) ;
-// 		F.setProjectionOnBoundaries(false) ;
+    
+    std::vector<Geometry *> inclusion ;
+    inclusion.push_back(new Circle(0.007, 0, 0));
+    for (size_t i = 0 ; i < 1 ; i++)
+    {
+        ExpansiveZone * p = new ExpansiveZone(nullptr, 0.00000001, 0, 0.006, new GelBehaviour()) ;
+        pockets.push_back(p);
+        featureTree->addFeature(&inc, p);
+    }
+    
+//     placement2DInInclusions(samplers.getPrimitive(),inclusion, pockets ) ;
+// 	F.setProjectionOnBoundaries(false) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_RIGHT_BACK)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_RIGHT_BACK)) ;
 //
@@ -174,8 +185,8 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, 1.)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, 1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
 //     F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, inc.getPrimitive(), -1)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
@@ -189,7 +200,7 @@ int main(int argc, char *argv[])
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.setOrder(QUADRATIC) ;
+    F.setOrder(LINEAR) ;
     F.setPartition(64);
 
     step() ;

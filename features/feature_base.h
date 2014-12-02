@@ -307,8 +307,11 @@ public:
 	
 	/** \brief return true if enrichment geometry has changed*/
 	virtual bool moved() const = 0;
+        
+        virtual double grade() { return -1 ;} ;
 	
 } ;
+
 
 	
 } ;
