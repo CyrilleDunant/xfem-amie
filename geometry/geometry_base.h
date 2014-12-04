@@ -612,7 +612,16 @@ public :
 	}
 	
 	void operator*=(const Matrix & m){
-		if(m.numCols() == 3)
+            
+                if(m.numCols() == 2)
+                {
+                    Vector vec(2) ;
+                        vec[0] = x ; vec[1] = y ;  
+                        vec = vec*m ;
+                        
+                        x = vec[0] ; y = vec[1] ; 
+                }
+		else if(m.numCols() == 3)
 		{
 			Vector vec(3) ;
 			vec[0] = x ; vec[1] = y ; vec[2] = z ; 

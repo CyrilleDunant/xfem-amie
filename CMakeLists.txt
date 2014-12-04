@@ -26,6 +26,7 @@ elements/generalized_spacetime_viscoelastic_element_state.cpp
 features/feature_base.cpp
 features/crack.cpp 
 features/crackinitiation.cpp 
+features/enrichmentmanagers/crackmanager.cpp 
 features/enrichmentbehaviour.cpp 
 features/enrichmentInclusion3d.cpp 
 features/enrichmentInclusion.cpp 

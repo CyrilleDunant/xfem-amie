@@ -62,8 +62,6 @@ protected:
 	
 	double enrichementRadius ;
 	bool changed ;
-	double propagationAngleFromTip(const std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree) ;
-	std::pair<double, double> computeJIntegralAtTip ( std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree ) ;
 	std::set<Point *> donePoints ;
 	
 	bool scorePropagation ; 
@@ -145,6 +143,8 @@ public:
 	 * @param newTip first new tip, used to extend the affected branch
 	 */
 	void grow( Point* fromTip, Point* newTip) ;
+        
+        void move(Point * toMove, const Point & target) ;
 	
 	/** \brief Is this crack still existing.
 	 * This is useful to know if the crack has already been merged.
@@ -202,6 +202,10 @@ public:
 	
 	/** \brief if the crack grows if the J integral reaches a certain value*/
 	void setEnergyPropagationMethod() ;
+        
+        double propagationAngleFromTip(const std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree) ;
+        std::pair<double, double> computeJIntegralAtTip ( std::pair< Amie::Point*, double >& tip,  Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* dtree ) ;
+        
 	
 public:
 	GEO_DERIVED_OBJECT(SegmentedLine) ;

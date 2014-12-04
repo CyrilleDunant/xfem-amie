@@ -490,6 +490,70 @@ void BranchedCrack::grow( Point* fromTip, Point* newTip)
 	branchToExtend->setBoundingPoints(newBP) ;
 }
 
+void BranchedCrack::move(Point * toMove, const Point & target) 
+{    
+    for(auto i = tips.begin() ; i !=tips.end() ; ++i)
+    {
+        if(i->first == toMove)
+        {
+            for ( size_t j = 0 ; j < branches.size() ; j++ )
+            {
+                if(branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-1] == toMove)
+                {
+                    i->second = Segment(*branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-2],target).normal().angle() ;
+                    *(i->first) = target ;
+                    return ;
+                }
+                if(branches[j]->getBoundingPoints()[ 0 ] == toMove)
+                {
+                    i->second = Segment(*branches[j]->getBoundingPoints()[1],target).normal().angle() ;
+                    *(i->first) = target ;
+                    return ;
+                }
+            }
+        }
+    }
+    
+    for ( size_t j = 0 ; j < branches.size() ; j++ )
+    {
+        if(branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-2] == toMove)
+        {
+            for(auto i = tips.begin() ; i !=tips.end() ; ++i)
+            {
+                if(i->first == branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-1])
+                {
+                    i->second = Segment(target, *branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-1]).normal().angle() ;
+                    *branches[j]->getBoundingPoints()[ branches[j]->getBoundingPoints().size()-2] = target ;
+                    return ;
+                }
+            }
+        }
+        if(branches[j]->getBoundingPoints()[ 1 ] == toMove)
+        {
+            for(auto i = tips.begin() ; i !=tips.end() ; ++i)
+            {
+                if(i->first == branches[j]->getBoundingPoints()[ 0])
+                {
+                    i->second = Segment(target, *branches[j]->getBoundingPoints()[0]).normal().angle() ;
+                    *branches[j]->getBoundingPoints()[ 1 ] = target ;
+                    return ;
+                }
+            }
+        }
+    }
+    
+    for ( size_t j = 0 ; j < branches.size() ; j++ )
+    {
+     for(size_t i = 0 ; i < branches[j]->getBoundingPoints().size() ; i++)
+     {
+         if(toMove == branches[j]->getBoundingPoints()[i])
+             *branches[j]->getBoundingPoints()[i] = target ;
+     }
+    }
+    
+    
+}
+
 void BranchedCrack::merge ( BranchedCrack & newSet)
 {
 	//first, we find the intersection point.

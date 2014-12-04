@@ -142,6 +142,20 @@ double partitionScore(const std::vector<int> & triplet)
     return (triplet[0]-avg)*(triplet[0]-avg)+(triplet[1]-avg)*(triplet[1]-avg)+(triplet[2]-avg)*(triplet[2]-avg) ;
 }
 
+// positions should be 
+// 0 0 
+// 0 0.004 + sym + quad
+// 0 0.006 + sym + quad
+// 0 0.008 + sym + quad
+
+//tests should be 5 5 
+//   0  0
+//  -5 -5
+//  -10 -10
+//  -15 -15
+//  -5 -10
+//  -5 -15
+//  -10 -15
 int main(int argc, char *argv[])
 {
 
@@ -149,7 +163,8 @@ int main(int argc, char *argv[])
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;
-    
+    int setup = atoi(argv[2]) ;
+    int load = atoi(argv[3]) ;
 
     samplers.setBehaviour(new PasteBehaviour()) ;
     Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
@@ -167,11 +182,102 @@ int main(int argc, char *argv[])
     
     std::vector<Geometry *> inclusion ;
     inclusion.push_back(new Circle(0.007, 0, 0));
-    for (size_t i = 0 ; i < 1 ; i++)
+//     for (size_t i = 0 ; i < 1 ; i++)
+    if(setup == 0)
+    {
+        ExpansiveZone * p = new ExpansiveZone(nullptr, 0.00000001, 0, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p);
+        featureTree->addFeature(&inc, p);
+    }
+    if(setup == 1)
+    {
+        ExpansiveZone * p = new ExpansiveZone(nullptr, 0.00000001, 0, 0.004, new GelBehaviour()) ;
+        pockets.push_back(p);
+        featureTree->addFeature(&inc, p);
+    }
+    if(setup == 10)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.004, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.004, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+    }
+    if(setup == 100)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.004, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.004, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+        ExpansiveZone * p2 = new ExpansiveZone(nullptr, 0.00000001, 0.004, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p2);
+        featureTree->addFeature(&inc, p2);
+        ExpansiveZone * p3 = new ExpansiveZone(nullptr, 0.00000001, 0.004, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p3);
+        featureTree->addFeature(&inc, p3);
+    }
+    if(setup == 2)
     {
         ExpansiveZone * p = new ExpansiveZone(nullptr, 0.00000001, 0, 0.006, new GelBehaviour()) ;
         pockets.push_back(p);
         featureTree->addFeature(&inc, p);
+    }
+    if(setup == 20)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.006, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.006, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+    }
+    if(setup == 200)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.006, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.006, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+        ExpansiveZone * p2 = new ExpansiveZone(nullptr, 0.00000001, 0.006, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p2);
+        featureTree->addFeature(&inc, p2);
+        ExpansiveZone * p3 = new ExpansiveZone(nullptr, 0.00000001, 0.006, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p3);
+        featureTree->addFeature(&inc, p3);
+    }
+    if(setup == 3)
+    {
+        ExpansiveZone * p = new ExpansiveZone(nullptr, 0.00000001, 0, 0.008, new GelBehaviour()) ;
+        pockets.push_back(p);
+        featureTree->addFeature(&inc, p);
+    }
+    if(setup == 30)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.008, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.008, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+    }
+    if(setup == 300)
+    {
+        ExpansiveZone * p0 = new ExpansiveZone(nullptr, 0.00000001, 0, 0.008, new GelBehaviour()) ;
+        pockets.push_back(p0);
+        featureTree->addFeature(&inc, p0);
+        ExpansiveZone * p1 = new ExpansiveZone(nullptr, 0.00000001, 0, -0.008, new GelBehaviour()) ;
+        pockets.push_back(p1);
+        featureTree->addFeature(&inc, p1);
+        ExpansiveZone * p2 = new ExpansiveZone(nullptr, 0.00000001, 0.008, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p2);
+        featureTree->addFeature(&inc, p2);
+        ExpansiveZone * p3 = new ExpansiveZone(nullptr, 0.00000001, 0.008, 0.00, new GelBehaviour()) ;
+        pockets.push_back(p3);
+        featureTree->addFeature(&inc, p3);
     }
     
 //     placement2DInInclusions(samplers.getPrimitive(),inclusion, pockets ) ;
@@ -185,8 +291,36 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
+    if(load == 1)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -5e6)) ;
+    }
+    if(load == 2)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -10e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -10e6)) ;
+    }
+    if(load == 3)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -15e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -15e6)) ;
+    }
+    if(load == 4)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -10e6)) ;
+    }
+    if(load == 5)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -5e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -15e6)) ;
+    }
+    if(load == 6)
+    {
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -10e6)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -15e6)) ;
+    }
 //     F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, inc.getPrimitive(), -1)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;

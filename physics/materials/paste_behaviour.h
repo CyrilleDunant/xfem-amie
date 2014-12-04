@@ -20,7 +20,7 @@ namespace Amie
 		double up ;
 		double yield ;
 		double c ;
-		PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 0.0003, double yield = 0.0001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		PasteBehaviour(double E = 12e9, double nu = 0.3,  double up = 4e6, double yield = 0.0001666, double c = 12000., SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

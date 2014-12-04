@@ -13,39 +13,30 @@ namespace Amie
     
     class CrackManager : public EnrichmentManager
     {
+        friend class BranchedCrack ;
     protected:
-        std::vector<BranchedCrack *> movingSet ;
-        std::vector<std::pair<Point *, Point *>> movingTips ;
+        std::vector<std::pair<std::pair<Point *, double>, std::pair<Point *, double>>> movingTips ;
+        std::vector<std::pair<Point *, BranchedCrack *>> movingSet ;
+        std::vector<double> startAngles ;
+        std::vector<Point> centers ;
         double criticalEnergy;
+        double minCRadius ;
+        bool findRadius ;
+        bool findExtension ;
+        double currentRadius ;
+        double upRadius ;
+        double downRadius ;
+        double currentExtension ;
+        double upExtension ;
+        double downExtension ;
+        int iteration ;
     public:
-            CrackManager(BranchedCrack * first, double criticalEnergy = 1e6) : EnrichmentManager(first), criticalEnergy(criticalEnergy) {} ;
+            CrackManager(BranchedCrack * first, double criticalEnergy = 1e6, double minCRadius = 1e-2) ;
               
-            virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
-            { 
-                if(stable) //checkpoint: start iteration
-                {
-                    stable = false ;
-                    
-                    std::vector<double> scores ;
-                    double maxScore
-                }
-                
-                bool moved = false ;
-                for(auto i : featureSet)
-                {
-                    i->step(dt, v, dtree) ;
-                    moved = moved || i->moved() ;
-                }
-                return moved ;
-                
-            };
+            virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) ;
+            virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) ;
 
-            virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) 
-            { 
-
-            };
-
-            bool converged() { return stable ; } ;
+            bool converged()  ;
     } ;
     
 } ;
