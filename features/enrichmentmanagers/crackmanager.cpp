@@ -2,7 +2,7 @@
     
 using namespace Amie ;
 
-CrackManager::CrackManager(BranchedCrack * first, double criticalEnergy, double minCRadius) : EnrichmentManager(first), criticalEnergy(criticalEnergy), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0) {} ;
+CrackManager::CrackManager(BranchedCrack * first, double criticalEnergy, double minCRadius, double maxExpansion) : EnrichmentManager(first), criticalEnergy(criticalEnergy), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0), maxExpansion(maxExpansion) {} ;
     
 bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 { 
@@ -41,8 +41,8 @@ bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayT
                     //there is a minimum radius of curvature.
                     //max is infty.
                     
-                    downRadius = 1e-2 ;
-                    upRadius = 1e2 ;
+                    downRadius = minCRadius ; ;
+                    upRadius = minCRadius*1e4 ;
                     currentRadius = (downRadius+upRadius)*.5 ; 
                     Point center(-dr[1], dr[0]) ;
                     centers.clear();
@@ -51,9 +51,9 @@ bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayT
                     center *= currentRadius ;
                     center += *j.first ;
                     
-                    upExtension = .001 ;
+                    upExtension = maxExpansion ;
                     downExtension = 0 ;
-                    currentExtension = 0.0005 ;
+                    currentExtension = maxExpansion*2. ;
                     
                     double alpha = 0.5*upExtension/currentRadius ;
                     rotate0[0][0] = cos(alpha) ; rotate0[0][1] = sin(alpha) ;
@@ -185,6 +185,26 @@ bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayT
 
     
 };
+
+void CrackManager::setCriticalEnergy(double e)
+{
+    criticalEnergy = e ;
+}
+
+void CrackManager::setMaximumRadius(double r)
+{
+    minCRadius = r*1e4 ;
+}
+
+void CrackManager::setMinimumRadius(double r)
+{
+    minCRadius = r ;
+}
+
+void CrackManager::setMaximumExpansion(double m)
+{
+    maxExpansion = m ;
+}
 
 bool CrackManager::step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) 
 { 

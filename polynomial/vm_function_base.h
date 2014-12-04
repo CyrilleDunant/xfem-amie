@@ -32,7 +32,7 @@ struct GaussPointArray ;
 struct ElementarySurface ;
 struct ElementaryVolume ;
 
-const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 10000 ;
+const size_t HEAP_VARIABLE_TRANSFORM_OFFSET = 4096 ;
 
 struct functionParseElement {
     TokenOperationType first ;

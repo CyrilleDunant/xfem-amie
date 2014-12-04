@@ -1231,8 +1231,8 @@ void BranchedCrack::enrichSegmentedLine(size_t & lastId, Mesh<DelaunayTriangle,D
 			usedId = done[e->first] ;
 		}
 
-		
-		Function f = shapefunc[0]*(s - vm.eval ( s, Point ( 0,1 ) )) ;
+		double val = vm.eval ( s, Point ( 0,1 ) ) ;
+		Function f = shapefunc[0]*(s - val) ;
 		f.setIntegrationHint ( hint ) ;
 		f.setPoint ( e->first ) ;
 		f.setDofID ( usedId ) ;

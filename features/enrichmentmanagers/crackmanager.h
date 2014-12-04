@@ -20,6 +20,7 @@ namespace Amie
         std::vector<double> startAngles ;
         std::vector<Point> centers ;
         double criticalEnergy;
+        double maxExpansion ;
         double minCRadius ;
         bool findRadius ;
         bool findExtension ;
@@ -31,10 +32,14 @@ namespace Amie
         double downExtension ;
         int iteration ;
     public:
-            CrackManager(BranchedCrack * first, double criticalEnergy = 1e6, double minCRadius = 1e-2) ;
+            CrackManager(BranchedCrack * first, double criticalEnergy = 1e6, double minCRadius = 1e-2, double maxExpansion = 1e-2) ;
               
             virtual bool step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) ;
             virtual bool step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) ;
+            void setCriticalEnergy(double) ;
+            void setMaximumRadius(double) ;
+            void setMinimumRadius(double) ;
+            void setMaximumExpansion(double) ;
 
             bool converged()  ;
     } ;
