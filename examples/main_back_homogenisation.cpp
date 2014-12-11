@@ -50,11 +50,11 @@ int main(int argc, char *argv[])
   std::fstream psdfile(argv[1]) ;
 
   double maxRadius = 38.15785 ;
-  double poreFraction = 0.5;
+  double poreFraction = atof(argv[3]);
   double minRadius = 0.1 ;
   double delta = atof(argv[2]) ;
   double factor = 1 ;
-  int set = atoi(argv[3]) ;
+  int set = 0 ;
 
   std::vector<Inclusion3D *> incs = PSDGenerator::get3DInclusions(maxRadius, 500.*500.*500./poreFraction, new GranuloFromCumulativePSD(argv[1], CUMULATIVE_PERCENT, factor, -1, -1), PSDEndCriteria(0.5, 0.1, 10000000) ) ;
   
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   {
     innerVolumeReal += incs[i]->volume() ;
     inner.push_back(incs[i]);
-    incs[i]->setBehaviour(new ElasticOnlyPasteBehaviour(E_inner, nu, SPACE_THREE_DIMENSIONAL)) ;
+    incs[i]->setBehaviour(new ElasticOnlyPasteBehaviour(1e-4, 0.01, SPACE_THREE_DIMENSIONAL)) ;
     innerVolume += incs[i]->volume() ;
   }
   
