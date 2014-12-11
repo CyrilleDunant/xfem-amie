@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   double factor = 1 ;
   int set = atoi(argv[3]) ;
 
-  std::vector<Inclusion3D *> incs = PSDGenerator::get3DInclusions(maxRadius, maxRadius*maxRadius*maxRadius*6.*6.*6., new GranuloFromCumulativePSD(argv[1], CUMULATIVE_PERCENT, factor, -1, -1), PSDEndCriteria(0.5, 0.1, 10000000) ) ;
+  std::vector<Inclusion3D *> incs = PSDGenerator::get3DInclusions(maxRadius, 500.*500.*500./poreFraction, new GranuloFromCumulativePSD(argv[1], CUMULATIVE_PERCENT, factor, -1, -1), PSDEndCriteria(0.5, 0.1, 10000000) ) ;
   
   //E_anh = 3 ; E_inner = 1.5 ; E_matrix = 1	
   //E_anh = 1 ; E_inner = 1.5 ; E_matrix = 3	
@@ -64,12 +64,12 @@ int main(int argc, char *argv[])
 
   
   double E_anyhdrous = 3 ;
-  double E_inner = 1.5 ;
-  double E_matrix = 1. ;
+  double E_inner = 1. ;
+  double E_matrix = delta ;
   double nu = 0.2 ;
   if(set == 2)
   {
-    E_anyhdrous = 1. ;
+    E_anyhdrous = .01 ;
     E_inner = 1.5 ;
     E_matrix = 3. ; 
   }
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
   {
     E_anyhdrous = 1.5 ;
     E_inner = 3 ;
-    E_matrix = 1. ; 
+    E_matrix = .01 ; 
   }
   
 //   std::cout << "n = "<< incs.size() << ", maxr = " << maxRadius << ", porefrac = " << poreFraction << std::endl ;
@@ -94,30 +94,35 @@ int main(int argc, char *argv[])
     innerVolume += incs[i]->volume() ;
   }
   
-  double sampleSide = pow(innerVolume/poreFraction, .333) ;
+  double sampleSide = 500. ;
 //   std::cout << "sampleSide = " << sampleSide << std::endl ;
   
   Sample3D s(sampleSide, sampleSide, sampleSide, 0., 0., 0.) ;
   s.setBehaviour(new ElasticOnlyPasteBehaviour(E_matrix, nu, SPACE_THREE_DIMENSIONAL) );
   
   int dummy ;
-  inner = placement3D(s.getPrimitive(), inner, 1, 0, 400) ;
+  inner = placement3D(s.getPrimitive(), inner, .05, 0, 500) ;
   
   FeatureTree ft(&s) ;
   
   for(size_t i = 0 ; i < inner.size() ; i++)
   {
-    ft.addFeature(&s, inner[i]);
-    double currentRadius = inner[i]->getRadius() ;
-    double anyhdrouRadius = currentRadius - delta ;
-    if(anyhdrouRadius > 1)
-    {
-        Inclusion3D * anh = new Inclusion3D(anyhdrouRadius, inner[i]->getCenter()) ;
-        anh->setBehaviour(new ElasticOnlyPasteBehaviour(E_anyhdrous, nu, SPACE_THREE_DIMENSIONAL)) ;
-        ft.addFeature(inner[i], anh);
-        anhydrousVolume += anh->volume() ;
-        innerVolumeReal -= anh->volume() ;
-    }
+    if(!i)
+        ft.addFeature(&s, inner[i]);
+    else
+        ft.addFeature(inner[i-1], inner[i]) ;
+//     ft.setSamplingFactor(inner[i], 2.) ;
+//     double currentRadius = inner[i]->getRadius() ;
+//     double anyhdrouRadius = currentRadius - delta ;
+//     if(anyhdrouRadius > 1)
+//     {
+//         Inclusion3D * anh = new Inclusion3D(anyhdrouRadius, inner[i]->getCenter()) ;
+//         anh->setBehaviour(new ElasticOnlyPasteBehaviour(E_anyhdrous, nu, SPACE_THREE_DIMENSIONAL)) ;
+//         ft.addFeature(inner[i], anh);
+//         
+//         anhydrousVolume += anh->volume() ;
+//         innerVolumeReal -= anh->volume() ;
+//     }
   }
   
   ft.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_XI, LEFT, 0.));
@@ -128,8 +133,8 @@ int main(int argc, char *argv[])
   ft.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, BACK, 0));
   
 //   ft.setOrder(LINEAR) ;
-  ft.setSamplingRestriction(SAMPLE_RESTRICT_8) ;
-  ft.setSamplingNumber(2048*4);
+//   ft.setSamplingRestriction(SAMPLE_RESTRICT_8) ;
+  ft.setSamplingNumber(1024*6);
 
     ft.step() ;
     Vector epsilon = ft.getAverageField(STRAIN_FIELD) ;
@@ -138,7 +143,7 @@ int main(int argc, char *argv[])
 //     std::cout << "phi_inner = " << innerVolume/s.volume() << ", phi_anh = " << anhydrousVolume/s.volume() << ", phi_matrix = " << (s.volume()-anhydrousVolume-innerVolume)/s.volume() << std::endl ;
 //     std::cout << "stress = " << sigma[0] << ", " << sigma[1] << ", " << sigma[2] << std::endl ;
 //     std::cout << "strain = " << epsilon[0] << ", " << epsilon[1] << ", " << epsilon[2] << std::endl ;
-    std::cout << delta << "  " << sigma[2]/epsilon[2] << std::endl ;
+    std::cout << "   "<< delta << "   " << sigma[2]/epsilon[2] << std::endl ;
     
   return 0 ;
 }

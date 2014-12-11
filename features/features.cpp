@@ -4521,7 +4521,7 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-                
+
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel

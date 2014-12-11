@@ -1458,7 +1458,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 	double last_error = 1. ;
 	int count = 0 ;
 	double derr = 1. ;
-	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > POINT_TOLERANCE_3D*POINT_TOLERANCE_3D*points.size()*points.size() && (count == 0); i++)
+	for(size_t i = 0 ; /*(i < iter) &&*/ std::abs(error-last_error)/last_error > 0.01*0.01*points.size()*points.size() && (count == 0); i++)
 	{
 		derr = std::abs(error-last_error) ;
 	//	if(iter && i%iter == 0)
@@ -1496,7 +1496,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
 			points[j] += speeds[j];
 			project(&points[j],r) ;
 		}
-		if(last_error < 1e-12)
+		if(last_error < 0.01*getRadius())
 			break ;
 		
 		speeds = Point() ;

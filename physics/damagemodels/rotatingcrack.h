@@ -42,11 +42,12 @@ protected:
 	bool firstCompressionFailure ;
 	bool secondCompressionFailure ;
 	double originalAngle ;
+    std::vector<std::pair<double, double>> angles_scores ;
 	ElementState * es ;
 	
 	OrthotropicStiffness * stiff ;
 	bool postprocheck ;
-	
+    
 public:
 
 	

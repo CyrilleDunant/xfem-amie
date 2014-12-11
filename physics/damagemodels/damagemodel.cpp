@@ -44,6 +44,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     change = false ;
     if(!s.getParent()->getBehaviour()->getFractureCriterion())
     {
+        alternate = true ;
         converged = true ;
         return ;
     }
@@ -54,8 +55,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-    bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
-    if( !isInDamagingSet )
+    if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
 
@@ -63,13 +63,14 @@ void DamageModel::step( ElementState &s , double maxscore)
         //for example, plasticstrain gets a pointer to s
         computeDamageIncrement( s ) ;
         converged = true ;
-
+        alternate = true ;
         return ;
     }
 
     std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
 
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
+
+    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && !alternate) // initiate iteration
     {
         initalState = state ;
         error = score ;
@@ -87,19 +88,6 @@ void DamageModel::step( ElementState &s , double maxscore)
             upState = damageIncrement.second ;
             upState= downState+(upState-downState) * s.getParent()->getBehaviour()->getFractureCriterion()->getMinDeltaInNeighbourhood();
 
-
-// 			if(ctype == DISSIPATIVE)
-// 			{
-// 				downState = downState + 16.*damageDensityTolerance ;
-// 			}
-// 			else if(ctype == CONSERVATIVE)
-// 			{
-// 				downState = downState + 0.025*damageDensityTolerance;
-// 			}
-
-// 			for(size_t i = 0 ; i < upState.size() ; i++)
-// 				upState[i] = std::min(upState[i], 1.-2.*thresholdDamageDensity) ;
-// 			std::cout << "0'   "<< score << std::endl ;
             states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first,0., score, setChange.second, -M_PI*.01, -1 ) ) ;
             trialRatio = 1. ;
             getState( true ) = upState ;
@@ -112,7 +100,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
 
     }
-    else if( !converged )
+    else if( !converged && !alternate)
     {
 
         double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
@@ -125,20 +113,8 @@ void DamageModel::step( ElementState &s , double maxscore)
 // 		earlyRatio = exp(-1./earlyRatio) ;
 // 		earlyRatio<damageDensityTolerance ? earlyRatio=damageDensityTolerance : earlyRatio=earlyRatio ;
 
-        if(alternating && !alternate)
-        {
-            states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
-            alternate = !alternate ;
-        }
-        else if(alternating && alternate)
-        {
-            alternate = !alternate ;
-            return ;
-        }
-        else
-        {
-            states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
-        }
+
+        states.push_back( PointState( s.getParent()->getBehaviour()->getFractureCriterion()->met(), setChange.first, trialRatio, score, setChange.second, globalAngleShift-M_PI*.001, globalMode ) ) ;
 
         double n = 0 ;
 
@@ -258,7 +234,8 @@ void DamageModel::step( ElementState &s , double maxscore)
         else if(states.size() > iterationNumber+n)
         {
 
-            getState( true ) = downState + .01;
+//             if (std::abs(maxscore-score) < POINT_TOLERANCE_2D)
+                getState( true ) = downState + 0.05;
 
             for(size_t i = 0 ; i <  state.size() ; i++)
                 state[i] = std::min(state[i], 1.) ;
@@ -287,21 +264,20 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 16 ;
+    iterationNumber = 24 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;
     converged = true ;
     delta = 1 ;
     effectiveDeltaFraction = 1 ;
-    alternating = false ;
     alternate = false ;
     needGlobalMaximumScore = false ;
     // The exploration increment is crucial for finding
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  1e-8 ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  0.25*1./pow(2.,iterationNumber) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
 } ;

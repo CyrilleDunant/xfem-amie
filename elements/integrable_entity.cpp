@@ -485,10 +485,19 @@ Vector Amie::toPrincipal ( const Vector & stressOrStrain )
     if ( ret.size() == 2 )
     {
         double trace = stressOrStrain[0] + stressOrStrain[1] ;
-        double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
+        double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
         double delta = sqrt(trace*trace-det) ;
-        ret[0] = (trace + delta)*.5 ;
-        ret[1] = (trace - delta)*.5 ;
+        double angle =  0.5*atan2 ( stressOrStrain[0] - stressOrStrain[1] , 0.5*stressOrStrain[2] ) ;
+        if(cos(angle) < 0)
+        {
+            ret[0] = (trace + delta)*.5 ;
+            ret[1] = (trace - delta)*.5 ;
+        }
+        else
+        {
+            ret[0] = (trace - delta)*.5 ;
+            ret[1] = (trace + delta)*.5 ;
+        }
 //         ret[0] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 +
 //                  sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
 //                         ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
@@ -1128,13 +1137,14 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            ret[0] =  atan2 ( strains[0] - strains[1] , strains[2] ) ;
+            ret[0] =  0.5*atan2 ( strains[0] - strains[1] , 0.5*strains[2] ) ;
+            
         }
         else
         {
-            ret[0] = atan2 ( strains[0] - strains[1], strains[3] ) ;
-            ret[1] = atan2 ( strains[0] - strains[2], strains[4] ) ;
-            ret[2] = atan2 ( strains[1] - strains[2], strains[5] ) ;
+            ret[0] = 0.5*atan2 ( strains[0] - strains[1], 0.5*strains[3] ) ;
+            ret[1] = 0.5*atan2 ( strains[0] - strains[2], 0.5*strains[4] ) ;
+            ret[2] = 0.5*atan2 ( strains[1] - strains[2], 0.5*strains[5] ) ;
         }
         if ( cleanup )
         {
@@ -1157,13 +1167,13 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            ret[0] =  atan2 ( strains[0] - strains[1] , strains[2] ) ;
+            ret[0] =  0.5*atan2 ( strains[0] - strains[1] , 0.5*strains[2] ) ;
         }
         else
         {
-            ret[0] = atan2 ( strains[0] - strains[1], strains[3] ) ;
-            ret[1] = atan2 ( strains[0] - strains[2], strains[4] ) ;
-            ret[2] = atan2 ( strains[1] - strains[2], strains[5] ) ;
+            ret[0] = 0.5*atan2 ( strains[0] - strains[1], 0.5*strains[3] ) ;
+            ret[1] = 0.5*atan2 ( strains[0] - strains[2], 0.5*strains[4] ) ;
+            ret[2] = 0.5*atan2 ( strains[1] - strains[2], 0.5*strains[5] ) ;
         }
         if ( cleanup )
         {

@@ -140,7 +140,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
     if(!mesh2d && !mesh3d)
     {
         initialiseCache(s);
-        std::cout << "cache init !" << std::endl ;
     }
     
     if(mesh2d)
@@ -202,7 +201,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         }
                     }
                 }
-            };
+            }
 
             if(!inset)
             {

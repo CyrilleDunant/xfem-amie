@@ -22,7 +22,7 @@ namespace Amie
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ /*.33e6*sqrt(-down*1e-6)*/ 1.8e6), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
@@ -461,11 +461,11 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 	Vector first = sstrain.first ;
 	Vector second = sstrain.second ;
 	
-	double tstrain = second.max();
-	double cstrain = second.min();
+	double tstrain = second[1];
+	double cstrain = second[0];
 
-	double tstress = first.max();
-	double cstress = first.min();
+	double tstress = first[1];
+	double cstress = first[0];
 	
 	
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());
