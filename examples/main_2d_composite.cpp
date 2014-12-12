@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
 	{
-		int threads = problem->getData("parallel.number_of_threads") ;
+		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;
 		omp_set_num_threads(threads) ;
 	}
 

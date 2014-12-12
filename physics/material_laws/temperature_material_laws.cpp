@@ -44,6 +44,10 @@ ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char
 
 void ArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
+    if(defaultValues.find(affected) == defaultValues.end())
+	defaultValues[affected] = s.get(affected, defaultValues) ;
+
+
     double T = s.get("temperature", defaultValues) ;
     double T0 = defaultValues["temperature"] ;
     double Ea = s.get(coefficient, defaultValues) ;
@@ -59,8 +63,6 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
 
     if(defaultValues.find("creep_characteristic_time") == defaultValues.end())
 	defaultValues["creep_characteristic_time"] = s.get("creep_characteristic_time", defaultValues) ;
-    if(defaultValues.find("creep_modulus") == defaultValues.end())
-	defaultValues["creep_modulus"] = s.get("creep_modulus", defaultValues) ;
 
     double T = s.get("temperature", defaultValues) ;
     double T0 = defaultValues["temperature"] ;

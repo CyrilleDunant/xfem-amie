@@ -543,7 +543,7 @@ It is possible to place a single inclusions at a very specific position in the m
 \verb+..particle_size_distribution+\\
 \verb+...type = UNIQUE+\\
 \verb+..geometry+\\
-\verb+...type = RACTANGLE+\\
+\verb+...type = RECTANGLE+\\
 \verb+...center+\\
 \verb+....x = 0+\\
 \verb+....y = 0+\\
@@ -766,6 +766,38 @@ There are three ways to define a time-dependent boundary condition. The easiest 
 \verb+0.99999 0+\\
 \verb+1       1e6+\\
 \verb+2       1e6+\\
+
+\subsection{Applying a boundary condition on a section of an edge}
+
+It is possible to limit the area on which the boundary condition is applied by using the \verb+restriction+ keyword. The following example applies a stress on the \verb+TOP+ of the sample, only on the points located in $x \in \left[0.4,0.5\right],\ y \in \left[0.4,0.5\right]$:\\
+
+\noindent \verb+.boundary_condition+\\
+\verb+..condition = SET_STRESS_ETA+\\
+\verb+..position = TOP+\\
+\verb+..restriction+\\
+\verb+...top_right+\\
+\verb+....x = 0.5+\\
+\verb+....y = 0.5+\\
+\verb+...bottom_left+\\
+\verb+....x = 0.4+\\
+\verb+....y = 0.4+
+
+\paragraph{} The \verb+position+ and the box defined by \verb+bottom_left+/\verb+top_right+ must intersect (or overlap), otherwise the boundary condition will not be applied.
+
+\subsection{Applying a boundary condition on a specific point}
+
+It is possible to apply the boundary condition at a specific point. The point at which the condition will be applied is the closest point on the edge \verb+position+ from the specified \verb+point+.
+
+\noindent \verb+.boundary_condition+\\
+\verb+..condition = SET_FORCE_ETA+\\
+\verb+..position = TOP+\\
+\verb+..point+\\
+\verb+...x = 0.5+\\
+\verb+...y = 0.5+
+
+\paragraph{} This will not work with stress boundary conditions.
+
+
 
 \section{Extracting the average stress and strain over certain families of inclusions}
 
@@ -1916,7 +1948,6 @@ The following features might be implemented/corrected at some point in the futur
 	\item The first SVG output file seems to have more fields than required. This is a bug.
 	\item Possibility to refine locally the mesh.
 	\item Possibility to not use the SVG output.
-	\item Possibility to limit the location of the boundary conditions to a certain part of an edge, or a certain point.
 \end{itemize}
 
 

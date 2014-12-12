@@ -48,6 +48,7 @@ Object & Type & Description \\
 \hline 
 \verb+.inclusions+ & Inclusions & Defines the geometry and mechanical behaviour of the inclusions. \\ 
 \verb+.boundary_condition+ & BoundaryCondition & Mechanical boundary conditions applied to the sample. \\ 
+\verb+.parallel+ & Parallelism & Manages parallel computation. \\
 \hline 
 \end{tabularx} 
 
@@ -458,8 +459,12 @@ Object & Type & Description \\
 Object & Type & Description \\ 
 \hline 
 \verb+.axis+ & Numeral & Indicates the index of the unknown on which the boundary condition acts. This is only used when making a space-time finite element analysis. See the BoundaryConditionType \verb+SET_ALONG_INDEXED_AXIS+ for more details.\\ 
+\verb+.restriction+ & BoundingBoxRestriction & Limits the area on which the boundary condition is applied.\\
+\verb+.point+ & Point & Limits the boundary condition to the node closest to the specified point.\\
 \hline 
 \end{tabularx}
+
+\paragraph{} The \verb+.restriction+ and \verb+.point+ option are incompatible one with another. The first limits the section on which the condition is applied (for example, only half of one edge is under load), while the second applies the boundary condition to a single node.
 
 \subsection{Constant boundary conditions}
 
@@ -506,6 +511,22 @@ Object & Type & Description \\
 \verb+.rate+ & Numeral & The value will be set using a constant rate. \\ 
 \hline 
 \end{tabularx}
+
+\section{Bounding Box Restriction}
+
+This object is used with the \verb+boundary_condition++ object to restrict the surface where the condition is applied. The effective surface will be defined as the intersection between \verb+.boundary_condition.position+ and the box defined by the \verb+restriction+.
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.top_right+ & Point & Top-right corner of the restriction. \\ 
+\verb+.bottom_left+ & Point & Bottom-left corner of the restriction.\\ 
+\hline 
+\end{tabularx}
+
 
 \section{Damage Model}
 
@@ -822,7 +843,7 @@ Object & Type & Description \\
 \hline 
 \end{tabularx}
 
-\subsubsection*{Optional parameters}
+\subsubsection*{Optional parameters for standard particle size distributions}
 
 \begin{tabularx}{\textwidth}{llX}
 \hline 
@@ -830,6 +851,45 @@ Object & Type & Description \\
 \hline 
 \verb+.aspect_ratio+ & Numeral & Defines the elongation of the inclusion. This parameter will not be used for circles or spheres. \\ 
 \verb+.orientation+ & Numeral & Defines the random spread of the orientation of the inclusions. This parameter will not be used for circles or spheres. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Parameters for manually-placed circles}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & GeometryType & \verb+CIRCLE+ \\
+\verb+.radius+ & Numeral & The radius of the inclusion. \\ 
+\verb+.center+ & Point & The center of the inclusion. \\ 
+\hline 
+\end{tabularx}
+
+\subsubsection*{Parameters for manually-placed ellipses}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & GeometryType & \verb+ELLIPSE+ \\
+\verb+.major_radius+ & Numeral & The major radius of the inclusion. \\ 
+\verb+.minor_radius+ & Numeral & The minor radius of the inclusion (must be smaller than the major radius). \\ 
+\verb+.center+ & Point & The center of the inclusion. \\ 
+\verb+.major_axis+ & Point & The direction of the major axis of the inclusion (must be a vector of norm 1).\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Parameters for manually-placed rectangle}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & GeometryType & \verb+RECTANGLE+ \\
+\verb+.height+ & Numeral & The height of the rectangle. \\ 
+\verb+.width+ & Numeral & The width of the rectangle. \\ 
+\verb+.center+ & Point & The center of the inclusion. \\ 
 \hline 
 \end{tabularx}
 
@@ -863,16 +923,17 @@ Object & Type & Description \\
 \end{tabularx}
 
 
-\paragraph{} There are four different ways the inclusions might be generated. The choice of generation is controlled by the following flag:\\
+\paragraph{} There are five different ways the inclusions might be generated. The choice of generation is controlled by the following flag:\\
 \verb+.inclusions+\\
 \verb+..particle_size_distribution+\\
 \verb+...type+
 
-\paragraph{} The four different methods are:
+\paragraph{} The five different methods are:
 \begin{itemize}
 	\item using an analytic particle size distribution curve,
 	\item using a particle size distribution defined in a text file,
 	\item using a pre-generated inclusion distribution defined in a text file (including a pre-defined placement of said inclusions)
+	\item manually placing of a single inclusion,
 	\item creating the inclusions at the center of a parent list of inclusions.
 \end{itemize}
 
@@ -913,7 +974,7 @@ Object & Type & Description \\
 
 \subsection{Creep behaviour}
 
-The following properties describe the viscoelastic creep of the behaviour. If they are not defined, then the material behaves like an elastic material. The \verb+.creep_modulus+/\verb+.creep_poisson+ pair can be replaced with the \verb+.creep_bulk+/\verb+creep_shear+ pair (both values in pascal).\\
+The following properties describe the viscoelastic creep of the behaviour. If they are not defined, then the material behaves like an elastic material. The \verb+.creep_modulus+/\verb+.creep_poisson+ pair can be replaced with the \verb+.creep_bulk+/\verb+creep_shear+ pair (both values in pascal); same with \verb+.recoverable_modulus+/\verb+recoverable_poisson+.\\
 
 \begin{tabularx}{\textwidth}{llX}
 \hline 
@@ -921,9 +982,13 @@ Object & Type & Description \\
 \hline 
 \verb+.creep_modulus+ & Numeral & The initial creep viscosity of the material (in pascal).\\
 \verb+.creep_poisson+ & Numeral & The initial creep poisson ratio of the material (no unit).\\
+\verb+.recoverable_modulus+ & Numeral & The recoverable creep modulus of the material (in pascal).\\
+\verb+.recoverable_poisson+ & Numeral & The recoverable creep poisson ratio of the material (no unit).\\
 \verb+.creep_characteristic_time+ & Numeral & The characteristic time of the logarithmic creep law (in days).\\
 \hline 
 \end{tabularx}
+
+\paragraph{} If \verb+recoverable_poisson+ or \verb+recoverable_modulus+ are not defined, then it will be set equal to \verb+.creep_poisson+ or \verb+creep_modulus+ respectively.
 
 \subsection{Imposed deformation}
 
@@ -936,6 +1001,62 @@ Object & Type & Description \\
 \verb+.imposed_deformation+ & Numeral & The value of the imposed deformation.\\
 \hline 
 \end{tabularx}
+
+\subsection{Damage}
+
+The following properties describe the material failure behaviour. If they are defined, then there is no need to specify the \verb+.fracture_criterion+ or \verb+.damage_model+. There are two options possible: importing a file with the stress-strain curves, or defining the start and end point of the curve manually. The two methods are mutually exclusive (priority is given to the files if they are defined).
+
+\subsubsection*{Common parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.material_characteristic_radius+ & Numeral & Radius of the area for the non-local averaging (in meters).\\
+\verb+.strain_normalization_factor+ & Numeral & Normalization of the strain to improve the accuracy of the computation of intersections in the stress-strain space (optional, default value is $10^4$).\\
+\verb+.stress_normalization_factor+ & Numeral & Normalization of the stress to improve the accuracy of the computation of intersections in the stress-strain space (optional, default value is $10^{-6}$).\\
+\verb+.damage_increment+ & Numeral & Amount of damage to apply at each step (no unit).\\
+\verb+.maximum_damage+ & Numeral & Amount of damage above which the element is considered entirely broken (no unit).\\
+\verb+.time_tolerance+ & Numeral & Minimum time between two damage events (no unit).\\
+\hline 
+\end{tabularx}
+
+\subsubsection*{Stress-strain curve imported from a file}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.tension_file_name+ & String & Path to the stress-strain curve in tension (optional).\\
+\verb+.compression_file_name+ & String & Path to the stress-strain curve in compression (optional).\\
+\hline 
+\end{tabularx}
+
+The files must contain a table with the strain (first column) and the stress (second column) of the stress-strain curve. Stresses and strains must be in standard units. Values must be positive for tension and negative for compression. If one of the files is not defined, then the material does not fail in this direction.
+
+\subsubsection*{Simplified model}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.tensile_strength+ & Numeral & Value of the stress at the peak (in Pascal).\\
+\verb+.tensile_ultimate_strength+ & Numeral & Value of the stress at the end of the damage process (in Pascal).\\
+\verb+.tensile_ultimate_strain+ & Numeral & Value of the strain at the end of the damage process (in meter/meter).\\
+\verb+.compressive_strength+ & Numeral & Value of the stress at the peak (in Pascal).\\
+\verb+.compressive_ultimate_strength+ & Numeral & Value of the stress at the end of the damage process (in Pascal).\\
+\verb+.compressive_ultimate_strain+ & Numeral & Value of the strain at the end of the damage process (in meter/meter).\\
+\hline 
+\end{tabularx}
+
+\paragraph{} The values must be positive in tension, negative in compression.
+
+\paragraph{} \verb+tensile_strength+ can be replaced with \verb+tensile_strain+ (the value of the strain at the peak).\\ \verb+tensile_ultimate_strength+ can be replaced with \verb+tensile_strength_decrease_factor+ (value between 0 and 1) which is the ratio between \verb+tensile_strength+ and \verb+tensile_ultimate_strength+. \\\verb+tensile_ultimate_strain+ can be replaced with \verb+tensile_strain_increase_factor+ (value greater than 1) which is the ratio between \verb+tensile_ultimate_strain+ and \verb+tensile_strain+.
+
+\paragraph{} Similar replacements can be made for the compressive strains or stresses.
+
+\paragraph{} If \verb+tensile_strength+ and \verb+tensile_strain+ are both not defined, then the material does not fail in tension (same with compression).
+
 
 \subsection{Additional parameters}
 
@@ -1278,7 +1399,9 @@ Object & Type & Description \\
 
 \paragraph{} The output file is a simple text file containing a table describing the results. Each line corresponds to a time step of the simulation. Each column corresponds to the average value in the sample of the field specified in the \verb+.field+ objects (except for the first column, which corresponds to the current time of the simulation). The columns are ordered from the left to the right in the same order the \verb+.fields+ are declared (most fields span several columns).
 
-\section{Point}
+\section{Parallelism}
+
+This object manages the number of threads used for the computations. It is not required. If not defined, then \textsc{amie} will use the current settings with which \textsc{amie} was compiled.
 
 \subsubsection*{Optional parameters}
 
@@ -1286,14 +1409,9 @@ Object & Type & Description \\
 \hline 
 Object & Type & Description \\ 
 \hline 
-\verb+.x+ & Numeral & Value of the \verb+x+ coordinate.\\ 
-\verb+.y+ & Numeral & Value of the \verb+y+ coordinate.\\ 
-\verb+.z+ & Numeral & Value of the \verb+z+ coordinate.\\ 
-\verb+.t+ & Numeral & Value of the \verb+t+ coordinate.\\ 
+\verb+.number_of_threads+ & Numeral & Number of threads used in the simulation.\\ 
 \hline 
 \end{tabularx}
-
-\paragraph{} The default values for any unspecified coordinate is equal to 0.
 
 \section{Particle Size Distribution}
 
@@ -1322,7 +1440,7 @@ Object & Type & Description \\
 \subsection{Analytic particle size distribution}
 
 \subsubsection*{Required parameters}
-compute
+
 \begin{tabularx}{\textwidth}{llX}
 \hline 
 Object & Type & Description \\ 
@@ -1376,6 +1494,20 @@ Object & Type & Description \\
 \verb+.column+ & ColumnIdentifier & Indicates the data contained in each column of the file to import. In general, several \verb+.column+ objects must be defined. \\ 
 \hline 
 \end{tabularx}
+
+\subsection{Manually placed inclusion}
+
+\subsubsection*{Required parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.type+ & PSDType & \verb+UNIQUE+. \\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} The placement of the inclusion in then covered in the \verb+.inclusions.geometry+ object
 
 \subsection{Concentric inclusions}
 
@@ -1442,6 +1574,24 @@ Object & Type & Description \\
 \verb+.orientation+ & Numeral & Defines the random spread of the orientation of the inclusions. This parameter will not be used for circles or spheres. \\ 
 \hline 
 \end{tabularx}
+
+\section{Point}
+
+\subsubsection*{Optional parameters}
+
+\begin{tabularx}{\textwidth}{llX}
+\hline 
+Object & Type & Description \\ 
+\hline 
+\verb+.x+ & Numeral & Value of the \verb+x+ coordinate.\\ 
+\verb+.y+ & Numeral & Value of the \verb+y+ coordinate.\\ 
+\verb+.z+ & Numeral & Value of the \verb+z+ coordinate.\\ 
+\verb+.t+ & Numeral & Value of the \verb+t+ coordinate.\\ 
+\hline 
+\end{tabularx}
+
+\paragraph{} The default values for any unspecified coordinate is equal to 0.
+
 
 \section{Rebar}
 
@@ -1952,11 +2102,20 @@ This section details the list of accepted values for the different enumerations 
 \subsection{Time Step Selection}
 	\verb+NONE+\\
 	\verb+ALL+,\\
+	\verb+FIRST+\\
 	\verb+LAST+\\
 	\verb+REGULAR+
 
 
 \section{History}
+
+\subsection*{Version 1.2}
+\begin{itemize}
+	\item Added embedded fracture properties for the logarithmic creep material.
+	\item Added restriction- and point-defined boundary conditions.
+	\item Added manually pre-placed inclusions.
+	\item Added parallelism object.
+\end{itemize}
 
 \subsection*{Version 1.1}
 \begin{itemize}
