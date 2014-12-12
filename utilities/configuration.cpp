@@ -1329,7 +1329,10 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 				if(base[i]->in(p))
 					f = base[i] ;
 			}
-			F->addFeature( f, inc) ;
+			if(base.size() == 0 && f->intersects(dynamic_cast<Rectangle *>(inc)))
+				F->addFeature( nullptr, inc) ;
+			else
+				F->addFeature( f, inc) ;
 			ret.push_back(inc) ;
 		}
 
@@ -1712,11 +1715,55 @@ BoundingBoxPosition ConfigTreeItem::translateBoundingBoxPosition( std::string po
 BoundaryCondition * ConfigTreeItem::getBoundaryCondition() const 
 {
 	if( !hasChild("rate") )
+	{
+		if(hasChild("restriction"))
+		{
+			double maxx = getData("restriction.top_right.x", 1.) ;
+			double maxy = getData("restriction.top_right.y", 1.) ;
+			double minx = getData("restriction.bottom_left.x", -1.) ;
+			double miny = getData("restriction.bottom_left.y", -1.) ;
+			return new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+				ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
+				getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
+		}
+		if(hasChild("point"))
+		{
+			double x = getData("point.x", 0.) ;
+			double y = getData("point.y", 0.) ;
+			double z = getData("point.z", 0.) ;
+			double t = getData("point.t", 0.) ;
+			Point p(x,y,z,t) ;
+			return new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+				ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p, 
+				getData( "value", 0 ), getData( "axis", 0 ) ) ;
+		}
 		return new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
 			ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
 			getData( "value", 0 ), getData( "axis", 0 ) ) ;
+	}
 	Function t("t") ;
 	t *= getData( "rate", 0 ) ;
+	if(hasChild("restriction"))
+	{
+		double maxx = getData("restriction.top_right.x", 1.) ;
+		double maxy = getData("restriction.top_right.y", 1.) ;
+		double minx = getData("restriction.bottom_left.x", -1.) ;
+		double miny = getData("restriction.bottom_left.y", -1.) ;
+		return new BoundingBoxAndRestrictionDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+			ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), minx, maxx, miny, maxy,
+			t, getData( "axis", 0 ) ) ;
+	}	
+	if(hasChild("point"))
+	{
+		double x = getData("point.x", 0.) ;
+		double y = getData("point.y", 0.) ;
+		double z = getData("point.z", 0.) ;
+		double t = getData("point.t", 0.) ;
+		Point p(x,y,z,t) ;
+		return new BoundingBoxNearestNodeDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+			ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ), p, 
+			t, getData( "axis", 0 ) ) ;
+	}
 	return new BoundingBoxDefinedBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
 		ConfigTreeItem::translateBoundingBoxPosition( getStringData( "position", "NOW" ) ),
 		t, getData( "axis", 0 ) ) ;

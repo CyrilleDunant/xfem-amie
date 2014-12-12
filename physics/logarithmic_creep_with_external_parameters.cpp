@@ -7,7 +7,8 @@ using namespace Amie ;
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), c,d, acc), external(parseDefaultValues(args, sep)), plane(pt)
 {
 	noFracture = (c == nullptr) ;
-	makeProperties(external) ;
+	if(args.size() > 0)
+		makeProperties(external) ;
 
 }
 
@@ -25,14 +26,16 @@ LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(s
 	criterion = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( ftension, fcompression, E ) ;
 
 	noFracture = false ;
-	makeProperties(external) ;
+	if(args.size() > 0)
+		makeProperties(external) ;
 
 }
 
 LogarithmicCreepWithExternalParameters::LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc, SpaceDimensionality dim, planeType pt, char sep) : LogarithmicCreepWithImposedDeformationAndFracture( Matrix( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)), Vector(), acc), external(parseDefaultValues(args, sep))
 {
 	noFracture = true ;
-	makeProperties(external) ;
+	if(args.size() > 0)
+		makeProperties(external) ;
 }
 
 void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string, double> & values, double kvSpringReduction, double kvDashpotReduction) 
@@ -45,13 +48,13 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	{
 		double k_inst = values["bulk_modulus"] ;
 		double mu_inst = values["shear_modulus"] ;
-		C = Material::cauchyGreen( k_inst, mu_inst, false, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		C = Material::cauchyGreen( k_inst, mu_inst, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	else
 	{
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
-		C = Material::cauchyGreen( E_inst, nu_inst, true, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		C = Material::cauchyGreen( E_inst, nu_inst, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	param = 0. ;
 	placeMatrixInBlock( C, 0,0, param) ;
@@ -62,19 +65,60 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		{
 			double k_visc = values["creep_bulk"] ;
 			double mu_visc = values["creep_shear"] ;
-			E = Material::cauchyGreen( k_visc, mu_visc, false, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			E = Material::cauchyGreen( k_visc, mu_visc, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
 		else
 		{
 			double E_visc = values["creep_modulus"] ;
 			double nu_visc = values["creep_poisson"] ;
-			E = Material::cauchyGreen( E_visc, nu_visc, true, (param.numCols()==6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			E = Material::cauchyGreen( E_visc, nu_visc, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
-		tau = values["creep_characteristic_time"] ;
+		double a = 0. ;
+		if(values.find("recoverable_bulk") != values.end())
+		{
+			double k_rec = values["recoverable_bulk"] ;
+			double mu_rec = values["recoverable_shear"] ;
+			R = Material::cauchyGreen( k_rec, mu_rec, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		}
+		else
+		{
+			if(values.find("recoverable_modulus") != values.end())
+			{
+				double E_rec = values["recoverable_modulus"] ;
+				double nu_rec = 0.2 ;
+				if(values.find("recoverable_poisson") != values.end())
+				{
+					nu_rec = values["recoverable_poisson"] ;
+				}
+				else if(values.find("creep_poisson") != values.end())
+				{
+					nu_rec = values["creep_poisson"] ;
+				}
+				else
+				{
+					double k_visc = values["creep_bulk"] ;
+					double mu_visc = values["creep_shear"] ;
+					nu_rec = (3.*k_visc-2.*mu_visc)/(2.*(3*k_visc+mu_visc)) ;
+				}
+				R = Material::cauchyGreen( E_rec, nu_rec, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			}
+			else
+			{
+				R = E ;
+			}
+		}
+		a = R[1][1]/E[1][1] ;
+		tau = values["creep_characteristic_time"]/exp(-a) ;
+		placeMatrixInBlock( C, 1,2, param) ;
+		placeMatrixInBlock( C, 2,1, param) ;
 		placeMatrixInBlock( C*(-1), 1,0, param) ;
 		placeMatrixInBlock( C*(-1), 0,1, param) ;
+		placeMatrixInBlock( C*(-1), 2,0, param) ;
+		placeMatrixInBlock( C*(-1), 0,2, param) ;
 		placeMatrixInBlock( C+E*kvSpringReduction, 1,1, param) ;
 		placeMatrixInBlock( E*tau*kvDashpotReduction, 1,1, eta) ;
+		placeMatrixInBlock( C+R, 2,2, param) ;
+		placeMatrixInBlock( R*tau, 2,2, eta) ;
 
 		model = GENERALIZED_KELVIN_VOIGT ;
 
@@ -211,11 +255,11 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 
 	if(noFracture)
 	{
-		copy = new LogarithmicCreepWithExternalParameters( args,  accumulator->getCopy(), (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane)  ;
+		copy = new LogarithmicCreepWithExternalParameters( args,  accumulator->getCopy(), (param.numCols() == 9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane)  ;
 	}
 	else
 	{
-		copy = new LogarithmicCreepWithExternalParameters( args,criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), (param.numCols() == 6) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
+		copy = new LogarithmicCreepWithExternalParameters( args,criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), (param.numCols() == 9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
 		copy->dfunc->getState(true).resize(dfunc->getState().size());
 		copy->dfunc->getState(true) = dfunc->getState() ;
 		copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;

@@ -25,7 +25,8 @@ struct LogarithmicCreep : public Viscoelasticity
 {
 	// material parameters
 	Matrix C ; //stiffness
-	Matrix E ; //stiffness of KV spring
+	Matrix E ; //stiffness of Maxwell spring
+	Matrix R ; //stiffness of Kelvin-Voigt spring
 	double tau ; //viscosity of material
 	double reducedTimeStep ;
 	LogCreepAccumulator * accumulator ;
@@ -37,9 +38,9 @@ struct LogarithmicCreep : public Viscoelasticity
 	Matrix prevEta ;
 	
 	// constructor for pure elasticity
-	LogarithmicCreep( const Matrix & rig, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
+	LogarithmicCreep( const Matrix & rig, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator()) ;
 	// standard constructor
-	LogarithmicCreep( const Matrix & rig, const Matrix & v, double t, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
+	LogarithmicCreep( const Matrix & rig, const Matrix & v, const Matrix & r, double t, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator()) ;
 
 	virtual ~LogarithmicCreep() { } ;
 
@@ -66,7 +67,7 @@ struct LogarithmicCreepWithImposedDeformation : public LogarithmicCreep
 	Vector prevImposed ;
 
 	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator() ) ;
-	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator() ) ;
+	LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator() ) ;
 
 	virtual ~LogarithmicCreepWithImposedDeformation() { } ;
 
@@ -90,9 +91,9 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
 	bool noFracture ;
 
 	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
 	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
-	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double e, const Vector & imp, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
+	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
 
 	virtual ~LogarithmicCreepWithImposedDeformationAndFracture() { if(dfunc){delete dfunc ;} if(criterion){delete criterion ;} } 
 

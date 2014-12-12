@@ -403,7 +403,7 @@ void ConfigParser::readData()
 			if(comment != std::string::npos)
 			{
 				line = line.substr(0, comment-1) ;
-				std::cout << line << std::endl ;
+//				std::cout << line << std::endl ;
 			}	
 
 			size_t found = line.find(" ") ;

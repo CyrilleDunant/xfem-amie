@@ -55,6 +55,8 @@ bool isInside( Feature * feat, const std::vector<Geometry *> & base)
 			base[j]->project(&p) ;
 			return !feat->in(p) ;
 		}
+		if(base[j]->in(feat->getCenter()))
+			return true ;
 	}
 	return false ;
 }
@@ -276,9 +278,9 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 		grid.add(inclusions[i]) ;
 	}
 
+	
 	for(size_t i = placedAggregates ; i < inclusions.size() && tries < triesMax ; i++)
 	{
-            
 		tries++ ;
 		
 		double scale = 1. ;

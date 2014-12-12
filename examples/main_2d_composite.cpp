@@ -46,6 +46,12 @@ int main(int argc, char *argv[])
 
 	ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
 
+	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
+	{
+		int threads = problem->getData("parallel.number_of_threads") ;
+		omp_set_num_threads(threads) ;
+	}
+
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))
 		F.setSamplingFactor( F.getFeature(0), problem->getData("sample.sampling_number", 1.) ) ;

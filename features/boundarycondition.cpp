@@ -13,7 +13,6 @@ BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( Lagra
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
-
 }
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
@@ -27,7 +26,6 @@ BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBou
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( 0 ), zmax ( 0 )
 {
-
 }
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( 0 ), zmax ( 0 )

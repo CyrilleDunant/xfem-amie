@@ -57,13 +57,18 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
     if(!s.has("creep_characteristic_time"))
         return ;
 
+    if(defaultValues.find("creep_characteristic_time") == defaultValues.end())
+	defaultValues["creep_characteristic_time"] = s.get("creep_characteristic_time", defaultValues) ;
+    if(defaultValues.find("creep_modulus") == defaultValues.end())
+	defaultValues["creep_modulus"] = s.get("creep_modulus", defaultValues) ;
+
     double T = s.get("temperature", defaultValues) ;
     double T0 = defaultValues["temperature"] ;
     double Ea = s.get("creep_activation_energy", defaultValues) ;
     double factor = exp( Ea*(1./T-1./T0) ) ;
     double tau = defaultValues["creep_characteristic_time"] ;
     s.set("creep_characteristic_time", tau*factor) ;
-    if(s.has("creep_modulus"))
+/*    if(s.has("creep_modulus"))
     {
         double E = defaultValues["creep_modulus"] ;
         s.set("creep_modulus", E*factor) ;
@@ -72,7 +77,7 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
         s.set("creep_bulk", k*factor) ;
         double mu = defaultValues["creep_shear"] ;
         s.set("creep_shear", mu*factor) ;
-    }
+    }*/
 }
 
 void CreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)

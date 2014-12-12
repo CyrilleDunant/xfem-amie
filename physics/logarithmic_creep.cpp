@@ -5,12 +5,12 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 1), C(rig), E(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
 {
 
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, double t, LogCreepAccumulator * acc) : Viscoelasticity(GENERALIZED_KELVIN_VOIGT, rig, vs, vs*t), C(rig), E(vs), tau(t), reducedTimeStep(-1.), isPurelyElastic(false), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), isPurelyElastic(false), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
 {
 
 }
@@ -32,9 +32,13 @@ void LogarithmicCreep::apply(const Function & p_i, const Function & p_j, const G
 		placeMatrixInBlock( a, 0,0, ret ) ;
 		if(!isPurelyElastic)
 		{
+			placeMatrixInBlock(a,1,2, ret);
+			placeMatrixInBlock(a,2,1, ret);
 			b = a*(-1.) ;
 			placeMatrixInBlock(b,1,0, ret);
+			placeMatrixInBlock(b,2,0, ret);
 			placeMatrixInBlock(b,0,1, ret);
+			placeMatrixInBlock(b,0,2, ret);
 
 			a = 0. ;
 			b = 0. ;
@@ -45,6 +49,16 @@ void LogarithmicCreep::apply(const Function & p_i, const Function & p_j, const G
 			a += b ;
 		
 			placeMatrixInBlock( a, 1,1, ret ) ;
+
+			a = 0. ;
+			b = 0. ;
+			getBlockInMatrix(param, 2,2, buffer) ;
+
+			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+			a += b ;
+		
+			placeMatrixInBlock( a, 2,2, ret ) ;
 		}
 	}
 	else
@@ -108,6 +122,15 @@ void LogarithmicCreep::applyViscous(const Function & p_i, const Function & p_j, 
 			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
 			a += b ;
 			placeMatrixInBlock( a, 1,1, ret ) ;
+
+			a = 0. ;
+			b = 0. ;
+			getBlockInMatrix(eta, 1,1, buffer) ;
+
+			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+			a += b ;
+			placeMatrixInBlock( a, 2,2, ret ) ;
 		}
 		else
 		{
@@ -141,7 +164,7 @@ Form * LogarithmicCreep::getCopy() const
 	if(isPurelyElastic)
 		copy = new LogarithmicCreep( C, accumulator->getCopy() ) ;
 	else
-		copy = new LogarithmicCreep( C, E, tau, accumulator->getCopy() ) ;
+		copy = new LogarithmicCreep( C, E, R, tau, accumulator->getCopy() ) ;
 	return copy ; 
 }
 
@@ -163,14 +186,21 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 		if(!isPurelyElastic)
 		{
 			accumulator->preProcess(timeStep, currentState) ;
-			Matrix R = C*-1. ;
-			placeMatrixInBlock(R,0,1,param) ;
-			placeMatrixInBlock(R,1,0,param) ;
+			Matrix S = C*-1. ;
+			placeMatrixInBlock(S,0,1,param) ;
+			placeMatrixInBlock(S,0,2,param) ;
+			placeMatrixInBlock(S,1,0,param) ;
+			placeMatrixInBlock(S,2,0,param) ;
 			placeMatrixInBlock(C,1,1,param) ;
-			R = E*(accumulator->getKelvinVoigtSpringReduction()) ;
-			addMatrixInBlock(R,1,1,param) ;
-			R = E*accumulator->getKelvinVoigtDashpotReduction() ;
-			placeMatrixInBlock(R,1,1,eta) ;
+			placeMatrixInBlock(C,1,2,param) ;
+			placeMatrixInBlock(C,2,1,param) ;
+			placeMatrixInBlock(C,2,2,param) ;
+			S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
+			addMatrixInBlock(S,1,1,param) ;
+			S = E*accumulator->getKelvinVoigtDashpotReduction() ;
+			placeMatrixInBlock(S,1,1,eta) ;
+			addMatrixInBlock(R,2,2,param) ;
+			addMatrixInBlock(R*tau,2,2,param) ;
 		}
 	}
 }
@@ -197,8 +227,10 @@ std::vector<BoundaryCondition * > LogarithmicCreep::getBoundaryConditions(const 
 		}
 		if(k != 0)
 		{
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*4+2], 2)) ;
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*4+3], 3)) ;
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+2], 2)) ;
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+3], 3)) ;
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+4], 4)) ;
+			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+5], 5)) ;
 		}
 	}
 	return ret ;
@@ -210,7 +242,7 @@ LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( 
 
 }
 
-LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, double e, const Vector & imp, LogCreepAccumulator * acc   ) : LogarithmicCreep(rig, v, e, acc), imposed(imp), prevImposed(imp.size())
+LogarithmicCreepWithImposedDeformation::LogarithmicCreepWithImposedDeformation( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, LogCreepAccumulator * acc   ) : LogarithmicCreep(rig, v, r, e, acc), imposed(imp), prevImposed(imp.size())
 {
 
 }
@@ -221,7 +253,7 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
     if(isPurelyElastic)
         copy = new LogarithmicCreepWithImposedDeformation( C, imposed, accumulator->getCopy() ) ;
     else
-        copy = new LogarithmicCreepWithImposedDeformation( C, E, tau, imposed, accumulator->getCopy() ) ;
+        copy = new LogarithmicCreepWithImposedDeformation( C, E, R, tau, imposed, accumulator->getCopy() ) ;
     return copy ;
 }
 
@@ -283,7 +315,7 @@ LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDe
 
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double t, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, t, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false)
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false)
 {
 
 }
@@ -293,7 +325,7 @@ LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDe
 
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, double t, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, t, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c)
+LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double t, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, v, r, t, imp, acc), dfunc(d), criterion(c), noFracture(!d || !c)
 {
 
 }
@@ -307,13 +339,13 @@ Form * LogarithmicCreepWithImposedDeformationAndFracture::getCopy() const
 	    if(isPurelyElastic)
 		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, accumulator->getCopy() ) ;
 	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, accumulator->getCopy() ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, accumulator->getCopy() ) ;
     } else {
 
 	    if(isPurelyElastic)
 		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
 	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
+		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
 	    copy->dfunc->getState(true).resize(dfunc->getState().size());
 	    copy->dfunc->getState(true) = dfunc->getState() ;
 	    copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
@@ -345,9 +377,13 @@ void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p
 		placeMatrixInBlock( a, 0,0, ret ) ;
 		if(!isPurelyElastic)
 		{
+			placeMatrixInBlock( a, 1,2, ret ) ;
+			placeMatrixInBlock( a, 2,1, ret ) ;
 			b = a*(-1.) ;
 			placeMatrixInBlock(b,1,0, ret);
+			placeMatrixInBlock(b,2,0, ret);
 			placeMatrixInBlock(b,0,1, ret);
+			placeMatrixInBlock(b,0,2, ret);
 
 			a = 0. ;
 			b = 0. ;
@@ -361,6 +397,19 @@ void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p
 			a += b ;
 		
 			placeMatrixInBlock( a, 1,1, ret ) ;
+
+			a = 0. ;
+			b = 0. ;
+			getBlockInMatrix(param, 2,2, buffer) ;
+
+			if(!noFracture)
+				buffer = dfunc->apply(buffer) ;
+
+			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+			a += b ;
+		
+			placeMatrixInBlock( a, 2,2, ret ) ;
 		}
 
 
@@ -441,6 +490,18 @@ void LogarithmicCreepWithImposedDeformationAndFracture::applyViscous(const Funct
 			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
 			a += b ;
 			placeMatrixInBlock( a, 1,1, ret ) ;
+
+			a = 0. ;
+			b = 0. ;
+			getBlockInMatrix(eta, 2,2, buffer) ;
+
+			if(!noFracture)
+				buffer = dfunc->applyViscous(buffer) ;
+
+			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+			a += b ;
+			placeMatrixInBlock( a, 2,2, ret ) ;
 		}
 		else
 		{
