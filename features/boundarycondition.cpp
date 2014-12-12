@@ -83,6 +83,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
     }
 
     VirtualMachine vm ;
+    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     for ( size_t idit = 0 ; idit < id.size() ; idit++ )
     {
@@ -94,21 +95,39 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             break ;
 
         case FIX_ALONG_XI:
-            a->setPointAlong ( XI, 0, id[idit] ) ;
+	    if(n > 2)
+	    {
+		for(size_t ax = 0 ; ax < n/2 ; ax++)
+	            a->setPointAlongIndexedAxis ( ax, 0, id[idit] ) ;		
+	    }
+	    else
+	        a->setPointAlong ( XI, 0, id[idit] ) ;
             break ;
 
         case SET_ALONG_XI:
-            a->setPointAlong ( XI, data, id[idit] ) ;
+	    if(n>2)
+	            a->setPointAlongIndexedAxis ( 0, data, id[idit] ) ;
+	    else	
+                 a->setPointAlong ( XI, data, id[idit] ) ;
             break ;
 
         case FIX_ALONG_ETA:
         {
-            a->setPointAlong ( ETA, 0, id[idit] ) ;
+	    if(n > 2)
+	    {
+		for(size_t ax = 0 ; ax < n/2 ; ax++)
+	            a->setPointAlongIndexedAxis ( ax+1, 0, id[idit] ) ;		
+	    }
+	    else
+	            a->setPointAlong ( ETA, 0, id[idit] ) ;
             break ;
         }
 
         case SET_ALONG_ETA:
-            a->setPointAlong ( ETA, data, id[idit] ) ;
+	    if(n>2)
+	            a->setPointAlongIndexedAxis ( 1, data, id[idit] ) ;
+	    else	
+	            a->setPointAlong ( ETA, data, id[idit] ) ;
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
