@@ -100,13 +100,14 @@ protected:
 	ElementState * elementState ;
 	
 	ConvergenceType ctype ;
-	bool alternating ;
-	bool alternate ;
+
 	bool needGlobalMaximumScore ;
 
 	double iterationNumber ;
 public:
-	
+    
+	bool alternating ;
+    bool alternate ;
 	bool isNull ;
 	bool converged ;
 	double error ;

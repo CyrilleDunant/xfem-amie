@@ -34,7 +34,7 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     secondCompressionFailure = false ;
     firstMet = false ;
     secondMet = false ;
-    alternating = false ;
+    alternating = true ;
     alternate = true ;
     postprocheck = false ;
 // 	ctype = CONSERVATIVE ;

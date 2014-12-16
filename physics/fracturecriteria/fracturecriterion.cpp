@@ -148,12 +148,15 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         // outside of the checkpoints, we only care about the order of the elements in
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
-        if(checkpoint) //new iteration
+        if(checkpoint ) //new iteration
         {
             inset = false ;
             inIteration = false ;
-            damagingSet.clear();
-            proximitySet.clear() ;
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            {
+                damagingSet.clear();
+                proximitySet.clear() ;
+            }
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
@@ -205,8 +208,11 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
             if(!inset)
             {
-                damagingSet.clear();
-                proximitySet.clear() ;
+                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+                {
+                    damagingSet.clear();
+                    proximitySet.clear() ;
+                }
                 if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
                     inIteration = true ;
                 return std::make_pair(0.,0.) ;
@@ -215,8 +221,11 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
-            damagingSet = newSet ;
-            proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            {
+                damagingSet = newSet ;
+                proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
+            }
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
                 static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
 

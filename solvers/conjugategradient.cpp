@@ -57,8 +57,8 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		for(size_t i = 0 ; i < rowstart ; i++)
 			x[i] = assembly->getForces()[i] ;
 	}
-
 	InverseDiagonal P0(assembly->getMatrix()) ;
+
 	if(precond == nullptr && !cleanup)
 	{
 		cleanup = true ;
@@ -83,7 +83,6 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	int vsize = r.size() ;
 	double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
 	r*=-1 ;
-
 
 	if (err0 < realeps)
 	{
