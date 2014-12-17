@@ -38,7 +38,9 @@ struct RadiationInducedExpansionMaterialLaw : public ExternalMaterialLaw
 
 struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
-    DryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    bool effective ;
+
+    DryingShrinkageMaterialLaw(bool ef = false, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };

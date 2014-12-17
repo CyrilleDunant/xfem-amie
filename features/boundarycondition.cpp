@@ -98,7 +98,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 	    if(n > 2)
 	    {
 		for(size_t ax = 0 ; ax < n/2 ; ax++)
-	            a->setPointAlongIndexedAxis ( ax, 0, id[idit] ) ;		
+	            a->setPointAlongIndexedAxis ( ax*2, 0, id[idit] ) ;		
+		break ;
 	    }
 	    else
 	        a->setPointAlong ( XI, 0, id[idit] ) ;
@@ -116,7 +117,8 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 	    if(n > 2)
 	    {
 		for(size_t ax = 0 ; ax < n/2 ; ax++)
-	            a->setPointAlongIndexedAxis ( ax+1, 0, id[idit] ) ;		
+	            a->setPointAlongIndexedAxis ( ax*2+1, 0, id[idit] ) ;	
+		break ;	
 	    }
 	    else
 	            a->setPointAlong ( ETA, 0, id[idit] ) ;

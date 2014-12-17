@@ -15,6 +15,7 @@
 #include "../utilities/configuration.h"
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/kelvinvoight.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
@@ -4307,6 +4308,32 @@ bool FeatureTree::stepElements()
                 
              
             double previousAverageDamage = averageDamage ;
+
+/*                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                        {
+                            #pragma omp task firstprivate(i)
+                            {
+                                if ( i.getPosition() % 1000 == 0 )
+                                {
+                                    std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                }
+
+                                if ( i->getBehaviour()->getFractureCriterion() && dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion()) )
+                                {
+					dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion())->currentFraction = averageDamage ;
+                                }
+                            }
+                        }
+                        }
+                    }
+                }*/
+
             double adamage = 0 ;
             if ( !elastic )
             {
@@ -4497,6 +4524,7 @@ bool FeatureTree::stepElements()
                     }
                 }
                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
+
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {

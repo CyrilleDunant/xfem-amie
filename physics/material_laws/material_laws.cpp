@@ -73,6 +73,7 @@ void AssignExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElem
     s.set(target, s.get(input, defaultValues)) ;
 }
 
+
 void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
 {
     Point p ;

@@ -39,6 +39,7 @@ public:
 protected:
     std::map<std::string, double> external ;
     std::vector< ExternalMaterialLaw * > relations ;
+    double effectiveStressRatio ;
 
     virtual void makeProperties(std::map<std::string, double> & values, double kvSpringReduction = 1., double kvDashpotReduction = 1.) ;
 
@@ -63,6 +64,8 @@ public:
     void addMaterialLaw( ExternalMaterialLaw * law) { if(law){ relations.push_back(law) ; } }
     void addMaterialLaws( std::vector<ExternalMaterialLaw *> laws) { for(size_t i = 0 ; i < laws.size() ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
     void addMaterialLaws( ExternalMaterialLaw* laws[]) { int length = sizeof(laws)/sizeof(ExternalMaterialLaw*) ; for(size_t i = 0 ; i < length ; i++) { if(laws[i]) { relations.push_back(laws[i]);} } }
+
+    virtual std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const ;
 
 
 } ;

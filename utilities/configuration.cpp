@@ -442,7 +442,8 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "DRYING_SHRINKAGE")
 	{
-		ret = new DryingShrinkageMaterialLaw() ;
+		bool eff = (getStringData("effective", "FALSE") ==  "TRUE") ;
+		ret = new DryingShrinkageMaterialLaw(eff) ;
 		ret->setDefaultValue("relative_humidity", getData("reference_relative_humidity", 1.)) ;
 		return ret ;
 	}
@@ -630,7 +631,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 			{
 				std::string tfile = getStringData("tension_file_name", "") ;
 				std::string cfile = getStringData("compression_file_name", "") ;
-				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, e_, s_) ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, /*1.1,*/ e_, s_) ;
 			}
 			else
 			{
@@ -690,7 +691,8 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 					if(ultimateCompressiveStrength < POINT_TOLERANCE_2D && ultimateCompressiveStrain < 0)
 						pcompression.push_back( Point(ultimateCompressiveStrain, ultimateCompressiveStrength) ) ;
 				}
-				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, e_, s_) ;
+//				double fmax = getFather()->getData("parameters.maximum_fraction",1.1) ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, /*fmax,*/ e_, s_) ;
 			}
 		}
 

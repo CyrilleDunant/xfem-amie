@@ -33,6 +33,8 @@ void DryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElem
         return ;
     double ks = s.get("drying_shrinkage_coefficient",defaultValues) ;
     double imp = s.get("imposed_deformation", defaultValues) ;
+    if(effective)
+	s.set("effective_imposed_deformation", -ks*(h0-h)) ;
     imp -= ks*(h0-h) ;
     s.set("imposed_deformation", imp) ;
 }
@@ -87,19 +89,50 @@ void CreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElast
     if(!s.has("creep_characteristic_time"))
         return ;
 
+    if(defaultValues.find("creep_modulus") == defaultValues.end() && s.has("creep_modulus"))
+	defaultValues["creep_modulus"] = s.get("creep_modulus", defaultValues) ;
+    else
+    {
+	if(defaultValues.find("creep_bulk") == defaultValues.end())
+		defaultValues["creep_bulk"] = s.get("creep_bulk", defaultValues) ;
+	if(defaultValues.find("creep_shear") == defaultValues.end())
+		defaultValues["creep_shear"] = s.get("creep_shear", defaultValues) ;
+    }
+
+    if(defaultValues.find("recoverable_modulus") == defaultValues.end() && s.has("recoverable_modulus"))
+	defaultValues["recoverable_modulus"] = s.get("recoverable_modulus", defaultValues) ;
+    else
+    {
+	if(defaultValues.find("recoverable_bulk") == defaultValues.end())
+		defaultValues["recoverable_bulk"] = s.get("recoverable_bulk", defaultValues) ;
+	if(defaultValues.find("recoverable_shear") == defaultValues.end())
+		defaultValues["recoverable_shear"] = s.get("recoverable_shear", defaultValues) ;
+    }
+
     double h = s.get("relative_humidity", defaultValues) ;
     double hc = s.get("creep_humidity_coefficient", defaultValues) ;
     double factor =  hc*(1-h) + exp(-hc*(1-h)) ;
     if(s.has("creep_modulus"))
     {
-        double E = s.get("creep_modulus", defaultValues) ;
+        double E = defaultValues["creep_modulus"] ;
         s.set("creep_modulus", E*factor) ;
     } else {
-        double k = s.get("creep_bulk", defaultValues) ;
+        double k = defaultValues["creep_bulk"] ;
         s.set("creep_bulk", k*factor) ;
-        double mu = s.get("creep_shear", defaultValues) ;
+        double mu = defaultValues["creep_shear"] ;
         s.set("creep_shear", mu*factor) ;
     }
+    if(s.has("recoverable_modulus"))
+    {
+        double E = defaultValues["recoverable_modulus"] ;
+        s.set("recoverable_modulus", E*factor) ;
+    } else {
+        double k = defaultValues["recoverable_bulk"] ;
+        s.set("recoverable_bulk", k*factor) ;
+        double mu = defaultValues["recoverable_shear"] ;
+        s.set("recoverable_shear", mu*factor) ;
+    }
+
 }
 
 

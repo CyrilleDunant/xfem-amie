@@ -33,6 +33,8 @@ struct ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s , double dt) { }
     virtual void step( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt) { }
     void setDefaultValue(std::string str, double v) ;
+
+    bool has(std::string test) const { return defaultValues.find(test) != defaultValues.end() ; }
 };
 
 /* Generic material law to set one or several variables to a constant

@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
 
 	ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
 
-	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
+/*	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
 	{
 		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;
 		omp_set_num_threads(threads) ;
-	}
+	}*/
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))
@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
 			functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., instants[i] ) ) ;
 
 		F.step() ;
+//		F.getAssembly()->print() ;
+//		exit(0) ;
 		if(problem->hasChild("output"))
 			problem->getChild("output")->writeOutput(&F, i, instants.size(), cacheIndex) ;
 		if(problem->hasChild("export"))

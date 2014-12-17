@@ -361,7 +361,7 @@ void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p
 	{
 		Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
 		Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-	
+
 		Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
 		getBlockInMatrix(param, 0,0, buffer) ;
 
@@ -371,8 +371,6 @@ void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p
 		vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
 		vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 		a += b ;
-
-
 
 		placeMatrixInBlock( a, 0,0, ret ) ;
 		if(!isPurelyElastic)

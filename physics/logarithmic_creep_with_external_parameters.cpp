@@ -58,6 +58,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	}
 	param = 0. ;
 	placeMatrixInBlock( C, 0,0, param) ;
+
 	if(values.find("creep_characteristic_time") != values.end())
 	{
 		isPurelyElastic = false ;
@@ -139,6 +140,12 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		    imposed[i] = a ;
 		if(std::abs(a) < POINT_TOLERANCE_2D)
 		    imposed.resize(0) ;
+		else
+		{
+		    double e = values["effective_imposed_deformation"] ;
+		    effectiveStressRatio = (a-e)/a ;
+		}
+
 	}
 	else
 		imposed.resize(0) ;
@@ -227,7 +234,6 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 			crit->setMaximumTensileStrain( tensileStrain, tensileUltimateStrain ) ;
 			crit->setMaximumCompressiveStress( compressiveStrength, compressiveUltimateStrength ) ;
 			crit->setMaximumCompressiveStrain( compressiveStrain, compressiveUltimateStrain ) ;
-
 		}
 			
 		
@@ -259,7 +265,7 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 	}
 	else
 	{
-		copy = new LogarithmicCreepWithExternalParameters( args,criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), (param.numCols() == 9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
+		copy = new LogarithmicCreepWithExternalParameters( args, criterion->getCopy(), dfunc->getCopy(),  accumulator->getCopy(), (param.numCols() == 9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane ) ;
 		copy->dfunc->getState(true).resize(dfunc->getState().size());
 		copy->dfunc->getState(true) = dfunc->getState() ;
 		copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
@@ -291,10 +297,37 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 
 	accumulator->preProcess(timeStep, currentState) ;
 	if(external.find("imposed_deformation") != external.end())
+	{
 		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).set("imposed_deformation", external["imposed_deformation"]) ;
+		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).set("effective_imposed_deformation", external["imposed_deformation"]) ;
+	}
 	for(size_t i = 0 ; i < relations.size() ; i++)
 		relations[i]->preProcess( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState), timeStep ) ;
 	std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
 	makeProperties( prop, accumulator->getKelvinVoigtSpringReduction(), accumulator->getKelvinVoigtDashpotReduction() ) ;
 	currentState.getParent()->behaviourUpdated = true ;
+}
+
+std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+{
+    std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
+    if(imposed.size() == 0 || fractured())
+        return ret ;
+    Vector istress = C*imposed ;
+    if(dfunc)
+        istress = dfunc->apply(C) * imposed   ;
+    istress *= effectiveStressRatio ;
+    if(v.size() == 3)
+    {
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[1]));
+    }
+    if(v.size() == 4)
+    {
+        ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[1]));
+        ret.push_back(new DofDefinedBoundaryCondition(SET_STRESS_ZETA, dynamic_cast<ElementaryVolume *>(s.getParent()),gp,Jinv, id, istress[2]));
+    }
+    return ret ;
+
 }

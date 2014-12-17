@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
 
     FeatureTree F(&box) ;
-    F.setSamplingNumber(20) ;
+    F.setSamplingNumber(32) ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
     double time_step = 0.01 ;
     F.setDeltaTime(time_step) ;
@@ -72,46 +72,43 @@ int main(int argc, char *argv[])
 
     std::vector<Point> p ;
     p.push_back( Point( 1e6/1e9, 1e6 ) ) ;
-    p.push_back( Point( 4e6/1e9, 0e6 ) ) ;
-    SpaceTimeNonLocalMultiLinearSofteningFractureCriterion crit( p, 1e9 ) ;
+    p.push_back( Point( 2e6/1e9, 0e6 ) ) ;
+    std::vector<Point> c ;
+    AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion crit( p, c, 1e9/*, 0.1*/ ) ;
     
-    LogarithmicCreepWithExternalParameters paste("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_characteristic_time = 1, creep_poisson = 0.2", &crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 0.79)) ;
+    LogarithmicCreepWithExternalParameters paste("young_modulus = 12e9, poisson_ratio = 0.2, creep_modulus = 30e9, creep_characteristic_time = 1, creep_poisson = 0.2", &crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.9999, 1e-9, 0.99)) ;
     box.setBehaviour( &paste );
 
-    std::vector<Point> p2 ;
-    p2.push_back( Point( 1e8/70e9, 1e8 ) ) ;
-    p2.push_back( Point( 4e8/70e9, 0e8 ) ) ;
-    SpaceTimeNonLocalMultiLinearSofteningFractureCriterion crit2( p2, 70e9 ) ;
+    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
-    LogarithmicCreepWithExternalParameters aggregates("young_modulus = 70e9, poisson_ratio = 0.2, temperature = 293, thermal_expansion_coefficient = 1e-6", &crit2, new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 0.79)) ;
-    aggregates.addMaterialLaw( new SpaceTimeDependentExternalMaterialLaw("temperature", "293 t +")) ;
-    aggregates.addMaterialLaw( new ThermalExpansionMaterialLaw("temperature = 293")) ;
-
-    PSDGenerator::get2DConcrete(&F, &aggregates, 5, 0.01, 0.001, new PSDBolomeA(), CIRCLE, 1., M_PI, 1000000, 0.9) ;
+    PSDGenerator::get2DConcrete(&F, &aggregates, 500, 0.01, 0.00001, new PSDBolomeA(), CIRCLE, 1., M_PI, 1000000, 0.9) ;
 
     F.step() ;
 
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 1 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, BOTTOM_AFTER, 0., 3 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 0 ) ) ;
-    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0., 2 ) ) ;
-//    BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1 ) ;
-//    F.addBoundaryCondition(load) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER) ) ;
+    F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER ) ) ;
+    BoundingBoxDefinedBoundaryCondition * load = new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ;
+    F.addBoundaryCondition(load) ;
 
     F.setMaxIterationsPerStep(256) ;
 
-    std::string toto = "test_damage_temp_slow_0.1";
+    std::string toto = "test_damage";
     std::fstream out ;
     out.open(toto.c_str(), std::ios::out) ;
+    int i = 0 ;
 
     while(F.getCurrentTime() < 100)
     {
+	i++ ;
 	time_step *= 1.1 ;
 	F.setDeltaTime(time_step) ;
 //	load->setData(0.0001*F.getCurrentTime()) ;
 	while(!F.step()) { 
+		i++ ;
 		std::cout << std::endl ;
-		TriangleWriter writer("test", &F, 1.) ;
+		std::string test = "test_" ;
+		test.append(itoa(i)) ;
+		TriangleWriter writer(test.c_str(), &F, 1.) ;
 		writer.getField(STRAIN_FIELD) ;
 		writer.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
 		writer.getField(SCALAR_DAMAGE_FIELD) ;
@@ -121,7 +118,9 @@ int main(int argc, char *argv[])
 	std::cout << "\n" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl; 
 	out << F.getCurrentTime() << "\t"<< F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl; 
 
-	TriangleWriter writer("test", &F, 1.) ;
+	std::string test = "test_" ;
+	test.append(itoa(i)) ;
+	TriangleWriter writer(test.c_str(), &F, 1.) ;
 	writer.getField(STRAIN_FIELD) ;
 	writer.getField(PRINCIPAL_REAL_STRESS_FIELD) ;
 	writer.getField(SCALAR_DAMAGE_FIELD) ;
