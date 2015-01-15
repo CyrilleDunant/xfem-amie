@@ -3248,6 +3248,34 @@ std::valarray<std::valarray<Matrix> > TetrahedralElement::getNonLinearElementary
 	return std::valarray<std::valarray<Matrix> >() ;
 }
 
+Function TriElement::getXTransformAtCentralNodalTime() const
+{
+	if(shapefunc->size() == getBoundingPoints().size())
+	{
+		TriElement * tmp = new TriElement(LINEAR) ;
+//		PointArray nodes = this->getBoundingPoints()[std::slice(0,3,1)] ;
+		Function f = XTransform( getBoundingPoints()[std::slice(0,3,1)], tmp->getShapeFunctions()) ;
+		delete tmp ;
+		return f ;
+	}
+	return getXTransform() ;
+}
+
+Function TriElement::getYTransformAtCentralNodalTime() const
+{
+//	if(shapefunc->size() == getBoundingPoints().size())
+//		return YTransform( this->getBoundingPoints()[std::slice(0,3,1)], getShapeFunctions()) ;
+	if(shapefunc->size() == getBoundingPoints().size())
+	{
+		TriElement * tmp = new TriElement(LINEAR) ;
+//		PointArray nodes = this->getBoundingPoints()[std::slice(0,3,1)] ;
+		Function f = YTransform( getBoundingPoints()[std::slice(0,3,1)], tmp->getShapeFunctions()) ;
+		delete tmp ;
+		return f ;
+	}
+	return getYTransform() ;
+}
+
 Function TriElement::getXTransform() const
 {
 	if(shapefunc->size() == getBoundingPoints().size())

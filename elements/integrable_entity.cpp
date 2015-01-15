@@ -93,6 +93,26 @@ Function IntegrableEntity::getTTransform() const
     return Function ( "1" ) ;
 };
 
+Function IntegrableEntity::getXTransformAtCentralNodalTime() const
+{
+    return getXTransform() ;
+};
+
+Function IntegrableEntity::getYTransformAtCentralNodalTime() const
+{
+    return getYTransform() ;
+};
+
+Function IntegrableEntity::getZTransformAtCentralNodalTime() const
+{
+    return getZTransform() ;
+};
+
+Function IntegrableEntity::getTTransformAtCentralNodalTime() const
+{
+    return getTTransform() ;
+};
+
 Vector Form::getImposedStress ( const Point & p, IntegrableEntity * e, int g ) const
 {
     if ( getDamageModel() && getDamageModel()->hasInducedForces() )

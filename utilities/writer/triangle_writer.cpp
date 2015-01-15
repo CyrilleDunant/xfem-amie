@@ -1162,6 +1162,16 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			}
 			case TWFT_STIFFNESS:
 			{
+				if(tri->getBehaviour()->fractured())
+				{
+					ret[2] = 0. ;
+					ret[1] = 0. ;
+					ret[0] = 0. ;
+					found = true ;
+					break ;
+				}
+
+
 				double t = 0 ;
 				size_t n = tri->getBoundingPoints().size()/3 ;
 				if(tri->timePlanes() > 1)

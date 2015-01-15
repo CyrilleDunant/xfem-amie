@@ -453,6 +453,10 @@ struct IntegrableEntity : public Geometry
     virtual Function getYTransform() const = 0;
     virtual Function getZTransform() const ;
     virtual Function getTTransform() const ;
+    virtual Function getXTransformAtCentralNodalTime() const ;// { return getXTransform() ; }
+    virtual Function getYTransformAtCentralNodalTime() const ;//{ return getYTransform() ; }
+    virtual Function getZTransformAtCentralNodalTime() const ;//{ return getZTransform() ; }
+    virtual Function getTTransformAtCentralNodalTime() const ;//{ return getTTransform() ; }
 
     virtual	const std::valarray< Function >  & getShapeFunctions() const = 0 ;
     virtual	std::valarray< Function >  & getShapeFunctions() = 0 ;

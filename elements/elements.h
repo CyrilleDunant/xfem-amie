@@ -164,6 +164,10 @@ public:
 	virtual Vector getNonLinearForces()  ;
 	virtual Function getXTransform() const ;
 	virtual Function getYTransform() const ;
+	virtual Function getXTransformAtCentralNodalTime() const ;
+	virtual Function getYTransformAtCentralNodalTime() const ;
+	virtual Function getZTransformAtCentralNodalTime() const { return Function("0") ; }
+	virtual Function getTTransformAtCentralNodalTime() const { return Function("0") ; }
 	
 	virtual ~TriElement();
 	

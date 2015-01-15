@@ -23,6 +23,10 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
+
+    timeval time0, time1 ;
+    gettimeofday ( &time0, nullptr );
+
 	std::string file = "../examples/data/composite/test_2d_composite.ini" ;
 	if(argc > 1)
 		file = std::string(argv[1]) ;
@@ -48,9 +52,9 @@ int main(int argc, char *argv[])
 
 /*	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
 	{
-		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;
-		omp_set_num_threads(threads) ;
-	}*/
+		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;*/
+//		omp_set_num_threads(6) ;
+//	}
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
 	if(problem->hasChildFromFullLabel("sample.sampling_number"))
@@ -144,6 +148,10 @@ int main(int argc, char *argv[])
 		if(problem->hasChild("export"))
 			problem->getChild("export")->exportSvgTriangles(trg, &F, i, instants.size()) ;
 	}
+
+        gettimeofday ( &time1, nullptr );
+        double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+	std::cout << "problem solved in " << delta/1000000 << " seconds" << std::endl ;
 		
 	return 0 ;
 }

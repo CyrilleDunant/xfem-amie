@@ -463,21 +463,40 @@ public:
                     coefs[position].push_back ( std::vector<double>() ) ;
                     if(!source)
                         continue ;
-                    Function x = element->getXTransform() ;
-                    Function y = element->getYTransform() ;
-                    Function z = element->getZTransform() ;
-                    Function t = element->getTTransform() ;
-                    GaussPointArray gp = element->getGaussPoints() ;
                     if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-                        gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
-                    for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-                        double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-                        double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-                        double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-                        double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
+		    {
+		            Function x = element->getXTransformAtCentralNodalTime() ;
+		            Function y = element->getYTransformAtCentralNodalTime() ;
+		            Function z = element->getZTransformAtCentralNodalTime() ;
+//		            Function t = element->getTTransform() ;
+		            GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+		            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+		                double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+		                double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+		                double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+		                double xt = 0. ;//vm.eval ( t, gp.gaussPoints[i].first ) ;
 
-                        coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+		                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+			    }
                     }
+		    else
+		    {
+		            Function x = element->getXTransform() ;
+		            Function y = element->getYTransform() ;
+		            Function z = element->getZTransform() ;
+		            Function t = element->getTTransform() ;
+		            GaussPointArray gp = element->getGaussPoints() ;
+		            if(element->getOrder() >= CONSTANT_TIME_LINEAR)
+		                gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+		            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+		                double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+		                double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+		                double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+		                double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
+
+		                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+		            }
+		    }
                 }
             }
         }
