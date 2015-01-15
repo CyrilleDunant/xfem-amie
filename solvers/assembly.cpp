@@ -1307,14 +1307,17 @@ void Assembly::addMultiplier(const LagrangeMultiplier & l)
     multipliers.push_back(l) ;
 }
 
-void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id)
+void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id, bool force)
 {
     std::valarray<unsigned int> i(2) ;
     Vector c(2) ;
-    auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
-    if(!(multipliers.empty() || duplicate == multipliers.end()))
+    if(!force)
     {
-        multipliers.erase(duplicate) ;
+	    auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
+	    if(!(multipliers.empty() || duplicate == multipliers.end()))
+	    {
+		multipliers.erase(duplicate) ;
+	    }
     }
 
     multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+axis)) ;

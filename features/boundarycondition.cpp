@@ -204,7 +204,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 a->addForceOn ( XI, forces[0], id[idit] ) ;
                 a->addForceOn ( ETA, forces[1], id[idit] ) ;
 
-                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+/*                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model != PURE_ELASTICITY )
                 {
                     for ( size_t b = 1 ; b < visc->blocks ;  b++ )
@@ -212,7 +212,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         a->addForceOnIndexedAxis ( 2*b, -forces[0], id[idit] ) ;
                         a->addForceOnIndexedAxis ( 2*b+1, -forces[1], id[idit] ) ;
                     }
-                }
+                }*/
 
             }
 
@@ -268,7 +268,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 a->addForceOn ( XI, forces[0], id[idit] ) ;
                 a->addForceOn ( ETA, forces[1], id[idit] ) ;
 
-                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+/*                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model != PURE_ELASTICITY )
                 {
                     for ( size_t b = 1 ; b < visc->blocks ;  b++ )
@@ -276,7 +276,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                         a->addForceOnIndexedAxis ( 2*b, -forces[0], id[idit] ) ;
                         a->addForceOnIndexedAxis ( 2*b+1, -forces[1], id[idit] ) ;
                     }
-                }
+                }*/
 
             }
 
@@ -5204,7 +5204,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, initialValue, dofPerPlane*i + j )  ;
+                    a->setPointAlongIndexedAxis ( n, initialValue, dofPerPlane*i + j, true )  ;
                 }
             }
         }
@@ -5220,7 +5220,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+ ( int ) goToNext ) *dof + j*dof + n], dofPerPlane*i + j )  ;
+                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+ ( int ) goToNext ) *dof + j*dof + n], dofPerPlane*i + j, true )  ;
                 }
             }
 

@@ -46,6 +46,14 @@ namespace Amie
 		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 
+	struct Inverse2x2Diagonal : public Preconditionner
+	{
+		std::vector<Matrix> blocks ;
+		virtual ~Inverse2x2Diagonal() { } ;
+		Inverse2x2Diagonal(const CoordinateIndexedSparseMatrix &A) ;
+		virtual void precondition(const Vector &v,Vector &)  ;
+	} ;
+
 } ;
 
 #endif

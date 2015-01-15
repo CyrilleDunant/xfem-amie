@@ -324,7 +324,7 @@ public:
  */
 	void setPointAlong(Variable, double val, size_t id) ;
 	
-	void setPointAlongIndexedAxis(int index, double val, size_t id) ;
+	void setPointAlongIndexedAxis(int index, double val, size_t id, bool force = false) ;
 	
 	/** Apply a force on given node
 	 * @param var Variable (XI, ETA, or ZETA) along which force is applied 
