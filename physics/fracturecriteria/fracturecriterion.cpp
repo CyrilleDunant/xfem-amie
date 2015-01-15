@@ -77,9 +77,11 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
-        cacheID = mesh2d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
         cachecoreID = mesh2d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
-       
+	if(s.getParent()->timePlanes() > 1)
+		cacheID = cachecoreID ;
+	else
+	        cacheID = mesh2d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
     }
     if(s.getMesh3D())
     {
@@ -94,8 +96,11 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
-        cacheID = mesh3d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
         cachecoreID = mesh3d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
+	if(s.getParent()->timePlanes() > 1)
+		cacheID = cachecoreID ;
+	else
+	        cacheID = mesh3d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
         
     }
 }

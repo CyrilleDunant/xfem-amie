@@ -77,29 +77,29 @@ public:
         std::vector<ETYPE *> neighbourhood = getNeighbourhood ( start ) ;
         for ( const auto & neighbour : neighbourhood ) {
             if ( neighbour->timePlanes() > 1 ) {
-                if ( neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                     to_test.insert ( neighbour ) ;
-                }
+                } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
 
-                for ( size_t j = 0 ; j < neighbour->timePlanes() ; j++ ) {
-                    Point c = neighbour->getCenter() ;
-                    c.getT() = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
-                    if ( g->in ( c ) ) {
-                        to_test.insert ( neighbour ) ;
-                    }
+		        for ( size_t j = 0 ; j < neighbour->timePlanes() ; j++ ) {
+/*		            Point c = neighbour->getCenter() ;
+		            c.getT() = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
+		            if ( g->in ( c ) ) {
+		                to_test.insert ( neighbour ) ;
+				break ;
+		            }*/
 
-                    if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
-                        for ( size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++ ) {
-                            Point A = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
-                            Point B = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1 ) ;
-                            Segment s ( A,B ) ;
-                            if ( s.intersects ( g ) || g->in ( A ) || g->in ( B ) ) {
-                                to_test.insert ( neighbour ) ;
-                            }
-                        }
-                    }
+		                for ( size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++ ) {
+		                    Point A = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
+		                    Point B = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1 ) ;
+		                    Segment s ( A,B ) ;
+		                    if ( s.intersects ( g ) || g->in ( A ) || g->in ( B ) ) {
+		                        to_test.insert ( neighbour ) ;
+		                    }
+		                }
 
-                }
+		        }
+		}
             } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                 to_test.insert ( neighbour ) ;
             }
@@ -115,20 +115,21 @@ public:
                             && found.find ( neighbour ) == found.end() ) {
 
                         if ( neighbour->timePlanes() > 1 ) {
-                            if ( neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
+                            if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                                 new_test.insert ( neighbour ) ;
-                            }
+                            } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
 
-                            for ( size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++ ) {
-                                Point A = neighbour->getBoundingPoint ( k ) ;
-                                Point B = neighbour->getBoundingPoint ( k+1 ) ;
-                                Segment s ( A,B ) ;
-                                if ( g->in ( A ) || g->in ( B ) || s.intersects ( g ) ) {
-                                    new_test.insert ( neighbour ) ;
-                                    break ;
-                                }
+		                    for ( size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++ ) {
+		                        Point A = neighbour->getBoundingPoint ( k ) ;
+		                        Point B = neighbour->getBoundingPoint ( k+1 ) ;
+		                        Segment s ( A,B ) ;
+		                        if ( g->in ( A ) || g->in ( B ) || s.intersects ( g ) ) {
+		                            new_test.insert ( neighbour ) ;
+		                            break ;
+		                        }
 
-                            }
+		                    }
+			    }
                         } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                             new_test.insert ( neighbour ) ;
                         }
