@@ -25,6 +25,7 @@ namespace Amie
 struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
 {
     ThermalExpansionMaterialLaw(std::string args, char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~ThermalExpansionMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
@@ -32,15 +33,23 @@ struct ThermalExpansionMaterialLaw : public ExternalMaterialLaw
 struct RadiationInducedExpansionMaterialLaw : public ExternalMaterialLaw
 {
     RadiationInducedExpansionMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~RadiationInducedExpansionMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+};
+
+struct LoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
+{
+    LoadNonLinearCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
+    virtual ~LoadNonLinearCreepMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
 struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
-    bool effective ;
-
-    DryingShrinkageMaterialLaw(bool ef = false, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    DryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~DryingShrinkageMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
@@ -54,6 +63,7 @@ struct ArrheniusMaterialLaw : public ExternalMaterialLaw
     std::string affected ;
     std::string coefficient ;
     ArrheniusMaterialLaw(std::string a, std::string args, char sep = ',') ;
+    virtual ~ArrheniusMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
@@ -65,6 +75,7 @@ struct ArrheniusMaterialLaw : public ExternalMaterialLaw
 struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
 {
     CreepArrheniusMaterialLaw(std::string args, char sep = ',') : ExternalMaterialLaw(args, sep) { }
+    virtual ~CreepArrheniusMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
@@ -72,6 +83,7 @@ struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
 struct CreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
 {
     CreepRelativeHumidityMaterialLaw(std::string args = std::string("creep_humidity_coefficient = 5"), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
+    virtual ~CreepRelativeHumidityMaterialLaw() { } ;
 
     virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
 };

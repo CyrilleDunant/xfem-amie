@@ -3018,3 +3018,33 @@ void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::set ( st
         variables.insert ( std::pair<std::string, double> ( v, d ) ) ;
     }
 }
+
+void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::add ( std::string v, double d )
+{
+    if ( has ( v ) )
+    {
+        variables[v] += d ;
+    }
+    else
+    {
+        variables.insert ( std::pair<std::string, double> ( v, d ) ) ;
+    }
+}
+
+void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::multiply ( std::string v, double d )
+{
+    if ( has ( v ) )
+    {
+        variables[v] *= d ;
+    }
+//    else
+//    {
+//        variables.insert ( std::pair<std::string, double> ( v, 0. ) ) ;
+//    }
+}
+
+void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::synchronize(std::map<std::string, double> & defaultValues) 
+{
+	variables = defaultValues ;
+}
+

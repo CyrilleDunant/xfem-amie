@@ -140,11 +140,6 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		    imposed[i] = a ;
 		if(std::abs(a) < POINT_TOLERANCE_2D)
 		    imposed.resize(0) ;
-		else
-		{
-		    double e = values["effective_imposed_deformation"] ;
-		    effectiveStressRatio = (a-e)/a ;
-		}
 
 	}
 	else
@@ -296,16 +291,26 @@ void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, Elemen
 	}
 
 	accumulator->preProcess(timeStep, currentState) ;
-	if(external.find("imposed_deformation") != external.end())
-	{
-		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).set("imposed_deformation", external["imposed_deformation"]) ;
-		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).set("effective_imposed_deformation", external["imposed_deformation"]) ;
-	}
+	dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).synchronize(external) ;
 	for(size_t i = 0 ; i < relations.size() ; i++)
 		relations[i]->preProcess( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState), timeStep ) ;
 	std::map<std::string, double> prop = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(currentState).getVariables() ;
 	makeProperties( prop, accumulator->getKelvinVoigtSpringReduction(), accumulator->getKelvinVoigtDashpotReduction() ) ;
 	currentState.getParent()->behaviourUpdated = true ;
+}
+
+LogarithmicCreepWithExternalParameters::~LogarithmicCreepWithExternalParameters() 
+{ 
+/*	if(dfunc) 
+		{delete dfunc ; } 
+	if(criterion) 
+		{delete criterion ;} */
+	for(size_t i = 0 ; i < relations.size() ; i++)
+	{
+		if(relations[i])
+			delete relations[i] ;
+	}
+	relations.resize(0) ;
 }
 
 std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
@@ -316,7 +321,6 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBou
     Vector istress = C*imposed ;
     if(dfunc)
         istress = dfunc->apply(C) * imposed   ;
-    istress *= effectiveStressRatio ;
     if(v.size() == 3)
     {
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, istress[0]));

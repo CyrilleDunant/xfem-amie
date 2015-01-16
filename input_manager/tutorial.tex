@@ -1357,89 +1357,6 @@ The material laws will be applied in the order in which they are declared. There
 
 In this section, a few common material laws are defined for ease of use. Their definition include the list of internal \verb+parameters+ required for their proper use.
 
-\subsubsection{Thermal expansion}
-
-\noindent \verb+..material_law+\\
-\verb+...type = THERMAL_EXPANSION+\\
-\verb+...reference_temperature = 293+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+temperature+\\
-\verb+thermal_expansion_coefficient+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \alpha + k_T ( T - T_0 )
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	k_T & : & \verb+thermal_expansion_coefficient+\notag  \\
-	T & : & \verb+temperature+ \notag \\
-	T_0 & : & \verb+reference_temperature+ \notag 
-\end{eqnarray}
-
-\subsubsection{Radiation-induced volumetric expansion}
-
-\noindent \verb+..material_law+\\
-\verb+...type = RADIATION_INDUCED_VOLUMETRIC_EXPANSION+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+neutron_fluence+\\
-\verb+neutron_fluence_correction+\\
-\verb+radiation_expansion_delay+\\
-\verb+maximum_radiation_expansion+\\
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \alpha + \kappa\ \epsilon_{max} \frac{e^{\delta N}-1}{\epsilon_{max}+\kappa\ e^{\delta N}}
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	\kappa & : & \verb+radiation_expansion_delay+\notag  \\
-	\epsilon_{max} & : & \verb+maximum_radiation_expansion+ \notag \\
-	\delta & : & \verb+neutron_fluence_correction+ \notag \\
-	N & : & \verb+neutron_fluence+ \notag 
-\end{eqnarray}
-
-\subsubsection{Drying shrinkage}
-
-\noindent \verb+..material_law+\\
-\verb+...type = DRYING_SHRINKAGE+\\
-\verb+...reference_relative_humidity = 1.+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+imposed_deformation+\\
-\verb+relative_humidity+\\
-\verb+drying_shrinkage_coefficient+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\alpha = \left\{ \begin{array}{cl} 0 & \text{if } h > h_0 \\ \alpha - k_s ( h - h_0 ) & \text{otherwise} \end{array} \right.
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\alpha & : & \verb+imposed_deformation+ \notag \\
-	k_s & : & \verb+drying_shrinkage_coefficient+\notag  \\
-	h & : & \verb+relative_humidity+ \notag \\
-	h_0 & : & \verb+reference_relative_humidity+ \notag 
-\end{eqnarray}
-
 \subsubsection{Arrhenius law}
 
 \noindent \verb+..material_law+\\
@@ -1477,25 +1394,107 @@ With:
 \paragraph{}Requires the following \verb+parameters+:\\
 
 \noindent \verb+temperature+\\
-\verb+creep_modulus+\\
 \verb+creep_characteristic_time+\\
 \verb+creep_activation_energy+
 
 \paragraph{}Applies:
 
 \begin{eqnarray}
-	C & = & C\ e^{E_c \left[ 1/T - 1/T_0 \right]} \\
 	\eta & = & \eta\ e^{E_c \left[ 1/T - 1/T_0 \right]} \\
 \end{eqnarray}
 
 With:
 
 \begin{eqnarray}
-	C & : & \verb+creep_modulus+ \notag \\
 	\eta & : & \verb+creep_characteristic_time+ \notag \\
 	E_c & : & \verb+creep_activation_energy+\notag  \\
 	T & : & \verb+temperature+ \notag \\
 	T_0 & : & \verb+reference_temperature+ \notag 
+\end{eqnarray}
+
+\subsubsection{Drying shrinkage}
+
+\noindent \verb+..material_law+\\
+\verb+...type = DRYING_SHRINKAGE+\\
+\verb+...reference_relative_humidity = 1.+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+imposed_deformation+\\
+\verb+relative_humidity+\\
+\verb+drying_shrinkage_coefficient+
+
+\paragraph{}Applies:
+
+\begin{equation}
+	\alpha = \left\{ \begin{array}{cl} 0 & \text{if } h > h_0 \\ \alpha - k_s ( h - h_0 ) & \text{otherwise} \end{array} \right.
+\end{equation}
+
+With:
+
+\begin{eqnarray}
+	\alpha & : & \verb+imposed_deformation+ \notag \\
+	k_s & : & \verb+drying_shrinkage_coefficient+\notag  \\
+	h & : & \verb+relative_humidity+ \notag \\
+	h_0 & : & \verb+reference_relative_humidity+ \notag 
+\end{eqnarray}
+
+\subsubsection{Non-linear creep}
+
+\noindent \verb+..material_law+\\
+\verb+...type = LOAD_NONLINEAR_CREEP+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+relative_humidity+\\
+\verb+creep_modulus+\\
+\verb+revoverable_modulus+\\
+\verb+tensile_strength+\\
+\verb+compressive_strength+
+
+\paragraph{}Applies:
+
+\begin{eqnarray}
+	C_v & = & C_v\ \frac{1-f^{10}}{1+f^2} \\
+	C_r & = & C_r\ \frac{1-f^{10}}{1+f^2}
+\end{eqnarray}
+
+With:
+
+\begin{eqnarray}
+	C_v & : & \verb+creep_modulus+ \notag \\
+	C_r & : & \verb+recoverable_modulus+ \notag \\
+	f & : & \text{stress/strength ratio} \notag  \\
+\end{eqnarray}
+
+
+\subsubsection{Radiation-induced volumetric expansion}
+
+\noindent \verb+..material_law+\\
+\verb+...type = RADIATION_INDUCED_VOLUMETRIC_EXPANSION+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+imposed_deformation+\\
+\verb+neutron_fluence+\\
+\verb+neutron_fluence_correction+\\
+\verb+radiation_expansion_delay+\\
+\verb+maximum_radiation_expansion+\\
+
+\paragraph{}Applies:
+
+\begin{equation}
+	\alpha = \alpha + \kappa\ \epsilon_{max} \frac{e^{\delta N}-1}{\epsilon_{max}+\kappa\ e^{\delta N}}
+\end{equation}
+
+With:
+
+\begin{eqnarray}
+	\alpha & : & \verb+imposed_deformation+ \notag \\
+	\kappa & : & \verb+radiation_expansion_delay+\notag  \\
+	\epsilon_{max} & : & \verb+maximum_radiation_expansion+ \notag \\
+	\delta & : & \verb+neutron_fluence_correction+ \notag \\
+	N & : & \verb+neutron_fluence+ \notag 
 \end{eqnarray}
 
 \subsubsection{Relative humidity effect on creep}
@@ -1507,25 +1506,57 @@ With:
 
 \noindent \verb+relative_humidity+\\
 \verb+creep_modulus+\\
+\verb+revoverable_modulus+\\
 \verb+creep_humidity_coefficient+
 
 \paragraph{}Applies:
 
+\begin{eqnarray}
+	C_v & = & C_v\ \left(k_h\ (1-h) + e^{k_h\ (1-h)} \right) \\
+	C_r & = & C_r\ \left(k_h\ (1-h) + e^{k_h\ (1-h)} \right) 
+\end{eqnarray}
+
+With:
+
+\begin{eqnarray}
+	C_v & : & \verb+creep_modulus+ \notag \\
+	C_r & : & \verb+recoverable_modulus+ \notag \\
+	k_h & : & \verb+creep_humidity_coefficient+\notag  \\
+	h & : & \verb+relative_humidity+ \notag 
+\end{eqnarray}
+
+\subsubsection{Thermal expansion}
+
+\noindent \verb+..material_law+\\
+\verb+...type = THERMAL_EXPANSION+\\
+\verb+...reference_temperature = 293+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+imposed_deformation+\\
+\verb+temperature+\\
+\verb+thermal_expansion_coefficient+
+
+\paragraph{}Applies:
+
 \begin{equation}
-	C = C\ k_h\ (1-h)
+	\alpha = \alpha + k_T ( T - T_0 )
 \end{equation}
 
 With:
 
 \begin{eqnarray}
-	C & : & \verb+creep_modulus+ \notag \\
-	k_h & : & \verb+creep_humidity_coefficient+\notag  \\
-	h & : & \verb+relative_humidity+ \notag 
+	\alpha & : & \verb+imposed_deformation+ \notag \\
+	k_T & : & \verb+thermal_expansion_coefficient+\notag  \\
+	T & : & \verb+temperature+ \notag \\
+	T_0 & : & \verb+reference_temperature+ \notag 
 \end{eqnarray}
+
 
 \subsection{Generic material laws}
 
 In this section, generic material laws are described. These laws can be used to formulate various material behaviours.
+
 
 \subsubsection{Extract strain or stress field values}
 
@@ -1562,34 +1593,6 @@ With:
 	\mathcal{X} & : & \verb+$input+ \notag \\
 	\mathcal{Y} & : & \verb+$ouput+\notag  
 \end{eqnarray}
-
-\subsubsection{As a linear interpolation of another variable}
-
-\noindent \verb+..material_law+\\
-\verb+...type = LINEAR_INTERPOLATED+\\
-\verb+...input_parameter = $input+\\
-\verb+...output_parameter = $output+\\
-\verb+...file_name = # path to the file containing the interpolation data+
-
-\paragraph{}Requires the following \verb+parameters+:\\
-
-\noindent \verb+$input+\\
-\verb+$output+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = linear\_interpolation(\mathcal{X})
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{X} & : & \verb+$input+ \notag \\
-	\mathcal{Y} & : & \verb+$ouput+\notag  
-\end{eqnarray}
-
-The interpolation file must contain two columns, the first being the values of \verb+$input+ and the second the corresponding values of \verb+$param+.
 
 \subsubsection{As a function of space and time}
 
@@ -1662,6 +1665,101 @@ With:
 
 It is not necessary to define all variables $(x,z,y,t,u,v,w)$. Only those used in \verb+f+ are required. Note that if \verb+f+ is a function of $x$, $y$, $z$ or $t$, and the respective \verb+input_x+, \verb+input_y+, \verb+input_z+ or \verb+input_t+ is not declared, then the function uses the actual space-time coordinates of the element.
 
+\subsubsection{As a linear interpolation of another variable}
+
+\noindent \verb+..material_law+\\
+\verb+...type = LINEAR_INTERPOLATED+\\
+\verb+...input_parameter = $input+\\
+\verb+...output_parameter = $output+\\
+\verb+...file_name = # path to the file containing the interpolation data+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+$input+\\
+\verb+$output+
+
+\paragraph{}Applies:
+
+\begin{equation}
+	\mathcal{Y} = linear\_interpolation(\mathcal{X})
+\end{equation}
+
+With:
+
+\begin{eqnarray}
+	\mathcal{X} & : & \verb+$input+ \notag \\
+	\mathcal{Y} & : & \verb+$ouput+\notag  
+\end{eqnarray}
+
+The interpolation file must contain two columns, the first being the values of \verb+$input+ and the second the corresponding values of \verb+$param+.
+
+\subsubsection{Maximum}
+
+\noindent \verb+..material_law+\\
+\verb+...type = MAXIMUM+\\
+\verb+...output_parameter = $output+\\
+\verb+...input_parameter = $input_x+\\
+\verb+...input_parameter = $input_y+\\
+\verb+...input_parameter = $input_z+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+$output+\\
+\verb+$input_x+\\
+\verb+$input_y+\\
+\verb+$input_z+
+
+\paragraph{}Applies:
+
+\begin{equation}
+	\mathcal{Y} = \mathrm{max}( x,y,z,... )
+\end{equation}
+
+With:
+
+\begin{eqnarray}
+	\mathcal{Y} & : & \verb+$output+ \notag \\
+	x & : & \verb+$input_x+ \notag \\
+	y & : & \verb+$input_y+ \notag \\
+	z & : & \verb+$input_z+ \notag 
+\end{eqnarray}
+
+This law can accept any number of \verb+input_parameter+ (at least one).
+
+\subsubsection{Minimum}
+
+\noindent \verb+..material_law+\\
+\verb+...type = MINIMUM+\\
+\verb+...output_parameter = $output+\\
+\verb+...input_parameter = $input_x+\\
+\verb+...input_parameter = $input_y+\\
+\verb+...input_parameter = $input_z+
+
+\paragraph{}Requires the following \verb+parameters+:\\
+
+\noindent \verb+$output+\\
+\verb+$input_x+\\
+\verb+$input_y+\\
+\verb+$input_z+
+
+\paragraph{}Applies:
+
+\begin{equation}
+	\mathcal{Y} = \mathrm{min}( x,y,z,... )
+\end{equation}
+
+With:
+
+\begin{eqnarray}
+	\mathcal{Y} & : & \verb+$output+ \notag \\
+	x & : & \verb+$input_x+ \notag \\
+	y & : & \verb+$input_y+ \notag \\
+	z & : & \verb+$input_z+ \notag 
+\end{eqnarray}
+
+This law can accept any number of \verb+input_parameter+ (at least one).
+
+
 \subsubsection{Time derivative}
 
 \noindent \verb+..material_law+\\
@@ -1710,71 +1808,52 @@ With:
 	\mathcal{Y} & : & \verb+$input_integral+ \notag
 \end{eqnarray}
 
-\subsubsection{Minimum}
+\subsubsection{Weibull-distributed variable}
 
 \noindent \verb+..material_law+\\
-\verb+...type = MINIMUM+\\
-\verb+...output_parameter = $output+\\
-\verb+...input_parameter = $input_x+\\
-\verb+...input_parameter = $input_y+\\
-\verb+...input_parameter = $input_z+
+\verb+...type = WEIBULL+\\
+\verb+...parameter = $input_x+\\
+\verb+...parameter = $input_y+\\
+\verb+...parameter = $input_z+\\
+\verb+...scale_parameter = # optional, default value is 1, must be positive+\\
+\verb+...shape_parameter = # optional, default value is 5, must be positive+\\
+\verb+...variability = # optional, default value is 0.2, must be less than 1+\\
+\verb+...weibull_variable_name = # optional, default name is "weibull_variable"+\\
+
 
 \paragraph{}Requires the following \verb+parameters+:\\
 
-\noindent \verb+$output+\\
-\verb+$input_x+\\
+\noindent \verb+$input_x+\\
 \verb+$input_y+\\
 \verb+$input_z+
 
 \paragraph{}Applies:
 
-\begin{equation}
-	\mathcal{Y} = \mathrm{min}( x,y,z,... )
-\end{equation}
+\begin{eqnarray}
+	w & = & \text{Weibull}(\lambda, k) \\
+	x & = & x \times ( 1 - v + v \times w ) \\
+	y & = & y \times ( 1 - v + v \times w ) \\
+	z & = & z \times ( 1 - v + v \times w ) \\
+\end{eqnarray}
 
 With:
 
 \begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag \\
+	w & : & \verb+weibull_variable+ \notag \\
+	\lambda & : & \verb+scale_parameter+ \notag\\
+	k & : & \verb+shape_parameter+ \notag\\
+	v & : & \verb+variability+ \notag\\
 	x & : & \verb+$input_x+ \notag \\
 	y & : & \verb+$input_y+ \notag \\
-	z & : & \verb+$input_z+ \notag 
+	z & : & \verb+$input_z+ \notag \\
 \end{eqnarray}
 
-This law can accept any number of \verb+input_parameter+ (at least one).
+This law can accept any number of \verb+parameter+ (at least one).
 
-\subsubsection{Maximum}
+The weibull variable will be computed during the first simulation for each element. Once calculated, it does not change during the simulation.
 
-\noindent \verb+..material_law+\\
-\verb+...type = MAXIMUM+\\
-\verb+...output_parameter = $output+\\
-\verb+...input_parameter = $input_x+\\
-\verb+...input_parameter = $input_y+\\
-\verb+...input_parameter = $input_z+
 
-\paragraph{}Requires the following \verb+parameters+:\\
 
-\noindent \verb+$output+\\
-\verb+$input_x+\\
-\verb+$input_y+\\
-\verb+$input_z+
-
-\paragraph{}Applies:
-
-\begin{equation}
-	\mathcal{Y} = \mathrm{max}( x,y,z,... )
-\end{equation}
-
-With:
-
-\begin{eqnarray}
-	\mathcal{Y} & : & \verb+$output+ \notag \\
-	x & : & \verb+$input_x+ \notag \\
-	y & : & \verb+$input_y+ \notag \\
-	z & : & \verb+$input_z+ \notag 
-\end{eqnarray}
-
-This law can accept any number of \verb+input_parameter+ (at least one).
 
 \subsection{Example}
 

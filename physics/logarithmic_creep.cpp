@@ -585,6 +585,14 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const
     return dfunc->applyViscous(eta) ;
 }
 
+LogarithmicCreepWithImposedDeformationAndFracture::~LogarithmicCreepWithImposedDeformationAndFracture() 
+{ 
+	if(dfunc) 
+		{delete dfunc ; } 
+	if(criterion) 
+		{delete criterion ;} 
+}
+
 std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;

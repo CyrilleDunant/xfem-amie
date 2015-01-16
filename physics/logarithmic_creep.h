@@ -42,7 +42,7 @@ struct LogarithmicCreep : public Viscoelasticity
 	// standard constructor
 	LogarithmicCreep( const Matrix & rig, const Matrix & v, const Matrix & r, double t, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator()) ;
 
-	virtual ~LogarithmicCreep() { } ;
+	virtual ~LogarithmicCreep() { if(accumulator) { delete accumulator ; } } ;
 
 	virtual void apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 	virtual void applyViscous( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const ;
@@ -95,7 +95,7 @@ struct LogarithmicCreepWithImposedDeformationAndFracture : public LogarithmicCre
 	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, FractureCriterion * c , DamageModel * d, LogCreepAccumulator * acc = new LogCreepAccumulator()) ;
 	LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Matrix & v, const Matrix & r, double e, const Vector & imp, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new TimeUnderLoadLogCreepAccumulator()) ;
 
-	virtual ~LogarithmicCreepWithImposedDeformationAndFracture() { if(dfunc){delete dfunc ;} if(criterion){delete criterion ;} } 
+	virtual ~LogarithmicCreepWithImposedDeformationAndFracture() ; //{ if(dfunc){delete dfunc ;} if(criterion){delete criterion ;} } 
 
 	virtual Form * getCopy() const ;
 

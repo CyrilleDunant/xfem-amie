@@ -83,7 +83,10 @@ public:
 
     bool has(std::string v) const ;
     double get(std::string v, std::map<std::string, double> & defaultValues) ;
+    void synchronize(std::map<std::string, double> & defaultValues) ;
     void set(std::string v, double d) ;
+    void add(std::string v, double d) ;
+    void multiply(std::string v, double d) ;
     std::map<std::string, double> getVariables() const { return variables ; }
 
 

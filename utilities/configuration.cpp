@@ -171,7 +171,7 @@ void ConfigTreeItem::addChild(ConfigTreeItem * c)
 	if(c)
 	{
 		children.push_back(c) ;
-		c->setFather(this) ;
+		c->forceSetFather(this) ;
 	}
 }
 
@@ -185,6 +185,11 @@ void ConfigTreeItem::setFather(ConfigTreeItem * f)
 {
 	if(father && f)
 		father = f ;
+}
+
+void ConfigTreeItem::forceSetFather(ConfigTreeItem * f) 
+{
+	father = f ;
 }
 
 ConfigTreeItem * ConfigTreeItem::getRoot() const 
@@ -442,9 +447,14 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "DRYING_SHRINKAGE")
 	{
-		bool eff = (getStringData("effective", "FALSE") ==  "TRUE") ;
-		ret = new DryingShrinkageMaterialLaw(eff) ;
+		ret = new DryingShrinkageMaterialLaw() ;
 		ret->setDefaultValue("relative_humidity", getData("reference_relative_humidity", 1.)) ;
+		return ret ;
+	}
+
+	if(type == "LOAD_NONLINEAR_CREEP")
+	{
+		ret = new LoadNonLinearCreepMaterialLaw() ;
 		return ret ;
 	}
 
@@ -466,7 +476,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 	if(type == "CREEP_HUMIDITY")
 	{
 		ret = new CreepRelativeHumidityMaterialLaw() ;
-		ret->setDefaultValue("creep_humidity_coefficient",5.) ;
+		ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 5.)) ;
 		return ret ;
 	}
 
@@ -486,6 +496,20 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		std::string in = getStringData("input_parameter", "FIELD_NOT_FOUND") ;
 		std::string out = getStringData("output_parameter", "FIELD_NOT_FOUND") ;
 		ret = new AssignExternalMaterialLaw(in, out) ;
+		return ret ;
+	}
+
+	if(type == "WEIBULL")
+	{
+		double scale = getData("scale_parameter", 1.) ;
+		double shape = getData("shape_parameter", 5.) ;
+		double variability = getData("variability", 0.2) ;
+		std::vector<std::string> affected ;
+		std::vector<ConfigTreeItem *> p = getAllChildren("parameter") ;
+		for(size_t i = 0 ; i < p.size() ; i++)
+			affected.push_back(p[i]->getStringData()) ;
+		std::string w = getStringData("weibull_variable_name", "weibull_variable") ;
+		ret = new WeibullDistributedMaterialLaw(affected, w, scale, shape, variability) ;
 		return ret ;
 	}
 
@@ -631,7 +655,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 			{
 				std::string tfile = getStringData("tension_file_name", "") ;
 				std::string cfile = getStringData("compression_file_name", "") ;
-				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, /*1.1,*/ e_, s_) ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, 1.1, e_, s_) ;
 			}
 			else
 			{
@@ -641,7 +665,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 				if(tensileStrength > 0 && tensileStrain < 0)
 					tensileStrain = tensileStrength/E ;
 				if(tensileStrength < 0 && tensileStrain > 0)
-					tensileStrength = tensileStrain/E ;
+					tensileStrength = tensileStrain*E ;
 				if(tensileStrength > 0 && tensileStrain > 0)
 					ptension.push_back( Point(tensileStrain, tensileStrength) ) ;
 				if(ptension.size() > 0)
@@ -669,7 +693,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 				if(compressiveStrength < 0 && compressiveStrain > 0)
 					compressiveStrain = compressiveStrength/E ;
 				if(compressiveStrength > 0 && compressiveStrain < 0)
-					compressiveStrength = compressiveStrain/E ;
+					compressiveStrength = compressiveStrain*E ;
 				if(compressiveStrength < 0 && compressiveStrain < 0)
 					pcompression.push_back( Point(compressiveStrain, compressiveStrength) ) ;
 				if(pcompression.size() > 0)
@@ -691,8 +715,8 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 					if(ultimateCompressiveStrength < POINT_TOLERANCE_2D && ultimateCompressiveStrain < 0)
 						pcompression.push_back( Point(ultimateCompressiveStrain, ultimateCompressiveStrength) ) ;
 				}
-//				double fmax = getFather()->getData("parameters.maximum_fraction",1.1) ;
-				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, /*fmax,*/ e_, s_) ;
+				double fmax = getFather()->getData("parameters.maximum_fraction",1.1) ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(ptension, pcompression, E, fmax, e_, s_) ;
 			}
 		}
 
@@ -855,6 +879,8 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 				if(hasChildFromFullLabel("parameters.compression_file_name"))
 					ConfigTreeItem * critCFile = new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
 				this->addChild(crit) ;
+				if(this == nullptr)
+					std::cout << "hem" << std::endl ;
 			}
 			if(!hasChild("damage_model"))
 			{

@@ -99,6 +99,9 @@ public:
 	/** Sets the father.*/
 	void setFather(ConfigTreeItem * f) ;
 
+	/** Sets the father.*/
+	void forceSetFather(ConfigTreeItem * f) ;
+
 	/** Returns true if the current item has the input label.*/
 	bool is(std::string label) const ;
 

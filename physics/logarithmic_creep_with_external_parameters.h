@@ -39,7 +39,6 @@ public:
 protected:
     std::map<std::string, double> external ;
     std::vector< ExternalMaterialLaw * > relations ;
-    double effectiveStressRatio ;
 
     virtual void makeProperties(std::map<std::string, double> & values, double kvSpringReduction = 1., double kvDashpotReduction = 1.) ;
 
@@ -48,7 +47,7 @@ public:
     LogarithmicCreepWithExternalParameters(std::string args, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     LogarithmicCreepWithExternalParameters(std::string args, std::string ptension, std::string pcompression , DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
     LogarithmicCreepWithExternalParameters(std::string args, FractureCriterion * c, DamageModel * d, LogCreepAccumulator * acc = new RealTimeLogCreepAccumulator(), SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS, char sep = ',') ;
-    virtual ~LogarithmicCreepWithExternalParameters() { if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
+    virtual ~LogarithmicCreepWithExternalParameters() ; //{ if(dfunc) {delete dfunc ; } if(criterion) {delete criterion ;} }
 
     virtual ElementState * createElementState( IntegrableEntity * e) ;
 
