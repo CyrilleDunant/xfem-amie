@@ -33,12 +33,14 @@ size_t Amie::fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, siz
     case FLUX_FIELD:
     case GRADIENT_FIELD:
     case PRINCIPAL_STRAIN_FIELD:
+    case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     case PRINCIPAL_REAL_STRESS_FIELD:
         return dim == SPACE_THREE_DIMENSIONAL ? 3 : 2 ;
 
     case STRAIN_FIELD:
     case STRAIN_RATE_FIELD:
+    case MECHANICAL_STRAIN_FIELD:
     case EFFECTIVE_STRESS_FIELD:
     case REAL_STRESS_FIELD:
     case NON_ENRICHED_STRAIN_FIELD:
@@ -480,7 +482,7 @@ Matrix Amie::makeStressOrStrainMatrix ( const Vector & stressOrStrain )
 
 bool isStrainField ( FieldType f )
 {
-    return f == STRAIN_FIELD || f == NON_ENRICHED_STRAIN_FIELD/* || f == PRINCIPAL_STRAIN_FIELD*/ ;
+    return f == STRAIN_FIELD || f == NON_ENRICHED_STRAIN_FIELD || f == MECHANICAL_STRAIN_FIELD /* || f == PRINCIPAL_STRAIN_FIELD*/ ;
 }
 
 bool isStressField ( FieldType f )
@@ -656,6 +658,15 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete vm ;
         }
         return ;
+    case MECHANICAL_STRAIN_FIELD:
+	this->getField( STRAIN_FIELD, p_, ret, true, vm) ;
+	if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
+		ret -= parent->getBehaviour()->getImposedStrain(p_) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
     case STRAIN_FIELD:
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
@@ -781,6 +792,18 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
         getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
+
+        ret = toPrincipal ( strains ) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    }
+    case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
+    {
+        Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
+        getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains ) ;
         if ( cleanup )
@@ -1424,6 +1447,147 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        #pragma atomic write
+        lock = false ;
+        return v;
+    case MECHANICAL_STRAIN_FIELD :
+
+        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        {
+            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
+
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+		Vector imp( tmp.size() ) ; imp = 0. ;
+                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
+                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+                {
+                    strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
+                }
+                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
+		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                ret += (tmp-imp) *gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
+
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        else
+        {
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+		Vector imp( tmp.size() ) ; imp = 0. ;
+                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+                {
+                    tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
+                }
+                if(ret.size() != tmp.size())
+                    ret.resize(tmp.size(), 0.);
+		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                ret += (tmp-imp)*gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        #pragma atomic write
+        lock = false ;
+        return v;
+
+    case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
+
+        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        {
+            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
+
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+		Vector imp( tmp.size() ) ; imp = 0. ;
+                getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
+                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+                {
+                    strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
+                }
+		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+		Vector ptmp = toPrincipal(tmp-imp) ;
+                if(ret.size() != ptmp.size())
+                    ret.resize(ptmp.size(), 0.);
+                ret += ptmp *gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
+
+            }
+            if ( total > POINT_TOLERANCE_2D )
+            {
+                ret /= total ;
+            }
+            else
+            {
+                ret = 0 ;
+            }
+            if ( cleanup )
+            {
+                delete vm ;
+            }
+        }
+        else
+        {
+            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
+            {
+                Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
+		Vector imp( tmp.size() ) ; imp = 0. ;
+                for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
+                {
+                    tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
+                }
+		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+		Vector ptmp = toPrincipal(tmp-imp) ;
+                if(ret.size() != ptmp.size())
+                    ret.resize(ptmp.size(), 0.);
+                ret += ptmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
             if ( total > POINT_TOLERANCE_2D )

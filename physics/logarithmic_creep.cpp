@@ -261,7 +261,7 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
 {
 	if(imposed.size())
 	{
-		if(timeDependentIntegration)
+/*		if(timeDependentIntegration)
 		{
 			Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
 			Function f2 = accumulator->getKelvinVoigtNextFunction() ;
@@ -269,7 +269,9 @@ Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p,
 			if(e && g > -1)
 				p_ = e->getGaussPoints().gaussPoints[g].first ;
 			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
-		}
+		}*/
+		if(p.getT() < 0)
+			return prevImposed ;
         	return imposed ;
 	}
 	return Vector(0., C.numCols()) ;

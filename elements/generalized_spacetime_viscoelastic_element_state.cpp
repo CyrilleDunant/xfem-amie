@@ -127,7 +127,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     if(ret.size() == 0)
 	ret.resize( fieldTypeElementarySize( f, parent->spaceDimensions(), parent->getBehaviour()->getNumberOfDegreesOfFreedom()/parent->spaceDimensions() ) ) ;
     ret = 0 ;
-    double total = 0 ;
+    double total = 0. ;
     if ( dummy<0 )
     {
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -154,7 +154,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         double w = gp.gaussPoints[i].second*weights[i] ;
 	bool cached = false ;
 
-	if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) )
+	if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
 	{
 		if(std::abs ( t-1 ) < POINT_TOLERANCE_2D)
 		{
@@ -200,7 +200,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
 	std::cout << "area=" <<(parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume()) << std::endl ;
 	std::cout << "total=" << total << std::endl ;*/
 
-    return parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
+    return total ;//parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
 }
 
 void  GeneralizedSpaceTimeViscoElasticElementState::step ( double dt, const Vector *d )
@@ -266,6 +266,18 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
 		for(size_t j = 0 ; j < ret.size() ; j++)
 			ret[j] = genStrainAtGaussPointBefore[ i*genStrainAtGaussPointBefore.size()/gp.gaussPoints.size() + j] ;
 		return ret ;		
+	}
+	if(f == MECHANICAL_STRAIN_FIELD)
+	{
+		ret = getCachedFieldAtGaussPointBefore( STRAIN_FIELD, gp, i, vm) ;
+		if( getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces() )
+			ret -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+		return ret ;		
+	}
+	if(f == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
+	{
+		Vector strain = getCachedFieldAtGaussPointBefore( MECHANICAL_STRAIN_FIELD, gp, i, vm) ;
+		return toPrincipal(strain) ;
 	}
 	if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
 	{
@@ -393,6 +405,18 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
 		for(size_t j = 0 ; j < ret.size() ; j++)
 			ret[j] = genStrainAtGaussPointAfter[ i*genStrainAtGaussPointAfter.size()/gp.gaussPoints.size() + j] ;
 		return ret ;		
+	}
+	if(f == MECHANICAL_STRAIN_FIELD)
+	{
+		ret = getCachedFieldAtGaussPointAfter( STRAIN_FIELD, gp, i, vm) ;
+		if( getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces() )
+			ret -= getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+		return ret ;		
+	}
+	if(f == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
+	{
+		Vector strain = getCachedFieldAtGaussPointAfter( MECHANICAL_STRAIN_FIELD, gp, i, vm) ;
+		return toPrincipal(strain) ;
 	}
 	if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
 	{
@@ -1203,6 +1227,30 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             delete vm ;
         }
         return ;
+    case MECHANICAL_STRAIN_FIELD:
+	getField( STRAIN_FIELD, p_, ret, true, vm ) ;
+	if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+		ret -= getParent()->getBehaviour()->getImposedStrain(p_) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
+    {
+        if ( !vm )
+        {
+            vm = new VirtualMachine() ;
+        }
+        Vector strains ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
+        this->getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
+        ret = toPrincipal ( strains ) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    }
     case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
         if ( !vm )
         {
@@ -2846,7 +2894,29 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
             delete vm ;
         }
         return ;
+    case MECHANICAL_STRAIN_FIELD :
+        if ( !vm )
+        {
+            vm = new VirtualMachine() ;
+        }
+        ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
     case PRINCIPAL_STRAIN_FIELD :
+        if ( !vm )
+        {
+            vm = new VirtualMachine() ;
+        }
+        ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
+        return ;
+    case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
         if ( !vm )
         {
             vm = new VirtualMachine() ;

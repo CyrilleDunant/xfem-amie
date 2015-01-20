@@ -1501,6 +1501,8 @@ std::string nameOfField(FieldType field)
 			return std::string("") ;
 		case STRAIN_FIELD :
 			return std::string("Strain") ;
+		case MECHANICAL_STRAIN_FIELD :
+			return std::string("Mechanical Strain") ;
 		case STRAIN_RATE_FIELD :
 			return std::string("Strain Rate") ;
 		case EFFECTIVE_STRESS_FIELD :
@@ -1509,6 +1511,8 @@ std::string nameOfField(FieldType field)
 			return std::string("Stress") ;
 		case PRINCIPAL_STRAIN_FIELD :
 			return std::string("Principal Strain") ;
+		case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
+			return std::string("Principal Mechanical Strain") ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
 			return std::string("Principal Effective Stress") ;
 		case PRINCIPAL_REAL_STRESS_FIELD :
@@ -1579,6 +1583,8 @@ int numberOfFields( FieldType field )
 			return 6 ;
 		case STRAIN_FIELD :
 			return 9 ;
+		case MECHANICAL_STRAIN_FIELD :
+			return 9 ;
 		case STRAIN_RATE_FIELD :
 			return 9 ;
 		case EFFECTIVE_STRESS_FIELD :
@@ -1586,6 +1592,8 @@ int numberOfFields( FieldType field )
 		case REAL_STRESS_FIELD :
 			return 9 ;
 		case PRINCIPAL_STRAIN_FIELD :
+			return 6 ;
+		case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
 			return 6 ;
 		case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
 			return 6 ;

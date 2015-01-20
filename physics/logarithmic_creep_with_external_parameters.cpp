@@ -138,8 +138,8 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		double a = values["imposed_deformation"] ;
 		for(size_t i = 0 ; i < 2+(imposed.size()==6) ; i++)
 		    imposed[i] = a ;
-		if(std::abs(a) < POINT_TOLERANCE_2D)
-		    imposed.resize(0) ;
+//		if(std::abs(a) < POINT_TOLERANCE_2D)
+//		    imposed.resize(0) ;
 
 	}
 	else
@@ -285,7 +285,7 @@ void LogarithmicCreepWithExternalParameters::step(double timestep, ElementState 
 
 void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, ElementState & currentState )
 {
-	if(reducedTimeStep > POINT_TOLERANCE_2D)
+	if( reducedTimeStep > POINT_TOLERANCE_2D)
 	{
 		return ;
 	}

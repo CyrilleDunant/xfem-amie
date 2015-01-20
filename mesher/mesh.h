@@ -725,6 +725,8 @@ public:
                     stress[i] = tmpstress[i]-imposed[i] ;
                     strain[i] = tmpstrain[i] ;
                 }
+		if( e->getBehaviour()->hasInducedForces() )
+			stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
             }
 //            std::cout << "here" << strain.size() << std::endl ;
 
@@ -742,11 +744,19 @@ public:
             }
             if ( f0 == EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( tsize );
-                first = strain*e->getBehaviour()->param ;
+                if ( !spaceTime ) {
+                    first = strain*e->getBehaviour()->param ;
+                } else {
+                    first = stress ;
+                }
             }
             if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( psize );
-                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                if ( !spaceTime ) {
+                    first = toPrincipal( strain*e->getBehaviour()->param ) ;
+                } else {
+                    first = toPrincipal( stress ) ;
+                }
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
@@ -791,8 +801,8 @@ public:
         }
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
         VirtualMachine vm ;
-        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD ||
-                f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD
+        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD || f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
+		f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD
            ) {
             //we first need to compute the strain field
             if ( !spaceTime ) {
@@ -848,13 +858,15 @@ public:
                 tmpstrain /= sumFactors ;
                 tmpstrainrate /=sumFactors ;
 
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point(0,0,0,t) ) ) ;
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
                 for ( size_t i = 0 ; i < tsize ; i++ ) {
                     stress[i] = tmpstress[i] ;
                     strain[i] = tmpstrain[i] ;
                 }
+		if( e->getBehaviour()->hasInducedForces() )
+			stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
             }
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
@@ -863,6 +875,18 @@ public:
             }
             if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
                 second.resize ( psize );
+                second = toPrincipal ( strain ) ;
+            }
+            if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
+                first.resize ( psize );
+		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+			strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                first = toPrincipal ( strain ) ;
+            }
+            if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
+                second.resize ( psize );
+		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+			strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
                 second = toPrincipal ( strain ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
@@ -883,19 +907,35 @@ public:
             }
             if ( f0 == EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( tsize );
-                first = strain*e->getBehaviour()->param ;
+                if ( !spaceTime ) {
+                    first = strain*e->getBehaviour()->param ;
+                } else {
+                    first = stress ;
+                }
             }
             if ( f1 == EFFECTIVE_STRESS_FIELD ) {
                 second.resize ( tsize );
-                second = strain*e->getBehaviour()->param ;
+                if ( !spaceTime ) {
+                    second = strain*e->getBehaviour()->param ;
+                } else {
+                    second = stress ;
+                }
             }
             if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( psize );
-                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                if ( !spaceTime ) {
+                    first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                } else {
+                    first = toPrincipal( stress ) ;
+                }
             }
             if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 second.resize ( psize );
-                second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                if ( !spaceTime ) {
+                    second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                } else {
+                    second = toPrincipal( stress ) ;
+                }
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
@@ -922,6 +962,19 @@ public:
                 second.resize ( tsize ) ;
                 second = strain ;
             }
+	    if ( f0 == MECHANICAL_STRAIN_FIELD ) {
+		first.resize( tsize ) ;
+		first = strain ;
+		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+			first -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+	    }
+
+	    if ( f1 == MECHANICAL_STRAIN_FIELD ) {
+		second.resize( tsize ) ;
+		second = strain ;
+		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+			second -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+	    }
 
         } else {
             double sumFactors ( 0 ) ;

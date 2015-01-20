@@ -102,12 +102,20 @@ FractureCriterion * SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::getC
 
 double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementState &s)  
 {
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
-	
-	
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, 1) ) ;
+
+/*	if(typeid(s) == typeid(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables))
+	{
+		std::map<std::string, double> dummy ;
+		double imposed = dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables&>(s).get("imposed_deformation", dummy ) ;
+		stateBefore.second -= imposed ;
+		stateAfter.second -= imposed ;
+	}*/
+
 	Point before( stateBefore.second.max()*renormStrain, stateBefore.first.max()*renormStress ) ;
 	Point after( stateAfter.second.max()*renormStrain, stateAfter.first.max()*renormStress ) ;
+
 	bool compressive = stressStrainCurve->getPoint(0).getY() < 0 ;
 	if( compressive )
 	{
@@ -403,9 +411,9 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 	double gtension = -1. ;
 	double gcompression = -1. ;
 
-	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
-	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
-	
+	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, -1) ) ;
+	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s, 1) ) ;
+
 	if(tensileStressStrainCurve)
 	{	
 		bool found = false ;
@@ -445,6 +453,8 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
 				gtension = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+//		if(gtension > 0)
+//			std::cout << stateBefore.second[0] << "/" << stateAfter.second[0] << "/" << inter.getX() << "  ";
 		}
 	}
 
@@ -489,6 +499,8 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 				gcompression = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
 		}
 	}
+
+		
 
 	return std::max(gcompression, gtension) ;
 
