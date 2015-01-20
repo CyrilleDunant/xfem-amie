@@ -24,8 +24,10 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     getState ( true ).resize ( 4, 0. );
     isNull = false ;
     originalAngle = 0 ;
+    initialAngle = 0 ;
     factor = 1 ;
     es = nullptr ;
+    needGlobalMaximumScore = true ;
     firstTension = false ;
     secondTension = false ;
     firstTensionFailure = false ;
@@ -92,8 +94,8 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 
             double E_0 = E ;
             double E_1 = E ;
-            double fs = firstTension  ? getState() [0] : getState() [1] ;
-            double ss = secondTension ? getState() [2] : getState() [3] ;
+            double fs = /*firstTension  ?*/ getState() [0] /*: getState() [1]*/ ;
+            double ss = /*secondTension ? getState() [2] : */getState() [3] ;
     //      std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << "  " << firstTension << "  " << secondTension << "  " << fs << "  "<< ss << std::endl ;
 
             E_0 *=  1. - fs  ;
@@ -102,9 +104,9 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             double nunu = nu ;
             if ( getState().max() > POINT_TOLERANCE_2D )
             {
-                nunu = 0. ; nu*exp ( -1./ ( 1.-std::max ( fs,ss ) ) ) ;
-                E_0 /= 1.-nu*nu ;
-                E_1 /= 1.-nu*nu ;
+                nunu = nu*exp ( -1./ ( 1.-std::max ( fs,ss ) ) ) ;
+                E_0 /= 1.-nunu*nunu ;
+                E_1 /= 1.-nunu*nunu ;
             }
 
             double G = E_0*E_1/ ( E_0+E_1 ) ;
@@ -160,16 +162,21 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 converged = true ;
             }
             
-            if ( getState().max() < POINT_TOLERANCE_2D )
-            {
-                Vector ang(1) ;
-                Point cnt(1./3., 1./3.) ; 
-                s.getField(PRINCIPAL_STRAIN_ANGLE_FIELD, cnt, ang, true);
-
-                originalAngle = ang[0] ;
-            }
-            angles_scores.push_back(std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState())) ;
-            originalAngle = std::max(originalAngle-M_PI, -M_PI) ;
+//             if ( getState().max() < POINT_TOLERANCE_2D )
+//             {
+//                 Vector ang(1) ;
+//                 Point cnt(1./3., 1./3.) ; 
+//                 s.getField(PRINCIPAL_STRAIN_ANGLE_FIELD, cnt, ang, true);
+// 
+//                
+//                 initialAngle = 2.*ang[0] ;
+// /*                if (initialAngle < -M_PI)
+//                     initialAngle += M_PI ; 
+// 
+//                   initialAngle = M_PI*.5;  */ 
+//             }
+//             angles_scores.push_back(std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState())) ;
+            originalAngle = - .05*M_PI ;
             stiff->setAngle ( originalAngle ) ;   
             
             return ;
@@ -178,52 +185,32 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         else
         {
             angles_scores.push_back( std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()));
-            if(angles_scores.size() == 1)
-            {
-                
-                originalAngle = std::min(originalAngle+2.*M_PI, M_PI) ;
+            std::sort(angles_scores.begin(),angles_scores.end());
+            if(angles_scores.back().first < M_PI + .05*M_PI- POINT_TOLERANCE_2D)
+            {  
+                originalAngle += .2*M_PI ;
                 stiff->setAngle ( originalAngle) ;     
                 change = true ;
                 return ;
             }
-            std::sort(angles_scores.begin(),angles_scores.end());
-            int index_min = 0 ;
-            double score_min = angles_scores[0].second ;
-            for(size_t i = 1 ; i < angles_scores.size() ; i++)
+            
+            double score_min = (angles_scores[0].second+angles_scores[1].second)*.5 ;
+            for(size_t i = 1 ; i < angles_scores.size()-1 ; i++)
             {
-                if(angles_scores[i].second < score_min)
+                double score_test = (angles_scores[i].second+angles_scores[i+1].second)*.5 ;
+                if(score_test < score_min)
                 {
-                    index_min = i ;
-                    score_min = angles_scores[i].second ;
+                    score_min = score_test ;
+                    originalAngle = (angles_scores[i].first+angles_scores[i+1].first)*.5 ;
                 }     
             }
             
-            if(index_min == 0)
-            {
-                originalAngle = (angles_scores[index_min].first+angles_scores[index_min+1].first)*.5 ;
-                stiff->setAngle ( originalAngle ) ;     
-            }
-            else if(index_min == angles_scores.size()-1)
-            {
-                originalAngle = (angles_scores[index_min].first+angles_scores[index_min-1].first)*.5 ;
-                stiff->setAngle ( originalAngle ) ;     
-            }
-            else
-            {
-                if(angles_scores[index_min].first-angles_scores[index_min-1].first < angles_scores[index_min+1].first-angles_scores[index_min].first)
-                {
-                    originalAngle = (angles_scores[index_min].first+angles_scores[index_min+1].first)*.5 ;
-                    stiff->setAngle ( originalAngle ) ;     
-                }
-                else
-                {
-                    originalAngle = (angles_scores[index_min].first+angles_scores[index_min-1].first)*.5 ;
-                    stiff->setAngle ( originalAngle ) ;   
-                }
-            }
+            stiff->setAngle ( originalAngle ) ;     
+
             change = true ;
-            if(angles_scores.size() > 16)
+            if(angles_scores.size() > 14)
             {
+                initialAngle = originalAngle ;
                 alternate = false ;
                 converged = true ;
             }    

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         minPressure = atof(argv[4]) ;
     double maxRadius ;
     double poreFraction ;
-    double waterLayerDepth = 1.5 ;
+    double waterLayerDepth = 1 ;
     double factor = 1000. ;
     double minRadius = waterLayerDepth*.25 ;
     double shapeFactor = 200 ;
@@ -156,9 +156,9 @@ int main(int argc, char *argv[])
 
                 pressure = -std::min(shapeFactor/(pores[i]->getRadius()-waterLayerDepth), p) ;
 
-//                 boundaryConditions[i]->setData(pressure*1e-3) ;                                                             //decreasing pressure
+                boundaryConditions[i]->setData(pressure*1e-3) ;                                                             //decreasing pressure
 //                 boundaryConditions[i]->setData(initialPressure*1e-3) ;                                                         //constant pressure
-                boundaryConditions[i]->setData((initialPressure - shapeFactor/(pores[i]->getRadius()-waterLayerDepth))*1e-3) ; //growing pressure
+//                 boundaryConditions[i]->setData((initialPressure - shapeFactor/(pores[i]->getRadius()-waterLayerDepth))*1e-3) ; //growing pressure
                 criticalRadius = std::min(pores[i]->getRadius(), criticalRadius) ;
                 poresUnderPressure += pores[i]->area() ;
             }

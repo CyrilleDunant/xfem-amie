@@ -22,7 +22,7 @@ namespace Amie
 
 
 NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)), downVal( down ), youngModulus(youngModulus), rtype(r)
+	, upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)*0.5), downVal( down ), youngModulus(youngModulus), rtype(r)
 {
 	physicalCharacteristicRadius = charRad ;
 	critStrain = -0.00163 ;//-0.0015;
@@ -212,7 +212,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 	if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
 	{
 		distanceToRebar = std::abs(s.getParent()->getCenter().getY() - rebarLocationsAndDiameters[0].first) ;
-		effectiveInfluenceDistance =  rebarLocationsAndDiameters[0].second*7.5*2;
+		effectiveInfluenceDistance = rebarLocationsAndDiameters[0].second*7.5*2;
 		inRebarInfluence = distanceToRebar < rebarLocationsAndDiameters[0].second*7.5*2 ;
 // 		std::cout << rebarLocationsAndDiameters[0].first << "  "<<std::flush ;
 		for(size_t i = 1 ; i < rebarLocationsAndDiameters.size() ; i++)
@@ -461,11 +461,11 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 	Vector first = sstrain.first ;
 	Vector second = sstrain.second ;
 	
-	double tstrain = second[1];
-	double cstrain = second[0];
+	double tstrain = second.max();
+	double cstrain = second.min();
 
-	double tstress = first[1];
-	double cstress = first[0];
+	double tstress = first.max();
+	double cstress = first.min();
 	
 	
 	double pseudoYoung = youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max());

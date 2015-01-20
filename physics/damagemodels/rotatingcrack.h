@@ -42,6 +42,7 @@ protected:
 	bool firstCompressionFailure ;
 	bool secondCompressionFailure ;
 	double originalAngle ;
+    double initialAngle ;
     std::vector<std::pair<double, double>> angles_scores ;
 	ElementState * es ;
 	

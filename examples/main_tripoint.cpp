@@ -255,13 +255,13 @@ void step()
             writer.append() ;
         }
 
-//         if ( go_on )
-//         {
-//             writerc.reset ( featureTree ) ;
-//             writerc.getField ( TWFT_DAMAGE ) ;
-//             writerc.append() ;
-//             writerc.writeSvg ( 0. ) ;
-//         }
+        if ( go_on )
+        {
+            writerc.reset ( featureTree ) ;
+            writerc.getField ( TWFT_DAMAGE ) ;
+            writerc.append() ;
+            writerc.writeSvg ( 0. ) ;
+        }
 // 		if ( !go_on )
 // 			break ;
 
@@ -292,7 +292,7 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
-    double E_steel_effective = 1./(1./E_steel+.8/E_paste) ;
+    double E_steel_effective =1./(1./E_steel+.3/E_paste) ;
 
     double halfSampleOffset = sampleLength*.25 ;
 
@@ -508,7 +508,7 @@ int main ( int argc, char *argv[] )
 
 
 // 	F.addPoint( new Point(platewidth, sampleHeight*.5)) ;
-    F.setMaxIterationsPerStep ( 8200 );
+    F.setMaxIterationsPerStep ( 15000 );
 
 
     F.addPoint ( new Point ( supportLever,                -sampleHeight*.5-plateHeight ) ) ;

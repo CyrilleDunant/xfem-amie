@@ -129,8 +129,8 @@ Vector epsilon12 ( 0 ) ;
 Vector vonMises ( 0 ) ;
 Vector angle ( 0 ) ;
 
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,0 ) ;
-// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
+// BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition ( SET_ALONG_XI, RIGHT,0 ) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,0) ;
 
 double factor = 25 ;
 MinimumAngle cri ( M_PI/6. ) ;
@@ -308,7 +308,7 @@ int main ( int argc, char *argv[] )
 
 
 // 	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-    Sample samplef ( 0.6, 0.3,  0.3, 0.15 ) ;
+    Sample samplef ( 0.6, 0.6,  0.3, 0.3 ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;

@@ -36,7 +36,7 @@ FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, doub
     maxScoreInNeighbourhood(0),
     maxModeInNeighbourhood(-1),
     maxAngleShiftInNeighbourhood(0),
-    smoothingType(GAUSSIAN_NONCOMPACT),
+    smoothingType(QUARTIC_COMPACT),
     cacheID(-1), cachecoreID(-1)
 {
 }
@@ -155,7 +155,12 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         // have met their criterion
         if(checkpoint ) //new iteration
         {
+//             if(!(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
+//                 return std::make_pair(0.,0.) ;
+//          
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
             inset = false ;
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
             inIteration = false ;
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
             {
@@ -188,6 +193,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
                     {
  
+                        if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
                         if(ci == s.getParent() && met())
                             inset = true ;
                         
@@ -218,10 +224,12 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     damagingSet.clear();
                     proximitySet.clear() ;
                 }
+                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
                 if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
                     inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
             inIteration = true ;
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
