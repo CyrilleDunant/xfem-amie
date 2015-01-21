@@ -3696,7 +3696,10 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     Vector cinstants ( nSteps+1 ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
-        cinstants = config->getChild ( "list_of_time_steps" )->readVectorFromFile() ;
+	if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)
+		cinstants = ConfigTreeItem::readLineAsVector( config->getStringData("list_of_time_steps") ) ;
+	else
+	        cinstants = config->getChild ( "list_of_time_steps" )->readVectorFromFile() ;
     }
     else
     {
@@ -4321,7 +4324,7 @@ bool FeatureTree::stepElements()
                             {
                                 if ( i.getPosition() % 1000 == 0 )
                                 {
-                                    std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    std::cerr << "\r checking for fractures (-1)... " << i.getPosition() << "/" << i.size() << std::flush ;
                                 }
 
                                 if ( i->getBehaviour()->getFractureCriterion() && dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion()) )
@@ -4389,10 +4392,10 @@ bool FeatureTree::stepElements()
                         {
                             #pragma omp task firstprivate(i)
                             {
-                                if ( i.getPosition() % 200 == 0 )
-                                {
+//                                if ( i.getPosition() % 200 == 0 )
+  //                              {
                                     std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                }
+    //                            }
                                 if ( i->getBehaviour()->getFractureCriterion() )
                                 {
                                     i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;

@@ -119,6 +119,13 @@ int main(int argc, char *argv[])
 				f *= bcItem[i]->getData("time_evolution.rate", 0.) ;
 				functionBC.push_back(std::make_pair(bc, f)) ;
 			}
+			if(bcItem[i]->hasChildFromFullLabel("time_evolution.instants") && bcItem[i]->hasChildFromFullLabel("time_evolution.values"))
+			{
+				Vector t_ = ConfigTreeItem::readLineAsVector(bcItem[i]->getStringData("time_evolution.instants","0,1")) ;
+				Vector v_ = ConfigTreeItem::readLineAsVector(bcItem[i]->getStringData("time_evolution.values","0,0")) ;
+				LinearInterpolatedExternalMaterialLaw * interpolation = new LinearInterpolatedExternalMaterialLaw(std::make_pair("t","value"), std::make_pair(t_,v_) ) ; 
+				interpolatedBC.push_back(std::make_pair(bc, interpolation)) ;
+			}
 		}
 		F.addBoundaryCondition(bc) ;
 	}

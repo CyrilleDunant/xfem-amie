@@ -426,6 +426,25 @@ Function ConfigTreeItem::getFunction() const
 	return f ;
 }
 
+Vector ConfigTreeItem::readLineAsVector(std::string line, char s) 
+{
+	std::vector<double> v ;
+	std::string next = line ;
+	int sep = next.find(s) ;
+	while(sep != std::string::npos)
+	{
+		std::string current = next.substr(0, sep) ;
+		v.push_back( atof(current.c_str() ) ) ;
+		next = next.substr(sep+1) ;
+		sep = next.find(s) ;
+	}
+	v.push_back( atof( next.c_str() ) ) ;
+	Vector ret(v.size()) ;
+	for(size_t i = 0 ; i < v.size() ; i++)
+		ret[i] = v[i] ;
+	return ret ;
+}
+
 ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const 
 {
 	ExternalMaterialLaw * ret = nullptr ;
@@ -565,7 +584,16 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "LINEAR_INTERPOLATED")
 	{
-		ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name")) ;
+		if(hasChild("input_values") && hasChild("output_values"))
+		{
+			Vector in = ConfigTreeItem::readLineAsVector(getStringData("input_values","0,1")) ;
+			Vector out = ConfigTreeItem::readLineAsVector(getStringData("output_values","0,1")) ;
+			std::string i = getStringData("input_parameter","t") ;
+			std::string o = getStringData("output_parameter","none") ;
+			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out) ) ;
+		}
+		else
+			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name")) ;
 		return ret ;
 	}
 
@@ -656,6 +684,37 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 				std::string tfile = getStringData("tension_file_name", "") ;
 				std::string cfile = getStringData("compression_file_name", "") ;
 				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tfile, cfile, E, 1.1, e_, s_) ;
+			}
+			else if(hasChild("strain_stress_curve"))
+			{
+				std::vector<Point> tension ;
+				std::vector<Point> compression ;
+				if(hasChildFromFullLabel("strain_stress_curve.tension") && hasChildFromFullLabel("strain_stress_curve.tension.strain") && hasChildFromFullLabel("strain_stress_curve.tension.stress"))
+				{
+					Vector stress = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.tension.stress","1e6,0") ) ;
+					Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.tension.strain","0.0001,0.0002") ) ;
+					if(stress.size() != strain.size())
+					{
+						std::cout << "stress-strain data do not match!" << std::endl ;
+						exit(0) ;
+					}
+					for(size_t i = 0 ; i < stress.size() ; i++)
+						tension.push_back( Point(strain[i], stress[i]) )  ;
+				}
+				if(hasChildFromFullLabel("strain_stress_curve.compression") && hasChildFromFullLabel("strain_stress_curve.compression.strain") && hasChildFromFullLabel("strain_stress_curve.compression.stress"))
+				{
+					Vector stress = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.compression.stress","1e6,0") ) ;
+					Vector strain = ConfigTreeItem::readLineAsVector( getStringData("strain_stress_curve.compression.strain","0.0001,0.0002") ) ;
+					if(stress.size() != strain.size())
+					{
+						std::cout << "stress-strain data do not match!" << std::endl ;
+						exit(0) ;
+					}
+					for(size_t i = 0 ; i < stress.size() ; i++)
+						compression.push_back( Point(strain[i], stress[i]) ) ;
+				}
+				std::cout << tension.size() <<std::endl ;
+				ret = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion(tension, compression, E, 1.1, e_, s_) ;
 			}
 			else
 			{
@@ -763,7 +822,9 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
 	if(type == "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE")
 	{
 		if(spaceTime)
+		{
 			ret = new SpaceTimeFiberBasedIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9) ) ;
+		}
 		else
 			ret = new FiberBasedIsotropicLinearDamage( getData("damage_increment",0.1) ) ;
 	}
@@ -865,7 +926,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 			return nullptr ;
 		}
 
-		if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") )
+		if(hasChildFromFullLabel("parameters.tensile_strength") || hasChildFromFullLabel("parameters.tensile_strain") || hasChildFromFullLabel("parameters.compressive_strength") || hasChildFromFullLabel("parameters.compressive_strain") || hasChildFromFullLabel("parameters.tension_file_name") || hasChildFromFullLabel("parameters.compression_file_name") || hasChildFromFullLabel("parameters.strain_stress_curve"))
 		{
 			if(!hasChild("fracture_criterion"))
 			{
@@ -878,6 +939,22 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 					ConfigTreeItem * critTFile = new ConfigTreeItem(crit, "tension_file_name", getStringData("parameters.tension_file_name", "")) ;
 				if(hasChildFromFullLabel("parameters.compression_file_name"))
 					ConfigTreeItem * critCFile = new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
+				if(hasChildFromFullLabel("parameters.strain_stress_curve"))
+				{
+					ConfigTreeItem * critCurve = new ConfigTreeItem(crit, "strain_stress_curve") ;
+					if(hasChildFromFullLabel("parameters.strain_stress_curve.tension"))
+					{
+						ConfigTreeItem * critTCurve = new ConfigTreeItem(critCurve, "tension") ;
+						ConfigTreeItem * critTStrain = new ConfigTreeItem(critTCurve, "strain", getStringData("parameters.strain_stress_curve.tension.strain","1,1")) ;
+						ConfigTreeItem * critTStress = new ConfigTreeItem(critTCurve, "stress", getStringData("parameters.strain_stress_curve.tension.stress","1e9,0")) ;
+					}
+					if(hasChildFromFullLabel("parameters.strain_stress_curve.compression"))
+					{
+						ConfigTreeItem * critCCurve = new ConfigTreeItem(critCurve, "compression") ;
+						ConfigTreeItem * critCStrain = new ConfigTreeItem(critCCurve, "strain", getStringData("parameters.strain_stress_curve.compression.strain","-1,-1")) ;
+						ConfigTreeItem * critCStress = new ConfigTreeItem(critCCurve, "stress", getStringData("parameters.strain_stress_curve.compression.stress","-1e9,0")) ;
+					}
+				}
 				this->addChild(crit) ;
 				if(this == nullptr)
 					std::cout << "hem" << std::endl ;

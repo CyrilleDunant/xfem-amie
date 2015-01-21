@@ -667,9 +667,21 @@ The easiest way to manage the time stepping is to use a constant time step (or a
 It is possible to read a text file containing a list of instants at which the simulation will be carried out using the following syntax:\\
 
 \noindent \verb+.stepping+\\
-\verb+..list_of_time_steps = ../examples/data/composite/time_steps.txt+
+\verb+..list_of_time_steps = ../examples/data/composite/time_steps.txt # name of the file containing the data+
 
-\paragraph{} The series of instants must be strictly increasing; no time step must be equal to 0 (or lower).
+\paragraph{} The series of instants must be strictly increasing; no time step must be equal to 0 (or lower). The first instant must be equal to 0.
+
+\paragraph{} The file name must not contain a comma (\verb+,+), otherwise the second method is used.
+
+
+\subsection{Defining a list of time steps}
+
+Instead of calling a file, it is possible to directly define the list of instants in the input file:
+
+\noindent \verb+.stepping+\\
+\verb+..list_of_time_steps = 0,1,3 # list of instants separated by commas+
+
+\paragraph{} The series of instants must be strictly increasing; no time step must be equal to 0 (or lower). The first instant must be equal to 0. The instants must be separated by commas (\verb+,+).
 
 \subsection{Using a function of time}
 
@@ -748,7 +760,7 @@ There are three ways to define a time-dependent boundary condition. The easiest 
 \verb+..time_evolution+\\
 \verb+...function = "1e5 t *"+
 
-\paragraph{}Finally, it is possible to import a file containing the values of the boundary condition at different instants:\\
+\paragraph{}Also, it is possible to import a file containing the values of the boundary condition at different instants:\\
 
 \noindent \verb+.boundary_condition+\\
 \verb+..condition = SET_STRESS_ETA+\\
@@ -766,6 +778,19 @@ There are three ways to define a time-dependent boundary condition. The easiest 
 \verb+0.99999 0+\\
 \verb+1       1e6+\\
 \verb+2       1e6+\\
+
+\paragraph{}Instead of a file, it is also possible to directly input the values of the boundary condition in the initiation file:\\
+
+\noindent \verb+.boundary_condition+\\
+\verb+..condition = SET_STRESS_ETA+\\
+\verb+..position = TOP+\\
+\verb+..time_evolution+\\
+\verb+...instants = 0,1,2 # list of instants separated by commas+\\
+\verb+...values = 0,1e6,1e6 # list of values separated by commas+
+
+
+
+
 
 \subsection{Applying a boundary condition on a section of an edge}
 
@@ -977,7 +1002,7 @@ The Modified Compressive Field Theory is a specific fracture criterion for reinf
 
 Two types of damage models can be used. \verb+ISOTROPIC_LINEAR_DAMAGE+ is the default model, and searches for the exact series in which the elements are damaged, and the corresponding damage increment. That is, at each iteration of the damage algorithm a bisection is carried out to find the exact damage increment to apply.
 
-\verb+ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+ is a similar algorithm, except that it will apply a fixed amount of damage at each iteration. The amount can be fixed using the \verb+damage_increment+ variable:\\
+\verb+ISOTROPIC_INCREMENTAL_\textit{LINEAR_}DAMAGE+ is a similar algorithm, except that it will apply a fixed amount of damage at each iteration. The amount can be fixed using the \verb+damage_increment+ variable:\\
 
 \noindent \verb+..damage_model+\\
 \verb+...type = ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE+\\
@@ -1138,7 +1163,7 @@ Space-time finite elements use a different set of fracture criterion. Only the f
 \verb+..type = MAXIMUM_TENSILE_STRAIN+\\
 \verb+..limit_tensile_strain = 0.001+
 
-\paragraph{} \verb+LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+ defines a material with a linear descending branch in the stress-strain diagram. \verb+limit_tensile_strain+ and \verb+limit_tensile_stress+ indicate the position of the peak, while \verb+maximum_tensile_strain+ indicates the ultimate strain at failure.\\
+\paragraph{} \verb+LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+ defines a material with a linear descending branch in the strain-stress diagram. \verb+limit_tensile_strain+ and \verb+limit_tensile_stress+ indicate the position of the peak, while \verb+maximum_tensile_strain+ indicates the ultimate strain at failure.\\
 
 \noindent \verb+.fracture_criterion+\\
 \verb+..type = LINEAR_SOFTENING_MAXIMUM_TENSILE_STRAIN+\\
@@ -1245,13 +1270,14 @@ The parameters are declared with their default values in a \verb+parameters+ obj
 There are two options available:
 
 \begin{itemize}
-	\item Import stress-strain curves from a text file
+	\item Import strain-stress curves from a text file
+	\item Declare the strain-stress curve
 	\item Explicitly declare the maximum stress and strain in the input file
 \end{itemize}
 
 The two methods cannot be combined. If both are defined, then the import will be used, and the other parameters will not be accounted for.
 
-\subsubsection{Import stress-strain curves}
+\subsubsection{Import strain-stress curves}
 
 \noindent \verb+.behaviour+\\
 \verb+..type = LOGARITHMIC_CREEP+\\
@@ -1268,6 +1294,38 @@ The two methods cannot be combined. If both are defined, then the import will be
 \paragraph{} The behaviour can be defined in tension, compression, or both. If \verb+tension_file_name+ (alternatively \verb+compression_file_name+) is not defined, then the material will not fail in tension (or in compression). If none of them are defined, then \textsc{amie} will try to use the other method described below.
 
 \paragraph{} The text files must contain a table with the strain (first column) and stress (second column), in SI units. The file for tension must contain only positive (or zero) values, and the file for compression must contain only negative (or zero) values. Furthermore, it is preferable for the strain to be strictly increasing in the table.
+
+\paragraph{}For each element, \textsc{amie} will create the following variables, which can then be acted upon using material laws (see below):\\
+
+\noindent \verb+tensile_strength+\\
+\verb+tensile_strain+\\
+\verb+tensile_ultimate_strength+\\
+\verb+tensile_ultimate_strain+\\
+\verb+compressive_strength+\\
+\verb+compressive_strain+\\
+\verb+compressive_ultimate_strength+\\
+\verb+compressive_ultimate_strain+
+
+\subsubsection{Declare a stress-strain curve}
+
+\noindent \verb+.behaviour+\\
+\verb+..type = LOGARITHMIC_CREEP+\\
+\verb+..parameters+\\
+\verb+...strain_stress_curve+\\
+\verb+....tension+\\
+\verb+.....strain = 0.0001,0.0002 # values of the strain separated by commas (must be positive)+\\
+\verb+.....stress = 1e6,0 # values of the stress separated by commas (must be positive)+\\
+\verb+....compression+\\
+\verb+.....strain = -0.0001,-0.0002 # values of the strain separated by commas (must be negative)+\\
+\verb+.....stress = -1e6,0 # values of the stress separated by commas (must be negative)+\\
+\verb+...material_characteristic_radius = # value+\\
+\verb+...strain_renormalization_factor = # optional, default value = 1e4+\\
+\verb+...stress_renormalization_factor = # optional, default value = 1e-6+\\
+\verb+...damage_increment = # value+\\
+\verb+...maximum_damage = # value+\\
+\verb+...time_tolerance = # optional, default value = 1e-9+
+
+\paragraph{} The behaviour can be defined in tension, compression, or both. If \verb+tension+ (alternatively \verb+compression+) is not defined, then the material will not fail in tension (or in compression). If none of them are defined, then \textsc{amie} will try to use the other method described below.
 
 \paragraph{}For each element, \textsc{amie} will create the following variables, which can then be acted upon using material laws (see below):\\
 
@@ -1672,6 +1730,15 @@ It is not necessary to define all variables $(x,z,y,t,u,v,w)$. Only those used i
 \verb+...input_parameter = $input+\\
 \verb+...output_parameter = $output+\\
 \verb+...file_name = # path to the file containing the interpolation data+
+
+\paragraph{}Or:\\
+
+\noindent \verb+..material_law+\\
+\verb+...type = LINEAR_INTERPOLATED+\\
+\verb+...input_parameter = $input+\\
+\verb+...output_parameter = $output+\\
+\verb+...input_values = 0,1,2 # values of the input parameter separated by commas+\\
+\verb+...output_values = 0,1,2 # values of the output parameter separated by commas+
 
 \paragraph{}Requires the following \verb+parameters+:\\
 

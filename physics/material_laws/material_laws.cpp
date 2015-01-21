@@ -160,8 +160,6 @@ double LinearInterpolatedExternalMaterialLaw::get(double x) const
         i++ ;
     }
 
-    std::cout << x << "\t" << i << "/" << values.first.size() << std::endl ;
-
     return values.second[i-1]+(values.second[i]-values.second[i-1])*(x-values.first[i-1])/(values.first[i]-values.first[i-1]) ;
 }
 

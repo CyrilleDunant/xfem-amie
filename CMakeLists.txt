@@ -360,6 +360,9 @@ target_link_libraries( asr Amie ${ALL_LINK_FLAGS})
 add_executable(michaela examples/main_michaela.cpp )
 target_link_libraries( michaela Amie ${ALL_LINK_FLAGS})
 
+add_executable(function_test examples/main_function_test.cpp )
+target_link_libraries( function_test Amie ${ALL_LINK_FLAGS})
+
 add_executable(asr_simple examples/main_asr_simple.cpp )
 target_link_libraries( asr_simple Amie ${ALL_LINK_FLAGS})
 
