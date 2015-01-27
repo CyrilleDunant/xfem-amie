@@ -190,6 +190,7 @@ protected:
     /** \brief  Order to which Elements should be brought once all operations are accomplished.
      */
     Order elemOrder ;
+    bool structuredMesh;
 
     /** \brief  Insert triangle midpoints. */
     void makeToOrder() ;
@@ -480,6 +481,7 @@ public:
      * @return
      */
     FeatureTree ( Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 100 ) ;
+    FeatureTree ( const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap ) ;
     virtual ~FeatureTree() ;
 
     void dumpFeatures ( std::string filename ) ;

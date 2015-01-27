@@ -83,6 +83,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     stateConverged = false ;
     dtree = nullptr ;
     dtree3D = nullptr ;
+    structuredMesh = false ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -188,9 +189,65 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 
 }
 
+FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
+{
+    initialValue = 0 ;
+    deltaTime = 0 ;
+    previousDeltaTime = 0 ;
+    minDeltaTime = 0.001 ;
+    reuseDisplacements = false ;
+    foundCheckPoint = true ;
+    averageDamage = 0 ;
+    behaviourSet =false ;
+    damageConverged = false ;
+    stateConverged = false ;
+    dtree = nullptr ;
+    dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
+    structuredMesh = true ;
+
+    samplingRestriction = SAMPLE_NO_RESTRICTION ;
+
+    father3D = nullptr;
+    father2D = nullptr ;
+    elemOrder = LINEAR ;
+    renumbered = false ;
+    needAssembly = true ;
+    setBehaviours = false ;
+    behaviourChange = true ;
+    solverConvergence = false ;
+    enrichmentChange = true ;
+    needMeshing = true ;
+
+    elastic = false ;
+    projectOnBoundaries = true ;
+
+    K = new Assembly() ;
+    K->setSpaceDimension ( SPACE_THREE_DIMENSIONAL ) ;
+
+
+    crackedVolume = 0 ;
+    damagedVolume = 0 ;
+    residualError = 1e9 ;
+    samplingNumber = 0 ;
+    previousSamplingNumber = 0 ;
+
+
+    lastNodeId = 0;
+    lastEnrichmentId = 0;
+    maxitPerStep = 200 ;
+    deltaTime = .1 ;
+    realDeltaTime = deltaTime ;
+    now = 0 ;
+
+    setElementGenerationMethod() ;
+
+}
+
 void FeatureTree::setPartition ( size_t partitionNumber )
 {
-
+    if(structuredMesh)
+        return ;
+    
     for ( size_t i = 0 ; i < domains.size() ; i++ )
     {
         delete domains[i] ;
@@ -408,7 +465,6 @@ void FeatureTree::addFeature ( Feature *father, Feature *f, int layer, double fr
 
 
 }
-
 
 void FeatureTree::addFeature ( Feature * const father, EnrichmentManager * fm, int layer, double fraction)
 {
@@ -642,6 +698,9 @@ void FeatureTree::renumber()
 
 bool FeatureTree::inRoot ( const Point &p ) const
 {
+    if(structuredMesh)
+        return true ;
+    
     if ( is2D() )
     {
         Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE_2D ) ;
@@ -664,7 +723,9 @@ bool FeatureTree::inRoot ( const Point &p ) const
 
 void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 {
- 
+     if(structuredMesh)
+        return ;
+     
     if ( edge + time == 0 )
     {
         return ;
@@ -1049,6 +1110,9 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
 void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 {
+   if(structuredMesh)
+        return ;
+        
     if ( edge + time == 0 )
     {
         return ;
@@ -1260,6 +1324,9 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 
 void FeatureTree::stitch()
 {
+   if(structuredMesh)
+        return ;
+      
     size_t count = 0 ;
     size_t pd = 0 ;
 
@@ -1380,6 +1447,9 @@ void FeatureTree::setSamplingNumber ( size_t news )
 
 void FeatureTree::quadTreeRefine ( const Geometry * location )
 {
+    if(structuredMesh)
+        return ;
+    
     if ( location->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
     {
         std::cerr << "quadtree refine... " << std::flush ;
@@ -1585,6 +1655,8 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
 void FeatureTree::sample()
 {
+    if(structuredMesh)
+        return ;    
     if ( samplingNumber != previousSamplingNumber )
     {
         meshPoints.clear();
@@ -1845,6 +1917,8 @@ void FeatureTree::sample()
 
 void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
 {
+        if(structuredMesh)
+        return ;
     for ( size_t t = 0 ; t < nit ; t++ )
     {
         bool corrected = false ;
@@ -1892,6 +1966,8 @@ void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
 
 void FeatureTree::refine ( size_t level )
 {
+        if(structuredMesh)
+        return ;
     state.setStateTo ( RENUMBERED, false ) ;
     double pointDensity = 0 ;
 
@@ -2246,6 +2322,8 @@ void FeatureTree::refine ( size_t level )
 
 Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & t, int layer,  bool onlyUpdate ) const
 {
+    if(structuredMesh)
+        return nullptr;
     int root_box = 0 ;
 
     if ( !inRoot ( t->getCenter() ) )
@@ -2458,6 +2536,8 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
 Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & t, int layer,  bool onlyUpdate ) const
 {
+    if(structuredMesh)
+        return nullptr;
     int root_box = 0 ;
 
     if ( !inRoot ( t->getCenter() ) )
@@ -2667,6 +2747,8 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTree
 
 Point *FeatureTree::checkElement ( const DelaunayTetrahedron *t ) const
 {
+    if(structuredMesh)
+        return nullptr;
     double pointDensity = 0 ;
 
     if ( is2D() )
@@ -2760,6 +2842,8 @@ Point *FeatureTree::checkElement ( const DelaunayTetrahedron *t ) const
 
 Point *FeatureTree::checkElement ( const DelaunayTriangle *t ) const
 {
+   if(structuredMesh)
+        return nullptr;
     double pointDensity = 0 ;
 
     if ( is2D() )
@@ -2850,7 +2934,8 @@ Point *FeatureTree::checkElement ( const DelaunayTriangle *t ) const
 
 Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
 {
-
+    if(structuredMesh)
+        return nullptr;
     if ( !inRoot ( t->getCenter() ) )
     {
         return nullptr;
@@ -2900,6 +2985,8 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
 
 void FeatureTree::setElementBehaviours()
 {
+        if(structuredMesh)
+        return ;
     if ( !father3D )
     {
         father3D = new TetrahedralElement ( elemOrder ) ;
@@ -2993,6 +3080,8 @@ void FeatureTree::setElementBehaviours()
 
 void FeatureTree::updateElementBehaviours()
 {
+        if(structuredMesh)
+        return ;
     double n_void ;
 
     if ( is2D() )
@@ -3100,6 +3189,7 @@ void FeatureTree::updateElementBehaviours()
 
 void FeatureTree::enrich()
 {
+
     enrichmentChange = false ;
     lastEnrichmentId = getNodes().size() ;
 
@@ -3968,6 +4058,8 @@ Assembly *FeatureTree::getAssembly ( bool forceReassembly )
 
 void FeatureTree::insert ( Point *p )
 {
+        if(structuredMesh)
+        return ;
     double pointDensity = 0 ;
 
     if ( is2D() )
@@ -6369,11 +6461,15 @@ void FeatureTree::reMesh()
 
 bool FeatureTree::is3D() const
 {
+    if(structuredMesh)
+        return true ;
     return tree[0]->spaceDimensions() == SPACE_THREE_DIMENSIONAL ;
 }
 
 bool FeatureTree::is2D() const
 {
+    if(structuredMesh)
+        return false ;
     return tree[0]->spaceDimensions() == SPACE_TWO_DIMENSIONAL ;
 }
 
@@ -6658,6 +6754,8 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
 
 void FeatureTree::generateElements()
 {
+    if(structuredMesh)
+        return ;
     for ( size_t i = 0 ; i < boundaryCondition.size() ; i++ )
     {
         boundaryCondition[i]->clearCache() ;

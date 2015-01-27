@@ -406,7 +406,7 @@ void VoxelFilter::read(const char * filename)
 		connected_to_check = connected_to_check_temp ;
 	}
 	std::cout << "generated phases" << std::endl ;
-	
+	int eindex = 0 ;
 	for( int i = 0 ; i < r ; i++)
 	{
 		for( int j = 0 ; j < c ; j++)
@@ -563,33 +563,65 @@ void VoxelFilter::read(const char * filename)
 					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, corner[1], corner[5], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
+                    elems.back()->index = eindex++ ;
 					LinearForm * behaviour = behaviourMap[phase[i][j][k]] ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[2], corner[3], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
+                    elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[4], corner[6], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
+                    elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
+                    elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[3], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
+                    elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
-
-				}	
-			}
-
+				}
+            }
 		}
-		
 	}
 	
-	
+	for( int i = 0 ; i < r ; i++)
+    {
+        for( int j = 0 ; j < c ; j++)
+        {
+            for( int k = 0 ; k < s ; k++)
+            {
+                int elemIndex = (j*r+k*r*c+i)*5 ;
+                for(int delta = 0 ; delta < 5 ; delta++ )
+                {
+                    for(int l = std::max(i-1, 0) ; l <= std::min(i+1, r-1) ; l++)
+                    {
+                        for(int m = std::max(j-1, 0) ; m <= std::min(j+1, c-1) ; m++)
+                        {
+                            for(int n = std::max(k-1, 0) ; n <= std::min(k+1, s-1) ; n++)
+                            {
+                                int auxElemIndex((n*r+m*r*c+l)*5) ;
+                                
+                                for(int auxdelta = 0 ; auxdelta < 5 ; auxdelta++ )
+                                {
+                                    if(elems[elemIndex+delta]->isNeighbour(elems[auxElemIndex+auxdelta]))
+                                        elems[elemIndex+delta]->addNeighbour(elems[auxElemIndex+auxdelta]) ;
+                                    if(elems[elemIndex+delta]->numberOfCommonVertices(elems[auxElemIndex+auxdelta]))
+                                        elems[elemIndex+delta]->addNeighbourhood(elems[auxElemIndex+auxdelta]) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 std::vector<Point *> & VoxelFilter::getPoints()

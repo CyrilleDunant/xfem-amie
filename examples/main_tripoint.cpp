@@ -292,7 +292,7 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
-    double E_steel_effective =1./(1./E_steel+.3/E_paste) ;
+    double E_steel_effective =1./(1./E_steel+.2/E_paste) ;
 
     double halfSampleOffset = sampleLength*.25 ;
 

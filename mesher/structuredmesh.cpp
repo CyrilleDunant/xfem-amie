@@ -391,3 +391,486 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 
 }
+
+MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
+{
+    allElementsCacheID = 0 ;
+    VoxelFilter vx ;
+    vx.behaviourMap = behaviourMap ;
+    vx.read(voxelSource);
+    tree  = vx.getElements() ;
+    additionalPoints = vx.getPoints() ;
+    global_counter = additionalPoints.size() ;
+}
+
+void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
+{
+
+    std::vector<DelaunayTetrahedron *> tet = getElements() ;
+    std::valarray<bool> visited(false, tree.size()) ;
+
+    if( nodes_per_side > 1 )
+        nodes_per_side = 1 ;
+
+    std::vector<size_t> positions ;
+
+    if( nodes_per_side )
+    {
+        positions.push_back( 0 ) ;
+        positions.push_back( 1 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 2 ) ;
+        positions.push_back( 3 ) ;
+        positions.push_back( 4 ) ;
+
+        positions.push_back( 4 ) ;
+        positions.push_back( 5 ) ;
+        positions.push_back( 6 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 7 ) ;
+        positions.push_back( 6 ) ;
+
+        positions.push_back( 6 ) ;
+        positions.push_back( 8 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 9 ) ;
+        positions.push_back( 4 ) ;
+    }
+    else
+    {
+        positions.push_back( 0 ) ;
+        positions.push_back( 1 ) ;
+
+        positions.push_back( 1 ) ;
+        positions.push_back( 2 ) ;
+
+        positions.push_back( 2 ) ;
+        positions.push_back( 3 ) ;
+
+        positions.push_back( 3 ) ;
+        positions.push_back( 0 ) ;
+
+        positions.push_back( 3 ) ;
+        positions.push_back( 1 ) ;
+
+        positions.push_back( 0 ) ;
+        positions.push_back( 2 ) ;
+    }
+
+    for( size_t i = 0 ; i < tet.size() ; i++ )
+    {
+        delete tet[i]->cachedGps ;
+        tet[i]->cachedGps = nullptr ;
+        tet[i]->behaviourUpdated = true ;
+//      if( tet[i]->volume() < 0 )
+//      {
+//          for( int j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
+//              tet[i]->getBoundingPoint( j ).print() ;
+//
+//          exit( 0 ) ;
+//      }
+
+        std::vector<std::pair<Point, Point> > sides ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 1 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 2 ), tet[i]->getBoundingPoint( 3 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 0 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
+        sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
+
+
+        visited[tet[i]->index] = true ;
+
+        size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
+
+        std::valarray<Point *> newPoints( ( Point * )nullptr, nodes_per_plane * time_planes ) ;
+        std::valarray<bool> done( false, nodes_per_plane * time_planes ) ;
+
+        for( size_t plane = 0 ; plane < time_planes ; plane++ )
+        {
+            size_t current = 0 ;
+
+            for( size_t side = 0 ; side < 6 ; side++ )
+            {
+                Point a( sides[side].first ) ;
+                Point b( sides[side].second ) ;
+
+                if( time_planes > 1 )
+                {
+                    a.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+                    b.getT() = ( double )plane * ( timestep / ( double )( time_planes - 1 ) ) - timestep / 2.;
+                }
+
+                for( size_t node = 0 ; node < nodes_per_side + 2 ; node++ )
+                {
+                    double fraction = ( double )( node ) / ( ( double )nodes_per_side + 1 ) ;
+                    Point proto = a * ( 1. - fraction ) + b * fraction ;
+                    Point *foundPoint = nullptr ;
+
+                    for( size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++ )
+                    {
+                        if( tet[i]->getBoundingPoint( j ) == proto )
+                        {
+                            foundPoint = &tet[i]->getBoundingPoint( j ) ;
+                            break ;
+                        }
+                    }
+
+                    if( !foundPoint )
+                    {
+                        for( size_t j = 0 ; j < tet[i]->neighbourhood.size() ; j++ )
+                        {
+                            if( visited[tet[i]->neighbourhood[j]] )
+                            {
+                                for( size_t k = 0 ; k < tet[i]->getNeighbourhood( j )->getBoundingPoints().size() ; k++ )
+                                {
+                                    if( tet[i]->getNeighbourhood( j )->getBoundingPoint( k ) == proto )
+                                    {
+                                        foundPoint = &tet[i]->getNeighbourhood( j )->getBoundingPoint( k ) ;
+                                        break ;
+                                    }
+                                }
+
+                                if( foundPoint )
+                                {
+                                    break ;
+                                }
+                            }
+                        }
+                    }
+
+                    if( !done[positions[current] + plane * nodes_per_plane] )
+                    {
+                        if( foundPoint )
+                        {
+                            newPoints[positions[current] + plane * nodes_per_plane]  = foundPoint ;
+                        }
+                        else
+                        {
+                            additionalPoints.push_back( new Point( proto ) ) ;
+                            newPoints[positions[current] + plane * nodes_per_plane]  = additionalPoints.back() ;
+                            newPoints[positions[current] + plane * nodes_per_plane]->getId() = global_counter++ ;
+                        }
+
+                        done[positions[current] + plane * nodes_per_plane] = true ;
+                    }
+
+                    current++ ;
+                }
+            }
+        }
+
+        for( size_t k = 0 ; k < newPoints.size() ; k++ )
+            if( !newPoints[k] )
+            {
+                std::cout << "ouch !" << std::endl ;
+
+                for( size_t k = 0 ; k < newPoints.size() ; k++ )
+                    if( newPoints[k] )
+                        newPoints[k]->print() ;
+
+                exit( 0 ) ;
+            }
+
+        tet[i]->setBoundingPoints( newPoints ) ;
+
+    }
+
+}
+
+void MicDerivedMesh::extrude ( const Vector & dt ) 
+{
+    std::map<Point *, std::vector<Point *> > points ;
+    std::map<Point *, Point *> pointsInTetrahedron ;
+    std::map<Point *, std::vector<Point *> >::iterator finder ;
+
+    std::vector<DelaunayTetrahedron *> tri = getElements() ;
+    double beginning = tri[0]->getBoundingPoint(0).getT() ;
+    double end = tri[0]->getBoundingPoint(0).getT() ;
+    for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
+    {
+        if(tri[0]->getBoundingPoint(i).getT() < beginning)
+            beginning = tri[0]->getBoundingPoint(i).getT() ;
+        if(tri[0]->getBoundingPoint(i).getT() > end)
+            end = tri[0]->getBoundingPoint(i).getT() ;
+    }
+
+    int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+    int pointsPerTimePlane = tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+
+    for(size_t i = 0 ; i < tri.size() ; i++)
+    {
+        for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+        {
+            Point * current = &tri[i]->getBoundingPoint(j) ;
+            current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
+//          tri[i]->setBoundingPoint(j, current) ;
+        }
+    }
+
+
+    for(size_t i = 0 ; i < tri.size() ; i++)
+    {
+        for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+        {
+            Point * current = &tri[i]->getBoundingPoint(j) ;
+            finder = points.find(current) ;
+            if(finder == points.end())
+            {
+                Point * current = &tri[i]->getBoundingPoint(j) ;
+                current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
+
+                std::vector<Point *> newPoints ;
+                if( j < indexOfLastTimePlane)
+                {
+                    if( j < pointsPerTimePlane )
+                    {
+                        newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
+                    }
+                    size_t ifirst = newPoints.size() ;
+                    for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
+                    {
+                        Point * next = new Point(current->getX(), current->getY()) ;
+                        next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+                        next->setId(global_counter++) ;
+                        newPoints.push_back(next) ;
+                    }
+                }
+                else
+                {
+                    size_t jp = j - indexOfLastTimePlane ;
+                    Point * previous = &tri[i]->getBoundingPoint(jp) ;
+                    std::vector<Point *> previousPoints = points.find(previous)->second ;
+                    for(size_t k = 1 ; k < previousPoints.size() ; k++)
+                        newPoints.push_back(previousPoints[k]) ;
+                    Point * next = new Point(current->getX(), current->getY()) ;
+                    size_t k = dt.size()-2 ;
+                    next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
+                    next->setId(global_counter++) ;
+                    newPoints.push_back(next) ;
+                }
+
+                points.insert(std::pair<Point *, std::vector<Point *> >(current, newPoints)) ;
+            }
+        }
+    }
+
+    for(size_t i = 0 ; i < tri.size() ; i++)
+    {
+        std::valarray<Point *> newPoints(tri[i]->getBoundingPoints().size()) ;
+        for(size_t k = 1 ; k < dt.size()-1 ; k++)
+        {
+            for(size_t j = 0 ; j < newPoints.size() ; j++)
+            {
+                std::vector<Point *> found = points.find(&tri[i]->getBoundingPoint(j))->second ;
+                newPoints[j] = found[k-1] ;
+            }
+
+            DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(tri[i]->tree, nullptr, newPoints[0],newPoints[pointsPerTimePlane/4],newPoints[pointsPerTimePlane*2/4],newPoints[pointsPerTimePlane*3/4],newPoints[0]) ;
+            toInsert->setOrder(tri[i]->getOrder()) ;
+            toInsert->setBoundingPoints(newPoints) ;
+            toInsert->setBehaviour(tri[i]->getState().getMesh3D(), tri[i]->getBehaviour()->getCopy()) ;
+        }
+    }
+
+    std::cout << getElements().size() << "\t" << tri.size() << std::endl ;
+
+}
+
+void MicDerivedMesh::extrude ( double dt ) 
+{
+    std::map<Point *, Point *> points ;
+
+    std::vector<DelaunayTetrahedron *> tet = getElements() ;
+    double beginning = tet[0]->getBoundingPoint(0).getT() ;
+    double end = tet[0]->getBoundingPoint(0).getT() ;
+    for(size_t i = 1 ; i < tet[0]->getBoundingPoints().size() ; i++)
+    {
+        if(tet[0]->getBoundingPoint(i).getT() < beginning)
+            beginning = tet[0]->getBoundingPoint(i).getT() ;
+        if(tet[0]->getBoundingPoint(i).getT() > end)
+            end = tet[0]->getBoundingPoint(i).getT() ;
+    }
+
+    int indexOfLastTimePlane = (tet[0]->timePlanes()-1)*tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
+    int pointsPerTimePlane = tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
+
+    for(size_t i = 0 ; i < tet.size() ; i++)
+    {
+        for(size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++)
+        {
+            Point * next = new Point(tet[i]->getBoundingPoint(j).getX(), tet[i]->getBoundingPoint(j).getY(), tet[i]->getBoundingPoint(j).getZ()) ;
+            next->getT() = tet[i]->getBoundingPoint(j).getT() ;
+            next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
+            bool increment = true ;
+            if(next->getT() == end)
+            {
+                next = &tet[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
+                increment = false ;
+            }
+            if(increment && !points.find(&tet[i]->getBoundingPoint(j))->second)
+            {
+                next->setId(global_counter++) ;
+            }
+            points.insert(std::pair<Point *, Point *>(&tet[i]->getBoundingPoint(j), next)) ;
+        }
+    }
+
+    std::map<Point *, Point *>::iterator finder ;
+    for(size_t i = 0 ; i < tet.size() ; i++)
+    {
+        Point * a = points.find(&tet[i]->getBoundingPoint(0))->second ;
+        Point * b = points.find(&tet[i]->getBoundingPoint(pointsPerTimePlane/4))->second ;
+        Point * c = points.find(&tet[i]->getBoundingPoint(2*pointsPerTimePlane/4))->second ;
+        Point * d = points.find(&tet[i]->getBoundingPoint(3*pointsPerTimePlane/4))->second ;
+
+        std::valarray<Point *> newPoints(tet[i]->getBoundingPoints().size()) ;
+        for(size_t j = 0 ; j < newPoints.size() ; j++)
+        {
+            newPoints[j] = points.find(&tet[i]->getBoundingPoint(j))->second ;
+//          newPoints[j]->print() ;
+        }
+
+//      DelaunayTetrahedron * toInsert = new DelaunayDeadTetrahedron(tet[i]->tree, nullptr, a,b,c,d, a) ;
+//      toInsert->setOrder(tet[i]->getOrder()) ;
+//      toInsert->setBoundingPoints(newPoints) ;
+//      toInsert->setBehaviour(tet[i]->getBehaviour()->getCopy()) ;
+    }
+
+}
+    
+std::vector<DelaunayTetrahedron *> MicDerivedMesh::getNeighbourhood(DelaunayTetrahedron * element) const
+{
+    std::vector<DelaunayTetrahedron *> ret ;
+    for(const auto & idx : element->neighbourhood)
+    {
+        ret.push_back((DelaunayTetrahedron *)tree[idx]);
+    }
+    return ret ;
+};
+
+std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( const Point  * p )  
+{
+    std::vector<DelaunayTetrahedron *> ret ;
+    for(auto & e : tree)
+        if(e->inCircumSphere(*p))
+            ret.push_back(e);
+    return ret ;
+};
+
+std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( const Geometry * g )
+{
+    std::vector<DelaunayTetrahedron *> ret ;
+    for(auto & e : tree)
+        if(g->in(e->getCenter()) || e->in(g->getCenter()))
+            ret.push_back(e);
+    return ret ;
+} ;
+    
+
+void MicDerivedMesh::setElementOrder ( Order elemOrder, double dt  ){
+    if(allElementsCacheID != -1)
+    {
+        caches[allElementsCacheID].clear() ;
+        coefs[allElementsCacheID].clear() ;
+        allElementsCacheID = -1 ;
+    }
+    switch( elemOrder )
+    {
+    case CONSTANT:
+    {
+        break ;
+    }
+    case LINEAR:
+    {
+        break ;
+    }
+    case QUADRATIC:
+    {
+        addSharedNodes( 1, 1, 0 ) ;
+        break ;
+    }
+    case CUBIC:
+    {
+        addSharedNodes( 2, 1, 0 ) ;
+        break ;
+    }
+    case QUADRIC:
+    {
+        addSharedNodes( 3, 1, 0 ) ;
+        break ;
+    }
+    case QUINTIC:
+    {
+        addSharedNodes( 3, 1, 0 ) ;
+        break ;
+    }
+    case CONSTANT_TIME_LINEAR:
+    {
+        addSharedNodes( 0, 2, dt ) ;
+        break ;
+    }
+    case CONSTANT_TIME_QUADRATIC:
+    {
+        addSharedNodes( 0, 3, dt ) ;
+        break ;
+    }
+    case LINEAR_TIME_LINEAR:
+    {
+        addSharedNodes( 0, 2, dt ) ;
+        break ;
+    }
+    case LINEAR_TIME_QUADRATIC:
+    {
+        addSharedNodes( 0, 3, dt ) ;
+        break ;
+    }
+    case QUADRATIC_TIME_LINEAR:
+    {
+        addSharedNodes( 1, 2, dt ) ;
+        break ;
+    }
+    case QUADRATIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 1, 3, dt ) ;
+        break ;
+    }
+    case CUBIC_TIME_LINEAR:
+    {
+        addSharedNodes( 2, 2, dt ) ;
+        break ;
+    }
+    case CUBIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 2, 3, dt ) ;
+        break ;
+    }
+    case QUADRIC_TIME_LINEAR:
+    {
+        addSharedNodes( 3, 2, dt ) ;
+        break ;
+    }
+    case QUADRIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 3, 3, dt ) ;
+        break ;
+    }
+    case QUINTIC_TIME_LINEAR:
+    {
+        addSharedNodes( 3, 2, dt ) ;
+        break ;
+    }
+    case QUINTIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 3, 3, dt ) ;
+        break ;
+    }
+    default:
+        break ;
+
+    }
+}
