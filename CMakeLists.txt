@@ -405,6 +405,9 @@ target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 add_executable(asr_visco examples/main_asr_visco.cpp )
 target_link_libraries( asr_visco Amie ${ALL_LINK_FLAGS} )
 
+add_executable(from_mic examples/main_from_mic.cpp )
+target_link_libraries( from_mic Amie ${ALL_LINK_FLAGS} )
+
 add_executable(tension examples/main_tension.cpp )
 target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
 

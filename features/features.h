@@ -388,18 +388,6 @@ public:
     Point * checkElement ( const DelaunayTetrahedron * t ) const;
     Point * checkElement ( const DelaunayTriangle * t ) const ;
     Feature * getFeatForTetra ( const DelaunayTetrahedron * t ) const;
-    /*
-    	std::vector<DelaunayTriangle *> getActiveElements2D() ;
-    	std::vector<DelaunayTriangle *> getElements2D(int g = -1) ;
-    	std::vector<DelaunayTriangle *> getElements2DInLayer(int l = -1) ;
-    	std::vector<DelaunayTriangle *> getElements2D(const Point *p, int g = -1) ;
-    	std::vector<DelaunayTriangle *> getElements2D(const Geometry *p, int g = -1) ;
-
-    	std::vector<DelaunayTetrahedron *> getActiveElements3D() ;
-    	std::vector<DelaunayTetrahedron *> getElements3D(int g = -1) ;
-    	std::vector<DelaunayTetrahedron *> getElements3DInLayer(int l = -1) ;
-    	std::vector<DelaunayTetrahedron *> getElements3D(const Point *p, int g = -1) ;
-    	std::vector<DelaunayTetrahedron *> getElements3D(const Geometry *p, int g = -1) ;*/
 
     void setSamplingFactor ( Feature * f, double a ) {
         samplingFactors[f] = a ;
