@@ -63,7 +63,12 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 	}
 	
 	if(!end)
+    {
+        for (size_t i = 0 ; i < local.size() ; i++)
+            delete local[i] ;
+        
 		return true ;
+    }
 	
 	for(size_t i = 0 ; i < local.size() ; i++)
 	{
@@ -90,7 +95,12 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 			{
 				toCheck[i]->visited = true ;
 				if(toCheck[i] == end)
+                {
+                     for(size_t j = 0 ; j < local.size() ; j++)
+                        delete local[j] ;
+                     
 					return true ;
+                }
 				
 				for(size_t j = 0 ; j < toCheck[i]->neighbour.size() ; j++)
 				{
@@ -413,152 +423,19 @@ void VoxelFilter::read(const char * filename)
 		{
 			for( int k = 0 ; k < s ; k++)
 			{
-				if(behaviourMap[phase[i][j][k]]->type != VOID_BEHAVIOUR && connected_visited[i][j][k].first)
+				if(true)
 				{
 					std::vector<Point *> corner ;
 
-					bool aaa = true ;
-					
-					if(!(
-					      existsPath(phase, i, j, k, i-1, j-1, k-1, i-1, j-1, k-1, i, j, k) &&
-					      existsPath(phase, i, j, k, i-1, j-1, k, i-1, j-1, k-1, i, j, k) &&
-					      existsPath(phase, i, j, k, i-1, j, k-1, i-1, j-1, k-1, i, j, k) &&
-					      existsPath(phase, i, j, k, i, j-1, k-1, i-1, j-1, k-1, i, j, k)
-					    )
-					  )
-						aaa = false ;
-					
-					bool aab = true ;
-					
-					if(!(
-					      existsPath(phase, i, j, k, i-1, j-1, k+1,i-1,j-1,k,i,j,k+1) &&
-					      existsPath(phase, i, j, k, i-1, j-1, k,i-1,j-1,k,i,j,k+1) &&
-					      existsPath(phase, i, j, k, i-1, j, k+1,i-1,j-1,k,i,j,k+1) &&
-					      existsPath(phase, i, j, k, i, j-1, k+1,i-1,j-1,k,i,j,k+1)
-					    )
-					  )
-						aab = false ;
-					
-					bool aba = true ;
+                    corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
+                    corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
+                    corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
+                    corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
 
-					if(!(
-					      existsPath(phase, i, j, k, i-1, j+1, k-1, i-1, j, k-1,i,j+1, k) &&
-					      existsPath(phase, i, j, k, i-1, j+1, k,i-1, j, k-1,i,j+1, k) &&
-					      existsPath(phase, i, j, k, i-1, j, k-1,i-1, j, k-1,i,j+1, k) &&
-					      existsPath(phase, i, j, k, i, j+1, k-1,i-1, j, k-1,i,j+1, k)
-					    )
-					  )
-						aba = false ;
-					
-
-					bool abb = true ;
-					if(!(
-					      existsPath(phase, i, j, k, i-1, j+1, k+1,i-1,j,k,i,j+1,k+1) &&
-					      existsPath(phase, i, j, k, i-1, j+1, k,i-1,j,k,i,j+1,k+1) &&
-					      existsPath(phase, i, j, k, i-1, j, k+1,i-1,j,k,i,j+1,k+1) &&
-					      existsPath(phase, i, j, k, i, j+1, k+1,i-1,j,k,i,j+1,k+1)
-					    )
-					  )
-						abb = false ;
-					
-					bool baa = true ;
-					if(!(
-					      existsPath(phase, i, j, k, i+1, j-1, k-1,i,j-1, k-1,i+1,j,k) &&
-					      existsPath(phase, i, j, k, i+1, j-1, k,i,j-1, k-1,i+1,j,k) &&
-					      existsPath(phase, i, j, k, i+1, j, k-1,i,j-1, k-1,i+1,j,k) &&
-					      existsPath(phase, i, j, k, i, j-1, k-1,i,j-1, k-1,i+1,j,k)
-					    )
-					  )
-						baa = false ;
-					
-					bool bab = true ;
-					if(!(
-					      existsPath(phase, i, j, k, i+1, j-1, k+1, i,j-1, k, i+1, j,k+1) &&
-					      existsPath(phase, i, j, k, i+1, j-1, k, i,j-1, k, i+1, j,k+1) &&
-					      existsPath(phase, i, j, k, i+1, j, k+1, i,j-1, k, i+1, j,k+1) &&
-					      existsPath(phase, i, j, k, i, j-1, k+1, i,j-1, k, i+1, j,k+1)
-					    )
-					  )
-						bab = false ;
-					
-					bool bba = true ;
-					if(!(
-					      existsPath(phase, i, j, k, i+1, j+1, k-1,i,j,k-1,i+1, j+1, k) &&
-					      existsPath(phase, i, j, k, i+1, j+1, k,i,j,k-1,i+1, j+1, k) &&
-					      existsPath(phase, i, j, k, i+1, j, k-1,i,j,k-1,i+1, j+1, k) &&
-					      existsPath(phase, i, j, k, i, j+1, k-1,i,j,k-1,i+1, j+1, k)
-					    )
-					  )
-						bba = false ;
-					
-					bool bbb = true ;
-					if(!(
-					      existsPath(phase, i, j, k, i+1, j+1, k+1,i,j,k, i+1, j+1, k+1) &&
-					      existsPath(phase, i, j, k, i+1, j+1, k,i,j,k, i+1, j+1, k+1) &&
-					      existsPath(phase, i, j, k, i+1, j, k+1,i,j,k, i+1, j+1, k+1) &&
-					      existsPath(phase, i, j, k, i, j+1, k+1,i,j,k, i+1, j+1, k+1)
-					    )
-					  )
-						bbb = false ;
-
-					if(aaa)
-						corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
-					else
-					{
-						corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(aab)
-						corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
-					else
-					{
-						corner.push_back(new Point(*points[i*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(aba)
-						corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
-					else
-					{
-						corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(abb)
-						corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
-					else
-					{
-						corner.push_back(new Point(*points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(baa)
-						corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
-					else
-					{
-						corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+j*(s+1)+k])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					
-					if(bab)
-						corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
-					else
-					{
-						corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(bba)
-						corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
-					else
-					{
-						corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					if(bbb)
-						corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
-					else
-					{
-						corner.push_back(new Point(*points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1])) ;
-						(*corner.rbegin())->setId( index++) ;
-					}
-					
 					
 					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, corner[1], corner[5], corner[4], corner[7], nullptr) ;
 					tet->refresh(father) ;
@@ -612,7 +489,8 @@ void VoxelFilter::read(const char * filename)
                                 {
                                     if(elems[elemIndex+delta]->isNeighbour(elems[auxElemIndex+auxdelta]))
                                         elems[elemIndex+delta]->addNeighbour(elems[auxElemIndex+auxdelta]) ;
-                                    if(elems[elemIndex+delta]->numberOfCommonVertices(elems[auxElemIndex+auxdelta]))
+                                    
+                                    if(elems[elemIndex+delta]->numberOfCommonVertices(elems[auxElemIndex+auxdelta]) > 0)
                                         elems[elemIndex+delta]->addNeighbourhood(elems[auxElemIndex+auxdelta]) ;
                                 }
                             }

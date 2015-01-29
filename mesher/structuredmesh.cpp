@@ -394,13 +394,13 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
 {
-    allElementsCacheID = 0 ;
     VoxelFilter vx ;
     vx.behaviourMap = behaviourMap ;
     vx.read(voxelSource);
     tree  = vx.getElements() ;
     additionalPoints = vx.getPoints() ;
     global_counter = additionalPoints.size() ;
+    generateCache() ;
 }
 
 void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )

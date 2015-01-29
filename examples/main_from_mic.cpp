@@ -203,10 +203,11 @@ int main(int argc, char *argv[])
     m2 *= E/((1.+nu)*(1.-2.*nu)) ;
     
     std::map<unsigned char,LinearForm *> behaviourMap ;
-    behaviourMap[0] = new VoidForm() ;
+    behaviourMap[0] = new Stiffness(m0) ;
     behaviourMap[1] = new Stiffness(m0) ;
     behaviourMap[2] = new Stiffness(m1) ;
-    behaviourMap[3] = new Stiffness(m2) ;
+    behaviourMap[3] = new Stiffness(m1) ;
+    behaviourMap[4] = new Stiffness(m2) ;
     FeatureTree F( "voxels.txt", behaviourMap ) ;
     featureTree = &F ;
 
