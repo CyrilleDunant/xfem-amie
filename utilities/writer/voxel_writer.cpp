@@ -97,19 +97,101 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 		Vector reti(-1e9, max) ;
 		ret.push_back(reti) ;
 	}
-	if(fullSample)
-	{
-		Hexahedron * box = dynamic_cast<Hexahedron *>(F->getFeature(0)) ;
-		Point c = box->getCenter() ;
-		double sx = box->getXSize() ;
-		double sy = box->getYSize() ;
-		double sz = box->getZSize() ;
-		Point vec(sx*(nVoxelX-1)/(nVoxelX),sy*(nVoxelY-1)/(nVoxelY),sz*(nVoxelZ-1)/(nVoxelZ)) ;
-		vec *= 0.5 ;
-		bottom_left = c-vec ;
-		top_right = c+vec ;
-	}
 	
+	if(fullSample)
+	{ 
+        if(F->getFeature(0))
+        {
+            Hexahedron * box = dynamic_cast<Hexahedron *>(F->getFeature(0)) ;
+            
+            Point c = box->getCenter() ;
+            double sx = box->getXSize() ;
+            double sy = box->getYSize() ;
+            double sz = box->getZSize() ;
+            Point vec(sx*(nVoxelX-1)/(nVoxelX),sy*(nVoxelY-1)/(nVoxelY),sz*(nVoxelZ-1)/(nVoxelZ)) ;
+            vec *= 0.5 ;
+            bottom_left = c-vec ;
+            top_right = c+vec ;
+        }
+        else
+        {
+            if ( F->get3DMesh()->begin().size() == 0)
+            {
+                std::cout << "no elements in assembly" << std::endl ;
+                return ret;
+            }
+
+            double minx = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getX() ;
+            double maxx = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getX() ;
+
+            double miny = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getY() ;
+            double maxy = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getY() ;
+
+            double minz = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getZ() ;
+            double maxz = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getZ() ;
+
+            double mint = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getT() ;
+            double maxt = F->get3DMesh()->begin()->getBoundingPoint ( 0 ).getT() ;
+
+            for ( auto i = F->get3DMesh()->begin() ; i != F->get3DMesh()->end()  ; i++ )
+            {
+                for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
+                {
+                    if ( i->getBoundingPoint ( j ).getX() < minx )
+                    {
+                        minx = i->getBoundingPoint ( j ).getX() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getX() > maxx )
+                    {
+                        maxx = i->getBoundingPoint ( j ).getX() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getY() < miny )
+                    {
+                        miny = i->getBoundingPoint ( j ).getY() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getY() > maxy )
+                    {
+                        maxy = i->getBoundingPoint ( j ).getY() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getZ() < minz )
+                    {
+                        minz = i->getBoundingPoint ( j ).getZ() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getZ() > maxz )
+                    {
+                        maxz = i->getBoundingPoint ( j ).getZ() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getT() < mint )
+                    {
+                        mint = i->getBoundingPoint ( j ).getT() ;
+                    }
+
+                    if ( i->getBoundingPoint ( j ).getT() > maxt )
+                    {
+                        maxt = i->getBoundingPoint ( j ).getT() ;
+                    }
+
+                }
+                
+                
+                Point c((maxx+minx)*.5, (maxy+miny)*.5, (maxz+minz)*.5) ;
+                double sx = maxx-minx ;
+                double sy = maxy-miny ;
+                double sz = maxz-minz ;
+                Point vec(sx*(nVoxelX-1)/(nVoxelX),sy*(nVoxelY-1)/(nVoxelY),sz*(nVoxelZ-1)/(nVoxelZ)) ;
+                vec *= 0.5 ;
+                bottom_left = c-vec ;
+                top_right = c+vec ;
+            }
+        }
+            
+	}
 	
 	std::cerr << "generating values ( "<<filename << " )... " << count << "/" << F->get3DMesh()->begin().size() << std::flush ;
 	
@@ -139,7 +221,6 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 								p.getX() += ((top_right.getX())-(bottom_left.getX()))*((double)(i))/(double(nVoxelX-1)) ;
 								p.getY() += ((top_right.getY())-(bottom_left.getY()))*((double)(j))/(double(nVoxelY-1)) ;
 								p.getZ() += ((top_right.getZ())-(bottom_left.getZ()))*((double)(k))/(double(nVoxelZ-1)) ;
-								
 								if(t->in(p) && t->getBehaviour() && t->getBehaviour()->type != VOID_BEHAVIOUR)
 								{
 									std::pair<bool, std::vector<double> > val = getDoubleValue(t,p,field) ;

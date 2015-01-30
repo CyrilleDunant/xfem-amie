@@ -151,57 +151,16 @@ int main(int argc, char *argv[])
 
     double nu = 0.2 ;
     double E = 1 ;
-
-    Matrix m0(6,6) ;
-    m0[0][0] = 1. - nu ;
-    m0[0][1] = nu ;
-    m0[0][2] = nu ;
-    m0[1][0] = nu ;
-    m0[1][1] = 1. - nu ;
-    m0[1][2] = nu ;
-    m0[2][0] = nu ;
-    m0[2][1] = nu ;
-    m0[2][2] = 1. - nu ;
-    m0[3][3] = 0.5 - nu ;
-    m0[4][4] = 0.5 - nu ;
-    m0[5][5] = 0.5 - nu ;
-    m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+    Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     nu = 0.2 ;
     E = 10 ;
-    Matrix m1(6,6) ;
-    m1[0][0] = 1. - nu ;
-    m1[0][1] = nu ;
-    m1[0][2] = nu ;
-    m1[1][0] = nu ;
-    m1[1][1] = 1. - nu ;
-    m1[1][2] = nu ;
-    m1[2][0] = nu ;
-    m1[2][1] = nu ;
-    m1[2][2] = 1. - nu ;
-    m1[3][3] = 0.5 - nu ;
-    m1[4][4] = 0.5 - nu ;
-    m1[5][5] = 0.5 - nu ;
-    m1 *= E/((1.+nu)*(1.-2.*nu)) ;
-    
-    
+    Matrix m1 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
+
     nu = 0.2 ;
     E = 5 ;
-    Matrix m2(6,6) ;
-    m2[0][0] = 1. - nu ;
-    m2[0][1] = nu ;
-    m2[0][2] = nu ;
-    m2[1][0] = nu ;
-    m2[1][1] = 1. - nu ;
-    m2[1][2] = nu ;
-    m2[2][0] = nu ;
-    m2[2][1] = nu ;
-    m2[2][2] = 1. - nu ;
-    m2[3][3] = 0.5 - nu ;
-    m2[4][4] = 0.5 - nu ;
-    m2[5][5] = 0.5 - nu ;
-    m2 *= E/((1.+nu)*(1.-2.*nu)) ;
-    
+    Matrix m2 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
+
     std::map<unsigned char,LinearForm *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;
     behaviourMap[1] = new Stiffness(m0) ;
@@ -218,7 +177,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(LINEAR) ;
+    F.setOrder(QUADRATIC) ;
 
     step() ;
 

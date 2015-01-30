@@ -1324,8 +1324,6 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 
 void FeatureTree::stitch()
 {
-   if(structuredMesh)
-        return ;
       
     size_t count = 0 ;
     size_t pd = 0 ;
@@ -1342,7 +1340,7 @@ void FeatureTree::stitch()
                 dynamic_cast<DelaunayTree *> ( i->second )->addSharedNodes ( dynamic_cast<DelaunayTree *> ( layer2d.begin()->second ) ) ;
             }
 
-            if ( projectOnBoundaries )
+            if ( projectOnBoundaries && !structuredMesh)
             {
                 switch ( elemOrder )
                 {

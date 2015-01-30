@@ -429,36 +429,37 @@ void VoxelFilter::read(const char * filename)
 
                     corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k]) ;
                     corner.push_back(points[i*(r+1)*(c+1)+j*(s+1)+k+1]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
                     corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
                     corner.push_back(points[i*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
-                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k]) ;
-                    corner.push_back(points[(i+1)*(r+1)*(c+1)+j*(s+1)+k+1]) ;
-                    corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
                     corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k+1]) ;
+                    corner.push_back(points[(i+1)*(r+1)*(c+1)+(j+1)*(s+1)+k]) ;
+                    
 
 					
-					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, corner[1], corner[5], corner[4], corner[7], nullptr) ;
+					DelaunayTetrahedron * tet = new DelaunayTetrahedron(nullptr, nullptr, corner[0], corner[1], corner[3], corner[4], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
 					LinearForm * behaviour = behaviourMap[phase[i][j][k]] ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
-					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[2], corner[3], corner[6], nullptr) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[2], corner[3], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
-					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[4], corner[6], corner[7], nullptr) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[3], corner[4], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
-					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[4], corner[7], nullptr) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[4], corner[5], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
 					elems.back()->setBehaviour(nullptr,behaviour) ;
-					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[0], corner[1], corner[3], corner[7], nullptr) ;
+					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[3], corner[4], corner[6], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;

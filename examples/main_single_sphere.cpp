@@ -188,39 +188,11 @@ int main(int argc, char *argv[])
     FeatureTree F(&samplers) ;
     featureTree = &F ;
 
-    Matrix m0(6,6) ;
-    m0[0][0] = 1. - nu ;
-    m0[0][1] = nu ;
-    m0[0][2] = nu ;
-    m0[1][0] = nu ;
-    m0[1][1] = 1. - nu ;
-    m0[1][2] = nu ;
-    m0[2][0] = nu ;
-    m0[2][1] = nu ;
-    m0[2][2] = 1. - nu ;
-    m0[3][3] = 0.5 - nu ;
-    m0[4][4] = 0.5 - nu ;
-    m0[5][5] = 0.5 - nu ;
-    m0 *= E/((1.+nu)*(1.-2.*nu)) ;
+    Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     nu = 0.2 ;
     E = 10 ;
-    Matrix m1(6,6) ;
-    m1[0][0] = 1. - nu ;
-    m1[0][1] = nu ;
-    m1[0][2] = nu ;
-    m1[1][0] = nu ;
-    m1[1][1] = 1. - nu ;
-    m1[1][2] = nu ;
-    m1[2][0] = nu ;
-    m1[2][1] = nu ;
-    m1[2][2] = 1. - nu ;
-    m1[3][3] = 0.5 - nu ;
-    m1[4][4] = 0.5 - nu ;
-    m1[5][5] = 0.5 - nu ;
-    m1 *= E/((1.+nu)*(1.-2.*nu)) ;
-
-
+    Matrix m1 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
 
     MohrCoulomb * mc = new MohrCoulomb(30, -60) ;
@@ -238,7 +210,7 @@ int main(int argc, char *argv[])
 //     inc.setBehaviour(new VoidForm()) ;
 
 
-    F.addFeature(&samplers, &inc) ;
+//     F.addFeature(&samplers, &inc) ;
 // 	F.addFeature(&samplers, inc0) ;
     F.setSamplingNumber(atof(argv[1])) ;
 // 		F.setProjectionOnBoundaries(false) ;
@@ -271,7 +243,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(QUADRATIC) ;
+    F.setOrder(LINEAR) ;
 
     step() ;
 // 	delete dt ;

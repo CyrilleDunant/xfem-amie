@@ -401,6 +401,10 @@ MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,
     additionalPoints = vx.getPoints() ;
     global_counter = additionalPoints.size() ;
     generateCache() ;
+    for(size_t i = 0 ; i < tree.size() ; i++)
+    {
+        tree[i]->tree = this ;
+    }
 }
 
 void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )

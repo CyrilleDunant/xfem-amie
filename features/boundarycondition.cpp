@@ -1565,6 +1565,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( XI, forces[0], id[i] ) ;
                 a->addForceOn ( ETA, forces[1], id[i] ) ;
                 a->addForceOn ( ZETA, forces[2], id[i] ) ;
+//                 std::cout << forces[0] << "  " << forces[1] << "  " << forces[2] << std::endl ;
             }
 
             return ;

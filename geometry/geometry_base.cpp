@@ -4614,7 +4614,7 @@ std::valarray<std::pair<Point, double> > TriPoint::getGaussPoints(bool timeDepen
     Point a = origin + x*0.2 + y*0.2 ;
     Point b = origin + x*0.6 + y*0.2 ;
     Point c = origin + x*0.2 + y*0.6 ;
-    Point d = origin + x/3.0 + y/3.0 ;
+    Point d = (*point[0]+*point[1]+*point[2])/3.0 ;
 //	double n = norm() ;
 
     double ar = area()*2 ;

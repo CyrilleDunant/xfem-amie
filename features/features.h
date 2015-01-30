@@ -651,8 +651,13 @@ public:
     /** \brief Return true id the argument lies in the root feature*/
     bool inRoot ( const Point &p ) const ;
 
-    Feature * getFeature ( size_t i ) {
-        return tree[i] ;
+    Feature * getFeature ( size_t i ) 
+    {
+        if(tree.size() > i)
+            return tree[i] ;
+        
+        return nullptr ;
+
     }
 
     /** \brief initialise the element states*/
