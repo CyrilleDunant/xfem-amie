@@ -989,6 +989,8 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 		if(!log)
 			log = new LogarithmicCreepWithExternalParameters(std::string()) ;
 
+		log->plane = pt ;
+
 		std::vector<ConfigTreeItem *> parameters = getChild("parameters")->getAllChildren() ;
 		for(size_t i = 0 ; i < parameters.size() ; i++)
 		{
