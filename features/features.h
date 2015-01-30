@@ -510,9 +510,9 @@ public:
         return now ;
     }
 
-    const Vector & getDisplacements ( int g = -1, bool stepTree = true )  ;
+    const Vector & getDisplacements ( int g = -1, bool stepTree = false )  ;
 
-    Vector getDisplacements ( Point * pt,  int g = -1, bool stepTree = true )  ;
+    Vector getDisplacements ( Point * pt,  int g = -1, bool stepTree = false )  ;
 
     /** \brief  Refine the mesh around the features.
      *

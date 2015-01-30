@@ -198,8 +198,8 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Line
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
-    behaviourSet =false ;
-    damageConverged = false ;
+    behaviourSet =true ;
+    damageConverged = true ;
     stateConverged = false ;
     dtree = nullptr ;
     dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
@@ -212,14 +212,14 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Line
     elemOrder = LINEAR ;
     renumbered = false ;
     needAssembly = true ;
-    setBehaviours = false ;
-    behaviourChange = true ;
+    setBehaviours = true ;
+    behaviourChange = false ;
     solverConvergence = false ;
-    enrichmentChange = true ;
+    enrichmentChange = false ;
     needMeshing = true ;
 
     elastic = false ;
-    projectOnBoundaries = true ;
+    projectOnBoundaries = false ;
 
     K = new Assembly() ;
     K->setSpaceDimension ( SPACE_THREE_DIMENSIONAL ) ;
@@ -537,6 +537,9 @@ void FeatureTree::removeBoundaryCondition ( BoundaryCondition *bc )
 void FeatureTree::setOrder ( Order ord )
 {
 
+    if(ord == elemOrder)
+        return ;
+    
     state.stitched = false ;
     state.renumbered = false ;
     state.initialised = false ;
@@ -4663,7 +4666,7 @@ bool FeatureTree::stepElements()
 
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
-                     #pragma omp parallel
+            #pragma omp parallel
 		    {
 			#pragma omp single
                         {
@@ -5368,7 +5371,6 @@ bool FeatureTree::step()
             }
         }
         state.setStateTo ( XFEM_STEPPED, true ) ;
-
         deltaTime = 0 ;
         if ( solverConverged() )
         {
@@ -5378,6 +5380,11 @@ bool FeatureTree::step()
             {
                 betweenCheckpointCount++ ;
             }
+            else
+            {
+                if(!(enrichmentChange || behaviourChanged()))
+                    needexit = true ;
+            }
             maxBetweenCheckPoints = std::max ( betweenCheckpointCount, maxBetweenCheckPoints ) ;
         }
         else
@@ -5386,7 +5393,7 @@ bool FeatureTree::step()
             needexit = true ;
             std::cout << "+" << std::flush ;
         }
-
+        
         if ( enrichmentChange || needMeshing )
         {
             K->clear() ;

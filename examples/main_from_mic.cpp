@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(QUADRATIC) ;
+    F.setOrder(LINEAR) ;
 
     step() ;
 
