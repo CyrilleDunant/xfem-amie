@@ -15,7 +15,7 @@ namespace Amie
 	struct CHBehaviour : public Stiffness
 	{
         // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
-		CHBehaviour(double E=35.4e9, double nu=0.28, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		CHBehaviour(double E=35.4e9, double nu=0.28, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		

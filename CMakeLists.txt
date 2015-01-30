@@ -145,6 +145,9 @@ physics/materials/paste_behaviour.cpp
 physics/materials/rebar_behaviour.cpp
 physics/materials/steel_behaviour.cpp
 physics/materials/concrete_behaviour.cpp
+physics/materials/c3s_behaviour.cpp
+physics/materials/csh_behaviour.cpp
+physics/materials/ch_behaviour.cpp
 polynomial/scalarfield.cpp 
 solvers/assembly.cpp 
 geometry/space_time_geometry_2D.cpp 

@@ -4,29 +4,11 @@
 //
 //
 
-#include "main.h"
-#include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics_base.h"
-#include "../physics/fracturecriteria/mohrcoulomb.h"
-#include "../physics/laplacian.h"
-#include "../physics/fracturecriteria/ruptureenergy.h"
-#include "../physics/stiffness.h"
-#include "../physics/stiffness_and_fracture.h"
-#include "../features/pore.h"
-#include "../features/sample.h"
-#include "../features/sample3d.h"
-#include "../features/inclusion.h"
-#include "../features/inclusion3d.h"
-#include "../features/expansiveZone.h"
-#include "../features/crack.h"
-#include "../features/enrichmentInclusion.h"
-#include "../mesher/delaunay_3d.h"
 #include "../utilities/writer/voxel_writer.h"
-#include "../features/expansiveZone3d.h"
-#include "../solvers/assembly.h"
-#include "../utilities/granulo.h"
-#include "../utilities/placement.h"
+#include "../physics/materials/c3s_behaviour.h"
+#include "../physics/materials/csh_behaviour.h"
+#include "../physics/materials/ch_behaviour.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -163,10 +145,10 @@ int main(int argc, char *argv[])
 
     std::map<unsigned char,LinearForm *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;
-    behaviourMap[1] = new Stiffness(m0) ;
-    behaviourMap[2] = new Stiffness(m1) ;
-    behaviourMap[3] = new Stiffness(m1) ;
-    behaviourMap[4] = new Stiffness(m2) ;
+    behaviourMap[1] = new C3SBehaviour() ;
+    behaviourMap[2] = new Stiffness(m0) ;
+    behaviourMap[3] = new Stiffness(m0) ;
+    behaviourMap[4] = new Stiffness(m0) ;
     FeatureTree F( "voxels.txt", behaviourMap ) ;
     featureTree = &F ;
 

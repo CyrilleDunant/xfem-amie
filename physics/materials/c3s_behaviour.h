@@ -15,7 +15,7 @@ namespace Amie
 	struct C3SBehaviour : public Stiffness
 	{
         // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
-		C3SBehaviour(double E=138e9, double nu=0.28, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+		C3SBehaviour(double E=138e9, double nu=0.28, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
 		
 		virtual Form * getCopy() const ;
 		
