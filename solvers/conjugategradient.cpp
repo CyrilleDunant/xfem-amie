@@ -64,10 +64,12 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
 		P = new InverseDiagonal(assembly->getMatrix()) ;
+//		P = new InverseDiagonalSquared(assembly->getMatrix()) ;
+//		P = new Inverse2x2Diagonal(assembly->getMatrix()) ;
         //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
         //   505     16    15    16    10.6    15    14    10.6    15   14   10    11    10.3  10.2  10.6  10.7
 // 		P = new Ssor(A, 1.5) ;
-//  		P = new InverseLumpedDiagonal(A) ;
+//  		P = new InverseLumpedDiagonal(assembly->getMatrix()) ;
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
@@ -133,7 +135,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
 	double rho = 0 ;
 	double beta = 0 ;
-	while(last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit )
+	while((last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
 	{
 //             if(nit < 256)
 		P->precondition(r, z) ;

@@ -2550,13 +2550,15 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 	}
 	else
 	{
-// 		if(!isMoved() && !cachedJinv.empty())
-// 		{
-// 			if(ret.isNull())
-// 				ret.resize(3,3) ;
-// 			ret.array() = cachedJinv[0].array() ;
-// 			return ;
-// 		}
+/* 		if(!isMoved() && !cachedJinv.empty())
+ 		{
+ 			if(ret.isNull()  || ret.size() != 9)
+ 				ret.resize(3,3) ;
+ 			ret.array() = cachedJinv[0].array() ;
+//			std::cout << ret.numCols() << "\t" << ret.numRows() << std::endl ;
+//			ret.print() ;
+ 			return ;
+ 		}*/
 		
 		if(ret.isNull() || ret.size() != 9)
 			ret.resize(3,3) ;
@@ -2603,6 +2605,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 		invert3x3Matrix(ret) ;
 		if(cachedJinv.empty() && !isMoved())
 			cachedJinv.push_back(ret) ;
+//		ret.print() ;
 	}
 }
 	

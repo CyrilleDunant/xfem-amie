@@ -46,6 +46,20 @@ struct LoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
+struct StrainRateDependentStrengthMaterialLaw : public ExternalMaterialLaw
+{
+	double strainRateRef ;
+	double p ;
+
+	StrainRateDependentStrengthMaterialLaw(double p_ = 0.1, double eps = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), p(p_), strainRateRef(eps) { } 
+    virtual ~StrainRateDependentStrengthMaterialLaw() { } ;
+
+    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
+
+
+
+} ;
+
 struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
 {
     DryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }

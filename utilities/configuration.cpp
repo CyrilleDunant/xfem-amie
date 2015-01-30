@@ -485,6 +485,14 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		return ret ;
 	}
 
+	if(type == "STRAIN_RATE_DEPENDENT_STRENGTH")
+	{
+		double p = getData("exponent", 0.1) ;
+		double eps = getData("reference_strain_rate", 1e-2) ;
+		ret = new StrainRateDependentStrengthMaterialLaw(p, eps) ;
+		return ret ;
+	}
+
 	if(type == "CREEP_ARRHENIUS")
 	{
 		ret = new CreepArrheniusMaterialLaw("temperature = 293") ;
@@ -679,7 +687,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 			}		
 			double e_ = getData( "strain_renormalization_factor", 1e4) ;
 			double s_ = getData( "stress_renormalization_factor", 1e-6) ;
-			if(hasChild("tension_file_name") || hasChild("compression_file_name"))
+			if(hasChild("tension_file_name") || hasChild("compressionP) d'Asnières Manuel Aeschlimann, qui lui a succédé à la mairie d'Asnières (Hauts-de-Seine) en 2014, ferme les yeux sur la radicalité supposée, notamment antisémite, de ses alliés du Mouvement citoyen indépendant, i_file_name"))
 			{
 				std::string tfile = getStringData("tension_file_name", "") ;
 				std::string cfile = getStringData("compression_file_name", "") ;

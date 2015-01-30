@@ -54,6 +54,56 @@ void LoadNonLinearCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticE
     s.multiply("recoverable_modulus", factor) ;
 }
 
+void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("tensile_strength") && !s.has("compressive_strength") )
+	return ;
+
+    if(!s.has("previous_principal_strain_0") || !s.has("previous_principal_strain_1"))
+    {
+	s.set("previous_principal_strain_0", 0) ;
+	s.set("previous_principal_strain_1", 0) ;
+    }
+
+    Vector pstrain(2) ; pstrain=0. ;
+    s.getAverageField(PRINCIPAL_STRAIN_FIELD, pstrain, nullptr, -1, 1.) ;
+    if(std::abs(pstrain.max()) < POINT_TOLERANCE_2D*dt && std::abs(pstrain.min()) < POINT_TOLERANCE_2D*dt)
+	return ;
+
+    double strainrate = 0. ;
+    if( std::abs(pstrain[0]) > std::abs(pstrain[1])  )
+	strainrate = pstrain[0]-s.get("previous_principal_strain_0",defaultValues) ;
+    else
+	strainrate = pstrain[1]-s.get("previous_principal_strain_1",defaultValues) ;
+
+    if(strainrate < 0)
+	strainrate *= -1. ;
+
+    strainrate /= s.getNodalDeltaTime() ;
+
+    if(strainrate < strainRateRef)
+    {
+
+	    double f = strainrate/strainRateRef ;
+
+	    if(s.has("tensile_strength"))
+	    {
+		s.multiply("tensile_strength", 0.6+0.4*std::pow(f, p)) ;
+		s.multiply("ultimate_tensile_strain", 1.+std::log10(1./f)) ;
+	    }
+
+	    if(s.has("compressive_strength"))
+	    {
+		s.multiply("compressive_strength", 0.6+0.4*std::pow(f, p)) ;
+		s.multiply("ultimate_compressive_strain", 1.+std::log10(1./f)) ;
+	    }
+    }
+
+    s.set("previous_principal_strain_0",pstrain[0]);
+    s.set("previous_principal_strain_1",pstrain[1]);
+
+}
+
 ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char sep) : ExternalMaterialLaw(args, sep), affected(a)
 {
     coefficient = affected ; coefficient.append("_activation_energy") ;
