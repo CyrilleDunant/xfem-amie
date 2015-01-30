@@ -54,7 +54,7 @@ public:
 	void read(const char * filename) ;
 	
 /** \brief assign voxel values to Behaviours*/
-	std::map<unsigned char,LinearForm *> behaviourMap ;
+	std::map<unsigned char,Form *> behaviourMap ;
 	
 /** \brief return the points forming the mesh*/
 	std::vector<Point *> & getPoints() ;

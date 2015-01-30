@@ -189,7 +189,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 
 }
 
-FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
+FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
 {
     initialValue = 0 ;
     deltaTime = 0 ;

@@ -392,7 +392,7 @@ void StructuredMesh::addSharedNodes(size_t nodes_per_side, size_t time_planes, d
 
 }
 
-MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
+MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL)
 {
     VoxelFilter vx ;
     vx.behaviourMap = behaviourMap ;

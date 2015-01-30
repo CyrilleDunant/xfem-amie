@@ -469,7 +469,7 @@ public:
      * @return
      */
     FeatureTree ( Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 100 ) ;
-    FeatureTree ( const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap ) ;
+    FeatureTree ( const char * voxelSource, std::map<unsigned char, Form *> behaviourMap ) ;
     virtual ~FeatureTree() ;
 
     void dumpFeatures ( std::string filename ) ;

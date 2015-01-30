@@ -203,7 +203,7 @@ void VoxelFilter::read(const char * filename)
 						|| j == 0 
 						|| j == c-1 
 						|| k == 0 
-						|| k == s-1) && behaviourMap[behaviourKey]->type != VOID_BEHAVIOUR, (i == 0 
+						|| k == s-1) , (i == 0 
 						               || i == r-1 
 						               || j == 0 
 						               || j == c-1 
@@ -238,9 +238,6 @@ void VoxelFilter::read(const char * filename)
 			   [connected_to_check[i][0]-1]
 			   [connected_to_check[i][1]]
 			   [connected_to_check[i][2]].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]-1]
-			   [connected_to_check[i][1]]
-			   [connected_to_check[i][2]]]->type != VOID_BEHAVIOUR
 			  )
 			{
 				connected_visited
@@ -268,9 +265,6 @@ void VoxelFilter::read(const char * filename)
 			   [connected_to_check[i][0]]
 			   [connected_to_check[i][1]-1]
 			   [connected_to_check[i][2]].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]]
-			                    [connected_to_check[i][1]-1]
-			                    [connected_to_check[i][2]]]->type != VOID_BEHAVIOUR
 			  )
 			{
 				connected_visited
@@ -297,10 +291,7 @@ void VoxelFilter::read(const char * filename)
 			   && !connected_visited
 			   [connected_to_check[i][0]]
 			   [connected_to_check[i][1]]
-			   [connected_to_check[i][2]-1].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]]
-			                    [connected_to_check[i][1]]
-			                    [connected_to_check[i][2]]-1]->type != VOID_BEHAVIOUR
+			   [connected_to_check[i][2]-1].first                   
 			  )
 			{
 				connected_visited
@@ -327,10 +318,7 @@ void VoxelFilter::read(const char * filename)
 			   && !connected_visited
 			   [connected_to_check[i][0]+1]
 			   [connected_to_check[i][1]]
-			   [connected_to_check[i][2]].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]+1]
-			                    [connected_to_check[i][1]]
-			                    [connected_to_check[i][2]]]->type != VOID_BEHAVIOUR
+			   [connected_to_check[i][2]].first                 
 			  )
 			{
 				connected_visited
@@ -357,10 +345,7 @@ void VoxelFilter::read(const char * filename)
 			   && !connected_visited
 			   [connected_to_check[i][0]]
 			   [connected_to_check[i][1]+1]
-			   [connected_to_check[i][2]].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]]
-			                    [connected_to_check[i][1]+1]
-			                    [connected_to_check[i][2]]]->type != VOID_BEHAVIOUR
+			   [connected_to_check[i][2]].first       
 			  )
 			{
 				connected_visited
@@ -388,9 +373,6 @@ void VoxelFilter::read(const char * filename)
 			   [connected_to_check[i][0]]
 			   [connected_to_check[i][1]]
 			   [connected_to_check[i][2]+1].first 
-			   && !behaviourMap[phase[connected_to_check[i][0]]
-			                    [connected_to_check[i][1]]
-			                    [connected_to_check[i][2]]+1]->type != VOID_BEHAVIOUR
 			  )
 			{
 				connected_visited
@@ -442,28 +424,27 @@ void VoxelFilter::read(const char * filename)
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
-					LinearForm * behaviour = behaviourMap[phase[i][j][k]] ;
-					elems.back()->setBehaviour(nullptr,behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviourMap[phase[i][j][k]]->getCopy()) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[2], corner[3], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
-					elems.back()->setBehaviour(nullptr,behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviourMap[phase[i][j][k]]->getCopy()) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[3], corner[4], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
-					elems.back()->setBehaviour(nullptr,behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviourMap[phase[i][j][k]]->getCopy()) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[1], corner[4], corner[5], corner[6], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
-					elems.back()->setBehaviour(nullptr,behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviourMap[phase[i][j][k]]->getCopy()) ;
 					tet = new DelaunayTetrahedron( nullptr,nullptr, corner[3], corner[4], corner[6], corner[7], nullptr) ;
 					tet->refresh(father) ;
 					elems.push_back(tet) ;
                     elems.back()->index = eindex++ ;
-					elems.back()->setBehaviour(nullptr,behaviour) ;
+					elems.back()->setBehaviour(nullptr,behaviourMap[phase[i][j][k]]->getCopy()) ;
 				}
             }
 		}

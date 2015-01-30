@@ -117,12 +117,12 @@ void step()
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 
-    VoxelWriter vw("sphere_stress", 150) ;
-    vw.getField(featureTree, VWFT_STRESS) ;
-    vw.write();
-// 	VoxelWriter vw0("sphere_strain", 50) ;
-// 	vw0.getField(featureTree, VWFT_STRAIN) ;
-// 	vw0.write();
+//     VoxelWriter vw("sphere_stress", 150) ;
+//     vw.getField(featureTree, VWFT_STRESS) ;
+//     vw.write();
+	VoxelWriter vw0("sphere_stiffness", 100) ;
+	vw0.getField(featureTree, VWFT_STIFFNESS) ;
+	vw0.write();
     exit(0) ;
 }
 
@@ -135,21 +135,13 @@ int main(int argc, char *argv[])
     double E = 20 ;
     Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
-    nu = 0.2 ;
-    E = 10 ;
-    Matrix m1 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
-
-    nu = 0.2 ;
-    E = 5 ;
-    Matrix m2 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
-
-    std::map<unsigned char,LinearForm *> behaviourMap ;
-    behaviourMap[0] = new C3SBehaviour() ;
-    behaviourMap[1] = new C3SBehaviour() ;
-    behaviourMap[2] = new C3SBehaviour() ;
-    behaviourMap[3] = new Stiffness(m0) ;
-    behaviourMap[4] = new C3SBehaviour() ; // C3S
-    FeatureTree F( "voxels.txt", behaviourMap ) ;
+    std::map<unsigned char,Form *> behaviourMap ;
+    behaviourMap[0] = new Stiffness(m0) ; // pores ?
+    behaviourMap[1] = new C3SBehaviour() ;  // C3S
+    behaviourMap[2] = new CHBehaviour() ; // CH ?
+    behaviourMap[3] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
+    behaviourMap[4] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H
+    FeatureTree F( "../examples/data/voxels.txt", behaviourMap ) ;
     featureTree = &F ;
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;

@@ -51,7 +51,7 @@ protected:
     size_t global_counter ;
     std::vector<DelaunayTetrahedron *> tree ;
     std::vector< Point *> additionalPoints ;
-    std::map<unsigned char,LinearForm *> behaviourMap ;
+    std::map<unsigned char,Form *> behaviourMap ;
     virtual std::vector<DelaunayTetrahedron *> getElements()  {return tree ; };
 public:
 
@@ -65,7 +65,7 @@ public:
     void addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father = nullptr) ;
     
 public:
-    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,LinearForm *> behaviourMap) ;
+    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap) ;
     
     virtual ~MicDerivedMesh() {} ;
 
