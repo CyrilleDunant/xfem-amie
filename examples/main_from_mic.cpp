@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 {
 
     double nu = 0.2 ;
-    double E = 1 ;
+    double E = 20 ;
     Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     nu = 0.2 ;
@@ -144,17 +144,17 @@ int main(int argc, char *argv[])
     Matrix m2 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     std::map<unsigned char,LinearForm *> behaviourMap ;
-    behaviourMap[0] = new Stiffness(m0) ;
+    behaviourMap[0] = new C3SBehaviour() ;
     behaviourMap[1] = new C3SBehaviour() ;
-    behaviourMap[2] = new Stiffness(m0) ;
+    behaviourMap[2] = new C3SBehaviour() ;
     behaviourMap[3] = new Stiffness(m0) ;
-    behaviourMap[4] = new Stiffness(m0) ;
+    behaviourMap[4] = new C3SBehaviour() ; // C3S
     FeatureTree F( "voxels.txt", behaviourMap ) ;
     featureTree = &F ;
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;

@@ -13,8 +13,10 @@
 
 using namespace Amie ;
 
-CSHBehaviour::CSHBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim))
+CSHBehaviour::CSHBehaviour(CSHType type, double E, double nu, SpaceDimensionality dim) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim))
 {
+    if(type == INNER_CSH)
+        param *= 1.8 ;
 }
 
 Form * CSHBehaviour::getCopy() const 
