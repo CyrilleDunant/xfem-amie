@@ -2738,7 +2738,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     Matrix J(ndofs, ndofs) ;
     getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
     std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
-
     if(moved)
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)

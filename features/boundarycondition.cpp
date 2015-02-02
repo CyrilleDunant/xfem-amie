@@ -1396,8 +1396,8 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[i], gpe, Jinve, v, false, std::abs ( edge.normalv() ) ) ;
-
+                
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[i], gpe, Jinve, v, false, std::abs (  edge.normalv ( e->getCenter() ) ) ) ;
                 a->addForceOn ( XI, forces[0], id[i] ) ;
                 a->addForceOn ( ETA, forces[1], id[i] ) ;
                 a->addForceOn ( ZETA, forces[2], id[i] ) ;

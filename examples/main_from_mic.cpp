@@ -134,25 +134,30 @@ void step()
 int main(int argc, char *argv[])
 {
 
+    Matrix toto(2,2) ;
+    toto[0][0] = 0 ; toto[0][1] = 1 ; 
+    toto[1][0] = 2 ; toto[1][1] = 3 ; 
+//     std::cout << toto.array()[0] << " " << toto.array()[1] << " " << toto.array()[2] << " " << toto.array()[3] << " " << std::endl ;
+//     exit(0) ;
     double nu = 0.2 ;
     double E = 2e9 ;
     Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     std::map<unsigned char,Form *> behaviourMap ;
-    behaviourMap[0] = new Stiffness(m0) ; // pores ?
-    behaviourMap[1] = new C3SBehaviour() ;  // C3S
-    behaviourMap[2] = new CHBehaviour() ; // CH ?
-    behaviourMap[3] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
-    behaviourMap[4] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H
-//     behaviourMap[0] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // pores ?
-//     behaviourMap[1] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // C3S
-//     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
-//     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
-//     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
+//     behaviourMap[0] = new Stiffness(m0) ; // pores ?
+//     behaviourMap[1] = new C3SBehaviour() ;  // C3S
+//     behaviourMap[2] = new CHBehaviour() ; // CH ?
+//     behaviourMap[3] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
+//     behaviourMap[4] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H
+    behaviourMap[0] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // pores ?
+    behaviourMap[1] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // C3S
+    behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
+    behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
+    behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( "../examples/data/voxels.txt", behaviourMap ) ;
     featureTree = &F ;
     F.setOrder(LINEAR_TIME_LINEAR) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
 

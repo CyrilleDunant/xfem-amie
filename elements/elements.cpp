@@ -4231,14 +4231,8 @@ void TetrahedralElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 {
     if(order < CONSTANT_TIME_LINEAR)
     {
-        if(!isMoved() )
-        {
-            if(ret.isNull())
-                ret.resize(3,3) ;
-            return ;
-        }
-        
-        if(ret.isNull())
+
+        if(ret.isNull()|| ret.size() != 9)
             ret.resize(3,3) ;
         
         double xdxi = 0 ;//this->getdXTransform(XI,p) ;

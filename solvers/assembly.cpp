@@ -1430,12 +1430,14 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
             cg.colstart = colstart;
         }
 
-//         for(size_t i = 0 ; i < 1602 ; i++)
+//         for(size_t i = 0 ; i < 192 ; i++)
 //         {
-//             for(size_t j = 0 ; j < 1602 ; j++)
+//             for(size_t j = 0 ; j < 192 ; j++)
 //                 std::cout << getMatrix()[i][j] << "   " << std::flush ;
 //             std::cout << std::endl ;
 //         }
+        for(size_t i = 0 ; i < 192 ; i++)
+            std::cout << getForces()[i] << "   " << std::flush ;
 
         ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);

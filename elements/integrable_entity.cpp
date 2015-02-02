@@ -3936,7 +3936,8 @@ Vector Form::getForcesFromAppliedStress ( const Vector & data, Function & shape,
         ret[2] += ( data[2]*normal[2]+data[4]*normal[0]+data[5]*normal[1] ) ;
 
     }
-
+//     VirtualMachine().print(shape);
+//     std::cout << ret[0] << "  " << ret[1] << "  " << ret[2] << "  "<< gp.gaussPoints[0].first.getX() << "  "<<  gp.gaussPoints[1].first.getX() << "  "<< gp.gaussPoints[2].first.getX() << "  "<<   gp.gaussPoints[3].first.getX() << "  "<<  VirtualMachine().ieval ( shape, gp ) << std::endl ;
     return ret * VirtualMachine().ieval ( shape, gp ) ;
 }
 

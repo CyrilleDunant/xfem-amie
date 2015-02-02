@@ -655,6 +655,27 @@ Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s)
 {	
   
 	Amie::Matrix ret(4,4) ;
+//     Matrix a(2, 0, 0, s) ; Matrix b(2, 0, 2, s) ;
+//     Matrix c(2, 2, 0, s) ; Matrix d(2, 2, 2, s) ;
+//     Matrix r1 = inverse2x2Matrix(a) ;
+//     Matrix r3 = r1*b ;
+//     Matrix r6 = (Matrix)(c * r3) - d ; invert2x2Matrix(r6);
+//     Matrix s00 = r1 - r3 * c ; Matrix s01 = r3 * r6 ;
+//     Matrix s10 = r6 * c * r1 ;
+// 
+//     ret[0][0] = s00[0][0]; ret[0][1] = s00[0][1]; ret[0][2] = s01[0][0]; ret[0][3] = s01[0][1];
+//     ret[1][0] = s00[1][0]; ret[1][1] = s00[1][1]; ret[1][2] = s01[1][0]; ret[1][3] = s01[1][1];
+//     ret[2][0] = s10[0][0];ret[2][1] =  s10[0][1]; ret[2][2] = -r6[0][0]; ret[3][3] = -r6[0][1];
+//     ret[3][0] = s10[1][0];ret[3][1] =  s10[1][1]; ret[3][2] = -r6[1][0]; ret[3][3] = -r6[1][1];
+//     return ret ;
+//     double r1 = 1. / s.array()[0] ;
+//     double r3 = r1 * s.array()[1] ;
+//     double r6 = 1. / (s.array()[2] * r3 - s.array()[3]) ;
+//     s.array()[1] = r3 * r6 ;
+//     s.array()[2] = r6 * s.array()[2] * r1 ;
+//     s.array()[0] = r1 - r3 * s.array()[2] ;
+//     s.array()[3] = -r6 ;
+    
 //     Matrix a(2, 0, 0, s) ; Matrix c(2, 0, 2, s) ;
 //     Matrix b(2, 2, 0, s) ; Matrix d(2, 2, 2, s) ;
 // //     

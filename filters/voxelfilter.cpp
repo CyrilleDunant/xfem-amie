@@ -157,9 +157,9 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
     std::cout << "volume is " << r << " x " << c << " x " << s << std::endl ;
-//     r = 25 ;
-//     c = 25 ;
-//     s = 25 ;
+//     r = 3 ;
+//     c = 3 ;
+//     s = 3 ;
     int index = 0 ;
     for( int i = 0 ; i < r+1 ; i++)
     {
