@@ -679,30 +679,32 @@ void VoxelGLDrawer::initializePalette(){
 // 	for(size_t i = 0 ; i < 127 ; i++)
 // 		palette[i] = (RGBA2i(i,i,255,255)) ;
 	
-//	for(int i = 0 ; i < 256 ; i++)
-//	{
-//		size_t r; 
-//		size_t g; 
-//		size_t b; 
-//		HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
-//		palette.push_back(RGBA2i(r,g,b,255)) ;
-//	}
+    int min_val = (*valuesAtPoint)[m_currentField].min() ;
+    int max_val = (*valuesAtPoint)[m_currentField].min() ;
+	for(int i = 0 ; i < 256 ; i++)
+	{
+		size_t r; 
+		size_t g; 
+		size_t b; 
+		HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
+		palette.push_back(RGBA2i(r,g,b,255)) ;
+	}
 	
 // 	for(size_t i = 0 ; i < 127 ; i++)
 // 		palette[i] = (RGBA2i(i,i,255,255)) ;
 	
- 	palette.push_back(RGBA2i(255,127,127,255)) ;
- 	palette.push_back(RGBA2i(255,191,127,255)) ;
- 	palette.push_back(RGBA2i(255,255,127,255)) ;
- 	palette.push_back(RGBA2i(191,255,127,255)) ;
- 	palette.push_back(RGBA2i(127,255,127,255)) ;
- 	palette.push_back(RGBA2i(127,255,191,255)) ;
- 	palette.push_back(RGBA2i(127,255,255,255)) ;
- 	palette.push_back(RGBA2i(127,191,127,255)) ;
- 	palette.push_back(RGBA2i(127,127,255,255)) ;
- 	palette.push_back(RGBA2i(191,127,255,255)) ;
- 	palette.push_back(RGBA2i(255,127,255,255)) ;
- 	palette.push_back(RGBA2i(255,127,191,255)) ;
+//  	palette.push_back(RGBA2i(255,127,127,255)) ;
+//  	palette.push_back(RGBA2i(255,191,127,255)) ;
+//  	palette.push_back(RGBA2i(255,255,127,255)) ;
+//  	palette.push_back(RGBA2i(191,255,127,255)) ;
+//  	palette.push_back(RGBA2i(127,255,127,255)) ;
+//  	palette.push_back(RGBA2i(127,255,191,255)) ;
+//  	palette.push_back(RGBA2i(127,255,255,255)) ;
+//  	palette.push_back(RGBA2i(127,191,127,255)) ;
+//  	palette.push_back(RGBA2i(127,127,255,255)) ;
+//  	palette.push_back(RGBA2i(191,127,255,255)) ;
+//  	palette.push_back(RGBA2i(255,127,255,255)) ;
+//  	palette.push_back(RGBA2i(255,127,191,255)) ;
 }
 
 void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offset, int mult)
@@ -1631,7 +1633,7 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	
 	for(size_t i = 0 ; i< c->size() ; i++)
 	{
-		(*c)[i] = (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
+		(*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; (*d)[0][i] ;
 // 		if(abs((double)(*c)[i]- 0  ) <=1 || 
 // 			abs((double)(*c)[i] - 20 ) <=1 || 
 // 			abs((double)(*c)[i] - 40 ) <=1 ||

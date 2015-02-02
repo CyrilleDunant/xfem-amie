@@ -482,7 +482,7 @@ void DelaunayTree::extrude(double dt)
             next->getT() = tri[i]->getBoundingPoint(j).getT() ;
             next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
             bool increment = true ;
-            if(next->getT() == end)
+            if(std::abs(next->getT() - end) < POINT_TOLERANCE_2D)
             {
                 next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
                 increment = false ;

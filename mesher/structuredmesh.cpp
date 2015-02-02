@@ -77,7 +77,6 @@ size_t StructuredMesh::getLastNodeId() const
 	return global_counter ;
 }
 
-
 StructuredMesh::~StructuredMesh() 
 {
 	std::valarray<Point *> nularray(0) ;
@@ -98,6 +97,7 @@ StructuredMesh::~StructuredMesh()
 		delete points[i] ;
 	
 }
+
 std::vector<DelaunayTriangle *> StructuredMesh::getElements() 
 {
 	std::vector<DelaunayTriangle *> triangles ;
@@ -105,6 +105,7 @@ std::vector<DelaunayTriangle *> StructuredMesh::getElements()
 		triangles.push_back( static_cast<DelaunayTriangle *>(tree[i])) ;
 	return triangles ;
 }
+
 std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Point  * p) 
 {
 	std::vector<DelaunayTriangle *> ret ;
@@ -396,16 +397,87 @@ MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,
 {
     VoxelFilter vx ;
     vx.behaviourMap = behaviourMap ;
-    vx.read(voxelSource);
+    vx.read(voxelSource, this);
     tree  = vx.getElements() ;
-    additionalPoints = vx.getPoints() ;
-    global_counter = additionalPoints.size() ;
+//     additionalPoints = vx.getPoints() ;
+    global_counter = vx.getPoints().size() ;
     generateCache() ;
+    
     for(size_t i = 0 ; i < tree.size() ; i++)
     {
         tree[i]->tree = this ;
     }
 }
+
+void MicDerivedMesh::extrude(double dt)
+{
+    std::map<Point *, Point *> points ;
+
+    std::vector<DelaunayTetrahedron *> tri = getElements() ;
+    double beginning = tri[0]->getBoundingPoint(0).getT() ;
+    double end = tri[0]->getBoundingPoint(0).getT() ;
+    for(size_t i = 1 ; i < tri[0]->getBoundingPoints().size() ; i++)
+    {
+        if(tri[0]->getBoundingPoint(i).getT() < beginning)
+            beginning = tri[0]->getBoundingPoint(i).getT() ;
+        if(tri[0]->getBoundingPoint(i).getT() > end)
+            end = tri[0]->getBoundingPoint(i).getT() ;
+    }
+
+    int indexOfLastTimePlane = (tri[0]->timePlanes()-1)*tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+    int pointsPerTimePlane = tri[0]->getBoundingPoints().size()/tri[0]->timePlanes() ;
+
+    for(size_t i = 0 ; i < tri.size() ; i++)
+    {
+        for(size_t j = 0 ; j < tri[i]->getBoundingPoints().size() ; j++)
+        {
+            Point * next = new Point(tri[i]->getBoundingPoint(j).getX(), tri[i]->getBoundingPoint(j).getY(), tri[i]->getBoundingPoint(j).getZ()) ;
+            additionalPoints.push_back(next);
+            next->getT() = tri[i]->getBoundingPoint(j).getT() ;
+            next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
+            bool increment = true ;
+            if(std::abs(next->getT() - end) < POINT_TOLERANCE_2D)
+            {
+                next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
+                increment = false ;
+//              next->print() ;
+            }
+            if(increment && !points.find(&tri[i]->getBoundingPoint(j))->second)
+            {
+                next->setId(global_counter++) ;
+            }
+            points.insert(std::pair<Point *, Point *>(&tri[i]->getBoundingPoint(j), next)) ;
+        }
+    }
+
+    std::map<Point *, Point *>::iterator finder ;
+    for(size_t i = 0 ; i < tri.size() ; i++)
+    {
+        Point * a = points.find(&tri[i]->getBoundingPoint(0))->second ;
+        Point * b = points.find(&tri[i]->getBoundingPoint(pointsPerTimePlane/4))->second ;
+        Point * c = points.find(&tri[i]->getBoundingPoint(2*pointsPerTimePlane/4))->second ;
+        Point * d = points.find(&tri[i]->getBoundingPoint(3*pointsPerTimePlane/4))->second ;
+
+        std::valarray<Point *> newPoints(tri[i]->getBoundingPoints().size()) ;
+        for(size_t j = 0 ; j < newPoints.size() ; j++)
+        {
+            newPoints[j] = points.find(&tri[i]->getBoundingPoint(j))->second ;
+//          newPoints[j]->print() ;
+        }
+
+        DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(this, nullptr, a,b,c,d, a) ;
+        toInsert->setOrder(tri[i]->getOrder()) ;
+        toInsert->setBoundingPoints(newPoints) ;
+        toInsert->setBehaviour(this, tri[i]->getBehaviour()->getCopy()) ;
+    }
+}
+
+int MicDerivedMesh::addToTree ( DelaunayTreeItem3D * toAdd ) 
+{ 
+    tree.push_back(static_cast<DelaunayTetrahedron *>(toAdd)); 
+    return tree.size()-1 ;
+    
+} ;
 
 void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
 {
@@ -586,10 +658,11 @@ void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, 
 
 }
 
-void MicDerivedMesh::extrude ( const Vector & dt ) 
+
+void MicDerivedMesh::extrude(const Vector & dt)
 {
     std::map<Point *, std::vector<Point *> > points ;
-    std::map<Point *, Point *> pointsInTetrahedron ;
+    std::map<Point *, Point *> pointsInTriangle ;
     std::map<Point *, std::vector<Point *> >::iterator finder ;
 
     std::vector<DelaunayTetrahedron *> tri = getElements() ;
@@ -638,7 +711,8 @@ void MicDerivedMesh::extrude ( const Vector & dt )
                     size_t ifirst = newPoints.size() ;
                     for(size_t k = ifirst+1 ; k < dt.size()-1 ; k++)
                     {
-                        Point * next = new Point(current->getX(), current->getY()) ;
+                        Point * next = new Point(current->getX(), current->getY(), current->getZ()) ;
+                        additionalPoints.push_back(next);
                         next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
                         next->setId(global_counter++) ;
                         newPoints.push_back(next) ;
@@ -651,7 +725,7 @@ void MicDerivedMesh::extrude ( const Vector & dt )
                     std::vector<Point *> previousPoints = points.find(previous)->second ;
                     for(size_t k = 1 ; k < previousPoints.size() ; k++)
                         newPoints.push_back(previousPoints[k]) ;
-                    Point * next = new Point(current->getX(), current->getY()) ;
+                    Point * next = new Point(current->getX(), current->getY(), current->getZ()) ;
                     size_t k = dt.size()-2 ;
                     next->getT() = dt[k]+(dt[k+1]-dt[k])*(current->getT()-beginning)/(end-beginning) ;
                     next->setId(global_counter++) ;
@@ -674,78 +748,17 @@ void MicDerivedMesh::extrude ( const Vector & dt )
                 newPoints[j] = found[k-1] ;
             }
 
-            DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(tri[i]->tree, nullptr, newPoints[0],newPoints[pointsPerTimePlane/4],newPoints[pointsPerTimePlane*2/4],newPoints[pointsPerTimePlane*3/4],newPoints[0]) ;
+            DelaunayTetrahedron * toInsert = new DelaunayTetrahedron(this, nullptr, newPoints[0],newPoints[pointsPerTimePlane/4],newPoints[pointsPerTimePlane*2/4],newPoints[pointsPerTimePlane*3/4],newPoints[0]) ;
             toInsert->setOrder(tri[i]->getOrder()) ;
             toInsert->setBoundingPoints(newPoints) ;
             toInsert->setBehaviour(tri[i]->getState().getMesh3D(), tri[i]->getBehaviour()->getCopy()) ;
         }
     }
 
-    std::cout << getElements().size() << "\t" << tri.size() << std::endl ;
+    std::cout << tri.size() << "\t" << tri.size() << std::endl ;
 
 }
 
-void MicDerivedMesh::extrude ( double dt ) 
-{
-    std::map<Point *, Point *> points ;
-
-    std::vector<DelaunayTetrahedron *> tet = getElements() ;
-    double beginning = tet[0]->getBoundingPoint(0).getT() ;
-    double end = tet[0]->getBoundingPoint(0).getT() ;
-    for(size_t i = 1 ; i < tet[0]->getBoundingPoints().size() ; i++)
-    {
-        if(tet[0]->getBoundingPoint(i).getT() < beginning)
-            beginning = tet[0]->getBoundingPoint(i).getT() ;
-        if(tet[0]->getBoundingPoint(i).getT() > end)
-            end = tet[0]->getBoundingPoint(i).getT() ;
-    }
-
-    int indexOfLastTimePlane = (tet[0]->timePlanes()-1)*tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
-    int pointsPerTimePlane = tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
-
-    for(size_t i = 0 ; i < tet.size() ; i++)
-    {
-        for(size_t j = 0 ; j < tet[i]->getBoundingPoints().size() ; j++)
-        {
-            Point * next = new Point(tet[i]->getBoundingPoint(j).getX(), tet[i]->getBoundingPoint(j).getY(), tet[i]->getBoundingPoint(j).getZ()) ;
-            next->getT() = tet[i]->getBoundingPoint(j).getT() ;
-            next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
-            bool increment = true ;
-            if(next->getT() == end)
-            {
-                next = &tet[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
-                increment = false ;
-            }
-            if(increment && !points.find(&tet[i]->getBoundingPoint(j))->second)
-            {
-                next->setId(global_counter++) ;
-            }
-            points.insert(std::pair<Point *, Point *>(&tet[i]->getBoundingPoint(j), next)) ;
-        }
-    }
-
-    std::map<Point *, Point *>::iterator finder ;
-    for(size_t i = 0 ; i < tet.size() ; i++)
-    {
-        Point * a = points.find(&tet[i]->getBoundingPoint(0))->second ;
-        Point * b = points.find(&tet[i]->getBoundingPoint(pointsPerTimePlane/4))->second ;
-        Point * c = points.find(&tet[i]->getBoundingPoint(2*pointsPerTimePlane/4))->second ;
-        Point * d = points.find(&tet[i]->getBoundingPoint(3*pointsPerTimePlane/4))->second ;
-
-        std::valarray<Point *> newPoints(tet[i]->getBoundingPoints().size()) ;
-        for(size_t j = 0 ; j < newPoints.size() ; j++)
-        {
-            newPoints[j] = points.find(&tet[i]->getBoundingPoint(j))->second ;
-//          newPoints[j]->print() ;
-        }
-
-//      DelaunayTetrahedron * toInsert = new DelaunayDeadTetrahedron(tet[i]->tree, nullptr, a,b,c,d, a) ;
-//      toInsert->setOrder(tet[i]->getOrder()) ;
-//      toInsert->setBoundingPoints(newPoints) ;
-//      toInsert->setBehaviour(tet[i]->getBehaviour()->getCopy()) ;
-    }
-
-}
     
 std::vector<DelaunayTetrahedron *> MicDerivedMesh::getNeighbourhood(DelaunayTetrahedron * element) const
 {

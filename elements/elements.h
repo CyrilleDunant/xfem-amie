@@ -268,6 +268,7 @@ protected :
 	std::valarray< Function > *shapefunc ;
 	const GaussPointArray & genGaussPoints();
 	bool isFather ;
+    std::vector<Matrix> cachedJinv ;
 public:
 	bool moved;
 	GEO_DERIVED_OBJECT(Tetrahedron) ;

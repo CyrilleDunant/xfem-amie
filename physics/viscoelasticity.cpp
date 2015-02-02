@@ -122,8 +122,8 @@ Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, in
 {
 	v.push_back(XI);
 	v.push_back(ETA);
-	if(rig.numRows()/b > 3)
-		v.push_back(ZETA);
+	if(rig.size() > 9)
+        v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
 	param.resize(rig.numRows()/b*blocks, rig.numCols()/b*blocks) ;
@@ -137,6 +137,9 @@ Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, in
 			placeMatrixInBlock( rig, 0,0, param) ;
 			placeMatrixInBlock( e, 0,0, eta) ;
 			break ;
+        case PURE_ELASTICITY:
+            placeMatrixInBlock( rig, 0,0, param) ;
+            break ; 
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
@@ -414,7 +417,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
  			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
  			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
  			a += b ;
- 			placeMatrixInBlock( a, 0,0, ret ) ;			
+ 			placeMatrixInBlock( a, 0,0, ret ) ;
 			return ;
 		}
 		
@@ -591,6 +594,7 @@ Form * Viscoelasticity::getCopy() const
 	Matrix rig = param ;
 	Matrix e = eta ;
 	Viscoelasticity * copy = new Viscoelasticity(rig, e, blocks) ;
+//     Viscoelasticity * copy = new Viscoelasticity(PURE_ELASTICITY, rig) ;
 	copy->model = model ;
 
 	return copy ; 

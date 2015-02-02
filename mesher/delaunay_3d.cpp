@@ -2722,32 +2722,29 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     }
 
     int dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
+    int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-    if( enrichmentUpdated || behaviourUpdated
+    if(enrichmentUpdated || behaviourUpdated
             || cachedElementaryMatrix.size() == 0
             || cachedElementaryMatrix.size() != dofCount
-            || ( cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount ) )
+            ||  (cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount))
     {
-        int size = getBehaviour()->getNumberOfDegreesOfFreedom() ;
-        std::valarray< Matrix > v_j( Matrix( size, size ), dofCount ) ;
-        cachedElementaryMatrix.resize( dofCount, v_j ) ;
+
+        std::valarray< Matrix > v_j(Matrix(ndofs, ndofs), dofCount) ;
+        cachedElementaryMatrix.resize(dofCount,v_j) ;
         getSubTriangulatedGaussPoints() ;
     }
 
-    std::valarray<Matrix> Jinv( Matrix( 3, 3 ),  getGaussPoints().gaussPoints.size() ) ;
+    Matrix J(ndofs, ndofs) ;
+    getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
+    std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
 
-    if(moved )
+    if(moved)
     {
-        for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+        for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
-    }
-    else
-    {
-        Matrix J( 3, 3 ) ;
-        getInverseJacobianMatrix( Point( .25, .25, .25 ), J ) ;
-        Jinv.resize( getGaussPoints().gaussPoints.size(), J ) ;
     }
 
     size_t start = 0 ;

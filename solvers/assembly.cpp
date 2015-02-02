@@ -425,14 +425,14 @@ void Assembly::setBoundaryConditions()
             rowstart = 2*totaldofs/3 ;
             colstart = 2*totaldofs/3 ;
         }
-	if(totaldofs < 128)
-	{
-		colstart = 0 ;
-		rowstart = 0 ;
-	}
-    }
-    if( dim == SPACE_THREE_DIMENSIONAL &&  element3d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
-    {
+        if(totaldofs < 128)
+        {
+            colstart = 0 ;
+            rowstart = 0 ;
+        }
+     }
+     if( dim == SPACE_THREE_DIMENSIONAL &&  element3d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
+     {
 
         size_t totaldofs = getMatrix().row_size.size()*getMatrix().stride ;
         rowstart = totaldofs/2 ;
@@ -442,11 +442,11 @@ void Assembly::setBoundaryConditions()
             rowstart = 2*totaldofs/3 ;
             colstart = 2*totaldofs/3 ;
         }
-	if(totaldofs < 128)
-	{
-		colstart = 0 ;
-		rowstart = 0 ;
-	}
+        if(totaldofs < 128)
+        {
+            colstart = 0 ;
+            rowstart = 0 ;
+        }
     }
 
 
@@ -710,10 +710,7 @@ bool Assembly::make_final()
         coordinateIndexedMatrix->array = 0 ;
         double dmax = 0 ;
         double vmax = 0 ;
-
-
-
-
+        
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
@@ -974,7 +971,7 @@ bool Assembly::make_final()
         }
 
 //
-        getMatrix().stride =   element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;;
+        getMatrix().stride =   element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         std::cerr << " ...done" << std::endl ;
 
         setBoundaryConditions() ;
@@ -1378,7 +1375,7 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
             multipliers.erase(duplicate) ;
 
         multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
-        multipliers.back().type = SET_ALONG_ETA ;
+        multipliers.back().type = SET_ALONG_ZETA ;
         break ;
     }
     default:
@@ -1424,35 +1421,29 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 
     if(make_final() )
     {
-        /*		double lambda_min = smallestEigenValue(getMatrix()) ;
-        		double lambda_max = largestEigenValue(getMatrix()) ;
-        		std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;*/
-// 		std::cerr << "symmetrical problem" << std::endl ;
-// 		print();
-// 		for(size_t p = 0 ; p < externalForces.size() ; p++)
-// 			std::cout << externalForces[p] << std::endl ;
-// 		exit(0) ;
 
         ConjugateGradientWithSecant cg(this) ;
         if(rowstart > 0 || colstart > 0)
         {
-//			std::cout << "modifying matrix dimensions... [time-linear elements only]" << std::endl ;
-//			int order = 1 ;
+
             cg.rowstart = rowstart;
             cg.colstart = colstart;
-//			std::cout << cg.rowstart << "\t" << cg.colstart << std::endl ;
         }
 
-//		BiConjugateGradientStabilized cg(getMatrix(), externalForces) ;
+//         for(size_t i = 0 ; i < 1602 ; i++)
+//         {
+//             for(size_t j = 0 ; j < 1602 ; j++)
+//                 std::cout << getMatrix()[i][j] << "   " << std::flush ;
+//             std::cout << std::endl ;
+//         }
+
         ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
-// 		ret = false ;
         gettimeofday(&time1, nullptr);
         double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
         displacements.resize(cg.x.size()) ;
         displacements = cg.x ;
 
-//		std::cout << multipliers.size() << std::endl ;
         if(rowstart > 0 || colstart > 0)
         {
             for(size_t p = 0 ; p < prevDisplacements.size() ; p++)
@@ -1461,10 +1452,6 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
             }
         }
 
-// 		GaussSeidel cg(getMatrix(), externalForces) ;
-// 		ret = cg.solve(x0) ;
-// 		displacements.resize(cg.getX().size()) ;
-// 		displacements = cg.getX() ;
     }
     else
     {

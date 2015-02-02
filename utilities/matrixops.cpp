@@ -655,7 +655,31 @@ Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s)
 {	
   
 	Amie::Matrix ret(4,4) ;
-	
+//     Matrix a(2, 0, 0, s) ; Matrix c(2, 0, 2, s) ;
+//     Matrix b(2, 2, 0, s) ; Matrix d(2, 2, 2, s) ;
+// //     
+//     Matrix dt = inverse2x2Matrix((Matrix)(a*d)-(Matrix)(b*c)) ;
+//     d *= dt ;
+//     b *= dt ;
+//     c *= dt ;
+//     a *= dt ;
+//     ret[0][0] = d[0][0] ; ret[0][1] = d[0][1] ; ret[0][2] = -c[0][0] ; ret[0][3] = -c[0][1] ;
+//     ret[1][0] = d[1][0] ; ret[1][1] = d[1][1] ; ret[1][2] = -c[1][0] ; ret[1][3] = -c[1][1] ;
+//     ret[2][0] = -b[0][0] ; ret[2][1] = -b[0][1] ; ret[2][2] = a[0][0] ; ret[2][3] = a[0][1] ;
+//     ret[3][0] = -b[1][0] ; ret[3][1] = -b[1][1] ; ret[3][2] = a[1][0] ; ret[3][3] = a[1][1] ;
+//     return ret ;
+//     
+//         double a = s.array()[0] ;
+//         double b = s.array()[1] ;
+//         double c = s.array()[2] ;
+//         double d = s.array()[3] ;
+//         double dt = 1./(a*d-b*c) ;
+//         s.array()[0] = d*dt ;
+//         s.array()[1] = -b*dt ;
+//         s.array()[2] = -c*dt ;
+//         s.array()[3] = a*dt ;
+//         return ;
+// 	
 	
 	double deti = det(s) ;
 	

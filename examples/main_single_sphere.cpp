@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     Stiffness * s = new Stiffness(m0) ;
     Stiffness * ss = new Stiffness(m1) ;
 
-    samplers.setBehaviour(new Stiffness(m0)) ;
+    samplers.setBehaviour(new Viscoelasticity(PURE_ELASTICITY, m0) /* new Stiffness(m0) */) ;
     Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
 // 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
     Inclusion3D inc(100, 200, 200, 200) ;
@@ -223,9 +223,9 @@ int main(int argc, char *argv[])
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT_AFTER, -1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT_AFTER, -1.)) ;
+	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP_AFTER, -1.)) ;
 //     F.addBoundaryCondition(new GeometryDefinedBoundaryCondition(SET_NORMAL_STRESS, inc.getPrimitive(), -1)) ;
 
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(LINEAR) ;
+    F.setOrder(LINEAR_TIME_LINEAR) ;
 
     step() ;
 // 	delete dt ;

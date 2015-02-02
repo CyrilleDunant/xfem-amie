@@ -51,7 +51,7 @@ public:
 	virtual ~VoxelFilter();
 	
 /** \brief read THe file containing the voxel information*/
-	void read(const char * filename) ;
+	void read(const char * filename, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh = nullptr) ;
 	
 /** \brief assign voxel values to Behaviours*/
 	std::map<unsigned char,Form *> behaviourMap ;

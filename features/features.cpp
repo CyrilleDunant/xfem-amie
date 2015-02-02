@@ -72,7 +72,6 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles ( const Featur
 FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
 {
     initialValue = 0 ;
-    deltaTime = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     reuseDisplacements = false ;
@@ -192,7 +191,6 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
 {
     initialValue = 0 ;
-    deltaTime = 0 ;
     previousDeltaTime = 0 ;
     minDeltaTime = 0.001 ;
     reuseDisplacements = false ;
@@ -247,7 +245,7 @@ void FeatureTree::setPartition ( size_t partitionNumber )
 {
     if(structuredMesh)
         return ;
-    
+
     for ( size_t i = 0 ; i < domains.size() ; i++ )
     {
         delete domains[i] ;
@@ -539,7 +537,7 @@ void FeatureTree::setOrder ( Order ord )
 
     if(ord == elemOrder)
         return ;
-    
+
     state.stitched = false ;
     state.renumbered = false ;
     state.initialised = false ;
@@ -636,7 +634,7 @@ void FeatureTree::renumber()
         size_t count = 0 ;
         std::cerr << " renumbering... " << std::flush ;
 
-        for (auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
             for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
             {
@@ -644,21 +642,17 @@ void FeatureTree::renumber()
             }
         }
 
-//         std::vector< DelaunayTetrahedron *> sortedElements ;
-        std::set<const Geometry *> placedElements ;
-
-//         sortedElements = tets ;
-
-        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+        for (auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
         {
-            for ( size_t j = 0 ; j < i->getBoundingPoints().size() /i->timePlanes() ; j++ )
+            for ( size_t j = 0 ; j < i->getBoundingPoints().size() / i->timePlanes() ; j++ )
             {
                 if ( i->getBoundingPoint ( j ).getId() == -1 )
                 {
-                    i->getBoundingPoint ( j ).getId() = count++ ;
+                    i->getBoundingPoint ( j ).setId ( count++ ) ;
                 }
             }
         }
+
 
         lastNodeId = count ;
 
@@ -670,7 +664,7 @@ void FeatureTree::renumber()
                 {
                     if ( i->getBoundingPoint ( j + k* i->getBoundingPoints().size() / i->timePlanes() ).getId() == -1 )
                     {
-                        i->getBoundingPoint ( j + k* i->getBoundingPoints().size() / i->timePlanes() ).setId ( i->getBoundingPoint ( j ).getId() + lastNodeId*k );
+                        i->getBoundingPoint ( j + k* i->getBoundingPoints().size() / i->timePlanes() ).setId ( i->getBoundingPoint ( j ).getId() + lastNodeId*k ) ;
                         count++ ;
                     }
                 }
@@ -680,13 +674,14 @@ void FeatureTree::renumber()
         lastNodeId = count ;
 
         nodes.resize ( count ) ;
-        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++)
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
 
             for ( size_t j = 0 ; j < i->getBoundingPoints().size() ; j++ )
             {
                 nodes[ i->getBoundingPoint ( j ).getId() ] = & i->getBoundingPoint ( j ) ;
             }
+
 
         }
 
@@ -703,7 +698,7 @@ bool FeatureTree::inRoot ( const Point &p ) const
 {
     if(structuredMesh)
         return true ;
-    
+
     if ( is2D() )
     {
         Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE_2D ) ;
@@ -726,9 +721,9 @@ bool FeatureTree::inRoot ( const Point &p ) const
 
 void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 {
-     if(structuredMesh)
+    if(structuredMesh)
         return ;
-     
+
     if ( edge + time == 0 )
     {
         return ;
@@ -1113,9 +1108,9 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
 void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 {
-   if(structuredMesh)
+    if(structuredMesh)
         return ;
-        
+
     if ( edge + time == 0 )
     {
         return ;
@@ -1327,7 +1322,7 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 
 void FeatureTree::stitch()
 {
-      
+
     size_t count = 0 ;
     size_t pd = 0 ;
 
@@ -1436,7 +1431,7 @@ void FeatureTree::stitch()
         }
     else if ( instants.size() > 2 && elemOrder >= CONSTANT_TIME_LINEAR && is3D() )
         dtree3D->extrude(instants);
-        
+
 }
 
 void FeatureTree::setSamplingNumber ( size_t news )
@@ -1450,7 +1445,7 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 {
     if(structuredMesh)
         return ;
-    
+
     if ( location->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
     {
         std::cerr << "quadtree refine... " << std::flush ;
@@ -1461,7 +1456,7 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
             cacheID = dtree->generateCache(location) ;
             cleanup = true ;
         }
-        
+
         std::cerr << dtree->begin(cacheID).size() << " elements... " << std::flush ;
         std::vector<Point> pointsToAdd ;
         std::vector<Point> illegalPoints ;
@@ -1657,7 +1652,8 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 void FeatureTree::sample()
 {
     if(structuredMesh)
-        return ;    
+        return ;
+
     if ( samplingNumber != previousSamplingNumber )
     {
         meshPoints.clear();
@@ -1848,8 +1844,8 @@ void FeatureTree::sample()
                 {
                     #pragma omp critical
                     {
-                    grid->remove ( tree[i] ) ;
-                    grid->forceAdd ( tree[i] );
+                        grid->remove ( tree[i] ) ;
+                        grid->forceAdd ( tree[i] );
                     }
                     double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
 
@@ -1890,8 +1886,8 @@ void FeatureTree::sample()
                 {
                     #pragma omp critical
                     {
-                    grid3d->remove ( tree[i] ) ;
-                    grid3d->forceAdd ( tree[i] );
+                        grid3d->remove ( tree[i] ) ;
+                        grid3d->forceAdd ( tree[i] );
                     }
                     std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
@@ -1918,7 +1914,7 @@ void FeatureTree::sample()
 
 void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
 {
-        if(structuredMesh)
+    if(structuredMesh)
         return ;
     for ( size_t t = 0 ; t < nit ; t++ )
     {
@@ -1967,7 +1963,7 @@ void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
 
 void FeatureTree::refine ( size_t level )
 {
-        if(structuredMesh)
+    if(structuredMesh)
         return ;
     state.setStateTo ( RENUMBERED, false ) ;
     double pointDensity = 0 ;
@@ -2325,6 +2321,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 {
     if(structuredMesh)
         return nullptr;
+
     int root_box = 0 ;
 
     if ( !inRoot ( t->getCenter() ) )
@@ -2539,6 +2536,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTree
 {
     if(structuredMesh)
         return nullptr;
+
     int root_box = 0 ;
 
     if ( !inRoot ( t->getCenter() ) )
@@ -2750,6 +2748,7 @@ Point *FeatureTree::checkElement ( const DelaunayTetrahedron *t ) const
 {
     if(structuredMesh)
         return nullptr;
+
     double pointDensity = 0 ;
 
     if ( is2D() )
@@ -2843,8 +2842,9 @@ Point *FeatureTree::checkElement ( const DelaunayTetrahedron *t ) const
 
 Point *FeatureTree::checkElement ( const DelaunayTriangle *t ) const
 {
-   if(structuredMesh)
+    if(structuredMesh)
         return nullptr;
+
     double pointDensity = 0 ;
 
     if ( is2D() )
@@ -2937,6 +2937,7 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
 {
     if(structuredMesh)
         return nullptr;
+
     if ( !inRoot ( t->getCenter() ) )
     {
         return nullptr;
@@ -2986,8 +2987,8 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
 
 void FeatureTree::setElementBehaviours()
 {
-        if(structuredMesh)
-        return ;
+
+
     if ( !father3D )
     {
         father3D = new TetrahedralElement ( elemOrder ) ;
@@ -3001,6 +3002,32 @@ void FeatureTree::setElementBehaviours()
     }
 
     father2D->compileAndPrecalculate() ;
+
+    if(structuredMesh)
+    {
+        std::cerr << " setting behaviours..." << std::flush ;
+        int setcount = 0 ;
+
+        for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
+        {
+            if ( setcount % 1000 == 0 )
+            {
+                std::cerr << "\r setting behaviours : base layer : tet " << setcount << "/" << i.size() << std::flush ;
+            }
+
+            i->refresh ( father3D ) ;
+
+            if ( !i->getBehaviour() )
+            {
+                i->setBehaviour ( dtree3D, new VoidForm() ) ;
+            }
+            setcount++ ;
+        }
+
+
+        std::cerr << " ...done" << std::endl ;
+        return ;
+    }
 
     if ( is2D() )
     {
@@ -3081,7 +3108,7 @@ void FeatureTree::setElementBehaviours()
 
 void FeatureTree::updateElementBehaviours()
 {
-        if(structuredMesh)
+    if(structuredMesh)
         return ;
     double n_void ;
 
@@ -3201,7 +3228,7 @@ void FeatureTree::enrich()
         if ( is3D() )
         {
             std::vector<Mesh <DelaunayTetrahedron, DelaunayTreeItem3D > *> extra3dMeshes ;
-        
+
             if ( tree[i]->isEnrichmentFeature && ( dynamic_cast<EnrichmentFeature *> ( tree[i] )->moved() || !state.enriched ) )
             {
                 if ( !state.enriched )
@@ -3258,6 +3285,25 @@ void FeatureTree::enrich()
 void FeatureTree::assemble()
 {
     K->clearElements();
+    
+   if(father3D && father3D->getOrder() != elemOrder)
+        delete father3D ;
+    
+    if ( !father3D )
+    {
+        father3D = new TetrahedralElement ( elemOrder ) ;
+    }
+
+    father3D->compileAndPrecalculate() ;
+
+    if(father2D && father2D->getOrder() != elemOrder)
+        delete father2D ;
+        
+    if ( !father2D )
+    {
+        father2D = new TriElement ( elemOrder ) ;
+    }
+    
 
     if ( is2D() )
     {
@@ -3290,23 +3336,22 @@ void FeatureTree::assemble()
     {
         numdofs = dtree3D->getLastNodeId() ;
 
-
-            for ( auto j = dtree3D->begin() ; j != dtree3D->end() ; j++ )
+        for ( auto j = dtree3D->begin() ; j != dtree3D->end() ; j++ )
+        {
+            if ( j->getBehaviour() && j->getBehaviour()->type != VOID_BEHAVIOUR )
             {
-                if ( j->getBehaviour() && j->getBehaviour()->type != VOID_BEHAVIOUR )
+                if ( j.getPosition() % 1000 == 0 )
                 {
-                    if ( j.getPosition() % 1000 == 0 )
-                    {
-                        std::cerr << "\r assembling stiffness matrix... tetrahedron " << j.getPosition() + 1 << "/" << j.size() << std::flush ;
-                    }
-
-                    j->refresh ( father3D ) ;
-                    j->getBehaviour()->preProcess ( deltaTime, j->getState() ) ;
-                    K->add ( j ) ;
+                    std::cerr << "\r assembling stiffness matrix... tetrahedron " << j.getPosition() + 1 << "/" << j.size() << std::flush ;
                 }
+
+                j->refresh ( father3D ) ;
+                j->getBehaviour()->preProcess ( deltaTime, j->getState() ) ;
+                K->add ( j ) ;
             }
-            K->setMaxDof ( std::max ( getNodes().size(),lastEnrichmentId ) ) ;
-            std::cerr << " ...done." << std::endl ;
+        }
+        K->setMaxDof ( std::max ( getNodes().size(),lastEnrichmentId ) ) ;
+        std::cerr << " ...done." << std::endl ;
 
     }
 }
@@ -3455,47 +3500,47 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrain (bool stepTree )
         for(auto l = layer2d.begin() ; l !=layer2d.end() ; l++)
         {
 
-        
-        int donecomputed = 0 ;
-// 
+
+            int donecomputed = 0 ;
+//
 //         #pragma omp parallel for shared(donecomputed) schedule(runtime)
-        #pragma omp parallel
-        {
-            #pragma omp single
-            for ( auto i = l->second->begin() ; i != l->second->end() ; i++ )
+            #pragma omp parallel
             {
-                #pragma omp task firstprivate(i)
-                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                #pragma omp single
+                for ( auto i = l->second->begin() ; i != l->second->end() ; i++ )
                 {
-    // 				std::valarray<Point *> pts(3) ;
-    // 				pts[0] =  elements[i]->first ;
-    // 				pts[1] =  elements[i]->second ;
-    // 				pts[2] =  elements[i]->third ;
-
-                    Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
-                    Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
-                    i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
-
-                    for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                    #pragma omp task firstprivate(i)
+                    if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                     {
-                        stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
-                        stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+                        // 				std::valarray<Point *> pts(3) ;
+                        // 				pts[0] =  elements[i]->first ;
+                        // 				pts[1] =  elements[i]->second ;
+                        // 				pts[2] =  elements[i]->third ;
+
+                        Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
+                        Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
+                        i->getState().getField ( STRAIN_FIELD, REAL_STRESS_FIELD, i->getBoundingPoints(), strain, stress, false, &vm ) ;
+
+                        for ( size_t j = 0 ; j < i->getBoundingPoints().size() * 3 ; j++ )
+                        {
+                            stress_strain.first[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = stress[j] ;
+                            stress_strain.second[i.getPosition() * i->getBoundingPoints().size() * 3 + j] = strain[j] ;
+                        }
+
+                        if ( donecomputed % 10000 == 0 )
+                        {
+                            std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
+                        }
                     }
 
-                    if ( donecomputed % 10000 == 0 )
-                    {
-                        std::cerr << "\r computing strain+stress... element " << donecomputed + 1 << "/" << i.size() << std::flush ;
-                    }
+                    donecomputed++ ;
                 }
-
-                donecomputed++ ;
             }
-        }
-        
-        std::cerr << " ...done." << std::endl ;
+
+            std::cerr << " ...done." << std::endl ;
         }
         return stress_strain ;
-        
+
     }
     else
     {
@@ -3558,7 +3603,7 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
         {
             msh = layer2d[g] ;
         }
-        
+
         std::pair<Vector , Vector > stress_strain ( Vector ( 0., msh->begin()->getBoundingPoints().size() * 3 * msh->begin().size() ), Vector ( 0., msh->begin()->getBoundingPoints().size() * 3 * msh->begin().size() ) ) ;
         int donecomputed = 0 ;
 
@@ -3570,10 +3615,10 @@ std::pair<Vector , Vector > FeatureTree::getStressAndStrainInLayer ( int g, bool
                 #pragma omp task firstprivate(i)
                 if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                 {
-    // 				std::valarray<Point *> pts(3) ;
-    // 				pts[0] =  elements[i]->first ;
-    // 				pts[1] =  elements[i]->second ;
-    // 				pts[2] =  elements[i]->third ;
+                    // 				std::valarray<Point *> pts(3) ;
+                    // 				pts[0] =  elements[i]->first ;
+                    // 				pts[1] =  elements[i]->second ;
+                    // 				pts[2] =  elements[i]->third ;
 
                     Vector strain ( 0., 3*i->getBoundingPoints().size() ) ;
                     Vector stress ( 0., 3*i->getBoundingPoints().size() ) ;
@@ -3787,10 +3832,10 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     Vector cinstants ( nSteps+1 ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
-	if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)
-		cinstants = ConfigTreeItem::readLineAsVector( config->getStringData("list_of_time_steps") ) ;
-	else
-	        cinstants = config->getChild ( "list_of_time_steps" )->readVectorFromFile() ;
+        if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)
+            cinstants = ConfigTreeItem::readLineAsVector( config->getStringData("list_of_time_steps") ) ;
+        else
+            cinstants = config->getChild ( "list_of_time_steps" )->readVectorFromFile() ;
     }
     else
     {
@@ -3811,24 +3856,24 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
         }
         else
         {
-	    if( config->getStringData("logarithmic", def->getStringData("logarithmic")) == "TRUE" )
-	    {
-		cinstants[0] = 0. ;
-		cinstants[1] = config->getData ( "first_time_step", def->getData ( "first_time_step" ) ) ;
-		for(size_t i = 2 ; i < cinstants.size() ; i++)
-		{
-			double logprev = std::log10(cinstants[i-1]) ;
-			double lognext = logprev+deltaTime ;
-			cinstants[i] = std::pow(10., lognext) ;
-		}
-	    }
-	    else
-	    {
-		    for ( size_t i = 0 ; i < cinstants.size() ; i++ )
-		    {
-		        cinstants[i] = deltaTime*i ;
-		    }
-	    }
+            if( config->getStringData("logarithmic", def->getStringData("logarithmic")) == "TRUE" )
+            {
+                cinstants[0] = 0. ;
+                cinstants[1] = config->getData ( "first_time_step", def->getData ( "first_time_step" ) ) ;
+                for(size_t i = 2 ; i < cinstants.size() ; i++)
+                {
+                    double logprev = std::log10(cinstants[i-1]) ;
+                    double lognext = logprev+deltaTime ;
+                    cinstants[i] = std::pow(10., lognext) ;
+                }
+            }
+            else
+            {
+                for ( size_t i = 0 ; i < cinstants.size() ; i++ )
+                {
+                    cinstants[i] = deltaTime*i ;
+                }
+            }
         }
     }
     return cinstants ;
@@ -3997,7 +4042,7 @@ Vector FeatureTree::strainFromDisplacements()
         for ( auto i  = dtree->begin() ; i != dtree->end() ; i++ )
         {
             if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-            {    
+            {
                 std::valarray<Point *> pts ( 3 ) ;
                 pts[0] =  i->first ;
                 pts[1] =  i->second ;
@@ -4059,7 +4104,7 @@ Assembly *FeatureTree::getAssembly ( bool forceReassembly )
 
 void FeatureTree::insert ( Point *p )
 {
-        if(structuredMesh)
+    if(structuredMesh)
         return ;
     double pointDensity = 0 ;
 
@@ -4190,6 +4235,7 @@ void FeatureTree::solve()
         }
     }
 
+
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "...done. Time (s) " << delta / 1e6 << std::endl ;
@@ -4199,10 +4245,10 @@ void FeatureTree::solve()
     std::cerr << "Applying coundary conditions... " << std::flush ;
     for ( size_t i = 0 ; i < boundaryCondition.size() ; ++i )
     {
-        if ( i%20 == 0 )
-        {
-            std::cerr << "\rApplying coundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
-        }
+//         if ( i%20 == 0 )
+//         {
+        std::cerr << "\rApplying coundary conditions... " << i+1 << "/" << boundaryCondition.size() << std::flush ;
+//         }
 
         if ( dtree )
         {
@@ -4267,14 +4313,14 @@ void FeatureTree::stepXfem()
             if ( tree[i]->isEnrichmentFeature )
             {
 
-                    featuresToStep.push_back(dynamic_cast<EnrichmentFeature *> ( tree[i] ));
+                featuresToStep.push_back(dynamic_cast<EnrichmentFeature *> ( tree[i] ));
             }
         }
         if ( is2D() )
         {
 
 // 			#pragma omp parallel for schedule(runtime)
-            
+
             for ( size_t i = 0 ; i < featuresToStep.size() ; i++ )
             {
                 featuresToStep[i]->step( deltaTime, &K->getForces(), dtree ) ;
@@ -4296,7 +4342,7 @@ void FeatureTree::stepXfem()
                     needAssembly = true ;
                 }
             }
-            
+
             for ( size_t i = 0 ; i < tree.size() ; i++ )
             {
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
@@ -4401,34 +4447,34 @@ bool FeatureTree::stepElements()
                 volume += std::accumulate ( cachedVolumes[lcounter].begin(), cachedVolumes[lcounter].end(), double ( 0 ) ) ;
                 lcounter++ ;
             }
-                
-             
+
+
             double previousAverageDamage = averageDamage ;
 
-/*                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-                    #pragma omp parallel
-                    {
-                        #pragma omp single
-                        {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            #pragma omp task firstprivate(i)
+            /*                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                             {
-                                if ( i.getPosition() % 1000 == 0 )
+                                #pragma omp parallel
                                 {
-                                    std::cerr << "\r checking for fractures (-1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                }
+                                    #pragma omp single
+                                    {
+                                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                                    {
+                                        #pragma omp task firstprivate(i)
+                                        {
+                                            if ( i.getPosition() % 1000 == 0 )
+                                            {
+                                                std::cerr << "\r checking for fractures (-1)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                            }
 
-                                if ( i->getBehaviour()->getFractureCriterion() && dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion()) )
-                                {
-					dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion())->currentFraction = averageDamage ;
+                                            if ( i->getBehaviour()->getFractureCriterion() && dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion()) )
+                                            {
+            					dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion())->currentFraction = averageDamage ;
+                                            }
+                                        }
+                                    }
+                                    }
                                 }
-                            }
-                        }
-                        }
-                    }
-                }*/
+                            }*/
 
             double adamage = 0 ;
             if ( !elastic )
@@ -4440,7 +4486,7 @@ bool FeatureTree::stepElements()
             //this will update the state of all elements. This is necessary as
             //the behaviour updates might depend on the global state of the
             //simulation.
-            
+
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
                 std::cerr << " stepping through elements... " << std::flush ;
@@ -4448,30 +4494,30 @@ bool FeatureTree::stepElements()
                 {
                     #pragma omp single
                     {
-                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++ )
-                    {
-                        #pragma omp task firstprivate(i)
+                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++ )
                         {
-                            if ( i.getPosition() % 1000 == 0 )
+                            #pragma omp task firstprivate(i)
                             {
-                                std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
-                            }
+                                if ( i.getPosition() % 1000 == 0 )
+                                {
+                                    std::cerr << "\r stepping through elements... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                }
 
-                            i->step ( deltaTime, &K->getDisplacements() ) ;
+                                i->step ( deltaTime, &K->getDisplacements() ) ;
+                            }
                         }
-                    }
                     }
                 }
                 std::cerr << " ...done" << std::endl ;
             }
 
-            
+
 
             int fracturedCount = 0 ;
             int ccount = 0 ;
             size_t changecount = 0 ;
 
-            
+
             if ( !elastic )
             {
                 double maxScoreInit = -1;
@@ -4481,30 +4527,30 @@ bool FeatureTree::stepElements()
                     {
                         #pragma omp single
                         {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            #pragma omp task firstprivate(i)
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-//                                if ( i.getPosition() % 200 == 0 )
-  //                              {
-                                    std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-    //                            }
-                                if ( i->getBehaviour()->getFractureCriterion() )
+                                #pragma omp task firstprivate(i)
                                 {
-                                    i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
-                                    #pragma omp flush(maxScoreInit)
-                                    double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
-                                    #pragma omp atomic write
-                                    maxScoreInit = tmpmax ;
+//                                if ( i.getPosition() % 200 == 0 )
+                                    //                              {
+                                    std::cerr << "\r checking for fractures (1)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    //                            }
+                                    if ( i->getBehaviour()->getFractureCriterion() )
+                                    {
+                                        i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
+                                        #pragma omp flush(maxScoreInit)
+                                        double tmpmax = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScoreInit ) ;
+                                        #pragma omp atomic write
+                                        maxScoreInit = tmpmax ;
+                                    }
                                 }
                             }
+                            std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
                         }
-                        std::cerr << ". Maxscore = " << maxScoreInit <<" ...done. " << std::endl ;
-                   }                    
-                   }
+                    }
                 }
 
-                
+
 
 // 				std::stable_sort(elements.begin(), elements.end(), sortByScore) ;
 
@@ -4515,71 +4561,71 @@ bool FeatureTree::stepElements()
                     {
                         #pragma omp single
                         {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            #pragma omp task firstprivate(i)
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-                                double are = cachedVolumes[lcounter][i.getPosition()] ;
-
-                                if ( i.getPosition() % 10000 == 0 )
+                                #pragma omp task firstprivate(i)
                                 {
-                                    std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                }
+                                    double are = cachedVolumes[lcounter][i.getPosition()] ;
 
-                                if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
-                                {
-                                    DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
-                                    bool wasFractured = i->getBehaviour()->fractured() ;
-                                    i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
-                                    
-                                    if ( dmodel )
+                                    if ( i.getPosition() % 10000 == 0 )
                                     {
-                                        if ( !i->getBehaviour()->fractured() )
-                                        {
-                                            #pragma omp atomic update
-                                            adamage += are  * ( dmodel->getState().max() > 0. ) ;
-                                        }
-                                        else
-                                        {
-                                            #pragma omp atomic update
-                                            adamage += are ;    // * dmodel->getState().max() ;
-                                        }
-
+                                        std::cerr << "\r checking for fractures (2)... " << i.getPosition() << "/" << i.size() << std::flush ;
                                     }
-                                    
-                                    if ( i->getBehaviour()->changed() )
-                                    {
-                                        #pragma omp atomic write
-                                        needAssembly = true ;
-                                        #pragma omp atomic write
-                                        behaviourChange = true ;
-                                        #pragma omp atomic update
-                                        ccount++ ;
-                                    }
-                                    
-                                    if ( i->getBehaviour()->fractured() )
-                                    {
-                                        #pragma omp atomic update
-                                        fracturedCount++ ;
-                                        #pragma omp atomic update
-                                        crackedVolume += are ;
 
-                                        if ( !wasFractured )
+                                    if ( i->getBehaviour()->type != VOID_BEHAVIOUR )
+                                    {
+                                        DamageModel * dmodel = i->getBehaviour()->getDamageModel() ;
+                                        bool wasFractured = i->getBehaviour()->fractured() ;
+                                        i->getBehaviour()->step ( deltaTime, i->getState(), maxScoreInit ) ;
+
+                                        if ( dmodel )
+                                        {
+                                            if ( !i->getBehaviour()->fractured() )
+                                            {
+                                                #pragma omp atomic update
+                                                adamage += are  * ( dmodel->getState().max() > 0. ) ;
+                                            }
+                                            else
+                                            {
+                                                #pragma omp atomic update
+                                                adamage += are ;    // * dmodel->getState().max() ;
+                                            }
+
+                                        }
+
+                                        if ( i->getBehaviour()->changed() )
                                         {
                                             #pragma omp atomic write
                                             needAssembly = true ;
                                             #pragma omp atomic write
                                             behaviourChange = true ;
+                                            #pragma omp atomic update
+                                            ccount++ ;
                                         }
-                                    }
-                                    else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
-                                    {
-                                        #pragma omp atomic update
-                                        damagedVolume += are ;
+
+                                        if ( i->getBehaviour()->fractured() )
+                                        {
+                                            #pragma omp atomic update
+                                            fracturedCount++ ;
+                                            #pragma omp atomic update
+                                            crackedVolume += are ;
+
+                                            if ( !wasFractured )
+                                            {
+                                                #pragma omp atomic write
+                                                needAssembly = true ;
+                                                #pragma omp atomic write
+                                                behaviourChange = true ;
+                                            }
+                                        }
+                                        else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+                                        {
+                                            #pragma omp atomic update
+                                            damagedVolume += are ;
+                                        }
                                     }
                                 }
                             }
-                        }
                         }
                     }
                     lcounter++ ;
@@ -4594,94 +4640,94 @@ bool FeatureTree::stepElements()
                     {
                         #pragma omp single
                         {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            #pragma omp task firstprivate(i)
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                             {
-                                if ( i.getPosition() % 1000 == 0 )
+                                #pragma omp task firstprivate(i)
                                 {
-                                    std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                }
+                                    if ( i.getPosition() % 1000 == 0 )
+                                    {
+                                        std::cerr << "\r checking for fractures (3)... " << i.getPosition() << "/" << i.size() << std::flush ;
+                                    }
 
+                                    if ( i->getBehaviour()->getDamageModel() )
+                                    {
+                                        i->getBehaviour()->getDamageModel()->postProcess() ;
+                                        if ( i->getBehaviour()->changed() )
+                                        {
+                                            #pragma omp atomic write
+                                            needAssembly = true ;
+                                            #pragma omp atomic write
+                                            behaviourChange = true ;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
+
+
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                            {
+                                bool done = false ;
+                                #pragma omp task firstprivate(i)
+                                if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
+                                {
+                                    #pragma omp atomic write
+                                    foundCheckPoint = false ;
+                                    #pragma omp atomic write
+                                    done = true ;
+                                }
+                                if(done)
+                                    break ;
+                            }
+                        }
+                    }
+                }
+
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
+                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                            {
+                                #pragma omp task firstprivate(i)
                                 if ( i->getBehaviour()->getDamageModel() )
                                 {
-                                    i->getBehaviour()->getDamageModel()->postProcess() ;
-                                    if ( i->getBehaviour()->changed() )
+                                    i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+                {
+                    #pragma omp parallel
+                    {
+                        #pragma omp single
+                        {
+                            if ( !behaviourChange )
+                            {
+                                for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                                {
+                                    #pragma omp task firstprivate(i)
+                                    if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
                                     {
-                                        #pragma omp atomic write
-                                        needAssembly = true ;
                                         #pragma omp atomic write
                                         behaviourChange = true ;
                                     }
                                 }
                             }
-                        }
-                        }
-                    }
-                }
-               std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
-
-
-                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-                    #pragma omp parallel
-                    {
-                        #pragma omp single
-                        {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            bool done = false ;
-                            #pragma omp task firstprivate(i)
-                            if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
-                            {
-                                #pragma omp atomic write
-                                foundCheckPoint = false ;
-                                #pragma omp atomic write
-                                done = true ;
-                            }
-                            if(done)
-                                break ;
-                        }
-                        }
-                    }
-                }
-
-                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-                    #pragma omp parallel
-                    {
-                        #pragma omp single
-                        {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            #pragma omp task firstprivate(i)
-                            if ( i->getBehaviour()->getDamageModel() )
-                            {
-                                i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
-                            }
-                        }
-                        }
-                    }
-                }
-
-                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-            #pragma omp parallel
-		    {
-			#pragma omp single
-                        {
-                        if ( !behaviourChange )
-                        {
-                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                            {
-                                #pragma omp task firstprivate(i)
-                                if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
-                                {
-                                    #pragma omp atomic write
-                                    behaviourChange = true ;
-                                }
-                            }
-                        }
                         }
                     }
                 }
@@ -4698,19 +4744,19 @@ bool FeatureTree::stepElements()
                         {
                             #pragma omp single
                             {
-                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                            {
-                                #pragma omp task firstprivate(i)
-                                if ( i->getBehaviour()->getFractureCriterion() )
+                                for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                                 {
-                                    i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
-				    #pragma omp critical
+                                    #pragma omp task firstprivate(i)
+                                    if ( i->getBehaviour()->getFractureCriterion() )
                                     {
-                                    maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
-                                    maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
+                                        i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+                                        #pragma omp critical
+                                        {
+                                            maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
+                                            maxTolerance = std::max (i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
+                                        }
                                     }
                                 }
-                            }
                             }
                         }
                     }
@@ -4747,7 +4793,7 @@ bool FeatureTree::stepElements()
                 else
                 {
 
-    //                         #pragma omp parallel for
+                    //                         #pragma omp parallel for
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
@@ -4773,7 +4819,7 @@ bool FeatureTree::stepElements()
                     cachedVolumes.push_back(std::vector<double>());
                     if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
                     {
-                        cachedVolumes[0].push_back ( i->area() ) ;
+                        cachedVolumes[0].push_back ( i->volume() ) ;
                     }
                     else
                     {
@@ -4874,8 +4920,8 @@ bool FeatureTree::stepElements()
                                     if ( !i->getBehaviour()->fractured() )
                                     {
                                         adamage += are * dmodel->getState().max() ;
-        // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
-        // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
+                                        // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
+                                        // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
                                     }
                                 }
                                 #pragma omp critical
@@ -5393,7 +5439,7 @@ bool FeatureTree::step()
             needexit = true ;
             std::cout << "+" << std::flush ;
         }
-        
+
         if ( enrichmentChange || needMeshing )
         {
             K->clear() ;
@@ -5410,7 +5456,7 @@ bool FeatureTree::step()
             needexit = true ;
         }
         ++it ;
-        
+
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
             ! ( !solverConverged() && !reuseDisplacements ) &&
@@ -5747,7 +5793,7 @@ std::vector<double> FeatureTree::getCutMacroscopicStrain ( const Geometry * base
         std::vector<double> dxm ;
         std::vector<double> dym ;
         std::set<int> doneIds ;
-        for (auto i = dtree->begin() ; i != dtree->end() ;i++ )
+        for (auto i = dtree->begin() ; i != dtree->end() ; i++ )
         {
             if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
             {
@@ -6055,7 +6101,7 @@ std::vector<double> FeatureTree::getMedianMacroscopicStrain ( const Geometry * b
         double size_x = dynamic_cast<const Hexahedron *> ( base )->getXSize() ;
         double size_y = dynamic_cast<const Hexahedron *> ( base )->getYSize() ;
         double size_z = dynamic_cast<const Hexahedron *> ( base )->getZSize() ;
-        
+
         std::vector<double> dxp ;
         std::vector<double> dyp ;
         std::vector<double> dzp ;
@@ -6237,25 +6283,25 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, int grid, d
 
 std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri )
 {
-        Vector min ;
-        Vector max ;
-        Vector buffer ;
-        min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-        max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-        buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
-        tri[0]->getState().getAverageField ( f, buffer ) ;
-        min = buffer ;
-        max = buffer ;
-        for ( size_t i = 1 ; i < tri.size() ; i++ )
+    Vector min ;
+    Vector max ;
+    Vector buffer ;
+    min.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+    max.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+    buffer.resize ( fieldTypeElementarySize ( f, SPACE_TWO_DIMENSIONAL ) ) ;
+    tri[0]->getState().getAverageField ( f, buffer ) ;
+    min = buffer ;
+    max = buffer ;
+    for ( size_t i = 1 ; i < tri.size() ; i++ )
+    {
+        tri[i]->getState().getAverageField ( f, buffer ) ;
+        for ( size_t j = 0 ; j < min.size() ; j++ )
         {
-            tri[i]->getState().getAverageField ( f, buffer ) ;
-            for ( size_t j = 0 ; j < min.size() ; j++ )
-            {
-                min[j] = std::min ( min[j], buffer[j] ) ;
-                max[j] = std::max ( max[j], buffer[j] ) ;
-            }
+            min[j] = std::min ( min[j], buffer[j] ) ;
+            max[j] = std::max ( max[j], buffer[j] ) ;
         }
-        return std::make_pair ( min, max ) ;
+    }
+    return std::make_pair ( min, max ) ;
 }
 
 std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::vector<DelaunayTetrahedron *> & tet )
@@ -6280,8 +6326,6 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::
     }
     return std::make_pair ( min, max ) ;
 }
-
-
 
 bool FeatureTree::isStable()
 {
@@ -6312,7 +6356,7 @@ bool FeatureTree::isStable()
                     }
                 }
             }
-            
+
         }
     }
     else
@@ -6481,6 +6525,9 @@ bool FeatureTree::is2D() const
 void FeatureTree::initializeElements( )
 {
 
+    if(father3D && father3D->getOrder() != elemOrder)
+        delete father3D ;
+    
     if ( !father3D )
     {
         father3D = new TetrahedralElement ( elemOrder ) ;
@@ -6488,6 +6535,9 @@ void FeatureTree::initializeElements( )
 
     father3D->compileAndPrecalculate() ;
 
+    if(father2D && father2D->getOrder() != elemOrder)
+        delete father2D ;
+        
     if ( !father2D )
     {
         father2D = new TriElement ( elemOrder ) ;
@@ -6540,7 +6590,7 @@ void FeatureTree::initializeElements( )
 
     if ( is3D() )
     {
-      
+
         std::cerr << " initialising..." ;
 
 //         #pragma omp parallel for schedule(runtime)
@@ -6589,7 +6639,7 @@ void FeatureTree::setDeltaTime ( double d )
     realDeltaTime = d ;
     if(needMeshing)
         return ;
-    
+
     if ( dtree )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -6648,7 +6698,7 @@ void FeatureTree::setDeltaTime ( double d )
 
 void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem >::iterator & end)
 {
-    
+
     Mesh<DelaunayTriangle,  DelaunayTreeItem >::iterator i(begin) ;
     double prev = i->getBoundingPoint ( i->getBoundingPoints().size() -1 ).getT() - i->getBoundingPoint ( 0 ).getT() ;
     size_t ndof = 0 ;
@@ -6714,9 +6764,9 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
     }
     Vector buff ( 0.,ndof ) ;
 
-    if ( dtree )
+    if ( dtree3D )
     {
-        
+
         VirtualMachine vm ;
         if ( i.size() && i->timePlanes() > 1 )
         {
@@ -6759,8 +6809,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
 
 void FeatureTree::generateElements()
 {
-    if(structuredMesh)
-        return ;
+
     for ( size_t i = 0 ; i < boundaryCondition.size() ; i++ )
     {
         boundaryCondition[i]->clearCache() ;
@@ -6776,6 +6825,9 @@ void FeatureTree::generateElements()
     }
 
     needMeshing = false ;
+
+    if(structuredMesh)
+        return ;
 
     double pointDensity = 0 ;
 
@@ -7546,9 +7598,9 @@ void FeatureTree::generateElements()
                     *i->first != bbox[7]
                )
             {
-                
+
                 dtree3D->insert ( i->first ) ;
-                
+
 
                 if ( i->first->getId() == -1 )
                 {
@@ -7563,7 +7615,7 @@ void FeatureTree::generateElements()
 
         while ( !correct && tries )
         {
-           
+
             std::vector< Point *> to_insert ;
 
             for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
@@ -7791,7 +7843,7 @@ void FeatureTree::homothety ( double before, double now, double after )
         return ;
     }
     nodes = false ;
-    
+
     if ( dtree->begin()->timePlanes() != 2 )
     {
         return ;

@@ -228,16 +228,16 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
 									
 									if(val.first)
 									{
-										bool hasAlternate = false ;
-										for(size_t l = 0 ; l < t->neighbourhood.size() ; l++)
-										{
-											if( t->getNeighbourhood(l)->in(p) && t->getNeighbourhood(l)->getBehaviour() && t->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
-											{
-												valAlternate = getDoubleValue(t->getNeighbourhood(l),p,field) ; 
-												hasAlternate = true ;
-												break ;
-											}
-										}
+// 										bool hasAlternate = false ;
+// 										for(size_t l = 0 ; l < t->neighbourhood.size() ; l++)
+// 										{
+// 											if( t->getNeighbourhood(l)->in(p) && t->getNeighbourhood(l)->getBehaviour() && t->getNeighbourhood(l)->getBehaviour()->type != VOID_BEHAVIOUR)
+// 											{
+// 												valAlternate = getDoubleValue(t->getNeighbourhood(l),p,field) ; 
+// 												hasAlternate = true ;
+// 												break ;
+// 											}
+// 										}
 										
 										for(int m = 0 ; m < numberOfFields(field) ; m++)
 										{
@@ -294,7 +294,6 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
 				ret[0] = m[0][0] ;
 			else
 				ret[0] = 0 ;
-			
 			found = true ;
 			break ;
 		}

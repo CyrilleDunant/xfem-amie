@@ -895,7 +895,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::valarray<Matrix> & Jinv,  const std::vector<size_t> & id, LagrangeMultiplierType condition, double data, Assembly * a, int axis = 0 )
 {
-
     if ( e->getBehaviour()->type == VOID_BEHAVIOUR )
     {
         return ;
@@ -1218,7 +1217,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         }
 
         case SET_STRESS_ETA:
-
         {
             if ( e->getBehaviour()->fractured() )
             {
@@ -1422,58 +1420,57 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
             {
-                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
                 {
-                    if ( !&e->getBoundingPoint ( i ) )
+                     
+                    if ( !&e->getBoundingPoint ( k ) )
                     {
                         continue ;
                     }
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( id[j] == e->getBoundingPoint ( k ).getId() )
                     {
-                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                        shapeFunctions.push_back ( e->getShapeFunction ( k ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() && (
-                                squareDist3D ( e->getBoundingPoint ( i ), *tet->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( i ), *tet->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( i ), *tet->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( i ), *tet->fourth ) < POINT_TOLERANCE_3D )
+                    if ( id[j] == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE_3D  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE_3D  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE_3D  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE_3D )
                        )
                     {
                         if ( !first )
                         {
-                            first = &e->getBoundingPoint ( i ) ;
+                            first = &e->getBoundingPoint ( k ) ;
                         }
                         else if ( !middle )
                         {
-                            middle = &e->getBoundingPoint ( i ) ;
+                            middle = &e->getBoundingPoint ( k ) ;
                         }
                         else
                         {
-                            last = &e->getBoundingPoint ( i ) ;
+                            last = &e->getBoundingPoint ( k ) ;
                         }
                     }
                 }
-                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( id[j] == e->getEnrichmentFunction ( k ).getDofID() )
                     {
-                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( k ) ) ;
                     }
                 }
             }
-
             if ( !last )
             {
                 return ;
             }
 
-
             TriPoint edge ( first, middle, last ) ;
             GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
-            std::valarray<Matrix> Jinve ( gpe.gaussPoints.size() ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
 
             for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
             {
@@ -1557,7 +1554,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Vector istr ( 0., 6 ) ;
 
-            istr = transform* ( imposed ) ;
+            istr = transform * ( imposed ) ;
 
             for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
             {
@@ -1567,7 +1564,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( ZETA, forces[2], id[i] ) ;
 //                 std::cout << forces[0] << "  " << forces[1] << "  " << forces[2] << std::endl ;
             }
-
             return ;
         }
 
@@ -5168,8 +5164,8 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : 
 
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
-
-    t->getAdditionalPoints() ;
+std::cout << "boum" << std::endl ;
+//     t->getAdditionalPoints() ;
     auto j = t->begin() ;
     size_t dof = 0 ;
     while ( dof == 0 )
@@ -5227,13 +5223,25 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 
         }
     }
-    return ;
 }
 
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-    t->getAdditionalPoints() ;
-    size_t timePlanes = t->begin()->timePlanes() ;
+//     t->getAdditionalPoints() ;
+    auto j = t->begin() ;
+    size_t dof = 0 ;
+    while ( dof == 0 )
+    {
+        
+        if ( j == t->end() )
+        {
+            return ;
+        }
+        dof = j->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        j++ ;
+    }
+
+    size_t timePlanes = j->timePlanes() ;
 
     if ( timePlanes < 2 )
     {
@@ -5242,7 +5250,6 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
 
     size_t ndofmax = a->getMaxDofID() ;
     size_t dofPerPlane = ndofmax / timePlanes ;
-    size_t dof = t->begin()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     previousDisp.resize ( a->getDisplacements().size() ) ;
     previousDisp = a->getDisplacements() ;
@@ -5251,29 +5258,33 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
     {
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {
+//          #pragma omp for
             for ( size_t j = 0 ; j < dofPerPlane ; j++ )
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, initialValue, dofPerPlane*i + j )  ;
+                    a->setPointAlongIndexedAxis ( n, initialValue, dofPerPlane*i + j, true )  ;
                 }
             }
         }
     }
     else
     {
+        size_t extradof = previousDisp.size() - ndofmax*dof ;
+        size_t extradofPerPlane = extradof / timePlanes ;
+
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {
             for ( size_t j = 0 ; j < dofPerPlane ; j++ )
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+1 ) *dof + j*dof + n], dofPerPlane*i + j )  ;
+                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+ ( int ) goToNext ) *dof + j*dof + n], dofPerPlane*i + j, true )  ;
                 }
             }
+
         }
     }
-    return ;
 }
 
 

@@ -162,20 +162,6 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 converged = true ;
             }
             
-//             if ( getState().max() < POINT_TOLERANCE_2D )
-//             {
-//                 Vector ang(1) ;
-//                 Point cnt(1./3., 1./3.) ; 
-//                 s.getField(PRINCIPAL_STRAIN_ANGLE_FIELD, cnt, ang, true);
-// 
-//                
-//                 initialAngle = 2.*ang[0] ;
-// /*                if (initialAngle < -M_PI)
-//                     initialAngle += M_PI ; 
-// 
-//                   initialAngle = M_PI*.5;  */ 
-//             }
-//             angles_scores.push_back(std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState())) ;
             originalAngle = - .05*M_PI ;
             stiff->setAngle ( originalAngle ) ;   
             

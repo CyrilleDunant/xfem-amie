@@ -117,10 +117,13 @@ void step()
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 
-//     VoxelWriter vw("sphere_stress", 150) ;
-//     vw.getField(featureTree, VWFT_STRESS) ;
-//     vw.write();
-	VoxelWriter vw0("sphere_stiffness", 100) ;
+    VoxelWriter vw("sphere_stress", 50) ;
+    vw.getField(featureTree, VWFT_STRESS) ;
+    vw.write();
+//     VoxelWriter vw1("sphere_strain", 400) ;
+//     vw1.getField(featureTree, VWFT_STRESS) ;
+//     vw1.write();
+	VoxelWriter vw0("sphere_stiffness", 50) ;
 	vw0.getField(featureTree, VWFT_STIFFNESS) ;
 	vw0.write();
     exit(0) ;
@@ -132,7 +135,7 @@ int main(int argc, char *argv[])
 {
 
     double nu = 0.2 ;
-    double E = 20 ;
+    double E = 2e9 ;
     Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
     std::map<unsigned char,Form *> behaviourMap ;
@@ -141,9 +144,14 @@ int main(int argc, char *argv[])
     behaviourMap[2] = new CHBehaviour() ; // CH ?
     behaviourMap[3] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
     behaviourMap[4] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H
+//     behaviourMap[0] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // pores ?
+//     behaviourMap[1] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // C3S
+//     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
+//     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
+//     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( "../examples/data/voxels.txt", behaviourMap ) ;
     featureTree = &F ;
-
+    F.setOrder(LINEAR_TIME_LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
@@ -151,7 +159,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(LINEAR) ;
+    
 
     step() ;
 

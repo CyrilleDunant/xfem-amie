@@ -55,7 +55,8 @@ protected:
     virtual std::vector<DelaunayTetrahedron *> getElements()  {return tree ; };
 public:
 
-    virtual int addToTree ( DelaunayTreeItem3D * toAdd ) { return -1 ;} ;
+    virtual int addToTree ( DelaunayTreeItem3D * toAdd ) ;
+    
     virtual DelaunayTreeItem3D * getInTree ( int index ) const { return tree[index] ;} ;
     virtual std::vector<Point * > & getAdditionalPoints() { return additionalPoints ;} ;
     virtual const std::vector<Point * > & getAdditionalPoints() const { return additionalPoints ;} ;
