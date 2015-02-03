@@ -673,6 +673,7 @@ public:
     bool is2D() const ;
 
     std::vector<DelaunayTriangle> getSnapshot2D() const ;
+    void stepMesh();
 
 
 } ;

@@ -64,6 +64,8 @@ public:
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
+    
+    virtual bool step(double dt) { return false ; }
 
     virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry ( ETYPE * start , const Geometry * g ) {
         if ( !start ) {

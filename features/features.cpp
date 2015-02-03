@@ -4409,6 +4409,20 @@ bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
     return false ;
 }
 
+void FeatureTree::stepMesh()
+{
+    
+    if ( is2D() )
+    {
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+            needMeshing =  j->second->step(deltaTime) || needMeshing;
+    }
+    else
+    {
+            needMeshing =  dtree3D->step(deltaTime) || needMeshing;
+    }
+}
+
 bool FeatureTree::stepElements()
 {
     behaviourChange = false ;
@@ -5157,6 +5171,8 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 {
     bool behaviourChanged = ft->behaviourChanged() ;
     bool xfemChanged = ft->enrichmentChanged() ;
+    
+    ft->stepMesh();
     bool samplingChanged = ft->needMeshing ;
 
     if ( samplingChanged )
