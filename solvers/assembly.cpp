@@ -1436,8 +1436,8 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 //                 std::cout << getMatrix()[i][j] << "   " << std::flush ;
 //             std::cout << std::endl ;
 //         }
-        for(size_t i = 0 ; i < 192 ; i++)
-            std::cout << getForces()[i] << "   " << std::flush ;
+//         for(size_t i = 0 ; i < 192 ; i++)
+//             std::cout << getForces()[i] << "   " << std::flush ;
 
         ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);
