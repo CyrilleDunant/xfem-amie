@@ -76,11 +76,11 @@ int main(int argc, char *argv[])
 	double degree = atof(argv[1]) ;
 	tau /= degree/0.001 ;
 		
-	int nzones = 400 ;
-	int naggregates = 1000 ;
+	int nzones = 600 ;
+	int naggregates = 1500 ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(160) ;
+	F.setSamplingNumber(200) ;
 	F.setOrder(LINEAR_TIME_LINEAR) ;
 	F.setDeltaTime(tau) ;
 	F.setMinDeltaTime(tau*1e-9) ;

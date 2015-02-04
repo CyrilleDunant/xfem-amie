@@ -321,6 +321,7 @@ typedef enum
 	PARALLELOGRAMME,
 	CONVEX_POLYGON,
 	SEGMENTED_LINE,
+    POLYGON,
 	ORIENTABLE_CIRCLE,
 	CLOSED_NURB,
 	TETRAHEDRON = 16,
@@ -910,7 +911,7 @@ public:
 	virtual double volume() const = 0;
 	
 	/** \brief Return the number of sides of the geometry. This only makes sense if the geometry is a polyhedron, or polygon*/
-	virtual size_t sides() const { return 3 ; }
+	virtual size_t sides() const { return 0 ; }
 	
 	/** \brief return true if this geometry intersects with the argument*/
 	virtual bool intersects(const Geometry *) const ;

@@ -117,13 +117,13 @@ void step()
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 
-    VoxelWriter vw("sphere_stress", 200) ;
+    VoxelWriter vw("sphere_stress_25", 200) ;
     vw.getField(featureTree, VWFT_STRESS) ;
     vw.write();
 //     VoxelWriter vw1("sphere_strain", 400) ;
 //     vw1.getField(featureTree, VWFT_STRESS) ;
 //     vw1.write();
-	VoxelWriter vw0("sphere_stiffness", 200) ;
+	VoxelWriter vw0("sphere_stiffness_25", 200) ;
 	vw0.getField(featureTree, VWFT_STIFFNESS) ;
 	vw0.write();
     exit(0) ;
@@ -134,11 +134,6 @@ void step()
 int main(int argc, char *argv[])
 {
 
-    Matrix toto(2,2) ;
-    toto[0][0] = 0 ; toto[0][1] = 1 ; 
-    toto[1][0] = 2 ; toto[1][1] = 3 ; 
-//     std::cout << toto.array()[0] << " " << toto.array()[1] << " " << toto.array()[2] << " " << toto.array()[3] << " " << std::endl ;
-//     exit(0) ;
     double nu = 0.2 ;
     double E = 2e9 ;
     Matrix m0 =  Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
@@ -154,7 +149,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
-    FeatureTree F( "../examples/data/voxels.txt", behaviourMap ) ;
+    FeatureTree F( "../examples/data/Voxels_25.txt", behaviourMap ) ;
     featureTree = &F ;
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, -1.)) ;

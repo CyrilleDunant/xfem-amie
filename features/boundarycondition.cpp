@@ -5164,7 +5164,6 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : 
 
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
-std::cout << "boum" << std::endl ;
 //     t->getAdditionalPoints() ;
     auto j = t->begin() ;
     size_t dof = 0 ;

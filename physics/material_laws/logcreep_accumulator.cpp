@@ -11,7 +11,7 @@ void LogCreepAccumulator::preProcess( double timeStep, ElementState & currentSta
 		error.push_back(1.) ;
 		return ;
 	}
-	error.push_back( error[error.size() -1] + 1./( timeStep * log(1+currentState.getNodalCentralTime() ) ) ) ;
+	error.push_back( error[error.size() -1] + 1./( timeStep * log(1.+currentState.getNodalCentralTime() ) ) ) ;
 } ;
 
 
@@ -46,7 +46,7 @@ void TimeUnderLoadLogCreepAccumulator::preProcess( double timeStep, ElementState
 	{
 		dynamic_cast<GeneralizedSpaceTimeViscoElasticElementState &>(currentState).getAverageField( PRINCIPAL_REAL_STRESS_FIELD, stress, nullptr, -1, 1.) ;
 //		double bulk = 0.5*(stress[0]+stress[1]) ;
-		double dt = (timeStep+previousTimeStep)/2. ;
+		double dt = (timeStep+previousTimeStep)*.5 ;
 //		stress -= bulk ;
 		stress = std::abs(stress) ;
 		double prevStress = currentStress ;
