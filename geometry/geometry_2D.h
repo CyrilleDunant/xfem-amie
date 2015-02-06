@@ -7,6 +7,7 @@
 #define __GEOMETRY_2D_H_
 
 #include "geometry_base.h"
+#include <random>
 #ifdef _WIN32
 #define M_PI 3.14159265358979323846
 #endif
@@ -451,69 +452,32 @@ class Polygon :  public NonConvexGeometry
 {
 protected:
     virtual void computeCenter() ;
+    
     std::valarray<Point> originalPoints ;
 public:
-    Polygon(const std::valarray<Point *> & points) : originalPoints(points.size())
-    {
-        gType = POLYGON ;
-
-        boundingPoints.resize(points.size()) ;
-        for(size_t i = 0 ; i < points.size() ; i++)
-        {
-            boundingPoints[i] = points[i] ;
-            originalPoints[i] = *(points[i]) ;
-        }
-    }
+    Polygon(const std::valarray<Point *> & points) ;
     
-    virtual ~Polygon() { };
+    virtual ~Polygon() ;
 
     virtual void sampleBoundingSurface(size_t num_points) ;
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const
-    {
-        double d = 0 ;
-        std::vector<Point> ret ;
-        
-        for(size_t i = 0 ; i < originalPoints.size()-1 ; i++ )
-        {
-            d += dist(originalPoints[i], originalPoints[i+1]) ;
-        }
-        
-        for(size_t i = 0 ; i < originalPoints.size() ; i++ )
-        {
-            int inext = (i+1)%originalPoints.size() ;
-            double fraction = dist(originalPoints[i], originalPoints[inext])/d ;
-            int numPointsOnSegment = std::max(round(fraction*num_points), 2.) ;
-            
-            ret.push_back(originalPoints[i]);
-            for(size_t j = 1 ; j < numPointsOnSegment-1 ; j++)
-            {
-                ret.push_back(originalPoints[i]*(double)j/(numPointsOnSegment-1) + originalPoints[inext]*(1.-(double)j/(numPointsOnSegment-1)) );
-            }
-        }
-        return ret ;
-    }
     
-    virtual void sampleSurface(size_t num_points)
-    {
-        std::vector<Point> newPoints = getSamplingBoundingPoints(num_points) ;
-    }
+    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
     
-    virtual bool in(const Point & v) const;
+    virtual void sampleSurface(size_t num_points) ;
     
-    virtual double area() const { return 0 ;}
+    virtual bool in(const Point & v) const ;
     
-    virtual double volume() const { return 0 ;} 
+    virtual double area() const ;
+    
+    virtual double volume() const ;
 
-    virtual void project(Point *) const;
+    virtual void project(Point * init) const ;
     
     virtual double getRadius() const ;
     
-    virtual SpaceDimensionality spaceDimensions() const
-    {
-        return SPACE_TWO_DIMENSIONAL ;
-    }
+    virtual SpaceDimensionality spaceDimensions() const ;
     
-    virtual std::vector<Point> getBoundingBox() const { return std::vector<Point>(0) ;}
+    virtual std::vector<Point> getBoundingBox() const ;
 } ;
 
 

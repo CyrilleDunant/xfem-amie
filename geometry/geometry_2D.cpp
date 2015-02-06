@@ -2250,3 +2250,306 @@ std::vector<Point> Ellipse::getBoundingBox() const
 }
 
 
+void Polygon::computeCenter()
+{
+    
+        for(size_t i = 0 ; i < originalPoints.size() ; i++) 
+        {
+            center += originalPoints[i] ;
+        }
+        center /= originalPoints.size() ;
+}
+
+
+Polygon::Polygon(const std::valarray<Point *> & points) : NonConvexGeometry(0), originalPoints(points.size())
+{
+    gType = POLYGON ;
+
+    boundingPoints.resize(points.size()) ;
+    for(size_t i = 0 ; i < points.size() ; i++)
+    {
+        boundingPoints[i] = points[i] ;
+        originalPoints[i] = *(points[i]) ;
+    }
+    
+    computeCenter();
+}
+
+Polygon::~Polygon() { };
+
+void Polygon::sampleBoundingSurface(size_t num_points)
+{
+    std::vector<Point> newPoints = getSamplingBoundingPoints(num_points) ;
+    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+        delete boundingPoints[i] ;
+    
+    boundingPoints.resize(newPoints.size());
+    
+    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+        boundingPoints[i] = new Point(newPoints[i]) ;
+    
+}
+
+std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
+{
+    double perimeter = 0 ;
+    std::vector<Point> ret ;
+    
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        perimeter += dist(originalPoints[i], originalPoints[inext]) ;
+    }
+    
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        double fraction = dist(originalPoints[i], originalPoints[inext])/perimeter ;
+        int numPointsOnSegment = std::max(round(fraction*num_points), 2.) ;
+        
+        ret.push_back(originalPoints[i]);
+        for(int j = 1 ; j < numPointsOnSegment-1 ; j++)
+        {
+            ret.push_back(originalPoints[i]*(double)j/(numPointsOnSegment-1) + originalPoints[inext]*(1.-(double)j/(numPointsOnSegment-1)) );
+        }
+    }
+    return ret ;
+}
+
+void Polygon::sampleSurface(size_t num_points)
+{
+    num_points *=2 ;
+    sampleBoundingSurface(num_points*3);
+    std::vector<Segment> segments ;
+    double perimeter = 0 ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        segments.push_back(Segment(originalPoints[i], originalPoints[inext]));
+        perimeter += dist(originalPoints[i], originalPoints[inext]) ;
+    }
+    
+    double delta = perimeter/num_points ;
+    
+    
+    std::vector<Point> newPoints ;
+    double rad = getRadius() ;
+    int iteration = 0 ;
+    do
+    {
+        iteration++ ;
+        std::vector<Segment> newSegments ;
+        for(size_t i = 0 ; i < segments.size() ; i++)
+        {
+            Point vector(segments[i].normal(center)) ;
+     
+            vector /= vector.norm() ;
+            vector *= 0.75*delta ;
+            if(!in(segments[i].midPoint()+vector*iteration))
+                vector *= -1 ;
+                
+            segments[i].set(segments[i].first()+vector , segments[i].second()+vector) ;   
+            Point vs = segments[i].second()- segments[i].midPoint() ;
+            Point vf = segments[i].first()- segments[i].midPoint() ;
+            segments[i].set(segments[i].first()+vf/vf.norm()*2.*delta , segments[i].second()+vs/vs.norm()*2.*delta) ; 
+        }
+        
+        for(size_t i = 0 ; i < segments.size() ; i++)
+        {
+            std::multimap<double,Point> candidatesf ;
+            std::multimap<double,Point> candidatess ;
+            for(size_t j = 0 ; j < segments.size() ; j++)
+            {
+                if(i == j)
+                    continue ;
+                
+                if(segments[i].intersects(segments[j]))
+                {
+                    Point inter = segments[i].intersection(segments[j]) ;
+                    candidatess.insert(std::make_pair(dist(segments[i].second(),inter), inter)) ;
+                    candidatesf.insert(std::make_pair(dist(segments[i].first(),inter), inter)) ;
+                }
+            }
+            
+            if(candidatess.size() > 1)
+            {
+                Segment newSeg(candidatesf.begin()->second, candidatess.begin()->second) ;
+                double n = newSeg.norm() ;
+                if(n > delta)
+                {
+                    newSegments.push_back(newSeg);
+                }
+            }
+        }
+        
+        segments.clear();
+        if(newSegments.empty())
+        {
+            newPoints.push_back(center);
+            break ;
+        }
+        int start = newPoints.size() ;
+        Segment * testSegment = &newSegments[0] ;
+        Segment * startSegment = testSegment ;
+        newPoints.push_back(testSegment->second());
+        int tries  = 0 ;
+        bool found = true ;
+        while(tries < newSegments.size() && found)
+        {
+           found = false ;
+            for(size_t i = 0 ; i < newSegments.size() ; i++)
+            {
+                if(&newSegments[i] == testSegment)
+                    continue ;
+                
+                if(dist(newPoints.back(), newSegments[i].first()) < POINT_TOLERANCE_2D)
+                {
+                    newPoints.push_back(newSegments[i].second());
+                    testSegment = &newSegments[i] ;
+                    found = true ;
+                    break ;
+                }
+                if(dist(newPoints.back(), newSegments[i].second()) < POINT_TOLERANCE_2D)
+                {
+                    newPoints.push_back(newSegments[i].first());
+                    testSegment = &newSegments[i] ;
+                    found = true ;
+                    break ;
+                }
+            }
+            
+            if(startSegment == testSegment)
+                break ;
+            if(!found)
+            {
+                tries++ ;
+                Segment * testSegment = &newSegments[tries] ;
+                Segment * startSegment = testSegment ;
+//                 newPoints.erase(newPoints.begin()+start, newPoints.end()) ;
+                newPoints.push_back(testSegment->second());
+            }
+ 
+        }
+        
+
+        
+        double currentperimeter = 0 ;
+        for(size_t i = start ; i < newPoints.size() ; i++ )
+        {
+            int inext = i+1 ;
+            if(inext >= newPoints.size())
+                inext = start ;
+            segments.push_back(Segment(newPoints[i], newPoints[inext]));
+            currentperimeter +=segments.back().norm() ;
+        }
+        
+        if(currentperimeter < delta)
+        {
+            newPoints.push_back(center);
+            break ;
+        }
+        
+        for(size_t i = 0 ; i < segments.size() ; i++ )
+        {
+            double fraction = segments[i].norm()/currentperimeter ;
+            int numPointsOnSegment = round(fraction*num_points*currentperimeter/perimeter) ;
+  
+            for(int j = 0 ; j < numPointsOnSegment-1 ; j++)
+            {
+                newPoints.push_back(segments[i].first()*(double)j/(numPointsOnSegment-1) + segments[i].second()*(1.-(double)j/(numPointsOnSegment-1)) );
+            }
+        }
+        
+    }while(!segments.empty()) ;
+    
+    inPoints.resize(newPoints.size());
+    for(size_t i = 0 ; i < newPoints.size() ; i++ )
+        inPoints[i] = new Point(newPoints[i]) ;
+    
+}
+
+
+bool Polygon::in(const Point & v) const
+{
+    Point out = center + Point(0, getRadius()*1.5) ;
+    Segment s(out, v) ;
+    
+    int interCount = 0 ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        interCount += Segment(originalPoints[i], originalPoints[inext]).intersects(s);
+    }
+    return interCount%2 ;
+}
+
+double Polygon::area() const 
+{ 
+    std::vector<Point> bb = getBoundingBox() ;
+    double maxx = bb[1].getX() ;
+    double minx = bb[0].getX() ;
+    double miny = bb[1].getY() ;
+    double maxy = bb[2].getY() ;
+    std::default_random_engine generator;
+    std::uniform_real_distribution< double > distributionx(minx, maxx);
+    std::uniform_real_distribution< double > distributiony(miny, maxy);
+    
+    double incount = 0 ;
+    for(size_t i = 0 ; i < 1024  ;i++)
+    {
+        Point test(distributionx(generator), distributiony(generator)) ;
+        if(in(test))
+            incount++ ;
+    }
+    return (maxx-minx)*(maxy-miny)*(incount/1024.) ;
+    
+}
+
+double Polygon::volume() const { return 0 ;} 
+
+void Polygon::project(Point * init) const
+{
+    std::map<double, Point> potential ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        Segment s(originalPoints[i], originalPoints[inext]);
+        Point p = s.project(*init);
+        potential[dist(p, *init)] = p ;
+    }
+    init->set(potential.begin()->second) ;
+}
+
+double Polygon::getRadius() const
+{
+    double r = dist(center, originalPoints[0]) ;
+    for(const auto & p : originalPoints)
+        r = std::max(r, dist(p, center)) ;
+    
+    return r ;
+}
+
+SpaceDimensionality Polygon::spaceDimensions() const
+{
+    return SPACE_TWO_DIMENSIONAL ;
+}
+
+std::vector<Point> Polygon::getBoundingBox() const 
+{ 
+    double maxx = originalPoints[0].getX() ;
+    double minx = originalPoints[0].getX() ;
+    double maxy = originalPoints[0].getY() ;
+    double miny = originalPoints[0].getY() ;
+    for(size_t i = 1 ; i < originalPoints.size() ; i++ )
+    {
+        maxx = std::max(maxx,originalPoints[i].getX()) ;
+        minx = std::min(minx,originalPoints[i].getX()) ;
+        maxy = std::max(maxy,originalPoints[i].getY()) ;
+        miny = std::min(miny,originalPoints[i].getY()) ;
+    }
+    
+    return {Point(minx, miny), Point(maxx, miny), Point(maxx, maxy), Point(minx,maxy)} ;
+    
+}
+
+

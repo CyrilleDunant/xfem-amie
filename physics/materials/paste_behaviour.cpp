@@ -23,7 +23,7 @@ using namespace Amie ;
 
 PasteBehaviour::PasteBehaviour(double E, double nu, double up, double yield, double c, SpaceDimensionality dim) : WeibullDistributedStiffness(E,nu, dim, 0.,0.), up(up), yield(yield), c(c)
 {
-	materialRadius = 0.00025 ;
+	materialRadius = 0.00015 ;
 }
 
 Form * PasteBehaviour::getCopy() const 
@@ -33,7 +33,7 @@ Form * PasteBehaviour::getCopy() const
 //	return new Stiffness(param*factor) ;
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, new NonLocalLinearlyDecreasingMohrCoulomb(up*factor,-8000.*up*factor, 3.*factor*up/E, -factor*24000.*up/E,E), new FiberBasedIsotropicLinearDamage(0.05,0.95)) ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-
+        copy->dfunc->setThresholdDamageDensity(.99);
 	return copy ;
 }
 

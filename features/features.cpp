@@ -5433,6 +5433,7 @@ bool FeatureTree::step()
             }
         }
         state.setStateTo ( XFEM_STEPPED, true ) ;
+        ++it ;
         deltaTime = 0 ;
         if ( solverConverged() )
         {
@@ -5461,18 +5462,27 @@ bool FeatureTree::step()
             K->clear() ;
         }
 
+
+
+//         std::cout << " \n trial : " << (it > maxitPerStep) << "  " << foundCheckPoint << std::endl ;
+        if ( it > maxitPerStep && foundCheckPoint )
+        {
+            
+            ret = false ;
+            needexit = true ;
+        }
+        else if(it > maxitPerStep)
+            std::cout << ":"<< std::endl ;        
+
         if ( needexit ) // && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
         {
             break ;
         }
-
-        if ( it > maxitPerStep && foundCheckPoint )
-        {
-            ret = false ;
-            needexit = true ;
-        }
-        ++it ;
-
+        
+//         std::cout << " \n trial : " << (( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
+//             ! ( !solverConverged() && !reuseDisplacements ) &&
+//             ( notConvergedCounts < 20 )) << std::endl ;
+        
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
             ! ( !solverConverged() && !reuseDisplacements ) &&

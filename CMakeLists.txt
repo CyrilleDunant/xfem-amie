@@ -44,7 +44,8 @@ features/layeredinclusion.cpp
 features/pore3d.cpp 
 features/pore.cpp 
 features/sample3d.cpp 
-features/sample.cpp 
+features/sample.cpp
+features/polygonSample.cpp
 features/vibratingcircularmembrane.cpp 
 filters/voxelfilter.cpp 
 filters/voxelporefilter.cpp 

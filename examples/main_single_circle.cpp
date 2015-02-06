@@ -18,6 +18,7 @@
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
+#include "../features/polygonSample.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
 #include "../features/inclusion3d.h"
@@ -50,8 +51,8 @@ FeatureTree * featureTree ;
 void step()
 {
 
-    int nsteps = 125 ;
-    featureTree->setMaxIterationsPerStep(500) ;
+    int nsteps = 1 ;
+    featureTree->setMaxIterationsPerStep(800) ;
     MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
     for(size_t i = 0 ; i < nsteps ; )
     {
@@ -122,15 +123,14 @@ void step()
         std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
         std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
 
-        if(converged)
-        {
+
             writerc.reset( featureTree ) ;
             writerc.getField( REAL_STRESS_FIELD ) ;
             writerc.getField( STRAIN_FIELD ) ;
-            writerc.getField( TWFT_DAMAGE ) ;
+//             writerc.getField( TWFT_DAMAGE ) ;
+            writerc.getField( TWFT_STIFFNESS ) ;
             writerc.append() ;
 //             writerc.writeSvg(0., true) ;
-        }
     }
 
     exit(0) ;
@@ -163,17 +163,22 @@ int main(int argc, char *argv[])
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;
-    int setup = atoi(argv[2]) ;
-    int load = atoi(argv[3]) ;
+    int setup = -1 ; //atoi(argv[2]) ;
+    int load = 1 ; //atoi(argv[3]) ;
 
-    samplers.setBehaviour(new PasteBehaviour()) ;
+    samplers.setBehaviour(new ElasticOnlyPasteBehaviour()) ;
     Vector a(0.,6) ;// a[0] = 1 ; a[1] = 1 ; a[2] = 1 ;
 // 	ExpansiveZone3D inc(&samplers,100, 200, 200, 200, m1*4, a) ;
-    Inclusion inc( 0.008, 0, 0) ;
-
+//     Inclusion inc( 0.008, 0, 0) ;
+    std::valarray<Point *> pts(5) ;
+    
+    pts[0] = new Point(-0.008, 0.005) ; pts[1] = new Point(0.00, 0.002) ; pts[2] = new Point(0.008, 0.008) ;
+    pts[3] = new Point(0.005, -0.008) ; pts[4] = new Point(-0.008, -0.008) ;
+    PolygonalSample inc(&samplers, pts) ;
+    
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;
 // 	inc.setBehaviour(new Stiffness(m1*4)) ;
-    inc.setBehaviour(new AggregateBehaviour()) ;
+    inc.setBehaviour(new ElasticOnlyAggregateBehaviour()) ;
 
 
     F.addFeature(&samplers, &inc) ;
@@ -334,8 +339,8 @@ int main(int argc, char *argv[])
 
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.setOrder(LINEAR) ;
-    F.setPartition(64);
+    F.setOrder(QUADRATIC) ;
+//     F.setPartition(64);
 
     step() ;
 // 	delete dt ;

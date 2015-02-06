@@ -305,7 +305,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 					if ( currentDir.norm() > 1e-8 )
 					{
 						current->getState().getField( PRINCIPAL_STRESS_ANGLE_FIELD, current->getBoundingPoint(j), a, false) ;
-						aangle += a[0] ;
+						aangle += a[0]*2. ;
 						acount++ ;
 					}
 				}

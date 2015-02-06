@@ -46,10 +46,10 @@ int main(int argc, char *argv[])
 
 	featureTree->setSamplingNumber(atof(argv[1])) ;
 	featureTree->setOrder(QUADRATIC) ;
-	featureTree->setMaxIterationsPerStep(1600);
+	featureTree->setMaxIterationsPerStep(1);
 
 	
-	MultiTriangleWriter writerm( "displacements_enrichment", "displacements_enrichment", nullptr ) ;
+	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
 
@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
 		bool go_on = featureTree->step() ;
 
 		writerm.reset( featureTree ) ;
-		writerm.setGeometry(Crack1->getPrimitive());
+// 		writerm.setGeometry(Crack1->getPrimitive());
 		writerm.getField( REAL_STRESS_FIELD ) ;
-		writerm.getField( TWFT_INTERSECTION ) ;
+// 		writerm.getField( TWFT_INTERSECTION ) ;
 		writerm.getField( TWFT_ENRICHMENT ) ;
 		writerm.append() ;
-		writerm.writeSvg(5, true) ;
+// 		writerm.writeSvg(5, true) ;
 		
 		if(!go_on)
 			break ;
