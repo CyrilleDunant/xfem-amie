@@ -399,7 +399,7 @@ void ConfigParser::readData()
 			if(line[0] == '#')
 				continue ;
 
-			size_t comment = line.find("#") ;
+			size_t comment = line.find('#') ;
 			if(comment != std::string::npos)
 			{
 				line = line.substr(0, comment-1) ;
@@ -517,6 +517,9 @@ ConfigTreeItem * ConfigParser::readFile(std::string f, ConfigTreeItem * def, boo
 		ret = ret->getChild("template")->makeTemplate() ;
 	if(define)
 		ret->define(def, true) ;
+	if(ret->hasChildFromFullLabel("define.path"))
+		ret->definePath( ret->getStringData("define.path", "./") ) ;
+
 	return ret ;
 }
 

@@ -166,6 +166,8 @@ public:
 
 	void define(ConfigTreeItem * definition) ;
 
+	void definePath(std::string baseDirectory) ;
+
 	/** Translates the current item in a function*/
 	Function getFunction() const ;
 

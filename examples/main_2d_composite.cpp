@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 /*	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
 	{
 		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;*/
-//		omp_set_num_threads(6) ;
+//		omp_set_num_threads(1) ;
 //	}
 
 	FeatureTree F(problem->getChild("sample")->getSample()) ;
@@ -138,16 +138,18 @@ int main(int argc, char *argv[])
 		trg = new MultiTriangleWriter( headerFileName, trgFileName, &F, 1.) ;
 	}
 
+	bool next = true ;
 	for(size_t i = 1 ; i < instants.size() ; i++)
 	{
-		F.setDeltaTime( instants[i]-instants[i-1] ) ;
+		if(next)
+			F.setDeltaTime( instants[i]-instants[i-1] ) ;
 
 		for(size_t j = 0 ; j < interpolatedBC .size() ; j++)
 			interpolatedBC[j].first->setData( interpolatedBC[j].second->get( instants[i] ) ) ;
 		for(size_t j = 0 ; j < functionBC .size() ; j++)
 			functionBC[j].first->setData( VirtualMachine().eval(functionBC[j].second, 0., 0., 0., instants[i] ) ) ;
 
-		F.step() ;
+		next = F.step() ;
 //		F.getAssembly()->print() ;
 //		exit(0) ;
 		if(problem->hasChild("output"))

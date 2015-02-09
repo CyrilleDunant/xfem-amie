@@ -365,6 +365,21 @@ void ConfigTreeItem::define(ConfigTreeItem * definition)
 	}
 }
 
+void ConfigTreeItem::definePath( std::string baseDirectory)
+{ 
+	if(label == std::string("file")
+		|| label == std::string("file_name")
+		|| label == std::string("tension_file_name")
+		|| label == std::string("compression_name")
+		|| label == std::string("list_of_time_steps"))
+	{
+		str = baseDirectory+"/"+str ;
+	}
+
+	for(size_t i = 0 ; i < children.size() ; i++)
+		children[i]->definePath(baseDirectory) ;
+}
+
 double ConfigTreeItem::getData(std::string path, double defaultValue) const 
 {
 	if(hasChildFromFullLabel(path))
