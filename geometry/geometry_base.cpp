@@ -320,7 +320,7 @@ Point operator-(const Point & p_, const Vector &p)
 
 Point operator+(const Point & p_, const Point &p)
 {
-    Point ret(p) ;
+    Point ret(p_) ;
 #ifdef HAVE_SSE3
     ret.vecxy = _mm_add_pd(ret.vecxy, p.vecxy) ;
     ret.veczt = _mm_add_pd(ret.veczt, p.veczt) ;

@@ -100,7 +100,7 @@ inline void matrix_multiply_and_assign(const Matrix &m0, const Matrix &m1,  Matr
 		Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
 		{
-			const Cslice_iter<double>& ri = m0.row(i) ;
+			const Cslice_iter<double>& ri = m0[i] ;
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
 				const Cslice_iter<double>& cj = m1.column(j) ;
@@ -117,7 +117,7 @@ inline void matrix_multiply_and_assign(const Matrix &m0, const Matrix &m1,  Matr
 // 		std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
-		const Cslice_iter<double>& ri = m0.row(i) ;
+		const Cslice_iter<double>& ri = m0[i] ;
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
 			const Cslice_iter<double>& cj = m1.column(j) ;
@@ -210,37 +210,32 @@ double secondInvariant(const Matrix & m)
 }
 
 
-Matrix &Matrix::operator*=(double d)
+Matrix &operator*=(Matrix &m, double d)
 {
-	(*v) *=d ;
-	return *this ;
+	m.array() *=d ;
+	return m ;
 }
 
-Matrix &Matrix::operator=(double d)
-{
-	(*v) =d ;
-	return *this ;
-}
 
-Matrix Matrix::operator*(double d) const
+Matrix operator*(const Matrix &m, double d) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m) ;
 	ret*=d ;
 		
 	return ret ;
 }
 
-Matrix Matrix::operator/(double d) const
+Matrix operator/(const Matrix &m, double d) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m) ;
 	ret /=d ;
 	return ret ;
 }
 
-Matrix &Matrix::operator/=(double d)
+Matrix &operator/=( Matrix &m,double d)
 {
-	(*v) /=d ;
-	return *this ;
+	m.array() /=d ;
+	return m ;
 }
 
 Matrix & Matrix::operator =(const MtM& m)
@@ -253,14 +248,14 @@ Matrix & Matrix::operator =(const MtM& m)
 	return *this ;
 }
 
-Matrix & Matrix::operator +=(const MtM& m)
+Matrix & operator +=( Matrix & m_, const MtM& m)
 {
-	if(isNull())
+	if(m_.isNull())
 		std::cout << "EEEEEERGH" << std::endl ;
 
-	matrix_multiply_and_add(m.first, m.second, *this) ;
+	matrix_multiply_and_add(m.first, m.second, m_) ;
 	
-	return *this ;
+	return m_ ;
 }
 
 Matrix & Matrix::operator =(const MtMtM& m)
@@ -273,23 +268,22 @@ Matrix & Matrix::operator =(const MtMtM& m)
 	return *this ;
 }
 
-Matrix & Matrix::operator +=(const MtMtM& m)
+Matrix & operator +=(Matrix &m_ , const MtMtM& m)
 {
-	matrix_matrix_matrix_multiply_and_add(m.first, m.second, m.third, 1.,  *this) ;
-	return *this ;
+	matrix_matrix_matrix_multiply_and_add(m.first, m.second, m.third, 1.,  m_) ;
+	return m_ ;
 }
 
-Matrix &Matrix::operator*=(const Matrix &m)
+Matrix & operator*=(Matrix &m_, const Matrix &m)
 {
-	assert(m.numRows() == this->numCols()) ;
+	assert(m.numRows() == m_.numCols()) ;
 	
-	Matrix ret(matrix_multiply((*this), m)) ;
+	Matrix ret(matrix_multiply(m_, m)) ;
 	
-	(*v) = ret.array() ;
-	r = ret.numRows() ;
-	c = ret.numCols() ;
+        m_.resize(ret.numRows(),ret.numCols()) ;
+	m_.array() = ret.array() ;
 	
-	return *this ;
+	return m_ ;
 }
 
 
@@ -303,77 +297,77 @@ Matrix MtMtM::operator *(const double & d) const
 	return matrix_matrix_matrix_multiply(first, second, third, d) ;
 }
 
-Matrix &Matrix::operator +=(const Matrix &m)
+Matrix &operator +=(Matrix & m_, const Matrix &m)
 {
-	(*v) += m.array() ;
-	return *this ;
+	m_.array() += m.array() ;
+	return m_ ;
 }
 
-Matrix Matrix::operator +(const  Matrix &m) const
+Matrix operator +(const Matrix & m_, const  Matrix &m) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m_) ;
 	ret += m ; ;
 	return ret ;
 }
 
-Matrix &Matrix::operator -=(const Matrix &m)
+Matrix &operator -=( Matrix & m_, const Matrix &m)
 {
-	(*v) -= (m.array()) ;
-	return *this ;
+	m_.array() -= m.array() ;
+	return m_ ;
 }
 
-Matrix Matrix::operator -(const  Matrix &m) const
+Matrix operator -(const Matrix & m_,const  Matrix &m) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m_) ;
 	ret -= m ; ;
 	return ret ;
 }
 
-Matrix Matrix::operator -(const Vector &v) const
+Matrix operator -(const Matrix & m_,const Vector &v) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m_) ;
 	ret.array() -= v ;
 	return ret ;
 }
 
-Matrix Matrix::operator +(const Vector &v) const
+Matrix operator +(const Matrix & m_,const Vector &v) 
 {
-	Matrix ret(*this) ;
+	Matrix ret(m_) ;
 	ret.array() += v ;
 	return ret ;
 }
 
-Matrix& Matrix::operator -=(const Vector &v)
+Matrix& operator -=( Matrix & m_,const Vector &v)
 {
-	array() -= v ;
-	return *this ;
+	m_.array() -= v ;
+	return m_ ;
 }
 
-Matrix& Matrix::operator +=(const Vector &v)
+Matrix& operator +=(Matrix & m_,const Vector &v)
 {
-	array() += v ;
-	return *this ;
+	m_.array() += v ;
+	return m_ ;
 }
 
-bool Matrix::operator ==(const Matrix &m)
+bool operator ==(const Matrix & m_,const Matrix &m)
 {
-	if(v->size() != m.array().size())
+	if(m_.array().size() != m.array().size())
 		return false ;
 	
-	for(size_t i = 0 ; i < v->size() ; i++)
-		if(std::abs((*v)[i] - m.array()[i]) > std::numeric_limits<double>::epsilon()*std::max((*v)[i], m.array()[i]))
+	for(size_t i = 0 ; i < m_.array().size() ; i++)
+		if(std::abs(m_.array()[i] - m.array()[i]) > std::numeric_limits<double>::epsilon()*std::max(m_.array()[i], m.array()[i]))
 			return false ;
 	
 	return true ;
 }
 
-bool Matrix::operator !=(const Matrix &m)
+bool operator !=(const Matrix & m_,const Matrix &m)
 {
-	if(v->size() != m.array().size())
+	if(m_.array().size() != m.array().size())
 		return true ;
 	else
-		for(size_t i = 0 ; i < v->size() ; i++)
-			if((*v)[i] != m.array()[i])
+		for(size_t i = 0 ; i < m_.array().size() ; i++)
+			if(m_.array()[i] != m.array()[i])
 				return true ;
 	
 	return false ;
@@ -389,6 +383,12 @@ Matrix::Matrix(const Matrix& m) : r(m.numRows()), c( m.numCols())
 	{
 		v = nullptr ;
 	}
+}
+
+Matrix &Matrix::operator =(double a)
+{
+    *v = a ;
+    return *this ;
 }
 
 Matrix &Matrix::operator =(const Matrix &m)

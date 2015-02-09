@@ -128,6 +128,9 @@ public:
 	* different dimensions, the result will be undefined.
 	*/
 	Matrix &operator=(const Matrix &m);
+        Matrix& operator =(const MtM& m) ;
+        Matrix& operator =(double) ;
+        Matrix& operator =(const MtMtM& m) ;
 	
 	/** \brief Return the number of elements in the matrix*/
 	size_t size() const {return r*c ;}
@@ -148,18 +151,6 @@ public:
 	Cslice_iter< double > column(size_t i ) const 
 	{
 		return Cslice_iter< double >(v, std::slice(i, r, c)) ;
-	}
-	
-	/** \brief return a row iterator*/
-	Slice_iter< double > row(size_t i )
-	{
-		return Slice_iter< double >(v, std::slice(i*c, c, 1)) ;
-	}
-	
-	/** \brief return a const row iterator*/
-	Cslice_iter< double > row(size_t i ) const
-	{
-		return Cslice_iter< double >(v, std::slice(i*c, c, 1)) ;
 	}
 	
 	/** \brief construct a new transpose Matrix*/
@@ -183,32 +174,10 @@ public:
 	}
 	
 	/** \brief c++-style accessor: return row*/
-	Slice_iter< double > operator[](size_t i) {return row(i) ;}
+	Slice_iter< double > operator[](size_t i) { return Slice_iter< double >(v, std::slice(i*c, c, 1)) ;}
 	
 	/** \brief c++-style accessor: return row*/
-	Cslice_iter< double > operator[](size_t i) const {return row(i) ;}
-	
-	Matrix& operator *=(double);
-	Matrix operator *(double) const;
-	Matrix operator /(double) const;
-	Matrix& operator /=(double) ;
-	Matrix& operator *=(const Matrix &m);
-	Matrix& operator +=(const Matrix &m) ;
-	Matrix& operator +=(const MtM &m) ;
-	Matrix& operator +=(const MtMtM &m) ;
-	Matrix operator +(const Matrix &m) const;
-	Matrix& operator -=(const Matrix &m) ;
-	Matrix operator -(const Matrix &m) const;
-	Matrix operator -(const Vector &v) const;
-	Matrix operator +(const Vector &v) const;
-	Matrix &operator -=(const Vector &v);
-	Matrix &operator +=(const Vector &v);
-	Matrix& operator =(const MtM& m) ;
-	Matrix& operator =(double) ;
-	Matrix& operator =(const MtMtM& m) ;
-	
-	bool operator ==(const Matrix &m) ;
-	bool operator !=(const Matrix &m) ;
+	Cslice_iter< double > operator[](size_t i) const { return Cslice_iter< double >(v, std::slice(i*c, c, 1)) ;}
 
 	/** \brief Return the array of values, stored in row-major fashion*/
 	Vector &array() {return *v ;}
@@ -221,6 +190,25 @@ public:
 	
 
 } ;
+
+Matrix& operator *=(Matrix &m, double);
+Matrix operator *(const Matrix &m, double) ;
+Matrix operator /(const Matrix &m,double) ;
+Matrix& operator /=(Matrix &m, double) ;
+Matrix& operator *=(Matrix &m_,const Matrix &m);
+Matrix& operator +=(Matrix &m_,const Matrix &m) ;
+Matrix& operator +=(Matrix &m_,const MtM &m) ;
+Matrix& operator +=(Matrix &m_,const MtMtM &m) ;
+Matrix operator +(const Matrix &m_,const Matrix &m) ;
+Matrix& operator -=(const Matrix &m_, const Matrix &m) ;
+Matrix operator -(const Matrix &m_,const Matrix &m);
+Matrix operator -(const Matrix &m,const Vector &v);
+Matrix operator +(const Matrix &m,const Vector &v);
+Matrix &operator -=(Matrix &m_,const Vector &v);
+Matrix &operator +=(Matrix &m_,const Vector &v);
+
+bool operator ==(const Matrix &m_, const Matrix &m) ;
+bool operator !=(const Matrix &m_, const Matrix &m) ;
 
 std::pair<Vector, double> getLargestEigenValueAndVector(const Amie::Matrix & m) ;
 std::vector<std::pair<Vector, double> > deflate(const Amie::Matrix & m) ;
@@ -335,7 +323,7 @@ inline const Amie::Matrix matrix_multiply(const Amie::Matrix &m0, const Amie::Ma
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 		}
@@ -353,7 +341,7 @@ inline const Amie::Matrix matrix_multiply(const Amie::Matrix &m0, const Amie::Ma
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) )*d ;
 		}
@@ -370,7 +358,7 @@ inline const Amie::Matrix matrix_matrix_matrix_multiply(const Amie::Matrix &m0, 
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -389,7 +377,7 @@ inline const Amie::Matrix matrix_matrix_matrix_multiply(const Amie::Matrix &m0, 
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -410,7 +398,7 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Amie::Matrix &m0, con
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& ri = m0[i] ;
 				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 				for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -426,7 +414,7 @@ inline void matrix_matrix_matrix_multiply_and_assign(const Amie::Matrix &m0, con
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -446,7 +434,7 @@ inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const 
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& ri = m0[i] ;
 				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 				for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -461,7 +449,7 @@ inline void matrix_matrix_matrix_multiply_and_add(const Amie::Matrix &m0, const 
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			double r_ij = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			for(size_t k = 0 ; k < m2.numCols() ; k++)
@@ -485,7 +473,7 @@ inline void matrix_multiply_and_add(const Amie::Matrix &m0, const Amie::Matrix &
 		{
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+				const Amie::Cslice_iter<double>& ri = m0[i] ;
 				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 				r[i][j] += std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			}
@@ -499,7 +487,7 @@ inline void matrix_multiply_and_add(const Amie::Matrix &m0, const Amie::Matrix &
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Amie::Cslice_iter<double>& ri = m0[i] ;
 			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] += std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 		}
@@ -516,7 +504,7 @@ inline const Vector matrix_vector_multiply(const Amie::Matrix &m, const Vector &
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 
-		const Amie::Cslice_iter<double>& ri = m.row(i) ;
+		const Amie::Cslice_iter<double>& ri = m[i] ;
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], (double)(0) ) ;
 	}
 	return ret ;

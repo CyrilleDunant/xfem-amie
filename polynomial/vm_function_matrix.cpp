@@ -371,7 +371,7 @@ inline const FunctionMatrix ff_matrix_multiply(const FunctionMatrix &m0, const F
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Cslice_iter<Function>& ri = m0.row(i) ;
+			const Cslice_iter<Function>& ri = m0[i] ;
 			const Cslice_iter<Function>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Function()) ;
 		}
@@ -389,7 +389,7 @@ inline const FunctionMatrix fm_matrix_multiply(const FunctionMatrix &m0, const M
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Cslice_iter<Function>& ri = m0.row(i) ;
+			const Cslice_iter<Function>& ri = m0[i] ;
 			const Cslice_iter<double>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, Function() ) ;
 		}
@@ -407,7 +407,7 @@ inline const FunctionMatrix mf_matrix_multiply(const Matrix &m0, const FunctionM
 	{
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Cslice_iter<double>& ri = m0.row(i) ;
+			const Cslice_iter<double>& ri = m0[i] ;
 			const Cslice_iter<Function>& cj = m1.column(j) ;
 			ret[i][j] = std::inner_product(&cj[0], &cj[m0.numCols()], ri, Function() ) ;
 		}
@@ -425,7 +425,7 @@ inline const FunctionVector matrix_fvector_multiply(const Matrix &m, const Funct
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 		
-		const Cslice_iter<double>& ri = m.row(i) ;
+		const Cslice_iter<double>& ri = m[i] ;
 		ret[i] = std::inner_product(&v[0], &v[v.size()],ri, Function() ) ;
 	}
 	return ret ;
@@ -440,7 +440,7 @@ inline const FunctionVector fmatrix_vector_multiply(const FunctionMatrix &m, con
 	for(size_t i = 0 ; i < m.numRows() ; i++)
 	{
 		
-		const Cslice_iter<Function>& ri = m.row(i) ;
+		const Cslice_iter<Function>& ri = m[i] ;
 		ret[i] = std::inner_product(ri, ri.end(), &v[0], Function() ) ;
 	}
 	return ret ;
