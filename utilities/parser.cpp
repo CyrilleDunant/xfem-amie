@@ -76,9 +76,9 @@ void PointParser::readData()
 				if( file.eof())
 					return ;
 				
-				file >> index >> (*(*m)[j])[0] >>(*(*m)[j])[1] ;
+				file >> index >> m->getPoint(j)->getX() >> m->getPoint(j)->getY() ;
 	#ifdef DEBUG
-			std::cout << "index : " << index << ", x : "<< (*(*m)[j])[0] << ", y : " << (*(*m)[j])[1] << std::endl ;
+			std::cout << "index : " << index << ", x : "<< m->getPoint(j)->getX() << ", y : " << m->getPoint(j)->getY() << std::endl ;
 	#endif		
 			}
 			pointSets->push_back(m) ;

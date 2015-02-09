@@ -12,6 +12,7 @@
 #ifndef MUFRACTURECRITERION_H
 #define MUFRACTURECRITERION_H
 
+#include "../../utilities/matrixops.h"
 #include "../../elements/integrable_entity.h"
 #include "../../mesher/mesh.h"
 #include "../../features/features.h"

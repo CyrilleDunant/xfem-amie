@@ -33,7 +33,6 @@ public:
         virtual PointArray& getBoundingPoints() { return father->getBoundingPoints() ; }
         virtual const Point& getBoundingPoint(size_t i) const { return father->getBoundingPoint(i) ; }
         virtual Point& getBoundingPoint(size_t i)  { return father->getBoundingPoint(i) ; }
-        virtual void setBoundingPoint(size_t i, Point* p)  { return father->setBoundingPoint(i, p) ; }
         virtual void setBoundingPoints(const PointArray& p) { return father->setBoundingPoints(p) ; }
         virtual const Point& getPoint(size_t i) const  { return father->getPoint(i) ; }
         virtual Point& getPoint(size_t i)  { return father->getPoint(i) ; }
@@ -41,7 +40,6 @@ public:
         virtual void sampleBoundingSurface(size_t n) { }
         virtual std::vector<Point> getSamplingBoundingPoints(size_t) const { std::vector<Point> ret ; return ret ; }
         virtual void sampleSurface(size_t) { }
-        virtual size_t size() const { return father->size() ; } 
         virtual std::vector<Point, std::allocator<Point> > getBoundingBox() const { return father->getBoundingBox() ; }
         virtual SpaceDimensionality spaceDimensions() const { return father->spaceDimensions() ; }
 	

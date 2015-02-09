@@ -1762,4 +1762,130 @@ std::vector<Point> TriangulatedSurface::getBoundingBox() const {return std::vect
 
 
 
+
+void PolygonPrism::computeCenter()
+{
+
+        center = base.getCenter() + axis*.5 + origin;
+}
+
+
+PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & vector, const Point & origin) : NonConvexGeometry(0), base(points), axis(vector), origin(origin)
+{
+    gType = POLYGON_PRISM ;
+
+    computeCenter();
+}
+
+PolygonPrism::~PolygonPrism() { };
+
+void PolygonPrism::sampleBoundingSurface(size_t num_points)
+{
+    std::vector<Point> newPoints = getSamplingBoundingPoints(num_points) ;
+    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+        delete boundingPoints[i] ;
+    
+    boundingPoints.resize(newPoints.size());
+    
+    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+        boundingPoints[i] = new Point(newPoints[i]) ;
+    
+}
+
+std::vector<Point> PolygonPrism::getSamplingBoundingPoints(size_t num_points) const
+{
+    std::vector<Point> retbase = base.getSamplingBoundingPoints(num_points) ;
+    std::vector<Point> ret ;
+     
+    double numSlices = std::max(round(axis.norm()/base.getPerimeter()*num_points), 2.) ;
+    
+    for(double i = 0 ; i< numSlices ; i++)
+    {
+        for(size_t j = 0 ; j< retbase.size() ; j++)
+        {
+            ret.push_back( axis * i/(numSlices-1.) + retbase[j] + origin);
+        }
+    }
+    
+    return ret ;
+}
+
+void PolygonPrism::sampleSurface(size_t num_points)
+{
+        std::vector<Point> newPoints ;
+        double prismVolume = volume() ;
+        double baseRadius = base.getRadius() ;
+        double sphereVolume = 1.333333*M_PI*baseRadius*baseRadius*baseRadius ;
+        base.sampleSurface(num_points*prismVolume/sphereVolume) ;
+        for(size_t i = 0 ; i < base.getInPoints().size() ; i++)
+            newPoints.push_back(base.getInPoint(i));
+        
+    double numSlices = std::max(round(axis.norm()/base.getPerimeter()*num_points), 2.) ;
+    inPoints.resize(newPoints.size()*numSlices);
+    int piterator = 0 ;
+    for(double i = 0 ; i< numSlices ; i++)
+    {
+        for(size_t j = 0 ; j< newPoints.size() ; j++)
+        {
+            inPoints[piterator++] = new Point( axis * i/(numSlices-1.) + newPoints[j] + origin);
+        }
+    }
+}
+
+
+bool PolygonPrism::in(const Point & v) const
+{
+    Line direction(origin, axis) ;
+    Segment direction_(origin, origin+axis) ;
+    Point pr = direction.projection(v) ;
+    if( direction_.on(pr))
+    {
+        return base.in(v -pr) ;
+    }
+    return false ;
+}
+
+double PolygonPrism::area() const 
+{ 
+    return base.getPerimeter()*axis.norm() ;  
+}
+
+double PolygonPrism::volume() const { return area()*axis.norm() ;} 
+
+void PolygonPrism::project(Point * init) const
+{
+//     return base.area()*axis.norm() ;  
+}
+
+double PolygonPrism::getRadius() const
+{
+    double rb = base.getRadius() ;
+    double ra = axis.norm() ;
+    return sqrt(ra*ra+rb*rb) ;
+}
+
+SpaceDimensionality PolygonPrism::spaceDimensions() const
+{
+    return SPACE_THREE_DIMENSIONAL ;
+}
+
+std::vector<Point> PolygonPrism::getBoundingBox() const 
+{ 
+    double maxx = base.originalPoints[0].getX() ;
+    double minx = base.originalPoints[0].getX() ;
+    double maxy = base.originalPoints[0].getY() ;
+    double miny = base.originalPoints[0].getY() ;
+    for(size_t i = 1 ; i < base.originalPoints.size() ; i++ )
+    {
+        maxx = std::max(maxx,base.originalPoints[i].getX()) ;
+        minx = std::min(minx,base.originalPoints[i].getX()) ;
+        maxy = std::max(maxy,base.originalPoints[i].getY()) ;
+        miny = std::min(miny,base.originalPoints[i].getY()) ;
+    }
+    
+    return {Point(minx, miny), Point(maxx, miny), Point(maxx, maxy), Point(minx,maxy)} ;
+    
+}
+
+
 	

@@ -67,7 +67,7 @@ void transform2D( Feature * inc, RandomDistribution & xDistribution, RandomDistr
 	Point c( xDistribution.draw(), yDistribution.draw() ) ;
 	Point theta( 0,0, rDistribution.draw() ) ;
 	inc->setCenter( c ) ;
-	inc->transform(ROTATE, theta) ;
+	transform(inc, ROTATE, theta) ;
 }
 
 void transform3D( Feature * inc, RandomDistribution & xDistribution, RandomDistribution & yDistribution,  RandomDistribution & zDistribution)
@@ -102,7 +102,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 		{
 			scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
 			Point s( scale, scale ) ;
-			inclusions[i]->transform(SCALE, s) ;
+			transform(inclusions[i], SCALE, s) ;
 		}
 		
 		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
@@ -136,7 +136,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 			if(scale > 1.)
 			{
 				Point s(1./scale, 1./scale) ;
-				inclusions[i]->transform( SCALE , s) ;
+				transform(inclusions[i], SCALE , s) ;
 			}
 			ret.push_back(inclusions[i]);
 		}
@@ -212,7 +212,7 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
         {
             scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
             Point s( scale, scale, scale ) ;
-            inclusions[i]->transform(SCALE, s) ;
+            transform(inclusions[i],SCALE, s) ;
         }
         
         transform3D( inclusions[i], xDistribution, yDistribution, zDistribution); 
@@ -243,7 +243,7 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
             if(scale > 1.)
             {
                 Point s(1./scale, 1./scale, 1./scale) ;
-                inclusions[i]->transform( SCALE , s) ;
+                transform(inclusions[i], SCALE , s) ;
             }
             ret.push_back(inclusions[i]);
             tries = 0 ;
@@ -288,7 +288,7 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 		{
 			scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
 			Point s( scale, scale ) ;
-			inclusions[i]->transform(SCALE, s) ;
+			transform(inclusions[i], SCALE, s) ;
 		}
 		
 		transform2D( inclusions[i], xDistribution, yDistribution, rDistribution); 
@@ -322,7 +322,7 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
 			if(scale > 1.)
 			{
 				Point s(1./scale, 1./scale) ;
-				inclusions[i]->transform( SCALE , s) ;
+				transform(inclusions[i], SCALE , s) ;
 			}
 			ret.push_back(inclusions[i]);
 		}

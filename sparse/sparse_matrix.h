@@ -648,11 +648,11 @@ void assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecMinus
  */
 void assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart = 0, const int colstart = 0) ;
 
-} ;
 
 Amie::CompositeSparseMatrix operator+(const Amie::CoordinateIndexedSparseMatrix  & sm, const Amie::CoordinateIndexedIncompleteSparseMatrix  & ism) ;
 
 Amie::CompositeSparseMatrix operator+(const Amie::CoordinateIndexedIncompleteSparseMatrix  & ism, const Amie::CoordinateIndexedSparseMatrix  & sm ) ;
+} ;
 
 #endif
 

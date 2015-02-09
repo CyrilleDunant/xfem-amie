@@ -10,9 +10,9 @@
 #include <iomanip>
 #include <omp.h>
 
-using namespace Amie ;
+namespace Amie{
 
-std::pair<Vector, double> Amie::getLargestEigenValueAndVector(const Matrix & m)
+std::pair<Vector, double> getLargestEigenValueAndVector(const Matrix & m)
 {
 	Vector evec(1., m.numCols()) ;
 	evec = m*evec ;
@@ -31,7 +31,7 @@ std::pair<Vector, double> Amie::getLargestEigenValueAndVector(const Matrix & m)
 	return std::make_pair(evec, eval) ;
 }
 
-std::vector<std::pair<Vector, double> > Amie::deflate(const Matrix & m)
+std::vector<std::pair<Vector, double> > deflate(const Matrix & m)
 {
 	std::vector<std::pair<Vector, double> > ret ; 
 	std::pair<Vector, double> largest = getLargestEigenValueAndVector(m) ;
@@ -92,7 +92,7 @@ Matrix::Matrix(size_t rl, size_t k, size_t l, const Matrix & m)
 	}
 }
 
-inline void matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matrix &m1,  Amie::Matrix &ret)
+inline void matrix_multiply_and_assign(const Matrix &m0, const Matrix &m1,  Matrix &ret)
 {
 	assert(m0.numCols() == m1.numRows()) ;
 	if(&m0 == &ret || &m1 == &ret)
@@ -100,10 +100,10 @@ inline void matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matri
 		Matrix r(ret.numRows(), ret.numCols()) ;
 		for(size_t i = 0 ; i < m0.numRows() ; i++)
 		{
-			const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+			const Cslice_iter<double>& ri = m0.row(i) ;
 			for(size_t j = 0 ; j < m1.numCols() ; j++)
 			{
-				const Amie::Cslice_iter<double>& cj = m1.column(j) ;
+				const Cslice_iter<double>& cj = m1.column(j) ;
 
 				r[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 				
@@ -117,10 +117,10 @@ inline void matrix_multiply_and_assign(const Amie::Matrix &m0, const Amie::Matri
 // 		std::cout << ret.numRows() << ", " << ret.numCols() << ", " << m0.numRows() << ", " <<m0.numCols() << ", " << m1.numRows() << ", "  <<m1.numCols() << std::endl ;
 	for(size_t i = 0 ; i < m0.numRows() ; i++)
 	{
-		const Amie::Cslice_iter<double>& ri = m0.row(i) ;
+		const Cslice_iter<double>& ri = m0.row(i) ;
 		for(size_t j = 0 ; j < m1.numCols() ; j++)
 		{
-			const Amie::Cslice_iter<double>& cj = m1.column(j) ;
+			const Cslice_iter<double>& cj = m1.column(j) ;
 
 			ret[i][j] = std::inner_product(&ri[0], &ri[m0.numCols()], cj, (double)(0) ) ;
 			
@@ -452,7 +452,7 @@ MtV::operator const Vector()
 }
 
 
-void swapLines(size_t l0, size_t l1, Amie::Matrix * m)
+void swapLines(size_t l0, size_t l1, Matrix * m)
 {
 	for(size_t i = 0 ; i < m->numCols() ; i++)
 	{
@@ -463,10 +463,10 @@ void swapLines(size_t l0, size_t l1, Amie::Matrix * m)
 	}
 }
 
-Amie::Matrix swapMatrix(size_t l0, size_t l1, size_t dim)
+Matrix swapMatrix(size_t l0, size_t l1, size_t dim)
 {
 	
-	Amie::Matrix ret(dim, dim) ;
+	Matrix ret(dim, dim) ;
 	for(size_t i = 0 ;  i < dim ; i++)
 	{
 		if(i!=l0 && i!=l1 )
@@ -488,7 +488,7 @@ Amie::Matrix swapMatrix(size_t l0, size_t l1, size_t dim)
 }
 
 //clever 2x2 Matrix inversion. Thanks the numerical cookbook :)
-Amie::Matrix inverse2x2Matrix(const Amie::Matrix &s)
+Matrix inverse2x2Matrix(const Matrix &s)
 {
 	Matrix s_(s) ;
 	invert2x2Matrix(s_) ;
@@ -499,7 +499,7 @@ Amie::Matrix inverse2x2Matrix(const Amie::Matrix &s)
  * 
  * @param s 
  */
-void invert2x2Matrix(Amie::Matrix &s)
+void invert2x2Matrix(Matrix &s)
 {
 	
 	if(std::abs(s.array()[0]) < 1e-16)
@@ -526,7 +526,7 @@ void invert2x2Matrix(Amie::Matrix &s)
 
 }
 
-void invert6x6Matrix(Amie::Matrix &s)
+void invert6x6Matrix(Matrix &s)
 {
 	Matrix s00(3,0,0,s) ;
 	Matrix s01(3,0,3,s) ;
@@ -535,7 +535,7 @@ void invert6x6Matrix(Amie::Matrix &s)
 	
 	if(true)
 	{
-		Amie::Matrix ret(6,6) ;
+		Matrix ret(6,6) ;
 	
 	
 		double deti = det(s) ;
@@ -606,21 +606,21 @@ void invert6x6Matrix(Amie::Matrix &s)
 	}
 }
 
-Matrix inverse6x6Matrix(Amie::Matrix &s)
+Matrix inverse6x6Matrix(Matrix &s)
 {
 	Matrix ret(s) ;
 	invert6x6Matrix(ret);
 	return ret ;
 }
 
-Amie::Matrix inverse3x3Matrix(const Amie::Matrix & m)
+Matrix inverse3x3Matrix(const Matrix & m)
 {
-	Amie::Matrix m_(m) ;
+	Matrix m_(m) ;
 	invert3x3Matrix(m_) ;
 	return m_ ;
 }
 
-void invert3x3Matrix(Amie::Matrix & m)
+void invert3x3Matrix(Matrix & m)
 {
 
 	
@@ -651,10 +651,10 @@ void invert3x3Matrix(Amie::Matrix & m)
 	
 }
 
-Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s)
+Matrix inverse4x4Matrix(const Matrix &s)
 {	
   
-	Amie::Matrix ret(4,4) ;
+	Matrix ret(4,4) ;
 //     Matrix a(2, 0, 0, s) ; Matrix b(2, 0, 2, s) ;
 //     Matrix c(2, 2, 0, s) ; Matrix d(2, 2, 2, s) ;
 //     Matrix r1 = inverse2x2Matrix(a) ;
@@ -741,7 +741,7 @@ Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s)
 // 	return ret ;
 // }
 
-double det(const Amie::Matrix &s) 
+double det(const Matrix &s) 
 {
 	switch(s.numCols())
 	{		
@@ -833,7 +833,7 @@ double det(const Amie::Matrix &s)
 }
 
 
-Amie::Matrix exp(const Amie::Matrix& m, size_t order)
+Matrix mexp(const Matrix& m, size_t order)
 {
 	Matrix Identity(m.numRows(), m.numCols()) ;
 	Matrix ret(m.numRows(), m.numCols()) ;
@@ -858,7 +858,7 @@ Amie::Matrix exp(const Amie::Matrix& m, size_t order)
 	return ret+Identity ;
 }
 
-Amie::Matrix log(const Amie::Matrix&m, size_t order)
+Matrix mlog(const Matrix&m, size_t order)
 {
 	Matrix Identity(m.numRows(), m.numCols()) ;
 	
@@ -912,7 +912,7 @@ Amie::Matrix log(const Amie::Matrix&m, size_t order)
 // 	return std::inner_product(&x[0], &x[x.size()], &x_[0], double(0)) ;
 // }
 
-Vector Amie::solveSystem(const Matrix & A, const Vector & b, Vector & x)
+Vector solveSystem(const Matrix & A, const Vector & b, Vector & x)
 {
 	
 	double epsilon = 1e-12 ;
@@ -986,3 +986,4 @@ Vector Amie::solveSystem(const Matrix & A, const Vector & b, Vector & x)
 	return x ;
 }
 
+} ;

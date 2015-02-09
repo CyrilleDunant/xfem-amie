@@ -901,7 +901,7 @@ public:
 	
 } ;
 
-} ;
+
 
 inline void reverseInnerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
 {
@@ -984,4 +984,5 @@ inline double innerProduct(const Amie::ConstSparseVector & v0, Amie::ConstSparse
 	
 } ;
 
+} ;
 #endif

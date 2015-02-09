@@ -14,20 +14,10 @@
 #include "space_time_geometry_2D.h"
 #include "../polynomial/vm_function_base.h"
 
-using namespace Amie ;
-
-Point::Point() : id(-1)
+namespace Amie
 {
-#ifdef HAVE_SSE3
-    vecxy = _mm_setzero_pd() ;
-    veczt = _mm_setzero_pd() ;
-#else
-    x = 0 ;
-    y = 0 ;
-    z = 0 ;
-    t = 0 ;
-#endif
-}
+
+
 
 #ifdef HAVE_SSE3
 Point::Point(const Point & p) : vecxy(p.vecxy), veczt(p.veczt), id(p.getId())
@@ -44,55 +34,109 @@ Point::Point(const Point & p)
 }
 #endif
 
-#ifdef HAVE_SSE3
+
+    Point & operator*=( Point &p, const Matrix & m) {
+
+        if(m.numCols() == 2)
+        {
+            Vector vec(2) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec = vec*m ;
+
+            p.getX() = vec[0] ;
+            p.getY() = vec[1] ;
+        }
+        else if(m.numCols() == 3)
+        {
+            Vector vec(3) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec = vec*m ;
+
+            p.getX() = vec[0] ;
+            p.getY() = vec[1] ;
+            p.getZ() = vec[2] ;
+        }
+        else if(m.numCols() == 4)
+        {
+            Vector vec(4) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec[3] = p.getT() ;
+            vec = vec*m ;
+
+            p.getX() = vec[0] ;
+            p.getY() = vec[1] ;
+            p.getZ() = vec[2] ;
+            p.getT() = vec[3] ;
+        }
+        
+        return p ;
+    }
+
+    Point operator* (const Point & p, const Matrix & m) {
+        if(m.numCols() == 3)
+        {
+            Vector vec(3) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec = vec*m ;
+            return Point(vec[0], vec[1], vec[2]) ;
+        }
+        else if(m.numCols() == 4)
+        {
+            Vector vec(4) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec[3] = p.getT() ;
+            vec = vec*m ;
+
+            return Point(vec[0], vec[1], vec[2], vec[3]) ;
+        }
+
+        return Point() ;
+    }
+
+
+
+Point & operator*=( Point & p, const double d) {
+    p.getX() *= d ;
+    p.getY() *= d ;
+    p.getZ() *= d ;
+    p.getT() *= d ;
+    return p ;
+}
+
+Point & operator/=( Point & p, const double d) {
+    double inv = 1./d ;
+    p.getX() *= inv ;
+    p.getY() *= inv ;
+    p.getZ() *= inv ;
+    p.getT() *= inv ;
+    
+    return p ;
+}
+
+
 Point& Point::operator = (const Point & p)
 {
-    vecxy = p.vecxy;
-    veczt = p.veczt;
-    id = p.getId();
+    getX() = p.getX() ;
+    getY() = p.getY() ;
+    getZ() = p.getZ() ;
+    getT() = p.getT() ;
+    getId() = p.getId() ;
     return *this ;
 }
-#else
-Point& Point::operator = (const Point & p)
-{
-    x = p.getX() ;
-    y = p.getY() ;
-    z = p.getZ() ;
-    t = p.getT() ;
-    id = p.getId() ;
-    return *this ;
-}
-#endif
+
 
 double Point::angle() const
 {
     return atan2(y,x) ;
-}
-
-Point::Point(double x_, double y_) : id(-1)
-{
-#ifdef HAVE_SSE3
-    vecxy = _mm_setr_pd(x_, y_) ;
-    veczt =_mm_setzero_pd() ;
-#else
-    x= x_ ;
-    y = y_ ;
-    z = 0 ;
-    t = 0 ;
-#endif
-}
-
-Point::Point(double x_, double y_, double z_): id(-1)
-{
-#ifdef HAVE_SSE3
-    vecxy = _mm_setr_pd(x_, y_) ;
-    veczt = _mm_set_sd(z_) ;
-#else
-    x= x_ ;
-    y = y_ ;
-    z = z_ ;
-    t = 0 ;
-#endif
 }
 
 Point::Point(double x_, double y_, double z_, double t_): id(-1)
@@ -183,32 +227,6 @@ void Point::set(const Point & p)
 #endif
 }
 
-void Point::set(const Point * p)
-{
-#ifdef HAVE_SSE3
-    vecxy = p->vecxy ;
-    veczt = p->veczt ;
-#else
-    x = p->getX() ;
-    y = p->getY() ;
-    z = p->getZ() ;
-    t = p->getT() ;
-#endif
-}
-
-
-void Point::set(double v, double vv)
-{
-    x = v ;
-    y = vv ;
-}
-
-void Point::set(double v, double vv, double vvv)
-{
-    x = v ;
-    y = vv ;
-    z = vvv ;
-}
 
 void Point::set(double v, double vv, double vvv, double vvvv)
 {
@@ -218,22 +236,22 @@ void Point::set(double v, double vv, double vvv, double vvvv)
     t = vvvv ;
 }
 
-bool Point::operator==(const Point &p) const
+bool operator==(const Point & p_, const Point &p)
 {
 
 
-    if(std::abs(p.getX()-x) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getX()-p_.getX()) > 2.*POINT_TOLERANCE_2D)
         return false ;
-    if(std::abs(p.getY()-y) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getY()-p_.getY()) > 2.*POINT_TOLERANCE_2D)
         return false ;
-    if(std::abs(p.getZ()-z) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getZ()-p_.getZ()) > 2.*POINT_TOLERANCE_2D)
         return false ;
-    if(std::abs(p.getT()-t) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getT()-p_.getT()) > 2.*POINT_TOLERANCE_2D)
         return false ;
 
     return true ;
 
-    return dist(p, *this) < POINT_TOLERANCE_2D ;
+//     return dist(p, *this) < POINT_TOLERANCE_2D ;
 // 	Point mid = (p+ *this)*.5 ;
 // 	double d =  std::max(p.norm(), norm()) ;
 // 	if(d < POINT_TOLERANCE)
@@ -261,22 +279,23 @@ bool Point::operator==(const Point &p) const
 // 		|| squareDist( &h, this) < POINT_TOLERANCE*POINT_TOLERANCE ;
 }
 
-bool Point::operator!=(const Point & p) const
+bool operator!=(const Point & p_ ,const Point & p)
 {
-    double pnorm = p.norm() ;
-    double tnorm = norm() ;
-    if(pnorm <= 4.*POINT_TOLERANCE_2D && tnorm <= 4.*POINT_TOLERANCE_2D)
-        return false ;
-    return dist(p, *this) >= 4.*POINT_TOLERANCE_2D ;
+    return !(p_ == p) ;
+//     double pnorm = p.norm() ;
+//     double tnorm = norm() ;
+//     if(pnorm <= 4.*POINT_TOLERANCE_2D && tnorm <= 4.*POINT_TOLERANCE_2D)
+//         return false ;
+//     return dist(p, *this) >= 4.*POINT_TOLERANCE_2D ;
 }
 
-Point Point::operator-(const Point &p) const
+Point operator-(const Point & p_, const Point &p)
 {
-    Point ret((*this)) ;
+    Point ret(p_) ;
 #ifdef HAVE_SSE3
     ret.vecxy = _mm_sub_pd(ret.vecxy, p.vecxy) ;
     ret.veczt = _mm_sub_pd(ret.veczt, p.veczt) ;
-    ret.setId( std::max(id, p.getId())) ;
+    ret.setId( std::max(p_.getId(), p.getId())) ;
 #else
     ret.getX() -= p.getX() ;
     ret.getY() -= p.getY() ;
@@ -286,22 +305,22 @@ Point Point::operator-(const Point &p) const
     return ret ;
 }
 
-Point Point::operator-(const Vector &p) const
+Point operator-(const Point & p_, const Vector &p)
 {
-    Point ret((*this)) ;
+    Point ret(p_) ;
     ret.getX() -= p[0] ;
     ret.getY() -= p[1] ;
     if(p.size() > 2)
         ret.getZ() -= p[2] ;
     if(p.size() > 3)
         ret.getT() -= p[3] ;
-    ret.setId( id) ;
+    ret.setId( p_.getId()) ;
     return ret ;
 }
 
-Point Point::operator+(const Point &p) const
+Point operator+(const Point & p_, const Point &p)
 {
-    Point ret((*this)) ;
+    Point ret(p) ;
 #ifdef HAVE_SSE3
     ret.vecxy = _mm_add_pd(ret.vecxy, p.vecxy) ;
     ret.veczt = _mm_add_pd(ret.veczt, p.veczt) ;
@@ -311,114 +330,116 @@ Point Point::operator+(const Point &p) const
     ret.getZ() += p.getZ() ;
     ret.getT() += p.getT() ;
 #endif
-    ret.getId() = std::max(id, p.getId()) ;
+    ret.getId() = std::max(p.getId(), p.getId()) ;
     return ret ;
 }
 
-void Point::operator+=(const Point &p)
+Point & operator+=(Point &  p_, const Point &p)
 {
 #ifdef HAVE_SSE3
-    vecxy = _mm_add_pd(vecxy, p.vecxy) ;
-    veczt = _mm_add_pd(veczt, p.veczt) ;
+    p_.vecxy = _mm_add_pd(p_.vecxy, p.vecxy) ;
+    p_.veczt = _mm_add_pd(p_.veczt, p.veczt) ;
 #else
-    x += p.getX() ;
-    y += p.getY() ;
-    z += p.getZ() ;
-    t += p.getT() ;
+    p_.getX() += p.getX() ;
+    p_.getY() += p.getY() ;
+    p_.getZ() += p.getZ() ;
+    p_.getT() += p.getT() ;
 #endif
+    return p_ ;
 }
 
-void Point::operator-=(const Point &p)
+Point & operator-=(Point & p_,  const Point &p)
 {
 #ifdef HAVE_SSE3
-    vecxy = _mm_sub_pd(vecxy, p.vecxy) ;
-    veczt = _mm_sub_pd(veczt, p.veczt) ;
+    p_.vecxy = _mm_sub_pd(p_.vecxy, p.vecxy) ;
+    p_.veczt = _mm_sub_pd(p_.veczt, p.veczt) ;
 #else
-    x -= p.getX() ;
-    y -= p.getY() ;
-    z -= p.getZ() ;
-    t -= p.getT() ;
+    p_.getX() -= p.getX() ;
+    p_.getY() -= p.getY() ;
+    p_.getZ() -= p.getZ() ;
+    p_.getT() -= p.getT() ;
 #endif
+    
+    return p_ ;
 }
 
-Point Point::operator+(const Vector &p) const
+Point operator+(const Point & p_, const Vector &p) 
 {
-    Point ret((*this)) ;
+    Point ret(p_) ;
     ret.getX() += p[0] ;
     ret.getY() += p[1] ;
     if(p.size() > 2)
         ret.getZ() += p[2] ;
     if(p.size() > 3)
         ret.getT() += p[3] ;
-    ret.setId( id) ;
+    ret.setId( p_.getId()) ;
     return ret ;
 }
 
-Point Point::operator/(const double p) const
+Point operator/(const Point & p_, const double p) 
 {
     double inv = 1./p ;
-    Point ret(x*inv, y*inv,z*inv, t*inv) ;
-    ret.setId( id) ;
+    Point ret(p_.x*inv, p_.y*inv,p_.z*inv, p_.t*inv) ;
+    ret.setId( p_.id) ;
     return ret ;
 }
 
 Geometry::~Geometry()
 {
 
-    for(size_t i = 0 ; i < this->inPoints.size() ; i++)
+    for(size_t i = 0 ; i < inPoints.size() ; i++)
     {
         delete inPoints[i] ;
-        inPoints[i] = nullptr ;
     }
 }
 
-bool Point::operator <(const Point &p) const
+bool operator <(const Point & p_, const Point &p)
 {
 // 	if(p == *this)
 // 		return false ;
 //
-    if(x < p.getX())
+    if(p_.x < p.getX())
         return true ;
-    else if(x > p.getX())
+    else if(p_.x > p.getX())
         return false ;
 
-    if(y < p.getY())
+    if(p_.y < p.getY())
         return true ;
-    else if(y > p.getY())
+    else if(p_.y > p.getY())
         return false ;
 
-    if(z < p.getZ())
+    if(p_.z < p.getZ())
         return true ;
-    else if (z > p.getZ())
+    else if (p_.z > p.getZ())
         return false ;
 
-    if(t < p.getT())
+    if(p_.t < p.getT())
         return true ;
 
     return false ;
 }
 
-bool Point::operator >(const Point &p) const
+bool operator >(const Point & p_, const Point &p)
 {
-    if(p == *this)
+    if(p == p_)
         return false ;
 
     double tol = POINT_TOLERANCE_2D ;
-    return (y > p.getY() )
-           || (( std::abs(y - p.getY()) < tol)
-               && (x > p.getX()))
-           || (( std::abs(y - p.getY()) < tol)
-               && ( std::abs(x - p.getX()) < tol)
-               && (z> p.getZ()))
-           ||(( std::abs(y - p.getY()) < tol)
-              && ( std::abs(x - p.getX()) < tol)
-              && ( std::abs(z - p.getZ()) < tol)
-              && (z> p.getZ()));
+    return (p_.y > p.getY() )
+           || (( std::abs(p_.y - p.getY()) < tol)
+               && (p_.x > p.getX()))
+           || (( std::abs(p_.y - p.getY()) < tol)
+               && ( std::abs(p_.x - p.getX()) < tol)
+               && (p_.z> p.getZ()))
+           ||(( std::abs(p_.y - p.getY()) < tol)
+              && ( std::abs(p_.x - p.getX()) < tol)
+              && ( std::abs(p_.z - p.getZ()) < tol)
+              && (p_.z> p.getZ()));
 }
 
-Point Point::operator*(const double p)  const
+Point operator*(const Point & p_, const double p)
 {
-    Point ret((*this)) ;
+    Point ret(p_) ;
 #ifdef HAVE_SSE3
     __m128d temp = _mm_load1_pd(&p) ;
 
@@ -430,35 +451,35 @@ Point Point::operator*(const double p)  const
     ret.getZ() *= p ;
     ret.getT() *= p ;
 #endif
-    ret.setId( id);
+    ret.setId( p_.id);
     return ret ;
 }
 
-double Point::operator*(const Point &p) const
+double operator*(const Point & p_, const Point &p)
 {
 #ifdef HAVE_SSE4
     vecdouble r ;
-    r.vec = _mm_dp_pd(p.vecxy, vecxy, 61) ;
-    r.vec += _mm_dp_pd(p.veczt, veczt, 62) ;
+    r.vec = _mm_dp_pd(p.vecxy, p_.vecxy, 61) ;
+    r.vec += _mm_dp_pd(p.veczt, p_.veczt, 62) ;
     return r.val[0] + r.val[1];
 #elif defined HAVE_SSE3
     vecdouble r ;
     r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
     return r.val[0] + r.val[1];
 #endif
-    return p.getX()*x+p.getY()*y+p.getZ()*z+p.getT()*t ;
+    return p.getX()*p_.x+p.getY()*p_.y+p.getZ()*p_.z+p.getT()*p_.t ;
 
 }
 
 
 
-double Point::operator*(const Vector &p) const
+double operator*(const Point & p_, const Vector &p)
 {
-    double ret = x*p[0] + y*p[1] ;
+    double ret = p_.x*p[0] + p_.y*p[1] ;
     if(p.size() > 2)
-        ret+=z*p[2] ;
+        ret+=p_.z*p[2] ;
     if(p.size() > 3)
-        ret+=t*p[3] ;
+        ret+=p_.t*p[3] ;
     return ret ;
 }
 
@@ -485,14 +506,14 @@ double Point::operator*(const Vector &p) const
 // 	return ret ;
 // }
 
-PtP Point::operator^(const Point &p) const
+PtP operator^(const Point & p_, const Point &p)
 {
-    return PtP(*this,p) ;
+    return PtP(p_,p) ;
 }
 
-PtV Point::operator^(const Vector &p) const
+PtV operator^(const Point & p_, const Vector &p)
 {
-    return PtV(*this,p) ;
+    return PtV(p_,p) ;
 }
 
 
@@ -533,60 +554,60 @@ Matrix rotationMatrix(double theta, size_t i)
     return ret ;
 }
 
-void Geometry::transform(GeometricTransformationType transformation, const Point& p)
+void transform(Geometry * g, GeometricTransformationType transformation, const Point& p)
 {
     switch(transformation)
     {
     case SCALE:
-        if( p.getX() < POINT_TOLERANCE_2D || p.getY() < POINT_TOLERANCE_2D || ( spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE_2D) )
+        if( p.getX() < POINT_TOLERANCE_2D || p.getY() < POINT_TOLERANCE_2D || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE_2D) )
         {
             std::cout << "try to scale geometry with factor = 0... do nothing instead" << std::endl ;
             return ;
         }
-        if(this->gType == CIRCLE)
+        if(g->getGeometryType() == CIRCLE)
         {
-            static_cast<Circle *>(this)->setRadius( getRadius()*p.getX() );
+            static_cast<Circle *>(g)->setRadius( g->getRadius()*p.getX() );
             return ;
         }
-        if(this->gType == SPHERE)
+        if(g->getGeometryType() == SPHERE)
         {
-            static_cast<Sphere *>(this)->setRadius( getRadius()*p.getX() );
+            static_cast<Sphere *>(g)->setRadius( g->getRadius()*p.getX() );
             return ;
         }
 
-        for(size_t i = 0 ; i < inPoints.size() ; i++)
+        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
         {
-            (*inPoints[i]).getX() = center.getX() + ((*inPoints[i]).getX() - center.getX()) * p.getX() ;
-            (*inPoints[i]).getY() = center.getY() + ((*inPoints[i]).getY() - center.getY()) * p.getY() ;
-            (*inPoints[i]).getZ() = center.getZ() + ((*inPoints[i]).getZ() - center.getZ()) * p.getZ() ;
+            g->getInPoint(i).getX() = (g->getCenter().getX() + g->getInPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
+            g->getInPoint(i).getY() = (g->getCenter().getY() + g->getInPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
+            g->getInPoint(i).getZ() = (g->getCenter().getZ() + g->getInPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
         }
-        for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
+        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
         {
-            getBoundingPoint(i).getX() = center.getX() + (getBoundingPoint(i).getX() - center.getX()) * p.getX() ;
-            getBoundingPoint(i).getY() = center.getY() + (getBoundingPoint(i).getY() - center.getY()) * p.getY() ;
-            getBoundingPoint(i).getZ() = center.getZ() + (getBoundingPoint(i).getZ() - center.getZ()) * p.getZ() ;
+            g->getBoundingPoint(i).getX() = g->getCenter().getX() + (g->getBoundingPoint(i).getX() - g->getCenter().getX()) * p.getX() ;
+            g->getBoundingPoint(i).getY() = g->getCenter().getY() + (g->getBoundingPoint(i).getY() - g->getCenter().getY()) * p.getY() ;
+            g->getBoundingPoint(i).getZ() = g->getCenter().getZ() + (g->getBoundingPoint(i).getZ() - g->getCenter().getZ()) * p.getZ() ;
         }
 
-        if(gType == ELLIPSE)
+        if(g->getGeometryType() == ELLIPSE)
         {
-            Point A = dynamic_cast<Ellipse *>(this)->getMajorAxis() ;
-            Point B = dynamic_cast<Ellipse *>(this)->getMinorAxis() ;
+            Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
+            Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
             A.getX() *= p.getX() ;
             A.getY() *= p.getY() ;
             B.getX() *= p.getX() ;
             B.getY() *= p.getY() ;
-            dynamic_cast<Ellipse *>(this)->setMajorAxis(A) ;
-            dynamic_cast<Ellipse *>(this)->setMinorAxis(B) ;
+            dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
+            dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
         }
 
         break ;
     case ROTATE:
     {
-        if(this->gType == CIRCLE)
+        if(g->getGeometryType() == CIRCLE)
         {
             return ;
         }
-        if(this->gType == SPHERE)
+        if(g->getGeometryType() == SPHERE)
         {
             return ;
         }
@@ -595,31 +616,31 @@ void Geometry::transform(GeometricTransformationType transformation, const Point
         rotation *= rotationMatrix( p.getY(), 1 ) ;
         rotation *= rotationMatrix( p.getZ(), 2 ) ;
 
-        Point c = center ;
+        Point c = g->getCenter() ;
         c *= -1 ;
-        this->transform(TRANSLATE, c);
+        transform(g, TRANSLATE, c);
 
-        for(size_t i = 0 ; i < inPoints.size() ; i++)
-            (*inPoints[i]) *= rotation ;
-        for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-            getBoundingPoint(i) *= rotation ;
+        for(size_t i = 0 ; i < g->getInPoints().size() ; i++)
+            g->getInPoint(i) *= rotation ;
+        for(size_t i = 0 ; i < g->getBoundingPoints().size() ; i++)
+            g->getBoundingPoint(i) *= rotation ;
 
         c *= -1 ;
-        this->transform(TRANSLATE, c);
+        transform(g, TRANSLATE, c);
 
-        if(gType == ELLIPSE)
+        if(g->getGeometryType() == ELLIPSE)
         {
-            Point A = dynamic_cast<Ellipse *>(this)->getMajorAxis() ;
-            Point B = dynamic_cast<Ellipse *>(this)->getMinorAxis() ;
+            Point A = dynamic_cast<Ellipse *>(g)->getMajorAxis() ;
+            Point B = dynamic_cast<Ellipse *>(g)->getMinorAxis() ;
             A *= rotation ;
             B *= rotation;
-            dynamic_cast<Ellipse *>(this)->setMajorAxis(A) ;
-            dynamic_cast<Ellipse *>(this)->setMinorAxis(B) ;
+            dynamic_cast<Ellipse *>(g)->setMajorAxis(A) ;
+            dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
         }
         break ;
     }
     case TRANSLATE:
-        this->setCenter( center + p ) ;
+        g->setCenter( g->getCenter() + p ) ;
         break ;
     }
 }
@@ -727,16 +748,6 @@ void ConvexGeometry::setBoundingPoints(const PointArray & nb)
     boundingPoints.resize(nb.size()) ;
     boundingPoints = nb ;
 }
-
-double & Point::operator[](size_t i)
-{
-    return (*(&x+i)) ;
-}
-double Point::operator[](size_t i) const
-{
-    return (*(&x+i)) ;
-}
-
 
 Plane::Plane(const Point & origin, const Point & vector) : p(origin), v(vector)
 {
@@ -2668,16 +2679,6 @@ void PointSet::set(size_t i, double x, double y, double z)
     boundingPoints[i]->setId( id ) ;
 }
 
-Point * PointSet::operator[](size_t i)
-{
-    return boundingPoints[i] ;
-}
-
-Point * PointSet::operator[](size_t i) const
-{
-    return boundingPoints[i] ;
-}
-
 Point * PointSet::getPoint(size_t i) const
 {
     return boundingPoints[i] ;
@@ -3025,7 +3026,7 @@ Segment::Segment(const Segment & l)
     mid = l.midPoint() ;
 }
 
-Segment& Segment::operator=(const Amie::Segment& l)
+Segment& Segment::operator=(const Segment& l)
 {
     f = l.first() ;
     s = l.second() ;
@@ -4856,6 +4857,35 @@ double dist(const Point * v1, const Point * v2)
 
 
 
+void rotateToVector (Point * toRotate, const Point & toVector)
+{
+    Point x= *toRotate^toVector ;
+    double n = x.sqNorm() ;
+    if(n < POINT_TOLERANCE_2D)
+        return ;
+    
+    double costheta = *toRotate*toVector/sqrt(toRotate->sqNorm()*toVector.sqNorm()) ;
+    double theta = acos(costheta);
+    
+    if(std::abs(theta-M_PI) < POINT_TOLERANCE_2D)
+    {
+        x = Point(toRotate->getY(), -toRotate->getX(), 0) ;
+        x /= x.norm() ;
+    }
+    else
+        x /= sqrt(n) ;
+    
+    Matrix A(3,3) ;
+    A[0][1] = -x.getZ(); A[0][2] = x.getY();
+    A[1][0] = x.getZ() ; A[1][2] = -x.getX() ;
+    A[2][0] = -x.getY(); A[2][1] = x.getX();
+    
+    Matrix rot(3,3) ; rot[0][0] = 1 ; rot[1][1] = 1 ; rot[2][2] = 1 ;
+    rot += A*sin(theta) + (A*A)*(1.-costheta);
+    
+    *toRotate *= rot ;
+}
+
 double squareDist(const  Point &v1, const Point & v2)
 {
 #ifdef HAVE_SSE4
@@ -5090,7 +5120,7 @@ ConvexPolygon* convexHull(const std::vector<Point *> * points)
     std::copy(temphull.begin(), temphull.end(),hull->begin()) ;
 
     for(size_t i = 0 ; i < hull->size() ; i++)
-        std::cout << "(" << (*hull)[i]->getX() << ", " << (*hull)[i]->getY() << ")" << std::endl ;
+        std::cout << "(" << hull->getPoint(i)->getX() << ", " << hull->getPoint(i)->getY() << ")" << std::endl ;
 
     return hull ;
 }
@@ -5381,12 +5411,12 @@ double OrientableCircle::getRadius() const
     return radius ;
 }
 
-bool isCoplanar(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2, double renorm)
+bool isCoplanar(const Point *test, const Point *f0, const Point *f1,const Point *f2, double renorm)
 {
     return isCoplanar(*test, *f0, *f1, *f2, renorm) ;
 } ;
 
-double signedAlignement(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1)
+double signedAlignement(const Point &test, const Point &f0, const Point &f1)
 {
     Point a(f1) ;
     a -= test ;
@@ -5402,7 +5432,7 @@ double signedAlignement(const Amie::Point &test, const Amie::Point &f0, const Am
     return (a^b)*n ;
 }
 
-bool isAligned(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1)
+bool isAligned(const Point &test, const Point &f0, const Point &f1)
 {
 
     if(test == f1 || test == f0)
@@ -5444,13 +5474,13 @@ bool isAligned(const Amie::Point &test, const Amie::Point &f0, const Amie::Point
     return l.intersects(&s) ;
 }
 
-bool isAligned(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1)
+bool isAligned(const Point *test, const Point *f0, const Point *f1)
 {
     return isAligned(*test, *f0, *f1) ;
 } ;
 
 
-int coplanarCount( Point *const* pts, int numpoints, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm)
+int coplanarCount( Point *const* pts, int numpoints, const Point &f0, const Point &f1, const Point &f2, double renorm)
 {
     int count = 0 ;
     Point centre = (**(pts)+f0+f1+f2)*.25 ;
@@ -5487,7 +5517,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Amie::Point &f0, cons
     return count ;
 }
 
-bool isCoplanar(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2, double renorm)
+bool isCoplanar(const Point &test, const Point &f0, const Point &f1, const Point &f2, double renorm)
 {
 
     Point centre = (test+f0+f1+f2)*.25 ;
@@ -5522,37 +5552,39 @@ bool isCoplanar(const Amie::Point &test, const Amie::Point &f0, const Amie::Poin
     return  positive && negative ;
 } ;
 
-double coplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2)
+double coplanarity(const Point *test, const Point *f0, const Point *f1,const Point *f2)
 {
     return coplanarity(*test, *f0, *f1, *f2) ;
 } ;
 
-double coplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2)
+double coplanarity(const Point &test, const Point &f0, const Point &f1, const Point &f2)
 {
 
-    Amie::Point A(f0-f1) ;
-    Amie::Point B(f2-f1) ;
-    Amie::Point C(f2-test) ;
+    Point A(f0-f1) ;
+    Point B(f2-f1) ;
+    Point C(f2-test) ;
 
     return  std::abs(triProduct(A, B, C))  ;
 } ;
 
-double signedCoplanarity(const Amie::Point &test, const Amie::Point &f0, const Amie::Point &f1, const Amie::Point &f2)
+double signedCoplanarity(const Point &test, const Point &f0, const Point &f1, const Point &f2)
 {
 
-    Amie::Point A(f0-f1) ;
-    Amie::Point B(f2-f1) ;
-    Amie::Point C(f2-test) ;
+    Point A(f0-f1) ;
+    Point B(f2-f1) ;
+    Point C(f2-test) ;
 
     return  triProduct(A, B, C)  ;
 } ;
 
-double signedCoplanarity(const Amie::Point *test, const Amie::Point *f0, const Amie::Point *f1,const Amie::Point *f2)
+double signedCoplanarity(const Point *test, const Point *f0, const Point *f1,const Point *f2)
 {
     return signedCoplanarity(*test, *f0, *f1, *f2) ;
 } ;
 
-double triProduct(const Amie::Point &A, const Amie::Point &B, const Amie::Point &C)
+double triProduct(const Point &A, const Point &B, const Point &C)
 {
     return (A^B)*C ;
+}
+
 }

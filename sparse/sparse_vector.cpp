@@ -16,7 +16,7 @@
 #include <pmmintrin.h>
 #endif
 
-using namespace Amie ;
+namespace Amie {
 
 
 SparseVector::SparseVector(Vector & val, std::valarray<unsigned int> & idx , const size_t length , const size_t start, const size_t index, const size_t stride) : val(val), idx(idx), length(length), start(start), stride(stride), index(index)
@@ -980,5 +980,5 @@ Vector ConstSparseVector::operator +(const Vector& v) const
 
 }
 
-
+} ;
 

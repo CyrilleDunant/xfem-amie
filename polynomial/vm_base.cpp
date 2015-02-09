@@ -10,7 +10,8 @@
 #include <iomanip>
 
 
-using namespace Amie ;
+namespace Amie
+{
 
 VirtualMachine::VirtualMachine(){ } ;
 
@@ -4486,3 +4487,4 @@ double VirtualMachine::ieval(const DtD & d, IntegrableEntity *e, const std::vect
 	return ret ;
 	
 }
+} ;

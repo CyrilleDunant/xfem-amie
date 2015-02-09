@@ -310,7 +310,7 @@ struct MtM
 /** \brief Solve Ax = b system of equation, using a preconditionned Conjugate Gradient Algorithm*/
 Vector solveSystem(const Matrix & A, const Vector & b, Vector & x) ;
 
-}
+
 
 /** \brief Construct a Matrix-Vector multiplication object*/
 inline Amie::MtV operator*(const Amie::Matrix& mm, const Vector& v)
@@ -548,7 +548,7 @@ inline Vector operator*(const Vector &v , const Amie::Matrix &m )
 Amie::Matrix swapMatrix(size_t l0, size_t l1, size_t dim = 2) ;
 void swapLines(size_t l0, size_t l1, Amie::Matrix * m) ;
 
-double trace(const Amie::Matrix & m) ;
+double trace(const Matrix & m) ;
 
 double secondInvariant(const Amie::Matrix & m) ;
 
@@ -575,18 +575,18 @@ Amie::Matrix inverse4x4Matrix(const Amie::Matrix &s) ;
 Amie::Matrix inverse6x6Matrix(const Amie::Matrix &s) ;
 
 /** \brief in-place 6x6 matrix inversion*/
-void invert6x6Matrix(Amie::Matrix & m) ;
+void invert6x6Matrix(Matrix & m) ;
 
 /** \brief compute the determinant of a Matrix, slow*/
-double det(const Amie::Matrix &s) ;
+double det(const Matrix &s) ;
 
 /** \brief Compute the exp of a Matrix, using series expansion. May not converge*/
-Amie::Matrix exp(const Amie::Matrix&, size_t order = 20) ;
+Amie::Matrix mexp(const Amie::Matrix&, size_t order = 20) ;
 
 /** \brief Compute the log of a Matrix using series Expansion, May not converge*/
-Amie::Matrix log(const Amie::Matrix&, size_t order) ;
+Amie::Matrix mlog(const Amie::Matrix&, size_t order) ;
 
-
+} ;
 
 # endif  // __MATRIXOPS_H__
 

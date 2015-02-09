@@ -8,6 +8,7 @@
 #ifndef INTERGRABLE_ENTITY_H
 #define INTERGRABLE_ENTITY_H
 
+#include "../utilities/matrixops.h"
 #include "../geometry/geometry_base.h"
 
 #include "../polynomial/vm_base.h"

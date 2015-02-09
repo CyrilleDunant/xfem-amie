@@ -16,7 +16,8 @@
 #include <omp.h>
 #endif
 #include <sys/time.h>
-using namespace Amie ;
+namespace Amie
+{
 
 void CoordinateIndexedSparseMatrix::reshape(std::set<std::pair<size_t, size_t>> &source, size_t s) 
 {
@@ -433,7 +434,7 @@ CompositeSparseMatrixTimesVecMinusVecMinusVec CompositeSparseMatrixTimesVecMinus
 	return CompositeSparseMatrixTimesVecMinusVecMinusVec(*this, v) ;
 }
 
-void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
+void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVecPlusVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.co.sm.stride ;
@@ -455,7 +456,7 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 	}
 } ;
 
-void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
+void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVecMinusVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.co.sm.stride ;
@@ -530,7 +531,7 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 	}
 } ;
 
-void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
+void assign(Vector & ret, const CoordinateIndexedSparseMatrixTimesVec & c, const int rowstart, const int colstart)
 {
 
 	size_t stride = c.sm.stride ;
@@ -570,4 +571,6 @@ void Amie::assign(Vector & ret, const Amie::CoordinateIndexedSparseMatrixTimesVe
 			}
 		}
 	}
+} ;
+
 } ;

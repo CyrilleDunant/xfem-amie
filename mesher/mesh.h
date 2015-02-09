@@ -25,13 +25,18 @@
 #include <vector>
 #include <limits>
 #include <set>
+#include "../utilities/matrixops.h"
 #include "element_checker.h"
 #include "../elements/integrable_entity.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
+//     inline Vector operator*(const Vector &v , const Amie::Matrix &m ) ;
+//     inline Amie::MtV operator*(const Amie::Matrix& mm, const Vector& v) ;
+//     inline Amie::MtM operator*(const Amie::Matrix& mm, const Amie::Matrix& mmm) ;
 namespace Amie
 {
 
+    
 template <class ETYPE, class EABSTRACTTYPE>
 class Mesh
 {

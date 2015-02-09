@@ -20,6 +20,8 @@ else()
 endif(USE_MPI EQUAL 0)
 
 set(ALL_SRC 
+utilities/matrixops.cpp
+geometry/geometry_base.cpp 
 elements/elements.cpp 
 elements/integrable_entity.cpp 
 elements/generalized_spacetime_viscoelastic_element_state.cpp 
@@ -56,7 +58,6 @@ polynomial/vm_function_matrix.cpp
 polynomial/vm_token.cpp 
 geometry/geometry_2D.cpp 
 geometry/geometry_3D.cpp 
-geometry/geometry_base.cpp 
 geometry/geometry_with_exclusion.cpp 
 geometry/level_set.cpp
 mesher/delaunay_3d.cpp 
@@ -173,7 +174,6 @@ utilities/configuration.cpp
 utilities/grid.cpp
 utilities/optimizer.cpp
 utilities/granulo.cpp
-utilities/matrixops.cpp
 utilities/tensor.cpp
 utilities/parser.cpp
 utilities/pid.cpp
@@ -322,8 +322,8 @@ target_link_libraries( single_sphere Amie ${ALL_LINK_FLAGS} )
 add_executable(back_homogenisation examples/main_back_homogenisation.cpp )
 target_link_libraries( back_homogenisation Amie ${ALL_LINK_FLAGS} )
 
-add_executable(single_circle examples/main_single_circle.cpp )
-target_link_libraries( single_circle Amie ${ALL_LINK_FLAGS} )
+add_executable(single_2d_inclusion examples/main_single_2d_inclusion.cpp )
+target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} )
 
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})

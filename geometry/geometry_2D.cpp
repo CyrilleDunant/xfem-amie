@@ -2316,6 +2316,17 @@ std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
     return ret ;
 }
 
+double Polygon::getPerimeter() const 
+{
+    double perimeter = 0 ;
+    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
+    {
+        int inext = (i+1)%originalPoints.size() ;
+        perimeter += dist(originalPoints[i], originalPoints[inext]) ;
+    }
+    return perimeter ;
+}
+
 void Polygon::sampleSurface(size_t num_points)
 {
     num_points *=2 ;
