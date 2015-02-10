@@ -50,6 +50,7 @@ std::vector<std::pair<Vector, double> > deflate(const Matrix & m)
 
 Matrix::Matrix(size_t x, size_t y)
 {
+    noClean = false ;
 	r=x ;
 	c=y ;
 	v = new Vector(0., x*y) ;
@@ -57,6 +58,7 @@ Matrix::Matrix(size_t x, size_t y)
 
 Matrix::Matrix(const Vector & v1, const Vector & v2)
 {
+    noClean = false ;
 	r=v1.size() ;
 	c=v1.size() ;
 	v = new Vector(0., r*c) ;
@@ -71,15 +73,15 @@ Matrix::Matrix(const Vector & v1, const Vector & v2)
 
 Matrix::Matrix(size_t x, size_t y, Vector * cache)
 {
-	if(cache->size() != x*y)
-		cache->resize(x*y) ;
+	noClean = true ;
 	r=x ;
 	c=y ;
-	v = new Vector(*cache) ;
+	v = cache ;
 }
 
 Matrix::Matrix(size_t rl, size_t k, size_t l, const Matrix & m)
 {
+    noClean = false ;
 	r=rl ;
 	c=rl ;
 	v = new Vector(rl*rl) ;

@@ -19,7 +19,7 @@ C3SBehaviour::C3SBehaviour(double E, double nu, SpaceDimensionality dim) : Stiff
 
 Form * C3SBehaviour::getCopy() const 
 {
-	return new Stiffness(param) ;
+	return new Stiffness(Matrix(param.numRows(), param.numCols(), const_cast<Vector *> (&param.array()))) ;
 }
 
 

@@ -46,6 +46,7 @@ class Matrix
 {
 	Vector *v;
 	size_t r, c;
+        bool noClean ;
 public:
 	
 	/** \brief Construct an M x N matrix.
@@ -67,6 +68,7 @@ public:
 	 */
 	Matrix()
 	{
+                noClean = false ;
 		r = 0 ;
 		c = 0 ;
 		v = nullptr ;
@@ -120,7 +122,7 @@ public:
 	/** \brief constructor from a vector<vector<double> > */
 	Matrix(const std::vector<std::vector<double> > & vv) ;
 
-	virtual ~Matrix() { delete v; }
+	virtual ~Matrix() { if(!noClean) delete v; }
 
 	/** \brief Copy-constructor.
 	* If the matrix is not yet initialised, initialise to the source matrix values. Else do 
