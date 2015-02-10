@@ -491,6 +491,7 @@ void Assembly::initialiseElementaryMatrices()
     }
     else if(dim == SPACE_THREE_DIMENSIONAL)
     {
+        return ;
 // 			#pragma omp parallel for
         for(size_t i = 0 ; i < element3d.size() ; i++)
         {
@@ -512,6 +513,7 @@ void Assembly::initialiseElementaryMatrices()
 
 void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
 {
+    return ;
     timeval time0, time1 ;
     gettimeofday(&time0, nullptr);
 
@@ -967,7 +969,7 @@ bool Assembly::make_final()
                     }
                 }
             }
-// 			element3d[i]->clearElementaryMatrix() ;
+			element3d[i]->clearElementaryMatrix() ;
         }
 
 //
