@@ -415,7 +415,6 @@ std::vector<Point> Tetrahedron::getBoundingBox() const
 	}
 				
 	
-	double r = getRadius() ;
 	std::vector<Point> ret ;
 	ret.push_back(Point(max_x_0, max_y_0, max_z_0)) ;
 	ret.push_back(Point(max_x_0, max_y_0, min_z_0)) ;
@@ -1761,20 +1760,73 @@ double TriangulatedSurface::getRadius() const {return 0 ;}
 std::vector<Point> TriangulatedSurface::getBoundingBox() const {return std::vector<Point>(0) ;}
 
 
-
-
 void PolygonPrism::computeCenter()
-{
-
-        center = base.getCenter() + axis*.5 + origin;
+{ 
+    centerOfRotation = base.getCenter() ;
+    center = base.getCenter()+axis*.5 + origin ;
 }
 
 
-PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & vector, const Point & origin) : NonConvexGeometry(0), base(points), axis(vector), origin(origin)
+PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & vector, const Point & origin) : NonConvexGeometry(0), base(points), axis(vector), origin(origin), rotationMatrix(3,3)
 {
     gType = POLYGON_PRISM ;
-
     computeCenter();
+
+    Point renormAxis = vector/vector.norm() ;
+    bool maxx = std::abs(renormAxis.getX()) >= std::abs(renormAxis.getY()) && std::abs(renormAxis.getX()) >= std::abs(renormAxis.getZ()) ;
+    bool maxy = std::abs(renormAxis.getY()) >= std::abs(renormAxis.getX()) && std::abs(renormAxis.getY()) >= std::abs(renormAxis.getZ()) ;
+    Matrix rotz(3,3) ;
+    double cost = renormAxis.getZ() ;
+    double sint = sin(acos(cost)) ;
+    rotz[0][0] = cost ; rotz[0][1] = -sint ; 
+    rotz[1][0] = sint ; rotz[1][1] = cost ; 
+    rotz[2][2] = 1 ;
+    Matrix rotx(3,3) ;
+    sint = renormAxis.getX() ;
+    cost = cos(asin(sint)) ;
+    rotx[0][0] = 1 ;
+    rotx[1][1] = cost ; rotx[1][2] = -sint ; 
+    rotx[2][1] = sint ; rotx[2][2] = cost ; 
+    
+    Matrix roty(3,3) ;
+    sint = renormAxis.getY() ;
+    cost = cos(asin(sint)) ;
+    roty[0][0] = cost ; roty[0][2] = -sint ; 
+    roty[1][1] = 1 ;
+    roty[2][0] = sint ; roty[2][2] = cost ; 
+
+        double angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
+        cost = cos(angle) ;
+        sint = sin(angle) ;
+        rotx[0][0] = 1 ;
+        rotx[1][1] = cost ; rotx[1][2] = -sint ; 
+        rotx[2][1] = sint ; rotx[2][2] = cost ; 
+        Point inter = rotx*renormAxis ;
+//         inter.print();
+        angle = atan2( inter.getX(),inter.getZ()) ;
+        cost = cos(angle) ;
+        sint = sin(angle) ;
+        roty[0][0] = cost ; roty[0][2] = -sint ; 
+        roty[1][1] = 1 ;
+        roty[2][0] = sint ; roty[2][2] = cost ; 
+        inter = roty*inter ;
+        angle = atan2( inter.getY(),inter.getZ()) ;
+        cost = cos(angle) ;
+        sint = sin(angle) ;
+        rotz[0][0] = 1 ;
+        rotz[1][1] = cost ; rotz[1][2] = -sint ; 
+        rotz[2][1] = sint ; rotz[2][2] = cost ; 
+//         inter.print();
+        rotationMatrix = inverse3x3Matrix(roty*rotx)  ;
+        
+//         std::vector<Point> bb = getBoundingBox() ;
+//         std::cout << bb[0].getX() << "  " << bb[0].getY() << "  "<< bb[0].getZ() << std::endl ;
+//         std::cout << bb[7].getX() << "  " << bb[7].getY() << "  "<< bb[7].getZ() << std::endl ;
+//         exit(0) ;
+
+    
+
+    
 }
 
 PolygonPrism::~PolygonPrism() { };
@@ -1794,40 +1846,80 @@ void PolygonPrism::sampleBoundingSurface(size_t num_points)
 
 std::vector<Point> PolygonPrism::getSamplingBoundingPoints(size_t num_points) const
 {
-    std::vector<Point> retbase = base.getSamplingBoundingPoints(num_points) ;
-    std::vector<Point> ret ;
-     
-    double numSlices = std::max(round(axis.norm()/base.getPerimeter()*num_points), 2.) ;
+    std::vector<Point> newPoints ;
+    double prismSurface = area() ;
+    double baseRadius = base.getRadius() ;
+    double sphereSurface = 4.*M_PI*baseRadius*baseRadius ;
     
-    for(double i = 0 ; i< numSlices ; i++)
+    std::valarray<Point *> pts(base.originalPoints.size()) ;
+    for(size_t i = 0 ; i < pts.size() ; i++)
+        pts[i] = new Point(base.originalPoints[i]) ;
+        
+    Polygon basel(pts) ;
+    basel.sampleSurface(num_points) ;
+    for(size_t i = 0 ; i < basel.getInPoints().size() ; i++)
+        newPoints.push_back(basel.getInPoint(i));
+    for(size_t i = 0 ; i < basel.getBoundingPoints().size() ; i++)
+        newPoints.push_back(basel.getBoundingPoint(i));
+    
+    for(size_t j = 0 ; j< newPoints.size() ; j++)
     {
-        for(size_t j = 0 ; j< retbase.size() ; j++)
-        {
-            ret.push_back( axis * i/(numSlices-1.) + retbase[j] + origin);
-        }
+        newPoints[j] -= centerOfRotation ;
+        newPoints[j] = rotationMatrix * newPoints[j];
+        newPoints[j] += centerOfRotation+origin ;
+    }
+        
+    double numSlices = std::max(round(axis.norm()/basel.getPerimeter()*num_points), 2.) ;
+    std::vector<Point> ret ;
+    for(size_t j = 0 ; j< newPoints.size() ; j++)
+    {
+        ret.push_back(newPoints[j]); 
+    }
+    for(size_t j = 0 ; j< newPoints.size() ; j++)
+    {
+        ret.push_back( newPoints[j] + axis); 
     }
     
+    for(double i = 1 ; i< numSlices-1.1 ; i++)
+    {
+        for(size_t j = 0 ; j< basel.getBoundingPoints().size() ; j++)
+        {
+            Point p = basel.getBoundingPoint(j) ;
+            p -= centerOfRotation ;
+            p = rotationMatrix*p ;
+            p += centerOfRotation+origin ;
+            ret.push_back( axis * i/(numSlices-1.) + p); 
+        }
+    }
+
     return ret ;
+
 }
 
 void PolygonPrism::sampleSurface(size_t num_points)
 {
-        std::vector<Point> newPoints ;
-        double prismVolume = volume() ;
-        double baseRadius = base.getRadius() ;
-        double sphereVolume = 1.333333*M_PI*baseRadius*baseRadius*baseRadius ;
-        base.sampleSurface(num_points*prismVolume/sphereVolume) ;
-        for(size_t i = 0 ; i < base.getInPoints().size() ; i++)
-            newPoints.push_back(base.getInPoint(i));
+    num_points *= 2 ;
+    double prismSurface = area() ;
+    double baseRadius = base.getRadius() ;
+    double sphereSurface = 4.*M_PI*baseRadius*baseRadius ;
+    num_points = num_points*prismSurface/sphereSurface ;
+    
+    sampleBoundingSurface(num_points);
+    base.sampleSurface(num_points) ;
         
     double numSlices = std::max(round(axis.norm()/base.getPerimeter()*num_points), 2.) ;
-    inPoints.resize(newPoints.size()*numSlices);
-    int piterator = 0 ;
-    for(double i = 0 ; i< numSlices ; i++)
+
+    inPoints.resize((numSlices-2)*base.getInPoints().size());
+    int piterator = 0  ;
+    for(double i = 1 ; i< numSlices-1.1 ; i++)
     {
-        for(size_t j = 0 ; j< newPoints.size() ; j++)
+        for(size_t j = 0 ; j< base.getInPoints().size() ; j++)
         {
-            inPoints[piterator++] = new Point( axis * i/(numSlices-1.) + newPoints[j] + origin);
+            Point p = base.getInPoint(j) ;
+            p -= centerOfRotation ;
+            p = rotationMatrix*p ;
+            p += centerOfRotation+origin ;
+            inPoints[piterator++] = new Point( axis * i/(numSlices-1.) + p );
         }
     }
 }
@@ -1835,26 +1927,63 @@ void PolygonPrism::sampleSurface(size_t num_points)
 
 bool PolygonPrism::in(const Point & v) const
 {
-    Line direction(origin, axis) ;
-    Segment direction_(origin, origin+axis) ;
-    Point pr = direction.projection(v) ;
-    if( direction_.on(pr))
-    {
-        return base.in(v -pr) ;
-    }
-    return false ;
+    Point tpoint(v) ;
+    tpoint -= centerOfRotation+origin ;
+    tpoint = inverse3x3Matrix(rotationMatrix)*tpoint;
+    tpoint += centerOfRotation ;
+    
+    if(tpoint.getZ() < 0 || tpoint.getZ() > axis.norm())
+        return false ;
+    tpoint.getZ() = 0 ;
+    
+    return base.in(tpoint) ;
 }
 
 double PolygonPrism::area() const 
 { 
-    return base.getPerimeter()*axis.norm() ;  
+    return base.getPerimeter()*axis.norm() +2.*base.area();  
 }
 
-double PolygonPrism::volume() const { return area()*axis.norm() ;} 
+double PolygonPrism::volume() const { return base.area()*axis.norm() ;} 
 
 void PolygonPrism::project(Point * init) const
 {
-//     return base.area()*axis.norm() ;  
+//     return ;
+    Point tpoint(*init) ;
+    tpoint -= centerOfRotation+origin ;
+    tpoint = inverse3x3Matrix(rotationMatrix)*tpoint;
+    tpoint += centerOfRotation ;
+    
+    double originalz = tpoint.getZ() ;
+    double anorm = axis.norm() ;
+    tpoint.getZ() = 0 ;
+    if(base.in(tpoint) &&  (originalz >= anorm || originalz <= 0) )
+    {
+        if(originalz > anorm*.99)
+        {
+            tpoint.getZ() = anorm ;
+        }
+    }
+    else if(originalz >= anorm || originalz <= 0)
+    {
+        base.project(&tpoint);
+        if(originalz > anorm*.99)
+        {
+            tpoint.getZ() = anorm ;
+        }
+    }
+    else
+    {
+        base.project(&tpoint);
+        tpoint.getZ() = originalz ;
+    }
+    
+    tpoint -= centerOfRotation ;
+    tpoint = rotationMatrix*tpoint ;
+    tpoint += centerOfRotation+origin ;
+    init->set(tpoint) ;
+    
+//     return ba*se.area()*axis.norm() ;  
 }
 
 double PolygonPrism::getRadius() const
@@ -1871,19 +2000,53 @@ SpaceDimensionality PolygonPrism::spaceDimensions() const
 
 std::vector<Point> PolygonPrism::getBoundingBox() const 
 { 
-    double maxx = base.originalPoints[0].getX() ;
-    double minx = base.originalPoints[0].getX() ;
-    double maxy = base.originalPoints[0].getY() ;
-    double miny = base.originalPoints[0].getY() ;
-    for(size_t i = 1 ; i < base.originalPoints.size() ; i++ )
+    std::valarray<Point> baseCopy = base.originalPoints;
+    for(size_t i = 0 ; i < baseCopy.size() ; i++ )
     {
-        maxx = std::max(maxx,base.originalPoints[i].getX()) ;
-        minx = std::min(minx,base.originalPoints[i].getX()) ;
-        maxy = std::max(maxy,base.originalPoints[i].getY()) ;
-        miny = std::min(miny,base.originalPoints[i].getY()) ;
+            baseCopy[i] -= centerOfRotation ;
+            baseCopy[i] = rotationMatrix*baseCopy[i];
+            baseCopy[i] += centerOfRotation+origin ;
     }
     
-    return {Point(minx, miny), Point(maxx, miny), Point(maxx, maxy), Point(minx,maxy)} ;
+    double maxx = baseCopy[0].getX() ;
+    double minx = baseCopy[0].getX() ;
+    double maxy = baseCopy[0].getY() ;
+    double miny = baseCopy[0].getY() ;
+    double maxz = baseCopy[0].getZ() ;
+    double minz = baseCopy[0].getZ() ;
+    
+    for(size_t i = 1 ; i < baseCopy.size() ; i++ )
+    {
+        maxx = std::max(maxx,baseCopy[i].getX()) ;
+        minx = std::min(minx,baseCopy[i].getX()) ;
+        maxy = std::max(maxy,baseCopy[i].getY()) ;
+        miny = std::min(miny,baseCopy[i].getY()) ;
+        maxz = std::max(maxz,baseCopy[i].getZ()) ;
+        minz = std::min(minz,baseCopy[i].getZ()) ;
+    }
+    for(size_t i = 0 ; i < baseCopy.size() ; i++ )
+        baseCopy[i] += axis ;
+    
+    for(size_t i = 0 ; i < baseCopy.size() ; i++ )
+    {
+        maxx = std::max(maxx,baseCopy[i].getX()) ;
+        minx = std::min(minx,baseCopy[i].getX()) ;
+        maxy = std::max(maxy,baseCopy[i].getY()) ;
+        miny = std::min(miny,baseCopy[i].getY()) ;
+        maxz = std::max(maxz,baseCopy[i].getZ()) ;
+        minz = std::min(minz,baseCopy[i].getZ()) ;
+    }
+    
+    std::vector<Point> ret ;
+    ret.push_back(Point(maxx, maxy, maxz)) ;
+    ret.push_back(Point(maxx, maxy, minz)) ;
+    ret.push_back(Point(maxx, miny, maxz)) ;
+    ret.push_back(Point(maxx, miny, minz)) ;
+    ret.push_back(Point(minx, maxy, maxz)) ;
+    ret.push_back(Point(minx, maxy, minz)) ;
+    ret.push_back(Point(minx, miny, maxz)) ;
+    ret.push_back(Point(minx, miny, minz)) ;
+    return ret ;
     
 }
 

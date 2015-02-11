@@ -2280,9 +2280,7 @@ Polygon::~Polygon() { };
 void Polygon::sampleBoundingSurface(size_t num_points)
 {
     std::vector<Point> newPoints = getSamplingBoundingPoints(num_points) ;
-    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
-        delete boundingPoints[i] ;
-    
+
     boundingPoints.resize(newPoints.size());
     
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
@@ -2329,6 +2327,11 @@ double Polygon::getPerimeter() const
 
 void Polygon::sampleSurface(size_t num_points)
 {
+    for(size_t i = 0 ; i < boundingPoints.size() ; i++)
+        delete boundingPoints[i] ;
+    for(size_t i = 0 ; i < inPoints.size() ; i++)
+        delete inPoints[i] ;
+    
     num_points *=2 ;
     sampleBoundingSurface(num_points*3);
     std::vector<Segment> segments ;

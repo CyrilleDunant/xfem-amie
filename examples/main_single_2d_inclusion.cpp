@@ -56,9 +56,7 @@ void step()
     MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
     for(size_t i = 0 ; i < nsteps ; )
     {
-        double converged = featureTree->step() ;
-
-        Vector x = featureTree->getDisplacements() ;
+        bool converged = featureTree->step() ;
 
         if(converged)
         {
@@ -66,70 +64,13 @@ void step()
             for(size_t j = 0 ; j < pockets.size() ; j++)
                 dynamic_cast<ExpansiveZone *>(pockets[j])->setRadius(pockets[j]->getRadius()+0.000001) ;
         }
-        std::cout << "unknowns :" << x.size() << std::endl ;
-
-        int npoints = featureTree->get2DMesh()->begin()->getBoundingPoints().size() ;
-
-        double volume = 0 ;
-
-        double xavg = 0 ;
-
-        for(auto k = featureTree->get2DMesh()->begin() ; k != featureTree->get2DMesh()->end() ; k++)
-        {
-            if(k->getBehaviour()->type != VOID_BEHAVIOUR )
-            {
-                double ar = k->area() ;
-                volume += ar ;
-                for(size_t l = 0 ; l < npoints ; l++)
-                {
-                    xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
-                }
-            }
-        }
-
-        xavg /= volume ;
-        std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
-        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax(STRAIN_FIELD) ;
-        std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
-        Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
-        Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
-
-        std::cout << std::endl ;
-        std::cout << "max value :" << x.max() << std::endl ;
-        std::cout << "min value :" << x.min() << std::endl ;
-        std::cout << "avg value :" << xavg << std::endl ;
-
-        std::cout << "max sigma11 :" << stempm.second[0]  << std::endl ;
-        std::cout << "min sigma11 :" << stempm.first[0]   << std::endl ;
-        std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
-        std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
-        std::cout << "max sigma12 :" << stempm.second[2]  << std::endl ;
-        std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
-
-        std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
-        std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
-        std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
-        std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;        
-        std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
-        std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
-
-        std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
-        std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
-
-        std::cout << "average sigma11 : " << stemp[0] << std::endl ;
-        std::cout << "average sigma22 : " << stemp[1] << std::endl ;
-        std::cout << "average sigma12 : " << stemp[2] << std::endl ;
-        std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
-        std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
-        std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
-
-
-            writerc.reset( featureTree ) ;
-            writerc.getField( REAL_STRESS_FIELD ) ;
-            writerc.getField( STRAIN_FIELD ) ;
+       featureTree->printReport();
+        writerc.reset( featureTree ) ;
+        writerc.getField( REAL_STRESS_FIELD ) ;
+        writerc.getField( STRAIN_FIELD ) ;
 //             writerc.getField( TWFT_DAMAGE ) ;
-            writerc.getField( TWFT_STIFFNESS ) ;
-            writerc.append() ;
+        writerc.getField( TWFT_STIFFNESS ) ;
+        writerc.append() ;
 //             writerc.writeSvg(0., true) ;
     }
 
@@ -159,7 +100,7 @@ double partitionScore(const std::vector<int> & triplet)
 int main(int argc, char *argv[])
 {
 
-    Sample samplers(nullptr, 0.02,0.02,0,0) ;
+    Sample samplers(nullptr, 200,200,0,0) ;
 
     FeatureTree F(&samplers) ;
     featureTree = &F ;
@@ -172,8 +113,11 @@ int main(int argc, char *argv[])
 //     Inclusion inc( 0.008, 0, 0) ;
     std::valarray<Point *> pts(5) ;
     
-    pts[0] = new Point(-0.008, 0.005) ; pts[1] = new Point(0.00, 0.002) ; pts[2] = new Point(0.008, 0.008) ;
-    pts[3] = new Point(0.005, -0.008) ; pts[4] = new Point(-0.008, -0.008) ;
+    pts[0] = new Point(-80, 50) ; 
+    pts[1] = new Point(0.00, 20) ; 
+    pts[2] = new Point(80, 80) ;
+    pts[3] = new Point(50, -80) ; 
+    pts[4] = new Point(-80, -80) ;
     PolygonalSample inc(&samplers, pts) ;
     
 // 	inc->setBehaviour(new StiffnessWithImposedDeformation(m1*4.,a)) ;

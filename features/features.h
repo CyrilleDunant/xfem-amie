@@ -109,6 +109,7 @@ protected:
     State state ;
 protected:
 
+    std::vector<Vector> reportValues ; 
     SamplingRestrictionType samplingRestriction ;
 
     std::vector<std::vector<double>> cachedVolumes ;
@@ -674,6 +675,8 @@ public:
 
     std::vector<DelaunayTriangle> getSnapshot2D() const ;
     void stepMesh();
+    
+    void printReport(bool printHeader = true, bool vertical = true) ;
 
 
 } ;

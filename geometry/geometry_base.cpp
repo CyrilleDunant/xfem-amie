@@ -77,7 +77,16 @@ Point::Point(const Point & p)
         return p ;
     }
 
-    Point operator* (const Point & p, const Matrix & m) {
+   
+   Point operator* (const Point & p, const Matrix & m) {
+        if(m.numCols() == 2)
+        {
+            Vector vec(2) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec = vec*m ;
+            return Point(vec[0], vec[1]) ;
+        }
         if(m.numCols() == 3)
         {
             Vector vec(3) ;
@@ -95,6 +104,39 @@ Point::Point(const Point & p)
             vec[2] = p.getZ() ;
             vec[3] = p.getT() ;
             vec = vec*m ;
+
+            return Point(vec[0], vec[1], vec[2], vec[3]) ;
+        }
+
+        return Point() ;
+    }
+    
+       Point operator* (const Matrix & m, const Point & p) {
+        if(m.numCols() == 2)
+        {
+            Vector vec(2) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec = m*vec ;
+            return Point(vec[0], vec[1]) ;
+        }
+        if(m.numCols() == 3)
+        {
+            Vector vec(3) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec = m*vec ;
+            return Point(vec[0], vec[1], vec[2]) ;
+        }
+        else if(m.numCols() == 4)
+        {
+            Vector vec(4) ;
+            vec[0] = p.getX() ;
+            vec[1] = p.getY() ;
+            vec[2] = p.getZ() ;
+            vec[3] = p.getT() ;
+            vec = m*vec ;
 
             return Point(vec[0], vec[1], vec[2], vec[3]) ;
         }
@@ -156,9 +198,9 @@ Point::Point(double x_, double y_, double z_, double t_): id(-1)
 void Point::print() const
 {
     std::cout << " ( id = " << id << std::flush ;
-    std::cout << " ; "<< std::setprecision(16) << x << std::flush ;
-    std::cout << "; " << std::setprecision(16) << y << std::flush ;
-    std::cout << "; " << std::setprecision(16) << z << std::flush ;
+    std::cout << " ; "<< x << std::flush ;
+    std::cout << "; " << y << std::flush ;
+    std::cout << "; " << z << std::flush ;
     std::cout << "; " << /*std::setprecision(16)<<*/ t << ") " << std::endl;
 }
 
@@ -4857,12 +4899,14 @@ double dist(const Point * v1, const Point * v2)
 
 
 
-void rotateToVector (Point * toRotate, const Point & toVector)
+Matrix rotateToVector (Point * toRotate, const Point & toVector)
 {
     Point x= *toRotate^toVector ;
     double n = x.sqNorm() ;
     if(n < POINT_TOLERANCE_2D)
-        return ;
+    {
+        return identity(3) ;
+    }
     
     double costheta = *toRotate*toVector/sqrt(toRotate->sqNorm()*toVector.sqNorm()) ;
     double theta = acos(costheta);
@@ -4880,10 +4924,11 @@ void rotateToVector (Point * toRotate, const Point & toVector)
     A[1][0] = x.getZ() ; A[1][2] = -x.getX() ;
     A[2][0] = -x.getY(); A[2][1] = x.getX();
     
-    Matrix rot(3,3) ; rot[0][0] = 1 ; rot[1][1] = 1 ; rot[2][2] = 1 ;
+    Matrix rot = identity(3) ;
     rot += A*sin(theta) + (A*A)*(1.-costheta);
     
     *toRotate *= rot ;
+    return rot ;
 }
 
 double squareDist(const  Point &v1, const Point & v2)

@@ -3285,10 +3285,10 @@ void FeatureTree::enrich()
 void FeatureTree::assemble()
 {
     K->clearElements();
-    
-   if(father3D && father3D->getOrder() != elemOrder)
+
+    if(father3D && father3D->getOrder() != elemOrder)
         delete father3D ;
-    
+
     if ( !father3D )
     {
         father3D = new TetrahedralElement ( elemOrder ) ;
@@ -3298,12 +3298,12 @@ void FeatureTree::assemble()
 
     if(father2D && father2D->getOrder() != elemOrder)
         delete father2D ;
-        
+
     if ( !father2D )
     {
         father2D = new TriElement ( elemOrder ) ;
     }
-    
+
 
     if ( is2D() )
     {
@@ -4411,14 +4411,15 @@ bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
 
 void FeatureTree::stepMesh()
 {
-    
+
     if ( is2D() )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             needMeshing =  j->second->step(deltaTime) || needMeshing;
     }
-    else
+    else if(is3D())
     {
+        if(dtree3D)
             needMeshing =  dtree3D->step(deltaTime) || needMeshing;
     }
 }
@@ -5171,7 +5172,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 {
     bool behaviourChanged = ft->behaviourChanged() ;
     bool xfemChanged = ft->enrichmentChanged() ;
-    
+
     ft->stepMesh();
     bool samplingChanged = ft->needMeshing ;
 
@@ -5467,22 +5468,22 @@ bool FeatureTree::step()
 //         std::cout << " \n trial : " << (it > maxitPerStep) << "  " << foundCheckPoint << std::endl ;
         if ( it > maxitPerStep && foundCheckPoint )
         {
-            
+
             ret = false ;
             needexit = true ;
         }
         else if(it > maxitPerStep)
-            std::cout << ":"<< std::endl ;        
+            std::cout << ":"<< std::endl ;
 
         if ( needexit ) // && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
         {
             break ;
         }
-        
+
 //         std::cout << " \n trial : " << (( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
 //             ! ( !solverConverged() && !reuseDisplacements ) &&
 //             ( notConvergedCounts < 20 )) << std::endl ;
-        
+
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
             ! ( !solverConverged() && !reuseDisplacements ) &&
@@ -6553,7 +6554,7 @@ void FeatureTree::initializeElements( )
 
     if(father3D && father3D->getOrder() != elemOrder)
         delete father3D ;
-    
+
     if ( !father3D )
     {
         father3D = new TetrahedralElement ( elemOrder ) ;
@@ -6563,7 +6564,7 @@ void FeatureTree::initializeElements( )
 
     if(father2D && father2D->getOrder() != elemOrder)
         delete father2D ;
-        
+
     if ( !father2D )
     {
         father2D = new TriElement ( elemOrder ) ;
@@ -7630,7 +7631,7 @@ void FeatureTree::generateElements()
 
                 if ( i->first->getId() == -1 )
                 {
-                    std::cout << "insertion failed" << std::endl ;
+//                     std::cout << "insertion failed" << std::endl ;
                     toInsert.push_back ( i->first ) ;
                 }
             }
@@ -7861,6 +7862,489 @@ void FeatureTree::shuffleMeshPoints()
     std::cout << "done... " << std::endl ;
 }
 
+void FeatureTree::printReport(bool printHeader, bool vertical)
+{
+    if(is2D())
+    {
+        Vector x = getDisplacements() ;
+
+        std::cout << "unknowns :" << x.size() << std::endl ;
+
+        int npoints = get2DMesh()->begin()->getBoundingPoints().size() ;
+
+        double volume = 0 ;
+
+        double xavg = 0 ;
+
+        for(auto k = get2DMesh()->begin() ; k != get2DMesh()->end() ; k++)
+        {
+            if(k->getBehaviour()->type != VOID_BEHAVIOUR )
+            {
+                double ar = k->area() ;
+                volume += ar ;
+                for(size_t l = 0 ; l < npoints ; l++)
+                {
+                    xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
+                }
+            }
+        }
+
+        xavg /= volume ;
+        reportValues.push_back(Vector(23));
+        std::pair<Vector, Vector> stempm = getFieldMinMax(REAL_STRESS_FIELD) ;
+        std::pair<Vector, Vector> etempm = getFieldMinMax(STRAIN_FIELD) ;
+        std::pair<Vector, Vector> vmm = getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
+        Vector stemp = getAverageField(REAL_STRESS_FIELD) ;
+        Vector etemp = getAverageField(STRAIN_FIELD) ;
+        reportValues.back()[0] = x.max() ;
+        reportValues.back()[1] = x.min() ;
+        reportValues.back()[2] = xavg    ;
+        reportValues.back()[3] = stempm.second[0] ;
+        reportValues.back()[4] = stempm.first[0]  ;
+        reportValues.back()[5] = stempm.second[1] ;
+        reportValues.back()[6] = stempm.first[1]  ;
+        reportValues.back()[7] = stempm.second[2] ;
+        reportValues.back()[8] = stempm.first[2]   ;
+        reportValues.back()[9] =  etempm.second[0] ;
+        reportValues.back()[10] =  etempm.first[0]  ;
+        reportValues.back()[11] =  etempm.second[1] ;
+        reportValues.back()[12] =  etempm.first[1]  ;
+        reportValues.back()[13] =  etempm.second[2]  ;
+        reportValues.back()[14] =  etempm.first[2]  ;
+        reportValues.back()[15] =  vmm.second[0]    ;
+        reportValues.back()[16] =  vmm.first[0]     ;
+        reportValues.back()[17] =   stemp[0]        ;
+        reportValues.back()[18] =   stemp[1]        ;
+        reportValues.back()[19] =   stemp[2]        ;
+        reportValues.back()[20] =   etemp[0]        ;
+        reportValues.back()[21] =   etemp[1]        ;
+        reportValues.back()[22] =   etemp[2]      ;
+        std::cout << std::endl ;
+        if(vertical)
+        {
+            if(printHeader)
+                std::cout << "        max value\t" <<  std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][0] << "\t" << std::flush ;
+            std::cout <<std::endl ;
+            if(printHeader)
+                std::cout << "        min value\t" <<  std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][1] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "        avg value\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][2] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][3] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][4] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][5] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][6] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][7] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][8] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][9] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][10] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][11] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][12] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][13] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][14] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max von Mises\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][15] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min von Mises\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][16] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][17] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][18] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][19] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][20] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][21] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][22] << "\t" << std::flush ;
+            std::cout << std::endl ;
+        }
+        else
+        {
+            if(printHeader)
+                std::cout << "max value        \tmin value        \tavg value        \tmax sigma11      \tmin sigma11      \tmax sigma22      \tmin sigma22      \tmax sigma12      \tmin sigma12      \tmax epsilon11    \tmin epsilon11    \tmax epsilon22    \tmin epsilon22    \tmax epsilon12    \tmin epsilon12    \tmax von Mises    \tmin von Mises    \taverage sigma11  \taverage sigma22  \taverage sigma12  \taverage epsilon11\taverage epsilon22\taverage epsilon12\t" << std::endl ;
+            for(size_t j = 0 ; j < reportValues.size() ; j++)
+                for(size_t i = 0 ; i < reportValues[j].size() ; i++)
+                    std::cout << reportValues[j][i] << "\t" << std::flush ;
+            std::cout << std::endl ;
+
+        }
+    }
+    else
+    {
+                Vector x = getDisplacements() ;
+
+        std::cout << "unknowns :" << x.size() << std::endl ;
+
+        int npoints = get3DMesh()->begin()->getBoundingPoints().size() ;
+
+        double volume = 0 ;
+
+        double xavg = 0 ;
+
+        for(auto k = get3DMesh()->begin() ; k != get3DMesh()->end() ; k++)
+        {
+            if(k->getBehaviour()->type != VOID_BEHAVIOUR )
+            {
+                double ar = k->area() ;
+                volume += ar ;
+                for(size_t l = 0 ; l < npoints ; l++)
+                {
+                    xavg += x[k->getBoundingPoint(l).getId()*3]*ar/npoints ;
+                }
+            }
+        }
+
+        xavg /= volume ;
+        reportValues.push_back(Vector(41));
+        std::pair<Vector, Vector> stempm = getFieldMinMax(REAL_STRESS_FIELD) ;
+        std::pair<Vector, Vector> etempm = getFieldMinMax(STRAIN_FIELD) ;
+        std::pair<Vector, Vector> vmm = getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
+        Vector stemp = getAverageField(REAL_STRESS_FIELD) ;
+        Vector etemp = getAverageField(STRAIN_FIELD) ;
+        reportValues.back()[0] = x.max() ;
+        reportValues.back()[1] = x.min() ;
+        reportValues.back()[2] = xavg    ;
+        reportValues.back()[3] = stempm.second[0] ;
+        reportValues.back()[4] = stempm.first[0]  ;
+        reportValues.back()[5] = stempm.second[1] ;
+        reportValues.back()[6] = stempm.first[1]  ;
+        reportValues.back()[7] = stempm.second[2] ;
+        reportValues.back()[8] = stempm.first[2]   ;
+        reportValues.back()[9] = stempm.second[3] ;
+        reportValues.back()[10] = stempm.first[3]  ;
+        reportValues.back()[11] = stempm.second[4] ;
+        reportValues.back()[12] = stempm.first[4]  ;
+        reportValues.back()[13] = stempm.second[5] ;
+        reportValues.back()[14] = stempm.first[5]   ;
+        
+        reportValues.back()[15] =  etempm.second[0] ;
+        reportValues.back()[16] =  etempm.first[0]  ;
+        reportValues.back()[17] =  etempm.second[1] ;
+        reportValues.back()[18] =  etempm.first[1]  ;
+        reportValues.back()[19] =  etempm.second[2]  ;
+        reportValues.back()[20] =  etempm.first[2]  ;
+        reportValues.back()[21] =  etempm.second[3] ;
+        reportValues.back()[22] =  etempm.first[3]  ;
+        reportValues.back()[23] =  etempm.second[4] ;
+        reportValues.back()[24] =  etempm.first[4]  ;
+        reportValues.back()[25] =  etempm.second[5]  ;
+        reportValues.back()[26] =  etempm.first[5]  ;
+        
+        reportValues.back()[27] =  vmm.second[0]    ;
+        reportValues.back()[28] =  vmm.first[0]     ;
+        reportValues.back()[29] =   stemp[0]        ;
+        reportValues.back()[30] =   stemp[1]        ;
+        reportValues.back()[31] =   stemp[2]        ;
+        reportValues.back()[32] =   stemp[3]        ;
+        reportValues.back()[33] =   stemp[4]        ;
+        reportValues.back()[34] =   stemp[5]        ;
+        reportValues.back()[35] =   etemp[0]        ;
+        reportValues.back()[36] =   etemp[1]        ;
+        reportValues.back()[37] =   etemp[2]      ;
+        reportValues.back()[38] =   etemp[3]        ;
+        reportValues.back()[39] =   etemp[4]        ;
+        reportValues.back()[40] =   etemp[5]      ;
+        std::cout << std::endl ;
+        if(vertical)
+        {
+            if(printHeader)
+                std::cout << "        max value\t" <<  std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][0] << "\t" << std::flush ;
+            std::cout <<std::endl ;
+            if(printHeader)
+                std::cout << "        min value\t" <<  std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][1] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "        avg value\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][2] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][3] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][4] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][5] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][6] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][7] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][8] << "\t" << std::flush ;
+            std::cout << std::endl ;
+                        if(printHeader)
+                std::cout << "      max sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][9] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][10] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][11] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][12] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      max sigma23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][13] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "      min sigma23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][14] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][15] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][16] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][17] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][18] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][19] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][20] << "\t" << std::flush ;
+            std::cout << std::endl ;
+                        if(printHeader)
+                std::cout << "    max epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][21] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][22] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][23] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][24] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max epsilon23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][25] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min epsilon23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][26] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    max von Mises\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][27] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "    min von Mises\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][28] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][29] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][30] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][31] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][32] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][33] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "  average sigma23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][34] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon11\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][35] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon22\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][36] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon33\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][37] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon12\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][38] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon13\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][39] << "\t" << std::flush ;
+            std::cout << std::endl ;
+            if(printHeader)
+                std::cout << "average epsilon23\t" << std::flush ;
+            for(size_t i = 0 ; i < reportValues.size() ; i++)
+                std::cout << reportValues[i][40] << "\t" << std::flush ;
+            std::cout << std::endl ;
+        }
+        else
+        {
+            if(printHeader)
+                std::cout << "max value        \tmin value        \tavg value        \tmax sigma11      \tmin sigma11      \tmax sigma22      \tmin sigma22      \tmax sigma33      \tmin sigma33      \tmax sigma12      \tmin sigma12      \tmax sigma13      \tmin sigma13      \tmax sigma23      \tmin sigma23      \tmax epsilon11    \tmin epsilon11    \tmax epsilon22    \tmin epsilon22    \tmax epsilon33    \tmin epsilon33    \tmax epsilon12    \tmin epsilon12    \tmax epsilon13    \tmin epsilon13    \tmax epsilon23    \tmin epsilon23    \tmax von Mises    \tmin von Mises    \taverage sigma11  \taverage sigma22  \taverage sigma33  taverage sigma12  \taverage sigma13  \taverage sigma23  \taverage epsilon11\taverage epsilon22\taverage epsilon33\taverage epsilon12\taverage epsilon13\taverage epsilon23" << std::endl ;
+            for(size_t j = 0 ; j < reportValues.size() ; j++)
+                for(size_t i = 0 ; i < reportValues[j].size() ; i++)
+                    std::cout << reportValues[j][i] << "\t" << std::flush ;
+            std::cout << std::endl ;
+
+        }
+    }
+}
 void FeatureTree::homothety ( double before, double now, double after )
 {
     std::valarray<bool> nodes ( getDisplacements().size() /2 ) ;

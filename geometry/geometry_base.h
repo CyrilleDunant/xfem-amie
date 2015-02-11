@@ -612,6 +612,8 @@ Point & operator*=( Point & p, const double d) ;
 
 Point & operator*=( Point &p, const Matrix & m) ;
 
+Point operator *( const Matrix & m, const Point &p) ;
+
 Point operator* (const Point & p, const Matrix & m) ;
 
 Point & operator/=( Point & p, const double d) ;
@@ -1615,7 +1617,7 @@ struct PointLessThan
     }
 } ;
 
-void rotateToVector (Amie::Point * toRotate, const Amie::Point & toVector) ;
+Matrix rotateToVector (Amie::Point * toRotate, const Amie::Point & toVector) ;
 /** \brief Return the square distance between two points
  *
  * @param v1 first point.

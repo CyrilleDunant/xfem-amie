@@ -241,6 +241,8 @@ protected:
     Polygon base ;
     Point axis ;
     Point origin ;
+    Point centerOfRotation ;
+    Matrix rotationMatrix ;
 public:
     PolygonPrism(const std::valarray<Point *> & points, const Point & vector, const Point & origin) ;
     
