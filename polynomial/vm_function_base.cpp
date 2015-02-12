@@ -2194,6 +2194,22 @@ Function Function::operator-(const double a) const
 	return ret ;
 }
 
+Function Function::operator-() const 
+{
+        Function ret(*this) ;
+
+        ret.values.push_back(-1.) ;
+
+        ret.byteCode.push_back(TOKEN_OPERATION_TIMES); 
+        ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0); ret.adress_a.push_back(0);
+        ret.adress_a[(ret.byteCode.size()-1)*4+2] = 8 ;
+        ret.adress_a[(ret.byteCode.size()-1)*4+1] = HEAP_SIZE-values.size()-1 ;
+        ret.adress_a[(ret.byteCode.size()-1)*4] = 8 ;
+        
+
+        return ret ;
+}
+
 Function  Function::operator^(const int a) const
 {
 	Function ret(*this) ;

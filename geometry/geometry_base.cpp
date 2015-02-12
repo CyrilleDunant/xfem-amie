@@ -359,6 +359,17 @@ Point operator-(const Point & p_, const Vector &p)
     ret.setId( p_.getId()) ;
     return ret ;
 }
+Point operator-(const Point & p_)
+{
+    Point ret(p_) ;
+    ret.getX() = -p_.getX() ;
+    ret.getY() = -p_.getY() ;
+    
+    ret.getZ() = -p_.getZ() ;
+    ret.getT() = -p_.getT() ;
+    ret.setId( p_.getId()) ;
+    return ret ;
+}
 
 Point operator+(const Point & p_, const Point &p)
 {

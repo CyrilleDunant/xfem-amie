@@ -204,6 +204,7 @@ Matrix& operator +=(Matrix &m_,const MtMtM &m) ;
 Matrix operator +(const Matrix &m_,const Matrix &m) ;
 Matrix& operator -=(const Matrix &m_, const Matrix &m) ;
 Matrix operator -(const Matrix &m_,const Matrix &m);
+Matrix operator -(const Matrix & m_) ;
 Matrix operator -(const Matrix &m,const Vector &v);
 Matrix operator +(const Matrix &m,const Vector &v);
 Matrix &operator -=(Matrix &m_,const Vector &v);

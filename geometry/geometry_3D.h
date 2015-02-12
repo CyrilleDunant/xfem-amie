@@ -241,12 +241,71 @@ protected:
     Polygon base ;
     Point axis ;
     Point origin ;
-    Point centerOfRotation ;
     Matrix rotationMatrix ;
 public:
     PolygonPrism(const std::valarray<Point *> & points, const Point & vector, const Point & origin) ;
     
     virtual ~PolygonPrism() ;
+
+    virtual void sampleBoundingSurface(size_t num_points) ;
+    
+    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
+    
+    virtual void sampleSurface(size_t num_points) ;
+    
+    virtual bool in(const Point & v) const ;
+    
+    virtual double area() const ;
+    
+    virtual double volume() const ;
+
+    virtual void project(Point * init) const ;
+    
+    virtual double getRadius() const ;
+    
+    virtual SpaceDimensionality spaceDimensions() const ;
+    
+    virtual std::vector<Point> getBoundingBox() const ;
+} ;
+
+class LoftedPolygonPrism :  public NonConvexGeometry
+{
+protected:
+    virtual void computeCenter() ;
+    
+    Polygon base ;
+    double sweepNorm() const 
+    {
+        double d = 0 ;
+        for(double i = 0 ; i < .99 ; i += 0.01)
+        {
+            d += dist(interpolatingPointAndTangent(i).first, interpolatingPointAndTangent(i+0.01).first) ;
+        }
+        return d ;
+    }
+    
+    double sweepNorm( const Point & offset) const 
+    {
+        double d = 0 ;
+        for(double i = 0 ; i < .99 ; i += 0.01)
+        {
+            d += dist(interpolatingPointAndTangent(i, offset).first, interpolatingPointAndTangent(i+0.01, offset).first) ;
+        }
+        return d ;
+    }
+    
+    std::vector<Point> interpolationPoints ;
+    std::vector<Point> tangents ;
+    std::pair<Point,Point> interpolatingPointAndTangent(double t) const ;
+    std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset) const ;
+    
+    Matrix rotateToVector(const Point & vector) const ;
+        
+
+public:
+    LoftedPolygonPrism(const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints, const std::vector<Point> & tangents) ;
+    
+    virtual ~LoftedPolygonPrism() ;
 
     virtual void sampleBoundingSurface(size_t num_points) ;
     

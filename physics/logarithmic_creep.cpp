@@ -186,7 +186,7 @@ void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 		if(!isPurelyElastic)
 		{
 			accumulator->preProcess(timeStep, currentState) ;
-			Matrix S = C*-1. ;
+			Matrix S = -C ;
 			placeMatrixInBlock(S,0,1,param) ;
 			placeMatrixInBlock(S,0,2,param) ;
 			placeMatrixInBlock(S,1,0,param) ;

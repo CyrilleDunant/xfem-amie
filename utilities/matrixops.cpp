@@ -326,6 +326,12 @@ Matrix operator -(const Matrix & m_,const  Matrix &m)
     ret -= m ; ;
     return ret ;
 }
+Matrix operator -(const Matrix & m_)
+{
+    Matrix ret(m_) ;
+    ret.array() = -ret.array() ;
+    return ret ;
+}
 
 Matrix operator -(const Matrix & m_,const Vector &v)
 {
@@ -604,7 +610,7 @@ void invert6x6Matrix(Matrix &s)
     s10 = r6*r2 ;
     Matrix r7 = r3*s10 ;
     s00 = r1-r7 ;
-    s11 = r6*-1 ;
+    s11 = -r6 ;
 
     for(size_t i = 0 ; i < 3 ; i++)
     {
@@ -778,7 +784,7 @@ Matrix inverse4x4Matrix(const Matrix &s)
 // 	s10 = r5*r2 ;
 // 	Matrix r7 = r3*s10 ;
 // 	s00 -= r7 ;
-// 	s11 = r5*-1 ;
+// 	s11 = -r5 ;
 //
 // 	Matrix ret(4,4) ;
 // 	ret[0][0] = s00[0][0]; ret[0][1] = s00[0][1]; ret[0][2] = s01[0][0]; ret[0][3] = s01[0][1];

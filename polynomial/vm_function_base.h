@@ -436,6 +436,7 @@ public:
      */
     Function operator- ( const double a ) const ;
 
+    Function operator-() const  ;
     /** \brief take the integer power of a function
      *
      * @param a power

@@ -55,11 +55,11 @@ void step(FeatureTree * featureTree)
         featureTree->step() ;
         featureTree->printReport();
     }
-    VoxelWriter vw1("sphere_stiffness", 100) ;
+    VoxelWriter vw1("sphere_stiffness", 200) ;
     vw1.getField(featureTree, VWFT_STIFFNESS) ;
     vw1.write();
 
-    VoxelWriter vw("sphere_stress", 150) ;
+    VoxelWriter vw("sphere_stress", 200) ;
     vw.getField(featureTree, VWFT_STRESS) ;
     vw.write();
 // 	VoxelWriter vw0("sphere_strain", 50) ;
@@ -89,19 +89,22 @@ int main(int argc, char *argv[])
 
     samplers.setBehaviour(new Stiffness(m0)) ;
 
-    std::valarray<Point *> pts(4) ;
+    std::valarray<Point *> pts(5) ;
     pts[0] = new Point(-20, 20, 0) ;
     pts[1] = new Point(20, 20, 0) ;
-    pts[2] = new Point(20, -20, 0) ;
-    pts[3] = new Point(-20, -20, 0) ;
+    pts[2] = new Point(5, 5, 0) ;
+    pts[3] = new Point(20, -20, 0) ;
+    pts[4] = new Point(-20, -20, 0) ;
     PolygonalSample3D inc(&samplers, pts, Point(200, 0, 200), Point(-100, 50, -100)) ;
     inc.setBehaviour(new Stiffness(m1)) ;
     
-    std::valarray<Point *> pts0(4) ;
-    pts0[0] = new Point(-20, 20, 0) ;
+    std::valarray<Point *> pts0(5) ;
+   
     pts0[1] = new Point(20, 20, 0) ;
     pts0[2] = new Point(20, -20, 0) ;
     pts0[3] = new Point(-20, -20, 0) ;
+    pts0[4] = new Point(-5, 0, 0) ;
+    pts0[0] = new Point(-20, 20, 0) ;
     PolygonalSample3D inc0(&samplers, pts0, Point(200, 0, -200), Point(-100, -50, 100)) ;
     inc0.setBehaviour(new Stiffness(m2)) ;
 
@@ -117,7 +120,8 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    F.setOrder(LINEAR) ;
+//     F.setProjectionOnBoundaries(false) ;
+    F.setOrder(QUADRATIC) ;
 
     step(&F) ;
 

@@ -767,7 +767,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 tree[j]->project ( &proj_2 ) ;
                 Point proj_3 ( *tets[i]->fourth ) ;
                 tree[j]->project ( &proj_3 ) ;
-
+                
                 if (
                     squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
                     squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
@@ -787,18 +787,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -829,6 +832,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 {
                     count++;
                     indexes.clear() ;
+                    
                     for ( size_t k = 0 ; k < tets[i]->getBoundingPoints().size() ; k++ )
                     {
                         if ( tets[i]->getBoundingPoint ( k ) == Point ( 0.5* ( tets[i]->third->getX() +tets[i]->second->getX() ),0.5* ( tets[i]->third->getY() +tets[i]->second->getY() ),0.5* ( tets[i]->third->getZ() +tets[i]->second->getZ() ),tets[i]->getBoundingPoint ( k ).getT() ) )
@@ -841,18 +845,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -895,18 +902,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -949,18 +959,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -1003,18 +1016,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -1057,18 +1073,21 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                     if ( inRoot ( test ) )
                     {
+                        double dtest = 0 ;
                         for ( size_t ni = 0 ; ni < indexes.size() ; ni++ )
                         {
                             size_t k = indexes[ni] ;
                             originalPoints[ni] = tets[i]->getBoundingPoint ( k ) ;
                             tree[j]->project ( &tets[i]->getBoundingPoint ( k ) ) ;
+                            dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > 0 &&
-                                tets[i]->jacobianAtPoint ( b ) > 0 &&
-                                tets[i]->jacobianAtPoint ( c ) > 0 &&
-                                tets[i]->jacobianAtPoint ( d ) > 0 &&
-                                tets[i]->jacobianAtPoint ( e ) > 0
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                                dtest < 0.1*tets[i]->getRadius()
                            )
                         {
                             tets[i]->moved = true ;
@@ -1183,10 +1202,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( b ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( c ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( d ) > 0
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
                                )
                             {
                                 triangles[i]->moved = true ;
@@ -1231,10 +1250,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( b ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( c ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( d ) > 0
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
                                )
                             {
                                 triangles[i]->moved = true ;
@@ -1279,10 +1298,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( b ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( c ) > 0 &&
-                                    triangles[i]->jacobianAtPoint ( d ) > 0
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
                                )
                             {
                                 triangles[i]->moved = true ;

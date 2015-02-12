@@ -470,6 +470,7 @@ public:
 class Polygon :  public NonConvexGeometry
 {
     friend class PolygonPrism ;
+    friend class LoftedPolygonPrism ;
 protected:
     
     virtual void computeCenter() ;
@@ -501,6 +502,8 @@ public:
     virtual SpaceDimensionality spaceDimensions() const ;
 
     virtual std::vector<Point> getBoundingBox() const ;
+    
+    virtual void setCenter(const Point & newCenter) ;
 } ;
 
 

@@ -2566,4 +2566,11 @@ std::vector<Point> Polygon::getBoundingBox() const
     
 }
 
+void Polygon::setCenter(const Point & newCenter)
+{
+    Point delta = newCenter - getCenter() ;
+    Geometry::setCenter(newCenter);
+    for(size_t i = 0 ; i < originalPoints.size() ; i++)
+        originalPoints[i] += delta ;
+}
 

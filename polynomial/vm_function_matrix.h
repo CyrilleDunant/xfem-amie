@@ -293,6 +293,7 @@ public:
     FunctionMatrix operator - ( const FunctionMatrix &m ) const;
 
 
+     FunctionMatrix operator - ( ) const;
     /** \brief Multiply by a double and assign
      *
      * @param a scalar multiplicator

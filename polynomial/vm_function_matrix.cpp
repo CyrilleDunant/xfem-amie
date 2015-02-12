@@ -169,6 +169,13 @@ FunctionMatrix FunctionMatrix::operator -(const  FunctionMatrix &m) const
 	return ret ;
 }
 
+FunctionMatrix FunctionMatrix::operator -() const
+{
+        FunctionMatrix ret(*this) ;
+        ret *= -1 ;
+        return ret ;
+}
+
 FunctionMatrix FunctionMatrix::d(const Variable vv) const
 {
 	FunctionMatrix ret(*this) ;
@@ -251,7 +258,7 @@ FunctionMatrix inverse2x2FunctionMatrix(const FunctionMatrix s)
 		ret[1][0] = r6*r2 ;
 		Function r7 = r3*ret[1][0] ;
 		ret[0][0] = r1-r7 ;
-		ret[1][1] = r6*-1 ;
+		ret[1][1] = -r6 ;
 		return swap*ret ;
 	}
 	
@@ -266,7 +273,7 @@ FunctionMatrix inverse2x2FunctionMatrix(const FunctionMatrix s)
 	ret[1][0] = r6*r2 ;
 	Function r7 = r3*ret[1][0] ;
 	ret[0][0] = r1-r7 ;
-	ret[1][1] = r6*-1 ;
+	ret[1][1] = -r6 ;
 	
 	return ret ;
 }

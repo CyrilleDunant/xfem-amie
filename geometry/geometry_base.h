@@ -306,6 +306,7 @@ typedef enum
     LAYERED_SPHERE = 19,
     REGULAR_OCTAHEDRON,
     POLYGON_PRISM,
+    LOFTED_POLYGON,
     ELLIPSE,
     LEVEL_SET,
     TIME_DEPENDENT_CIRCLE,
@@ -591,6 +592,8 @@ Point operator+(const Point & p_,const Point &p)  ;
 Point operator+(const Point & p_,const Vector &p)  ;
 Point operator/(const Point & p_,const double p)  ;
 Point operator*(const Point & p_,const double p)  ;
+
+Point operator-(const Point & p_) ;
 
 /** \brief dot-product*/
 double operator*(const Point & p_,const Point &p)  ;
