@@ -25,6 +25,15 @@ namespace Amie
  */
 std::map<std::string, double> parseDefaultValues(std::string args, char sep = ',') ;
 
+typedef enum : char
+{ 
+	SET,
+	ADD,
+	MULTIPLY,
+	SUBSTRACT,
+	DIVIDE,
+}  EMLOperation ;
+
 /* Basic structure for material law. This structure is empty ; the preProcess() and/or step() methods must be surcharged for the law to do something */
 struct ExternalMaterialLaw
 {
@@ -57,10 +66,10 @@ struct SpaceTimeDependentExternalMaterialLaw : public ExternalMaterialLaw
 {
     std::string external ;
     Function f ;
-    bool add ;
+    EMLOperation op ;
 
-    SpaceTimeDependentExternalMaterialLaw( std::string e, const char *f_, bool a = false, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_), add(a) { }
-    SpaceTimeDependentExternalMaterialLaw( std::string e, Function & f_, bool a = false, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_), add(a) { }
+    SpaceTimeDependentExternalMaterialLaw( std::string e, const char *f_, EMLOperation o = SET, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_), op(o) { }
+    SpaceTimeDependentExternalMaterialLaw( std::string e, Function & f_, EMLOperation o = SET, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), external(e), f(f_), op(o) { }
     virtual ~SpaceTimeDependentExternalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -73,8 +82,8 @@ struct SimpleDependentExternalMaterialLaw: public SpaceTimeDependentExternalMate
 {
     std::string coordinate ;
 
-    SimpleDependentExternalMaterialLaw( std::string e, std::string c, const char *f_, bool a = false,  std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, a,args, sep), coordinate(c) { }
-    SimpleDependentExternalMaterialLaw( std::string e, std::string c,  Function & f_,bool a = false, std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinate(c) { }
+    SimpleDependentExternalMaterialLaw( std::string e, std::string c, const char *f_,  EMLOperation a = SET,  std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, a,args, sep), coordinate(c) { }
+    SimpleDependentExternalMaterialLaw( std::string e, std::string c,  Function & f_, EMLOperation a = SET, std::string args = std::string(), char sep = ',') : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinate(c) { }
     virtual ~SimpleDependentExternalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -103,10 +112,10 @@ struct VariableDependentExternalMaterialLaw: public SpaceTimeDependentExternalMa
 {
     std::map<char, std::string> coordinates ;
     bool useSpaceTimeCoordinates ;
-    VariableDependentExternalMaterialLaw( std::string e, const char *f_, bool a = false, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,a, args, sep), useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, Function & f_, bool a = false, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, const char *f_, std::map<char, std::string> c, bool a = false, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
-    VariableDependentExternalMaterialLaw( std::string e, Function & f_, std::map<char, std::string> c, bool a = false, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
+    VariableDependentExternalMaterialLaw( std::string e, const char *f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_,a, args, sep), useSpaceTimeCoordinates(u) { }
+    VariableDependentExternalMaterialLaw( std::string e, Function & f_, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), useSpaceTimeCoordinates(u) { }
+    VariableDependentExternalMaterialLaw( std::string e, const char *f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
+    VariableDependentExternalMaterialLaw( std::string e, Function & f_, std::map<char, std::string> c, EMLOperation a = SET, std::string args = std::string(),bool u = true, char sep = ',' ) : SpaceTimeDependentExternalMaterialLaw(e,f_, a, args, sep), coordinates(c),useSpaceTimeCoordinates(u) { }
     virtual ~VariableDependentExternalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -131,9 +140,10 @@ struct LinearInterpolatedExternalMaterialLaw : public ExternalMaterialLaw
 {
     std::pair<std::string, std::string> external ;
     std::pair<Vector, Vector> values ;
+    EMLOperation op ;
 
-    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v) { }
-    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, std::string args = std::string(), char sep = ',' ) ;
+    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e,std::pair<Vector, Vector> v, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) : ExternalMaterialLaw(args, sep), external(e), values(v), op(o) { }
+    LinearInterpolatedExternalMaterialLaw(std::pair<std::string, std::string> e, std::string file, EMLOperation o = SET, std::string args = std::string(), char sep = ',' ) ;
     virtual ~LinearInterpolatedExternalMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -180,9 +190,9 @@ struct MinimumMaterialLaw : public ExternalMaterialLaw
 {
     std::string external ;
     std::vector<std::string> coordinates ;
-    bool add ;
+    EMLOperation op ;
 
-    MinimumMaterialLaw(std::string out, std::vector<std::string> coord, bool a = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), add(a) { } ;
+    MinimumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
     virtual ~MinimumMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -192,9 +202,9 @@ struct MaximumMaterialLaw : public ExternalMaterialLaw
 {
     std::string external ;
     std::vector<std::string> coordinates ;
-    bool add ;
+    EMLOperation op ;
 
-    MaximumMaterialLaw(std::string out, std::vector<std::string> coord, bool a = false, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), add(a) { } ;
+    MaximumMaterialLaw(std::string out, std::vector<std::string> coord, EMLOperation o = SET, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), external(out), coordinates(coord), op(o) { } ;
     virtual ~MaximumMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

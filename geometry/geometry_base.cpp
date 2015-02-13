@@ -619,12 +619,12 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
         }
         if(g->getGeometryType() == CIRCLE)
         {
-            static_cast<Circle *>(g)->setRadius( g->getRadius()*p.getX() );
+            dynamic_cast<Circle *>(g)->setRadius( g->getRadius()*p.getX() );
             return ;
         }
         if(g->getGeometryType() == SPHERE)
         {
-            static_cast<Sphere *>(g)->setRadius( g->getRadius()*p.getX() );
+            dynamic_cast<Sphere *>(g)->setRadius( g->getRadius()*p.getX() );
             return ;
         }
 

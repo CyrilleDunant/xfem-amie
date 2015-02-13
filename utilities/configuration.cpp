@@ -12,6 +12,8 @@
 #include "../physics/viscoelasticity.h"
 #include "../physics/viscoelasticity_and_fracture.h"
 #include "../physics/viscoelasticity_and_imposed_deformation.h"
+#include "../physics/material_laws/humidity_material_laws.h"
+#include "../physics/material_laws/mechanical_material_laws.h"
 #include "../physics/material_laws/temperature_material_laws.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
@@ -479,9 +481,40 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		return new RadiationInducedExpansionMaterialLaw() ;
 	}
 
+	if(type == "DISJOINING_PRESSURE")
+	{
+		return new DisjoiningPressureDryingShrinkageMaterialLaw() ;
+	}
+
+	if(type == "BET_ISOTHERM")
+	{
+		ret = new BETIsothermMaterialLaw() ;
+		return ret ;
+	}
+
+	if(type == "BIEXPONENTIAL_ISOTHERM")
+	{
+		ret = new BiExponentialIsothermMaterialLaw() ;
+		return ret ;
+	}
+
+	if(type == "SORPTION_ISOTHERM_HYSTERESIS")
+	{
+		ExternalMaterialLaw * desorption = getChild("desorption")->getExternalMaterialLaw() ;
+		ExternalMaterialLaw * adsorption = getChild("adsorption")->getExternalMaterialLaw() ;
+		if(dynamic_cast<BETIsothermMaterialLaw *>(desorption))
+			dynamic_cast<BETIsothermMaterialLaw *>(desorption)->suffix = "_desorption" ;
+		if(dynamic_cast<BETIsothermMaterialLaw *>(adsorption))
+			dynamic_cast<BETIsothermMaterialLaw *>(adsorption)->suffix = "_adsorption" ;
+		ret = new SorptionIsothermHysteresisMaterialLaw(desorption, adsorption) ;
+		return ret ;
+	}
+
 	if(type == "DRYING_SHRINKAGE")
 	{
-		ret = new DryingShrinkageMaterialLaw() ;
+		std::string input = getStringData("input", "relative_humidity") ;
+		double order = getData("order", 1.) ;
+		ret = new DryingShrinkageMaterialLaw(input, order) ;
 		ret->setDefaultValue("relative_humidity", getData("reference_relative_humidity", 1.)) ;
 		return ret ;
 	}
@@ -518,7 +551,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 	if(type == "CREEP_HUMIDITY")
 	{
 		ret = new CreepRelativeHumidityMaterialLaw() ;
-		ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 5.)) ;
+		ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.2)) ;
 		return ret ;
 	}
 
@@ -563,7 +596,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, getStringData("additive", "FALSE") == "TRUE") ;
+		ret = new SpaceTimeDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
 		return ret ;
 	}
 
@@ -575,7 +608,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, getStringData("additive", "FALSE") == "TRUE") ;
+		ret = new SimpleDependentExternalMaterialLaw( getStringData("output_parameter","none"), getStringData("input_parameter","x"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
 		return ret ;
 	}
 
@@ -587,7 +620,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			return nullptr ;
 		}
 		Function f = getChild("function")->getFunction() ;
-		ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, getStringData("additive", "FALSE") == "TRUE") ;
+		ret = new VariableDependentExternalMaterialLaw( getStringData("output_parameter","none"), f, ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
 		if(hasChild("x"))
 			dynamic_cast<VariableDependentExternalMaterialLaw*>(ret)->setAsX( getStringData("x","x")) ;
 		if(hasChild("y"))
@@ -605,6 +638,12 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		return ret ;
 	}
 
+	if(type == "BULK_SHEAR_CONVERSION")
+		return new BulkShearConversionExternalMaterialLaw() ;
+
+	if(type == "THERMAL_EXPANSION_HUMIDITY")
+		return new ThermalExpansionHumidityMaterialLaw() ;
+
 	if(type == "LINEAR_INTERPOLATED")
 	{
 		if(hasChild("input_values") && hasChild("output_values"))
@@ -613,10 +652,10 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 			Vector out = ConfigTreeItem::readLineAsVector(getStringData("output_values","0,1")) ;
 			std::string i = getStringData("input_parameter","t") ;
 			std::string o = getStringData("output_parameter","none") ;
-			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out) ) ;
+			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair( i, o ), std::make_pair(in, out), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ) ;
 		}
 		else
-			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name")) ;
+			ret = new LinearInterpolatedExternalMaterialLaw( std::make_pair(getStringData("input_parameter","t"),getStringData("output_parameter","none")), getStringData("file_name","file_name"), ConfigTreeItem::translateEMLOperation(getStringData("operation","SET"))) ;
 		return ret ;
 	}
 
@@ -638,7 +677,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 		std::vector<std::string> coord ;
 		for(size_t i = 0 ; i < all.size() ; i++)
 			coord.push_back( all[i]->getStringData() ) ;
-		bool add = getStringData("additive", "FALSE") == "TRUE" ;
+		EMLOperation add = ConfigTreeItem::translateEMLOperation(getStringData("operation","SET")) ;
 		if(type == "MINIMUM")
 			ret = new MinimumMaterialLaw(  getStringData("output_parameter","none"), coord, add ) ;
 		else
@@ -770,8 +809,8 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 						ptension.push_back( Point(ultimateTensileStrain, ultimateTensileStrength) ) ;
 				}
 				std::vector<Point> pcompression ;
-				double compressiveStrength = getFather()->getData("parameters.tensile_strength",1) ;
-				double compressiveStrain = getFather()->getData("parameters.tensile_strain",1) ;
+				double compressiveStrength = getFather()->getData("parameters.compressive_strength",1) ;
+				double compressiveStrain = getFather()->getData("parameters.compressive_strain",1) ;
 				if(compressiveStrength < 0 && compressiveStrain > 0)
 					compressiveStrain = compressiveStrength/E ;
 				if(compressiveStrength > 0 && compressiveStrain < 0)
@@ -780,17 +819,17 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 					pcompression.push_back( Point(compressiveStrain, compressiveStrength) ) ;
 				if(pcompression.size() > 0)
 				{
-					double ultimateCompressiveStrength = getFather()->getData("parameters.tensile_ultimate_strength",1) ;
-					double ultimateCompressiveStrain = getFather()->getData("parameters.tensile_ultimate_strain",1) ;
+					double ultimateCompressiveStrength = getFather()->getData("parameters.compressive_ultimate_strength",1) ;
+					double ultimateCompressiveStrain = getFather()->getData("parameters.compressive_ultimate_strain",1) ;
 					if(ultimateCompressiveStrength > 0 && compressiveStrength < 0)
 					{
-						double compressiveStrengthDecreaseFactor = getFather()->getData("parameters.tensile_strength_decrease_factor",-1) ;
+						double compressiveStrengthDecreaseFactor = getFather()->getData("parameters.compressive_strength_decrease_factor",-1) ;
 						if(compressiveStrengthDecreaseFactor > -POINT_TOLERANCE_2D)
 							ultimateCompressiveStrength = compressiveStrength*(1.-compressiveStrengthDecreaseFactor) ;
 					}
 					if(ultimateCompressiveStrain > 0 && compressiveStrain < 0)
 					{
-						double compressiveStrainIncreaseFactor = getFather()->getData("parameters.tensile_strain_increase_factor",-1) ;
+						double compressiveStrainIncreaseFactor = getFather()->getData("parameters.compressive_strain_increase_factor",-1) ;
 						if(compressiveStrainIncreaseFactor > -POINT_TOLERANCE_2D)
 							ultimateCompressiveStrain = compressiveStrain*compressiveStrainIncreaseFactor ;
 					}
@@ -1211,6 +1250,21 @@ SamplingRestrictionType ConfigTreeItem::translateSamplingRestrictionType( std::s
 	if(restriction == "SAMPLE_RESTRICT_16")
 		return SAMPLE_RESTRICT_16 ;
 	return SAMPLE_NO_RESTRICTION ;
+}
+
+EMLOperation ConfigTreeItem::translateEMLOperation( std::string op ) 
+{
+	if(op == "SET")
+		return SET ;
+	if(op == "ADD")
+		return ADD ;
+	if(op == "MULTIPLY")
+		return MULTIPLY ;
+	if(op == "SUBSTRACT")
+		return SUBSTRACT ;
+	if(op == "DIVIDE")
+		return DIVIDE ;
+	return SET ;
 }
 
 planeType ConfigTreeItem::translatePlaneType( std::string type ) 
@@ -2117,11 +2171,22 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
 		for(size_t i = 0 ; i < fields.size() ; i++)
 		{
 			bool isFieldType = true ;
-			Vector f = F->getAverageField( ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ), -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
-			for(size_t j = 0 ; j < f.size() ; j++)
+			FieldType ft = ConfigTreeItem::translateFieldType( fields[i]->getStringData(), isFieldType ) ;
+			if(isFieldType)
 			{
-				std::cout << f[j] << "\t" ;
-				out << f[j] << "\t" ;
+//				std::cout << fields[i]->getStringData() << std::endl ;
+				Vector f = F->getAverageField( ft, -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+				for(size_t j = 0 ; j < f.size() ; j++)
+				{
+					std::cout << f[j] << "\t" ;
+					out << f[j] << "\t" ;
+				}
+			}
+			else
+			{
+				double f = F->get2DMesh()->getField( fields[i]->getStringData(), 0) ;
+				std::cout << f << "\t" ;
+				out << f << "\t" ;
 			}
 		}
 		std::vector<ConfigTreeItem *> families = getAllChildren("inclusions") ;
@@ -2132,11 +2197,21 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
 			for(size_t i = 0 ; i < ffields.size() ; i++)
 			{
 				bool isFieldType = true ;
-				Vector f = F->get2DMesh()->getField( ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ), cacheIndex[index], -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
-				for(size_t j = 0 ; j < f.size() ; j++)
+				FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+				if(isFieldType)
 				{
-					std::cout << f[j] << "\t" ;
-					out << f[j] << "\t" ;
+					Vector f = F->get2DMesh()->getField( ft, cacheIndex[index], -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+					for(size_t j = 0 ; j < f.size() ; j++)
+					{
+						std::cout << f[j] << "\t" ;
+						out << f[j] << "\t" ;
+					}
+				}
+				else
+				{
+					double f = F->get2DMesh()->getField( ffields[i]->getStringData(), cacheIndex[index]) ;
+					std::cout << f << "\t" ;
+					out << f << "\t" ;
 				}
 			}
 			

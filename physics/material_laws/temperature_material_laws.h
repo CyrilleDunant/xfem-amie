@@ -38,36 +38,6 @@ struct RadiationInducedExpansionMaterialLaw : public ExternalMaterialLaw
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
 };
 
-struct LoadNonLinearCreepMaterialLaw : public ExternalMaterialLaw
-{
-    LoadNonLinearCreepMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { } 
-    virtual ~LoadNonLinearCreepMaterialLaw() { } ;
-
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
-};
-
-struct StrainRateDependentStrengthMaterialLaw : public ExternalMaterialLaw
-{
-	double strainRateRef ;
-	double p ;
-
-	StrainRateDependentStrengthMaterialLaw(double p_ = 0.1, double eps = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), p(p_), strainRateRef(eps) { } 
-    virtual ~StrainRateDependentStrengthMaterialLaw() { } ;
-
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
-
-
-
-} ;
-
-struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
-{
-    DryingShrinkageMaterialLaw(std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep) { }
-    virtual ~DryingShrinkageMaterialLaw() { } ;
-
-    virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
-};
-
 /* Material law for a generic Arrhenius equation affecting a single parameter
  * The material parameters must include the affected parameter, the activation energy for that parameter (in Kelvin^{-1}, and written as parameter"_activation_energy"), "temperature" and "temperature_reference" (both in Kelvin)
  * The reference value of the affected parameter and "temperature" must be given in the defaults values
@@ -92,14 +62,6 @@ struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
     virtual ~CreepArrheniusMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
-};
-
-struct CreepRelativeHumidityMaterialLaw : public ExternalMaterialLaw
-{
-    CreepRelativeHumidityMaterialLaw(std::string args = std::string("creep_humidity_coefficient = 5"), char sep = 'c') : ExternalMaterialLaw(args, sep) { }
-    virtual ~CreepRelativeHumidityMaterialLaw() { } ;
-
-    virtual void preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt);
 };
 
 

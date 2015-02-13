@@ -91,6 +91,8 @@ physics/damagemodels/plasticstrain.cpp
 physics/damagemodels/rotatingcrack.cpp
 physics/material_laws/logcreep_accumulator.cpp
 physics/material_laws/material_laws.cpp
+physics/material_laws/humidity_material_laws.cpp
+physics/material_laws/mechanical_material_laws.cpp
 physics/material_laws/temperature_material_laws.cpp
 #physics/mad.cpp 
 physics/diffusion.cpp 

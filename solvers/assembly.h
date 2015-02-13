@@ -202,6 +202,7 @@ protected:
 	Vector prevDisplacements ;
 	Vector externalForces ;
 	Vector nonLinearExternalForces ;
+	Vector addToExternalForces ;
 	CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
 	CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
 	std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
@@ -341,6 +342,8 @@ public:
 	void addForceOn(Variable var, double val, size_t id) ;
 
 	void addForceOnIndexedAxis(int index, double val, size_t id) ;
+
+	void addForceToExternalForces( int axis, double val, size_t id ) ;
 	
 	void setDisplacementByDof(size_t dof, double val) ;
 

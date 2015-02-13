@@ -397,6 +397,59 @@ public:
 
     }
 
+    virtual unsigned int generateCacheOut( std::vector<unsigned int> ids )
+    {
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+	if(allElementsCacheID == -1)
+	        return position ;
+
+	std::valarray<bool> out ;
+	std::valarray<bool> check ;
+	unsigned int maxIndex = 0 ;
+	for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
+	{
+		if(caches[allElementsCacheID][i] > maxIndex)
+			maxIndex = caches[allElementsCacheID][i] ;
+	}
+	out.resize(maxIndex) ;
+	check.resize(maxIndex) ;
+	out = false ;
+	check = false ;
+	
+	for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
+		check[ caches[allElementsCacheID][i] ] = true ;
+
+	for(size_t j = 0 ; j < ids.size() ; j++)
+	{
+		for(size_t i = 0 ; i < caches[ids[j]].size() ; i++)
+			out[ caches[ids[j]][i] ] = true ;
+	}
+
+	for(size_t i = 0 ; i < check.size() ; i++)
+	{
+		if(check[i] && !out[i])
+		{
+			caches[position].push_back( i ) ;
+	                coefs[position].push_back ( std::vector<double>() ) ;
+		}
+	}
+	return position ;
+    }
+
     virtual unsigned int generateCache( std::vector<Geometry *> source) {
         //search for first empty cache slot ;
         if ( caches.empty() ) {
@@ -416,6 +469,7 @@ public:
 
         for(size_t i = 0 ; i < source.size() ; i++)
         {
+	    std::cerr << "\rgenerating cache for feature " << i << "/" << source.size() << std::flush ;
             std::vector<ETYPE *> elems = getConflictingElements ( source[i] ) ;
             if(elems.empty())
                 elems = getConflictingElements ( &source[i]->getCenter() ) ;
@@ -592,6 +646,31 @@ public:
         coefs.clear();
         allElementsCacheID = -1 ;
     }
+
+    double getField ( std::string f, unsigned int cacheID ) {
+	double ret = 0. ;
+	unsigned int realID = cacheID ;
+	if(cacheID == -1)
+		realID = allElementsCacheID ;
+        double w = 0. ;
+	std::map<std::string, double> dummy ;
+	bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+	    if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getStatePointer()))
+	    {
+		if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).has(f))
+		{
+			double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
+			ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;
+			w += a ;
+		}
+	    }
+        }
+	if(w > 0)
+	        return ret/w ;
+	return 0. ;
+    }
+
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
     Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) {
         VirtualMachine vm ;
@@ -660,9 +739,9 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( auto i = begin() ; i  != end() ; i++ ) {
-            double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
-            ret += buffer * v ;
-            w +=v ;
+	    double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
+	    ret += buffer * v ;
+	    w +=v ;
         }
         return ret/w ;
     }

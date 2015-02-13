@@ -316,7 +316,7 @@ LogarithmicCreepWithExternalParameters::~LogarithmicCreepWithExternalParameters(
 std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
-    if(imposed.size() == 0 || fractured())
+    if(imposed.size() == 0 || ((imposed.max() < POINT_TOLERANCE_2D) && (imposed.min() > -POINT_TOLERANCE_2D)) || fractured())
         return ret ;
     Vector istress = C*imposed ;
     if(dfunc)

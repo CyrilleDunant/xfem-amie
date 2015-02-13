@@ -239,6 +239,8 @@ public:
 	/** Translate a string in a Lagrange multiplier type*/
 	static LagrangeMultiplierType translateLagrangeMultiplierType(std::string type) ;
 
+	static EMLOperation translateEMLOperation(std::string op) ;
+
 	/** Translate a string in a PSD specification type*/
 	static PSDSpecificationType translatePSDSpecificationType( std::string specification ) ;
 

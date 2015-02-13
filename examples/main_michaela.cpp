@@ -25,6 +25,7 @@
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/material_laws/material_laws.h"
 #include "../physics/material_laws/temperature_material_laws.h"
+#include "../physics/material_laws/humidity_material_laws.h"
 #include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"

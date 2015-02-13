@@ -265,6 +265,11 @@ void Assembly::setBoundaryConditions()
     this->naturalBoundaryConditionForces = 0 ;
     this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
     this->nonLinearExternalForces = 0 ;
+    if(this->addToExternalForces.size() != this->externalForces.size())
+    {
+	this->addToExternalForces.resize(this->externalForces.size()) ; 
+	this->addToExternalForces = 0. ;
+    }
 
     std::sort(multipliers.begin(), multipliers.end()) ;
     std::valarray<int> multiplierIds(multipliers.size()) ;
@@ -276,6 +281,8 @@ void Assembly::setBoundaryConditions()
 
 
     int stride = coordinateIndexedMatrix->stride ;
+    timeval time0, time1 ;
+    gettimeofday ( &time0, nullptr );
     std::cerr << " setting BCs... displacement dof " << 0 << "/" << coordinateIndexedMatrix->row_size.size() << std::flush ;
     for(size_t k = 0 ; k < coordinateIndexedMatrix->row_size.size() ; k++)
     {
@@ -311,6 +318,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
+		    this->addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -355,6 +363,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
+		    this->addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -393,7 +402,9 @@ void Assembly::setBoundaryConditions()
     }
 
 
-    std::cerr << " ...done" << std::endl ;
+    gettimeofday ( &time1, nullptr );
+    double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
+    std::cerr << " ...done (" << delta/1000000 << " seconds)" << std::endl ;
     for(size_t i = 0 ; i < multipliers.size() ; i++)
     {
         if(multipliers[i].type == GENERAL)
@@ -413,6 +424,10 @@ void Assembly::setBoundaryConditions()
         }
 
     }
+
+    if(this->addToExternalForces.size() == this->externalForces.size())
+	    this->externalForces += this->addToExternalForces ;
+
 
     if( dim == SPACE_TWO_DIMENSIONAL &&  element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
     {
@@ -480,7 +495,7 @@ void Assembly::initialiseElementaryMatrices()
 // 			#pragma omp parallel for
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
-            std::cerr << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+            std::cout << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             if(element2d[i]->getBehaviour())
             {
                 element2d[i]->getElementaryMatrix() ;
@@ -508,7 +523,7 @@ void Assembly::initialiseElementaryMatrices()
 
     gettimeofday(&time1, nullptr);
     double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
+    std::cout << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
 }
 
 void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
@@ -701,8 +716,10 @@ bool Assembly::make_final()
             if(displacements.size() != max)
             {
                 displacements.resize(max) ;
+		addToExternalForces.resize(max) ;
             }
             displacements = 0 ;
+	    addToExternalForces = 0 ;
         }
         else
         {
@@ -1237,6 +1254,7 @@ void Amie::Assembly::addForceVector(const Vector & v)
     multipliers.back().type = SET_GLOBAL_FORCE_VECTOR ;
 }
 
+
 void Assembly::addForceOn(Variable v, double val, size_t id)
 {
     std::valarray<unsigned int> i(2) ;
@@ -1323,6 +1341,13 @@ void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id, bool fo
     multipliers.back().type = SET_ALONG_INDEXED_AXIS ;
     return ;
 }
+
+void Assembly::addForceToExternalForces( int axis, double val, size_t id )
+{
+	if(addToExternalForces.size() > 0)
+		addToExternalForces[ id*ndof + axis ] += val ;
+}
+
 
 void Assembly::addForceOnIndexedAxis(int axis, double val, size_t id)
 {
@@ -1455,6 +1480,9 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
                 displacements[p] = prevDisplacements[p] ;
             }
         }
+
+
+	    addToExternalForces = 0 ;
 
     }
     else

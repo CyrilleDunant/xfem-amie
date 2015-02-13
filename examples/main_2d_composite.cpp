@@ -76,7 +76,10 @@ int main(int argc, char *argv[])
 			{
 				std::vector<Geometry *> geom ;
 				for(size_t k = 0 ; k < tmp[j].size() ; k++)
-					geom.push_back( dynamic_cast<Geometry *>(tmp[j][k]) ) ;
+				{
+					if( F.getFeature(0)->in(tmp[j][k]->getCenter()) || F.getFeature(0)->intersects(tmp[j][k]))
+						geom.push_back( dynamic_cast<Geometry *>(tmp[j][k]) ) ;
+				}
 				allFeatures.push_back( geom ) ;
 			}
 		}
@@ -84,13 +87,17 @@ int main(int argc, char *argv[])
 
 	F.step() ;
 	std::vector<unsigned int> cacheIndex ;
+	std::vector<unsigned int> aggCacheIndex ;
 	std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
-	cacheIndex.push_back( F.get2DMesh()->generateCache( F.getFeature(0)) ) ;
+	cacheIndex.push_back( 0 ) ;
 	for(size_t i = 0 ; i < allFeatures.size() ; i++)
 	{
 		std::cout << "\rgenerating cache for inclusion family " << i+1 << "/" << allFeatures.size() ;
 		cacheIndex.push_back( F.get2DMesh()->generateCache( allFeatures[i] ) ) ;
+		aggCacheIndex.push_back( cacheIndex[cacheIndex.size()-1] ) ;
 	}
+	std::cout << "generating cache for inclusion family 0/" << allFeatures.size() ;
+	cacheIndex[0] = F.get2DMesh()->generateCacheOut( aggCacheIndex ) ;
 	std::cout << "... done" << std::endl ;
 	for(size_t i = 0 ; i < cacheIndex.size() ; i++)
 		std::cout << "inclusion family " << i << " covering surface " << F.get2DMesh()->getArea( cacheIndex[i] ) << std::endl ;
