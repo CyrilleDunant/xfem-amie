@@ -1833,8 +1833,10 @@ LoftedPolygonPrism::LoftedPolygonPrism(const std::valarray<Point *> & points, co
 }
 std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t) const
 {
-    int startindex = floor((interpolationPoints.size()-1)*t) ;
-    double t_ = (ceil((interpolationPoints.size()-1)*t)-(interpolationPoints.size()-1)*t)/(ceil((interpolationPoints.size()-1)*t)-floor((interpolationPoints.size()-1)*t)) ;
+    int startindex = floor(t*(interpolationPoints.size())-1) ;
+    if(std::abs(startindex-interpolationPoints.size()+1) < POINT_TOLERANCE_2D)
+        return std::make_pair(interpolationPoints[startindex],tangents[startindex]) ;
+    double t_ = startindex-t*(interpolationPoints.size()-2) ;
     Point ipoint = (2.*t_*t_*t_-3.*t_*t_+1.)*interpolationPoints[startindex]+(t_*t_*t_-2.*t_*t_+t_)*tangents[startindex] +
                    (-2.*t_*t_*t_+3.*t_*t_)*interpolationPoints[startindex+1]+(t_*t_*t_-t_*t_)*tangents[startindex+1]  ;
     Point itan = (6.*t_*t_-6.*t_+1.)*interpolationPoints[startindex]+(3.*t_*t_-4.*t_+1.)*tangents[startindex] +
@@ -1843,8 +1845,15 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
 }
 std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t, const Point & offset) const
 {
-    int startindex = floor((interpolationPoints.size()-1)*t) ;
-    double t_ = (ceil((interpolationPoints.size()-1)*t)-(interpolationPoints.size()-1)*t)/(ceil((interpolationPoints.size()-1)*t)-floor((interpolationPoints.size()-1)*t)) ;
+    int startindex = floor(t*(interpolationPoints.size()-1)) ;
+    if(std::abs(startindex-interpolationPoints.size()+1) < POINT_TOLERANCE_2D)
+    {   Point ipoint = interpolationPoints[startindex] ;
+        Point itan = tangents[startindex] ;
+        Matrix rotMat = rotateToVector(itan) ;
+        Point rotatedOffset = rotMat*offset ;
+        return std::make_pair(ipoint+rotatedOffset,itan) ;
+    }
+    double t_ = startindex-t*(interpolationPoints.size()-2) ;
     Point ipoint = (2.*t_*t_*t_-3.*t_*t_+1.)*interpolationPoints[startindex]+(t_*t_*t_-2.*t_*t_+t_)*tangents[startindex] +
                    (-2.*t_*t_*t_+3.*t_*t_)*interpolationPoints[startindex+1]+(t_*t_*t_-t_*t_)*tangents[startindex+1]  ;
     Point itan = (6.*t_*t_-6.*t_+1.)*interpolationPoints[startindex]+(3.*t_*t_-4.*t_+1.)*tangents[startindex] +
@@ -2078,15 +2087,32 @@ bool PolygonPrism::in(const Point & v) const
 
 bool LoftedPolygonPrism::in(const Point & v) const
 {
+    std::pair<Point,Point> toCenter = projectToCenterLine(v) ;
+    
+    if(toCenter.first == interpolationPoints.front() )
+    {
+        Point tpoint(v) ;
+        tpoint -= interpolationPoints.front() ;
+        tpoint = inverse3x3Matrix(rotateToVector(tangents.front()))*tpoint;
+        if (std::abs(tpoint.getZ()) < POINT_TOLERANCE_2D)
+            return true ;
+        return false;
+    } 
+    if(toCenter.first == interpolationPoints.back())
+    {
+        Point tpoint(v) ;
+        tpoint -= interpolationPoints.back() ;
+        tpoint = inverse3x3Matrix(rotateToVector(tangents.back()))*tpoint;
+        if (std::abs(tpoint.getZ()) < POINT_TOLERANCE_2D)
+            return true ;
+        return false;
+    }
+    
     Point tpoint(v) ;
-    tpoint -= interpolationPoints.front() ;
-    tpoint = inverse3x3Matrix(rotateToVector(tangents.front()))*tpoint;
-
-    if(tpoint.getZ() < 0 || tpoint.getZ() > sweepNorm())
-        return false ;
+    tpoint -= toCenter.first ;
+    tpoint = inverse3x3Matrix(rotateToVector(toCenter.second))*tpoint;
     tpoint.getZ() = 0 ;
-
-    return base.in(tpoint) ;
+    return base.in(v) ;
 }
 
 double PolygonPrism::area() const
@@ -2099,6 +2125,28 @@ double LoftedPolygonPrism::area() const
     return base.getPerimeter()*sweepNorm() +2.*base.area();
 }
 
+
+double LoftedPolygonPrism::sweepNorm() const 
+{
+    double d = 0 ;
+    for(double i = 0 ; i < .99 ; i += 0.01)
+    {
+        d += dist(interpolatingPointAndTangent(i).first, interpolatingPointAndTangent(i+0.01).first) ;
+    }
+    return d ;
+}
+
+double LoftedPolygonPrism::sweepNorm( const Point & offset) const 
+{
+    double d = 0 ;
+    for(double i = 0 ; i < .99 ; i += 0.01)
+    {
+        d += dist(interpolatingPointAndTangent(i, offset).first, interpolatingPointAndTangent(i+0.01, offset).first) ;
+    }
+    return d ;
+}
+      
+      
 double PolygonPrism::volume() const {
     return base.area()*axis.norm() ;
 }
@@ -2109,6 +2157,155 @@ double LoftedPolygonPrism::volume() const {
 
 void LoftedPolygonPrism::project(Point * init) const
 {
+    std::pair<Point,Point> toCenter = projectToCenterLine(*init) ;
+    
+    if(toCenter.first == interpolationPoints.front() )
+    {
+        Point tpoint(*init) ;
+        tpoint -= interpolationPoints.front() ;
+        tpoint = inverse3x3Matrix(rotateToVector(tangents.front()))*tpoint;
+        double initialz = tpoint.getZ() ;
+        tpoint.getZ() = 0 ;
+        if(base.in(tpoint))
+        {
+            tpoint = rotateToVector(tangents.front())*tpoint;
+            tpoint += interpolationPoints.front() ; 
+            init->set(tpoint) ;
+            return ;
+        }
+        else
+        {
+            base.project(&tpoint);
+            tpoint = rotateToVector(tangents.front())*tpoint;
+            tpoint += interpolationPoints.front() ; 
+            init->set(tpoint) ;
+            return ;
+        }
+    } 
+    if(toCenter.first == interpolationPoints.back())
+    {
+        Point tpoint(*init) ;
+        tpoint -= interpolationPoints.back() ;
+        tpoint = inverse3x3Matrix(rotateToVector(tangents.back()))*tpoint;
+        double initialz = tpoint.getZ() ;
+        tpoint.getZ() = 0 ;
+        if(base.in(tpoint))
+        {
+            tpoint = rotateToVector(tangents.back())*tpoint;
+            tpoint += interpolationPoints.back() ; 
+            init->set(tpoint) ;
+            return ;
+        }
+        else
+        {
+            base.project(&tpoint);
+            tpoint = rotateToVector(tangents.back())*tpoint;
+            tpoint += interpolationPoints.back() ; 
+            init->set(tpoint) ;
+            return ;
+        }
+    }
+    
+    Point tpoint(*init) ;
+    tpoint -= toCenter.first ;
+    tpoint = inverse3x3Matrix(rotateToVector(toCenter.second))*tpoint;
+    tpoint.getZ() = 0 ;
+    base.project(&tpoint);
+    tpoint = rotateToVector(toCenter.second)*tpoint;
+    tpoint += toCenter.first ; 
+    init->set(tpoint) ;
+}
+
+std::pair<Point,Point> LoftedPolygonPrism::projectToCenterLine(const Point & p) const
+{
+    int closestIndex = 0 ;
+    double closestDistance = squareDist3D(p, interpolationPoints[0]) ;
+    for(size_t i = 1 ; i < interpolationPoints.size() ; i++)
+    {
+        double testDistance = squareDist3D(p, interpolationPoints[i]) ;
+        if(testDistance < closestDistance)
+        {
+            closestDistance = testDistance ;
+            closestIndex = i ;
+        }
+    }
+    
+    //step 1, quadratic minimisation to get a good initial guess
+    std::vector<double> coordinateCandidates ;
+    if(closestIndex == 0)
+    {
+        coordinateCandidates.push_back(0);
+        coordinateCandidates.push_back(.5/((double)interpolationPoints.size()-1.));
+        coordinateCandidates.push_back(1./((double)interpolationPoints.size()-1.));
+    }
+    else if (closestIndex == interpolationPoints.size()-1)
+    {
+        coordinateCandidates.push_back(1.);
+        coordinateCandidates.push_back(((double)interpolationPoints.size()-1.5)/((double)interpolationPoints.size()-1.));
+        coordinateCandidates.push_back(((double)interpolationPoints.size()-2.)/((double)interpolationPoints.size()-1.));
+    }
+    else
+    {
+        coordinateCandidates.push_back(((double)closestIndex-1.)/((double)interpolationPoints.size()-1.));
+        coordinateCandidates.push_back(((double)closestIndex)/((double)interpolationPoints.size()-1.));
+        coordinateCandidates.push_back(((double)closestIndex+1.)/((double)interpolationPoints.size()-1.));
+    }
+    double y12 = coordinateCandidates[1]*coordinateCandidates[1] - coordinateCandidates[2]*coordinateCandidates[2] ;
+    double y20 = coordinateCandidates[2]*coordinateCandidates[2] - coordinateCandidates[0]*coordinateCandidates[0] ;
+    double y01 = coordinateCandidates[0]*coordinateCandidates[0] - coordinateCandidates[1]*coordinateCandidates[1] ;
+    double d0 = squareDist3D(interpolatingPointAndTangent(coordinateCandidates[0]).first,p) ;
+    double d1 = squareDist3D(interpolatingPointAndTangent(coordinateCandidates[1]).first,p) ;
+    double d2 = squareDist3D(interpolatingPointAndTangent(coordinateCandidates[2]).first,p) ;
+    double s12 = coordinateCandidates[1] - coordinateCandidates[2] ;
+    double s20 = coordinateCandidates[2] - coordinateCandidates[0] ;
+    double s01 = coordinateCandidates[0] - coordinateCandidates[1] ;
+    double closestCoordinate = 0.5*(y12*d0+y20*d1+y01*d2)/(s12*d0+s20*d1+s01*d2) ;
+    double closestCoordinateDistance = squareDist3D(interpolatingPointAndTangent(closestCoordinate).first,p) ;
+    for(size_t i = 0 ; i < 4 ; i++)
+    {
+        
+
+        if(d0 >= d1 && d0 >= d2 && closestCoordinateDistance < d0)
+        {
+            y01 = closestCoordinate*closestCoordinate - coordinateCandidates[1]*coordinateCandidates[1] ;
+            y20 = coordinateCandidates[2]*coordinateCandidates[2] - closestCoordinate*closestCoordinate ;
+            d0 = closestCoordinateDistance ;
+            s20 = coordinateCandidates[2] - closestCoordinate ;
+            s01 = closestCoordinate - coordinateCandidates[1] ;
+        }
+        else if(d1 >= d0 && d1 >= d2 && closestCoordinateDistance < d1)
+        {
+            y12 = closestCoordinate*closestCoordinate - coordinateCandidates[2]*coordinateCandidates[2] ;
+            y01 = coordinateCandidates[0]*coordinateCandidates[0] - closestCoordinate*closestCoordinate ;
+            d1 = closestCoordinateDistance ;
+            s12 = closestCoordinate - coordinateCandidates[2] ;
+            s01 = coordinateCandidates[0] - closestCoordinate ;
+        }
+        else if(d2 >= d0 && d2 >= d1 && closestCoordinateDistance < d2)
+        {
+            y12 = coordinateCandidates[1]*coordinateCandidates[1] - closestCoordinate*closestCoordinate ;
+            y20 = closestCoordinate*closestCoordinate - coordinateCandidates[0]*coordinateCandidates[0] ;
+            d2 = closestCoordinateDistance ;
+            s12 = coordinateCandidates[1] - closestCoordinate ;
+            s20 = closestCoordinate - coordinateCandidates[0] ;
+        }
+        closestCoordinate = 0.5*(y12*d0+y20*d1+y01*d2)/(s12*d0+s20*d1+s01*d2) ;
+        closestCoordinateDistance = squareDist3D(interpolatingPointAndTangent(closestCoordinate).first,p) ;
+    }
+    
+    // step 2, Newton descent to get accurate result
+    while(closestCoordinateDistance > POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+    {
+        double distDerivative = (squareDist3D(interpolatingPointAndTangent(closestCoordinate+0.00005).first,p)- squareDist3D(interpolatingPointAndTangent(closestCoordinate-0.00005).first,p))/0.0001 ;
+        double distSecondDerivative = (squareDist3D(interpolatingPointAndTangent(closestCoordinate+0.0001).first,p) -2.*closestCoordinateDistance + squareDist3D(interpolatingPointAndTangent(closestCoordinate-0.0001).first,p))/(0.0001*0.0001) ;
+        closestCoordinate = closestCoordinate - distDerivative/distSecondDerivative ;
+        if(closestCoordinate> 1)
+            closestCoordinate = 1 ;
+        if(closestCoordinate < 0)
+            closestCoordinate = 0 ;
+        closestCoordinateDistance = squareDist3D(interpolatingPointAndTangent(closestCoordinate).first,p) ;
+    }
+    return interpolatingPointAndTangent(closestCoordinate) ;
 }
 
 void PolygonPrism::project(Point * init) const
@@ -2131,8 +2328,6 @@ void PolygonPrism::project(Point * init) const
                 tpoint = rotationMatrix*tpoint ;
                 tpoint += origin + axis;
                 findIt[squareDist3D(*init, tpoint)] = tpoint ;
-//                 init->set(tpoint) ;
-//                 return ;
             }
             else
             {
@@ -2140,8 +2335,6 @@ void PolygonPrism::project(Point * init) const
                 tpoint += origin ;
                 findIt[squareDist3D(*init, tpoint)] = tpoint ;
             }
-//             init->set(tpoint) ;
-//             return ;
         }
         else
         {
@@ -2151,8 +2344,6 @@ void PolygonPrism::project(Point * init) const
                 tpoint = rotationMatrix*tpoint ;
                 tpoint += origin + axis;
                 findIt[squareDist3D(*init, tpoint)] = tpoint ;
-//                 init->set(tpoint) ;
-//                 return ;
             }
             else
             {
@@ -2161,8 +2352,6 @@ void PolygonPrism::project(Point * init) const
                 tpoint += origin ;
                 findIt[squareDist3D(*init, tpoint)] = tpoint ;
             }
-//             init->set(tpoint) ;
-//             return ;
         }
     }
     else
@@ -2173,10 +2362,8 @@ void PolygonPrism::project(Point * init) const
         findIt[squareDist3D(*init, tpoint)] = tpoint ;
     }
 
-
     init->set(findIt.begin()->second) ;
 
-//     return ba*se.area()*axis.norm() ;
 }
 
 double PolygonPrism::getRadius() const

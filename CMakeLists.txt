@@ -49,6 +49,7 @@ features/sample3d.cpp
 features/sample.cpp
 features/polygonSample.cpp
 features/polygonSample3d.cpp
+features/loftedPolygonSample3d.cpp
 features/vibratingcircularmembrane.cpp 
 filters/voxelfilter.cpp 
 filters/voxelporefilter.cpp 

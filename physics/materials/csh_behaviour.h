@@ -12,20 +12,20 @@
 
 namespace Amie
 {
-    typedef enum
-    {
-       INNER_CSH,
-       OUTER_CSH
-    } CSHType ;
-    
-	struct CSHBehaviour : public Stiffness
-	{
-        // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
-		CSHBehaviour(CSHType type, double E=25e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
-		
-		virtual Form * getCopy() const ;
-		
-	} ;
+typedef enum
+{
+    INNER_CSH,
+    OUTER_CSH
+} CSHType ;
+
+struct CSHBehaviour : public Stiffness
+{
+    // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
+    CSHBehaviour(CSHType type, double E=25e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+
+    virtual Form * getCopy() const ;
+
+} ;
 
 } ;
 

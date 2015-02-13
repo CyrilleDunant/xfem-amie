@@ -274,25 +274,9 @@ protected:
     virtual void computeCenter() ;
     
     Polygon base ;
-    double sweepNorm() const 
-    {
-        double d = 0 ;
-        for(double i = 0 ; i < .99 ; i += 0.01)
-        {
-            d += dist(interpolatingPointAndTangent(i).first, interpolatingPointAndTangent(i+0.01).first) ;
-        }
-        return d ;
-    }
-    
-    double sweepNorm( const Point & offset) const 
-    {
-        double d = 0 ;
-        for(double i = 0 ; i < .99 ; i += 0.01)
-        {
-            d += dist(interpolatingPointAndTangent(i, offset).first, interpolatingPointAndTangent(i+0.01, offset).first) ;
-        }
-        return d ;
-    }
+    double sweepNorm() const ;
+
+    double sweepNorm( const Point & offset) const ;
     
     std::vector<Point> interpolationPoints ;
     std::vector<Point> tangents ;
@@ -300,6 +284,7 @@ protected:
     std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset) const ;
     
     Matrix rotateToVector(const Point & vector) const ;
+    std::pair<Point,Point> projectToCenterLine(const Point & p) const ;
         
 
 public:
