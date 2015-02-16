@@ -2156,7 +2156,7 @@ void PolygonPrism::sampleSurface(size_t num_points)
 
 void LoftedPolygonPrism::sampleSurface(size_t num_points)
 {
-    num_points *=1.5 ;
+//     num_points *=1.5 ;
     sampleBoundingSurface(num_points);
     base.sampleSurface(num_points) ;
 
@@ -2240,9 +2240,10 @@ double LoftedPolygonPrism::area() const
 double LoftedPolygonPrism::sweepNorm() const 
 {
     double d = 0 ;
-    for(double i = 0 ; i < 1. ; i += 0.005)
+    double delta = 0.005 ;
+    for(double i = 0 ; i < 1. ; i += delta)
     {
-        d += dist(interpolatingPointAndTangent(i).first, interpolatingPointAndTangent(i+0.01).first) ;
+        d += dist(interpolatingPointAndTangent(i).first, interpolatingPointAndTangent(i+delta).first) ;
     }
     return d ;
 }
@@ -2250,9 +2251,10 @@ double LoftedPolygonPrism::sweepNorm() const
 double LoftedPolygonPrism::sweepNorm( const Point & offset) const 
 {
     double d = 0 ;
-    for(double i = 0 ; i <= 1. ; i += 0.005)
+     double delta = 0.005 ;
+    for(double i = 0 ; i <= 1. ; i += delta)
     {
-        d += dist(interpolatingPointAndTangent(i, offset).first, interpolatingPointAndTangent(i+0.01, offset).first) ;
+        d += dist(interpolatingPointAndTangent(i, offset).first, interpolatingPointAndTangent(i+delta, offset).first) ;
     }
     return d ;
 }
