@@ -508,6 +508,24 @@ Point operator*(const Point & p_, const double p)
     return ret ;
 }
 
+Point operator*( const double p,const Point & p_)
+{
+    Point ret(p_) ;
+#ifdef HAVE_SSE3
+    __m128d temp = _mm_load1_pd(&p) ;
+
+    ret.vecxy = _mm_mul_pd(ret.vecxy, temp) ;
+    ret.veczt = _mm_mul_pd(ret.veczt, temp) ;
+#else
+    ret.getX() *= p ;
+    ret.getY() *= p ;
+    ret.getZ() *= p ;
+    ret.getT() *= p ;
+#endif
+    ret.setId( p_.id);
+    return ret ;
+}
+
 double operator*(const Point & p_, const Point &p)
 {
 #ifdef HAVE_SSE4
@@ -523,8 +541,6 @@ double operator*(const Point & p_, const Point &p)
     return p.getX()*p_.x+p.getY()*p_.y+p.getZ()*p_.z+p.getT()*p_.t ;
 
 }
-
-
 
 double operator*(const Point & p_, const Vector &p)
 {

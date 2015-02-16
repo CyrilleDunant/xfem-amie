@@ -592,6 +592,7 @@ Point operator+(const Point & p_,const Point &p)  ;
 Point operator+(const Point & p_,const Vector &p)  ;
 Point operator/(const Point & p_,const double p)  ;
 Point operator*(const Point & p_,const double p)  ;
+Point operator*(double v, const Point & p_)  ;
 
 Point operator-(const Point & p_) ;
 

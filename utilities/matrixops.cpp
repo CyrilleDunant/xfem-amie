@@ -229,6 +229,14 @@ Matrix operator*(const Matrix &m, double d)
     return ret ;
 }
 
+Matrix operator*( double d, const Matrix &m)
+{
+    Matrix ret(m) ;
+    ret*=d ;
+
+    return ret ;
+}
+
 Matrix operator/(const Matrix &m, double d)
 {
     Matrix ret(m) ;

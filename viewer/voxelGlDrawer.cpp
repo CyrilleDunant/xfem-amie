@@ -666,45 +666,17 @@ bool VoxelGLDrawer::isInRange(int i) const {
 
 void VoxelGLDrawer::initializePalette(){
 	
-// 	colors[][] =
-// 	{
-// 		{1.0f, 0.5f, 0.5f}, {1.0f, 0.75f, 0.5f}, {1.0f, 1.0f, 0.5f}, {0.75f, 1.0f, 0.5f},
-// 		{0.5f, 1.0f, 0.5f}, {0.5f, 1.0f, 0.75f}, {0.5f, 1.0f, 1.0f}, {0.5f, 0.75f, 1.0f},
-// 		{0.5f, 0.5f, 1.0f}, {0.75f, 0.5f, 1.0f}, {1.0f, 0.5f, 1.0f}, {1.0f, 0.5f, 0.75f}
-// 	};
-	
-// 	for(size_t i = 0 ; i < 256 ; i++)
-// 		palette.push_back(RGBA2i(i,i,i,255)) ;
-// 	
-// 	for(size_t i = 0 ; i < 127 ; i++)
-// 		palette[i] = (RGBA2i(i,i,255,255)) ;
-	
     int min_val = (*valuesAtPoint)[m_currentField].min() ;
     int max_val = (*valuesAtPoint)[m_currentField].min() ;
-	for(int i = 0 ; i < 256 ; i++)
-	{
-		size_t r; 
-		size_t g; 
-		size_t b; 
-		HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
-		palette.push_back(RGBA2i(r,g,b,255)) ;
-	}
-	
-// 	for(size_t i = 0 ; i < 127 ; i++)
-// 		palette[i] = (RGBA2i(i,i,255,255)) ;
-	
-//  	palette.push_back(RGBA2i(255,127,127,255)) ;
-//  	palette.push_back(RGBA2i(255,191,127,255)) ;
-//  	palette.push_back(RGBA2i(255,255,127,255)) ;
-//  	palette.push_back(RGBA2i(191,255,127,255)) ;
-//  	palette.push_back(RGBA2i(127,255,127,255)) ;
-//  	palette.push_back(RGBA2i(127,255,191,255)) ;
-//  	palette.push_back(RGBA2i(127,255,255,255)) ;
-//  	palette.push_back(RGBA2i(127,191,127,255)) ;
-//  	palette.push_back(RGBA2i(127,127,255,255)) ;
-//  	palette.push_back(RGBA2i(191,127,255,255)) ;
-//  	palette.push_back(RGBA2i(255,127,255,255)) ;
-//  	palette.push_back(RGBA2i(255,127,191,255)) ;
+    for(int i = 0 ; i < 256 ; i++)
+    {
+            size_t r; 
+            size_t g; 
+            size_t b; 
+            HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
+            palette.push_back(RGBA2i(r,g,b,255)) ;
+    }
+
 }
 
 void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offset, int mult)
