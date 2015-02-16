@@ -27,14 +27,8 @@
 #include "asciiVoxelDataReader.h"
 #include "binaryVoxelDataReader.h"
 
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "glutils.h"
 
-// #define glXGetProcAddress glXGetProcAddressARB
-#include <GL/glx.h>
-
-#include <GL/glxext.h>
-#include <GL/glext.h>
 
 #define i2RGBA( __val_32__ )  (unsigned char) ((size_t)__val_32__  & 0x000000FF ),(unsigned char) (((size_t)__val_32__ & 0x0000FF00)>>8 ),(unsigned char)( ((size_t)__val_32__ & 0x00FF0000)>>16 ), (unsigned char)(((size_t)__val_32__ & 0xFF000000)>>24)
 

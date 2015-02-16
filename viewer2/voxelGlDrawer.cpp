@@ -420,6 +420,7 @@ void VoxelGLDrawer::setYTranslation(int trans){
 	emit yTranslationChanged(ytransleft) ;
 }
 
+
 void VoxelGLDrawer::paintGL() {
 	
 // 	QTime startTime = QTime::currentTime();
@@ -430,7 +431,7 @@ void VoxelGLDrawer::paintGL() {
 	glMatrixMode(GL_MODELVIEW);                             // Select The Modelview Matrix
 	glLoadIdentity();
 	
-	gluLookAt(getXtrans(), getYtrans(), zpos, getXtrans(), getYtrans(), 0, 0, 1, 0) ;
+	glLookAt(getXtrans(), getYtrans(), zpos, getXtrans(), getYtrans(), 0, 0, 1, 0) ;
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glRotatef(getXAngle() , 0, -1, 0) ;
 	glRotatef(getYAngle() , -1, 0,0) ;
@@ -444,6 +445,8 @@ void VoxelGLDrawer::paintGL() {
 	glFlush();
 	swapBuffers() ;
 }
+
+
 
 void VoxelGLDrawer::resizeGL(int w, int h) {
 	
@@ -460,7 +463,7 @@ void VoxelGLDrawer::resizeGL(int w, int h) {
 	glPointSize(45.f/fact*(float)width()/(float)columns);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(fact,(float)width()/(float)height(),1.,30.0f);
+	glPerspective(fact,(float)width()/(float)height(),1.,30.0f);
 	// 	glOrtho(-1., 1., -1., 1., 0.1, 20.) ;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity(); 
@@ -481,7 +484,7 @@ void VoxelGLDrawer::setZoom(int percent) {
 	float fact = 45.*(100.f/(float)p) ;
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(fact,(float)width()/(float)height(),1.,30.0f);
+	glPerspective(fact,(float)width()/(float)height(),1.,30.0f);
 	// 	glOrtho(-1., 1., -1., 1., 0.1, 20.) ;
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity(); 
@@ -665,44 +668,18 @@ bool VoxelGLDrawer::isInRange(int i) const {
 }
 
 void VoxelGLDrawer::initializePalette(){
-	
-// 	colors[][] =
-// 	{
-// 		{1.0f, 0.5f, 0.5f}, {1.0f, 0.75f, 0.5f}, {1.0f, 1.0f, 0.5f}, {0.75f, 1.0f, 0.5f},
-// 		{0.5f, 1.0f, 0.5f}, {0.5f, 1.0f, 0.75f}, {0.5f, 1.0f, 1.0f}, {0.5f, 0.75f, 1.0f},
-// 		{0.5f, 0.5f, 1.0f}, {0.75f, 0.5f, 1.0f}, {1.0f, 0.5f, 1.0f}, {1.0f, 0.5f, 0.75f}
-// 	};
-	
-// 	for(size_t i = 0 ; i < 256 ; i++)
-// 		palette.push_back(RGBA2i(i,i,i,255)) ;
-// 	
-// 	for(size_t i = 0 ; i < 127 ; i++)
-// 		palette[i] = (RGBA2i(i,i,255,255)) ;
-	
-	for(int i = 0 ; i < 256 ; i++)
-	{
-		size_t r; 
-		size_t g; 
-		size_t b; 
-		HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
-		palette.push_back(RGBA2i(r,g,b,255)) ;
-	}
-	
-// 	for(size_t i = 0 ; i < 127 ; i++)
-// 		palette[i] = (RGBA2i(i,i,255,255)) ;
-	
-// 	palette.push_back(RGBA2i(255,127,127,255)) ;
-// 	palette.push_back(RGBA2i(255,191,127,255)) ;
-// 	palette.push_back(RGBA2i(255,255,127,255)) ;
-// 	palette.push_back(RGBA2i(191,255,127,255)) ;
-// 	palette.push_back(RGBA2i(127,255,127,255)) ;
-// 	palette.push_back(RGBA2i(127,255,191,255)) ;
-// 	palette.push_back(RGBA2i(127,255,255,255)) ;
-// 	palette.push_back(RGBA2i(127,191,127,255)) ;
-// 	palette.push_back(RGBA2i(127,127,255,255)) ;
-// 	palette.push_back(RGBA2i(191,127,255,255)) ;
-// 	palette.push_back(RGBA2i(255,127,255,255)) ;
-// 	palette.push_back(RGBA2i(255,127,191,255)) ;
+        
+    int min_val = (*valuesAtPoint)[m_currentField].min() ;
+    int max_val = (*valuesAtPoint)[m_currentField].min() ;
+        for(int i = 0 ; i < 256 ; i++)
+        {
+                size_t r; 
+                size_t g; 
+                size_t b; 
+                HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
+                palette.push_back(RGBA2i(r,g,b,255)) ;
+        }
+
 }
 
 void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offset, int mult)

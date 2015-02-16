@@ -19,6 +19,8 @@
 #include "triangleDataReader.h"
 #include "buffer.h"
 
+
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT

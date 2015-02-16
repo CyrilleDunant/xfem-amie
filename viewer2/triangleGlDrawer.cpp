@@ -16,6 +16,7 @@ void TriangleGLDrawer::computeDisplay( ) const
 	glCallList( wireFrameList ) ;
 }
 
+
 void TriangleGLDrawer::mouseReleaseEvent( QMouseEvent *event )
 {
 	moving = false ;
@@ -144,7 +145,7 @@ void TriangleGLDrawer::paintGL()
 	glMatrixMode( GL_MODELVIEW );                           // Select The Modelview Matrix
 
 	glLoadIdentity();
-	gluLookAt( getXtrans(), getYtrans(), zpos, getXtrans(), getYtrans(), 0, 0, 1, 0 ) ;
+	glLookAt( getXtrans(), getYtrans(), zpos, getXtrans(), getYtrans(), 0, 0, 1, 0 ) ;
 	computeDisplay() ;
 
 	glColor3f( 0., 0., 0. ) ;
@@ -238,7 +239,7 @@ void TriangleGLDrawer::setZoom( int percent )
 	float fact = 45.*( ( float )100 / ( float )p ) ;
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
-	gluPerspective( fact, 1., 1.f, 30.0f );
+	glPerspective( fact, 1., 1.f, 30.0f );
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
@@ -287,12 +288,6 @@ void TriangleGLDrawer::openFile( TriangleDataReader *f )
 void TriangleGLDrawer::initializeGL()
 {
 
-	//get the extended GL functions
-	//glBlendEquationSeparate = (void (*)(GLenum, GLfloat))glXGetProcAddressARB((const GLubyte*)"glBlendEquationSeparate") ;
-	//glPointParameterfARB = (void (*)(GLenum, GLfloat))glXGetProcAddressARB((const GLubyte*)"glPointParameterfARB") ;
-	//glPointParameterfvARB = (void (*)(GLenum, GLfloat *))glXGetProcAddressARB((const GLubyte*)"glPointParameterfvARB") ;
-	//glActiveTextureARB = (void (*)(GLuint))glXGetProcAddressARB((const GLubyte*)"glActiveTextureARB") ;
-	//glTexEnvf = (void (*)(GLenum, GLenum, GLboolean))glXGetProcAddressARB((const GLubyte*)"glTexEnvf") ;
 
 	displayList = glGenLists( numberOfExtraFields+1 ) ;
 	currentDisplayList = currentSet + 1 ;
