@@ -274,21 +274,23 @@ protected:
     virtual void computeCenter() ;
     
     Polygon base ;
-    double sweepNorm() const ;
-
-    double sweepNorm( const Point & offset) const ;
+    double sweepNorm(double end = 1.) const ;
+    double sweepNorm( const Point & offset, double end = 1.) const ;
     
+    Point vstart ;
+    Point vend ;
     std::vector<Point> interpolationPoints ;
     std::vector<Point> tangents ;
     std::pair<Point,Point> interpolatingPointAndTangent(double t) const ;
-    std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset) const ;
+    std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset, bool correctForNorm = true) const ;
     
     Matrix rotateToVector(const Point & vector) const ;
+    Matrix rotateFromVector(const Point & vector) const ;
     std::pair<Point,Point> projectToCenterLine(const Point & p) const ;
         
 
 public:
-    LoftedPolygonPrism(const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints, const std::vector<Point> & tangents) ;
+    LoftedPolygonPrism(const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints) ;
     
     virtual ~LoftedPolygonPrism() ;
 

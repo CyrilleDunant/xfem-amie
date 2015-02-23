@@ -60,8 +60,8 @@ void step(FeatureTree * featureTree)
     vw1.getField(featureTree, VWFT_STIFFNESS) ;
     vw1.write();
 
-    VoxelWriter vw("sphere_stress", 200) ;
-    vw.getField(featureTree, VWFT_STRESS) ;
+    VoxelWriter vw("sphere_stress", 100) ;
+    vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
     vw.write();
 // 	VoxelWriter vw0("sphere_strain", 50) ;
 // 	vw0.getField(featureTree, VWFT_STRAIN) ;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     double nu = 0.2 ;
     double E = 20 ;
-    Sample3D samplers(nullptr, 350,350,350,0,0,0) ;
+    Sample3D samplers(nullptr, 250,250,250,0,0,0) ;
 
     FeatureTree F(&samplers) ;
 
@@ -88,52 +88,46 @@ int main(int argc, char *argv[])
     E = 80 ;
     Matrix m2 = Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
 
-    samplers.setBehaviour(new Stiffness(m0)) ;
+    samplers.setBehaviour(new VoidForm()) ;
 
-    std::valarray<Point *> pts(5) ;
-    pts[0] = new Point(-20, 20, 0) ;
-    pts[1] = new Point(20, 20, 0) ;
-    pts[2] = new Point(5, 5, 0) ;
-    pts[3] = new Point(20, -20, 0) ;
-    pts[4] = new Point(-20, -20, 0) ;
+    std::valarray<Point *> pts(4) ;
+    pts[0] = new Point(0, -40, 0) ;
+    pts[1] = new Point(150, -30, 0) ;
+    pts[2] = new Point(150, 0, 0) ;
+    pts[3] = new Point(0, 0, 0) ;
     std::vector<Point> ipts ;
-    ipts.push_back(Point(-100,50,-100));
-    ipts.push_back(Point(100,50,100));
-    std::vector<Point> tpts ;
-    tpts.push_back(Point(300,0,-300));
-    tpts.push_back(Point(-300,0,300));
-    LoftedPolygonalSample3D inc(&samplers, pts,ipts, tpts) ;
+    ipts.push_back(Point(-100,0 ,  0));
+    ipts.push_back(Point(-40 ,15,  0));
+    ipts.push_back(Point( 0  ,20,  0));
+    ipts.push_back(Point( 40 ,15,  0));
+    ipts.push_back(Point( 100,0 ,  0));
+    LoftedPolygonalSample3D inc(&samplers, pts,ipts) ;
 //     inc.isVirtualFeature = true ;
     inc.setBehaviour(new Stiffness(m1)) ;
     
-    std::valarray<Point *> pts0(5) ;
-    pts0[1] = new Point(20, 20, 0) ;
-    pts0[2] = new Point(20, -20, 0) ;
-    pts0[3] = new Point(-20, -20, 0) ;
-    pts0[4] = new Point(-5, 0, 0) ;
-    pts0[0] = new Point(-20, 20, 0) ;
-     std::vector<Point> ipts0 ;
-    ipts0.push_back(Point(100,-50,-100));
-    ipts0.push_back(Point(-100,-50,100));
-    std::vector<Point> tpts0 ;
-    tpts0.push_back(Point(-300,0,-300));
-    tpts0.push_back(Point(300,0,300));
-    LoftedPolygonalSample3D inc0(&samplers, pts0, ipts0, tpts0) ;
-    inc0.setBehaviour(new Stiffness(m2)) ;
-//     inc0.isVirtualFeature = true ;
-
 
     F.addFeature(&samplers, &inc) ;
-    F.addFeature(&samplers, &inc0) ;
     F.setSamplingNumber(atof(argv[1])) ;
+    F.setSamplingFactor ( &inc, 1 ) ;
+    
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, FRONT, -1.)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
+//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
+    
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
+    
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
+    Vector loadv(3, 0.) ; loadv[1] = 1 ;
+//     F.addBoundaryCondition(new  GlobalForceBoundaryCondition(loadv)) ;
 //     F.setProjectionOnBoundaries(false) ;
     F.setOrder(LINEAR) ;
 

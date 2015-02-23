@@ -154,6 +154,20 @@ public:
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
+
+/** \brief Boundary condition applied on points in specified geometry*/
+class GeometryAndFaceDefinedSurfaceBoundaryCondition : public BoundaryCondition
+{
+protected:
+        Geometry * domain ;
+        Point faceNormal ;
+public:
+        GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d = 0, int a = 0) ;
+        GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a = 0) ;
+        virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+        virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
+
 /** \brief Boundary condition applied on points in specified geometry*/
 class GeometryDefinedSurfaceAndRestrictionsBoundaryCondition : public BoundaryCondition
 {

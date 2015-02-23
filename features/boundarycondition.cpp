@@ -4154,6 +4154,124 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
 }
 
+
+GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d , int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { };
+GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal.norm()) { };
+
+void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
+{
+    if ( cache2d.empty() )
+    {
+        std::vector<DelaunayTriangle *> elements = t->getConflictingElements ( domain ) ;
+        double tol = domain->getRadius() * .001 ;
+
+
+        for (const auto & i : elements )
+        {
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
+            {
+                continue ;
+            }
+
+            std::vector<Point> id  ;
+
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
+            {
+                Point test = i->getBoundingPoint ( j ) ;
+                if(domain->in(test+faceNormal*i->getRadius()))
+                    continue ;
+                domain->project ( &test );
+
+                if ( squareDist2D ( test, i->getBoundingPoint ( j ) ) < tol*tol )
+                {
+                    id.push_back ( i->getBoundingPoint ( j ) ) ;
+                }
+            }
+            if ( !id.empty() )
+            {
+                cache2d.push_back ( i );
+                cache.push_back ( id );
+            }
+
+        }
+    }
+
+    for ( size_t i = 0 ; i < cache2d.size() ; i++ )
+    {
+        GaussPointArray gp = cache2d[i]->getGaussPoints() ;
+        std::valarray<Matrix> Jinv ( Matrix(), cache2d[i]->getGaussPoints().gaussPoints.size() ) ;
+        for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+        {
+            cache2d[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+        }
+
+        if ( !function )
+        {
+            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
+        }
+        else
+        {
+            apply2DBC ( cache2d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
+        }
+    }
+}
+
+void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
+{
+
+    if ( cache3d.empty() )
+    {
+        std::vector<DelaunayTetrahedron *> elements = t->getConflictingElements ( domain ) ;
+        double tol = domain->getRadius() * .001 ;
+        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        {
+            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
+            {
+                continue ;
+            }
+
+            std::vector<Point> id  ;
+
+            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            {
+                Point test = elements[i]->getBoundingPoint ( j ) ;
+                if(domain->in(test+faceNormal*elements[i]->getRadius()))
+                    continue ;
+                domain->project ( &test );
+
+                if ( squareDist2D ( test, elements[i]->getBoundingPoint ( j ) ) < tol*tol )
+                {
+                    id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                }
+            }
+            if ( !id.empty() )
+            {
+                cache3d.push_back ( elements[i] );
+                cache.push_back ( id );
+            }
+        }
+    }
+
+    for ( size_t i = 0 ; i < cache3d.size() ; i++ )
+    {
+        GaussPointArray gp = cache3d[i]->getGaussPoints() ;
+        std::valarray<Matrix> Jinv ( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;
+        for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+        {
+            cache3d[i]->getInverseJacobianMatrix ( gp.gaussPoints[j].first, Jinv[j] ) ;
+        }
+
+        if ( !function )
+        {
+            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, data*getScale(), a ) ;
+        }
+        else
+        {
+            apply3DBC ( cache3d[i],gp,Jinv, cache[i], condition, dataFunction*getScale(), a ) ;
+        }
+    }
+}
+
 GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
 
 GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
@@ -4267,6 +4385,7 @@ void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<Delauna
         }
     }
 }
+
 
 
 GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };

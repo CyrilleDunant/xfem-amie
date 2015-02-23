@@ -21,7 +21,7 @@ class LoftedPolygonalSample3D :  public LoftedPolygonPrism,  public Feature
 {
 public:
 
-    LoftedPolygonalSample3D(Amie::Feature* father, const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints, const std::vector<Point> & tangents) ;
+    LoftedPolygonalSample3D(Amie::Feature* father, const std::valarray< Amie::Point* >& points, const std::vector< Amie::Point >& interpolationPoints) ;
 
     virtual bool interacts(Feature * f, double d) const ;
 

@@ -15,7 +15,7 @@
 
 using namespace Amie ;
 
-LoftedPolygonalSample3D::LoftedPolygonalSample3D(Feature *father, const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints, const std::vector<Point> & tangents) : LoftedPolygonPrism(points,  interpolationPoints,  tangents), Feature(father)
+LoftedPolygonalSample3D::LoftedPolygonalSample3D(Feature *father, const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints) : LoftedPolygonPrism(points,  interpolationPoints), Feature(father)
 {
 	this->isEnrichmentFeature = false ;
 	this->behaviour = nullptr ;

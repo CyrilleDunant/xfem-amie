@@ -296,6 +296,7 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
         found = true ;
         break ;
     }
+    
 
     case VWFT_STRAIN_AND_STRESS:
     {
@@ -326,6 +327,24 @@ std::pair<bool,std::vector<double> > VoxelWriter::getDoubleValue(DelaunayTetrahe
         tet->getState().getField( REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
         for(int i = 0 ; i < 6 ; i++)
             ret[i] = tmp[5-i] ;
+        found = true ;
+        break ;
+    }
+        case VWFT_PRINCIPAL_STRESS:
+    {
+        Vector tmp(0.,3) ;
+        tet->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
+        for(int i = 0 ; i < 3 ; i++)
+            ret[i] = tmp[2-i] ;
+        found = true ;
+        break ;
+    }
+        case VWFT_PRINCIPAL_STRAIN:
+    {
+        Vector tmp(0.,3) ;
+        tet->getState().getField( PRINCIPAL_STRAIN_FIELD, tet->inLocalCoordinates(p), tmp, true) ;
+        for(int i = 0 ; i < 3 ; i++)
+            ret[i] = tmp[2-i] ;
         found = true ;
         break ;
     }
@@ -542,6 +561,10 @@ int numberOfFields(VWFieldType field)
         return 12 ;
     case VWFT_STRESS:
         return 6 ;
+    case VWFT_PRINCIPAL_STRESS:
+        return 3 ;
+    case VWFT_PRINCIPAL_STRAIN:
+        return 3 ;
     case VWFT_CONCENTRATION:
         return 1 ;
     case VWFT_GRADIENT:
