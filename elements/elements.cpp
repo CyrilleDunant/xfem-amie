@@ -11,7 +11,8 @@
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../utilities/tensor.h"
 
-using namespace Amie ;
+namespace Amie
+{
 
 
 ElementarySurface::~ElementarySurface()
@@ -5598,5 +5599,7 @@ void burn(std::vector<Amie::HexahedralElement *> & vec)
 		vec[i]->visited = false ;
 	for(size_t i = 0 ; i < connected.size() ; i++)
 		connected[i]->visited = true ;
+
+}
 
 }

@@ -54,9 +54,9 @@ void step(FeatureTree * featureTree)
     for(size_t i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
-        featureTree->printReport();
+//         featureTree->printReport();
     }
-    VoxelWriter vw1("sphere_stiffness", 200) ;
+    VoxelWriter vw1("sphere_stiffness", 150) ;
     vw1.getField(featureTree, VWFT_STIFFNESS) ;
     vw1.write();
 
@@ -91,15 +91,19 @@ int main(int argc, char *argv[])
     samplers.setBehaviour(new VoidForm()) ;
 
     std::valarray<Point *> pts(4) ;
-    pts[0] = new Point(0, -40, 0) ;
-    pts[1] = new Point(150, -30, 0) ;
-    pts[2] = new Point(150, 0, 0) ;
-    pts[3] = new Point(0, 0, 0) ;
+    pts[0] = new Point(0, -20, 0) ;
+    pts[1] = new Point(150, -20, 0) ;
+    pts[2] = new Point(150, 20, 0) ;
+    pts[3] = new Point(0, 20, 0) ;
     std::vector<Point> ipts ;
     ipts.push_back(Point(-100,0 ,  0));
+    ipts.push_back(Point(-70 ,8,  0));
     ipts.push_back(Point(-40 ,15,  0));
+    ipts.push_back(Point(-20 ,18,  0));
     ipts.push_back(Point( 0  ,20,  0));
+    ipts.push_back(Point( 20 ,18,  0));
     ipts.push_back(Point( 40 ,15,  0));
+    ipts.push_back(Point( 70 ,8,  0));
     ipts.push_back(Point( 100,0 ,  0));
     LoftedPolygonalSample3D inc(&samplers, pts,ipts) ;
 //     inc.isVirtualFeature = true ;

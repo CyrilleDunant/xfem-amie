@@ -287,7 +287,6 @@ if(COMPILER_HAS_LOOP_INTERCHANGE)
 	add_definitions(-floop-strip-mine -floop-block -floop-interchange)
 endif(COMPILER_HAS_LOOP_INTERCHANGE)
 
-# openMP is terrible with g++ (as of 4.4). Unfortunately, icc pretends it is g++
 if(DISABLE_OPENMP EQUAL 1)
 	set (OPENMP_FOUND 0) 
 	message (STATUS "  Disabling OpenMP")
@@ -309,10 +308,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(DEBUG_BUILD EQUAL 1)
-	add_definitions(-g3 -O0 -std=c++0x -DNDEBUG -funroll-loops)
+    set(CMAKE_BUILD_TYPE Debug)
+	add_definitions(-g3 -O0 -DNDEBUG -funroll-loops)
 	message (STATUS "  Debug Build")
 else()
-	add_definitions(-g3 -O3 ${BIT32_FLAGS} -std=c++0x -DNDEBUG -funroll-loops )
+    set(CMAKE_BUILD_TYPE Release)
+	add_definitions(-g3 -O3 ${BIT32_FLAGS} -DNDEBUG -funroll-loops )
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 

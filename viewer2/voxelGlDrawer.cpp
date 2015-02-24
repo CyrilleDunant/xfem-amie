@@ -68,14 +68,14 @@ void VoxelGLDrawer::computeDisplay( ) {
 // 	glVertex3f(-0.5f,size_y*0.5f, -size_z*0.5f) ;
 // 	glEnd() ;
 // 	glDisable(GL_DEPTH_TEST);
-// 	for(size_t i = 0 ; i < 64 ; i++)
+// 	for(int i = 0 ; i < 64 ; i++)
 // 		glCallList(displayList+i) ;
 
 }
 
 void VoxelGLDrawer::grab()
 {
-	for (size_t i = 0 ; i < 360 ; i++)
+	for (int i = 0 ; i < 360 ; i++)
 	{
 		xangle++ ;
 		xangle%=360 ;
@@ -96,7 +96,7 @@ void VoxelGLDrawer::grab()
 	}
 }
 
-bool VoxelGLDrawer::isVisible(const size_t i, const size_t j, const size_t k) const {
+bool VoxelGLDrawer::isVisible(const int i, const int j, const int k) const {
 	
 	return true ;
 	
@@ -114,9 +114,9 @@ bool VoxelGLDrawer::isVisible(const size_t i, const size_t j, const size_t k) co
 	GLfloat pos[] = { 0, 0, 0, 1.0f };
 	
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)mat);
-	for(size_t l = 0 ; l< 4 ; l++)
+	for(int l = 0 ; l< 4 ; l++)
 	{
-		for(size_t m = 0 ; m< 4 ; m++)
+		for(int m = 0 ; m< 4 ; m++)
 		{
 			pos[l] += position[m] * mat[l][m] ;
 		}
@@ -197,11 +197,11 @@ void VoxelGLDrawer::keyPressEvent ( QKeyEvent * event ) {
 	if(event->key() == Qt::Key_Plus)
 	{
 		int alpha = 2;
-		for(size_t i = 0 ; i < sz ; i++)
+		for(int i = 0 ; i < sz ; i++)
 		{
 			if(restriction[i])
 			{
-				size_t __alpha__[4] = {i2RGBA(colour[i])} ;
+				int __alpha__[4] = {i2RGBA(colour[i])} ;
 				alpha = __alpha__[3] ;
 				break ;
 			}
@@ -212,11 +212,11 @@ void VoxelGLDrawer::keyPressEvent ( QKeyEvent * event ) {
 	else if (event->key() == Qt::Key_Minus)
 	{
 		int alpha = 2;
-		for(size_t i = 0 ; i < sz ; i++)
+		for(int i = 0 ; i < sz ; i++)
 		{
 			if(restriction[i])
 			{
-				size_t __alpha__[4] = {i2RGBA(colour[i])} ;
+				int __alpha__[4] = {i2RGBA(colour[i])} ;
 				alpha = __alpha__[3] ;
 				break ;
 			}
@@ -282,8 +282,8 @@ void VoxelGLDrawer::keyPressEvent ( QKeyEvent * event ) {
 
 void VoxelGLDrawer::updateRestrictions() {
 	restriction = true ;
-	size_t del = 0 ;
-	size_t c = 0;
+	int del = 0 ;
+	int c = 0;
 	QEventLoop eloop ;
 	if(pbar)
 	{
@@ -292,13 +292,13 @@ void VoxelGLDrawer::updateRestrictions() {
 	}
 	
 	
-	for(size_t i = 0 ; i < rows ; i++)
+	for(int i = 0 ; i < rows ; i++)
 	{
-		for(size_t j = 0 ; j < columns ; j++)
+		for(int j = 0 ; j < columns ; j++)
 		{
-			for(size_t k = 0 ; k < strips ; k++)
+			for(int k = 0 ; k < strips ; k++)
 			{
-				size_t index = toIndex(i,j,k) ;
+				int index = toIndex(i,j,k) ;
 				c++ ;
 				
 				if(c % (sz/100) == 0)
@@ -333,7 +333,7 @@ void VoxelGLDrawer::updateRestrictions() {
 	std::cout << " Added " << del << " restrictions." << std::endl ;
 }
 
-bool VoxelGLDrawer::isBoundary(const size_t& x, const size_t& y, const size_t& z) const {
+bool VoxelGLDrawer::isBoundary(const int& x, const int& y, const int& z) const {
 	
 	
 	if( x == 0     || 
@@ -350,7 +350,7 @@ bool VoxelGLDrawer::isBoundary(const size_t& x, const size_t& y, const size_t& z
 			
 // 	qint8 v = (*valuesAtPoint)[m_currentField][toIndex(x,y,z)] ;
 
-	size_t index = toIndex(x,y,z) ;
+	int index = toIndex(x,y,z) ;
 	if(!isInRange(index))
 		return false ;
 	
@@ -422,7 +422,8 @@ void VoxelGLDrawer::setYTranslation(int trans){
 
 
 void VoxelGLDrawer::paintGL() {
-	
+    
+//     makeCurrent();
 // 	QTime startTime = QTime::currentTime();
 	GLfloat light_position[] = { 0.0, 0.0, zpos, 0 };
 	
@@ -474,7 +475,7 @@ void VoxelGLDrawer::resizeGL(int w, int h) {
 }
 
 void VoxelGLDrawer::setZoom(int percent) {
-	size_t p = percent;
+	int p = percent;
 	if(percent < 10)
 		p = 10 ;
 	else if(percent > 1000)
@@ -517,7 +518,7 @@ void VoxelGLDrawer::openFile(const QString f) {
 	colour.resize(sz) ;
 	
 // 	rpos.resize(sz*3) ;
-// 	for(size_t i = 0 ; i < rpos.size() ; i++)
+// 	for(int i = 0 ; i < rpos.size() ; i++)
 // 	{
 // 		rpos[i] = (0.25/(float)columns)*(float)random()/(float)(RAND_MAX + 1) ;
 // 	}
@@ -673,16 +674,16 @@ void VoxelGLDrawer::initializePalette(){
     int max_val = (*valuesAtPoint)[m_currentField].min() ;
     for(int i = 0 ; i < 256 ; i++)
     {
-            size_t r; 
-            size_t g; 
-            size_t b; 
+            int r; 
+            int g; 
+            int b; 
             HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
             palette.push_back(RGBA2i(r,g,b,255)) ;
     }
 
 }
 
-void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offset, int mult)
+void VoxelGLDrawer::displayPoints(const std::valarray<int> & index, int offset, int mult)
 {
 // // 	delete (vertex0+offset) ;
 // // 	delete (color0+offset) ;
@@ -693,9 +694,9 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 	
 	std::valarray<qint8>  tmpnorm(3*index.size()) ;
 	
-	for(size_t i = 0; i < index.size() ; i++)
+	for(int i = 0; i < index.size() ; i++)
 	{
-		size_t c[4] ={ i2RGBA(palette[colour[index[i]]]) };
+		int c[4] ={ i2RGBA(palette[colour[index[i]]]) };
 		tmpcol[i*4  ] = c[0];
 		tmpcol[i*4+1] = c[1];
 		tmpcol[i*4+2] = c[2];
@@ -708,7 +709,7 @@ void VoxelGLDrawer::displayPoints(const std::valarray<size_t> & index, int offse
 		float randx = ((float)rand()/RAND_MAX*2.-1.)*0.2/rows ;
 		float randy = ((float)rand()/RAND_MAX*2.-1.)*0.2/columns ;
 		float randz = ((float)rand()/RAND_MAX*2.-1.)*0.2/strips ;
-		std::valarray<size_t> xyz = toArrayPos(index[i]) ;
+		std::valarray<int> xyz = toArrayPos(index[i]) ;
 		tmpvert[i*3  ] = size_x*(float)(xyz[0]+1)/(float)rows-0.5f+randx;
 		tmpvert[i*3+1] = size_y*(float)(xyz[1]+1)/(float)columns-size_y*0.5f+randy;
 		tmpvert[i*3+2] = size_z*(float)(xyz[2]+1)/(float)strips-size_z*0.5f+randz;
@@ -747,7 +748,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	glDeleteLists (displayList , 10 );
 	displayList = glGenLists(10) ;
 
-	std::vector< size_t > zordered ;
+	std::vector< int > zordered ;
 
 	for(int k = 0; k < rows ; k++)
 	{
@@ -764,8 +765,8 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	int l = 0 ;
-	std::valarray<size_t> index((size_t)0, zordered.size()) ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	std::valarray<int> index((int)0, zordered.size()) ;
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	
 	displayPoints(index, 0, 1) ;
@@ -789,7 +790,7 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	
 	displayPoints(index, 1, 1) ;
@@ -811,7 +812,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	}
 	
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	displayPoints(index, 2, 1) ;
 	
@@ -832,7 +833,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	}
 	
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	displayPoints(index, 3, 1) ;
 	
@@ -854,7 +855,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	}
 	
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	std::reverse(&index[0], &index[index.size()]);
 	displayPoints(index, 4, 1) ;
@@ -876,7 +877,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	}
 	
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	std::reverse(&index[0], &index[index.size()]);
 	displayPoints(index, 5, 1) ;
@@ -897,7 +898,7 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	displayPoints(index, 6, 1) ;
 	
@@ -917,7 +918,7 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	displayPoints(index, 7, 1) ;
 	
@@ -937,7 +938,7 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	std::reverse(&index[0], &index[index.size()]);
 	displayPoints(index, 8, 1) ;
@@ -958,7 +959,7 @@ void VoxelGLDrawer::computeDisplayList() {
 		}
 	}
 	l = 0 ;
-	for(std::vector< size_t >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
+	for(std::vector< int >::const_iterator k = zordered.begin() ; k != zordered.end() ; ++k)
 		index[l++] = *k ;
 	std::reverse(&index[0], &index[index.size()]);
 	displayPoints(index, 9, 1) ;
@@ -966,7 +967,7 @@ void VoxelGLDrawer::computeDisplayList() {
 	
 }
 
-quint8 VoxelGLDrawer::valueAverage(int delta, const size_t &x, const size_t &y, const size_t &z) const {
+quint8 VoxelGLDrawer::valueAverage(int delta, const int &x, const int &y, const int &z) const {
 
 // 	int v = 1 ; //(*valuesAtPoint)[m_currentField][index] ;
 	
@@ -977,7 +978,7 @@ quint8 VoxelGLDrawer::valueAverage(int delta, const size_t &x, const size_t &y, 
 	
 	
 	double value = 0 ;
-	size_t num = 0 ;
+	int num = 0 ;
 
 	for(int i = std::max((int)x-delta,0) ; i < (int)x+delta+1 && i <(int)rows  ; i++)
 	{
@@ -1001,11 +1002,11 @@ quint8 VoxelGLDrawer::valueAverage(int delta, const size_t &x, const size_t &y, 
 	return (quint8)round(value/num) ;
 }
 
-std::valarray<qint8> VoxelGLDrawer::normalFromSurroundings(const size_t &x, const size_t &y, const size_t &z) const {
+std::valarray<qint8> VoxelGLDrawer::normalFromSurroundings(const int &x, const int &y, const int &z) const {
 	
 	std::valarray<qint8> n((qint8)0, 3) ;
 
-	size_t index = toIndex(x,y,z) ;
+	int index = toIndex(x,y,z) ;
 // 	int v = 1 ; //(*valuesAtPoint)[m_currentField][index] ;
 		
 	if (isInRange(index))
@@ -1089,13 +1090,13 @@ std::valarray<qint8> VoxelGLDrawer::normalFromSurroundings(const size_t &x, cons
 	return n ;
 }
 
-bool VoxelGLDrawer::singlePixel(const size_t& x,  const size_t& y, const size_t& z) const {
-	size_t index = toIndex(x, y, z) ;
+bool VoxelGLDrawer::singlePixel(const int& x,  const int& y, const int& z) const {
+	int index = toIndex(x, y, z) ;
 	
 	if(!isInRange(index))
 		return false ;
 	
-	size_t count = 0 ;
+	int count = 0 ;
 	
 
 	for(int i = std::max((int)(x)-3, 0) ; i < (int)std::min(x+4, rows) ; i++)
@@ -1123,17 +1124,17 @@ bool VoxelGLDrawer::singlePixel(const size_t& x,  const size_t& y, const size_t&
 
 }
 
-void VoxelGLDrawer::computeDisplayList(size_t x_0, size_t x_1, size_t y_0, size_t y_1, size_t z_0, size_t z_1) {
+void VoxelGLDrawer::computeDisplayList(int x_0, int x_1, int y_0, int y_1, int z_0, int z_1) {
 	
 	glEnable(GL_TEXTURE_2D) ;
 	glNewList(displayList, GL_COMPILE) ;
 	glBegin(GL_POINTS) ;
 	
-	for(size_t i =x_0 ; i < std::min(x_1, rows) ; i++)
+	for(int i =x_0 ; i < std::min(x_1, rows) ; i++)
 	{
-		for(size_t j =y_0 ; j < std::min(y_1,columns) ; j++)
+		for(int j =y_0 ; j < std::min(y_1,columns) ; j++)
 		{
-			for(size_t k =z_0 ; k < std::min(z_1, strips) ; k++)
+			for(int k =z_0 ; k < std::min(z_1, strips) ; k++)
 			{
 				if(restriction[toIndex(i, j, k)] && isInRange(toIndex(i, j, k)))
 				{
@@ -1201,11 +1202,11 @@ void VoxelGLDrawer::LoadGLTextures(GLuint  * texture) {
 // 	glTexImage2D(GL_TEXTURE_2D, 0, 2, 1, 1, 0, GL_LUMINANCE_ALPHA, GL_FLOAT, tex2) ;
 }
 
-void VoxelGLDrawer::setRestriction(size_t i) {
+void VoxelGLDrawer::setRestriction(int i) {
 	restriction[i] = false ;
 }
 
-VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trsFunc tc , QMainWindow *parent ) : QGLWidget(parent), sz(r*c*s), restriction(true, r*c*s) {
+VoxelGLDrawer::VoxelGLDrawer(const int r, const int c, const int s, trsFunc tc , QMainWindow *parent ) : QGLWidget(parent), sz(r*c*s), restriction(true, r*c*s) {
 	
 	valuesAtPoint = nullptr ;
 	
@@ -1247,7 +1248,7 @@ VoxelGLDrawer::VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trs
 		pbar = nullptr ;
 	
 // 	rpos.resize(sz*3) ;
-// 	for(size_t i = 0 ; i < rpos.size() ; i++)
+// 	for(int i = 0 ; i < rpos.size() ; i++)
 // 	{
 // 		rpos[i] = (0.25/(float)columns)*(float)random()/(float)(RAND_MAX + 1) ;
 // 	}
@@ -1311,7 +1312,7 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 
 	openFile(f) ;
 	
-	for(size_t i = 0 ; i < valuesAtPoint->size() ;i++)
+	for(int i = 0 ; i < valuesAtPoint->size() ;i++)
 	{
 		delta.push_back((*valuesAtPoint)[i].max() - (*valuesAtPoint)[i].min()) ;
 		min.push_back((*valuesAtPoint)[i].min()) ;
@@ -1456,11 +1457,11 @@ void VoxelGLDrawer::recalculate() {
 		
 // 	std::vector<std::valarray<quint8> > vals(*valuesAtPoint) ;
 // 		
-// 	for(size_t i = 0 ; i < rows ; i++)
+// 	for(int i = 0 ; i < rows ; i++)
 // 	{
-// 		for(size_t j = 0 ; j< columns ; j++)
+// 		for(int j = 0 ; j< columns ; j++)
 // 		{
-// 			for(size_t k = 0 ; k< strips ; k++)
+// 			for(int k = 0 ; k< strips ; k++)
 // 			{
 // 				vals[0][toIndex(i,j,k)] = valueAverage(1,i,j,k) ;
 // 			}
@@ -1470,13 +1471,13 @@ void VoxelGLDrawer::recalculate() {
 	toColour(valuesAtPoint, &colour, &restriction, rows, columns, strips) ;
 }
 
-size_t VoxelGLDrawer::toIndex(const size_t i, const size_t j , const size_t k) const {
+int VoxelGLDrawer::toIndex(const int i, const int j , const int k) const {
 	return i + j*columns + k*rows*columns ;
 }
 
-std::valarray<size_t> VoxelGLDrawer::toArrayPos( const size_t where) const {
-	std::valarray<size_t> ret(3) ;
-	size_t planeSize = rows*columns ;
+std::valarray<int> VoxelGLDrawer::toArrayPos( const int where) const {
+	std::valarray<int> ret(3) ;
+	int planeSize = rows*columns ;
 	
 	ret[2] = where/planeSize ;
 	ret[1] = (where%planeSize)/columns ;
@@ -1505,11 +1506,11 @@ float VoxelGLDrawer::getZAngle() const {
 	return (float)zangle ;
 }
 
-void inSphereColour(const std::vector< std::valarray<qint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res , const size_t r, const size_t co, const size_t s) {
-	for(size_t i = 0 ; i< c->size() ; i++)
+void inSphereColour(const std::vector< std::valarray<qint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res , const int r, const int co, const int s) {
+	for(int i = 0 ; i< c->size() ; i++)
 	{
 		std::valarray<float> pos(3) ;
-		size_t planeSize = s*co ;
+		int planeSize = s*co ;
 		
 		pos[2] = (float)(i/planeSize)/(float)s -0.5f;
 		pos[1] = (float)((i%planeSize)/co)/(float)co -0.5f;
@@ -1533,14 +1534,14 @@ void inSphereColour(const std::vector< std::valarray<qint8> > *d, std::valarray<
 	*res = true ;
 } 
 
-std::valarray<bool> inSphere(const std::vector< std::valarray<qint8> > *d, const size_t r, const size_t c , const size_t s) {
+std::valarray<bool> inSphere(const std::vector< std::valarray<qint8> > *d, const int r, const int c , const int s) {
 	std::valarray<bool> ret(true, r*c*s) ;
 	
 	
-	for(size_t i = 0 ; i< r*c*s ; i++)
+	for(int i = 0 ; i< r*c*s ; i++)
 	{
 		std::valarray<float> pos(3) ;
-		size_t planeSize = s*c ;
+		int planeSize = s*c ;
 		
 		pos[2] = (float)(i/planeSize)/(float)s -0.5f;
 		pos[1] = (float)((i%planeSize)/c)/(float)c -0.5f;
@@ -1567,14 +1568,14 @@ std::valarray<bool> inSphere(const std::vector< std::valarray<qint8> > *d, const
 	
 }
 
-std::valarray<bool> outOfSphere(const std::vector< std::valarray<quint8> > *d, const size_t r, const size_t c, const size_t s) {
+std::valarray<bool> outOfSphere(const std::vector< std::valarray<quint8> > *d, const int r, const int c, const int s) {
 	std::valarray<bool> ret(true, r*c*s) ;
 	
-	for(size_t i = 0 ; i < r*c*s ; i++)
+	for(int i = 0 ; i < r*c*s ; i++)
 	{
 		
 		std::valarray<float> pos(3) ;
-		size_t planeSize = s*c ;
+		int planeSize = s*c ;
 		
 		pos[2] = (float)(i/planeSize)/(float)s -0.5f;
 		pos[1] = (float)((i%planeSize)/c)/(float)c -0.5f;
@@ -1600,13 +1601,13 @@ std::valarray<bool> outOfSphere(const std::vector< std::valarray<quint8> > *d, c
 	
 }
 
-void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res, const size_t r, const size_t co, const size_t s){
+void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res, const int r, const int co, const int s){
 	
 	quint8 min = (*d)[0].min() ;
 	quint8 max = (*d)[0].max() ;
 	
 	
-	for(size_t i = 0 ; i< c->size() ; i++)
+	for(int i = 0 ; i< c->size() ; i++)
 	{
 		(*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; (*d)[0][i] ; (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
 // 		if(abs((double)(*c)[i]- 0  ) <=1 || 
@@ -1628,10 +1629,10 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 // 			(*res)[i] = false ;
 		
 	}
-// 	for(size_t i = 0 ; i< c->size() ; i++)
+// 	for(int i = 0 ; i< c->size() ; i++)
 // 	{
 // // 		std::valarray<float> pos(3) ;
-// // 		size_t planeSize = s*co ;
+// // 		int planeSize = s*co ;
 // // 		
 // // 		pos[2] = (float)(i/planeSize)/(float)s -0.5f;
 // // 		pos[1] = (float)((i%planeSize)/co)/(float)co -0.5f;

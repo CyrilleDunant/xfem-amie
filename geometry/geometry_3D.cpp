@@ -1934,7 +1934,7 @@ Point catmullRomTangent(double t_, const std::vector<Point> & controlPoints)
         double t2 = t1+dist(controlPoints[1], controlPoints[2]) ;
         double t3 = t2+dist(controlPoints[2], controlPoints[3]) ;
         t_ *= t2-t1 ;
-        t_ += t1 ;
+        t_ += t1-.01 ;
         
 //         std::cout << t0 << "  " << t1 << "  " << t2 << "  " << t3 << std::endl ;
         
@@ -1949,7 +1949,22 @@ Point catmullRomTangent(double t_, const std::vector<Point> & controlPoints)
         Point B2 = A2*(t3 - t_)/(t3-t1) +  A3*(t_-t1)/(t3-t1) ;
         Point B2_ = A2_*(t3 - t_)/(t3-t1) - A2/(t3-t1) +  A3_*(t_-t1)/(t3-t1) +  A3/(t3-t1);
         
-        return  B1_*(t2-t_)/(t2-t1) - B1/(t2-t1) + B2_*(t_-t1)/(t2-t1) + B2/(t2-t1)  ;
+        Point tan0 = B1_*(t2-t_)/(t2-t1) - B1/(t2-t1) + B2_*(t_-t1)/(t2-t1) + B2/(t2-t1)  ;
+        
+        t_ += .02 ;
+        A1 = controlPoints[0]*(t1 - t_)/(t1-t0) + controlPoints[1]*(t_-t0)/(t1-t0);
+        A1_ = -controlPoints[0]/(t1-t0) + controlPoints[1]/(t1-t0);
+        A2 = controlPoints[1]*(t2 - t_)/(t2-t1) + controlPoints[2]*(t_-t1)/(t2-t1);
+        A2_ = -controlPoints[1]/(t2-t1) + controlPoints[2]/(t2-t1);
+        A3 = controlPoints[2]*(t3 - t_)/(t3-t2) + controlPoints[3]*(t_-t2)/(t3-t2);
+        A3_ = -controlPoints[2]/(t3-t2) + controlPoints[3]/(t3-t2);
+        B1 = A1*(t2 - t_)/(t2-t0) +  A2*(t_-t0)/(t2-t0) ;
+        B1_ = A1_*(t2 - t_)/(t2-t0) - A1/(t2-t0)+  A2_*(t_-t0)/(t2-t0) + A2/(t2-t0) ;
+        B2 = A2*(t3 - t_)/(t3-t1) +  A3*(t_-t1)/(t3-t1) ;
+        B2_ = A2_*(t3 - t_)/(t3-t1) - A2/(t3-t1) +  A3_*(t_-t1)/(t3-t1) +  A3/(t3-t1);
+        
+       
+        return   0.5*( B1_*(t2-t_)/(t2-t1) - B1/(t2-t1) + B2_*(t_-t1)/(t2-t1) + B2/(t2-t1)) + 0.5*tan0  ;                                       
 }
 
 std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t) const
@@ -2031,6 +2046,20 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
 std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t, const Point & offset, bool correctForNorm) const
 {
 
+    Point offsetVend ;
+    Point offsetVstart ;
+    std::vector<Point> offsetIpoints ;
+    for(size_t i = 0 ; i < interpolationPoints.size()+1 ;  i++)
+    {
+        std::pair<Point,Point> pt = interpolatingPointAndTangent((double)i/interpolationPoints.size()) ;
+        Point roffset = rotateToVector(pt.second)*offset ;
+        roffset = rotateToVector(offset)*roffset ;
+        offsetIpoints.push_back(pt.first+roffset);
+        if(i == 0)
+            offsetVstart = vstart + roffset ;
+        if(i == interpolationPoints.size())
+            offsetVend = vend + roffset ;
+    }
 //     if(correctForNorm)
 //         t = sweepNorm(offset,t)/sweepNorm(offset) ;
     
@@ -2044,19 +2073,19 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
     std::vector<Point> controlPoints ;
     if(startindex == 0)
     {
-        controlPoints.push_back(vstart);
+        controlPoints.push_back(offsetVstart);
         
         if(controlPoints.size() == 2)
         {
-            controlPoints.push_back(interpolationPoints[0]);
-            controlPoints.push_back(interpolationPoints[1]);
-            controlPoints.push_back(vend);
+            controlPoints.push_back(offsetIpoints[0]);
+            controlPoints.push_back(offsetIpoints[1]);
+            controlPoints.push_back(offsetVend);
         }
         else
         {
-            controlPoints.push_back(interpolationPoints[0]);
-            controlPoints.push_back(interpolationPoints[1]);
-            controlPoints.push_back(interpolationPoints[2]);
+            controlPoints.push_back(offsetIpoints[0]);
+            controlPoints.push_back(offsetIpoints[1]);
+            controlPoints.push_back(offsetIpoints[2]);
         }
         
     }
@@ -2064,25 +2093,25 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
     {
         if(controlPoints.size() == 2)
         {
-            controlPoints.push_back(vstart);
-            controlPoints.push_back(interpolationPoints[0]);
-            controlPoints.push_back(interpolationPoints[1]);
-            controlPoints.push_back(vend);
+            controlPoints.push_back(offsetVstart);
+            controlPoints.push_back(offsetIpoints[0]);
+            controlPoints.push_back(offsetIpoints[1]);
+            controlPoints.push_back(offsetVend);
         }
         else
         {
-            controlPoints.push_back(interpolationPoints[startindex-1]);
-            controlPoints.push_back(interpolationPoints[startindex]);
-            controlPoints.push_back(interpolationPoints[startindex+1]);
-            controlPoints.push_back(vend);
+            controlPoints.push_back(offsetIpoints[startindex-1]);
+            controlPoints.push_back(offsetIpoints[startindex]);
+            controlPoints.push_back(offsetIpoints[startindex+1]);
+            controlPoints.push_back(offsetVend);
         }
     }
     else
     {
-        controlPoints.push_back(interpolationPoints[startindex-1]);
-        controlPoints.push_back(interpolationPoints[startindex]);
-        controlPoints.push_back(interpolationPoints[startindex+1]);
-        controlPoints.push_back(interpolationPoints[startindex+2]);
+        controlPoints.push_back(offsetIpoints[startindex-1]);
+        controlPoints.push_back(offsetIpoints[startindex]);
+        controlPoints.push_back(offsetIpoints[startindex+1]);
+        controlPoints.push_back(offsetIpoints[startindex+2]);
     }
 
     
@@ -2095,11 +2124,11 @@ std::pair<Point,Point> LoftedPolygonPrism::interpolatingPointAndTangent(double t
         t_ = 1 ;
     Point ipoint = catmullRom(t_, controlPoints) ;
     Point itan = catmullRomTangent(t_, controlPoints);
-    ipoint -= interpolationPoints[0] ;
-    ipoint = rotateFromVector(itan)*ipoint ;
-    ipoint +=offset ;
-    ipoint = rotateToVector(itan)*ipoint ;
-    ipoint += interpolationPoints[0] ;
+//     ipoint -= interpolationPoints[0] ;
+//     ipoint = rotateFromVector(itan)*ipoint ;
+//     ipoint +=offset ;
+//     ipoint = rotateToVector(itan)*ipoint ;
+//     ipoint += interpolationPoints[0] ;
     return std::make_pair(ipoint,itan) ;
 }
 

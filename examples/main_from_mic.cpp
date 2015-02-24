@@ -117,15 +117,15 @@ void step()
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 
-//     VoxelWriter vw("sphere_stress_25", 200) ;
-//     vw.getField(featureTree, VWFT_STRESS) ;
-//     vw.write();
-// //     VoxelWriter vw1("sphere_strain", 400) ;
-// //     vw1.getField(featureTree, VWFT_STRESS) ;
-// //     vw1.write();
-// 	VoxelWriter vw0("sphere_stiffness_25", 200) ;
-// 	vw0.getField(featureTree, VWFT_STIFFNESS) ;
-// 	vw0.write();
+    VoxelWriter vw("sphere_stress_25", 200) ;
+    vw.getField(featureTree, VWFT_STRESS) ;
+    vw.write();
+//     VoxelWriter vw1("sphere_strain", 400) ;
+//     vw1.getField(featureTree, VWFT_STRESS) ;
+//     vw1.write();
+	VoxelWriter vw0("sphere_stiffness_25", 200) ;
+	vw0.getField(featureTree, VWFT_STIFFNESS) ;
+	vw0.write();
     exit(0) ;
 }
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
-    FeatureTree F( "../examples/data/Voxels_50.txt", behaviourMap ) ;
+    FeatureTree F( "../examples/data/Voxels_100.txt", behaviourMap ) ;
     featureTree = &F ;
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, -1.)) ;

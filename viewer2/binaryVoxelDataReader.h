@@ -19,7 +19,7 @@ public:
 // 			std::cout << "ouch" << std::endl ;
 // 		else
 // 			std::cout << position << std::endl ;
-// 		file.seek(position) ;
+// 		file.seek(position/32) ;
 		streamBin.setDevice(&file);
 		
 		std::cout << "r = " << r << "c = "<< c << "s = " << s << std::endl ;

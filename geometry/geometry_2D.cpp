@@ -7,7 +7,8 @@
 #include "../polynomial/vm_base.h"
 #include "../utilities/random.h"
 
-using namespace Amie ;
+namespace Amie
+{
 
 Triangle::Triangle() : ConvexGeometry(3)
 {
@@ -2568,9 +2569,10 @@ std::vector<Point> Polygon::getBoundingBox() const
 
 void Polygon::setCenter(const Point & newCenter)
 {
-    Point delta = newCenter - getCenter() ;
+    Point delta = newCenter-getCenter();
     Geometry::setCenter(newCenter);
     for(size_t i = 0 ; i < originalPoints.size() ; i++)
         originalPoints[i] += delta ;
 }
 
+}

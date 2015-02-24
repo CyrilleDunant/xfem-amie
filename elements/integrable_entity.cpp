@@ -12,10 +12,11 @@
 #include "../features/boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include <unistd.h>
-using namespace Amie ;
+
+namespace Amie{
 
 
-size_t Amie::fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks )
+size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks )
 {
     switch ( f )
     {
@@ -456,7 +457,7 @@ ElementState::ElementState ( IntegrableEntity *s )
 // 	this->previousPreviousEnrichedDisplacements.resize(s->getEnrichmentFunctions().size()*ndof) ;
 }
 
-Matrix Amie::makeStressOrStrainMatrix ( const Vector & stressOrStrain )
+Matrix makeStressOrStrainMatrix ( const Vector & stressOrStrain )
 {
     if ( stressOrStrain.size() == 3 )
     {
@@ -501,7 +502,7 @@ bool isEffectiveStressField ( FieldType f )
     return f == EFFECTIVE_STRESS_FIELD || f == NON_ENRICHED_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD  ;
 }
 
-Vector Amie::toPrincipal ( const Vector & stressOrStrain )
+Vector toPrincipal ( const Vector & stressOrStrain )
 {
     Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
     if ( ret.size() == 2 )
@@ -3337,7 +3338,7 @@ void ElementStateWithInternalVariables::setInternalVariableAtGaussPoint ( Vector
     internalVariablesAtGaussPoints[g][i] = v ;
 }
 
-int Amie::isGaussPoint ( const Point & p, IntegrableEntity * e )
+int isGaussPoint ( const Point & p, IntegrableEntity * e )
 {
     if ( e )
     {
@@ -3990,3 +3991,4 @@ void IntegrableEntity::setCachedGaussPoints ( GaussPointArray * gp )
     cachedGps = gp ;
 }
 
+}

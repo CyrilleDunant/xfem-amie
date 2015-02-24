@@ -30,22 +30,22 @@
 #include "glutils.h"
 
 
-#define i2RGBA( __val_32__ )  (unsigned char) ((size_t)__val_32__  & 0x000000FF ),(unsigned char) (((size_t)__val_32__ & 0x0000FF00)>>8 ),(unsigned char)( ((size_t)__val_32__ & 0x00FF0000)>>16 ), (unsigned char)(((size_t)__val_32__ & 0xFF000000)>>24)
+#define i2RGBA( __val_32__ )  (unsigned char) ((int)__val_32__  & 0x000000FF ),(unsigned char) (((int)__val_32__ & 0x0000FF00)>>8 ),(unsigned char)( ((int)__val_32__ & 0x00FF0000)>>16 ), (unsigned char)(((int)__val_32__ & 0xFF000000)>>24)
 
-#define RGBA2i( __r__, __g__, __b__ , __a__)  ((size_t)__r__ +  (size_t)((size_t) __g__ << 8)  + (size_t)((size_t) __b__ << 16)  +  (size_t)((size_t) __a__ << 24))
+#define RGBA2i( __r__, __g__, __b__ , __a__)  ((int)__r__ +  (int)((int) __g__ << 8)  + (int)((int) __b__ << 16)  +  (int)((int) __a__ << 24))
 
 
-typedef void (*trsFunc)(const std::vector< std::valarray<quint8> > *, std::valarray<quint8> *, std::valarray<bool> * res, const size_t, const size_t, const size_t) ;
+typedef void (*trsFunc)(const std::vector< std::valarray<quint8> > *, std::valarray<quint8> *, std::valarray<bool> * res, const int, const int, const int) ;
 
 typedef std::valarray<bool> (*restrictionFunction)(const std::vector< std::valarray<float> > *) ;
 
-void inSphereColour(const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res , const size_t, const size_t, const size_t) ;
+void inSphereColour(const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res , const int, const int, const int) ;
 
-void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c , std::valarray<bool> * res, const size_t r, const size_t co, const size_t s);
+void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c , std::valarray<bool> * res, const int r, const int co, const int s);
 
-std::valarray<bool> inSphere(const std::vector< std::valarray<qint8> > *d, const size_t, const size_t, const size_t) ;
+std::valarray<bool> inSphere(const std::vector< std::valarray<qint8> > *d, const int, const int, const int) ;
 
-std::valarray<bool> outOfSphere(const std::vector< std::valarray<qint8> > *d, const size_t, const size_t, const size_t) ;
+std::valarray<bool> outOfSphere(const std::vector< std::valarray<qint8> > *d, const int, const int, const int) ;
 
 
 typedef enum
@@ -103,7 +103,7 @@ protected:
 	void ( * APIENTRY glPointParameterfvARB)(GLenum, GLfloat *) ;
 	void ( * APIENTRY glTexEnvf )(GLenum, GLenum, GLboolean) ;
 	void ( * APIENTRY glActiveTextureARB)(GLuint) ;
-	void displayPoints(const std::valarray<size_t> & index, int offset, int mult) ;
+	void displayPoints(const std::valarray<int> & index, int offset, int mult) ;
 
 	
 protected:
@@ -131,9 +131,9 @@ protected:
 	float getZAngle() const ; //
 	
 	SliceDirection slice_dir ;
-	size_t slice_pos ;
+	int slice_pos ;
 	bool slice ;
-	size_t start_offset ;
+	int start_offset ;
 	
 	int m_segmentDown ;
 	int m_segmentUp ;
@@ -151,22 +151,22 @@ protected:
 	double size_z ;
 	
 protected:
-	size_t sz ;
+	int sz ;
 	std::valarray<bool> restriction ;
 	std::vector< std::valarray<quint8> > * valuesAtPoint ;
 	std::valarray<quint8> colour ;
 	std::valarray<qint8> normal ;
-	std::vector<size_t> palette ;
-	size_t rows ;
-	size_t columns ;
-	size_t strips ;
+	std::vector<int> palette ;
+	int rows ;
+	int columns ;
+	int strips ;
 	
-	void HSVtoRGB( size_t *r, size_t *g, size_t *b, float h, float s, float v ) const {
+	void HSVtoRGB( int *r, int *g, int *b, float h, float s, float v ) const {
 	int i;
 	float f, p, q, t;
 	if( s == 0 ) {
                 // achromatic (grey)
-		*r = *g = *b = static_cast<size_t>(v*255);
+		*r = *g = *b = static_cast<int>(v*255);
 		return;
 	}
 	h /= 60.;                        // sector 0 to 5
@@ -177,34 +177,34 @@ protected:
 	t = v * ( 1. - s * ( 1. - f ) );
 	switch( i ) {
 	case 0:
-		*r = static_cast<size_t>(v*255.);
-		*g = static_cast<size_t>(t*255.);
-		*b = static_cast<size_t>(p*255.);
+		*r = static_cast<int>(v*255.);
+		*g = static_cast<int>(t*255.);
+		*b = static_cast<int>(p*255.);
 		break;
 	case 1:
-		*r = static_cast<size_t>(q*255.);
-		*g = static_cast<size_t>(v*255.);
-		*b = static_cast<size_t>(p*255.);
+		*r = static_cast<int>(q*255.);
+		*g = static_cast<int>(v*255.);
+		*b = static_cast<int>(p*255.);
 		break;
 	case 2:
-		*r = static_cast<size_t>(p*255.);
-		*g = static_cast<size_t>(v*255.);
-		*b = static_cast<size_t>(t*255.);
+		*r = static_cast<int>(p*255.);
+		*g = static_cast<int>(v*255.);
+		*b = static_cast<int>(t*255.);
 		break;
 	case 3:
-		*r = static_cast<size_t>(p*255.);
-		*g = static_cast<size_t>(q*255.);
-		*b = static_cast<size_t>(v*255.);
+		*r = static_cast<int>(p*255.);
+		*g = static_cast<int>(q*255.);
+		*b = static_cast<int>(v*255.);
 		break;
 	case 4:
-		*r = static_cast<size_t>(t*255.);
-		*g = static_cast<size_t>(p*255.);
-		*b = static_cast<size_t>(v*255.);
+		*r = static_cast<int>(t*255.);
+		*g = static_cast<int>(p*255.);
+		*b = static_cast<int>(v*255.);
 		break;
 	default:                // case 5:
-		*r = static_cast<size_t>(v*255.);
-		*g = static_cast<size_t>(p*255.);
-		*b = static_cast<size_t>(q*255.);
+		*r = static_cast<int>(v*255.);
+		*g = static_cast<int>(p*255.);
+		*b = static_cast<int>(q*255.);
 		break;
 	}
 }
@@ -222,28 +222,28 @@ protected:
 	void updateRestrictions() ;
 	void computeSlice() ; //
 	void computeDisplayList() ; //
-	void computeDisplayList(size_t x_0, size_t x_1, size_t y_0, size_t y_1, size_t z_0, size_t z_1) ; //
+	void computeDisplayList(int x_0, int x_1, int y_0, int y_1, int z_0, int z_1) ; //
 	GLint displayList ;
 	GLint currentDisplayList ;
 	
-	bool isVisible(const size_t i, const size_t j, const size_t k) const ;
+	bool isVisible(const int i, const int j, const int k) const ;
 	
-	quint8 valueAverage(int delta, const size_t &x, const size_t &y, const size_t &z) const ;
+	quint8 valueAverage(int delta, const int &x, const int &y, const int &z) const ;
 	
 public:
-	VoxelGLDrawer(const size_t r, const size_t c, const size_t s, trsFunc tc = inSphereColour, QMainWindow *parent = 0) ; //
+	VoxelGLDrawer(const int r, const int c, const int s, trsFunc tc = inSphereColour, QMainWindow *parent = 0) ; //
 	VoxelGLDrawer(QString f, QMainWindow *parent = 0) ; //
 	VoxelGLDrawer(QMainWindow *parent = 0) ; //
 	~VoxelGLDrawer() ; //
 	
-	void setRestriction(size_t i) ;
-	size_t numberOfElements() const { return sz ; } //
-	size_t toIndex(const size_t i, const size_t j , const size_t k) const ; //
-	std::valarray<size_t> toArrayPos( const size_t where) const ; //
+	void setRestriction(int i) ;
+	int numberOfElements() const { return sz ; } //
+	int toIndex(const int i, const int j , const int k) const ; //
+	std::valarray<int> toArrayPos( const int where) const ; //
 	
-	std::valarray<qint8> normalFromSurroundings(const size_t&, const size_t&, const size_t&) const ;
-	bool isBoundary(const size_t& x, const size_t& y, const size_t& z) const ;
-	bool singlePixel(const size_t& x,  const size_t& y, const size_t& z) const ;
+	std::valarray<qint8> normalFromSurroundings(const int&, const int&, const int&) const ;
+	bool isBoundary(const int& x, const int& y, const int& z) const ;
+	bool singlePixel(const int& x,  const int& y, const int& z) const ;
 	
 protected:
 	GLuint texture[1] ;

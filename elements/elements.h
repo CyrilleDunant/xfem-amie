@@ -20,27 +20,28 @@
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_token.h"
 #include "../elements/integrable_entity.h"
-
-Amie::Function XTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
-double xTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
-Amie::Function YTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
-double yTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
-Amie::Function ZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
-double zTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
-Amie::Function TTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis) ;
-double tTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
-Amie::Point coordinateTransform(const Amie::Point & p, const Amie::PointArray & points, const std::valarray<Amie::Function > & basis) ;
-Amie::Function dXTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
-Amie::Function dYTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
-Amie::Function dZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
-Amie::Function dTTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v) ;
-double dXTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
-double dYTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
-double dZTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
-double dTTransform(const Amie::PointArray & points ,const std::valarray< Amie::Function> &basis, Amie::Variable v, const Amie::Point & p ) ;
-
 namespace Amie
 {
+    
+Function XTransform(const PointArray & points ,const std::valarray< Function> &basis) ;
+double xTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
+Function YTransform(const PointArray & points ,const std::valarray< Function> &basis) ;
+double yTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
+Function ZTransform(const PointArray & points ,const std::valarray< Function> &basis) ;
+double zTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
+Function TTransform(const PointArray & points ,const std::valarray< Function> &basis) ;
+double tTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
+Point coordinateTransform(const Point & p, const PointArray & points, const std::valarray<Function > & basis) ;
+Function dXTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
+Function dYTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
+Function dZTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
+Function dTTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v) ;
+double dXTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dYTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dZTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+double dTTransform(const PointArray & points ,const std::valarray< Function> &basis, Variable v, const Point & p ) ;
+
+
 
 class ElementarySurface ;
 class NonLinearForm ;
@@ -96,7 +97,7 @@ public:
 	virtual Vector getNonLinearForces() = 0 ;
 		
 	virtual Form * getBehaviour() const ;
-	void setBehaviour( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh, Amie::Form* f );
+	void setBehaviour( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh, Form* f );
 
 	virtual NonLinearForm * getNonLinearBehaviour() const;
 	void setNonLinearBehaviour(NonLinearForm * f) ;
@@ -210,7 +211,7 @@ public:
 
 	virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() = 0;
 	virtual Form * getBehaviour() const ;
-	virtual void setBehaviour( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh, Amie::Form* f );
+	virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f );
 
 	virtual NonLinearForm * getNonLinearBehaviour() const ;
 	
@@ -345,7 +346,7 @@ public:
 	virtual void print()  const;
 	virtual Point inLocalCoordinates(const Point & p) const ;
 	virtual Vector getNonLinearForces() ;
-	virtual std::valarray<std::valarray<Amie::Matrix> > getNonLinearElementaryMatrix() ;
+	virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 	virtual const std::valarray< Function > & getShapeFunctions() const ;
 	virtual std::valarray< Function > & getShapeFunctions()  ;
 	bool visited ;
@@ -359,11 +360,11 @@ public:
 
 } ;
 
+
+
+void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<HexahedralElement *> & vec) ;
+void burn(std::vector<HexahedralElement *> & vec) ;
+GaussPointArray gaussPointSet(Order order, const TriElement * t) ;
+GaussPointArray gaussPointSet(Order order, const TetrahedralElement * t) ;
 } ;
-
-void computeNeighbourhoodForStructuredHexahedralMesh(std::vector<Amie::HexahedralElement *> & vec) ;
-void burn(std::vector<Amie::HexahedralElement *> & vec) ;
-Amie::GaussPointArray gaussPointSet(Amie::Order order, const Amie::TriElement * t) ;
-Amie::GaussPointArray gaussPointSet(Amie::Order order, const Amie::TetrahedralElement * t) ;
-
 #endif // __ELEMENTS_H_
