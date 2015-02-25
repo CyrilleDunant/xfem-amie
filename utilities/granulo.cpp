@@ -146,7 +146,7 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 
 	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
 	std::vector<Feature *> feats ;
-	if(geo == ELLIPSE || geo == TRIANGLE)
+	if(geo == ELLIPSE || geo == TRIANGLE  || geo == RECTANGLE)
 	{
 		InclusionConverter converter(geo) ;
 		converter.setAspectRatio(aspectRatio) ;
@@ -192,7 +192,7 @@ std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Fo
 
 	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
 	std::vector<Feature *> feats ;
-	if(geo == ELLIPSE || geo == TRIANGLE)
+	if(geo == ELLIPSE || geo == TRIANGLE || geo == RECTANGLE)
 	{
 		InclusionConverter converter(geo) ;
 		converter.setAspectRatio(aspectRatio) ;

@@ -27,7 +27,7 @@ void DryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElem
 	dh += thr-h0 ;
     else
 	dh += (h-h0)*(1.-irr)+(thr-h0)*irr ;
-    s.add("imposed_deformation", -ks*(std::pow(dh/h0, order)) ) ;
+    s.add("imposed_deformation", -ks*(std::pow(dh, order)) ) ;
 }
 
 void KelvinCapillaryPressureMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)

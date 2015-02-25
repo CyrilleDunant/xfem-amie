@@ -512,10 +512,10 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
 	if(type == "DRYING_SHRINKAGE")
 	{
-		std::string input = getStringData("input", "relative_humidity") ;
+		std::string input = getStringData("input_parameter", "relative_humidity") ;
 		double order = getData("order", 1.) ;
 		ret = new DryingShrinkageMaterialLaw(input, order) ;
-		ret->setDefaultValue("relative_humidity", getData("reference_relative_humidity", 1.)) ;
+		ret->setDefaultValue(input+"_reference", getData("reference_"+input, 1.)) ;
 		return ret ;
 	}
 
@@ -1989,6 +1989,8 @@ FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
 		return ENRICHED_DISPLACEMENT_FIELD ;
 	if(field == "SPEED_FIELD")
 		return SPEED_FIELD ;
+	if(field == "SCALAR_DAMAGE_FIELD")
+		return SCALAR_DAMAGE_FIELD ;
 	if(field == "FLUX_FIELD")
 		return FLUX_FIELD ;
 	if(field == "GRADIENT_FIELD")
