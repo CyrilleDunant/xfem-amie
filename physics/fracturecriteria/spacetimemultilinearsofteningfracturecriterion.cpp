@@ -431,9 +431,9 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 			std::vector<Point> lintersection = lhistory.intersection( tensileStressStrainCurve ) ;
 			if(lintersection.size() == 0)
 			{
-				if(lhistory.intersects( *tensileAsymptote ))
-					found = true ;
 				inter = lhistory.intersection( *tensileAsymptote ) ;
+				if(lhistory.intersects( *tensileAsymptote ) && inter.getX() > tensileAsymptote->origin().getX())
+					found = true ;
 			}
 			else
 			{
@@ -453,8 +453,6 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
 				gtension = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
-//		if(gtension > 0)
-//			std::cout << stateBefore.second[0] << "/" << stateAfter.second[0] << "/" << inter.getX() << "  ";
 		}
 	}
 
@@ -475,9 +473,11 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 			std::vector<Point> lintersection = lhistory.intersection( compressiveStressStrainCurve ) ;
 			if(lintersection.size() == 0)
 			{
-				if(lhistory.intersects( *compressiveAsymptote ))
-					found = true ;
 				inter = lhistory.intersection( *compressiveAsymptote ) ;
+				if(lhistory.intersects( *compressiveAsymptote ) && inter.getX() < compressiveAsymptote->origin().getX())
+				{
+					found = true ;
+				}
 			}
 			else
 			{
@@ -494,14 +494,16 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 		if(found)
 		{
 			if(inter.getX() < before.getX() && inter.getX() > after.getX())
-				gcompression = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
+			{
+				gcompression = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;				
+			}
 			else if(inter.getX() < before.getX() && inter.getX() < after.getX())
+			{
 				gcompression = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+			}
 		}
 	}
-
-		
-
+	
 	return std::max(gcompression, gtension) ;
 
 }

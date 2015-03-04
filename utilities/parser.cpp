@@ -392,10 +392,17 @@ void ConfigParser::readData()
 	ConfigTreeItem * current = trunk ;
 	int level = 1 ;
 	std::string buffer ;
+	std::string lastLine ;
+	int lastLineNumber = 0 ;
 	if(!file.fail())
 	{
 		for( std::string line ; getline( file, line ) ; ) 
 		{
+			if(line.length() > 0)
+			{
+				lastLineNumber++ ;
+				lastLine = line ;
+			}
 			if(line[0] == '#')
 				continue ;
 
@@ -495,6 +502,7 @@ void ConfigParser::readData()
 		}
 		
 		std::cout << filename << " parsed with success!" << std::endl ;
+		std::cout << "last line read: " << lastLineNumber << " >>>   " << lastLine << std::endl ;
 
 	}
 	else
