@@ -249,7 +249,9 @@ Form * LogarithmicCreepWithExternalParameters::getCopy() const
 	{
 		args.append(ext.first) ;
 		args.append(" = ") ;
-		args.append(std::to_string(ext.second)) ;
+		std::stringstream stream ;
+		stream << std::fixed << std::setprecision(16) << ext.second ;
+		args.append(stream.str()) ;
 		args.append(",") ;
 	}
 	args = args.substr(0, args.size()-1) ;
