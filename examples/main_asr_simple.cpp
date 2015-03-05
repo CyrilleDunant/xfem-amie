@@ -253,7 +253,7 @@ void step()
 				}
 				
 				double ar = k->area() ;
-				for(size_t l = 0 ; l < npoints ;l++)
+				for(int l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
@@ -265,7 +265,7 @@ void step()
 				
 				if(k->getEnrichmentFunctions().size() == 0)
 				{
-					for(size_t l = 0 ; l < npoints ;l++)
+					for(int l = 0 ; l < npoints ;l++)
 					{
 						avg_e_xx_nogel += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
 						avg_e_yy_nogel += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
@@ -336,13 +336,10 @@ void step()
 		}
 		
 		double reactedArea = 0 ;
-		double final_radius = sqrt(.90)*0.001 ;
 		double delta_radius = 2e-5 ;/*(inclusions[inclusions.size()/2]->getRadius()-final_radius)/nsteps ;*/
 		for(size_t m = 0 ; m < reactionRims.size() ; m++)
 		{
 			double new_in_radius = std::max(reactionRims[m]->getInRadius()-delta_radius, 0.) ;
-			double new_area = M_PI*(reactionRims[m]->getRadius()*reactionRims[m]->getRadius()-new_in_radius*new_in_radius) ;
-			double inc_area = M_PI*reactionRims[m]->getRadius()*reactionRims[m]->getRadius() ;
 			std::cout << "..." << reactionRims[m]->getInRadius()<< " -> "<< new_in_radius << "..." << std::endl ;
 			if(new_in_radius >= 1e-6)
 			{

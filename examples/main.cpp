@@ -173,7 +173,6 @@ void step()
 	for(size_t i = 0 ; i < nit ; i++)
 	{
 		size_t tries = 0 ;
-		bool go_on = true ;
 		std::vector<std::pair<double,double> > saved_load_displacement = load_displacement ;
 		double originalPrescribedDisplacement = prescribedDisplacement ;
 

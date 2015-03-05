@@ -515,7 +515,7 @@ public:
                 for(size_t c = 0 ; c < stride ; c++)
                 {
                         const double vval =  v[idx[start]*stride+c] ;
-                        for(size_t i = 0 ; i != colLength ; i+=2)
+                        for(int i = 0 ; i != colLength ; i+=2)
                         {
                                 *(dest+i) += *array_iterator0 * vval ;
                                 *(dest+i+1) += *array_iterator1 * vval ;
@@ -529,7 +529,7 @@ public:
 			for(size_t c = 0 ; c < stride ; c++)
 			{
 				const double vval =  v[idx[j]*stride+c] ;
-				for(size_t i = 0 ; i != colLength ; i+=2)
+				for(int i = 0 ; i != colLength ; i+=2)
 				{
 					*(dest+i) += *array_iterator0 * vval ;
 					*(dest+i+1) += *array_iterator1 * vval ;
@@ -751,7 +751,7 @@ public:
 			for(size_t c = 0 ; c < stride ; c++)
 			{
 				const double vval =  v[idx[j]*stride+c] ;
-				for(size_t i = 0 ; i != colLength ; i+=2)
+				for(int i = 0 ; i != colLength ; i+=2)
 				{
 					*(dest+i) += *array_iterator0 * vval ;
 					*(dest+i+1) += *array_iterator1 * vval ;

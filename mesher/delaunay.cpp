@@ -22,7 +22,7 @@
 
 using namespace Amie ;
 
-DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), son(0), tree(t), stepfather(nullptr),
+DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), tree(t), son(0), stepfather(nullptr),
     father(father),
     m_c(c),
     dead(false),
@@ -30,10 +30,10 @@ DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t
     isPlane( false ),
     isTriangle( false ),
     isDeadTriangle( false),
+    index(0),
     first(nullptr) ,
     second(nullptr) ,
-    third(nullptr) ,
-    index(0) 
+    third(nullptr)  
 {
 
     if(t)
@@ -203,7 +203,6 @@ void Star::updateNeighbourhood()
 
     std::sort(&items[soncount], &items[count]) ;
     auto e = std::unique(&items[0], &items[count]) ;
-    size_t end =  e-&items[0] ;
 
     if(!items.size())
         return ;
@@ -561,9 +560,9 @@ void DelaunayTree::extrude(const Vector & dt)
                 current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 
                 std::vector<Point *> newPoints ;
-                if( j < indexOfLastTimePlane)
+                if( (int)j < indexOfLastTimePlane)
                 {
-                    if( j < pointsPerTimePlane )
+                    if( (int)j < pointsPerTimePlane )
                     {
                         newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
                     }
@@ -824,7 +823,6 @@ void DelaunayTreeItem::conflicts(std::valarray<bool> & visited, std::vector<Dela
 
     for (size_t i  = 0 ;  i < neighbour.size() ; i++)
     {
-        bool limit = false ;
 
         if( (!visited[neighbour[i]] && getNeighbour(i)->isConflicting(g)) )
         {
@@ -978,7 +976,7 @@ void DelaunayTreeItem::removeNeighbour(DelaunayTreeItem * t)
     {
         std::valarray<unsigned int>  newneighbours(neighbour.size()-1) ;
         int iterator = 0 ;
-        for(int i = 0 ; i < neighbour.size() ; i++)
+        for(size_t i = 0 ; i < neighbour.size() ; i++)
         {
             if(neighbour[i] == t->index)
                 continue ;
@@ -2386,7 +2384,7 @@ void DelaunayTriangle::refresh(const TriElement * father)
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 {
-    int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+    size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
     if(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == dofCount)
     {
@@ -2395,7 +2393,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 // 	std::cout << ";" ;
 
 
-    int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     if(enrichmentUpdated || behaviourUpdated
             || cachedElementaryMatrix.size() == 0
@@ -2514,13 +2512,13 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix()
 
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMatrix()
 {
-    int dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
+    size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
     if(!behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
     {
         return cachedViscousElementaryMatrix ;
     }
-    int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     if(enrichmentUpdated || behaviourUpdated
             || cachedViscousElementaryMatrix.size() == 0
@@ -2794,7 +2792,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
         for(size_t j = 0 ; j < getEnrichmentFunction(i).getIntegrationHint().size() ; j++)
         {
             bool go = true ;
-            for(int k = 0 ; k < to_add.size()  ; k++ )
+            for(size_t k = 0 ; k < to_add.size()  ; k++ )
             {
                 Point pr = *to_add[k] ;
                 tf.project(&pr) ;
@@ -2827,8 +2825,6 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
     size_t numberOfRefinements = 5 ;
     if(getEnrichmentFunctions().size() > 3)
         numberOfRefinements = 6 ;
-    double tol = 1e-8 ;
-    double position_tol = 4.*POINT_TOLERANCE_2D ;
     VirtualMachine vm ;
     if(getEnrichmentFunctions().size() > 0)
     {
@@ -2842,12 +2838,10 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             if(getCachedGaussPoints()->getId() == REGULAR_GRID)
                 return *getCachedGaussPoints() ;
 
-            int npoints = 128 ;
 
             Point A(0,1) ;
             Point B(0,0) ;
             Point C(1,0) ;
-            double a = std::sqrt(0.6) ;
             TriElement father (LINEAR) ;
             TriangularInclusion trg(A,B,C) ;
             srand(0) ;
@@ -2909,7 +2903,7 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
             {
                 TriElement father(LINEAR) ;
 
-                int target = 64 ;
+                size_t target = 64 ;
 
                 double npoints = 8 ;
 

@@ -24,7 +24,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     elementState = &s ;
 
     double phi = ( 1. + sqrt( 5. ) ) * .5 ;
-    double resphi = 2. - phi ;   //goldensearch
+//     double resphi = 2. - phi ;   //goldensearch
 // 		resphi = .5 ;              //bisection
 // 		resphi = .1 ;                //down bias
 
@@ -104,7 +104,6 @@ void DamageModel::step( ElementState &s , double maxscore)
     else if( !converged && !alternate)
     {
 
-        double scoreTolerance = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance() ;
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
         change = true ;
@@ -113,7 +112,6 @@ void DamageModel::step( ElementState &s , double maxscore)
         std::sort( states.begin(), states.end() ) ;
 
         double minFraction = states[0].fraction ;
-        double maxFraction = states[1].fraction ;
         double prevDelta = states[0].delta ;
         double prevScore = states[0].score ;
         double prevProximity = states[0].proximity ;
@@ -137,43 +135,40 @@ void DamageModel::step( ElementState &s , double maxscore)
             currentProximity = states[i].proximity ;
             currentShift = states[i].angleShift ;
             currentMode = states[i].mode ;
-
-            maxFraction = states[i].fraction ;
-
-            if( (currentDelta > 0     && prevDelta  < 0     ||
-                    currentDelta < 0     && prevDelta  > 0 )   ||
-                    std::abs(currentDelta) < POINT_TOLERANCE_2D && std::abs(prevDelta) < POINT_TOLERANCE_2D ||
-                    (currentScore > 0     && prevScore  < 0     ||
-                     currentScore < 0     && prevScore  > 0 )   ||
-                    std::abs(currentScore) < POINT_TOLERANCE_2D  && std::abs(prevScore)  < POINT_TOLERANCE_2D ||
-                    (currentProximity > 0 && prevProximity < 0  ||
-                     currentProximity < 0 && prevProximity > 0 )||
-                    (currentShift > 0     && prevShift < 0      ||
-                     currentShift < 0     && prevShift > 0  )   ||
+            if(     ((currentDelta > 0    && prevDelta  < 0)     ||
+                    (currentDelta < 0     && prevDelta  > 0 ))   ||
+                    (std::abs(currentDelta) < POINT_TOLERANCE_2D && std::abs(prevDelta) < POINT_TOLERANCE_2D) ||
+                    ((currentScore > 0     && prevScore  < 0  )   ||
+                     (currentScore < 0     && prevScore  > 0))    ||
+                    (std::abs(currentScore) < POINT_TOLERANCE_2D  && std::abs(prevScore)  < POINT_TOLERANCE_2D) ||
+                    ((currentProximity > 0 && prevProximity < 0 )  ||
+                     (currentProximity < 0 && prevProximity > 0 )) ||
+                    ((currentShift > 0     && prevShift < 0 )     ||
+                     (currentShift < 0     && prevShift > 0 ) )   ||
                     currentMode * prevMode < 0
               )
             {
-                deltaRoot = currentDelta > 0     && prevDelta  < 0  ||
-                            currentDelta < 0     && prevDelta  > 0  ||
+                deltaRoot = (currentDelta > 0     && prevDelta ) < 0  ||
+                            (currentDelta < 0     && prevDelta ) > 0  ||
                             std::abs(currentDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 && 
                             std::abs(prevDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 ;
                 if(deltaRoot)
                     error = std::min(error, std::abs(currentDelta-prevDelta)) ;
 
-                scoreRoot = currentScore > 0     && prevScore  < 0  ||
-                            currentScore < 0     && prevScore  > 0  ||
+                scoreRoot = (currentScore > 0     && prevScore  < 0 ) ||
+                            (currentScore < 0     && prevScore  > 0 ) ||
                             std::abs(currentScore) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5  && 
                             std::abs(prevScore)  < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 ;
                 if(scoreRoot)
                     error = std::min(error, std::abs(currentScore-prevScore)) ;
 
-                proximityRoot = currentProximity > 0 && prevProximity < 0 ||
-                                currentProximity < 0 && prevProximity > 0 ;
+                proximityRoot = (currentProximity > 0 && prevProximity < 0 )||
+                                (currentProximity < 0 && prevProximity > 0 );
                 if(proximityRoot)
                     error = std::min(error,std::abs(currentProximity-prevProximity)) ;
 
-                shiftRoot = currentShift > 0     && prevShift < 0     ||
-                            currentShift < 0     && prevShift > 0 ;
+                shiftRoot = (currentShift > 0     && prevShift < 0 )    ||
+                            (currentShift < 0     && prevShift > 0 );
                 if(shiftRoot)
                     error = std::min(error, std::abs(currentShift-prevShift)) ;
 

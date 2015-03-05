@@ -195,12 +195,10 @@ void step()
 {
 	
 	size_t nsteps = 4000 ; //16*10;
-	size_t nit = 2 ;
 	size_t ntries = 5;
 	size_t dsteps = 60 ;
 	size_t tries = 0 ;
 	size_t dit = 0 ;
-	int totit = 0 ;
 	featureTree->setMaxIterationsPerStep(dsteps) ;
 	for(size_t v = 0 ; v < nsteps ; v++)
 	{
@@ -208,11 +206,8 @@ void step()
 		while(tries < ntries)
 		{
 			tries++ ;
-			bool go_on = true ;
-			bool no_convergence = true ;
-			bool damage = false ;
 
-			go_on = featureTree->step() ;
+			featureTree->step() ;
 
 			if(dit < dsteps)
 			{
@@ -505,7 +500,7 @@ void step()
 		
 		std::fstream ldfile  ;
 		ldfile.open("ldn", std::ios::out) ;
-		for(int j = 0 ; j < loads.size() ; j++)
+		for(size_t j = 0 ; j < loads.size() ; j++)
 		{
 			ldfile << displacements[j] << "   " << loads[j] << "\n" ;
 		}

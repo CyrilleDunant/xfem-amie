@@ -791,7 +791,7 @@ bool Triangle::in(const Point &p) const
 // 	return !s.intersects(this) || isAPoint || isOnSurface;
 //
 // 		bool isAPoint = false ;
-	for (int i = 0; i <  getBoundingPoints().size(); i++)
+	for (size_t i = 0; i <  getBoundingPoints().size(); i++)
 	{
 		if(p == getBoundingPoint(i) || squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
 		{
@@ -2334,7 +2334,7 @@ void Polygon::sampleSurface(size_t num_points)
         delete inPoints[i] ;
     
     num_points *=2 ;
-    sampleBoundingSurface(num_points*3);
+    sampleBoundingSurface(num_points);
     std::vector<Segment> segments ;
     double perimeter = 0 ;
     for(size_t i = 0 ; i < originalPoints.size() ; i++ )
@@ -2348,7 +2348,6 @@ void Polygon::sampleSurface(size_t num_points)
     
     
     std::vector<Point> newPoints ;
-    double rad = getRadius() ;
     int iteration = 0 ;
     do
     {
@@ -2407,7 +2406,7 @@ void Polygon::sampleSurface(size_t num_points)
         Segment * testSegment = &newSegments[0] ;
         Segment * startSegment = testSegment ;
         newPoints.push_back(testSegment->second());
-        int tries  = 0 ;
+        size_t tries  = 0 ;
         bool found = true ;
         while(tries < newSegments.size() && found)
         {
@@ -2439,7 +2438,6 @@ void Polygon::sampleSurface(size_t num_points)
             {
                 tries++ ;
                 Segment * testSegment = &newSegments[tries] ;
-                Segment * startSegment = testSegment ;
 //                 newPoints.erase(newPoints.begin()+start, newPoints.end()) ;
                 newPoints.push_back(testSegment->second());
             }
@@ -2451,7 +2449,7 @@ void Polygon::sampleSurface(size_t num_points)
         double currentperimeter = 0 ;
         for(size_t i = start ; i < newPoints.size() ; i++ )
         {
-            int inext = i+1 ;
+            size_t inext = i+1 ;
             if(inext >= newPoints.size())
                 inext = start ;
             segments.push_back(Segment(newPoints[i], newPoints[inext]));
@@ -2486,16 +2484,60 @@ void Polygon::sampleSurface(size_t num_points)
 
 bool Polygon::in(const Point & v) const
 {
-    Point out = center + Point(0, getRadius()*1.5) ;
-    Segment s(out, v) ;
+    Point out = center + Point(0, getRadius()*2.) ;
+    Segment s(out, v+Point(POINT_TOLERANCE_2D,-POINT_TOLERANCE_2D)) ;
+    Segment s0(out, v+Point(-POINT_TOLERANCE_2D,-POINT_TOLERANCE_2D)) ;
+    Segment s1(out, v+Point(-POINT_TOLERANCE_2D,POINT_TOLERANCE_2D)) ;
+    Segment s2(out, v+Point(POINT_TOLERANCE_2D,POINT_TOLERANCE_2D)) ;
     
     int interCount = 0 ;
+    int interheadcount = 0 ;
+    int interCount0 = 0 ;
+    int interheadcount0 = 0 ;
+    int interCount1 = 0 ;
+    int interheadcount1 = 0 ;
+    int interCount2 = 0 ;
+    int interheadcount2 = 0 ;
+    
     for(size_t i = 0 ; i < originalPoints.size() ; i++ )
     {
         int inext = (i+1)%originalPoints.size() ;
-        interCount += Segment(originalPoints[i], originalPoints[inext]).intersects(s);
+        Segment seg(originalPoints[i], originalPoints[inext]) ;
+        bool inter = seg.intersects(s);
+        interCount += inter ;
+        if(inter)
+        {
+            Point intersec = seg.intersection(s) ;
+            if(intersec == seg.first() || intersec == seg.second())
+                interheadcount++ ;
+        }
+        inter = seg.intersects(s0);
+        interCount0 += inter ;
+        if(inter)
+        {
+            Point intersec = seg.intersection(s0) ;
+            if(intersec == seg.first() || intersec == seg.second())
+                interheadcount0++ ;
+        }        
+        inter = seg.intersects(s1);
+        interCount1 += inter ;
+        if(inter)
+        {
+            Point intersec = seg.intersection(s1) ;
+            if(intersec == seg.first() || intersec == seg.second())
+                interheadcount1++ ;
+        }
+        inter = seg.intersects(s2);
+        interCount2 += inter ;
+        if(inter)
+        {
+            Point intersec = seg.intersection(s2) ;
+            if(intersec == seg.first() || intersec == seg.second())
+                interheadcount2++ ;
+        }
+        
     }
-    return interCount%2 ;
+    return (interCount-interheadcount/2)%2 && (interCount0-interheadcount0/2)%2 && (interCount1-interheadcount1/2)%2 && (interCount2-interheadcount2/2)%2;
 }
 
 double Polygon::area() const 
@@ -2530,18 +2572,18 @@ void Polygon::project(Point * init) const
         int inext = (i+1)%originalPoints.size() ;
         Segment s(originalPoints[i], originalPoints[inext]);
         Point p = s.project(*init);
-        potential[dist(p, *init)] = p ;
+        potential[squareDist2D(p, *init)] = p ;
     }
     init->set(potential.begin()->second) ;
 }
 
 double Polygon::getRadius() const
 {
-    double r = dist(center, originalPoints[0]) ;
+    double r = squareDist2D(center, originalPoints[0]) ;
     for(const auto & p : originalPoints)
-        r = std::max(r, dist(p, center)) ;
+        r = std::max(r, squareDist2D(p, center)) ;
     
-    return r ;
+    return sqrt(r) ;
 }
 
 SpaceDimensionality Polygon::spaceDimensions() const

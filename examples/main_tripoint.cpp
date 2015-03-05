@@ -458,7 +458,7 @@ int main ( int argc, char *argv[] )
             nstirrups = 5 ;
         }
 
-        for ( size_t i = 1 ;  i < nstirrups ; i++ )
+        for ( int i = 1 ;  i < nstirrups ; i++ )
         {
             F.addFeature ( stirrups[i-1], stirrups[i], stirruplayer, psi ) ;
             F.setSamplingFactor ( stirrups[i], 3 ) ;

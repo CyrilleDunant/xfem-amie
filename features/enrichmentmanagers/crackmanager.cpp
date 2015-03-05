@@ -2,7 +2,19 @@
     
 using namespace Amie ;
 
-CrackManager::CrackManager(BranchedCrack * first, double criticalEnergy, double minCRadius, double maxExpansion) : EnrichmentManager(first), criticalEnergy(criticalEnergy), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0), maxExpansion(maxExpansion) {} ;
+        double criticalEnergy;
+        double maxExpansion ;
+        double minCRadius ;
+        bool findRadius ;
+        bool findExtension ;
+        double currentRadius ;
+        double upRadius ;
+        double downRadius ;
+        double currentExtension ;
+        double upExtension ;
+        double downExtension ;
+
+CrackManager::CrackManager(BranchedCrack * first, double criticalEnergy, double minCRadius, double maxExpansion) : EnrichmentManager(first), criticalEnergy(criticalEnergy), maxExpansion(maxExpansion), minCRadius(1e-3), findRadius(false), findExtension(false), iteration(0) {} ;
     
 bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree) 
 { 
@@ -183,8 +195,8 @@ bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayT
         }
     }
 
-    
-};
+    return stable ;
+}
 
 void CrackManager::setCriticalEnergy(double e)
 {
@@ -208,7 +220,7 @@ void CrackManager::setMaximumExpansion(double m)
 
 bool CrackManager::step(double dt, Vector * v, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * dtree) 
 { 
-
+    return true ;
 };
 
 bool CrackManager::converged() { return stable ; } ;

@@ -27,7 +27,7 @@ EnrichmentInclusion3D::~EnrichmentInclusion3D() {}
 bool EnrichmentInclusion3D::enrichmentTarget(DelaunayTetrahedron * t)
 {
 	int pointsin = in(*t->first) + in(*t->second) + in(*t->third) + in(*t->fourth) ;
-	if(pointsin && pointsin != 4 || intersects(t->getPrimitive()) || t->in(getCenter()))
+	if(( pointsin && pointsin != 4 ) || intersects(t->getPrimitive()) || t->in(getCenter()))
 		return true ;
 		
 	return false ;
@@ -287,7 +287,6 @@ void EnrichmentInclusion3D::enrich(size_t & lastId,  Mesh<DelaunayTetrahedron, D
 
 		std::vector<Point> hint ;
 // 		if there are no intersection points we need not do anything
-		size_t isize = tetSphereIntersectionPoints.size() ;
 		
 // 		for(size_t j = 0 ; j < isize ; j++)
 // 		{

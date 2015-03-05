@@ -34,37 +34,37 @@
 
 using namespace Amie ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ) , mesh( mesh ), self2d( self ), self3d( nullptr ), equivalent( nullptr )
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), equivalent( nullptr ) , mesh( mesh ), self2d( self ), self3d( nullptr )
 {
-	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
-		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
-	else
-		original = self->getBehaviour()->getCopy() ;
+    if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+        original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+    else
+        original = self->getBehaviour()->getCopy() ;
 
-	GeneralizedSelfConsistentComposite composite( mesh->get2DMesh()->getConflictingElements ( self->getPrimitive() ) ) ;
-	equivalent = composite.getBehaviour() ;
-/* 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
- 	std::cout << alpha[0] << std::endl ;*/
+    GeneralizedSelfConsistentComposite composite( mesh->get2DMesh()->getConflictingElements ( self->getPrimitive() ) ) ;
+    equivalent = composite.getBehaviour() ;
+    /* 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+     	std::cout << alpha[0] << std::endl ;*/
 
-	v.push_back( XI );
-	v.push_back( ETA );
+    v.push_back( XI );
+    v.push_back( ETA );
 
-	reverted = false ;
+    reverted = false ;
 } ;
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), self2d( self ), mesh( nullptr ), self3d( nullptr ), equivalent( nullptr )
+HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), equivalent( nullptr ), mesh( nullptr ), self2d( self ), self3d( nullptr )
 {
-	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
-		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
-	else
-		original = self->getBehaviour()->getCopy() ;
+    if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+        original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+    else
+        original = self->getBehaviour()->getCopy() ;
 
 
-	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-	equivalent = composite.getBehaviour() ;
-/*	equivalent = composite.inclusions[0].getBehaviour() ;
-	equivalent->getTensor(Point(0,0)).print() ;*/
-	
+    VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+    equivalent = composite.getBehaviour() ;
+    /*	equivalent = composite.inclusions[0].getBehaviour() ;
+    	equivalent->getTensor(Point(0,0)).print() ;*/
+
 // 	if(original->getFractureCriterion())
 // 	{
 // 	    FractureCriterion * frac = original->getFractureCriterion() ;
@@ -74,107 +74,107 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
 // 	}
 // 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
 // 	Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
- //	std::cout << alpha[0] << std::endl ;
+//	std::cout << alpha[0] << std::endl ;
 
-	v.push_back( XI );
-	v.push_back( ETA );
+    v.push_back( XI );
+    v.push_back( ETA );
 
-	reverted = false ;
-	
+    reverted = false ;
+
 }
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTetrahedron *self ) : LinearForm( Matrix(), true, false, 3 ), self3d( self ), mesh( nullptr ), self2d( nullptr ), equivalent( nullptr )
+HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTetrahedron *self ) : LinearForm( Matrix(), true, false, 3 ), equivalent( nullptr ), mesh( nullptr ), self2d( nullptr ), self3d( self )
 {
-	
-	
-	if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
-		original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
-	else
-		original = self->getBehaviour()->getCopy() ;
-	
-	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-	equivalent = composite.inclusions[0].getBehaviour() ;
-	equivalent->getTensor(Point(0,0)).print() ;
-	
-/*	if(original->getFractureCriterion())
-	{
-		FractureCriterion * frac = original->getFractureCriterion() ;
-		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-		std::cout << alpha[0] << std::endl ;
-		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac->getCopy()) ;
-	}*/
-	
-	v.push_back( XI );
-	v.push_back( ETA );
-	v.push_back( ZETA );
-	
-	reverted = false ;
-	
+
+
+    if( dynamic_cast<HomogeneisedBehaviour *>( self->getBehaviour() ) )
+        original = static_cast<HomogeneisedBehaviour *>( self->getBehaviour() )->getOriginalBehaviour()->getCopy() ;
+    else
+        original = self->getBehaviour()->getCopy() ;
+
+    VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+    equivalent = composite.inclusions[0].getBehaviour() ;
+    equivalent->getTensor(Point(0,0)).print() ;
+
+    /*	if(original->getFractureCriterion())
+    	{
+    		FractureCriterion * frac = original->getFractureCriterion() ;
+    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
+    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+    		std::cout << alpha[0] << std::endl ;
+    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac->getCopy()) ;
+    	}*/
+
+    v.push_back( XI );
+    v.push_back( ETA );
+    v.push_back( ZETA );
+
+    reverted = false ;
+
 }
 
-void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self) 
+void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTriangle * self)
 {
 
-	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-/*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-	FractureCriterion * fracCopy = nullptr ;
-	if(frac)
-	{
-		fracCopy = frac->getCopy() ;
-	}*/
-	delete equivalent ;
-	equivalent = composite.getBehaviour() ;
-/*	if(fracCopy)
-	{
-		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-		delete equivalent ;
-		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
-	}*/
-	
-	
+    VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+    /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
+    	FractureCriterion * fracCopy = nullptr ;
+    	if(frac)
+    	{
+    		fracCopy = frac->getCopy() ;
+    	}*/
+    delete equivalent ;
+    equivalent = composite.getBehaviour() ;
+    /*	if(fracCopy)
+    	{
+    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
+    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+    		delete equivalent ;
+    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
+    	}*/
+
+
 }
 
-void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTetrahedron * self) 
+void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTetrahedron * self)
 {
-	VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-/*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-	FractureCriterion * fracCopy = nullptr ;
-	if(frac)
-	{
-		fracCopy = frac->getCopy() ;
-	}*/
-	delete equivalent ;
-	equivalent = composite.getBehaviour() ;
-/*	if(fracCopy)
-	{
-		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-		delete equivalent ;
-		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
-	}*/
-	
-	
+    VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
+    /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
+    	FractureCriterion * fracCopy = nullptr ;
+    	if(frac)
+    	{
+    		fracCopy = frac->getCopy() ;
+    	}*/
+    delete equivalent ;
+    equivalent = composite.getBehaviour() ;
+    /*	if(fracCopy)
+    	{
+    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
+    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
+    		delete equivalent ;
+    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
+    	}*/
+
+
 }
 
 
-HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), mesh( mesh ), self2d( nullptr ), self3d( self ), equivalent( nullptr )
+HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahedron *self ) : LinearForm( Matrix(), false, false, 3 ), equivalent( nullptr ), mesh( mesh ), self2d( nullptr ), self3d( self )
 {
 
-	original = self->getBehaviour() ;
+    original = self->getBehaviour() ;
 
-	if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
-		original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
+    if( dynamic_cast<HomogeneisedBehaviour *>( original ) )
+        original = static_cast<HomogeneisedBehaviour *>( original )->getOriginalBehaviour() ;
 
-	GeneralizedSelfConsistentComposite composite( mesh->get3DMesh()->getConflictingElements( self->getPrimitive() ) );
-	equivalent = composite.getBehaviour() ;
+    GeneralizedSelfConsistentComposite composite( mesh->get3DMesh()->getConflictingElements( self->getPrimitive() ) );
+    equivalent = composite.getBehaviour() ;
 
-	v.push_back( XI );
-	v.push_back( ETA );
-	v.push_back( ZETA );
+    v.push_back( XI );
+    v.push_back( ETA );
+    v.push_back( ZETA );
 
-	reverted = false ;
+    reverted = false ;
 
 } ;
 
@@ -187,29 +187,29 @@ HomogeneisedBehaviour::~HomogeneisedBehaviour()
 void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const
 {
 // 	param.print() ;
-	equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
+    equivalent->apply( p_i, p_j, gp, Jinv, ret, vm ) ;
 }
 
 void HomogeneisedBehaviour::step( double timestep, ElementState &currentState, double maxscore )
 {
-	if( type == VOID_BEHAVIOUR )
-		return ;
+    if( type == VOID_BEHAVIOUR )
+        return ;
 
-	if( reverted )
-	{
-		return ;
-	}
+    if( reverted )
+    {
+        return ;
+    }
 
-	bool revert = false ;
+    bool revert = false ;
 
-	if( revert )
-	{
-		ft.clear() ;
-		delete equivalent ;
-		equivalent = original ;
-		reverted = true ;
-		return ;
-	}
+    if( revert )
+    {
+        ft.clear() ;
+        delete equivalent ;
+        equivalent = original ;
+        reverted = true ;
+        return ;
+    }
 
 
 }
@@ -217,35 +217,35 @@ void HomogeneisedBehaviour::step( double timestep, ElementState &currentState, d
 
 bool HomogeneisedBehaviour::fractured() const
 {
-	return false ;
+    return false ;
 }
 
 Form * HomogeneisedBehaviour::getCopy() const
 {
-	Form * copy =  equivalent->getCopy() ;
-	
+    Form * copy =  equivalent->getCopy() ;
 
-	return copy ; 
+
+    return copy ;
 //	return new HomogeneisedBehaviour( *this ) ;
 }
 
 std::vector<BoundaryCondition * > HomogeneisedBehaviour::getBoundaryConditions( const ElementState &s,  size_t id, const Function &p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const
 {
-	return equivalent->getBoundaryConditions( s, id, p_i, gp, Jinv ) ;
+    return equivalent->getBoundaryConditions( s, id, p_i, gp, Jinv ) ;
 }
 
 Vector HomogeneisedBehaviour::getImposedStress( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getImposedStress( p , e, g) ;
+    return equivalent->getImposedStress( p , e, g) ;
 }
 
 Vector HomogeneisedBehaviour::getImposedStrain( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getImposedStrain( p , e, g) ;
+    return equivalent->getImposedStrain( p , e, g) ;
 }
 
 Matrix HomogeneisedBehaviour::getTensor( const Point &p, IntegrableEntity * e, int g ) const
 {
-	return equivalent->getTensor( p, e,g  ) ;
+    return equivalent->getTensor( p, e,g  ) ;
 }
 

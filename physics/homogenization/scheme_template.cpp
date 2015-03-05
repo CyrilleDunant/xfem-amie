@@ -540,10 +540,8 @@ std::vector<double> SchemeTemplate::elasticitySelfConsistentScheme(std::vector<s
 		data_inc.push_back(empt3) ;
 	}
 
-	double f_mat_hom = 1. - data_mat[1][0] ;
 	double & k_mat_hom = data_mat[0][0] ;
 	double & mu_mat_hom = data_mat[0][1] ;
-	double f_inc_hom = 1. - data_inc[1][0] ;
 	double & k_inc_hom = data_inc[0][0] ;
 	double & mu_inc_hom = data_inc[0][1] ;
 
@@ -626,7 +624,6 @@ std::vector<double> SchemeTemplate::elasticityGeneralizedSelfConsistentScheme(st
 	next_hom.push_back(kmu_mean[1]) ;
 	
 	double error = 1. ;
-	int nit = 0 ;
 	
 	std::vector<std::vector<double> > iscm ;
 	std::vector<std::vector<double> > isc ;

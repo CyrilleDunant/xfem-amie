@@ -83,9 +83,6 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	if( s.getParent()->getBehaviour()->fractured() )
 		return -1 ;
 
-
-	double ret = -1. ;
-
 	std::pair<Vector, Vector> stateBefore( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, -1) ) ;
 	std::pair<Vector, Vector> stateAfter( getSmoothedFields( PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s, 1) ) ;
 

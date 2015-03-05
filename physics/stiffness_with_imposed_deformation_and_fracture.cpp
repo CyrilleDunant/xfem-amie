@@ -16,7 +16,7 @@
 
 using namespace Amie ;
 
-StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.2)
+StiffnessWithImposedDeformationAndFracture::StiffnessWithImposedDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, false, false, rig.numRows()/3+1), imposed(imposedDef), eps(0.2), criterion(crit)
 {
 	dfunc = new IsotropicLinearDamage() ;
 	crit->setMaterialCharacteristicRadius(eps) ;

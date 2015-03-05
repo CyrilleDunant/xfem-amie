@@ -1122,7 +1122,6 @@ std::vector<Point> Plane::intersection(const Geometry * g) const
 Point Plane::intersection(const Line &l) const
 {
     double lambda = 0  ;
-    double c = p*v ;
 
     if(std::abs(v*(l.origin() + l.vector() - p )) < POINT_TOLERANCE_3D)
     {
@@ -1658,18 +1657,18 @@ bool Geometry::intersects(const Geometry *g) const
         }
         if(g->getGeometryType() == HEXAHEDRON)
         {
-            if(getCenter().getX() < g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
-               getCenter().getX() > g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius()||
-               getCenter().getX() < g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
-               getCenter().getX() > g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius()||
-               getCenter().getY() < g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
-               getCenter().getY() > g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius()||
-               getCenter().getY() < g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
-               getCenter().getY() > g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius()||
-               getCenter().getZ() < g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
-               getCenter().getZ() > g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius()|| 
-               getCenter().getZ() < g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
-               getCenter().getZ() > g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius()
+            if((getCenter().getX() < g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
+               getCenter().getX() > g->getCenter().getX()-static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius())||
+               (getCenter().getX() < g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 +getRadius()&&
+               getCenter().getX() > g->getCenter().getX()+static_cast<const Hexahedron *>(g)->getXSize()*.5 -getRadius())||
+               (getCenter().getY() < g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
+               getCenter().getY() > g->getCenter().getY()-static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius())||
+               (getCenter().getY() < g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 +getRadius()&&
+               getCenter().getY() > g->getCenter().getY()+static_cast<const Hexahedron *>(g)->getYSize()*.5 -getRadius())||
+               (getCenter().getZ() < g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
+               getCenter().getZ() > g->getCenter().getZ()-static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius())|| 
+               (getCenter().getZ() < g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 +getRadius()&&
+               getCenter().getZ() > g->getCenter().getZ()+static_cast<const Hexahedron *>(g)->getZSize()*.5 -getRadius())
             )
                 return true ;
             
@@ -3340,7 +3339,6 @@ bool Line::intersects(const TriPoint &g) const
 
 std::vector<Point> Line::intersection(const TriPoint &s) const
 {
-    Point u = *s.point[1]-*s.point[0] ;
     Point v = *s.point[2]-*s.point[0] ;
     double a = -(s.normal*(p-*s.point[0])) ;
     double b = v*s.normal ;
@@ -3872,7 +3870,6 @@ bool Segment::intersects(const Geometry *g) const
     }
     case TRIANGLE:
     {
-        bool ret = false ;
         std::vector<Point> pts ;
         std::multimap<double, Point> pt ;
         if( g->getBoundingPoints().size() != 3)
@@ -5563,7 +5560,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Point &f0, const Poin
     Point f2_(f2.getX()*renorm-centre.getX()*renorm,f2.getY()*renorm-centre.getY()*renorm,f2.getZ()*renorm-centre.getZ()*renorm) ;
 
     Point AB = Point(f0_.getX()-f1_.getX(),f0_.getY()-f1_.getY(),f0_.getZ()-f1_.getZ())^Point(f2_.getX()-f1_.getX(),f2_.getY()-f1_.getY(),f2_.getZ()-f1_.getZ()) ;
-    for(size_t i = 0 ; i < numpoints ; i++)
+    for(int i = 0 ; i < numpoints ; i++)
     {
         Point test_(**(pts+i)*renorm-centre*renorm) ;
 

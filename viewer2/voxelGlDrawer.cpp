@@ -443,7 +443,7 @@ void VoxelGLDrawer::paintGL() {
 // 	int elapsedTime = startTime.msecsTo(QTime::currentTime());
 // 	renderText(10, 20, QString("%0 fps").arg(1000.0f / (float)elapsedTime));
 	
-	glFlush();
+// 	glFlush();
 	swapBuffers() ;
 }
 

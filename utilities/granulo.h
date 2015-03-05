@@ -196,6 +196,7 @@ public:
 class ParticleSizeDistribution
 {
 public:
+    virtual ~ParticleSizeDistribution() {} ;
 		/**
 	 * \brief Gives the next diameter for 2D inclusions. This method is to be overloaded by inherited classes
 	 * @param diameter previous diameter found in the distribution

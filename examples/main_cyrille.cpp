@@ -338,7 +338,7 @@ void step()
 	size_t max_limit = 2000 ;
 	int limit = 0 ;
 	
-	for(int s = 0 ; s < max_growth_steps ; s++)
+	for(size_t s = 0 ; s < max_growth_steps ; s++)
 	{
 		go = featureTree->step() ;
 		featureTree->setDeltaTime(.1);
@@ -387,7 +387,7 @@ void step()
             {       
                 double ar = triangles[k]->area() ;
                 volume += ar ;
-                for(size_t l = 0 ; l < npoints ;l++)
+                for(int l = 0 ; l < npoints ;l++)
                 {
                     xavg += x[triangles[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
                     yavg += x[triangles[k]->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
@@ -563,7 +563,7 @@ struct Block
 		if(series)
 		{
 			double k = 0 ;
-			for(int i = 0 ; i < blocks.size() ; i++)
+			for(size_t i = 0 ; i < blocks.size() ; i++)
 			{
 				k += 1./blocks[i]->equivStifness() ;
 			}
@@ -573,7 +573,7 @@ struct Block
 		else
 		{
 			double k = 0 ;
-			for(int i = 0 ; i < blocks.size() ; i++)
+			for(size_t i = 0 ; i < blocks.size() ; i++)
 			{
 				k += blocks[i]->equivStifness() ;
 			}

@@ -53,8 +53,8 @@ TriangleWriter::TriangleWriter( std::string f, FeatureTree *F, int t )
 			if( timePlane.back() < 0 )
 				timePlane.back() = 0 ;
 
-			if( timePlane.back() >= source->get2DMesh(layers[j])->begin()->timePlanes() )
-				timePlane.back() = source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
+			if( timePlane.back() >= (int)source->get2DMesh(layers[j])->begin()->timePlanes() )
+				timePlane.back() = (int)source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
 			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
@@ -85,7 +85,7 @@ MultiTriangleWriter::MultiTriangleWriter(std::string h, std::string b, FeatureTr
 void TriangleWriter::reset( FeatureTree *F, int t )
 {
 	fields.clear();
-	if(counter > values.size()-1)
+	if(counter > (int)values.size()-1)
 	{
 		values.push_back(std::vector< std::vector<std::valarray<double> > >(0));
 		values.back().clear() ;
@@ -123,8 +123,8 @@ void TriangleWriter::reset( FeatureTree *F, int t )
 			if( timePlane.back() < 0 )
 				timePlane.back() = 0 ;
 
-			if( timePlane.back() >= source->get2DMesh(layers[j])->begin()->timePlanes() )
-				timePlane.back() = source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
+			if( timePlane.back() >= (int)source->get2DMesh(layers[j])->begin()->timePlanes() )
+				timePlane.back() = (int)source->get2DMesh(layers[j])->begin()->timePlanes() - 1 ;
 
 			layerTranslator[layers[j]] = j ;
 			values.back().push_back( std::vector<std::valarray<double> >( 0 ) );
@@ -218,7 +218,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 		}
 	}
 	
-	for(size_t j = 0 ; j < counter ; j++)
+	for(int j = 0 ; j < counter ; j++)
 	{
 		for( int i = 0 ; i < nTriangles[0] ; i++ )
 		{
@@ -231,7 +231,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 	// assume that we want the total height to be 400 px
 	double gfactor = 400./(maxy-miny) ;
 
-	for(size_t m = 0 ; m < counter ; m++)
+	for(int m = 0 ; m < counter ; m++)
 	{
 
 		
@@ -283,7 +283,7 @@ void TriangleWriter::writeSvg(double factor, bool incolor)
 				{
 // 					std::cout << m << "  " << l << "  " << j << "  " << i << "  " << std::endl ;
 // 					std::cout << values.size() << "  " << values[m].size() << "  " << values[m][l].size() << "  " << values[m][l][j].size()  << "  " << std::endl ;
-					for(size_t p = 0 ; p < counter ; p++)
+					for(int p = 0 ; p < counter ; p++)
 					{
 						maxval.back() = std::max(values[p][l][j][i], maxval.back()) ;
 						minval.back() = std::min(values[p][l][j][i], minval.back()) ;
@@ -784,8 +784,8 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 			int pointsPerTri = source->get2DMesh(layer)->begin()->getBoundingPoints().size() ;
 			int pointsPerTimePlanes = pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 			int factor = pointsPerTimePlanes / 3 ;
-			if( timePlane[layerTranslator[layer]] >= source->get2DMesh(layer)->begin()->timePlanes() )
-				timePlane[layerTranslator[layer]] = source->get2DMesh(layer)->begin()->timePlanes() - 1 ;
+			if( timePlane[layerTranslator[layer]] >= (int)source->get2DMesh(layer)->begin()->timePlanes() )
+				timePlane[layerTranslator[layer]] = (int)source->get2DMesh(layer)->begin()->timePlanes() - 1 ;
 
 			int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 
@@ -940,7 +940,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 				{
 					if( val.first )
 					{
-						for( size_t j = 0 ; j < numberOfFields( field , index, fieldsOther, fieldsInternal) ; j++ )
+						for( int j = 0 ; j < numberOfFields( field , index, fieldsOther, fieldsInternal) ; j++ )
 							ret[j][iterator] = val.second[j] ;
 
 						iterator++ ;
@@ -991,7 +991,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
             i->getState().getField(field,  i->getBoundingPoint(time_offset+n), second, false, 0);
             i->getState().getField(field,  i->getBoundingPoint(time_offset+2*n), third, false, 0);
 			
-			for(size_t j = 0 ; j < size ; j++)
+			for(int j = 0 ; j < size ; j++)
 			{
 				ret[(size-1-j)*3+2][iterator] = third[j] ;
 				ret[(size-1-j)*3+1][iterator] = second[j] ;

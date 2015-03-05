@@ -271,7 +271,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getElements()
         for(const auto & t : tmp)
         {
 
-            if(getDomain(t) == i)
+            if(getDomain(t) == (int)i)
                 tris[i].push_back(t);
         }
     }
@@ -770,7 +770,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
             Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
             stress.resize ( tsize, 0. ) ;
             strain.resize ( tsize, 0. ) ;
-            for ( size_t i = 0 ; i < tsize ; i++ ) {
+            for ( int i = 0 ; i < tsize ; i++ ) {
                 stress[i] = tmpstress[i] ;
                 strain[i] = tmpstrain[i] ;
             }
@@ -896,7 +896,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
             Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
             stress.resize ( tsize, 0. ) ;
             strain.resize ( tsize, 0. ) ;
-            for ( size_t i = 0 ; i < tsize ; i++ ) {
+            for ( int i = 0 ; i < tsize ; i++ ) {
                 stress[i] = tmpstress[i] ;
                 strain[i] = tmpstrain[i] ;
             }

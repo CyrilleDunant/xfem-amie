@@ -315,7 +315,6 @@ DamageModel * BimaterialInterface::getDamageModel() const
 	double max = -2 ;
 	int ret = 0 ;
 
-	double inScore = 0. ;
 	double outScore = 0. ;
 	DamageModel * inCriterion = inBehaviour->getDamageModel() ;
 	DamageModel * outCriterion = outBehaviour->getDamageModel() ;
@@ -350,7 +349,6 @@ FractureCriterion * BimaterialInterface::getFractureCriterion() const
 	double max = -2 ;
 	int ret = 0 ;
 
-	double inScore = 0. ;
 	double outScore = 0. ;
 	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
 	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;

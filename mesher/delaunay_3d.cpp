@@ -181,7 +181,6 @@ void Star3D::updateNeighbourhood()
 
     std::sort( &items[0], &items[count] ) ;
     auto e = std::unique( &items[0], &items[count] ) ;
-    size_t end =  e - &items[0] ;
 
     if( !items.size() )
         return ;
@@ -278,9 +277,9 @@ void DelaunayTree3D::extrude(const Vector & dt)
                 current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 
                 std::vector<Point *> newPoints ;
-                if( j < indexOfLastTimePlane)
+                if( (int)j < indexOfLastTimePlane)
                 {
-                    if( j < pointsPerTimePlane )
+                    if( (int)j < pointsPerTimePlane )
                     {
                         newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
                     }
@@ -980,9 +979,9 @@ void DelaunayTreeItem3D::removeNeighbour( DelaunayTreeItem3D *t )
     {
         std::valarray<unsigned int>  newneighbours(neighbour.size()-1) ;
         int iterator = 0 ;
-        for(int i = 0 ; i < neighbour.size() ; i++)
+        for(size_t i = 0 ; i < neighbour.size() ; i++)
         {
-            if(neighbour[i] == t->index)
+            if((int)neighbour[i] == t->index)
                 continue ;
 
             newneighbours[iterator] = neighbour[i] ;
@@ -1930,9 +1929,7 @@ bool DelaunayDemiSpace::onCircumSphere( const Point &p ) const
     double signedDistP = p.getX() * pseudonormal.getX() * tree->getInternalScale() +
                          p.getY() * tree->getInternalScale() * pseudonormal.getY() +
                          p.getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
-    double signedDistF = fourth->getX() * tree->getInternalScale() * pseudonormal.getX() +
-                         fourth->getY() * tree->getInternalScale() * pseudonormal.getY() +
-                         fourth->getZ() * tree->getInternalScale() * pseudonormal.getZ() - planeConst;
+
     return std::abs( signedDistP ) < POINT_TOLERANCE_3D*tree->getInternalScale() ;
 
 }
@@ -2533,11 +2530,6 @@ void DelaunayTree3D::purge()
     std::cerr << " ...done. " << tree.size() << " elements kept from " << originalSize << "." << std::endl ;
 }
 
-void DelaunayTetrahedron::refresh( const TetrahedralElement *father )
-{
-    TetrahedralElement::refresh( father ) ;
-}
-
 std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts(const Geometry *g )
 {
 
@@ -2721,8 +2713,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
         return cachedElementaryMatrix ;
     }
 
-    int dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
-    int ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+    size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
+    size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
     if(enrichmentUpdated || behaviourUpdated
             || cachedElementaryMatrix.size() == 0
@@ -2852,7 +2844,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementar
         return cachedViscousElementaryMatrix ;
     }
 
-    int dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
+    size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
 
     if( enrichmentUpdated || behaviourUpdated
             || cachedViscousElementaryMatrix.size() == 0
@@ -2975,7 +2967,6 @@ void DelaunayTree3D::extrude(double dt)
     }
 
     int indexOfLastTimePlane = (tet[0]->timePlanes()-1)*tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
-    int pointsPerTimePlane = tet[0]->getBoundingPoints().size()/tet[0]->timePlanes() ;
 
     for(size_t i = 0 ; i < tet.size() ; i++)
     {
@@ -3001,10 +2992,6 @@ void DelaunayTree3D::extrude(double dt)
     std::map<Point *, Point *>::iterator finder ;
     for(size_t i = 0 ; i < tet.size() ; i++)
     {
-        Point * a = points.find(&tet[i]->getBoundingPoint(0))->second ;
-        Point * b = points.find(&tet[i]->getBoundingPoint(pointsPerTimePlane/4))->second ;
-        Point * c = points.find(&tet[i]->getBoundingPoint(2*pointsPerTimePlane/4))->second ;
-        Point * d = points.find(&tet[i]->getBoundingPoint(3*pointsPerTimePlane/4))->second ;
 
         std::valarray<Point *> newPoints(tet[i]->getBoundingPoints().size()) ;
         for(size_t j = 0 ; j < newPoints.size() ; j++)
@@ -3258,7 +3245,7 @@ std::vector<Point *> DelaunayTetrahedron::getIntegrationHints() const
         {
             bool go = true ;
 
-            for( int k = 0 ; k < to_add.size()  ; k++ )
+            for( size_t k = 0 ; k < to_add.size()  ; k++ )
             {
                 if( squareDist3D( getEnrichmentFunction( i ).getIntegrationHint( j ), *to_add[k] ) < .005 )
                 {
@@ -3305,7 +3292,7 @@ const GaussPointArray &DelaunayTetrahedron::getSubTriangulatedGaussPoints()
         {
             TetrahedralElement father(LINEAR) ;
 
-            int target = 1024*4 ;
+            size_t target = 1024*4 ;
 
             double npoints = 8 ;
 

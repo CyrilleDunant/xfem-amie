@@ -20,7 +20,7 @@
 namespace Amie
 {
     
-class ParallelDelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
+class ParallelDelaunayTree3D : virtual public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
     int getDomain(const DelaunayTetrahedron * tet) const;
     int getMesh(const DelaunayTreeItem3D * self) const;
@@ -38,8 +38,6 @@ protected:
 //     std::vector<double> maxRadius ;
     int global_counter ;
 public:
-    virtual std::vector<DelaunayTreeItem3D *> & getTree() ;
-    virtual const std::vector<DelaunayTreeItem3D *> & getTree() const;
     virtual std::vector<Point * > & getAdditionalPoints()  ;
     virtual const std::vector<Point * > & getAdditionalPoints() const  ;
     virtual void extrude(double dt);
@@ -93,255 +91,31 @@ public:
     
     virtual unsigned int generateCache () ;
     
-    Vector getField( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0) ;
+    Vector getField( FieldType f, int cacheID, int dummy = 0, double t = 0) ;
 
-    Vector getField( Amie::FieldType f, int dummy = 0, double t = 0) ;
+    Vector getField( FieldType f, int dummy = 0, double t = 0) ;
     
-    Vector getSmoothedField (  Amie::FieldType f0, unsigned int cacheID, Amie::IntegrableEntity* e, int dummy = 0, double t = 0 ) ;
+    Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity* e, int dummy = 0, double t = 0 ) ;
     
-    std::pair<Vector, Vector> getSmoothedFields ( Amie::FieldType f0, Amie::FieldType f1, unsigned int cacheID, Amie::IntegrableEntity* e, int dummy = 0, double t = 0 ) ;  
+    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity* e, int dummy = 0, double t = 0 ) ;  
       
-    class iterator
+        
+    virtual const DelaunayTetrahedron * getElement(size_t cacheID, size_t position) const 
     {
-    private:
-        ParallelDelaunayTree3D * msh ;
-        size_t cacheID ;
-        size_t position ;
-
-    public:
-        iterator( ParallelDelaunayTree3D * msh, size_t cacheID, size_t position ) : msh(msh), cacheID(cacheID), position(position) { } ;
-        iterator( ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
-        { 
-            cacheID = msh->allElementsCacheID ;
-        } ;
-        bool operator ==(const iterator & i) const
-        {
-            return i.position == position ;
-        }
-        bool operator !=(const iterator & i) const
-        {
-            return i.position != position ;
-        }
-        bool operator <=(const iterator & i)const
-        {
-            return position <= i.position ;
-        }
-        bool operator <(const iterator & i) const
-        {
-            return position < i.position ;
-        }
-        bool operator >=(const iterator & i)const
-        {
-            return position >= i.position ;
-        }
-        bool operator >(const iterator & i) const
-        {
-            return position > i.position ;
-        }
+        int meshId = elementMap[cacheID][position] ;
+        int elemID = caches[cacheID][position] ;
         
-        
-        iterator& operator++() {
-            position++ ;
-            // actual increment takes place here
-            return *this;
-        }
-        
-        iterator operator++(int) {
-            iterator tmp(*this); // copy
-            operator++(); // pre-increment
-            return tmp;   // return old value
-        }
-        
-        iterator& operator+=(int i) {
-            position +=i ;
-            return *this;
-        }
-        
-        friend iterator operator+(iterator lhs,  int i) 
-        {
-            return lhs += i; 
-        }
-        
-        iterator& operator--() {
-            position-- ;
-            return *this;
-        }
-        
-        iterator operator--(int) {
-            iterator tmp(*this); // copy
-            operator--(); // pre-increment
-            return tmp;   // return old value
-        }
-        
-        iterator& operator-=(int i) {
-            position -=i ;
-            return *this;
-        }
-        
-        friend iterator operator-(iterator lhs,  int i) 
-        {
-            return lhs -= i; 
-        }
-        
-        DelaunayTetrahedron * operator-> ( ) {
-            int meshId = msh->elementMap[cacheID][position] ;
-            int elemID = msh->caches[cacheID][position] ;
-            return static_cast<DelaunayTetrahedron *>(msh->meshes[meshId]->getInTree(elemID)) ;
-        }
-        
-         operator DelaunayTetrahedron *(){ 
-            return static_cast< DelaunayTetrahedron *>(msh->getInTree(msh->caches[cacheID][position])) ;
-        } 
-        
-        size_t size() const
-        {
-            return msh->caches[cacheID].size() ;
-        }
-        size_t getPosistion() const
-        {
-            return position ;
-        }
-        size_t getId() const {return cacheID ; }
-        
-    } ;
+        return static_cast<const DelaunayTetrahedron *>(meshes[meshId]->getInTree(elemID)) ;
+    };
     
-    class const_iterator
+    virtual  DelaunayTetrahedron * getElement(size_t cacheID, size_t position)  
     {
-    private:
-        const ParallelDelaunayTree3D * msh ;
-        size_t cacheID ;
-        size_t position ;
-    public:
-        const_iterator( const ParallelDelaunayTree3D * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        int meshId = elementMap[cacheID][position] ;
+        int elemID = caches[cacheID][position] ;
         
-        const_iterator( const ParallelDelaunayTree3D * msh, size_t position) : msh(msh), position(position) 
-        { 
-            cacheID = msh->allElementsCacheID ;
-        } ;
+        return static_cast<DelaunayTetrahedron *>(meshes[meshId]->getInTree(elemID)) ;
+    };
         
-        bool operator ==(const const_iterator & i) const
-        {
-            return i.position == position ;
-        }
-        bool operator !=(const const_iterator & i) const
-        {
-            return i.position != position ;
-        }
-        bool operator <=(const const_iterator & i)const
-        {
-            return position <= i.position ;
-        }
-        bool operator <(const const_iterator & i) const
-        {
-            return position < i.position ;
-        }
-        bool operator >=(const const_iterator & i)const
-        {
-            return position >= i.position ;
-        }
-        bool operator >(const const_iterator & i) const
-        {
-            return position > i.position ;
-        }
-        
-        const_iterator& operator++() {
-            position++ ;
-            // actual increment takes place here
-            return *this;
-        }
-        
-        const_iterator operator++(int) {
-            const_iterator tmp(*this); // copy
-            operator++(); // pre-increment
-            return tmp;   // return old value
-        }
-        
-        const_iterator& operator+=(int i) {
-            position +=i ;
-            return *this;
-        }
-        
-        friend const_iterator operator+(const_iterator lhs,  int i) 
-        {
-            return lhs += i; 
-        }
-        
-        const_iterator& operator--() {
-            position-- ;
-            return *this;
-        }
-        
-        const_iterator operator--(int) {
-            const_iterator tmp(*this); // copy
-            operator--(); // pre-increment
-            return tmp;   // return old value
-        }
-        
-        const_iterator& operator-=(int i) {
-            position -=i ;
-            return *this;
-        }
-        
-        friend const_iterator operator-(const_iterator lhs,  int i) 
-        {
-            return lhs -= i; 
-        }
-        
-        const DelaunayTetrahedron * operator-> ( ) const { 
-            return static_cast<const DelaunayTetrahedron *> (msh->meshes[msh->elementMap[cacheID][position]]->getInTree(msh->caches[cacheID][position])) ;
-        }
-        operator const DelaunayTetrahedron * () const { 
-            return static_cast<const DelaunayTetrahedron *>(msh->getInTree(msh->caches[cacheID][position])) ;
-        } 
-        
-        size_t size() const
-        {
-            return msh->caches[cacheID].size() ;
-        }
-        size_t getPosistion() const
-        {
-            return position ;
-        }
-        size_t getId() const {return cacheID ; }
-    } ;
-    
-    
-    iterator begin()
-    {
-        return iterator(this, 0) ;
-    }
-    const_iterator cbegin() const 
-    {
-        return const_iterator(this, 0) ;
-    }
-    iterator end()
-    {
-        if(allElementsCacheID == -1)
-            allElementsCacheID = generateCache() ;
-        return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
-    }
-    const_iterator cend() const 
-    {
-        return const_iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
-    }
-    
-    iterator begin( size_t cacheID)
-    {
-        return iterator(this, cacheID, 0) ;
-    }
-    const_iterator cbegin(size_t cacheID)
-    {
-        return const_iterator(this, cacheID, 0) ;
-    }
-    iterator end(size_t cacheID)
-    {
-        return iterator(this,cacheID, caches[cacheID].size()) ;
-    }
-    const_iterator cend(size_t cacheID)
-    {
-        return const_iterator(this,cacheID, caches[cacheID].size()) ;
-    }
-
     
 } ;
 } ;

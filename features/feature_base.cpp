@@ -14,7 +14,7 @@
 using namespace Amie ;
 
 
-Feature::Feature(Feature * father) : behaviour(nullptr), m_f(father)
+Feature::Feature(Feature * father) :  m_f(father), behaviour(nullptr)
 {
 	isEnrichmentFeature = false ;
 	isCompositeFeature = false ;

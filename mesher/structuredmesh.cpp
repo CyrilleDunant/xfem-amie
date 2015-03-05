@@ -702,9 +702,9 @@ void MicDerivedMesh::extrude(const Vector & dt)
                 current->getT() = dt[0]+(dt[1]-dt[0])*(current->getT() - beginning)/(end-beginning) ;
 
                 std::vector<Point *> newPoints ;
-                if( j < indexOfLastTimePlane)
+                if( (int)j < indexOfLastTimePlane)
                 {
-                    if( j < pointsPerTimePlane )
+                    if( (int)j < pointsPerTimePlane )
                     {
                         newPoints.push_back(&tri[i]->getBoundingPoint(indexOfLastTimePlane+j)) ;
                     }

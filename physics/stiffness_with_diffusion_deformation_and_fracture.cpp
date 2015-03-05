@@ -17,7 +17,7 @@
 
 using namespace Amie ;
 
-StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), criterion(crit), eps(0.002)
+StiffnessWithDiffusionDeformationAndFracture::StiffnessWithDiffusionDeformationAndFracture(const Matrix & rig, Vector imposedDef, FractureCriterion * crit) : LinearForm(rig, true, false, rig.numRows()/3+1), imposed(imposedDef), eps(0.002), criterion(crit)
 {
 	dfunc = new IsotropicLinearDamage() ;
 	criterion->setMaterialCharacteristicRadius(eps) ;
@@ -63,7 +63,7 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 	//first, we diffuse
 	DelaunayTriangle * tri = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;
 	DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *>(currentState.getParent()) ;
-	double increment ;
+	double increment  = 0;
 	if(tri)
 	{
 		for(size_t i = 0 ; i < tri->neighbour.size() ; i++)

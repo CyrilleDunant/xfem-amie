@@ -11,6 +11,7 @@ struct LogCreepAccumulator
 	std::vector<double> error ;
 
 	LogCreepAccumulator() { } ;
+    virtual ~LogCreepAccumulator() { } ;
 	virtual void preProcess( double timeStep, ElementState & currentState ) ;
 	virtual double getKelvinVoigtSpringReduction() const { return 1. ; }
 	virtual double getKelvinVoigtDashpotReduction() const { return 1. ; }
@@ -38,7 +39,7 @@ struct TimeUnderLoadLogCreepAccumulator : public LogCreepAccumulator
 	double tau ;
 	double previousTimeStep ;
 	double realtime ;
-	TimeUnderLoadLogCreepAccumulator() : LogCreepAccumulator(), accumulatedStress(0.), currentStress(0.), previousTimeStep(0.), tau(1.), realtime(0.) { } ;
+	TimeUnderLoadLogCreepAccumulator() : LogCreepAccumulator(), accumulatedStress(0.), currentStress(0.), tau(1.), previousTimeStep(0.), realtime(0.) { } ;
 	virtual void preProcess( double timeStep, ElementState & currentState ) ;
 	virtual double getKelvinVoigtSpringReduction() const ;
 	virtual double getKelvinVoigtDashpotReduction() const ;

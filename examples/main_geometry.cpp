@@ -59,9 +59,6 @@ int main(int argc, char *argv[])
 	
 	
   // scale factor (to be adjusted for the meshing)
-  double scale = 1. ;
-  if(argc > 1)
-    scale = atof(argv[1]) ;
   
 	double nu = 0.2 ;
 	double E = 1 ;

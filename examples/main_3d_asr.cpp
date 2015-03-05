@@ -105,7 +105,7 @@ void step()
 	int nstepstot = 10 ;
 	featureTree->setMaxIterationsPerStep( 10000 ) ;
 	
-	for( size_t s = 0 ; s < nsteps ; s++ )
+	for( int s = 0 ; s < nsteps ; s++ )
 	{
 		std::cout << "\r iteration " << s << "/" << nsteps << std::flush ;
 		bool go_on = featureTree->step() ;
@@ -240,7 +240,7 @@ void step()
 					{
 						stopped_reaction++ ;
 						
-						for( size_t m = 0 ; m < current_number ; m++ )
+						for( int m = 0 ; m < current_number ; m++ )
 						{
 							reactedArea -= zones[z - 1 - m].first->volume() ;
 							zones[z - 1 - m].first->setRadius( zones[z].first->getRadius() - delta_r ) ;
@@ -331,7 +331,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 	GelBehaviour * gel = new GelBehaviour(22e9, 0.3, 0.5, SPACE_THREE_DIMENSIONAL) ;
 	
 	srand(1);
-	for( size_t i = 0 ; i < n ; i++ )
+	for( int i = 0 ; i < n ; i++ )
 	{
 		Point pos( rnd.uniform( sample.getXSize()*0.01, sample.getXSize()*0.99), rnd.uniform( sample.getYSize()*0.01, sample.getYSize()*0.99), rnd.uniform( sample.getZSize()*0.01, sample.getZSize()*0.99) ) ;
 		pos.print() ;
@@ -359,7 +359,7 @@ std::vector<std::pair<ExpansiveZone3D *, Inclusion3D *> > generateExpansiveZones
 	{
 		bool placed = false ;
 		
-		for( int j = 0 ; j < incs.size() ; j++ )
+		for( size_t j = 0 ; j < incs.size() ; j++ )
 		{
 			if( squareDist3D( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < std::pow(incs[j]->getRadius() - radius * radiusFraction, 2. ) )
 			{

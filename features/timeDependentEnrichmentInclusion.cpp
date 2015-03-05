@@ -159,7 +159,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 		bool added = false ;
-		double dt = disc[i]->getState().getNodalDeltaTime() ;
 			
 		bool bin = false ;
 		bool bout = false ;
@@ -465,8 +464,6 @@ void TimeDependentHomogenisingInclusion::enrich(size_t & lastId, Mesh<DelaunayTr
 		double dt = disc[i]->getState().getNodalDeltaTime() ;
 		double t0 = disc[i]->getBoundingPoint(0).getT() ;
 			
-		bool bin = false ;
-		bool bout = false ;
 		for(size_t j = 0 ; j < nodesIterator.size() && !added ; j++)
 		{
 			if(added)

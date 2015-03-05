@@ -54,7 +54,7 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), low
     for(size_t i = 0 ; i < A.row_size.size() ; i++)
     {
         int row = i ;            
-        for(size_t k = 0 ; k < stride ; k++)
+        for(int k = 0 ; k < stride ; k++)
         {                   
             double v = A[row * stride+k][row * stride+k] ;
             long double diag = 1./v ;         
@@ -68,7 +68,7 @@ Ssor::Ssor(const CoordinateIndexedSparseMatrix &A, double omega) : upper(A), low
             {
                 int column = A.column_index[A.accumulated_row_size[i]+j] ;
 
-                for(size_t l = 0 ; l < stride ; l++)
+                for(int l = 0 ; l < stride ; l++)
                 {    
                     if(row*stride+k > column*stride+l)
                     {

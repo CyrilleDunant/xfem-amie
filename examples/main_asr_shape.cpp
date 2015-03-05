@@ -138,6 +138,8 @@ struct Zone
 				return tri ;
 			case RECTANGLE:
 				return rec ;
+            default:
+               return nullptr ; 
 		}
 		return nullptr ;
 	}
@@ -156,6 +158,10 @@ struct Zone
 				return tri->area() ;
 			case RECTANGLE:
 				return rec->area() ;
+            default:
+                std::cout << "unhandled geometry type" << std::endl ;
+                exit(0) ;
+                return 0 ;
 		}
 		return 0. ;
 	}
@@ -173,7 +179,7 @@ void step(GeometryType ref, int samplingNumber)
 	int tries = 0 ;
 	featureTree->setMaxIterationsPerStep(40000) ;
 	
-	for(size_t i = 0 ; i < nsteps ; i++)
+	for(int i = 0 ; i < nsteps ; i++)
 	{
 
 		bool go_on = featureTree->step() ;
@@ -221,7 +227,6 @@ void step(GeometryType ref, int samplingNumber)
 		double e_xx_min = 0 ;
         double e_yy_max = 0 ;
         double e_yy_min = 0 ;
-        double ex_count = 0 ;
 		double avg_e_xx_nogel = 0;
 		double avg_e_yy_nogel = 0;
 		double avg_e_xy_nogel = 0;
@@ -363,7 +368,7 @@ void step(GeometryType ref, int samplingNumber)
 				}
 				
 				double ar = k->area() ;
-				for(size_t l = 0 ; l < npoints ;l++)
+				for(int l = 0 ; l < npoints ;l++)
 				{
 					avg_e_xx += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
 					avg_e_yy += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
@@ -375,7 +380,7 @@ void step(GeometryType ref, int samplingNumber)
 				
 				if(k->getEnrichmentFunctions().size() == 0)
 				{
-					for(size_t l = 0 ; l < npoints ;l++)
+					for(int l = 0 ; l < npoints ;l++)
 					{
 						avg_e_xx_nogel += (epsilon11[k.getPosition()*npoints+l]/npoints)*ar;
 						avg_e_yy_nogel += (epsilon22[k.getPosition()*npoints+l]/npoints)*ar;
@@ -459,6 +464,9 @@ void step(GeometryType ref, int samplingNumber)
 			case RECTANGLE:
 				filename.append("square_") ;
 				break ;
+            default:
+                std::cout << "unhadled inclusino geometry type" << std::endl ;
+                exit(0) ;
 		}
 		filename.append(itoa(samplingNumber, 10)) ;
 		filename.append("_") ;
@@ -538,7 +546,7 @@ void step(GeometryType ref, int samplingNumber)
 					if(current_area/zones[z-1].areaOfInclusion() > 0.05)
 					{
 						stopped_reaction++ ;
-						for(size_t m = 0 ; m < current_number ; m++)
+						for(int m = 0 ; m < current_number ; m++)
 						{
 							reactedArea -= zones[z-1-m].zone->area() ;
 							zones[z-1-m].zone->setRadius(zones[z].zone->getRadius()-delta_r) ;
@@ -593,7 +601,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		double w = sample.width()*0.5-radius*1000. ;
 		double h = sample.width()*0.5-radius*1000. ;
@@ -616,7 +624,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		for(size_t j = 0 ; j < incs.size() ; j++)
 		{
 			Circle circle(incs[j]->getRadius() - radius*1000., incs[j]->getCenter()) ;
 			if(circle.in(zonesToPlace[i]->getCenter()))
@@ -632,7 +640,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		if(!placed)
 			delete zonesToPlace[i] ;
 		
-		if(ret.size() == max)
+		if((int)ret.size() == max)
 		  break ;
 	}
 //	exit(0) ;
@@ -657,7 +665,7 @@ void generatePoresHomogeneously(int n, int max, std::vector<Inclusion * > & incs
 	
 	std::vector<Inclusion *> poresToPlace ;
 	
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		double w = sample.width()*0.5 ;
 		double h = sample.height()*0.5 ;
@@ -677,11 +685,11 @@ void generatePoresHomogeneously(int n, int max, std::vector<Inclusion * > & incs
 	}
 
 
-	size_t count = 0 ;
+	int count = 0 ;
 	for(size_t i = 0 ; i < poresToPlace.size() ; i++)
 	{
 		bool in = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		for(size_t j = 0 ; j < incs.size() ; j++)
 		{
 			Circle circle(incs[j]->getRadius() + radius*3, incs[j]->getCenter()) ;
 			if(circle.in(poresToPlace[i]->getCenter()))
@@ -714,7 +722,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		double w = sample.width()*0.5-radius*1000 ;
 		double h = sample.width()*0.5-radius*1000 ;
@@ -737,7 +745,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		for(size_t j = 0 ; j < incs.size() ; j++)
 		{
 			Ellipse ellipse(incs[j]->getCenter(), incs[j]->getMajorAxis()*0.9, incs[j]->getMinorAxis()*0.9) ;
 			if(ellipse.in(zonesToPlace[i]->getCenter()))
@@ -754,7 +762,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		}
 		if(!placed)
 			delete zonesToPlace[i] ;
-		if(ret.size() == max)
+		if((int)ret.size() == max)
 		  break ;
 	}
 	
@@ -779,7 +787,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	double radius = 0.0000005 ;
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		double w = sample.width()*0.5-radius*1000 ;
 		double h = sample.width()*0.5-radius*1000 ;
@@ -802,7 +810,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		for(size_t j = 0 ; j < incs.size() ; j++)
 		{
 			Triangle triangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
@@ -821,7 +829,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		}
 		if(!placed)
 			delete zonesToPlace[i] ;
-		if(ret.size() == max)
+		if((int)ret.size() == max)
 		  break ;
 	}
 	
@@ -846,7 +854,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	
 	std::vector<ExpansiveZone *> zonesToPlace ;
 	
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		double w = sample.width()*0.5-radius*60 ;
 		double h = sample.width()*0.5-radius*60 ;
@@ -869,7 +877,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 	for(size_t i = 0 ; i < zonesToPlace.size() ; i++)
 	{
 		bool placed = false ;
-		for(int j = 0 ; j < incs.size() ; j++)
+		for(size_t j = 0 ; j < incs.size() ; j++)
 		{
 			OrientedRectangle rectangle(incs[j]->getBoundingPoint(0), incs[j]->getBoundingPoint(1), incs[j]->getBoundingPoint(2), incs[j]->getBoundingPoint(3)) ;
 			Point c = zonesToPlace[i]->getCenter() ;
@@ -888,7 +896,7 @@ std::vector<Zone> generateExpansiveZonesHomogeneously(int n, int max, std::vecto
 		}
 		if(!placed)
 			delete zonesToPlace[i] ;
-		if(ret.size() == max)
+		if((int)ret.size() == max)
 		  break ;
 	}
 	
@@ -1000,7 +1008,7 @@ bool tintersects(std::vector<TriangularInclusion *> triinc, int index, Sample * 
 		return true ;
 	}
 	
-	for(size_t i = 0 ; i < index ; i++)
+	for(int i = 0 ; i < index ; i++)
 	{
 		if(triinc[index]->getPrimitive()->intersects(triinc[i]->getPrimitive()))
 		{
@@ -1025,7 +1033,7 @@ bool tintersects(std::vector<RectangularInclusion *> recinc, int index, Sample *
 		return true ;
 	}
 	
-	for(size_t i = 0 ; i < index ; i++)
+	for(int i = 0 ; i < index ; i++)
 	{
 		if(recinc[index]->getPrimitive()->intersects(recinc[i]->getPrimitive()))
 		{
@@ -1050,7 +1058,7 @@ bool tintersects(std::vector<EllipsoidalInclusion *> ellinc, int index, Sample *
 		return true ;
 	}
 	
-	for(size_t i = 0 ; i < index ; i++)
+	for(int i = 0 ; i < index ; i++)
 	{
 		if(ellinc[index]->getPrimitive()->intersects(ellinc[i]->getPrimitive()))
 		{
@@ -1072,7 +1080,6 @@ bool rotateUntilNoIntersection(std::vector<TriangularInclusion *> & triinc, int 
 {
 	if(tintersects(triinc, index, box))
 	{
-		TriangularInclusion * next ;
 		int i = 0 ;
 		while(i < 150)
 		{
@@ -1094,7 +1101,6 @@ bool rotateUntilNoIntersection(std::vector<RectangularInclusion *> & recinc, int
 {
 	if(tintersects(recinc, index, box))
 	{
-		RectangularInclusion * next ;
 		int i = 0 ;
 		while(i < 500)
 		{
@@ -1116,7 +1122,6 @@ bool rotateUntilNoIntersection(std::vector<EllipsoidalInclusion *> & ellinc, int
 {
 	if(tintersects(ellinc, index, box))
 	{
-		EllipsoidalInclusion * next ;
 		int i = 0 ;
 		while(i < 50)
 		{
@@ -1156,13 +1161,10 @@ int main(int argc, char *argv[])
 {
 	timeval time0, time1 ;
 	gettimeofday(&time0, nullptr);
-  
-  	GeometryType reference = TRIANGLE ;
-	
+  	
 	FeatureTree F(&sample) ;
 	featureTree = &F ;
 
-	double itzSize = 0.000000005;
  	int inclusionNumber = 500 ;
 	sample.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
 
@@ -1264,7 +1266,7 @@ int main(int argc, char *argv[])
 				if(current_area/zones[z-1].areaOfInclusion() > 0.05)
 				{
 					stopped_reaction++ ;
-					for(size_t m = 0 ; m < current_number ; m++)
+					for(int m = 0 ; m < current_number ; m++)
 					{
 						reactedArea -= zones[z-1-m].zone->area() ;
 						zones[z-1-m].zone->setRadius(zones[z].zone->getRadius()-delta_r) ;
@@ -1292,7 +1294,7 @@ int main(int argc, char *argv[])
 	}
 	
 	double area = 0 ;
-	for(int i = 0 ; i < inclusions.size() ; i++)
+	for(size_t i = 0 ; i < inclusions.size() ; i++)
 	    area += inclusions[i]->area() ;
 	
 	gettimeofday(&time1, nullptr);

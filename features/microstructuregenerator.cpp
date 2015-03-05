@@ -264,11 +264,12 @@ namespace Amie
 					return new Inclusion3D(inc->getFather(), newr, inc->getCenter()) ;
 					
 					
-					
+                default:
+                    std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
+                    return nullptr ;  
 					
 			}
-			std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
-			return nullptr ;
+			
 	}
 
 	std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 

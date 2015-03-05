@@ -233,6 +233,7 @@ class GeometryOperation
 {
 public:
 	GeometryOperation() ;
+    virtual ~GeometryOperation() {} ;
 	virtual void eval(double * a, double * b, double * c) const = 0;
 	virtual GeometryOperation * getCopy() const = 0;
 	virtual int adressOffset() const = 0 ;

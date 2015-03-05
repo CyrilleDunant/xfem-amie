@@ -113,6 +113,7 @@ public:
 	double error ;
 
 	DamageModel();
+    virtual ~DamageModel() {};
 	
 	double getThresholdDamageDensity() const;
 	

@@ -247,7 +247,7 @@ void IncrementalKelvinVoight::resize(size_t num_points)
 }*/
 
 
-NewmarkNumeroffKelvinVoigt::NewmarkNumeroffKelvinVoigt(const Matrix & rig, const Vector & d, const double a) : LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), decay(d), viscosity(rig), alpha(a)
+NewmarkNumeroffKelvinVoigt::NewmarkNumeroffKelvinVoigt(const Matrix & rig, const Vector & d, const double a) : LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), viscosity(rig), decay(d), alpha(a)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
@@ -401,7 +401,7 @@ void NewmarkNumeroffKelvinVoigt::preProcess( double timeStep, ElementState & cur
   
 }
 
-ExponentiallyPredictedKelvinVoigt::ExponentiallyPredictedKelvinVoigt(const Matrix & rig, const Vector & d) :  LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), decay(d), viscosity(rig), reduction(rig)
+ExponentiallyPredictedKelvinVoigt::ExponentiallyPredictedKelvinVoigt(const Matrix & rig, const Vector & d) :  LinearForm(rig, false, false, rig.numRows()/3+1), stiffness(rig), viscosity(rig), decay(d), reduction(rig)
 {
 	v.push_back(XI);
 	v.push_back(ETA);

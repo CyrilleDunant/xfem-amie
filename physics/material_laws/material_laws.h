@@ -169,7 +169,7 @@ struct TimeDerivativeMaterialLaw : public ExternalMaterialLaw
     std::string base ;
     double previous ;
 
-    TimeDerivativeMaterialLaw(std::string b, std::string r, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), base(b), rate(r), previous(init) { }
+    TimeDerivativeMaterialLaw(std::string b, std::string r, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), rate(r), base(b), previous(init) { }
     virtual ~TimeDerivativeMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;
@@ -180,7 +180,7 @@ struct TimeIntegralMaterialLaw : public ExternalMaterialLaw
     std::string integral ;
     std::string base ;
 
-    TimeIntegralMaterialLaw(std::string b, std::string i, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), base(b), integral(i) { defaultValues[integral] = init ; }
+    TimeIntegralMaterialLaw(std::string b, std::string i, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), integral(i),  base(b){ defaultValues[integral] = init ; }
     virtual ~TimeIntegralMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

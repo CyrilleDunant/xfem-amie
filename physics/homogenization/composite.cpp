@@ -651,7 +651,7 @@ void GeneralizedSelfConsistentComposite::makeGrains()
 	{
 		grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i] ) ) ;
 		grains[i].inclusion.volume = inclusions[i].volume ;
-		grains[i].matrix.volume = 1 - inclusions[i].volume ;
+		grains[i].matrix.volume = 1. - inclusions[i].volume ;
 	}
 }
 

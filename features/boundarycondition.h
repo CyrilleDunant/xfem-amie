@@ -60,7 +60,7 @@ class PlaneSectionsBoundaryConditions : public BoundaryCondition
 	double uplimit ;
 	double downlimit ;
 public:
-	PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), downlimit(down), uplimit(up) { };
+	PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), uplimit(up), downlimit(down) { };
 	virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
 	virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) ;
 } ;

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
 	
 	MultiTriangleWriter writerm( "displacements_enrichment_head", "displacements_enrichment", nullptr ) ;
-	for(size_t v = 0 ; v < nsteps ; v++)
+	for(int v = 0 ; v < nsteps ; v++)
 	{
 
 		Crack1->print() ;

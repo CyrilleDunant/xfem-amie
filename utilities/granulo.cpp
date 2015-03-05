@@ -295,7 +295,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > PSDGenerator::get2DExpansi
 		bool placed = false ;
 		if(ret.size() < max)
 		{
-			  for(int j = 0 ; j < incs.size() ; j++)
+			  for(size_t j = 0 ; j < incs.size() ; j++)
 			  {
 				  Circle circle(incs[j]->getRadius()*0.95 , incs[j]->getCenter()) ;
 				  if(circle.in(zonesToPlace[i]->getCenter()))
@@ -367,7 +367,7 @@ std::vector<std::pair<TimeDependentHomogenisingInclusion *, Inclusion *> > PSDGe
 		bool placed = false ;
 		if(ret.size() < max)
 		{
-			  for(int j = 0 ; j < incs.size() ; j++)
+			  for(size_t j = 0 ; j < incs.size() ; j++)
 			  {
 				  if(incs[j]->getRadius() > rmax*4.)
 				  {
@@ -549,9 +549,9 @@ double m;//pente
 GranuloFromFile::GranuloFromFile(const std::string & fname, std::vector<std::string> columns)
 {
 	std::cout << "importing file: " << fname << std::endl ;
-	this->filename = fname ;
-	for(int i = 0 ; i < columns.size() ; i++)
-		this->fields.push_back(columns[i]) ;
+	filename = fname ;
+	for(size_t i = 0 ; i < columns.size() ; i++)
+		fields.push_back(columns[i]) ;
 
 	std::fstream filereader ;
 	filereader.open(this->filename.c_str(),std::ios::in); 
@@ -560,7 +560,7 @@ GranuloFromFile::GranuloFromFile(const std::string & fname, std::vector<std::str
 	{
 		double buff ;
 		filereader >> buff ;
-		this->values.push_back(buff) ;
+		values.push_back(buff) ;
 	}
 	filereader.close() ;
 	std::cout << "done..." << std::endl ;
@@ -568,9 +568,9 @@ GranuloFromFile::GranuloFromFile(const std::string & fname, std::vector<std::str
 
 bool GranuloFromFile::verifyField(std::vector<std::string> columns)
 {
-    for(int i = 0 ; i < columns.size() ; i++)
+    for(size_t i = 0 ; i < columns.size() ; i++)
     {
-        if(this->getFieldNumber(columns[i]) == -1)
+        if(getFieldNumber(columns[i]) == -1)
             return false ;
     }
     return true ;
@@ -578,7 +578,7 @@ bool GranuloFromFile::verifyField(std::vector<std::string> columns)
 
 int GranuloFromFile::getFieldNumber(std::string column)
 {
-        for(int j = 0 ; j < this->fields.size() ; j++)
+        for(size_t j = 0 ; j < fields.size() ; j++)
         {
             if(strcmp(column.c_str(),fields[j].c_str()) == 0)
             {
@@ -592,17 +592,17 @@ int GranuloFromFile::getFieldNumber(std::string column)
 std::vector<double> GranuloFromFile::getFieldValues(std::string column)
 {
     std::vector<double> val ;
-    int f = this->getFieldNumber(column) ;
+    int f = getFieldNumber(column) ;
     if(f > -1)
-        val = this->getFieldValues(f) ;
+        val = getFieldValues(f) ;
     return val ;
 }
 
 std::vector<double> GranuloFromFile::getFieldValues(int f)
 {
     std::vector<double> val ;
-    int nv = this->values.size() ;
-    int nf = this->fields.size() ;
+    int nv = values.size() ;
+    int nf = fields.size() ;
     int i = 0 ;
     while(i * nf < nv)
     {
@@ -655,19 +655,19 @@ std::vector<Feature *> GranuloFromFile::getFeatures(TypeInclusion type, int ninc
         case CIRCLE_INCLUSION:
             // inclusions
             std::cout << "creating inclusions..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
+            for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
                 inc.push_back(new Inclusion(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i])) ;
             break ;
         case SPHERE_INCLUSION:
             // inclusions 3D
             std::cout << "creating 3D inclusions..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
+            for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
                 inc.push_back(new Inclusion3D(fieldvalues[0][i], fieldvalues[1][i], fieldvalues[2][i], fieldvalues[3][i])) ;
             break ;
         case ELLIPSE_INCLUSION:
             // ellipses
             std::cout << "creating ellipses..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc+1 ; i++)
+            for(size_t i = 0 ; i < fieldvalues[0].size() && (int)i < ninc+1 ; i++)
             {
                 Point center(fieldvalues[2][i], fieldvalues[3][i]) ;
                 Point a(fieldvalues[4][i], fieldvalues[5][i]) ;
@@ -694,14 +694,14 @@ std::vector<Inclusion3D *> GranuloFromFile::getInclusion3D(int ninc, double scal
             columns.push_back("center_z") ;
     std::vector< std::vector<double> > fieldvalues ;
     std::cout << "extracting columns" ;
-    for(int i = 0 ; i < columns.size() ; i++)
+    for(size_t i = 0 ; i < columns.size() ; i++)
     {
         std::cout << " ... " << columns[i] ;
         std::vector<double> val = this->getFieldValues(columns[i]) ;
         fieldvalues.push_back(val) ;
     }
             std::cout << "creating 3D inclusions..." << std::endl ;
-            for(int i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
+            for(size_t i = 0 ; i < fieldvalues[0].size() && i < ninc ; i++)
                 inc.push_back(new Inclusion3D(fieldvalues[0][i]*scale, fieldvalues[1][i]*scale, fieldvalues[2][i]*scale, fieldvalues[3][i]*scale)) ;
     std::cout << "done" << std::endl ;
     inc.pop_back() ;
@@ -719,8 +719,6 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 		std::cout << "file " << filename << " doesn't exist!" << std::endl ;
 		exit(0) ;
 	}
-	bool foundZeroFrac = false ;
-	double zeroFracRad = 0 ;
 	double maxfrac = 0 ;
 	double minfrac = 100 ;
 	do {
@@ -728,8 +726,8 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 		double rad ;
 		file >> frac >> rad ;
 		
-		if((cutOffUp > 0 && rad*factor <= cutOffUp || cutOffUp < 0)  && 
-			 (cutOffDown > 0 && rad*factor >= cutOffDown || cutOffDown < 0) 
+		if(((cutOffUp > 0 && rad*factor <= cutOffUp) || cutOffUp < 0)  && 
+			 ((cutOffDown > 0 && rad*factor >= cutOffDown) || cutOffDown < 0) 
 		)
 		{
 // 			if(frac < 1e-13 )

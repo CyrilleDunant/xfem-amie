@@ -106,7 +106,7 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 	branches.push_back(std::make_pair(C1,E1));
 	branches.push_back(std::make_pair(C2,E2));
 	
-	ViscoelasticityAndFracture * copy ;
+	ViscoelasticityAndFracture * copy = nullptr;
 // 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
 	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.025, 1e-9, 0.8 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
@@ -125,6 +125,8 @@ Form * ViscoDamagePasteBehaviour::getCopy() const
 			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
 			break ;
 	}
+	if(!copy)
+        return copy ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
 	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
 	copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
@@ -145,7 +147,7 @@ Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
 	Matrix E1 = C1*0.002 ;
 	
 	
-	ViscoelasticityAndFracture * copy ;
+	ViscoelasticityAndFracture * copy = nullptr;
 // 	IsotropicLinearDamageRate * dampaste = new IsotropicLinearDamageRate() ;
 	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.01, 1e-9, 0.8 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
@@ -164,6 +166,8 @@ Form * ShortTermViscoDamagePasteBehaviour::getCopy() const
 			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, C1, E1, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
 			break ;
 	}
+	if(!copy)
+        return nullptr ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
 	copy->getFractureCriterion()->setScoreTolerance(1e-4) ;
 	copy->getDamageModel()->setDamageDensityTolerance(0.01) ;
@@ -228,7 +232,7 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 	SpaceTimeFiberBasedIsotropicLinearDamage * dampaste = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.05, 1e-9, 0.7 ) ;
 	dampaste->setLogitViscousDamageLaw(0.025, 0.3, 2.5) ;
 
-	ViscoelasticityAndFracture * copy ;
+	ViscoelasticityAndFracture * copy = nullptr;
 	switch(ctype)
 	{
 		case STRAIN_CRITERION:
@@ -243,6 +247,8 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 			copy = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, C0, branches, new SpaceTimeNonLocalEllipsoidalMixedCriterion(up, up*param[0][0]*stressFraction, param[0][0], param[0][0]/k), dampaste, 0, freeblocks) ;
 			break ;
 	}
+	if(!copy)
+        return nullptr ;
 	copy->criterion->setMaterialCharacteristicRadius(materialRadius) ;
 	return copy ;
 
@@ -350,7 +356,7 @@ double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, d
 
 Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturation, double doh) 
 {
-	double pc = getCapillaryPressure(saturation, doh) ;
+// 	double pc = getCapillaryPressure(saturation, doh) ;
 	makeBulkModuli(saturation, doh) ;
 	Vector a(0., 3) ;
 	

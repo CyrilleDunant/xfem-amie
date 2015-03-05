@@ -52,7 +52,7 @@ Form * Stiffness::getCopy() const
 }
 
 
-PseudoPlastic::PseudoPlastic(const Amie::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), limitStrain(limitStrain), radius(radius), alpha(0), change(true)
+PseudoPlastic::PseudoPlastic(const Amie::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), radius(radius), alpha(0), limitStrain(limitStrain), change(true)
 {
 	stiffness = E ;
 	vm = new NonLocalVonMises(limitStrain, E, radius) ;

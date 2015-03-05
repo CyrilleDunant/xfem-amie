@@ -87,7 +87,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
 	UniformDistribution rDistribution( -orientation, orientation ) ;
 	Grid grid(boundingBox[2].getX()-boundingBox[0].getX(), boundingBox[0].getY()-boundingBox[2].getY(), 10, box->getCenter()) ;
 
-	for(size_t i = 0 ; i < placedAggregates ; i++)
+	for(int i = 0 ; i < placedAggregates ; i++)
 	{
 		ret.push_back(inclusions[i]);
 		grid.add(inclusions[i]) ;

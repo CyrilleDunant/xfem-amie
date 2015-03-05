@@ -237,7 +237,6 @@ As there are no warranty all members of the diagonal are non-0, there is no warr
 			}
 			case 6 :
 			{
-				const int colLength = 6  ;
 				#ifdef HAVE_SSE3
 				const __m128d * array_iterator = (__m128d*)&array[mstart*36] ;
 	// 			#pragma omp parallel for schedule(runtime)

@@ -18,7 +18,7 @@ Tensor::Tensor(const Point & p, std::vector<Variable> v) : order(1), dim(v.size(
 		s *= dim ;
 	components.resize(s) ;
 	components = 0. ;
-	for(int i = 0 ; i < v.size() ; i++)
+	for(size_t i = 0 ; i < v.size() ; i++)
 	{
 		double d = 0 ;
 		switch(v[i])
@@ -43,9 +43,9 @@ Tensor::Tensor(const Point & p, std::vector<Variable> v) : order(1), dim(v.size(
 Tensor::Tensor(const Matrix & m, bool transpose) : order(2), dim(m.numRows())
 {
 	components.resize(dim*dim) ;
-	for(int i = 0 ; i < dim ; i++)
+	for(size_t i = 0 ; i < dim ; i++)
 	{
-		for(int j = 0 ; j < dim ; j++)
+		for(size_t j = 0 ; j < dim ; j++)
 		{
 			if(transpose)
 				(*this)(j,i) = m[i][j] ;
@@ -155,9 +155,9 @@ Matrix Tensor::toMatrix(int d1, int d2) const
 	Tensor dummy2( d2, dim ) ;
 	
 	ret = Matrix(dummy1.size(), dummy2.size()) ;
-	for(int i = 0 ; i < dummy1.size() ; i++)
+	for(size_t i = 0 ; i < dummy1.size() ; i++)
 	{
-		for(int j = 0 ; j < dummy2.size() ; j++)
+		for(size_t j = 0 ; j < dummy2.size() ; j++)
 		{
 			ret[i][j] = components[ i*dummy2.size() + j ] ;
 		}

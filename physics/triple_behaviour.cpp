@@ -257,7 +257,6 @@ DamageModel * TrimaterialInterface::getDamageModel() const
 	double max = -2 ;
 	int ret = 0 ;
 
-	double inScore = 0. ;
 	DamageModel * inCriterion = inBehaviour->getDamageModel() ;
 	DamageModel * midCriterion = midBehaviour->getDamageModel() ;
 	DamageModel * outCriterion = outBehaviour->getDamageModel() ;
@@ -307,7 +306,6 @@ FractureCriterion * TrimaterialInterface::getFractureCriterion() const
 	double max = -2 ;
 	int ret = 0 ;
 
-	double inScore = 0. ;
 	FractureCriterion * inCriterion = inBehaviour->getFractureCriterion() ;
 	FractureCriterion * midCriterion = midBehaviour->getFractureCriterion() ;
 	FractureCriterion * outCriterion = outBehaviour->getFractureCriterion() ;

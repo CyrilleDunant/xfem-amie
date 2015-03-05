@@ -561,7 +561,7 @@ public:
         ret.adress_a[ ( ret.byteCode.size()-1 ) *4] = HEAP_SIZE-1 ;
 
 
-        int n = f.getNumberOfDerivatives() ;
+        size_t n = f.getNumberOfDerivatives() ;
         if ( n > 0 ) {
             ret.setNumberOfDerivatives ( n ) ;
             for ( size_t i = 0 ; i < n ; i++ ) {
@@ -640,7 +640,7 @@ public:
         ret.adress_a[ ( ret.byteCode.size()-1 ) *4] = HEAP_SIZE-1 ;
 
 
-        int n = f.getNumberOfDerivatives() ;
+        size_t n = f.getNumberOfDerivatives() ;
         if ( n > 0 ) {
             ret.setNumberOfDerivatives ( n ) ;
             for ( size_t i = 0 ; i < n ; i++ ) {
@@ -719,7 +719,7 @@ public:
         ret.adress_a[ ( ret.byteCode.size()-1 ) *4] = HEAP_SIZE-1 ;
 
 
-        int n = f.getNumberOfDerivatives() ;
+        size_t n = f.getNumberOfDerivatives() ;
         if ( n > 0 ) {
             ret.setNumberOfDerivatives ( n ) ;
             for ( size_t i = 0 ; i < n ; i++ ) {
@@ -797,7 +797,7 @@ public:
         ret.adress_a[ ( ret.byteCode.size()-1 ) *4] = HEAP_SIZE-1 ;
 
 
-        int n = f.getNumberOfDerivatives() ;
+        size_t n = f.getNumberOfDerivatives() ;
         if ( n > 0 ) {
             ret.setNumberOfDerivatives ( n ) ;
             for ( size_t i = 0 ; i < n ; i++ ) {

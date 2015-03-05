@@ -116,81 +116,68 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
 			case TOKEN_OPERATION_GEO_OPERATION:
 			{
 				f.geo_op[i]->eval(&REG_A, &REG_B, &REG_C) ;
-				break ;
 			}
 			case TOKEN_OPERATION_COS:
 			{
 				REG_C = cos(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_ABS:
 			{
 				REG_C = std::abs(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_TAN:
 			{
 				REG_C = tan(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_SIN:
 			{
 				REG_C = sin(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_EXP:
 			{
 				REG_C = exp(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_SIGN:
 			{
 				REG_C = sign(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_POSITIVITY:
 			{
 				double s0 = sign(REG_A) ;
 				s0 >= 0 ? REG_C = 1 : REG_C = 0 ;
-				break ;
 			}
 			case TOKEN_OPERATION_NEGATIVITY:
 			{
 				double s0 = sign(REG_A) ;
 				s0 < 0 ? REG_C = 1 : REG_C = 0 ;
-				break ;
 			}
 			case TOKEN_OPERATION_LOG:
 			{
 				REG_C = log(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_COSH:
 			{
 				REG_C = cosh(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_SINH:
 			{
 				REG_C = sinh(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_TANH:
 			{
 				REG_C = tanh(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_SQRT:
 			{
 				REG_C = sqrt(REG_A) ;
-				break ;
 			}
 			case TOKEN_OPERATION_ATAN2:
 			{
 				REG_C = atan2(REG_B, REG_A) ;
-
-				break ;
 			}
+            default:
+            {
+            }
 		}
 
 	}
@@ -283,6 +270,8 @@ void VirtualMachine::print(const Function &f) const
 				done = true ;
 				break ;
 			}
+            default:
+                break ;
 		}
 	
 		if(done)
@@ -370,6 +359,8 @@ void VirtualMachine::print(const Function &f) const
 				done = true ;
 				break ;
 			}
+			default:
+                break ;
 		}
 	
 		if(done)
@@ -393,10 +384,12 @@ void VirtualMachine::print(const Function &f) const
 			}
 			case TOKEN_OPERATION_W:
 			{
-				std::cout << "sto " << "w" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
+                std::cout << "sto " << "w" << "@" << f.adress_a[i*4]+100 << "  "<< std::endl ;
 				done = true ;
 				break ;
 			}
+			default:
+                break ;
 		}
 	
 		if(done)
@@ -480,6 +473,8 @@ void VirtualMachine::print(const Function &f) const
 
 				break ;
 			}
+			default:
+                break ;
 		}
 	}
 	
@@ -701,7 +696,7 @@ tmp += 8* (-eval(f, x+eps, y, z, t+eps*2, u,v,w) + 8.*eval(f, x+eps, y, z, t+eps
 tmp -= 8* (-eval(f, x-eps, y, z, t+eps*2, u,v,w) + 8.*eval(f, x-eps, y, z, t+eps, u,v,w)-8.*eval(f, x-eps, y, z, t-eps, u,v,w)+ eval(f, x-eps, y, z, t-eps*2, u,v,w))/(12*eps) ;
 tmp += (-eval(f, x-2*eps, y, z, t+eps*2, u,v,w) + 8.*eval(f, x-2*eps, y, z, t+eps, u,v,w)-8.*eval(f, x-2*eps, y, z, t-eps, u,v,w)+ eval(f, x-2*eps, y, z, t-eps*2, u,v,w))/(12*eps) ;
 					return tmp/(12*eps) ;
-					return 0 ;( eval(f, x+eps, y, z, t+eps, u, v, w) - eval(f, x-eps, y, z, t+eps, u, v, w)- eval(f, x+eps, y, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
+// 					return 0 ;( eval(f, x+eps, y, z, t+eps, u, v, w) - eval(f, x-eps, y, z, t+eps, u, v, w)- eval(f, x+eps, y, z, t-eps, u, v, w) + eval(f, x-eps, y, z, t-eps, u, v, w))/(4.*eps*eps) ;
 				}
 			case U_VARIABLE:
 				{
@@ -1000,6 +995,14 @@ double VirtualMachine::dddeval(const Function &f, const Variable v_0, const Vari
 		double ret = 0. ;
 		switch(v_0)
 		{
+            case ONE:
+                ret = eval(f, x, y, z, t+h+h, u, v, w) 
+                    - eval(f, x, y, z, t+h+h, u, v, w) 
+                    - 2.*eval(f, x, y, z, t, u, v, w) 
+                    + 2.*eval(f, x, y, z, t, u, v, w) 
+                    + eval(f, x, y, z, t-h-h, u, v, w)
+                    - eval(f, x, y, z, t-h-h, u, v, w) ;
+                return  ret / (8.*h*h*h) ;
 			case XI:
 				ret = eval(f, x+h, y, z, t+h+h, u, v, w) 
 				    - eval(f, x-h, y, z, t+h+h, u, v, w) 
@@ -1032,6 +1035,9 @@ double VirtualMachine::dddeval(const Function &f, const Variable v_0, const Vari
 // 				ret += 3.*eval(f, x, y, z, t-h, u, v, w) ;
 // 				ret -= eval(f, x, y, z, t-h-h-h, u, v, w) ;
 // 				return ret / (8.*h*h*h) ;			
+            default:
+                std::cout << "unhandled variable" << std::endl ;
+                exit(0) ;
 		}
 		return ret ;
 	}
@@ -1706,7 +1712,6 @@ std::valarray<Matrix> VirtualMachine::gddeval(const Function &f, const std::vala
 			else
 			{
 				std::valarray<Matrix> ret(Matrix(2,3), gp.gaussPoints.size()) ;
-				size_t g = gp.gaussPoints.size() ;
 /*				
 				Vector dxi = deval( f, var[0], gp) ;
 				Vector deta = deval(f, var[1], gp) ;
@@ -2128,7 +2133,6 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 			{
 				double dxi = deval(f, var[0], x,y,z,t) ;
 				double deta = deval(f, var[1], x,y,z,t) ;
-				double dtau = deval(f, var[2], x,y,z,t) ;
 
 				Matrix ret(3,2) ;
 				ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;//+ dtau*m[0][2] ;
@@ -2143,7 +2147,6 @@ Matrix VirtualMachine::geval(const Function &f, const Matrix & m, const std::vec
 				Matrix ret(2,3) ;
 				double dxi = deval(f, var[0], x,y,z,t) ;
 				double deta = deval(f, var[1], x,y,z,t) ;
-				double dtau = deval(f, var[2], x,y,z,t) ;
 
 				ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;//+ dtau*m[0][2]  ;
 				ret[1][1] = dxi*m[1][0] + deta*m[1][1] ;//+ dtau*m[1][2]  ;
@@ -2450,7 +2453,6 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 				Matrix ret(2,3) ;
 				double dxi = ddeval(f, var[0],TIME_VARIABLE, x,y,z,t,0,0,0,100.*default_derivation_delta) ;
 				double deta = ddeval(f, var[1],TIME_VARIABLE, x,y,z,t,0,0,0,100.*default_derivation_delta) ;
-				double dtau = ddeval(f, var[2], TIME_VARIABLE, x,y,z,t,0,0,0,100.*default_derivation_delta) ;
 //  				std::cout << dxi << "\t" << deta << "\t" << dtau << std::endl ;
 				
 				ret[0][0] = dxi*m[0][0] + deta*m[0][1] ;//+ dtau*m[0][2];

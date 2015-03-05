@@ -112,8 +112,6 @@ Material::Material(const Matrix & cauchy)
 {
 	double E = 0. ;
 	double nu = 0. ;
-	double k = 0. ;
-	double mu = 0. ;
 
 	double A = cauchy[0][0] ;
 	double B = cauchy[0][1] ;

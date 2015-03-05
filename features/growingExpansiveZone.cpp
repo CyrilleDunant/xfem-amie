@@ -137,7 +137,6 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
 		bool added = false ;
-		double dt = disc[i]->getState().getNodalDeltaTime() ;
 			
 		bool bin = false ;
 		bool bout = false ;
@@ -218,8 +217,6 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
 //	return ;
 	expansive = newExpansive ;
 	bimateralInterfaced = newInterface ;
-
-	bool noPrevBC = dofIdPrev.empty() ;
 	
 	std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end()); 
 //	std::cout << enriched.size() << "\t" << counter << std::endl ;

@@ -30,7 +30,7 @@ struct DryingShrinkageMaterialLaw : public ExternalMaterialLaw
     double order ;
     std::string input ;
 
-    DryingShrinkageMaterialLaw(std::string in = "relative_humidity", double o = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), input(in), order(o) 
+    DryingShrinkageMaterialLaw(std::string in = "relative_humidity", double o = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), order(o) , input(in)
     { 
 	defaultValues["drying_shrinkage_irreversibility_threshold"] = -1. ;
 	defaultValues["drying_shrinkage_irreversibility_factor"] = 0. ;

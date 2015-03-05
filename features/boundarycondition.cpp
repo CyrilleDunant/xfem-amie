@@ -97,7 +97,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         case FIX_ALONG_XI:
 	    if(n > 2)
 	    {
-		for(size_t ax = 0 ; ax < n/2 ; ax++)
+		for(int ax = 0 ; ax < n/2 ; ax++)
 	            a->setPointAlongIndexedAxis ( ax*2, 0, id[idit] ) ;		
 		break ;
 	    }
@@ -116,12 +116,28 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         {
 	    if(n > 2)
 	    {
-		for(size_t ax = 0 ; ax < n/2 ; ax++)
+		for(int ax = 0 ; ax < n/2 ; ax++)
 	            a->setPointAlongIndexedAxis ( ax*2+1, 0, id[idit] ) ;	
 		break ;	
 	    }
 	    else
 	            a->setPointAlong ( ETA, 0, id[idit] ) ;
+            break ;
+        }
+        case FIX_ALONG_ALL:
+        {
+            if(n > 2)
+            {
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*2, 0, id[idit] ) ;    
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*2+1, 0, id[idit] ) ;   
+            }
+            else
+            {
+                a->setPointAlong ( XI, 0, id[idit] ) ;
+                a->setPointAlong ( ETA, 0, id[idit] ) ;
+            }
             break ;
         }
 
@@ -168,14 +184,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -207,7 +223,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
 	    	    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
 		    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
-                    for ( size_t b = 1 ; b < visc->blocks ;  b++ )
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
                         a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
                         a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
@@ -236,14 +252,14 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -274,7 +290,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 {
 	    	    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
 		    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
-                    for ( size_t b = 1 ; b < visc->blocks ;  b++ )
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
                         a->addForceToExternalForces ( 2*b, -forces[0], id[idit] ) ;
                         a->addForceToExternalForces ( 2*b+1, -forces[1], id[idit] ) ;
@@ -305,7 +321,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -330,7 +346,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -397,7 +413,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -422,7 +438,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -489,7 +505,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -518,7 +534,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -613,7 +629,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -638,7 +654,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -732,7 +748,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -757,7 +773,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -821,7 +837,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -846,7 +862,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -908,7 +924,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
     }
 
     VirtualMachine vm ;
-
+    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
         switch ( condition )
@@ -937,6 +953,26 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         case FIX_ALONG_ZETA:
             a->setPointAlong ( ZETA, 0., id[i] ) ;
             break ;
+            
+        case FIX_ALONG_ALL:
+        {
+            if(n > 3)
+            {
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3, 0, id[i] ) ;    
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3+1, 0, id[i] ) ;   
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3+2, 0, id[i] ) ;   
+            }
+            else
+            {
+                a->setPointAlong ( XI, 0, id[i] ) ;
+                a->setPointAlong ( ETA, 0, id[i] ) ;
+                a->setPointAlong ( ZETA, 0, id[i] ) ;
+            }
+            break ;
+        }
 
         case SET_ALONG_ZETA:
             a->setPointAlong ( ZETA, data, id[i] ) ;
@@ -990,14 +1026,14 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1041,14 +1077,14 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1092,14 +1128,14 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1146,11 +1182,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() && (
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
@@ -1176,7 +1212,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1239,11 +1275,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() && (
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
@@ -1270,7 +1306,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1335,11 +1371,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() && (
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
@@ -1365,7 +1401,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1412,6 +1448,229 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             return ;
         }
+        
+        case SET_VOLUMIC_STRESS_XI:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector imposed ( 6 ) ;
+            imposed[0] = data ;
+            imposed[1] = 0 ;
+            imposed[2] = 0 ;
+            imposed[3] = 0 ;
+            imposed[4] = 0 ;
+            imposed[5] = 0 ;
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
+
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc && visc->model != PURE_ELASTICITY )
+                {
+                a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
+                a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
+                a->addForceToExternalForces ( 2, forces[2], id[j] ) ;
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceToExternalForces ( 3*b, -forces[0], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+1, -forces[1], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+2, -forces[2], id[j] ) ;
+                    }
+                }else{
+
+                a->addForceOn ( XI, forces[0], id[j] ) ;
+                a->addForceOn ( ETA, forces[1], id[j] ) ;
+                a->addForceOn ( ZETA, forces[1], id[j] ) ;
+        }
+
+            }
+
+            return ;
+        }
+
+        case SET_VOLUMIC_STRESS_ETA:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector imposed ( 6 ) ;
+            imposed[0] = 0 ;
+            imposed[1] = data ;
+            imposed[2] = 0 ;
+            imposed[3] = 0 ;
+            imposed[4] = 6 ;
+            imposed[5] = 0 ;
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc && visc->model != PURE_ELASTICITY )
+                {
+                a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
+            a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
+            a->addForceToExternalForces ( 2, forces[2], id[j] ) ;
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceToExternalForces ( 3*b, -forces[0], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+1, -forces[1], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+2, -forces[2], id[j] ) ;
+                    }
+                }else{
+
+                a->addForceOn ( XI, forces[0], id[j] ) ;
+                a->addForceOn ( ETA, forces[1], id[j] ) ;
+                a->addForceOn ( ZETA, forces[2], id[j] ) ;
+        }
+
+            }
+
+            return ;
+        }
+        case SET_VOLUMIC_STRESS_ZETA:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( (int)(int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector imposed ( 6 ) ;
+            imposed[0] = 0 ;
+            imposed[1] = 0 ;
+            imposed[2] = data ;
+            imposed[3] = 0 ;
+            imposed[4] = 6 ;
+            imposed[5] = 0 ;
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc && visc->model != PURE_ELASTICITY )
+                {
+                a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
+                a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
+                a->addForceToExternalForces ( 2, forces[2], id[j] ) ;
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceToExternalForces ( 3*b, -forces[0], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+1, -forces[1], id[j] ) ;
+                        a->addForceToExternalForces ( 3*b+2, -forces[2], id[j] ) ;
+                    }
+                }else{
+
+                a->addForceOn ( XI, forces[0], id[j] ) ;
+                a->addForceOn ( ETA, forces[1], id[j] ) ;
+                a->addForceOn ( ZETA, forces[2], id[j] ) ;
+        }
+
+            }
+
+            return ;
+        }
+
 
         case SET_NORMAL_STRESS:
         {
@@ -1437,11 +1696,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
                     DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
 
-                    if ( id[j] == e->getBoundingPoint ( k ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( k ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( k ).getId() && (
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
                                 squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE_3D  ||
@@ -1464,7 +1723,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 }
                 for ( size_t k = 0 ; k < e->getEnrichmentFunctions().size() ; k++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( k ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( k ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( k ) ) ;
                     }
@@ -1590,11 +1849,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() )
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ).getId() && (
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
@@ -1620,7 +1879,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 }
                 for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
                 {
-                    if ( id[j] == e->getEnrichmentFunction ( i ).getDofID() )
+                    if ( (int)id[j] == e->getEnrichmentFunction ( i ).getDofID() )
                     {
                         shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
                     }
@@ -1778,6 +2037,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
     VirtualMachine vm ;
 
 //	std::cerr << id.size() << std::endl ;
+    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
         switch ( condition )
@@ -1798,6 +2058,23 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         case FIX_ALONG_ETA:
             a->setPointAlong ( ETA, 0, id[i].getId() ) ;
             break ;
+            
+        case FIX_ALONG_ALL:
+        {
+            if(n > 2)
+            {
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*2, 0, id[i].getId() ) ;    
+                for(int ax = 0 ; ax < n/2 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*2+1, 0, id[i].getId() ) ;   
+            }
+            else
+            {
+                a->setPointAlong ( XI, 0, id[i].getId() ) ;
+                a->setPointAlong ( ETA, 0, id[i].getId() ) ;
+            }
+            break ;
+        }
 
         case SET_ALONG_ETA:
             a->setPointAlong ( ETA,  vm.eval ( data, id[i] ), id[i].getId() ) ;
@@ -1876,7 +2153,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc )
                 {
-                    for ( size_t b = 1 ; b < visc->blocks ;  b++ )
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
                         a->addForceOnIndexedAxis ( 2*b, -forces[0], id[i].getId() ) ;
                         a->addForceOnIndexedAxis ( 2*b+1, -forces[1], id[i].getId() ) ;
@@ -1933,7 +2210,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc )
                 {
-                    for ( size_t b = 1 ; b < visc->blocks ;  b++ )
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
                         a->addForceOnIndexedAxis ( 2*b, -forces[0], id[i].getId() ) ;
                         a->addForceOnIndexedAxis ( 2*b+1, -forces[1], id[i].getId() ) ;
@@ -2463,7 +2740,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
     }
 
     VirtualMachine vm ;
-
+    int n = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     for ( size_t i = 0 ; i < id.size() ; i++ )
     {
         switch ( condition )
@@ -2484,6 +2761,26 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         case FIX_ALONG_ETA:
             a->setPointAlong ( ETA, 0, id[i].getId() ) ;
             break ;
+            
+        case FIX_ALONG_ALL:
+        {
+            if(n > 3)
+            {
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3, 0, id[i].getId() ) ;    
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3+1, 0, id[i].getId() ) ;   
+                for(int ax = 0 ; ax < n/3 ; ax++)
+                    a->setPointAlongIndexedAxis ( ax*3+2, 0, id[i].getId() ) ;   
+            }
+            else
+            {
+                a->setPointAlong ( XI, 0, id[i].getId() ) ;
+                a->setPointAlong ( ETA, 0, id[i].getId() ) ;
+                a->setPointAlong ( ZETA, 0, id[i].getId() ) ;
+            }
+            break ;
+        }
 
         case SET_ALONG_ETA:
             a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
@@ -2864,6 +3161,187 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( XI, forces[0], id[i].getId() ) ;
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
                 a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+            }
+
+            return ;
+        }
+        case SET_VOLUMIC_STRESS_XI:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+
+                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
+                a->addForceOn ( ZETA, forces[1], id[i].getId() ) ;
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc )
+                {
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                    }
+                }
+            }
+            return ;
+        }
+
+        case SET_VOLUMIC_STRESS_ETA:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+            }
+
+            std::vector<Variable> v ( 2 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 1, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+
+                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
+                a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc )
+                {
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                    }
+                }
+            }
+
+            return ;
+        }
+        case SET_VOLUMIC_STRESS_ZETA:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            std::vector<Function> shapeFunctions ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
+                    {
+                        shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
+                    }
+                }
+                for ( size_t i = 0 ; i < e->getEnrichmentFunctions().size() ; i++ )
+                {
+                    if ( id[j].getId() == e->getEnrichmentFunction ( i ).getDofID() )
+                    {
+                        shapeFunctions.push_back ( e->getEnrichmentFunction ( i ) ) ;
+                    }
+                }
+            }
+
+            std::vector<Variable> v ( 2 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+
+            for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
+            {
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 2, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+
+                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
+                a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+
+                Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
+                if ( visc )
+                {
+                    for ( int b = 1 ; b < visc->blocks ;  b++ )
+                    {
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                    }
+                }
             }
 
             return ;
@@ -3562,9 +4040,9 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, D
     {
         std::vector<Point> id_ ;
 
-        for ( int i = 0 ; i < surface->getBoundingPoints().size() ; i++ )
+        for ( size_t i = 0 ; i < surface->getBoundingPoints().size() ; i++ )
         {
-            if ( surface->getBoundingPoint ( i ).getId() == id )
+            if ( surface->getBoundingPoint ( i ).getId() == (int)id )
             {
                 id_.push_back ( surface->getBoundingPoint ( i ) );
                 apply2DBC ( surface,*gp,*Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
@@ -3591,9 +4069,9 @@ void DofDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron
     {
         std::vector<Point> id_ ;
 
-        for ( int i = 0 ; i < volume->getBoundingPoints().size() ; i++ )
+        for ( size_t i = 0 ; i < volume->getBoundingPoints().size() ; i++ )
         {
-            if ( volume->getBoundingPoint ( i ).getId() == id )
+            if ( volume->getBoundingPoint ( i ).getId() == (int)id )
             {
                 id_.push_back ( volume->getBoundingPoint ( i ) );
                 apply3DBC ( volume,*gp, *Jinv, id_, condition, dataFunction*getScale(), a, axis ) ;
@@ -3720,6 +4198,8 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
         return ( std::abs ( test.getT() - min.getT() ) < tol ) ;
     case AFTER:
         return ( std::abs ( test.getT() - max.getT() ) < tol ) ;
+    case NOW:
+        return ( std::abs ( test.getT() - (min.getT()+max.getT())*.5 ) < tol ) ;
 
         // 2D corners, 3D edges, 4D planes
     case BOTTOM_LEFT:
@@ -3753,27 +4233,39 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
         return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case BOTTOM_AFTER:
         return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case BOTTOM_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
     case TOP_BEFORE:
         return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case TOP_AFTER:
         return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case TOP_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
 
     case BACK_BEFORE:
         return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case BACK_AFTER:
         return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case BACK_NOW:
+        return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
     case FRONT_BEFORE:
         return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case FRONT_AFTER:
         return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case FRONT_NOW:
+        return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
 
     case LEFT_BEFORE:
         return ( isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case LEFT_AFTER:
         return ( isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case LEFT_NOW:
+        return ( isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
     case RIGHT_BEFORE:
         return ( isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case RIGHT_AFTER:
+        return ( isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case RIGHT_NOW:
         return ( isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
 
         // 3D corners, 4D lines
@@ -3847,6 +4339,33 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
         return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
     case FRONT_TOP_AFTER:
         return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+        
+   case BOTTOM_LEFT_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case BOTTOM_RIGHT_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_LEFT_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_RIGHT_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+
+    case BACK_LEFT_NOW:
+        return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case BACK_RIGHT_NOW:
+        return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case FRONT_LEFT_NOW:
+        return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case FRONT_RIGHT_NOW:
+        return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+
+    case BOTTOM_BACK_NOW:
+        return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_BACK_NOW:
+        return ( isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case FRONT_BOTTOM_NOW:
+        return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case FRONT_TOP_NOW:
+        return ( isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
 
         // 4D corners
     case BOTTOM_LEFT_BACK_BEFORE:
@@ -3865,6 +4384,38 @@ bool isOnBoundary ( BoundingBoxPosition pos, Point & test, Point & min, Point & 
         return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
     case TOP_RIGHT_FRONT_BEFORE:
         return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( BEFORE, test, min, max, tol ) ) ;
+    case BOTTOM_LEFT_BACK_AFTER:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case BOTTOM_LEFT_FRONT_AFTER:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case BOTTOM_RIGHT_BACK_AFTER:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case BOTTOM_RIGHT_FRONT_AFTER:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case TOP_LEFT_BACK_AFTER:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case TOP_LEFT_FRONT_AFTER:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case TOP_RIGHT_BACK_AFTER:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ;
+    case TOP_RIGHT_FRONT_AFTER:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( AFTER, test, min, max, tol ) ) ; 
+     case BOTTOM_LEFT_BACK_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case BOTTOM_LEFT_FRONT_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case BOTTOM_RIGHT_BACK_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case BOTTOM_RIGHT_FRONT_NOW:
+        return ( isOnBoundary ( BOTTOM, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_LEFT_BACK_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_LEFT_FRONT_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( LEFT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_RIGHT_BACK_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( BACK, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ;
+    case TOP_RIGHT_FRONT_NOW:
+        return ( isOnBoundary ( TOP, test, min, max, tol ) && isOnBoundary ( RIGHT, test, min, max, tol ) && isOnBoundary ( FRONT, test, min, max, tol ) && isOnBoundary ( NOW, test, min, max, tol ) ) ; 
 
     }
     return false ;
@@ -3896,7 +4447,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -3945,7 +4496,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -4032,7 +4583,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -4091,7 +4642,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
         for ( auto i = t->begin() ; i != t->end() ; ++i )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -4172,6 +4723,9 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
             {
                 continue ;
             }
+            
+            if(i->getBehaviour()->type == VOID_BEHAVIOUR)
+                continue ;
 
             std::vector<Point> id  ;
 
@@ -4229,6 +4783,9 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
             {
                 continue ;
             }
+            
+            if(elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+                continue ;
 
             std::vector<Point> id  ;
 
@@ -4239,7 +4796,7 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
                     continue ;
                 domain->project ( &test );
 
-                if ( squareDist2D ( test, elements[i]->getBoundingPoint ( j ) ) < tol*tol )
+                if ( squareDist3D ( test, elements[i]->getBoundingPoint ( j ) ) < tol*tol )
                 {
                     id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
                 }
@@ -4405,6 +4962,8 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriang
             {
                 continue ;
             }
+            if(i->getBehaviour()->type == VOID_BEHAVIOUR)
+                continue ;
 
             std::vector<Point> id  ;
 
@@ -4483,6 +5042,9 @@ void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrah
             {
                 continue ;
             }
+            if(i->getBehaviour()->type == VOID_BEHAVIOUR)
+                continue ;
+            
 
             std::vector<Point> id  ;
 
@@ -4570,7 +5132,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -4712,7 +5274,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -4854,7 +5416,7 @@ void BoundingBoxAndRestrictionDefinedBoundaryCondition::apply ( Assembly * a, Me
 
         for ( auto i = t->begin() ; i != t->end()  ; i++ )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR )
             {
                 continue ;
             }
@@ -5006,7 +5568,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 
         for ( auto i = t->begin() ; i != t->end()  ; i++  )
         {
-            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() || i->getBehaviour()->type == VOID_BEHAVIOUR )
+            if ( (i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured()) || i->getBehaviour()->type == VOID_BEHAVIOUR  )
             {
                 continue ;
             }
@@ -5060,7 +5622,6 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
 
         Point pmin ( minx,miny, minz, mint ) ;
         Point pmax ( maxx,maxy, maxz, maxt ) ;
-
         for ( auto i = t->begin() ; i != t->end()  ; i++  )
         {
             if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
@@ -5129,9 +5690,9 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
     }
 }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) : scale ( 1 ), condition ( t ), data ( d ), function ( false ), axis ( a ) { } ;
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), axis ( a ), function ( false ) { } ;
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) : scale ( 1 ), condition ( t ), dataFunction ( d ), function ( true ), axis ( a ) { } ;
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), dataFunction ( d ), axis ( a ), function ( true ) { } ;
 
 void BoundaryCondition::setScale ( double d )
 {
@@ -5150,7 +5711,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTria
 
     for ( auto i = t->begin() ; i != t->end()  ; i++  )
     {
-        DelaunayTreeItem * VoidItem ;
+        DelaunayTreeItem * VoidItem = nullptr;
         bool border = false ;
 
         for ( size_t j = 0 ; j < i->neighbour.size() ; j++ )
@@ -5333,8 +5894,6 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
     }
     else
     {
-        size_t extradof = previousDisp.size() - ndofmax*dof ;
-        size_t extradofPerPlane = extradof / timePlanes ;
 
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {
@@ -5395,8 +5954,6 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
     }
     else
     {
-        size_t extradof = previousDisp.size() - ndofmax*dof ;
-        size_t extradofPerPlane = extradof / timePlanes ;
 
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {

@@ -54,7 +54,7 @@ void step()
     int nsteps = 1 ;
     featureTree->setMaxIterationsPerStep(800) ;
     MultiTriangleWriter writerc( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-    for(size_t i = 0 ; i < nsteps ; )
+    for(int i = 0 ; i < nsteps ; )
     {
         bool converged = featureTree->step() ;
 

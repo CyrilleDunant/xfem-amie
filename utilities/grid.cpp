@@ -806,11 +806,11 @@ void Grid3D::forceAdd(const Geometry * inc)
 bool Grid3D::remove(const Geometry* inc)
 {
 
-	for(int i = 0 ; i < pixels.size() ; i++)
+	for(size_t i = 0 ; i < pixels.size() ; i++)
 	{
-		for(int j = 0 ; j < pixels[i].size() ; j++)
+		for(size_t j = 0 ; j < pixels[i].size() ; j++)
 		{
-			for(int k = 0 ; k < pixels[i][j].size() ; k++)
+			for(size_t k = 0 ; k < pixels[i][j].size() ; k++)
 			{
 					pixels[i][j][k]->remove(inc) ;
 			}
@@ -1074,9 +1074,9 @@ void Grid::forceAdd(const Geometry * inc)
 
 bool Grid::remove(const Geometry * inc)
 {
-	for(int i = 0 ; i < pixels.size() ; i++)
+	for(size_t i = 0 ; i < pixels.size() ; i++)
 	{
-		for(int j = 0 ; j < pixels[i].size() ; j++)
+		for(size_t j = 0 ; j < pixels[i].size() ; j++)
 		{
 				pixels[i][j]->remove(inc) ;
 		}

@@ -97,7 +97,7 @@ struct FieldHigherThanElementChecker : public ElementChecker
 	FieldType field ;
 	double threshold ;
 	double instant ;
-	FieldHigherThanElementChecker(FieldType f, double t, double i = 1.) : ElementChecker(), threshold(t), field(f), instant(i) { } ;
+	FieldHigherThanElementChecker(FieldType f, double t, double i = 1.) : ElementChecker(), field(f), threshold(t), instant(i) { } ;
 	virtual bool checkElement(IntegrableEntity * e) const 
 	{ 
 		if(e->getBehaviour())
@@ -116,7 +116,7 @@ struct FieldLowerThanElementChecker : public ElementChecker
 	FieldType field ;
 	double threshold ;
 	double instant ;
-	FieldLowerThanElementChecker(FieldType f, double t, double i = 1.) : ElementChecker(), threshold(t), field(f), instant(i) { } ;
+	FieldLowerThanElementChecker(FieldType f, double t, double i = 1.) : ElementChecker(), field(f), threshold(t), instant(i) { } ;
 	virtual bool checkElement(IntegrableEntity * e) const 
 	{ 
 		if(e->getBehaviour())

@@ -26,6 +26,7 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case PRINCIPAL_STRESS_ANGLE_FIELD :
     case PRINCIPAL_STRAIN_ANGLE_FIELD :
     case SCALAR_DAMAGE_FIELD :
+    case INTERNAL_VARIABLE_FIELD:
         return 1 ;
 
     case DISPLACEMENT_FIELD :
@@ -65,7 +66,12 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD:
         return dim == SPACE_THREE_DIMENSIONAL ? 6*blocks : 3*blocks ;
-
+    default:
+    {
+        std::cout << f << " non-handled field !" << std::endl ; 
+         exit ( 0 ) ;
+         return 0 ;
+    }
     }
     std::cout << f << " non-existing field !" << std::endl ;
     exit ( 0 ) ;
@@ -138,7 +144,7 @@ Vector Form::getImposedStrain ( const Point & p, IntegrableEntity * e, int g ) c
 
 bool Form::hasInducedForces() const
 {
-    return false || getDamageModel() && getDamageModel()->hasInducedForces();
+    return false || ( getDamageModel() && getDamageModel()->hasInducedForces() );
 } ;
 
 std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const
@@ -576,7 +582,7 @@ void ElementState::getExternalField ( Vector & nodalValues, int externaldofs, co
     for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
     {
         double f = vm->eval ( parent->getShapeFunction ( j ), p_ ) ;
-        for ( size_t k = 0 ; k < externaldofs ; k++ )
+        for ( int k = 0 ; k < externaldofs ; k++ )
         {
             ret[k] += f * nodalValues[ j*externaldofs + k ] ;
         }
@@ -626,7 +632,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm ->eval ( parent->getShapeFunction ( j ) , p_ ) ;
-            for ( size_t k = 0 ; k < n ; k++ )
+            for ( int k = 0 ; k < n ; k++ )
             {
                 ret[k] += f * displacements[j*n+k] ;
             }
@@ -634,7 +640,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
             double f =  vm ->eval ( parent->getEnrichmentFunction ( j ) , p_ ) ;
-            for ( size_t k = 0 ; k < n ; k++ )
+            for ( int k = 0 ; k < n ; k++ )
             {
                 ret[k] += f * enrichedDisplacements[j*n+k] ;
             }
@@ -649,7 +655,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
             double f =  vm ->eval ( parent->getEnrichmentFunction ( j ) , p_ ) ;
-            for ( size_t k = 0 ; k < n ; k++ )
+            for ( int k = 0 ; k < n ; k++ )
             {
                 ret[k] += f * enrichedDisplacements[j*n+k] ;
             }
@@ -1302,6 +1308,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             delete vm ;
         }
         return ;
+    default:
+        std::cerr << "field type not supported" << std::endl ;
+        exit(0) ;
     }
 }
 
@@ -1375,7 +1384,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         test = lock ;
         if(!test)
         {
-            #pragma atomic write
+            #pragma omp atomic write
             lock = true ;
             #pragma omp flush
             break ;
@@ -1405,9 +1414,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     {
     case STRAIN_FIELD :
         
-        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
-            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
+            strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1463,14 +1472,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case MECHANICAL_STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) , 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1532,15 +1541,15 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
 
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() , 0. ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) , 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1604,14 +1613,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case PRINCIPAL_STRAIN_FIELD :
         
-        if ( pstrainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size() )
+        if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
         {
-            pstrainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size(), 0. ) ;
+            pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1667,14 +1676,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case REAL_STRESS_FIELD:
         
-        if ( stressAtGaussPoints.size() !=  parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            stressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1729,13 +1738,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case PRINCIPAL_REAL_STRESS_FIELD :
-        if ( pstressAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size() )
+        if ( pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
         {
-            pstressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size() ) ;
+            pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) ) ;
 
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
@@ -1791,13 +1800,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case EFFECTIVE_STRESS_FIELD:
-        if ( stressAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            stressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1830,7 +1839,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         {
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                Point p_ = gp.gaussPoints[i].first ;
                 Vector tmp ( stressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
                 for ( size_t j = 0 ; j < tmp.size() ; j++ )
                 {
@@ -1854,13 +1862,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-        if ( pstressAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size() )
+        if ( pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
         {
-            pstressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size(), 0. ) ;
+            pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1893,7 +1901,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         {
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
-                Point p_ = gp.gaussPoints[i].first ;
                 Vector tmp ( pstressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
                 for ( size_t j = 0 ; j < tmp.size() ; j++ )
                 {
@@ -1917,14 +1924,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
         
      case PRINCIPAL_STRESS_ANGLE_FIELD:
-        if ( stressAtGaussPoints.size() !=  parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            stressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2000,14 +2007,14 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
         
      case PRINCIPAL_STRAIN_ANGLE_FIELD:
-        if ( strainAtGaussPoints.size() !=  parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size() )
+        if ( strainAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
-            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size(), 0. ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2087,7 +2094,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v; 
          
@@ -2096,7 +2103,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         Vector tmp (ret) ;
         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
         {
-            Point p_ = gp.gaussPoints[i].first ;
             
             getField ( f, gp.gaussPoints[i].first, tmp,true,  vm, dummy ) ;
 
@@ -2115,7 +2121,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         {
             delete vm ;
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     }
@@ -2132,7 +2138,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         test = lock ;
         if(!test)
         {
-            #pragma atomic write
+            #pragma omp atomic write
             lock = true ;
             #pragma omp flush
             break ;
@@ -2156,12 +2162,12 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     
     if ( f == STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
-        if ( strainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size() ||
-                stressAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size() )
+        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
+                stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
         {
 
-            strainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size() ) ;
-            stressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size() ) ;
+            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
+            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2224,17 +2230,17 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 delete vm ;
             }
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v ;
     }
     if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
-        if ( pstrainAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size() ||
-                pstressAtGaussPoints.size() != parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size() )
+        if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
+                pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
         {
-            pstrainAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size() ) ;
-            pstressAtGaussPoints.resize ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size() ) ;
+            pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
+            pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2293,7 +2299,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
             }
             
         }
-        #pragma atomic write
+        #pragma omp atomic write
         lock = false ;
         return v;
     }
@@ -2305,7 +2311,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     {
         delete vm ;
     }
-    #pragma atomic write
+    #pragma omp atomic write
     lock = false ;
     return v ;
 
@@ -2994,7 +3000,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
     Vector principalStresses ( 0., 3 ) ;
     this->getField ( principalStressFieldType ( m ), p_, principalStresses, true ) ;
     std::vector<Vector> principalVectors ;
-    for ( int i = 0 ; i <  principalStresses.size() ; ++i )
+    for ( size_t i = 0 ; i <  principalStresses.size() ; ++i )
     {
         principalVectors.push_back ( Vector ( 0.,stressMatrix.numCols() ) ) ;
         Matrix m = ( stressMatrix-identity ( stressMatrix.numCols() ) *principalStresses[i] ) ;
@@ -3013,7 +3019,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
             m_reduced[j][0] = 0 ;
         }
 
-        int k = 1 ;
+        size_t k = 1 ;
         while ( det ( m_reduced ) < 1e-6 && k < m_reduced.numCols() )
         {
             m_reduced = m ;
@@ -3045,7 +3051,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
 
     if ( stressMatrix.numCols() == 2 )
     {
-        for ( int i = 0 ; i <  principalVectors.size() ; ++i )
+        for ( size_t i = 0 ; i <  principalVectors.size() ; ++i )
         {
             ret.push_back ( Point ( principalVectors[i][0], principalVectors[i][1] ) );
             ret.back() /= ret.back().norm() ;
@@ -3054,7 +3060,7 @@ std::vector<Point> ElementState::getPrincipalFrame ( const Point &p, bool local,
     }
     else
     {
-        for ( int i = 0 ; i <  principalVectors.size() ; ++i )
+        for ( size_t i = 0 ; i <  principalVectors.size() ; ++i )
         {
             ret.push_back ( Point ( principalVectors[i][0], principalVectors[i][1], principalVectors[i][2] ) );
             ret.back() /= ret.back().norm() ;
@@ -3093,7 +3099,7 @@ double ElementState::elasticEnergy()
 
 }
 
-ElementStateWithInternalVariables::ElementStateWithInternalVariables ( IntegrableEntity * e, int n_, int p_ ) : ElementState ( e ), p ( p_ ), n ( n_ )
+ElementStateWithInternalVariables::ElementStateWithInternalVariables ( IntegrableEntity * e, int n_, int p_ ) : ElementState ( e ), n ( n_ ), p ( p_ )
 {
 
 }
@@ -3108,7 +3114,7 @@ ElementStateWithInternalVariables::ElementStateWithInternalVariables ( ElementSt
     for ( size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++ )
     {
         internalVariablesAtGaussPoints[g].resize ( n ) ;
-        for ( size_t k = 0 ; k < n ; k++ )
+        for ( int k = 0 ; k < n ; k++ )
         {
             internalVariablesAtGaussPoints[g][k].resize ( p ) ;
         }
@@ -3146,7 +3152,7 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
     for ( size_t g = 0 ; g < internalVariablesAtGaussPoints.size() ; g++ )
     {
         internalVariablesAtGaussPoints[g].resize ( n ) ;
-        for ( size_t k = 0 ; k < n ; k++ )
+        for ( int k = 0 ; k < n ; k++ )
         {
             internalVariablesAtGaussPoints[g][k].resize ( p ) ;
         }
@@ -3290,7 +3296,7 @@ void ElementStateWithInternalVariables::initialize (  Mesh<DelaunayTriangle,Dela
     for ( size_t g = 0 ; g < ngp ; g++ )
     {
         internalVariablesAtGaussPoints.push_back ( dummy ) ;
-        for ( size_t k = 0 ; k < n ; k++ )
+        for ( int k = 0 ; k < n ; k++ )
         {
             internalVariablesAtGaussPoints[g].push_back ( vdummy ) ;
         }
@@ -3308,7 +3314,7 @@ void ElementStateWithInternalVariables::initialize ( Mesh<DelaunayTetrahedron,De
     for ( size_t g = 0 ; g < ngp ; g++ )
     {
         internalVariablesAtGaussPoints.push_back ( dummy ) ;
-        for ( size_t k = 0 ; k < n ; k++ )
+        for ( int k = 0 ; k < n ; k++ )
         {
             internalVariablesAtGaussPoints[g].push_back ( vdummy ) ;
         }
@@ -3317,16 +3323,16 @@ void ElementStateWithInternalVariables::initialize ( Mesh<DelaunayTetrahedron,De
 
 void ElementStateWithInternalVariables::setNumberOfGaussPoints ( int g )
 {
-    while ( internalVariablesAtGaussPoints.size() < g )
+    while ( (int)internalVariablesAtGaussPoints.size() < g )
     {
         std::vector<Vector> dummy ( 0 ) ;
-        for ( size_t i = 0 ; i < n ; i++ )
+        for ( int i = 0 ; i < n ; i++ )
         {
             dummy.push_back ( internalVariablesAtGaussPoints[0][i] ) ;
         }
         internalVariablesAtGaussPoints.push_back ( dummy ) ;
     }
-    while ( internalVariablesAtGaussPoints.size() > g )
+    while ( (int)internalVariablesAtGaussPoints.size() > g )
     {
         internalVariablesAtGaussPoints.pop_back() ;
     }
@@ -3523,7 +3529,7 @@ void KelvinVoightSpaceTimeElementState::getField ( FieldType f, const Point & p,
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm ->deval ( parent->getShapeFunction ( j ) , TIME_VARIABLE, p_ ) ;
-            for ( size_t k = 0 ; k < n ; k++ )
+            for ( int k = 0 ; k < n ; k++ )
             {
                 ret[k] += f * displacements[j*n+k] ;
             }
@@ -3531,7 +3537,7 @@ void KelvinVoightSpaceTimeElementState::getField ( FieldType f, const Point & p,
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
             double f =  vm ->deval ( parent->getShapeFunction ( j ) , TIME_VARIABLE, p_ ) ;
-            for ( size_t k = 0 ; k < n ; k++ )
+            for ( int k = 0 ; k < n ; k++ )
             {
                 ret[k] += f * enrichedDisplacements[j*n+k] ;
             }
@@ -3824,13 +3830,15 @@ void KelvinVoightSpaceTimeElementState::getField ( FieldType f, const Point & p,
         }
         return ;
     }
+    default:
+         ElementState::getField ( f, p, ret, local, vm ) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
     }
 
-    ElementState::getField ( f, p, ret, local, vm ) ;
-    if ( cleanup )
-    {
-        delete vm ;
-    }
+
 }
 
 void KelvinVoightSpaceTimeElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int i, int j )  const

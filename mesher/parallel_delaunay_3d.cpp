@@ -19,7 +19,8 @@
 // #define DEBUG
 // #undef DEBUG
 
-using namespace Amie ;
+namespace Amie
+{
 
 bool ParallelDelaunayTree3D::isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1) const
 {
@@ -66,7 +67,7 @@ int ParallelDelaunayTree3D::getDomain(const DelaunayTetrahedron * tet) const
     {
         inDomain[domain_index] = domains[domain_index]->in(tet->getCenter()) ;
     }
-    
+
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
         if(inDomain[domain_index])
@@ -80,7 +81,7 @@ int ParallelDelaunayTree3D::getDomain(const DelaunayTetrahedron * tet) const
                     break ;
                 }
             }
-            if( unique && mesh == domain_index )
+            if( unique && mesh == (int)domain_index )
                 return domain_index ;
         }
     }
@@ -109,7 +110,7 @@ int ParallelDelaunayTree3D::getDomain(const Point & center) const
     return -1 ;
 }
 
-ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) : Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), domains(domains)
+ParallelDelaunayTree3D::ParallelDelaunayTree3D(Point * p0,  Point *p1,  Point *p2,  Point *p3, const std::vector<const Geometry *> & domains) : Mesh< DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), domains(domains)
 {
     std::vector<std::vector<DelaunayTreeItem3D *> > newElements(domains.size()) ;
 
@@ -144,7 +145,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
 std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElements(const Geometry  * p)
 {
     std::valarray<std::vector<DelaunayTetrahedron *> > conflicts(meshes.size()) ;
-    
+
     #pragma omp parallel for
     for(size_t i = 0 ; i < meshes.size() ; i++)
     {
@@ -173,41 +174,41 @@ bool interacts(const Geometry * g , DelaunayTreeItem3D * item)
     }
     else if( item->isTetrahedron())
     {
-        if(g->in(*item->first)  || 
-           g->in(*item->second) || 
-           g->in(*item->third)  || 
-           g->in(*item->fourth) 
+        if(g->in(*item->first)  ||
+                g->in(*item->second) ||
+                g->in(*item->third)  ||
+                g->in(*item->fourth)
           )
         {
             return true ;
         }
-            
+
         for(size_t j = 0 ; j < item->neighbour.size() ;  j++)
         {
             if(item->getNeighbour(j)->isSpace())
                 continue ;
-            
+
             DelaunayTreeItem3D * n = item->getNeighbour(j) ;
-            
-            if(g->in(*(n->first))  || 
-               g->in(*(n->second)) || 
-               g->in(*(n->third))  || 
-               g->in(*(n->fourth))  )
+
+            if(g->in(*(n->first))  ||
+                    g->in(*(n->second)) ||
+                    g->in(*(n->third))  ||
+                    g->in(*(n->fourth))  )
             {
                 return true ;
             }
         }
 
-    }    
+    }
 
     return false ;
 }
 
 void ParallelDelaunayTree3D::insert(Point * p)
-{   
+{
     #pragma omp parallel for schedule(static,1)
     for(size_t i = 0 ; i < meshes.size() ; i++)
-    {   
+    {
         bool isVertex = false ;
         bool noInteraction = true ;
         std::vector<DelaunayTreeItem3D *> cons = meshes[i]->conflicts(p) ;
@@ -216,7 +217,7 @@ void ParallelDelaunayTree3D::insert(Point * p)
         {
             std::cout << "Failed insertion : in nothing !" << std::endl ;
         }
-        
+
         for(size_t j = 0 ; j < cons.size() ; j++)
         {
             if(cons[j]->isVertex(p))
@@ -227,9 +228,9 @@ void ParallelDelaunayTree3D::insert(Point * p)
         }
         if(isVertex)
             continue ;
-        
+
         if(domains[i]->in(*p))
-             noInteraction = false ;
+            noInteraction = false ;
         else
         {
             for(auto & c : cons )
@@ -246,7 +247,7 @@ void ParallelDelaunayTree3D::insert(Point * p)
         {
             newElems = meshes[i]->addElements(cons, p) ;
         }
-        
+
         int maxIdx = 0 ;
         for(size_t j = 0 ; j < newElems.size() ; j++)
             maxIdx = std::max(maxIdx, newElems[j]->index) ;
@@ -257,7 +258,7 @@ void ParallelDelaunayTree3D::insert(Point * p)
     }
 }
 
-std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements() 
+std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
 {
     std::vector<std::vector<DelaunayTetrahedron *>> tris(meshes.size()) ;
 
@@ -268,7 +269,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
         for(const auto & t : tmp)
         {
 
-            if(getDomain( t) == i)
+            if(getDomain( t) == (int)i)
                 tris[i].push_back(t);
         }
     }
@@ -368,7 +369,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
         positions.push_back( 0 ) ;
         positions.push_back( 2 ) ;
     }
-    
+
     std::cerr << "setting order... elements 0/" << tet.size() << std::flush ;
     for( size_t i = 0 ; i < tet.size() ; i++ )
     {
@@ -383,7 +384,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 3 ), tet[i]->getBoundingPoint( 1 ) ) ) ;
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
 
-        
+
         visited[tet[i]] = true ;
 
         size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
@@ -485,7 +486,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
         tet[i]->setBoundingPoints( newPoints ) ;
 
     }
-    
+
     std::cerr << "setting order... elements " << tet.size() << "/" << tet.size() << " ...done."<< std::endl ;
 }
 
@@ -500,96 +501,96 @@ void ParallelDelaunayTree3D::setElementOrder( Order elemOrder, double dt )
     }
     switch( elemOrder )
     {
-        case CONSTANT:
-        {
-            break ;
-        }
-        case LINEAR:
-        {
-            break ;
-        }
-        case QUADRATIC:
-        {
-            addSharedNodes( 1, 1, 0 ) ;
-            break ;
-        }
-        case CUBIC:
-        {
-            addSharedNodes( 2, 1, 0 ) ;
-            break ;
-        }
-        case QUADRIC:
-        {
-            addSharedNodes( 3, 1, 0 ) ;
-            break ;
-        }
-        case QUINTIC:
-        {
-            addSharedNodes( 3, 1, 0 ) ;
-            break ;
-        }
-        case CONSTANT_TIME_LINEAR:
-        {
-            addSharedNodes( 0, 2, dt ) ;
-            break ;
-        }
-        case CONSTANT_TIME_QUADRATIC:
-        {
-            addSharedNodes( 0, 3, dt ) ;
-            break ;
-        }
-        case LINEAR_TIME_LINEAR:
-        {
-            addSharedNodes( 0, 2, dt ) ;
-            break ;
-        }
-        case LINEAR_TIME_QUADRATIC:
-        {
-            addSharedNodes( 0, 3, dt ) ;
-            break ;
-        }
-        case QUADRATIC_TIME_LINEAR:
-        {
-            addSharedNodes( 1, 2, dt ) ;
-            break ;
-        }
-        case QUADRATIC_TIME_QUADRATIC:
-        {
-            addSharedNodes( 1, 3, dt ) ;
-            break ;
-        }
-        case CUBIC_TIME_LINEAR:
-        {
-            addSharedNodes( 2, 2, dt ) ;
-            break ;
-        }
-        case CUBIC_TIME_QUADRATIC:
-        {
-            addSharedNodes( 2, 3, dt ) ;
-            break ;
-        }
-        case QUADRIC_TIME_LINEAR:
-        {
-            addSharedNodes( 3, 2, dt ) ;
-            break ;
-        }
-        case QUADRIC_TIME_QUADRATIC:
-        {
-            addSharedNodes( 3, 3, dt ) ;
-            break ;
-        }
-        case QUINTIC_TIME_LINEAR:
-        {
-            addSharedNodes( 3, 2, dt ) ;
-            break ;
-        }
-        case QUINTIC_TIME_QUADRATIC:
-        {
-            addSharedNodes( 3, 3, dt ) ;
-            break ;
-        }
-        default:
-            break ;
+    case CONSTANT:
+    {
+        break ;
+    }
+    case LINEAR:
+    {
+        break ;
+    }
+    case QUADRATIC:
+    {
+        addSharedNodes( 1, 1, 0 ) ;
+        break ;
+    }
+    case CUBIC:
+    {
+        addSharedNodes( 2, 1, 0 ) ;
+        break ;
+    }
+    case QUADRIC:
+    {
+        addSharedNodes( 3, 1, 0 ) ;
+        break ;
+    }
+    case QUINTIC:
+    {
+        addSharedNodes( 3, 1, 0 ) ;
+        break ;
+    }
+    case CONSTANT_TIME_LINEAR:
+    {
+        addSharedNodes( 0, 2, dt ) ;
+        break ;
+    }
+    case CONSTANT_TIME_QUADRATIC:
+    {
+        addSharedNodes( 0, 3, dt ) ;
+        break ;
+    }
+    case LINEAR_TIME_LINEAR:
+    {
+        addSharedNodes( 0, 2, dt ) ;
+        break ;
+    }
+    case LINEAR_TIME_QUADRATIC:
+    {
+        addSharedNodes( 0, 3, dt ) ;
+        break ;
+    }
+    case QUADRATIC_TIME_LINEAR:
+    {
+        addSharedNodes( 1, 2, dt ) ;
+        break ;
+    }
+    case QUADRATIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 1, 3, dt ) ;
+        break ;
+    }
+    case CUBIC_TIME_LINEAR:
+    {
+        addSharedNodes( 2, 2, dt ) ;
+        break ;
+    }
+    case CUBIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 2, 3, dt ) ;
+        break ;
+    }
+    case QUADRIC_TIME_LINEAR:
+    {
+        addSharedNodes( 3, 2, dt ) ;
+        break ;
+    }
+    case QUADRIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 3, 3, dt ) ;
+        break ;
+    }
+    case QUINTIC_TIME_LINEAR:
+    {
+        addSharedNodes( 3, 2, dt ) ;
+        break ;
+    }
+    case QUINTIC_TIME_QUADRATIC:
+    {
+        addSharedNodes( 3, 3, dt ) ;
+        break ;
+    }
+    default:
+        break ;
 
     }
 }
@@ -604,7 +605,7 @@ void ParallelDelaunayTree3D::extrude(double dt)
     }
 
     int initial_global_counter = global_counter ;
-    
+
 
     std::vector<DelaunayTetrahedron *> tmp = getElements() ;
     for(size_t j = 0 ; j < tmp.size() ;  j++)
@@ -651,17 +652,6 @@ const std::vector<Point * > & ParallelDelaunayTree3D::getAdditionalPoints() cons
     return additionalPoints ;
 }
 
-// std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree()
-// {
-//     return tree ;
-// }
-// 
-// const std::vector<DelaunayTreeItem3D *> & ParallelDelaunayTree3D::getTree() const
-// {
-//     return tree ;
-// }
-
-
 unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const Geometry * source, Function smoothing )
 {
     VirtualMachine vm ;
@@ -691,14 +681,14 @@ unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const
     {
         if(source && element->getBehaviour()->getSource() != source)
             continue ;
-        
+
         if(locus->in(element->getCenter()))
         {
             caches[position].push_back(element->index) ;
             elementMap[position].push_back(getDomain(element));
             coefs[position].push_back(std::vector<double>()) ;
             if(!source)
-               continue ;
+                continue ;
             Function x = element->getXTransform() ;
             Function y = element->getYTransform() ;
             Function z = element->getZTransform() ;
@@ -714,11 +704,11 @@ unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const
             }
         }
     }
-    
+
     return position ;
 }
 
- unsigned int ParallelDelaunayTree3D::generateCache ()
+unsigned int ParallelDelaunayTree3D::generateCache ()
 {
     std::vector<DelaunayTetrahedron *> elems = getElements() ;
     //search for first empty cache slot ;
@@ -757,7 +747,7 @@ unsigned int ParallelDelaunayTree3D::generateCache(const Geometry * locus, const
     return position ;
 };
 
-Vector ParallelDelaunayTree3D::getField( FieldType f, unsigned int cacheID, int dummy, double t)
+Vector ParallelDelaunayTree3D::getField( FieldType f, int cacheID, int dummy, double t)
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
@@ -783,7 +773,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t)
 {
     VirtualMachine vm ;
     size_t blocks = 0 ;
-    
+
     std::vector<DelaunayTetrahedron *> elems = getElements() ;
     for(size_t i = 0 ; i < elems.size() && !blocks; i++)
     {
@@ -793,7 +783,7 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t)
     Vector buffer(ret) ;
     double w = 0 ;
     for(size_t i = 0 ; i < elems.size() ; i++)
-    { 
+    {
         double v = elems[i]->getState().getAverageField(f, buffer, nullptr, dummy, t) ;
         ret += buffer * v ;
         w +=v ;
@@ -801,289 +791,289 @@ Vector ParallelDelaunayTree3D::getField( FieldType f, int dummy, double t)
     return ret/w ;
 }
 
-    Vector ParallelDelaunayTree3D::getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy , double t ) {
-        Vector first ;
-        Vector strain ;
-        Vector stress ;
-        Vector strainrate ;
-        Vector buffer ;
-        int tsize = 6 ;
-        int psize = 3 ;
+Vector ParallelDelaunayTree3D::getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy , double t ) {
+    Vector first ;
+    Vector strain ;
+    Vector stress ;
+    Vector strainrate ;
+    Vector buffer ;
+    int tsize = 6 ;
+    int psize = 3 ;
 
-        bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
-        VirtualMachine vm ;
-        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-            //we first need to compute the strain field
+    bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
+    VirtualMachine vm ;
+    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+        //we first need to compute the strain field
+        if ( !spaceTime ) {
+            double sumFactors ( 0 ) ;
+
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+
+                double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                if ( !strain.size() ) {
+                    strain.resize ( 0., buffer.size() );
+                }
+                strain += buffer*v ;
+                sumFactors += v ;
+            }
+            strain /= sumFactors ;
+        } else {
+            double sumFactors ( 0 ) ;
+            Vector tmpstrain ;
+            Vector tmpstrainrate ;
+
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+
+
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                if ( !tmpstrain.size() ) {
+                    tmpstrain.resize ( 0., buffer.size() );
+                }
+                tmpstrain += buffer*v ;
+                sumFactors += v ;
+            }
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                if ( !tmpstrainrate.size() ) {
+                    tmpstrainrate.resize ( 0., buffer.size() );
+                }
+                tmpstrainrate += buffer*v ;
+            }
+            tmpstrain /= sumFactors ;
+            tmpstrainrate /=sumFactors ;
+
+            Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+            stress.resize ( tsize, 0. ) ;
+            strain.resize ( tsize, 0. ) ;
+            for ( int i = 0 ; i < tsize ; i++ ) {
+                stress[i] = tmpstress[i] ;
+                strain[i] = tmpstrain[i] ;
+            }
+        }
+
+        if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+            first.resize ( psize );
+            first = toPrincipal ( strain ) ;
+        }
+        if ( f0 == REAL_STRESS_FIELD ) {
+            first.resize ( tsize );
             if ( !spaceTime ) {
-                double sumFactors ( 0 ) ;
+                first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+            } else {
+                first = stress ;
+            }
+        }
+        if ( f0 == EFFECTIVE_STRESS_FIELD ) {
+            first.resize ( tsize );
+            first = strain*e->getBehaviour()->param ;
+        }
+        if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+            first.resize ( psize );
+            first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+        }
+        if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
+            first.resize ( psize );
+            if ( !spaceTime ) {
+                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+            } else {
+                first = toPrincipal ( stress ) ;
+            }
+        }
 
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+    } else {
+        double sumFactors ( 0 ) ;
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+            DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+            double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+            if ( first.size() != buffer.size()) {
+                first.resize ( buffer.size(), 0. );
+            }
 
-                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
-                    if ( !strain.size() ) {
-                        strain.resize ( 0., buffer.size() );
-                    }
+            first += buffer*v ;
+            sumFactors += v ;
+        }
+
+        first /= sumFactors ;
+    }
+
+    return first ;
+}
+
+std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy, double t ) {
+    Vector first ;
+    Vector second ;
+    Vector strain ;
+    Vector stress ;
+    Vector strainrate ;
+    Vector buffer ;
+    int tsize = 6 ;
+    int psize = 3 ;
+
+    bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
+    VirtualMachine vm ;
+    if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD ||
+            f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD
+       ) {
+        //we first need to compute the strain field
+        if ( !spaceTime ) {
+            buffer.resize ( tsize, 0. );
+            strain.resize ( tsize, 0. );
+            double sumFactors ( 0 ) ;
+
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+                if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
                     strain += buffer*v ;
                     sumFactors += v ;
                 }
-                strain /= sumFactors ;
-            } else {
-                double sumFactors ( 0 ) ;
-                Vector tmpstrain ;
-                Vector tmpstrainrate ;
-
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-
-
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                    if ( !tmpstrain.size() ) {
-                        tmpstrain.resize ( 0., buffer.size() );
-                    }
-                    tmpstrain += buffer*v ;
-                    sumFactors += v ;
-                }
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                    if ( !tmpstrainrate.size() ) {
-                        tmpstrainrate.resize ( 0., buffer.size() );
-                    }
-                    tmpstrainrate += buffer*v ;
-                }
-                tmpstrain /= sumFactors ;
-                tmpstrainrate /=sumFactors ;
-
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
-                stress.resize ( tsize, 0. ) ;
-                strain.resize ( tsize, 0. ) ;
-                for ( size_t i = 0 ; i < tsize ; i++ ) {
-                    stress[i] = tmpstress[i] ;
-                    strain[i] = tmpstrain[i] ;
-                }
             }
-
-            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
-                first.resize ( psize );
-                first = toPrincipal ( strain ) ;
-            }
-            if ( f0 == REAL_STRESS_FIELD ) {
-                first.resize ( tsize );
-                if ( !spaceTime ) {
-                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
-                } else {
-                    first = stress ;
-                }
-            }
-            if ( f0 == EFFECTIVE_STRESS_FIELD ) {
-                first.resize ( tsize );
-                first = strain*e->getBehaviour()->param ;
-            }
-            if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-                first.resize ( psize );
-                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
-            }
-            if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
-                first.resize ( psize );
-                if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
-                } else {
-                    first = toPrincipal ( stress ) ;
-                }
-            }
-
+            strain /= sumFactors ;
         } else {
+            size_t blocks = 0 ;
+            for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
+                DelaunayTetrahedron *ci  = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+                blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
+            }
+            Vector tmpstrain ;
+            Vector tmpstrainrate ;
+
+            tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
+            buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
+            tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, spaceDimensions, blocks ), 0. ) ;
             double sumFactors ( 0 ) ;
+
+
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                if ( first.size() != buffer.size()) {
-                    first.resize ( buffer.size(), 0. );
+
+
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                if ( !tmpstrain.size() ) {
+                    tmpstrain.resize ( buffer.size(), 0. );
                 }
-                
-                first += buffer*v ;
+                tmpstrain += buffer*v ;
                 sumFactors += v ;
             }
+            buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,spaceDimensions, blocks ), 0. );
+            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+                DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
 
-            first /= sumFactors ;
+                double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                if ( !tmpstrainrate.size() ) {
+                    tmpstrainrate.resize ( buffer.size(), 0. );
+                }
+                tmpstrainrate += buffer*v ;
+            }
+            tmpstrain /= sumFactors ;
+            tmpstrainrate /=sumFactors ;
+
+            Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
+            stress.resize ( tsize, 0. ) ;
+            strain.resize ( tsize, 0. ) ;
+            for ( int i = 0 ; i < tsize ; i++ ) {
+                stress[i] = tmpstress[i] ;
+                strain[i] = tmpstrain[i] ;
+            }
         }
 
-        return first ;
-    }
-
-    std::pair<Vector, Vector> ParallelDelaunayTree3D::getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy, double t ) {
-        Vector first ;
-        Vector second ;
-        Vector strain ;
-        Vector stress ;
-        Vector strainrate ;
-        Vector buffer ;
-        int tsize = 6 ;
-        int psize = 3 ;
-
-        bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
-        VirtualMachine vm ;
-        if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD ||
-                f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD
-           ) {
-            //we first need to compute the strain field
+        if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
+            first.resize ( psize );
+            first = toPrincipal ( strain ) ;
+        }
+        if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
+            second.resize ( psize );
+            second = toPrincipal ( strain ) ;
+        }
+        if ( f0 == REAL_STRESS_FIELD ) {
+            first.resize ( tsize );
             if ( !spaceTime ) {
-                buffer.resize ( tsize, 0. );
-                strain.resize ( tsize, 0. );
-                double sumFactors ( 0 ) ;
-
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    IntegrableEntity *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                    if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                        strain += buffer*v ;
-                        sumFactors += v ;
-                    }
-                }
-                strain /= sumFactors ;
+                first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
             } else {
-                size_t blocks = 0 ;
-                for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
-                    DelaunayTetrahedron *ci  = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                    blocks = ci->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions  ;
-                }
-                Vector tmpstrain ;
-                Vector tmpstrainrate ;
-
-                tmpstrain.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. ) ;
-                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, spaceDimensions, blocks ), 0. );
-                tmpstrainrate.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, spaceDimensions, blocks ), 0. ) ;
-                double sumFactors ( 0 ) ;
-
-
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-
-
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                    if ( !tmpstrain.size() ) {
-                        tmpstrain.resize ( buffer.size(), 0. );
-                    }
-                    tmpstrain += buffer*v ;
-                    sumFactors += v ;
-                }
-                buffer.resize ( fieldTypeElementarySize ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD,spaceDimensions, blocks ), 0. );
-                for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                    DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
-                    if ( !tmpstrainrate.size() ) {
-                        tmpstrainrate.resize ( buffer.size(), 0. );
-                    }
-                    tmpstrainrate += buffer*v ;
-                }
-                tmpstrain /= sumFactors ;
-                tmpstrainrate /=sumFactors ;
-
-                Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point() ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point() ) ) ;
-                stress.resize ( tsize, 0. ) ;
-                strain.resize ( tsize, 0. ) ;
-                for ( size_t i = 0 ; i < tsize ; i++ ) {
-                    stress[i] = tmpstress[i] ;
-                    strain[i] = tmpstrain[i] ;
-                }
+                first = stress ;
             }
-
-            if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
-                first.resize ( psize );
-                first = toPrincipal ( strain ) ;
+        }
+        if ( f1 == REAL_STRESS_FIELD ) {
+            second.resize ( tsize );
+            if ( !spaceTime ) {
+                second = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+            } else {
+                second = stress ;
             }
-            if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
-                second.resize ( psize );
-                second = toPrincipal ( strain ) ;
+        }
+        if ( f0 == EFFECTIVE_STRESS_FIELD ) {
+            first.resize ( tsize );
+            first = strain*e->getBehaviour()->param ;
+        }
+        if ( f1 == EFFECTIVE_STRESS_FIELD ) {
+            second.resize ( tsize );
+            second = strain*e->getBehaviour()->param ;
+        }
+        if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+            first.resize ( psize );
+            first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+        }
+        if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
+            second.resize ( psize );
+            second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+        }
+        if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
+            first.resize ( psize );
+            if ( !spaceTime ) {
+                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+            } else {
+                first = toPrincipal ( stress ) ;
             }
-            if ( f0 == REAL_STRESS_FIELD ) {
-                first.resize ( tsize );
-                if ( !spaceTime ) {
-                    first = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
-                } else {
-                    first = stress ;
-                }
+        }
+        if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
+            second.resize ( psize );
+            if ( !spaceTime ) {
+                second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+            } else {
+                second = toPrincipal ( stress ) ;
             }
-            if ( f1 == REAL_STRESS_FIELD ) {
-                second.resize ( tsize );
-                if ( !spaceTime ) {
-                    second = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
-                } else {
-                    second = stress ;
-                }
-            }
-            if ( f0 == EFFECTIVE_STRESS_FIELD ) {
-                first.resize ( tsize );
-                first = strain*e->getBehaviour()->param ;
-            }
-            if ( f1 == EFFECTIVE_STRESS_FIELD ) {
-                second.resize ( tsize );
-                second = strain*e->getBehaviour()->param ;
-            }
-            if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-                first.resize ( psize );
-                first = toPrincipal ( strain*e->getBehaviour()->param ) ;
-            }
-            if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-                second.resize ( psize );
-                second = toPrincipal ( strain*e->getBehaviour()->param ) ;
-            }
-            if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
-                first.resize ( psize );
-                if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
-                } else {
-                    first = toPrincipal ( stress ) ;
-                }
-            }
-            if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
-                second.resize ( psize );
-                if ( !spaceTime ) {
-                    second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
-                } else {
-                    second = toPrincipal ( stress ) ;
-                }
-            }
-
-            if ( f0 == STRAIN_FIELD ) {
-                first.resize ( tsize ) ;
-                first = strain ;
-            }
-            if ( f1 == STRAIN_FIELD ) {
-                second.resize ( tsize ) ;
-                second = strain ;
-            }
-
-        } else {
-            double sumFactors ( 0 ) ;
-
-            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-
-                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
-                if ( !first.size() ) {
-                    first.resize ( 0., buffer.size() );
-                }
-                first += buffer*v ;
-                sumFactors += v ;
-            }
-            for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-                DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
-                if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
-                    if ( !second.size() ) {
-                        second.resize ( 0., buffer.size() );
-                    }
-                    second += buffer*v ;
-                }
-            }
-            first /= sumFactors ;
-            second /= sumFactors ;
         }
 
+        if ( f0 == STRAIN_FIELD ) {
+            first.resize ( tsize ) ;
+            first = strain ;
+        }
+        if ( f1 == STRAIN_FIELD ) {
+            second.resize ( tsize ) ;
+            second = strain ;
+        }
 
-        return std::make_pair ( first, second ) ;
+    } else {
+        double sumFactors ( 0 ) ;
+
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+            DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+
+            double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+            if ( !first.size() ) {
+                first.resize ( 0., buffer.size() );
+            }
+            first += buffer*v ;
+            sumFactors += v ;
+        }
+        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+            DelaunayTetrahedron *ci = static_cast<DelaunayTetrahedron *> ( meshes[elementMap[cacheID][i]]->getInTree ( caches[cacheID][i] ) ) ;
+            if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
+                double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
+                if ( !second.size() ) {
+                    second.resize ( 0., buffer.size() );
+                }
+                second += buffer*v ;
+            }
+        }
+        first /= sumFactors ;
+        second /= sumFactors ;
     }
-    
+
+
+    return std::make_pair ( first, second ) ;
+}
+}

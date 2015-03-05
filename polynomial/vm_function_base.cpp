@@ -507,11 +507,11 @@ VGDtMtVG VGDtM::operator*(const Amie::VectorGradient & f) const
 
 Function::Function() : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 	byteCode.push_back(TOKEN_OPERATION_CONSTANT),
 	values.push_back(0) ;
@@ -645,7 +645,7 @@ functionParseElement Function::toToken(const std::string & str, int iter, std::v
 	}
 	else if(str == std::string("cst"))
 	{
-		if(iter < val.size())
+		if(iter < (int)val.size())
 			return {TOKEN_OPERATION_CONSTANT, val[iter], "cst"} ; 
 		return {TOKEN_OPERATION_CONSTANT, val[val.size()-1], "cst"} ;
 	}
@@ -1346,6 +1346,9 @@ void Function::initialiseAdresses(size_t offset)
 				
 				break ;
 			}
+            default:
+            {
+            }
 		}
 	}
 	
@@ -1399,11 +1402,11 @@ void Function::initialiseAdresses(size_t offset)
 
 Function::Function(const char *f): derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+        dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+		geo_op((GeometryOperation *)nullptr,0)
 {
 
 	size_t init = 0 ;
@@ -1429,11 +1432,11 @@ Function::Function(const char *f): derivative(nullptr),
 
 Function::Function(const char *f, double v): derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 
 	size_t init = 0 ;
@@ -1457,11 +1460,11 @@ Function::Function(const char *f, double v): derivative(nullptr),
 
 Function::Function(const char *f, std::vector<double> & val): derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 
 	size_t init = 0 ;
@@ -1483,11 +1486,11 @@ Function::Function(const char *f, std::vector<double> & val): derivative(nullptr
 
 Function::Function(const std::string &f) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 	size_t init = 0 ;
 	std::vector<double> val ;
@@ -1507,11 +1510,11 @@ Function::Function(const std::string &f) : derivative(nullptr),
 
 Function::Function(const std::string &f, double v) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 	size_t init = 0 ;
 	std::vector<double> val ;
@@ -1532,11 +1535,11 @@ Function::Function(const std::string &f, double v) : derivative(nullptr),
 
 Function::Function(const std::string &f, std::vector<double> & val) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,0),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+        e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,0)
 {
 	size_t init = 0 ;
 	while(init < f.length())
@@ -1555,11 +1558,11 @@ Function::Function(const std::string &f, std::vector<double> & val) : derivative
 
 Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1580,11 +1583,11 @@ Function::Function(const Line & l, ElementarySurface * s) : derivative(nullptr),
 
 Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1604,11 +1607,11 @@ Function::Function(const Point & l,  ElementarySurface * s) : derivative(nullptr
 
 Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(false)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(false),
+        geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1629,12 +1632,12 @@ Function::Function(const Point & l,  ElementaryVolume * s) : derivative(nullptr)
 
 Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
 		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		adress_a(HEAP_SIZE*4),
-		dofID(-1),
 		ptID (nullptr),
-		hasGeoOp(true)
+		dofID(-1),
+		e_diff(false),
+		hasGeoOp(true),
+        geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
+        adress_a(HEAP_SIZE*4)
 {
 	byteCode.push_back(TOKEN_OPERATION_X) ;
 	byteCode.push_back(TOKEN_OPERATION_Y) ;
@@ -1647,12 +1650,9 @@ Function::Function(double a,  ElementarySurface * s) : derivative(nullptr),
 
 
 Function::Function(double a,const Point & p,   ElementarySurface * s): derivative(nullptr),
-		transforms(nullptr),
+        transforms(nullptr),ptID (nullptr),dofID(-1),
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
-		ptID (nullptr),
-		hasGeoOp(true)
+        hasGeoOp(true),geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1666,13 +1666,11 @@ Function::Function(double a,const Point & p,   ElementarySurface * s): derivativ
 	geo_op[byteCode.size()-1] = new AngleBinaryOperation(a,p) ;
 }
 
-Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),
-		transforms(nullptr),
+Function::Function( const Geometry * geo, const ElementarySurface * s) : derivative(nullptr),transforms(nullptr),ptID (nullptr),dofID(-1),
+		
 		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
-		ptID (nullptr),
-		hasGeoOp(true)
+		hasGeoOp(true),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 	Function g = s->getXTransform() ;
 	Function f = s->getYTransform() ;
@@ -1687,12 +1685,9 @@ Function::Function( const Geometry * geo, const ElementarySurface * s) : derivat
 }
 
 Function::Function(const std::vector<Segment> s , ElementarySurface * u, PositionTokenType t) : derivative(nullptr),
-		transforms(nullptr),
-		e_diff(false),
-		geo_op((GeometryOperation *)nullptr,HEAP_SIZE),
-		dofID(-1),
-		ptID (nullptr),
-		hasGeoOp(true)
+        transforms(nullptr),ptID (nullptr),dofID(-1),e_diff(false),
+		hasGeoOp(true),
+		geo_op((GeometryOperation *)nullptr,HEAP_SIZE)
 {
 
 	switch(t)
@@ -1729,8 +1724,13 @@ Function::Function(const std::vector<Segment> s , ElementarySurface * u, Positio
 	initialiseAdresses();
 }
 
-Function::Function(const Function &f) : e_diff(f.e_diff), byteCode(f.byteCode),transforms(nullptr),
- geo_op((GeometryOperation*)nullptr,HEAP_SIZE*f.hasGeoOp),values(f.values),adress_a(f.adress_a),ptID(f.ptID),hasGeoOp(f.hasGeoOp),dofID(f.dofID)
+Function::Function(const Function &f) : transforms(nullptr),
+ptID(f.ptID),
+dofID(f.dofID),
+e_diff(f.e_diff),
+hasGeoOp(f.hasGeoOp),byteCode(f.byteCode),
+ geo_op((GeometryOperation*)nullptr,HEAP_SIZE*f.hasGeoOp),
+values(f.values),adress_a(f.adress_a)
 {
 	if(f.derivative)
 	{
@@ -1824,7 +1824,7 @@ bool Function::isDifferentiable() const
 
 bool Function::isDifferentiable(const Variable v) const 
 {
-	if(e_diff && derivative && derivative->size() > v) 
+	if(e_diff && derivative && (int)derivative->size() > v) 
 	{
 		return (*derivative)[v] != nullptr ;
 	}
@@ -2015,7 +2015,7 @@ Function Function::operator*(const Function &f) const
 	if(n > 0)
 	{
 		ret.setNumberOfDerivatives(n) ;
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2043,7 +2043,7 @@ Function Function::operator/(const Function &f) const
 	if(n > 0)
 	{
 		ret.setNumberOfDerivatives(n) ;
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2060,7 +2060,7 @@ Function Function::operator+(const Function &f) const
 {
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	std::vector<Function *> newderivatives ;
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		if( isDifferentiable(i) && f.isDifferentiable(i) )
 		{
@@ -2088,7 +2088,7 @@ Function Function::operator-(const Function &f) const
 {
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	std::vector<Function *> newderivatives ;
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		if( isDifferentiable(i) && f.isDifferentiable(i) )
 		{
@@ -2128,7 +2128,7 @@ Function Function::operator*(const double a) const
 	
 	int n =  getNumberOfDerivatives() ;
 
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		if( isDifferentiable(i) )
 		{
@@ -2152,7 +2152,7 @@ Function Function::operator/(const double a) const
 	
 	int n =  getNumberOfDerivatives() ;
 
-	for(size_t i = 0 ; i < n ; i++)
+	for(int i = 0 ; i < n ; i++)
 	{
 		if( isDifferentiable(i)  )
 		{
@@ -2226,7 +2226,7 @@ Function  Function::operator^(const int a) const
 	if(n > 0)
 	{
 		ret.setNumberOfDerivatives(n) ;
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i)  && a > 0)
 			{
@@ -2245,7 +2245,7 @@ void Function::operator*=(const Function &f)
 	std::vector<Function *> newderivatives ;
 	if(n > 0)
 	{
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2273,7 +2273,7 @@ void Function::operator/=(const Function &f)
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
 	{
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2300,7 +2300,7 @@ void Function::operator+=(const Function &f)
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
 	{
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2330,7 +2330,7 @@ void Function::operator-=(const Function &f)
 	int n = std::min( getNumberOfDerivatives(), f.getNumberOfDerivatives() ) ;
 	if(n > 0)
 	{
-		for(size_t i = 0 ; i < n ; i++)
+		for(int i = 0 ; i < n ; i++)
 		{
 			if( isDifferentiable(i) && f.isDifferentiable(i) )
 			{
@@ -2454,10 +2454,10 @@ void Function::setDerivative( const Variable v, Function & f)
 {
 	if(derivative)
 	{
-		if(derivative->size() < v+1)
+		if((int)derivative->size() < v+1)
 		{
 			std::vector<Function *> oldfuncts ;
-			for(size_t i = 0 ; i < getNumberOfDerivatives() ; i++)
+			for(int i = 0 ; i < getNumberOfDerivatives() ; i++)
 				oldfuncts.push_back((*derivative)[i]);
 			
 			derivative->resize(v+1,(Function *)nullptr);

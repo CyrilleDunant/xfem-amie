@@ -221,7 +221,6 @@ int main(int argc, char *argv[])
             inInclusions.push_back(new Circle(allInclusions[i]->getRadius(), allInclusions[i]->getCenter())) ;
     }
 
-    double tmax = tMax ;
 //boundary conditions of box
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 0)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_INDEXED_AXIS, LEFT_AFTER, 0, 2)) ;

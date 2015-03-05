@@ -108,7 +108,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	double alpha = last_rho/pq ;
 	
 	#pragma omp parallel for schedule(static) if (vsize > 10000)
-	for(size_t i = rowstart ; i < vsize ; i++)
+	for(int i = rowstart ; i < vsize ; i++)
 	{
 		r[i] -= q[i]*alpha ;
 		x[i] += p[i]*alpha ;
@@ -118,7 +118,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 	
 	assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
 	#pragma omp parallel for schedule(static) if (vsize > 10000)
-	for(size_t i = rowstart ; i < vsize ; i++)
+	for(int i = rowstart ; i < vsize ; i++)
 			r[i] *= -1 ;
 
 	err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
@@ -150,7 +150,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 
 		
 		#pragma omp parallel for schedule(static) if (vsize > 10000)
-		for(size_t i = rowstart ; i < vsize ; i++)
+		for(int i = rowstart ; i < vsize ; i++)
 			p[i] = p[i]*beta+z[i] ;
 
 		assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
@@ -163,7 +163,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 			break ;
 		}
 		#pragma omp parallel for schedule(static) if (vsize > 10000)
-		for(size_t i = rowstart ; i < vsize ; i++)
+		for(int i = rowstart ; i < vsize ; i++)
 		{
 			r[i] -= q[i]*alpha ;
 			x[i] += p[i]*alpha ;
@@ -173,7 +173,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 		{
 			assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
 			#pragma omp parallel for schedule(static) if (vsize > 10000)
-			for(size_t i = rowstart ; i < vsize ; i++)
+			for(int i = rowstart ; i < vsize ; i++)
 				r[i] *= -1 ;
 		}
 		if( verbose && nit%256 == 0 )

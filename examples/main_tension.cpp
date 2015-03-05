@@ -145,13 +145,8 @@ MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_l
 void step ( size_t nsteps )
 {
 
-    size_t nit = 2 ;
-    size_t ntries = 5;
-    size_t dsteps = 60 ;
     size_t tries = 0 ;
-    size_t dit = 0 ;
-    int totit = 0 ;
-    for ( int v = 0 ; v < nsteps ; v++ )
+    for ( size_t v = 0 ; v < nsteps ; v++ )
     {
         tries = 0 ;
 
@@ -261,7 +256,7 @@ void step ( size_t nsteps )
 
         std::fstream ldfile  ;
         ldfile.open ( "ldn", std::ios::out ) ;
-        for ( int j = 0 ; j < loads.size() ; j++ )
+        for ( size_t j = 0 ; j < loads.size() ; j++ )
         {
             ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
         }
@@ -332,8 +327,8 @@ int main ( int argc, char *argv[] )
     r0.setBehaviourSource ( &samplef );
     F.addFeature ( &samplef, &r0 );
 
-    PlasticStrain * t0damagemodel = new PlasticStrain() ;
-    PlasticStrain * t1damagemodel = new PlasticStrain() ;
+//     PlasticStrain * t0damagemodel = new PlasticStrain() ;
+//     PlasticStrain * t1damagemodel = new PlasticStrain() ;
 
 // 	t0.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t0damagemodel));
 // 	t1.setBehaviour( new StiffnessAndFracture(Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRAIN) , new DruckerPrager(-20e6*.95, -20e6*.95,E_paste,0.1 , mradius),t1damagemodel));

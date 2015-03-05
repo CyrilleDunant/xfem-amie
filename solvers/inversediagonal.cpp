@@ -81,7 +81,7 @@ void InverseDiagonalSquared::precondition(const Vector &v, Vector & t)
 	double * ti = &t[0] ;
 	const double * vi = &v[0] ;
 	#pragma omp parallel for schedule(static) if (t.size() > 10000)
-	for(int d = 0 ; d < diagonal->size() ; ++d)
+	for(size_t d = 0 ; d < diagonal->size() ; ++d)
 		*(ti++)=(*vi++)*(*diagonal)[d] ;
 }
 

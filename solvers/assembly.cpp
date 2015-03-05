@@ -1196,7 +1196,7 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
     {
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
 
-        if(duplicate != multipliers.end())
+        if(duplicate != multipliers.end() && duplicate->type == SET_FORCE_XI)
         {
             duplicate->value += val ;
         }
@@ -1211,7 +1211,7 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
     {
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
 
-        if(duplicate != multipliers.end())
+        if(duplicate != multipliers.end() && duplicate->type == SET_FORCE_ETA)
         {
             duplicate->value += val ;
         }
@@ -1226,7 +1226,7 @@ void Assembly::setForceOn(Variable v, double val, size_t id)
     {
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
 
-        if(duplicate != multipliers.end())
+        if(duplicate != multipliers.end() && duplicate->type == SET_FORCE_ZETA)
         {
             duplicate->value += val ;
         }
@@ -1267,9 +1267,9 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
         if(!(multipliers.empty() || duplicate == multipliers.end()))
         {
-            if((*duplicate).type != SET_FORCE_XI)
+            if( duplicate->type != SET_FORCE_XI)
                 return ;
-            (*duplicate).value += val;
+            duplicate->value += val;
             return ;
         }
 
@@ -1282,9 +1282,9 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
         if(!(multipliers.empty() || duplicate == multipliers.end()))
         {
-            if((*duplicate).type != SET_FORCE_ETA)
+            if(duplicate->type != SET_FORCE_ETA)
                 return ;
-            (*duplicate).value += val;
+            duplicate->value += val;
             return ;
         }
         multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+1)) ;
@@ -1296,9 +1296,9 @@ void Assembly::addForceOn(Variable v, double val, size_t id)
         auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
         if(!(multipliers.empty() || duplicate == multipliers.end()))
         {
-            if((*duplicate).type != SET_FORCE_ZETA)
+            if(duplicate->type != SET_FORCE_ZETA)
                 return ;
-            (*duplicate).value += val;
+            duplicate->value += val;
             return ;
         }
         multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
@@ -1333,7 +1333,7 @@ void Assembly::setPointAlongIndexedAxis(int axis, double val, size_t id, bool fo
 	    auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
 	    if(!(multipliers.empty() || duplicate == multipliers.end()))
 	    {
-		multipliers.erase(duplicate) ;
+            multipliers.erase(duplicate) ;
 	    }
     }
 
@@ -1356,9 +1356,9 @@ void Assembly::addForceOnIndexedAxis(int axis, double val, size_t id)
     auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+axis)) ;
     if(!(multipliers.empty() || duplicate == multipliers.end()))
     {
-        if((*duplicate).type != SET_FORCE_INDEXED_AXIS)
+        if(duplicate->type != SET_FORCE_INDEXED_AXIS)
             return ;
-        (*duplicate).value += val;
+        duplicate->value += val;
         return ;
     }
 
@@ -1679,7 +1679,7 @@ size_t Assembly::getMaxDofID() const
             return (coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride)/ndof ;
     }
 
-    size_t max = 0 ;
+    int max = 0 ;
     if(has2DElements())
     {
         for(size_t i = 0 ; i < element2d.size() ; i++)
@@ -1817,6 +1817,7 @@ bool ParallelAssembly::nonLinearStep()
 {
     for( size_t i = 0 ; i < domains.size() ; i++ )
         assembly[i].nonLinearStep() ;
+    return false ;
 }
 
 bool ParallelAssembly::solve(Vector x, size_t maxit, const bool verbose)
@@ -1847,7 +1848,8 @@ bool ParallelAssembly::mgprepare()
     bool ret = false ;
     for( size_t i = 0 ;  i < domains.size() ; i++ )
         ret = assembly[i].mgprepare() || ret ;
-    
+
+    return ret ;
 }
 
 bool ParallelAssembly::mgsolve(LinearSolver * mg, Vector x0, Preconditionner * pg, int maxit)
@@ -1992,6 +1994,7 @@ double ParallelAssembly::froebeniusNorm()
     double n = 0 ;
     for( size_t i = 0 ;  i < domains.size() ; i++ )
         n += assembly[i].froebeniusNorm() ;
+    return n ;
 }
 
 void ParallelAssembly::setNumberOfDregreesOfFreedom(int dof)

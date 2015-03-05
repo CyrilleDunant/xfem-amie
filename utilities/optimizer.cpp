@@ -73,7 +73,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 	std::vector< std::vector<double> > individuals ;
 	std::vector< std::vector<double> > nindividuals ;
 	std::vector< std::vector<double> > llindividuals ;
-	for(size_t i = 0 ; i < population ; i++)
+	for(int i = 0 ; i < population ; i++)
 	{
 		std::vector<double> newindividual ;
 		for(size_t j = 0 ;  j < vars.size() ; j++)
@@ -83,7 +83,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		individuals.push_back(newindividual);
 	}
 	
-	for(size_t i = 0 ; i < population ; i++)
+	for(int i = 0 ; i < population ; i++)
 	{
 		std::vector<double> newindividual ;
 		for(size_t j = 0 ;  j < namedVars.size() ; j++)
@@ -93,7 +93,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		nindividuals.push_back(newindividual);
 	}
 	
-	for(size_t i = 0 ; i < population ; i++)
+	for(int i = 0 ; i < population ; i++)
 	{
 		std::vector<double> newllindividual ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
@@ -109,7 +109,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 	{
 		sorted.clear();
 		//evaluate
-		for(size_t i = 0 ; i < population ; i++)
+		for(int i = 0 ; i < population ; i++)
 		{
 			for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
 				*lowLevelVars[j] = llindividuals[i][j] ;
@@ -128,10 +128,10 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 		std::vector< std::vector<double> > newllindividuals ;
 				
 		//reproduce - elite individuals are kept
-		for(size_t i = 0 ; i < std::min((int)(population*elitism), (int)sorted.size()) ; i++)
+		for(int i = 0 ; i < std::min((int)(population*elitism), (int)sorted.size()) ; i++)
 		{
 			auto iter = sorted.begin() ;
-			for(size_t j = 0 ; j < i ; j++)
+			for(int j = 0 ; j < i ; j++)
 				iter++ ;
 			newindividuals.push_back(iter->second[0]);
 			newnindividuals.push_back(iter->second[1]);
@@ -145,7 +145,7 @@ double GeneticAlgorithmOptimizer::optimize(double eps, int Maxit, int population
 			for(size_t n = 0 ; n < 4 && newindividuals.size() <= individuals.size(); n++)
 			{
 				auto iter = sorted.begin() ;
-				for(size_t j = 0 ; j < i ; j++)
+				for(int j = 0 ; j < i ; j++)
 					iter++ ;
 				newindividuals.push_back(iter->second[0]);
 				newnindividuals.push_back(iter->second[1]);
@@ -211,7 +211,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 	
 	std::vector< std::vector<double> > llindividuals ;
 
-	for(size_t i = 0 ; i < population ; i++)
+	for(int i = 0 ; i < population ; i++)
 	{
 		std::vector<double> newllindividual ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
@@ -228,7 +228,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 	{
 		sorted.clear();
 		//evaluate
-		for(size_t i = 0 ; i < population ; i++)
+		for(int i = 0 ; i < population ; i++)
 		{
 			while(true)
 			{
@@ -259,7 +259,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			auto iterend = sorted.end() ;
 			if(iter == iterend)
 				break ;
-			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+			for(size_t j = 0 ; (int)j < i-1 && j < sorted.size()-1 ; j++)
 				iter++ ;
 			newllindividuals.push_back(iter->second);
 		}
@@ -272,8 +272,7 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
 				auto iter = sorted.begin() ;
-				auto iterend = sorted.end() ;
-				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+				for(size_t j = 0 ; (int)j < i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
 
@@ -292,13 +291,13 @@ double GeneticAlgorithmOptimizer::lowLevelOptimize(double eps, int Maxit, int po
 				auto iter = sorted.begin() ;
 				auto iterend = sorted.end() ;
 
-				for(size_t j = 0 ; j < i && iter != iterend ; j++)
+				for(int j = 0 ; j < i && iter != iterend ; j++)
 					iter++ ;
 				if(iter != iterend)
 					newllindividuals.push_back(iter->second);
 			}
 			i++ ;
-			if(i >= sorted.size())
+			if(i >= (int)sorted.size())
 				i = 0 ;
 		}
 
@@ -339,7 +338,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 	
 	std::vector< std::vector<double> > llindividuals ;
 
-	for(size_t i = 0 ; i < population ; i++)
+	for(int i = 0 ; i < population ; i++)
 	{
 		std::vector<double> newllindividual ;
 		for(size_t j = 0 ;  j < lowLevelVars.size() ; j++)
@@ -350,12 +349,11 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 	}
 	
 	double err = eps*100 ;
-	double err0 = eps*100 ;
 	std::map<double, std::vector<double> > sorted ;
 	while (err > eps && it < maxit )
 	{
 		//evaluate
-		for(size_t i = (it != 0)*(std::max(1, (int)round(elitism*population))-1) ; i < population ; i++)
+		for(int i = (it != 0)*(std::max(1, (int)round(elitism*population))-1) ; i < population ; i++)
 		{
 			while(true)
 			{
@@ -377,7 +375,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			}
 		}
 		auto iter = sorted.begin() ;
-		for(size_t i = 0 ;  i < population && iter !=sorted.end() ; i++)
+		for(int i = 0 ;  i < population && iter !=sorted.end() ; i++)
 			iter++ ;
 		if(it != 0)
 			sorted.erase(iter, sorted.end());
@@ -390,21 +388,20 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			auto iterend = sorted.end() ;
 			if(iter == iterend)
 				break ;
-			for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+			for(size_t j = 0 ; (int)j < i-1 && j < sorted.size()-1 ; j++)
 				iter++ ;
 			newllindividuals.push_back(iter->second);
 		}
 		
 		//reproduce - the rest fills the available slots and mutates
-		int i = 0 ;
+		size_t i = 0 ;
 		while( newllindividuals.size() != llindividuals.size())
 		{
 			double test = RandomNumber().uniform() ;
 			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
 				auto iter = sorted.begin() ;
-				auto iterend = sorted.end() ;
-				for(int j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
+				for(size_t j = 0 ; j < (int)i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
 
@@ -445,8 +442,6 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			std::cout << *lowLevelVars[i] << " ("<<exp(*lowLevelVars[i]) << "), "<< std::flush ;
 		//iterate
 		err = sorted.begin()->first ;
-		if(it == 0)
-			err0 = err ;
 		std::cout << err <<  std::endl ;
 		it++ ;
 	}
@@ -500,7 +495,7 @@ LeastSquaresApproximation::~LeastSquaresApproximation()
 	delete Q ;
 }
 
-LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows()), parameters(0., linearModel.numRows())
+LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), parameters(0., linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows())
 {
 	Q = nullptr ;
 	X0t   = linearModel.transpose() ;
@@ -554,7 +549,7 @@ double LeastSquaresApproximation::optimize()
 {
 	Matrix * A = nullptr;
 	Vector consts(fixedValues.size()) ;
-	for(int i = 0 ; i < consts.size() ; i++)
+	for(size_t i = 0 ; i < consts.size() ; i++)
 		consts[i] = fixedValues[i].second ;
 	
 	if(!fixedValues.empty())
@@ -566,7 +561,7 @@ double LeastSquaresApproximation::optimize()
 		//The Q matrix is the line-swap matrix which puts all
 		//the constrained values together
 		//first, it is initialised to the identity.
-		for( int i = 0 ; i < parameters.size() ; i++ )
+		for( size_t i = 0 ; i < parameters.size() ; i++ )
 		{
 			(*Q)[i][i] = 1 ;
 		}
@@ -574,13 +569,13 @@ double LeastSquaresApproximation::optimize()
 		//the lines are swapped as we find new constraints
 		int c = 0 ;
 		Matrix S(parameters.size(), parameters.size()) ;
-		for( int j = 0 ; j < parameters.size() ; j++ )
+		for( size_t j = 0 ; j < parameters.size() ; j++ )
 		{
 			S[j][j] = 1 ;
 		}
-		for( int i = 0 ; i < fixedValues.size() ; i++ )
+		for( size_t i = 0 ; i < fixedValues.size() ; i++ )
 		{
-			for( int j = 0 ; j < parameters.size() ; j++ )
+			for( size_t j = 0 ; j < parameters.size() ; j++ )
 			{
 				std::swap(S[fixedValues[i].first][j], S[c][j]);
 			}
@@ -592,18 +587,18 @@ double LeastSquaresApproximation::optimize()
 		// The problem changes and becomes:
 		A = new Matrix((*Q)*linearModel) ;
 		Matrix A1(fixedValues.size(), linearModel.numCols() ) ;
-		for(int i = 0 ; i < fixedValues.size() ; i++)
+		for(size_t i = 0 ; i < fixedValues.size() ; i++)
 		{
-			for(int j = 0 ; j < linearModel.numCols() ; j++)
+			for(size_t j = 0 ; j < linearModel.numCols() ; j++)
 			{
 				A1[i][j] = (*A)[i][j] ;
 			}
 		}
 		
 		Matrix A2(linearModel.numRows()-fixedValues.size(), linearModel.numCols() ) ;
-		for(int i = 0 ; i < linearModel.numRows()-fixedValues.size() ; i++)
+		for(size_t i = 0 ; i < linearModel.numRows()-fixedValues.size() ; i++)
 		{
-			for(int j = 0 ; j < linearModel.numCols() ; j++)
+			for(size_t j = 0 ; j < linearModel.numCols() ; j++)
 			{
 				A2[i][j] = (*A)[i+fixedValues.size()][j] ;
 			}
@@ -631,9 +626,9 @@ double LeastSquaresApproximation::optimize()
 	if(Q)
 	{
 		Vector newp(parameters.size()+consts.size()) ;
-		for(int i = 0 ; i < consts.size() ; i++)
+		for(size_t i = 0 ; i < consts.size() ; i++)
 			newp[i] = consts[i] ;
-		for(int i = 0 ; i < parameters.size() ; i++)
+		for(size_t i = 0 ; i < parameters.size() ; i++)
 			newp[i+consts.size()] = parameters[i] ;
 		
 // 		std::cout << "---" << std::endl ;

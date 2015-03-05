@@ -36,7 +36,7 @@
 namespace Amie
 {
 
-    
+
 template <class ETYPE, class EABSTRACTTYPE>
 class Mesh
 {
@@ -50,7 +50,7 @@ protected:
     virtual std::vector<ETYPE *> getElements() = 0;
 public:
 
-    virtual std::vector<int> & getCache ( unsigned int cacheID ) {
+    virtual std::vector<int> & getCache ( int cacheID ) {
         return caches[cacheID] ;
     } ;
     virtual int addToTree ( EABSTRACTTYPE * toAdd ) = 0 ;
@@ -69,8 +69,10 @@ public:
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
-    
-    virtual bool step(double dt) { return false ; }
+
+    virtual bool step(double dt) {
+        return false ;
+    }
 
     virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry ( ETYPE * start , const Geometry * g ) {
         if ( !start ) {
@@ -88,25 +90,25 @@ public:
                     to_test.insert ( neighbour ) ;
                 } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
 
-		        for ( size_t j = 0 ; j < neighbour->timePlanes() ; j++ ) {
-/*		            Point c = neighbour->getCenter() ;
-		            c.getT() = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
-		            if ( g->in ( c ) ) {
-		                to_test.insert ( neighbour ) ;
-				break ;
-		            }*/
+                    for ( size_t j = 0 ; j < neighbour->timePlanes() ; j++ ) {
+                        /*		            Point c = neighbour->getCenter() ;
+                        		            c.getT() = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() ).getT() ;
+                        		            if ( g->in ( c ) ) {
+                        		                to_test.insert ( neighbour ) ;
+                        				break ;
+                        		            }*/
 
-		                for ( size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++ ) {
-		                    Point A = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
-		                    Point B = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1 ) ;
-		                    Segment s ( A,B ) ;
-		                    if ( s.intersects ( g ) || g->in ( A ) || g->in ( B ) ) {
-		                        to_test.insert ( neighbour ) ;
-		                    }
-		                }
+                        for ( size_t k = 0 ; k <  neighbour->getBoundingPoints().size() / neighbour->timePlanes()-1 ; k++ ) {
+                            Point A = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k ) ;
+                            Point B = neighbour->getBoundingPoint ( neighbour->getBoundingPoints().size() * j / neighbour->timePlanes() + k + 1 ) ;
+                            Segment s ( A,B ) ;
+                            if ( s.intersects ( g ) || g->in ( A ) || g->in ( B ) ) {
+                                to_test.insert ( neighbour ) ;
+                            }
+                        }
 
-		        }
-		}
+                    }
+                }
             } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                 to_test.insert ( neighbour ) ;
             }
@@ -126,17 +128,17 @@ public:
                                 new_test.insert ( neighbour ) ;
                             } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
 
-		                    for ( size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++ ) {
-		                        Point A = neighbour->getBoundingPoint ( k ) ;
-		                        Point B = neighbour->getBoundingPoint ( k+1 ) ;
-		                        Segment s ( A,B ) ;
-		                        if ( g->in ( A ) || g->in ( B ) || s.intersects ( g ) ) {
-		                            new_test.insert ( neighbour ) ;
-		                            break ;
-		                        }
+                                for ( size_t k = 0 ; k < neighbour->getBoundingPoints().size()-1 ; k++ ) {
+                                    Point A = neighbour->getBoundingPoint ( k ) ;
+                                    Point B = neighbour->getBoundingPoint ( k+1 ) ;
+                                    Segment s ( A,B ) ;
+                                    if ( g->in ( A ) || g->in ( B ) || s.intersects ( g ) ) {
+                                        new_test.insert ( neighbour ) ;
+                                        break ;
+                                    }
 
-		                    }
-			    }
+                                }
+                            }
                         } else if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                             new_test.insert ( neighbour ) ;
                         }
@@ -360,7 +362,7 @@ public:
     virtual size_t getLastNodeId() const = 0;
     virtual size_t size() const = 0 ;
 
-    virtual void deleteCache ( unsigned int cacheID ) {
+    virtual void deleteCache ( int cacheID ) {
         caches[cacheID].clear() ;
         coefs[cacheID].clear() ;
     }
@@ -414,40 +416,40 @@ public:
             coefs.push_back ( std::vector<std::vector<double>>() );
         }
 
-	if(allElementsCacheID == -1)
-	        return position ;
+        if(allElementsCacheID == -1)
+            return position ;
 
-	std::valarray<bool> out ;
-	std::valarray<bool> check ;
-	unsigned int maxIndex = 0 ;
-	for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
-	{
-		if(caches[allElementsCacheID][i] > maxIndex)
-			maxIndex = caches[allElementsCacheID][i] ;
-	}
-	out.resize(maxIndex) ;
-	check.resize(maxIndex) ;
-	out = false ;
-	check = false ;
-	
-	for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
-		check[ caches[allElementsCacheID][i] ] = true ;
+        std::valarray<bool> out ;
+        std::valarray<bool> check ;
+        int maxIndex = 0 ;
+        for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
+        {
+            if(caches[allElementsCacheID][i] > maxIndex)
+                maxIndex = caches[allElementsCacheID][i] ;
+        }
+        out.resize(maxIndex) ;
+        check.resize(maxIndex) ;
+        out = false ;
+        check = false ;
 
-	for(size_t j = 0 ; j < ids.size() ; j++)
-	{
-		for(size_t i = 0 ; i < caches[ids[j]].size() ; i++)
-			out[ caches[ids[j]][i] ] = true ;
-	}
+        for(size_t i = 0 ; i < caches[allElementsCacheID].size() ; i++)
+            check[ caches[allElementsCacheID][i] ] = true ;
 
-	for(size_t i = 0 ; i < check.size() ; i++)
-	{
-		if(check[i] && !out[i])
-		{
-			caches[position].push_back( i ) ;
-	                coefs[position].push_back ( std::vector<double>() ) ;
-		}
-	}
-	return position ;
+        for(size_t j = 0 ; j < ids.size() ; j++)
+        {
+            for(size_t i = 0 ; i < caches[ids[j]].size() ; i++)
+                out[ caches[ids[j]][i] ] = true ;
+        }
+
+        for(size_t i = 0 ; i < check.size() ; i++)
+        {
+            if(check[i] && !out[i])
+            {
+                caches[position].push_back( i ) ;
+                coefs[position].push_back ( std::vector<double>() ) ;
+            }
+        }
+        return position ;
     }
 
     virtual unsigned int generateCache( std::vector<Geometry *> source) {
@@ -469,7 +471,7 @@ public:
 
         for(size_t i = 0 ; i < source.size() ; i++)
         {
-	    std::cerr << "\rgenerating cache for feature " << i << "/" << source.size() << std::flush ;
+            std::cerr << "\rgenerating cache for feature " << i << "/" << source.size() << std::flush ;
             std::vector<ETYPE *> elems = getConflictingElements ( source[i] ) ;
             if(elems.empty())
                 elems = getConflictingElements ( &source[i]->getCenter() ) ;
@@ -482,7 +484,7 @@ public:
                 }
             }
         }
-	std::cout << caches[position].size() << std::endl ;
+        std::cout << caches[position].size() << std::endl ;
 
         return position ;
 
@@ -526,39 +528,39 @@ public:
                     if(!source)
                         continue ;
                     if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-		    {
-		            Function x = element->getXTransformAtCentralNodalTime() ;
-		            Function y = element->getYTransformAtCentralNodalTime() ;
-		            Function z = element->getZTransformAtCentralNodalTime() ;
+                    {
+                        Function x = element->getXTransformAtCentralNodalTime() ;
+                        Function y = element->getYTransformAtCentralNodalTime() ;
+                        Function z = element->getZTransformAtCentralNodalTime() ;
 //		            Function t = element->getTTransform() ;
-		            GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
-		            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-		                double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-		                double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-		                double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-		                double xt = 0. ;//vm.eval ( t, gp.gaussPoints[i].first ) ;
+                        GaussPointArray gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+                        for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                            double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                            double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                            double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+                            double xt = 0. ;//vm.eval ( t, gp.gaussPoints[i].first ) ;
 
-		                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
-			    }
+                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                        }
                     }
-		    else
-		    {
-		            Function x = element->getXTransform() ;
-		            Function y = element->getYTransform() ;
-		            Function z = element->getZTransform() ;
-		            Function t = element->getTTransform() ;
-		            GaussPointArray gp = element->getGaussPoints() ;
-		            if(element->getOrder() >= CONSTANT_TIME_LINEAR)
-		                gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
-		            for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
-		                double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
-		                double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
-		                double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
-		                double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
+                    else
+                    {
+                        Function x = element->getXTransform() ;
+                        Function y = element->getYTransform() ;
+                        Function z = element->getZTransform() ;
+                        Function t = element->getTTransform() ;
+                        GaussPointArray gp = element->getGaussPoints() ;
+                        if(element->getOrder() >= CONSTANT_TIME_LINEAR)
+                            gp = GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaussPointArray( element, 0. ) ;
+                        for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ ) {
+                            double xx = vm.eval ( x, gp.gaussPoints[i].first ) ;
+                            double xy = vm.eval ( y, gp.gaussPoints[i].first ) ;
+                            double xz = vm.eval ( z, gp.gaussPoints[i].first ) ;
+                            double xt = vm.eval ( t, gp.gaussPoints[i].first ) ;
 
-		                coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
-		            }
-		    }
+                            coefs[position].back().push_back ( vm.eval ( smoothing, xx, xy, xz, xt ) );
+                        }
+                    }
                 }
             }
         }
@@ -647,32 +649,32 @@ public:
         allElementsCacheID = -1 ;
     }
 
-    double getField ( std::string f, unsigned int cacheID ) {
-	double ret = 0. ;
-	unsigned int realID = cacheID ;
-	if(cacheID == -1)
-		realID = allElementsCacheID ;
+    virtual double getField ( std::string f, int cacheID ) {
+        double ret = 0. ;
+        unsigned int realID = cacheID ;
+        if(cacheID == -1)
+            realID = allElementsCacheID ;
         double w = 0. ;
-	std::map<std::string, double> dummy ;
-	bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
+        std::map<std::string, double> dummy ;
+        bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-	    if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getStatePointer()))
-	    {
-		if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).has(f))
-		{
-			double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
-			ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;
-			w += a ;
-		}
-	    }
+            if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getStatePointer()))
+            {
+                if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).has(f))
+                {
+                    double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
+                    ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;
+                    w += a ;
+                }
+            }
         }
-	if(w > 0)
-	        return ret/w ;
-	return 0. ;
+        if(w > 0)
+            return ret/w ;
+        return 0. ;
     }
 
     //virtual void getAverageField( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>()) ;
-    Vector getField ( FieldType f, unsigned int cacheID, int dummy = 0, double t = 0 ) {
+    virtual Vector getField ( FieldType f, int cacheID, int dummy = 0, double t = 0 ) {
         VirtualMachine vm ;
         size_t blocks = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() && !blocks; i++ ) {
@@ -690,7 +692,7 @@ public:
         return ret/w ;
     }
 
-    double getArea( unsigned int cacheID)
+    virtual double getArea( int cacheID)
     {
         double a = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )
@@ -698,7 +700,7 @@ public:
         return a ;
     }
 
-    double getVolume( unsigned int cacheID)
+    virtual double getVolume( int cacheID)
     {
         double v = 0 ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ )
@@ -706,7 +708,7 @@ public:
         return v ;
     }
 
-    Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
+    virtual Vector getField ( FieldType f, int dummy = 0, double t = 0 ) {
         if(allElementsCacheID == -1)
         {
             VirtualMachine vm ;
@@ -739,14 +741,14 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( auto i = begin() ; i  != end() ; i++ ) {
-	    double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
-	    ret += buffer * v ;
-	    w +=v ;
+            double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
+            ret += buffer * v ;
+            w +=v ;
         }
         return ret/w ;
     }
 
-    Vector getSmoothedField (  FieldType f0, unsigned int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) const {
+    virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) {
         Vector first ;
         Vector strain ;
         Vector stress ;
@@ -807,12 +809,12 @@ public:
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
                 Vector imposed = e->getBehaviour()->getImposedStress( Point() ) ;
-                for ( size_t i = 0 ; i < tsize ; i++ ) {
+                for ( int i = 0 ; i < tsize ; i++ ) {
                     stress[i] = tmpstress[i]-imposed[i] ;
                     strain[i] = tmpstrain[i] ;
                 }
-		if( e->getBehaviour()->hasInducedForces() )
-			stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
+                if( e->getBehaviour()->hasInducedForces() )
+                    stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
             }
 //            std::cout << "here" << strain.size() << std::endl ;
 
@@ -872,7 +874,7 @@ public:
         return first ;
     }
 
-    std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, unsigned int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) const {
+    virtual std::pair<Vector, Vector> getSmoothedFields ( FieldType f0, FieldType f1, int cacheID, IntegrableEntity * e ,int dummy = 0, double t = 0 ) {
         Vector first ;
         Vector second ;
         Vector strain ;
@@ -888,7 +890,7 @@ public:
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
         VirtualMachine vm ;
         if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f0 == STRAIN_FIELD || f0 == MECHANICAL_STRAIN_FIELD || f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ||
-		f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD
+                f1 == PRINCIPAL_STRAIN_FIELD || f1 == REAL_STRESS_FIELD || f1 == EFFECTIVE_STRESS_FIELD || f1 == PRINCIPAL_REAL_STRESS_FIELD || f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f1 == STRAIN_FIELD || f1 == MECHANICAL_STRAIN_FIELD || f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD
            ) {
             //we first need to compute the strain field
             if ( !spaceTime ) {
@@ -947,12 +949,12 @@ public:
                 Vector tmpstress = tmpstrain*e->getBehaviour()->getTensor ( Point(0,0,0,t) ) + ( Vector ) ( tmpstrainrate*e->getBehaviour()->getViscousTensor ( Point(0,0,0,t) ) ) ;
                 stress.resize ( tsize, 0. ) ;
                 strain.resize ( tsize, 0. ) ;
-                for ( size_t i = 0 ; i < tsize ; i++ ) {
+                for ( int i = 0 ; i < tsize ; i++ ) {
                     stress[i] = tmpstress[i] ;
                     strain[i] = tmpstrain[i] ;
                 }
-		if( e->getBehaviour()->hasInducedForces() )
-			stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
+                if( e->getBehaviour()->hasInducedForces() )
+                    stress -= e->getBehaviour()->getImposedStress(Point(0,0,0,t)) ;
             }
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
@@ -965,14 +967,14 @@ public:
             }
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 first.resize ( psize );
-		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-			strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+                    strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
                 first = toPrincipal ( strain ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 second.resize ( psize );
-		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-			strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+                    strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
                 second = toPrincipal ( strain ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
@@ -1048,19 +1050,19 @@ public:
                 second.resize ( tsize ) ;
                 second = strain ;
             }
-	    if ( f0 == MECHANICAL_STRAIN_FIELD ) {
-		first.resize( tsize ) ;
-		first = strain ;
-		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-			first -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
-	    }
+            if ( f0 == MECHANICAL_STRAIN_FIELD ) {
+                first.resize( tsize ) ;
+                first = strain ;
+                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+                    first -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+            }
 
-	    if ( f1 == MECHANICAL_STRAIN_FIELD ) {
-		second.resize( tsize ) ;
-		second = strain ;
-		if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
-			second -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
-	    }
+            if ( f1 == MECHANICAL_STRAIN_FIELD ) {
+                second.resize( tsize ) ;
+                second = strain ;
+                if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
+                    second -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
+            }
 
         } else {
             double sumFactors ( 0 ) ;
@@ -1179,11 +1181,11 @@ public:
         }
 
         ETYPE * operator-> ( ) {
-            return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+            return msh->getElement(cacheID, position) ;
         }
 
         operator ETYPE * () {
-            return static_cast<ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+            return msh->getElement(cacheID, position) ;
         }
 
         size_t size() const
@@ -1201,6 +1203,16 @@ public:
 
     } ;
 
+    virtual const ETYPE * getElement(size_t cacheID, size_t position) const 
+    {
+        return static_cast<const ETYPE *>(getInTree(caches[cacheID][position])) ;
+    };
+    
+    virtual  ETYPE * getElement(size_t cacheID, size_t position)  
+    {
+        return static_cast<ETYPE *>(getInTree(caches[cacheID][position])) ;
+    };
+    
     class const_iterator
     {
     private:
@@ -1284,11 +1296,11 @@ public:
         }
 
         const ETYPE * operator-> ( ) const {
-            return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+            return msh->getElement(cacheID, position) ;
         }
 
         operator const ETYPE * () const {
-            return static_cast<const ETYPE *>(msh->getInTree(msh->caches[cacheID][position])) ;
+            return msh->getElement(cacheID, position) ;
         }
 
         size_t size() const
@@ -1310,35 +1322,40 @@ public:
     {
         return iterator(this, 0) ;
     }
+    
     const_iterator cbegin() const
     {
         return const_iterator(this, 0) ;
     }
+    
     iterator end()
     {
         if(allElementsCacheID == -1)
             allElementsCacheID = generateCache() ;
         return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
     }
+    
     const_iterator cend() const
     {
-        if(allElementsCacheID == -1)
-            allElementsCacheID = generateCache() ;
-        return iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
-    }
 
+        return const_iterator(this,allElementsCacheID, caches[allElementsCacheID].size()) ;
+    }
+    
     iterator begin( size_t cacheID)
     {
         return iterator(this, cacheID, 0) ;
     }
+    
     const_iterator cbegin(size_t cacheID)
     {
         return const_iterator(this, cacheID, 0) ;
     }
+    
     iterator end(size_t cacheID)
     {
         return iterator(this,cacheID, caches[cacheID].size()) ;
     }
+    
     const_iterator cend(size_t cacheID)
     {
         return const_iterator(this,cacheID, caches[cacheID].size()) ;
@@ -1389,11 +1406,9 @@ protected:
                     for ( size_t node = 0 ; node < nodes_per_side+1 ; node++ ) {
                         double fraction = ( double ) ( node ) / ( ( double ) nodes_per_side+1 ) ;
                         Point proto = a* ( 1.-fraction ) + b*fraction ;
-                        Point * foundPoint = nullptr ;
 
                         for ( size_t j = 0 ; j< static_cast<ETYPE *> ( *i )->getBoundingPoints().size() ; j++ ) {
                             if ( static_cast<ETYPE *> ( *i )->getBoundingPoint ( j ) == proto ) {
-                                foundPoint = &static_cast<ETYPE *> ( *i )->getBoundingPoint ( j ) ;
                                 break ;
                             }
                         }
@@ -1438,7 +1453,7 @@ public:
     } ;
 
     virtual ~SingleElementMesh() {
-        for ( int i = 0 ; i < points.size() ; i++ ) {
+        for ( size_t i = 0 ; i < points.size() ; i++ ) {
             delete points[i] ;
         }
     } ;

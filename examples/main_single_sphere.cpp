@@ -51,16 +51,16 @@ void step(FeatureTree * featureTree)
     int nsteps = 1;// number of steps between two clicks on the opengl thing
     featureTree->setMaxIterationsPerStep(50) ;
 
-    for(size_t i = 0 ; i < nsteps ; i++)
+    for(int i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
 //         featureTree->printReport();
     }
-    VoxelWriter vw1("sphere_stiffness", 150) ;
+    VoxelWriter vw1("sphere_stiffness", 200) ;
     vw1.getField(featureTree, VWFT_STIFFNESS) ;
     vw1.write();
 
-    VoxelWriter vw("sphere_stress", 100) ;
+    VoxelWriter vw("sphere_stress", 200) ;
     vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
     vw.write();
 // 	VoxelWriter vw0("sphere_strain", 50) ;
@@ -90,48 +90,48 @@ int main(int argc, char *argv[])
 
     samplers.setBehaviour(new VoidForm()) ;
 
-    std::valarray<Point *> pts(4) ;
-    pts[0] = new Point(0, -20, 0) ;
-    pts[1] = new Point(150, -20, 0) ;
-    pts[2] = new Point(150, 20, 0) ;
-    pts[3] = new Point(0, 20, 0) ;
-    std::vector<Point> ipts ;
-    ipts.push_back(Point(-100,0 ,  0));
-    ipts.push_back(Point(-70 ,8,  0));
-    ipts.push_back(Point(-40 ,15,  0));
-    ipts.push_back(Point(-20 ,18,  0));
-    ipts.push_back(Point( 0  ,20,  0));
-    ipts.push_back(Point( 20 ,18,  0));
-    ipts.push_back(Point( 40 ,15,  0));
-    ipts.push_back(Point( 70 ,8,  0));
-    ipts.push_back(Point( 100,0 ,  0));
-    LoftedPolygonalSample3D inc(&samplers, pts,ipts) ;
-//     inc.isVirtualFeature = true ;
-    inc.setBehaviour(new Stiffness(m1)) ;
+    std::valarray<Point *> damProfile(4) ;
+    damProfile[0] = new Point(0, 40, 0) ;
+    damProfile[1] = new Point(150, 20, 0) ;
+    damProfile[2] = new Point(150, -20, 0) ;
+    damProfile[3] = new Point(0, -20, 0) ;
     
+    std::vector<Point> damArch ;
+    for(double i = -1. ; i <= 1. ; i+=0.2)
+    {
+        damArch.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
+    }
+    
+     std::valarray<Point *> galleryProfile(5) ;
+    galleryProfile[0] = new Point(-1.5, -1.5, 0) ;
+    galleryProfile[1] = new Point(1.5, -1.5, 0) ;
+    galleryProfile[2] = new Point(2.2, 0, 0) ;
+    galleryProfile[3] = new Point(1.5, 1.5, 0) ;
+    galleryProfile[4] = new Point(-1.5, 1.5, 0) ;
+    
+    std::vector<Point> galleryArch ;
+    for(double i = -.9 ; i <= .9 ; i+=0.2)
+    {
+        galleryArch.push_back(Point(-50,i*100.,  20.*(1.-i*i) ));
+    }
 
-    F.addFeature(&samplers, &inc) ;
+    LoftedPolygonalSample3D dam(&samplers, damProfile,damArch) ;
+    dam.setBehaviour(new Stiffness(m1)) ;
+    
+    LoftedPolygonalSample3D gallery(&dam, galleryProfile, galleryArch) ;
+    gallery.setBehaviour(new VoidForm()) ;
+    
+    F.addFeature(&samplers, &dam) ;
+    F.addFeature(&dam, &gallery) ;
     F.setSamplingNumber(atof(argv[1])) ;
-    F.setSamplingFactor ( &inc, 1 ) ;
-    
 
-//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
-//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
-//     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
 
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM)) ;
-    
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, LEFT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, LEFT)) ;
-    
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, RIGHT)) ;
-    Vector loadv(3, 0.) ; loadv[1] = 1 ;
-//     F.addBoundaryCondition(new  GlobalForceBoundaryCondition(loadv)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, RIGHT)) ;
+
+    std::pair<Point, Point> normals = dam.getEndNormals() ;
+    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.first)) ;
+    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
+    F.addBoundaryCondition(new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_XI, dam.getPrimitive() , -1 ) );
 //     F.setProjectionOnBoundaries(false) ;
     F.setOrder(LINEAR) ;
 

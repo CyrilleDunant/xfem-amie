@@ -310,13 +310,13 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			a += b ;
 			
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			for(size_t i = 1 ; i < effblocks ; i++)
+			for(int i = 1 ; i < effblocks ; i++)
 			{
 				// first line
 				substractMatrixInBlock( a, i,0, ret ) ;
 				// first column
 				substractMatrixInBlock( a, 0,i, ret ) ;
-				for(size_t j = i+1 ; j < effblocks ; j++)
+				for(int j = i+1 ; j < effblocks ; j++)
 				{
 					// upper triangle
 					placeMatrixInBlock( a, i,j, ret ) ;
@@ -324,7 +324,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 					placeMatrixInBlock( a, j,i, ret ) ;
 				}
 			}
-			for(size_t i = 1 ; i < blocks ; i++)
+			for(int i = 1 ; i < blocks ; i++)
 			{
 				//stiffness (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -345,7 +345,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 			a += b ;
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			for(size_t i = 1 ; i < blocks ; i++)
+			for(int i = 1 ; i < blocks ; i++)
 			{
 				//stiffness (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -428,7 +428,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 		
 		default:
 		{
-			for(size_t i = 0 ; i < blocks ; i++)
+			for(int i = 0 ; i < blocks ; i++)
 			{
 				// elastic matrix (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -437,7 +437,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 				a += b ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				// elastic matrix (upper-triangle)
-				for(size_t j = i+1 ; j < blocks ; j++)
+				for(int j = i+1 ; j < blocks ; j++)
 				{
 					getBlockInMatrix(param, i,j, buffer) ;
 					vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
@@ -467,7 +467,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 	{
 		case GENERALIZED_KELVIN_VOIGT:
 		{
-			for(size_t i = 1 ; i < blocks ; i++)
+			for(int i = 1 ; i < blocks ; i++)
 			{
 				// viscosity (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -482,7 +482,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 		
 		case GENERALIZED_MAXWELL:
 		{
-			for(size_t i = 1 ; i < blocks ; i++)
+			for(int i = 1 ; i < blocks ; i++)
 			{
 				// viscosity (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -552,7 +552,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 		
 		default:
 		{
-			for(size_t i = 0 ; i < blocks ; i++)
+			for(int i = 0 ; i < blocks ; i++)
 			{
 				// viscous matrix (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -561,7 +561,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 				a += b ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				// viscous matrix (upper-triangle)
-				for(size_t j = i+1 ; j < blocks ; j++)
+				for(int j = i+1 ; j < blocks ; j++)
 				{
 					getBlockInMatrix(eta, i,j, buffer) ;
 					vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);

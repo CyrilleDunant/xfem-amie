@@ -161,6 +161,8 @@ public:
     ElementState ( IntegrableEntity * ) ;
     /** \brief Copy-constructor*/
     ElementState ( ElementState &s ) ;
+    
+    virtual ~ElementState() { } ;
 
     ElementState & operator = ( Amie::ElementState& s ) ;
 
@@ -537,8 +539,8 @@ public:
     /** The type helps to know the available parameters and methods of the subclasses*/
     ParametersType type;
 
-    Form ( const Matrix & p, bool t = false, bool s = false, size_t numdof = 2, bool sym = true ) : time_d ( t ), space_d ( s ), num_dof ( numdof ), param ( p ), source ( nullptr ), symmetric ( sym ) { } ;
-    Form() : time_d ( false ), space_d ( false ), num_dof ( 0 ), param ( Matrix ( 0,0 ) ), source ( nullptr ), symmetric ( false ) { } ;
+    Form ( const Matrix & p, bool t = false, bool s = false, size_t numdof = 2, bool sym = true ) : time_d ( t ), space_d ( s ), symmetric ( sym ), num_dof ( numdof ),  source ( nullptr ), param ( p ) { } ;
+    Form() : time_d ( false ), space_d ( false ), symmetric ( false ), num_dof ( 0 ), source ( nullptr ), param ( Matrix ( 0,0 ) ) { } ;
 
     /** apply the form on a pair of functions
      *

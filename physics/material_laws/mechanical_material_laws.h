@@ -38,7 +38,7 @@ struct StrainRateDependentStrengthMaterialLaw : public ExternalMaterialLaw
 	double strainRateRef ;
 	double p ;
 
-	StrainRateDependentStrengthMaterialLaw(double p_ = 0.1, double eps = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), p(p_), strainRateRef(eps) { } 
+	StrainRateDependentStrengthMaterialLaw(double p_ = 0.1, double eps = 1, std::string args = std::string(), char sep = ',') : ExternalMaterialLaw(args, sep), strainRateRef(eps), p(p_) { } 
     virtual ~StrainRateDependentStrengthMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

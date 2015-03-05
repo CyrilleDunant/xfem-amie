@@ -23,14 +23,14 @@ bool LowerTriangular::solve(const Vector &x0, Preconditionner * precond, const d
 	
 	for(size_t i = 0 ; i < assembly->getMatrix().row_size.size() ; i++)
     {
-        for(size_t k = 0 ; k < stride ; k++)
+        for(int k = 0 ; k < stride ; k++)
         {
             double delta = 0 ; 
             int row = i*stride+k ;
             for(size_t j = 0 ; j < assembly->getMatrix().row_size[i] ; j++)
             {
                 int column = assembly->getMatrix().column_index[assembly->getMatrix().accumulated_row_size[i]+j] ;
-                for(size_t l = 0 ; l < stride ; l++)
+                for(int l = 0 ; l < stride ; l++)
                 {
                     if(row >= column*stride+l)
                     {

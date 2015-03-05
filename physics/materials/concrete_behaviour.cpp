@@ -28,7 +28,7 @@ Form * ConcreteBehaviour::getCopy() const
 	double weib = RandomNumber().weibull(1,5) ;
 	double factor = 1. - variability + variability*weib ;
 	weib = RandomNumber().weibull(1,5) ;
-	double upFactor = factor ; //1 -.7+.7*weib ; 
+// 	double upFactor = factor ; //1 -.7+.7*weib ; 
 	NonLocalMCFT * fcrit = new NonLocalMCFT(down*factor,E*factor, materialRadius,rtype, mirroring , dx, dy, dz) ;
 	fcrit->rebarLocationsAndDiameters = rebarLocationsAndDiameters ;
 	StiffnessAndFracture * copy = new StiffnessAndFracture(param*factor, fcrit, /*new IsotropicLinearDamage()*/new RotatingCrack(E*factor, nu)) ;

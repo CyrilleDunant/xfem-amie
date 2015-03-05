@@ -69,7 +69,7 @@ std::vector<DelaunayTriangle *> FeatureTree::getBoundingTriangles ( const Featur
     }
 }
 
-FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
+FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gridsize ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
@@ -188,7 +188,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 
 }
 
-FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap ) : grid ( nullptr ), grid3d ( nullptr ), state ( this ), nodes ( 0 )
+FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
@@ -291,15 +291,15 @@ void FeatureTree::setPartition ( size_t partitionNumber )
     if ( is3D() )
     {
         std::map<double, std::vector<int>> triplet ;
-        for ( int i = 0 ; i < partitionNumber ; i++ )
+        for ( int i = 0 ; i < (int)partitionNumber ; i++ )
         {
-            for ( int j = 0 ; j < partitionNumber ; j++ )
+            for ( int j = 0 ; j < (int)partitionNumber ; j++ )
             {
-                for ( int k = 0 ; k < partitionNumber ; k++ )
+                for ( int k = 0 ; k < (int)partitionNumber ; k++ )
                 {
                     double avg = ( i+1+j+1+k+1 ) /3. ;
                     double sigma = ( i+1-avg ) * ( i+1-avg ) + ( j+1-avg ) * ( j+1-avg ) + ( k+1-avg ) * ( k+1-avg ) ;
-                    if ( ( i+1 ) * ( j+1 ) * ( k+1 ) == partitionNumber )
+                    if (  (int)( i+1 ) * ( j+1 ) * ( k+1 ) == partitionNumber )
                         triplet[sigma] = {i+1,j+1,k+1} ;
                 }
             }
@@ -327,13 +327,13 @@ void FeatureTree::setPartition ( size_t partitionNumber )
     else
     {
         std::map<double, std::vector<int>> triplet ;
-        for ( int i = 0 ; i < partitionNumber ; i++ )
+        for ( int i = 0 ; i < (int)partitionNumber ; i++ )
         {
-            for ( int j = 0 ; j < partitionNumber ; j++ )
+            for ( int j = 0 ; j < (int)partitionNumber ; j++ )
             {
                 double avg = ( i+1+j+1 ) /2. ;
                 double sigma = ( i+1-avg ) * ( i+1-avg ) + ( j+1-avg ) * ( j+1-avg ) ;
-                if ( ( i+1 ) * ( j+1 ) == partitionNumber )
+                if ( ( i+1 ) * ( j+1 ) == (int)partitionNumber )
                     triplet[sigma] = {i+1,j+1} ;
             }
         }
@@ -344,9 +344,9 @@ void FeatureTree::setPartition ( size_t partitionNumber )
         double di = triplet.begin()->second[0] ;
         double dj = triplet.begin()->second[1] ;
         std::cerr << "New partition : " << di << "x" << dj << ", " << di*dj << " domains. ...done." << std::endl ;
-        for ( size_t i = 0 ; i < di ; i++ )
+        for ( int i = 0 ; i < di ; i++ )
         {
-            for ( size_t j = 0 ; j < dj ; j++ )
+            for ( int j = 0 ; j < dj ; j++ )
             {
                 domains.push_back ( new Rectangle ( lx/di, ly/dj, lx/ ( 2.*di ) +lx/di*i+min_x, ly/ ( 2.*dj ) +ly/dj*j+min_y ) );
             }
@@ -728,11 +728,6 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
     {
         return ;
     }
-
-    size_t first = 0 ;
-    size_t second = ( edge + 1 ) ;
-    size_t third = ( edge + 1 ) * 2  ;
-    size_t fourth = ( edge + 1 ) * 3  ;
 
     std::vector<size_t> indexes ( edge * ( time + 1 ) * 6 ) ;
 
@@ -1342,9 +1337,6 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 void FeatureTree::stitch()
 {
 
-    size_t count = 0 ;
-    size_t pd = 0 ;
-
     if ( is2D() )
     {
         if ( elemOrder >= QUADRATIC )
@@ -1390,6 +1382,10 @@ void FeatureTree::stitch()
                 case QUADRIC_TIME_QUADRATIC:
                 case QUINTIC_TIME_QUADRATIC:
                     projectTrianglesOnBoundaries ( 3, 2 ) ;
+                    break ;
+                default:
+                    std::cout << "unsupported order" << std::endl ;
+                    exit(0) ;
                     break ;
                 }
             }
@@ -1437,6 +1433,10 @@ void FeatureTree::stitch()
                 case QUINTIC_TIME_QUADRATIC:
                     projectTetrahedronsOnBoundaries ( 3, 2 ) ;
                     break ;
+                default: 
+                   std::cout << "unsupported order" << std::endl ;
+                    exit(0) ;
+                    break ;
                 }
             }
 
@@ -1469,11 +1469,9 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
     {
         std::cerr << "quadtree refine... " << std::flush ;
         int cacheID = dtree->begin().getId() ;
-        bool cleanup = false ;
         if(location)
         {
             cacheID = dtree->generateCache(location) ;
-            cleanup = true ;
         }
 
         std::cerr << dtree->begin(cacheID).size() << " elements... " << std::flush ;
@@ -1774,18 +1772,21 @@ void FeatureTree::sample()
         {
 //			std::cout << samplingNumber << std::endl ;
             std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
-            tree[0]->sample ( samplingNumber ) ;
-
-            double total_area = tree[0]->area() * tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) * ( tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) ) ;
+            if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
+                tree[0]->sample ( samplingFactors[tree[0]]*samplingNumber ) ;
+            else
+                 tree[0]->sample ( samplingNumber ) ;
+            double total_area = tree[0]->area()  ;
             int count = 0 ;
+            double base_shape_factor = tree[0]->area()/pow(tree[0]->volume(), .666666666) ;
 
             #pragma omp parallel for reduction(+:count) schedule(runtime)
             for ( int i  = 1 ; i < ( int ) tree.size() ; i++ )
             {
                 std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
-                double shape_factor = tree[i]->area() / ( 4.*M_PI * tree[i]->getRadius() * tree[i]->getRadius() );
-                size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor ) / ( total_area ) ) ;
+                double shape_factor = tree[i]->area() /pow(tree[i]->volume() , .666666666);
+                size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor/base_shape_factor ) / ( total_area ) ) ;
                 if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                 {
                     npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
@@ -1895,8 +1896,9 @@ void FeatureTree::sample()
                 tree[0]->sample ( 2.5 * samplingNumber ) ;
             }
 
-            double total_area = tree[0]->area() * tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) * ( tree[0]->area() / ( 4.*M_PI * tree[0]->getRadius() * tree[0]->getRadius() ) ) ;
+            double total_area = tree[0]->area()  ;
             int count = 0 ;
+            double base_shape_factor = tree[0]->area()/pow(tree[0]->volume() , .666666666);
 
             #pragma omp parallel for schedule(runtime)
             for ( int i  = 1 ; i < ( int ) tree.size() ; i++ )
@@ -1910,8 +1912,8 @@ void FeatureTree::sample()
                     }
                     std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << "          " << std::flush ;
 
-                    double shape_factor = tree[i]->area() / ( 4.*M_PI * tree[i]->getRadius() * tree[i]->getRadius() );
-                    size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor ) / ( total_area ) ) ;
+                    double shape_factor = tree[i]->area() / pow(tree[i]->volume(), .666666666) ;
+                    size_t npoints = ( size_t ) round ( ( 1.5 * samplingNumber * tree[i]->area() * shape_factor/base_shape_factor ) / ( total_area ) ) ;
                     if ( samplingFactors.find ( tree[i] ) != samplingFactors.end() )
                     {
                         npoints = ( size_t ) round ( samplingFactors[tree[i]]*npoints ) ;
@@ -2966,8 +2968,6 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
     {
         if ( tree[i]->in ( t->getCenter() ) && ( inRoot ( t->getCenter() ) ) )
         {
-            bool inChild = false ;
-
             std::vector<Feature *> tocheck = tree[i]->getChildren();
             std::vector<Feature *> tocheckNew =  tocheck;
 
@@ -2992,7 +2992,6 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
             {
                 if ( tocheck[j]->in ( t->getCenter() ) )
                 {
-                    inChild = true ;
                     break ;
                 }
             }
@@ -3006,7 +3005,6 @@ Feature *FeatureTree::getFeatForTetra ( const DelaunayTetrahedron *t ) const
 
 void FeatureTree::setElementBehaviours()
 {
-
 
     if ( !father3D )
     {
@@ -3100,11 +3098,10 @@ void FeatureTree::setElementBehaviours()
 
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {
-            if ( setcount % 1000 == 0 )
-            {
-                std::cerr << "\r setting behaviours : base layer : tet " << setcount << "/" << i.size() << std::flush ;
-            }
-
+//             if ( setcount % 1000 == 0 )
+//             {
+//                 std::cerr << "\r setting behaviours : base layer : tet " << setcount << "/" << i.size() << std::flush ;
+//             }
             i->refresh ( father3D ) ;
             Form * bf =  getElementBehaviour ( i );
 
@@ -4325,7 +4322,6 @@ void FeatureTree::stepXfem()
 
     if ( solverConvergence )
     {
-        double maxScore = -1 ;
         std::vector<EnrichmentFeature *> featuresToStep ;
         for ( size_t i = 0 ; i < tree.size() ; i++ )
         {
@@ -4354,7 +4350,7 @@ void FeatureTree::stepXfem()
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
-                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree) || moved ;
+                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree)  ;
                 if ( moved )
                 {
                     reuseDisplacements = false ;
@@ -4392,7 +4388,7 @@ void FeatureTree::stepXfem()
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
             {
-                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree3D) || moved ;
+                bool moved = enrichmentManagers[i]->step(deltaTime, &K->getForces(), dtree3D) ;
                 if ( moved )
                 {
                     reuseDisplacements = false ;
@@ -4483,7 +4479,6 @@ bool FeatureTree::stepElements()
             }
 
 
-            double previousAverageDamage = averageDamage ;
 
             /*                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                             {
@@ -4549,7 +4544,6 @@ bool FeatureTree::stepElements()
 
             int fracturedCount = 0 ;
             int ccount = 0 ;
-            size_t changecount = 0 ;
 
 
             if ( !elastic )
@@ -4862,7 +4856,6 @@ bool FeatureTree::stepElements()
                 }
             }
             double volume = std::accumulate ( cachedVolumes[0].begin(), cachedVolumes[0].end(), double ( 0 ) ) ;
-            double previousAverageDamage = averageDamage ;
             double adamage = 0 ;
             if ( !elastic )
             {
@@ -5125,8 +5118,6 @@ bool FeatureTree::stepElements()
         if ( is2D() )
         {   for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
-
-                double volume = 0;
                 crackedVolume = 0 ;
                 damagedVolume = 0 ;
                 //this will update the state of all elements. This is necessary as
@@ -5407,7 +5398,6 @@ void FeatureTree::resetBoundaryConditions()
 
 bool FeatureTree::step()
 {
-    double realdt = deltaTime ;
 
     if ( stateConverged && state.meshed && solverConverged() && !behaviourChanged() )
     {
@@ -6375,12 +6365,10 @@ std::pair<Vector, Vector> FeatureTree::getFieldMinMax ( FieldType f, const std::
 
 bool FeatureTree::isStable()
 {
-    bool needAssemblyinit = needAssembly ;
     bool meshChangeinit = behaviourChange ;
     bool enrichmentChangeinit = enrichmentChange ;
     double crackedVolumeinit = crackedVolume ;
     double damagedVolumeinit = damagedVolume ;
-    size_t maxits = maxitPerStep ;
     setMaxIterationsPerStep ( 0 ) ;
     elasticStep();
     bool stable = true ;
@@ -6692,7 +6680,6 @@ void FeatureTree::setDeltaTime ( double d )
         {
             previousDeltaTime = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() - j->second->begin()->getBoundingPoint ( 0 ).getT() ;
             double end = j->second->begin()->getBoundingPoint ( j->second->begin()->getBoundingPoints().size() -1 ).getT() ;
-            double begin = j->second->begin()->getBoundingPoint ( 0 ).getT() ;
             if ( j->second->begin().size() && j->second->begin()->timePlanes() > 1 )
             {
                 for ( auto i = j->second->begin() ; i != j->second->end() ; i++ )
@@ -6719,7 +6706,6 @@ void FeatureTree::setDeltaTime ( double d )
 
         previousDeltaTime = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() - dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
         double end = dtree3D->begin()->getBoundingPoint ( dtree3D->begin()->getBoundingPoints().size() -1 ).getT() ;
-        double begin = dtree3D->begin()->getBoundingPoint ( 0 ).getT() ;
         if ( dtree3D->begin().size() && dtree3D->begin()->timePlanes() > 1 )
         {
             for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
@@ -6951,7 +6937,6 @@ void FeatureTree::generateElements()
         bbox[7] = Point ( max_x, max_y, max_z ) ;
     }
 
-    int bpcount = 0 ;
     size_t basepoints = 0 ;
     std::cerr << " getting mesh points..." << std::flush ;
     std::vector<Feature *> nullFatherFeatures ;
@@ -7017,12 +7002,12 @@ void FeatureTree::generateElements()
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if ( ( !potentialChildren[k]->isVirtualFeature
-                            && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity * .25 ) )
+                            && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
                             || ( potentialChildren[k]->isVirtualFeature
                                  && tree[i]->isVirtualFeature
                                  && ( dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
                                       != dynamic_cast<VirtualFeature *> ( tree[i] )->getSource() )
-                                 && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity * .25 )
+                                 && potentialChildren[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 )
                                )
                        )
                     {
@@ -7044,12 +7029,12 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity * .25 ) )
+                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
                 {
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity * .25 ) )
+                if ( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
                 {
                     isIn = true ;
                 }
@@ -7149,7 +7134,7 @@ void FeatureTree::generateElements()
                     if (
                         (
                             !potentialChildren[k]->isVirtualFeature
-                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.25 )
+                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
                         )
                         ||
                         (
@@ -7159,7 +7144,7 @@ void FeatureTree::generateElements()
                                 dynamic_cast<VirtualFeature *> ( potentialChildren[k] )->getSource()
                                 != dynamic_cast<VirtualFeature *> ( tree[i] )->getSource()
                             )
-                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.25 )
+                            && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
                         )
                     )
                     {
@@ -7176,7 +7161,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.25 ) )
+                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) )
                 {
                     isIn = true ;
                 }
@@ -7186,7 +7171,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.25 ) )
+                if ( tree[i]->getFather() && i && tree[0]->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) )
                 {
                     isIn = true ;
                 }
@@ -7270,7 +7255,7 @@ void FeatureTree::generateElements()
 
                             for ( size_t l = 0 ; l < descendants.size() ; l++ )
                             {
-                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.25 ) )
+                                if ( !descendants[l]->isVirtualFeature && descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) )
                                 {
                                     indescendants = true ;
                                     break ;
@@ -7316,7 +7301,7 @@ void FeatureTree::generateElements()
 
                     for ( size_t l = 0 ; l < descendants.size() ; l++ )
                     {
-                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.25 ) )
+                        if ( descendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -7325,7 +7310,7 @@ void FeatureTree::generateElements()
 
                     for ( size_t l = 0 ; l < fatherdescendants.size() ; l++ )
                     {
-                        if ( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary ( inter[k], pointDensity*0.25 ) && !feature->onBoundary ( inter[k], pointDensity*0.25 ) )
+                        if ( fatherdescendants[l] != feature && !fatherdescendants[l]->isVirtualFeature && fatherdescendants[l]->getBoundingPoints().size() && fatherdescendants[l]->inBoundary ( inter[k], pointDensity*0.33 ) && !feature->onBoundary ( inter[k], pointDensity*0.33 ) )
                         {
                             indescendants = true ;
                             break ;
@@ -7405,7 +7390,7 @@ void FeatureTree::generateElements()
 
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if ( ( feature->onBoundary ( inter[k], pointDensity*0.25 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
+                        if ( ( feature->onBoundary ( inter[k], pointDensity*0.33 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point ( inter[k] ) ;
                             additionalPoints.push_back ( p ) ;
@@ -7602,7 +7587,7 @@ void FeatureTree::generateElements()
 #ifdef HAVE_OPENMP
         double t0 = omp_get_wtime() ;
 #endif
-        dtree3D = new /*Parallel*/DelaunayTree3D ( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/ ) ;
+        dtree3D = new ParallelDelaunayTree3D ( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains ) ;
         dtree3D->insert ( meshPoints[4].first ) ;
         dtree3D->insert ( meshPoints[5].first ) ;
         dtree3D->insert ( meshPoints[6].first ) ;
@@ -7901,7 +7886,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
             {
                 double ar = k->area() ;
                 volume += ar ;
-                for(size_t l = 0 ; l < npoints ; l++)
+                for(int l = 0 ; l < npoints ; l++)
                 {
                     xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
                 }
@@ -8086,7 +8071,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
             {
                 double ar = k->area() ;
                 volume += ar ;
-                for(size_t l = 0 ; l < npoints ; l++)
+                for(int l = 0 ; l < npoints ; l++)
                 {
                     xavg += x[k->getBoundingPoint(l).getId()*3]*ar/npoints ;
                 }
@@ -8378,7 +8363,6 @@ void FeatureTree::homothety ( double before, double now, double after )
         return ;
     }
     double stepa = after/now ;
-    double stepb = now/before ;
     for ( auto t = dtree->begin() ; t != dtree->end() ; t++ )
     {
         for ( size_t j = 0 ; j < t->getBoundingPoints().size() /2 ; j++ )

@@ -21,23 +21,28 @@
 using namespace Amie ;
 
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
-    physicalCharacteristicRadius(.008),
-    scoreAtState(-1),
-    metAtStep(false),
-    mirroring(mirroring), delta_x(delta_x), delta_y(delta_y), delta_z(delta_z),
-    deltaScoreAtState(0),
-    criterionDamageDifferential(0),
-    mesh2d(nullptr), mesh3d(nullptr),
-    stable(true), checkpoint(true), inset(false),inIteration(false),
-    scoreTolerance(5e-3),
-    initialScore(1),
-    cachedInfluenceRatio(1),
-    minDeltaInNeighbourhood(1),
-    maxScoreInNeighbourhood(0),
-    maxModeInNeighbourhood(-1),
-    maxAngleShiftInNeighbourhood(0),
-    smoothingType(QUARTIC_COMPACT),
-    cacheID(-1), cachecoreID(-1)
+   initialScore(1),
+   physicalCharacteristicRadius(.008),
+   scoreAtState(-1), 
+   deltaScoreAtState(0),
+   criterionDamageDifferential(0),
+   mirroring(mirroring),
+   delta_x(delta_x), delta_y(delta_y), delta_z(delta_z),
+   metAtStep(false),
+   stable(true),
+   minDeltaInNeighbourhood(1),
+   maxModeInNeighbourhood(-1),
+   maxScoreInNeighbourhood(0),
+   maxAngleShiftInNeighbourhood(0), 
+   scoreTolerance(5e-3),
+   checkpoint(true),
+   inset(false),
+   smoothingType(QUARTIC_COMPACT),  
+   cachedInfluenceRatio(1),
+   cacheID(-1),
+   cachecoreID(-1),
+   inIteration(false),
+   mesh2d(nullptr), mesh3d(nullptr)  
 {
 }
 
@@ -158,11 +163,11 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 //             if(!(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
 //                 return std::make_pair(0.,0.) ;
 //          
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             inset = false ;
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             inIteration = false ;
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             {
                 damagingSet.clear();
                 proximitySet.clear() ;
@@ -193,7 +198,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
                     {
  
-                        if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+                        if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
                         if(ci == s.getParent() && met())
                             inset = true ;
                         
@@ -219,22 +224,22 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
             if(!inset)
             {
-                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
                 {
                     damagingSet.clear();
                     proximitySet.clear() ;
                 }
-                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
                 if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
                     inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             inIteration = true ;
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)
+            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             {
                 damagingSet = newSet ;
                 proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;

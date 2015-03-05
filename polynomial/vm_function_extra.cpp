@@ -120,13 +120,13 @@ Amie::Function f_abs(const Amie::Function &f, bool differentiate)
 	
 	if(differentiate && f.isDifferentiable())
 	{
-		for(size_t i = 0 ; i < f.getNumberOfDerivatives() ; i++)
+		for(int i = 0 ; i < f.getNumberOfDerivatives() ; i++)
 		{
 			Amie::Function d = f.d((const Amie::Variable)i)*f_positivity(f,false)-f.d((const Amie::Variable)i)*f_negativity(f,false) ;
 			if(f.d((const Amie::Variable) i).isDifferentiable())
 			{
 				d.setNumberOfDerivatives( f.d((const Amie::Variable) i).getNumberOfDerivatives() );
-				for(size_t k = 0 ; k < d.getNumberOfDerivatives() ; k++)
+				for(int k = 0 ; k < d.getNumberOfDerivatives() ; k++)
 				{
 					Amie::Function g = f.d((const Amie::Variable)i).d((const Amie::Variable) k)*f_positivity(f,false)-f.d((const Amie::Variable)i).d((const Amie::Variable) k)*f_negativity(f,false) ;
 					d.setDerivative((const Amie::Variable) k, g);

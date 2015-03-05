@@ -5,204 +5,204 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), timeDependentIntegration(false), prevEta(eta)
 {
 
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), isPurelyElastic(false), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), isPurelyElastic(false), accumulator(acc), updated(true), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
 {
 
 }
 
 void LogarithmicCreep::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	if(!timeDependentIntegration)
-	{
-		Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-		Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-	
-		Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-		getBlockInMatrix(param, 0,0, buffer) ;
+    if(!timeDependentIntegration)
+    {
+        Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-		vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-		vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-		a += b ;
-		
-		placeMatrixInBlock( a, 0,0, ret ) ;
-		if(!isPurelyElastic)
-		{
-			placeMatrixInBlock(a,1,2, ret);
-			placeMatrixInBlock(a,2,1, ret);
-			b = a*(-1.) ;
-			placeMatrixInBlock(b,1,0, ret);
-			placeMatrixInBlock(b,2,0, ret);
-			placeMatrixInBlock(b,0,1, ret);
-			placeMatrixInBlock(b,0,2, ret);
+        Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+        getBlockInMatrix(param, 0,0, buffer) ;
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 1,1, buffer) ;
+        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+        a += b ;
 
-			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 1,1, ret ) ;
+        placeMatrixInBlock( a, 0,0, ret ) ;
+        if(!isPurelyElastic)
+        {
+            placeMatrixInBlock(a,1,2, ret);
+            placeMatrixInBlock(a,2,1, ret);
+            b = a*(-1.) ;
+            placeMatrixInBlock(b,1,0, ret);
+            placeMatrixInBlock(b,2,0, ret);
+            placeMatrixInBlock(b,0,1, ret);
+            placeMatrixInBlock(b,0,2, ret);
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 2,2, buffer) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 1,1, buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 2,2, ret ) ;
-		}
-	}
-	else
-	{
-		std::vector<Matrix> mat(Jinv.size()) ;
-		Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-		Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-	
-		Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-		getBlockInMatrix(param, 0,0, buffer) ;
-		Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
-		getBlockInMatrix(prevParam, 0,0, prevBuffer) ;
+            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
 
-		Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
-		Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
 
-		for(size_t i = 0; i < Jinv.size() ; i++)
-			mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f1,gp.gaussPoints[i].first)) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 2,2, buffer) ;
 
-		vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
-		vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
-		a += b ;
-		
-		placeMatrixInBlock( a, 0,0, ret ) ;
-		if(!isPurelyElastic)
-		{
-			b = a*(-1.) ;
-			placeMatrixInBlock(b,1,0, ret);
-			placeMatrixInBlock(b,0,1, ret);
+            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 1,1, buffer) ;
-			getBlockInMatrix(prevParam, 1,1, prevBuffer) ;
+            placeMatrixInBlock( a, 2,2, ret ) ;
+        }
+    }
+    else
+    {
+        std::vector<Matrix> mat(Jinv.size()) ;
+        Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-			for(size_t i = 0; i < Jinv.size() ; i++)
-				mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+        Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+        getBlockInMatrix(param, 0,0, buffer) ;
+        Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
+        getBlockInMatrix(prevParam, 0,0, prevBuffer) ;
 
-			vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 1,1, ret ) ;
-		}
-	}
+        Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
+        Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
+
+        for(size_t i = 0; i < Jinv.size() ; i++)
+            mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f1,gp.gaussPoints[i].first)) ;
+
+        vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
+        a += b ;
+
+        placeMatrixInBlock( a, 0,0, ret ) ;
+        if(!isPurelyElastic)
+        {
+            b = a*(-1.) ;
+            placeMatrixInBlock(b,1,0, ret);
+            placeMatrixInBlock(b,0,1, ret);
+
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 1,1, buffer) ;
+            getBlockInMatrix(prevParam, 1,1, prevBuffer) ;
+
+            for(size_t i = 0; i < Jinv.size() ; i++)
+                mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+
+            vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+
+            placeMatrixInBlock( a, 1,1, ret ) ;
+        }
+    }
 }
 
 void LogarithmicCreep::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	if(!isPurelyElastic)
-	{
-		if(!timeDependentIntegration)
-		{
-			Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-			Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+    if(!isPurelyElastic)
+    {
+        if(!timeDependentIntegration)
+        {
+            Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-			Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-			getBlockInMatrix(eta, 1,1, buffer) ;
+            Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+            getBlockInMatrix(eta, 1,1, buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 1,1, ret ) ;
+            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(eta, 1,1, buffer) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(eta, 1,1, buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 2,2, ret ) ;
-		}
-		else
-		{
-			std::vector<Matrix> mat(Jinv.size()) ;
-			Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-			Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 2,2, ret ) ;
+        }
+        else
+        {
+            std::vector<Matrix> mat(Jinv.size()) ;
+            Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-			Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-			getBlockInMatrix(eta, 1,1, buffer) ;
-			Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
-			getBlockInMatrix(prevEta, 0,0, prevBuffer) ;
+            Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+            getBlockInMatrix(eta, 1,1, buffer) ;
+            Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
+            getBlockInMatrix(prevEta, 0,0, prevBuffer) ;
 
-			Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
-			Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
+            Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
+            Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
 
-			for(size_t i = 0; i < Jinv.size() ; i++)
-				mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+            for(size_t i = 0; i < Jinv.size() ; i++)
+                mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
 
-			vm->ieval(GradientDot(p_i) * mat * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * mat * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 1,1, ret ) ;
-		}
-		
-	}
+            vm->ieval(GradientDot(p_i) * mat * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * mat * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
+        }
+
+    }
 }
 
 Form * LogarithmicCreep::getCopy() const
 {
-	LogarithmicCreep * copy ;
-	if(isPurelyElastic)
-		copy = new LogarithmicCreep( C, accumulator->getCopy() ) ;
-	else
-		copy = new LogarithmicCreep( C, E, R, tau, accumulator->getCopy() ) ;
-	return copy ; 
+    LogarithmicCreep * copy ;
+    if(isPurelyElastic)
+        copy = new LogarithmicCreep( C, accumulator->getCopy() ) ;
+    else
+        copy = new LogarithmicCreep( C, E, R, tau, accumulator->getCopy() ) ;
+    return copy ;
 }
 
 void LogarithmicCreep::print() const
 {
-	std::cout << "I am a logarithmic viscoelastic law" << std::endl ;
+    std::cout << "I am a logarithmic viscoelastic law" << std::endl ;
 }
 
 void LogarithmicCreep::preProcess(double timeStep, ElementState & currentState)
 {
-	if(reducedTimeStep < 0)
-	{
-		prevParam = param ;
-		prevEta = eta ;
+    if(reducedTimeStep < 0)
+    {
+        prevParam = param ;
+        prevEta = eta ;
 
-		param = 0. ;
-		eta = 0. ;	
-		placeMatrixInBlock(C,0,0,param) ;
-		if(!isPurelyElastic)
-		{
-			accumulator->preProcess(timeStep, currentState) ;
-			Matrix S = -C ;
-			placeMatrixInBlock(S,0,1,param) ;
-			placeMatrixInBlock(S,0,2,param) ;
-			placeMatrixInBlock(S,1,0,param) ;
-			placeMatrixInBlock(S,2,0,param) ;
-			placeMatrixInBlock(C,1,1,param) ;
-			placeMatrixInBlock(C,1,2,param) ;
-			placeMatrixInBlock(C,2,1,param) ;
-			placeMatrixInBlock(C,2,2,param) ;
-			S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
-			addMatrixInBlock(S,1,1,param) ;
-			S = E*accumulator->getKelvinVoigtDashpotReduction() ;
-			placeMatrixInBlock(S,1,1,eta) ;
-			addMatrixInBlock(R,2,2,param) ;
-			addMatrixInBlock(R*tau,2,2,param) ;
-		}
-	}
+        param = 0. ;
+        eta = 0. ;
+        placeMatrixInBlock(C,0,0,param) ;
+        if(!isPurelyElastic)
+        {
+            accumulator->preProcess(timeStep, currentState) ;
+            Matrix S = -C ;
+            placeMatrixInBlock(S,0,1,param) ;
+            placeMatrixInBlock(S,0,2,param) ;
+            placeMatrixInBlock(S,1,0,param) ;
+            placeMatrixInBlock(S,2,0,param) ;
+            placeMatrixInBlock(C,1,1,param) ;
+            placeMatrixInBlock(C,1,2,param) ;
+            placeMatrixInBlock(C,2,1,param) ;
+            placeMatrixInBlock(C,2,2,param) ;
+            S = E*(accumulator->getKelvinVoigtSpringReduction()) ;
+            addMatrixInBlock(S,1,1,param) ;
+            S = E*accumulator->getKelvinVoigtDashpotReduction() ;
+            placeMatrixInBlock(S,1,1,eta) ;
+            addMatrixInBlock(R,2,2,param) ;
+            addMatrixInBlock(R*tau,2,2,param) ;
+        }
+    }
 }
 
 void LogarithmicCreep::step(double timestep, ElementState &s, double maxScore)
@@ -210,30 +210,30 @@ void LogarithmicCreep::step(double timestep, ElementState &s, double maxScore)
 
 }
 
-std::vector<BoundaryCondition * > LogarithmicCreep::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const 
+std::vector<BoundaryCondition * > LogarithmicCreep::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
-	std::vector<BoundaryCondition * > ret ;
-	if(fixCreepVariable)
-	{
-		size_t k = 0 ;
-		ElementarySurface * tri = dynamic_cast<ElementarySurface *>(s.getParent()) ;
-		for(size_t i = tri->getBoundingPoints().size()/tri->timePlanes() ; i < tri->getBoundingPoints().size() ; i++)
-		{
-			if(id == tri->getBoundingPoint(i).getId())
-			{
-				k = i-tri->getBoundingPoints().size()/tri->timePlanes() ;
-				break ;
-			}
-		}
-		if(k != 0)
-		{
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+2], 2)) ;
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+3], 3)) ;
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+4], 4)) ;
-			ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+5], 5)) ;
-		}
-	}
-	return ret ;
+    std::vector<BoundaryCondition * > ret ;
+    if(fixCreepVariable)
+    {
+        size_t k = 0 ;
+        ElementarySurface * tri = dynamic_cast<ElementarySurface *>(s.getParent()) ;
+        for(size_t i = tri->getBoundingPoints().size()/tri->timePlanes() ; i < tri->getBoundingPoints().size() ; i++)
+        {
+            if((int)id == tri->getBoundingPoint(i).getId())
+            {
+                k = i-tri->getBoundingPoints().size()/tri->timePlanes() ;
+                break ;
+            }
+        }
+        if(k != 0)
+        {
+            ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+2], 2)) ;
+            ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+3], 3)) ;
+            ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+4], 4)) ;
+            ret.push_back(new DofDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, s.getDisplacements()[k*6+5], 5)) ;
+        }
+    }
+    return ret ;
 }
 
 
@@ -259,22 +259,22 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
 
 Vector LogarithmicCreepWithImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-	if(imposed.size())
-	{
-/*		if(timeDependentIntegration)
-		{
-			Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
-			Function f2 = accumulator->getKelvinVoigtNextFunction() ;
-			Point p_ = p ;
-			if(e && g > -1)
-				p_ = e->getGaussPoints().gaussPoints[g].first ;
-			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
-		}*/
-		if(p.getT() < 0)
-			return prevImposed ;
-        	return imposed ;
-	}
-	return Vector(0., C.numCols()) ;
+    if(imposed.size())
+    {
+        /*		if(timeDependentIntegration)
+        		{
+        			Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
+        			Function f2 = accumulator->getKelvinVoigtNextFunction() ;
+        			Point p_ = p ;
+        			if(e && g > -1)
+        				p_ = e->getGaussPoints().gaussPoints[g].first ;
+        			return prevImposed*VirtualMachine().eval(f1, p_) + imposed*VirtualMachine().eval(f2, p_) ;
+        		}*/
+        if(p.getT() < 0)
+            return prevImposed ;
+        return imposed ;
+    }
+    return Vector(0., C.numCols()) ;
 }
 
 Vector LogarithmicCreepWithImposedDeformation::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
@@ -306,10 +306,10 @@ std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformation::getBou
 
 }
 
-void LogarithmicCreepWithImposedDeformation::preProcess( double timeStep, ElementState & currentState ) 
+void LogarithmicCreepWithImposedDeformation::preProcess( double timeStep, ElementState & currentState )
 {
-	prevImposed = imposed ;
-	LogarithmicCreep::preProcess(timeStep, currentState) ;
+    prevImposed = imposed ;
+    LogarithmicCreep::preProcess(timeStep, currentState) ;
 }
 
 LogarithmicCreepWithImposedDeformationAndFracture::LogarithmicCreepWithImposedDeformationAndFracture( const Matrix & rig, const Vector & imp, LogCreepAccumulator * acc) : LogarithmicCreepWithImposedDeformation(rig, imp, acc), dfunc(nullptr), criterion(nullptr), noFracture(false)
@@ -338,209 +338,209 @@ Form * LogarithmicCreepWithImposedDeformationAndFracture::getCopy() const
 
     if(noFracture)
     {
-	    if(isPurelyElastic)
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, accumulator->getCopy() ) ;
-	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, accumulator->getCopy() ) ;
+        if(isPurelyElastic)
+            copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, accumulator->getCopy() ) ;
+        else
+            copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, accumulator->getCopy() ) ;
     } else {
 
-	    if(isPurelyElastic)
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
-	    else
-		copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
-	    copy->dfunc->getState(true).resize(dfunc->getState().size());
-	    copy->dfunc->getState(true) = dfunc->getState() ;
-	    copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
-	    copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
-	    copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
+        if(isPurelyElastic)
+            copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
+        else
+            copy = new LogarithmicCreepWithImposedDeformationAndFracture( C, E, R, tau, imposed, criterion->getCopy(), dfunc->getCopy(), accumulator->getCopy() ) ;
+        copy->dfunc->getState(true).resize(dfunc->getState().size());
+        copy->dfunc->getState(true) = dfunc->getState() ;
+        copy->criterion->setMaterialCharacteristicRadius(criterion->getMaterialCharacteristicRadius()) ;
+        copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
+        copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
     }
     return copy ;
 }
 
 void LogarithmicCreepWithImposedDeformationAndFracture::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	if(!timeDependentIntegration)
-	{
-		Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-		Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+    if(!timeDependentIntegration)
+    {
+        Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-		Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-		getBlockInMatrix(param, 0,0, buffer) ;
+        Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+        getBlockInMatrix(param, 0,0, buffer) ;
 
-		if(!noFracture)
-			buffer = dfunc->apply(buffer) ;
+        if(!noFracture)
+            buffer = dfunc->apply(buffer) ;
 
-		vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-		vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-		a += b ;
+        vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+        a += b ;
 
-		placeMatrixInBlock( a, 0,0, ret ) ;
-		if(!isPurelyElastic)
-		{
-			placeMatrixInBlock( a, 1,2, ret ) ;
-			placeMatrixInBlock( a, 2,1, ret ) ;
-			b = a*(-1.) ;
-			placeMatrixInBlock(b,1,0, ret);
-			placeMatrixInBlock(b,2,0, ret);
-			placeMatrixInBlock(b,0,1, ret);
-			placeMatrixInBlock(b,0,2, ret);
+        placeMatrixInBlock( a, 0,0, ret ) ;
+        if(!isPurelyElastic)
+        {
+            placeMatrixInBlock( a, 1,2, ret ) ;
+            placeMatrixInBlock( a, 2,1, ret ) ;
+            b = a*(-1.) ;
+            placeMatrixInBlock(b,1,0, ret);
+            placeMatrixInBlock(b,2,0, ret);
+            placeMatrixInBlock(b,0,1, ret);
+            placeMatrixInBlock(b,0,2, ret);
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 1,1, buffer) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 1,1, buffer) ;
 
-			if(!noFracture)
-				buffer = dfunc->apply(buffer) ;
+            if(!noFracture)
+                buffer = dfunc->apply(buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 1,1, ret ) ;
+            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 2,2, buffer) ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
 
-			if(!noFracture)
-				buffer = dfunc->apply(buffer) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 2,2, buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 2,2, ret ) ;
-		}
+            if(!noFracture)
+                buffer = dfunc->apply(buffer) ;
+
+            vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+
+            placeMatrixInBlock( a, 2,2, ret ) ;
+        }
 
 
-	}
-	else
-	{
-		std::vector<Matrix> mat(Jinv.size()) ;
-		Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-		Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
-	
-		Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-		getBlockInMatrix(param, 0,0, buffer) ;
-		Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
-		getBlockInMatrix(prevParam, 0,0, prevBuffer) ;
+    }
+    else
+    {
+        std::vector<Matrix> mat(Jinv.size()) ;
+        Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+        Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-		Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
-		Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
+        Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+        getBlockInMatrix(param, 0,0, buffer) ;
+        Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
+        getBlockInMatrix(prevParam, 0,0, prevBuffer) ;
 
-		for(size_t i = 0; i < Jinv.size() ; i++)
-			mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f1,gp.gaussPoints[i].first)) ;
+        Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
+        Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
 
-		if(!noFracture)
-		{
-			for(size_t i = 0; i < Jinv.size() ; i++)
-				mat[i] = dfunc->apply(mat[i]) ;
-		}
+        for(size_t i = 0; i < Jinv.size() ; i++)
+            mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f1,gp.gaussPoints[i].first)) ;
 
-		vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
-		vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
-		a += b ;
-		
-		placeMatrixInBlock( a, 0,0, ret ) ;
-		if(!isPurelyElastic)
-		{
-			b = a*(-1.) ;
-			placeMatrixInBlock(b,1,0, ret);
-			placeMatrixInBlock(b,0,1, ret);
+        if(!noFracture)
+        {
+            for(size_t i = 0; i < Jinv.size() ; i++)
+                mat[i] = dfunc->apply(mat[i]) ;
+        }
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(param, 1,1, buffer) ;
-			getBlockInMatrix(prevParam, 1,1, prevBuffer) ;
+        vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
+        vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
+        a += b ;
 
-			for(size_t i = 0; i < Jinv.size() ; i++)
-				mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+        placeMatrixInBlock( a, 0,0, ret ) ;
+        if(!isPurelyElastic)
+        {
+            b = a*(-1.) ;
+            placeMatrixInBlock(b,1,0, ret);
+            placeMatrixInBlock(b,0,1, ret);
 
-			if(!noFracture)
-			{
-				for(size_t i = 0; i < Jinv.size() ; i++)
-					mat[i] = dfunc->apply(mat[i]) ;
-			}
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(param, 1,1, buffer) ;
+            getBlockInMatrix(prevParam, 1,1, prevBuffer) ;
 
-			vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-		
-			placeMatrixInBlock( a, 1,1, ret ) ;
-		}
-	}
+            for(size_t i = 0; i < Jinv.size() ; i++)
+                mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+
+            if(!noFracture)
+            {
+                for(size_t i = 0; i < Jinv.size() ; i++)
+                    mat[i] = dfunc->apply(mat[i]) ;
+            }
+
+            vm->ieval(GradientDot(p_i) * mat * Gradient(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(Gradient(p_i)    * mat * GradientDot(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+
+            placeMatrixInBlock( a, 1,1, ret ) ;
+        }
+    }
 }
 
 void LogarithmicCreepWithImposedDeformationAndFracture::applyViscous(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
-	if(!isPurelyElastic)
-	{
-		if(!timeDependentIntegration)
-		{
-			Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-			Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+    if(!isPurelyElastic)
+    {
+        if(!timeDependentIntegration)
+        {
+            Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-			Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-			getBlockInMatrix(eta, 1,1, buffer) ;
+            Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+            getBlockInMatrix(eta, 1,1, buffer) ;
 
-			if(!noFracture)
-				buffer = dfunc->applyViscous(buffer) ;
+            if(!noFracture)
+                buffer = dfunc->applyViscous(buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 1,1, ret ) ;
+            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
 
-			a = 0. ;
-			b = 0. ;
-			getBlockInMatrix(eta, 2,2, buffer) ;
+            a = 0. ;
+            b = 0. ;
+            getBlockInMatrix(eta, 2,2, buffer) ;
 
-			if(!noFracture)
-				buffer = dfunc->applyViscous(buffer) ;
+            if(!noFracture)
+                buffer = dfunc->applyViscous(buffer) ;
 
-			vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 2,2, ret ) ;
-		}
-		else
-		{
-			std::vector<Matrix> mat(Jinv.size()) ;
-			Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
-			Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            vm->ieval(GradientDot(p_i) * buffer * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * buffer * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 2,2, ret ) ;
+        }
+        else
+        {
+            std::vector<Matrix> mat(Jinv.size()) ;
+            Matrix a(ret.numRows()/blocks, ret.numCols()/blocks) ;
+            Matrix b(ret.numRows()/blocks, ret.numCols()/blocks) ;
 
-			Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
-			getBlockInMatrix(eta, 1,1, buffer) ;
-			Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
-			getBlockInMatrix(prevEta, 0,0, prevBuffer) ;
+            Matrix buffer(param.numRows()/blocks, param.numCols()/blocks) ;
+            getBlockInMatrix(eta, 1,1, buffer) ;
+            Matrix prevBuffer(prevParam.numRows()/blocks, prevParam.numCols()/blocks) ;
+            getBlockInMatrix(prevEta, 0,0, prevBuffer) ;
 
-			Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
-			Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
+            Function f1 = accumulator->getKelvinVoigtPreviousFunction() ;
+            Function f2 = accumulator->getKelvinVoigtPreviousFunction() ;
 
-			for(size_t i = 0; i < Jinv.size() ; i++)
-				mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
+            for(size_t i = 0; i < Jinv.size() ; i++)
+                mat[i] = prevBuffer*(vm->eval(f1,gp.gaussPoints[i].first)) + buffer*(vm->eval(f2,gp.gaussPoints[i].first)) ;
 
-			if(!noFracture)
-			{
-				for(size_t i = 0; i < Jinv.size() ; i++)
-					mat[i] = dfunc->applyViscous(mat[i]) ;
-			}
+            if(!noFracture)
+            {
+                for(size_t i = 0; i < Jinv.size() ; i++)
+                    mat[i] = dfunc->applyViscous(mat[i]) ;
+            }
 
-			vm->ieval(GradientDot(p_i) * mat * GradientDot(p_j, true),    gp, Jinv,v, a) ;
-			vm->ieval(GradientDotDot(p_i) * mat * Gradient(p_j, true), gp, Jinv,v, b) ;
-			a += b ;
-			placeMatrixInBlock( a, 1,1, ret ) ;
-		}
-		
-	}
+            vm->ieval(GradientDot(p_i) * mat * GradientDot(p_j, true),    gp, Jinv,v, a) ;
+            vm->ieval(GradientDotDot(p_i) * mat * Gradient(p_j, true), gp, Jinv,v, b) ;
+            a += b ;
+            placeMatrixInBlock( a, 1,1, ret ) ;
+        }
+
+    }
 }
 
 void LogarithmicCreepWithImposedDeformationAndFracture::step(double timestep, ElementState & currentState, double maxscore)
 {
     if(!noFracture)
     {
-	    dfunc->step(currentState, maxscore) ;
-	    currentState.getParent()->behaviourUpdated = dfunc->changed() ;
+        dfunc->step(currentState, maxscore) ;
+        currentState.getParent()->behaviourUpdated = dfunc->changed() ;
     }
     if(maxscore > 0)
     {
@@ -587,12 +587,16 @@ Matrix LogarithmicCreepWithImposedDeformationAndFracture::getViscousTensor(const
     return dfunc->applyViscous(eta) ;
 }
 
-LogarithmicCreepWithImposedDeformationAndFracture::~LogarithmicCreepWithImposedDeformationAndFracture() 
-{ 
-	if(dfunc) 
-		{delete dfunc ; } 
-	if(criterion) 
-		{delete criterion ;} 
+LogarithmicCreepWithImposedDeformationAndFracture::~LogarithmicCreepWithImposedDeformationAndFracture()
+{
+    if(dfunc)
+    {
+        delete dfunc ;
+    }
+    if(criterion)
+    {
+        delete criterion ;
+    }
 }
 
 std::vector<BoundaryCondition * > LogarithmicCreepWithImposedDeformationAndFracture::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const

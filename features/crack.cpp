@@ -261,7 +261,6 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	}
 
 
-	DelaunayTriangle * tailElem = nullptr;
 	for ( size_t i = 0 ; i < disk.size() ; i++ )
 	{
 		
@@ -271,10 +270,6 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 			)
 		{
 			tris.push_back ( disk[i] ) ;
-		}
-		else if ( disk[i]->in ( *tip.first ) )
-		{
-			tailElem = disk[i] ;
 		}
 	}
 	
@@ -297,10 +292,6 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 				if ( ( currentDir*lastDir ) > 0 )
 				{
 					current->getState().getField( PRINCIPAL_REAL_STRESS_FIELD, current->getBoundingPoint(j), principalStresses, false) ;
-					double maxPrincipalStressCurrent = std::abs ( principalStresses[0] );
-					
-					if ( current->getBehaviour()->type == VOID_BEHAVIOUR )
-						maxPrincipalStressCurrent = 1000 ;
 					
 					if ( currentDir.norm() > 1e-8 )
 					{
@@ -407,7 +398,6 @@ std::pair<double, double> BranchedCrack::computeJIntegralAtTip ( std::pair<Point
 			Point n = gamma[j].first->normal ( gamma[j].second->getCenter() ) ;
 			
 			
-			Point ln = gamma[j].second->inLocalCoordinates ( n ) ;
 			Vector stepLengthal ( 2 ) ; stepLengthal[0] = n.getX() ; stepLengthal[1] = n.getY() ;
 			Vector d ( 2 ) ; d[0] = -n.getY() ;   d[1] = n.getX() ;
 			double ilocal0 = 0 ;
@@ -613,7 +603,6 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 	//a new merge point is instantiated which is the intersection between 
 	// the nearest segment and the prolonged branch
 	SegmentedLine * fromBranch = nullptr ;
-	bool isHead = false ;
 	bool isTail = false ;
 	
 	for(size_t i = 0 ; i < newSet.getBranches().size() ; i++)
@@ -621,7 +610,6 @@ void BranchedCrack::merge ( BranchedCrack & newSet)
 		if(newSet.getBranches()[i]->getHead() == tipForMerge.first)
 		{
 			fromBranch = newSet.getBranches()[i] ;
-			isHead = true ;
 			break ;
 		}
 		
@@ -905,7 +893,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 				hint.push_back ( singularityTransformed ) ;
 			}
 			
-			if(!completeIntersection.size() == 2)
+			if(completeIntersection.size() == 2)
 			{
 				Point intersectionBisTransformed = triangles[i]->inLocalCoordinates ( completeIntersection[1] ) ;
 				hint.push_back ( intersectionBisTransformed ) ;
@@ -1124,7 +1112,7 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 			triangles[i]->setEnrichment ( f , getPrimitive() ) ;
 		}
 		
-		if(pcount == triangles[i]->getBoundingPoints().size())
+		if(pcount == (int)triangles[i]->getBoundingPoints().size())
 			tipEnrichmentMap.insert(triangles[i]) ;
 		
 	}

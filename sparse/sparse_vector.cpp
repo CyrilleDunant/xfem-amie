@@ -73,7 +73,7 @@ Vector SparseVector::operator *(const Vector &v) const
 		for(size_t c = 0 ; c < stride ; c++)
 		{
 			double vval =  v[idx[j]*stride+c] ;
-			for(size_t i = 0 ; i != colLength ; i+=2)
+			for(int i = 0 ; i != colLength ; i+=2)
 			{
 				ret[i] +=  *(array_iterator0) * vval ;
 				ret[i+1] +=  *(array_iterator1) * vval ;
@@ -585,7 +585,7 @@ void ConstSparseVector::parallel_product(const Vector &v, double *dest, const si
                 for(size_t c = 0 ; c < stride ; c++)
                 {
                         const double vval =  v[column_index[start]*stride+c] ;
-                        for(size_t i = 0 ; i != colLength ; i+=2)
+                        for(int i = 0 ; i != colLength ; i+=2)
                         {
                                 *(dest+i) += *array_iterator0 * vval ;
                                 *(dest+i+1) += *array_iterator1 * vval ;
@@ -599,7 +599,7 @@ void ConstSparseVector::parallel_product(const Vector &v, double *dest, const si
 			for(size_t c = 0 ; c < stride ; c++)
 			{
 				const double vval =  v[column_index[j]*stride+c] ;
-				for(size_t i = 0 ; i != colLength ; i+=2)
+				for(int i = 0 ; i != colLength ; i+=2)
 				{
 					*(dest+i) += *array_iterator0 * vval ;
 					*(dest+i+1) += *array_iterator1 * vval ;
@@ -679,7 +679,6 @@ void ConstSparseVector::inner_product(const Vector &v, double *dest, const size_
 		}
 		case 6 :
 		{
-			const int colLength = 6  ;
 			#ifdef HAVE_SSE3
 			const __m128d * array_iterator = (__m128d*)&array[mstart*36] ;
 // 			#pragma omp parallel for schedule(runtime)
@@ -882,7 +881,7 @@ Vector ConstSparseVector::operator *(const Vector &v) const
 		for(size_t c = 0 ; c < stride ; c++)
 		{
 			const double vval =  v[column_index[j]*stride+c] ;
-			for(size_t i = 0 ; i != colLength ; i+=2)
+			for(int i = 0 ; i != colLength ; i+=2)
 			{
 				ret[i] += *array_iterator0 * vval ;
 				ret[i+1] += *array_iterator1 * vval ;

@@ -280,39 +280,31 @@ protected:
     Point vstart ;
     Point vend ;
     std::vector<Point> interpolationPoints ;
-    std::vector<Point> tangents ;
     std::pair<Point,Point> interpolatingPointAndTangent(double t) const ;
-    std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset, bool correctForNorm = true) const ;
+    std::pair<Point,Point> interpolatingPointAndTangent(double t, const Point & offset) const ;
+    Point projectTest(const Amie::Point& v, const std::pair< Amie::Point, Amie::Point >& toCenter) const ;
     
     Matrix rotateToVector(const Point & vector) const ;
     Matrix rotateFromVector(const Point & vector) const ;
-    std::pair<Point,Point> projectToCenterLine(const Point & p) const ;
-        
-
+    std::pair<Point,Point> projectToCenterLine(const Point & p, double * coordinate = nullptr) const ;
+    std::pair<Point,Point>projectToOffsetCenterLine(const Point & p, const Point & offset) const ;
+     std::vector<double> isoDistribute(int npoints) const;
+     std::vector<double> isoDistribute(const Point & offset, int npoints) const;
 public:
     LoftedPolygonPrism(const std::valarray<Point *> & points, const std::vector<Point> & interpolationPoints) ;
     
     virtual ~LoftedPolygonPrism() ;
-
-    virtual void sampleBoundingSurface(size_t num_points) ;
-    
-    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
-    
-    virtual void sampleSurface(size_t num_points) ;
-    
-    virtual bool in(const Point & v) const ;
-    
-    virtual double area() const ;
-    
+    virtual void sampleBoundingSurface(size_t num_points) ; 
+    virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ; 
+    virtual void sampleSurface(size_t num_points) ;   
+    virtual bool in(const Point & v) const ;  
+    virtual double area() const ;  
     virtual double volume() const ;
-
-    virtual void project(Point * init) const ;
-    
-    virtual double getRadius() const ;
-    
-    virtual SpaceDimensionality spaceDimensions() const ;
-    
+    virtual void project(Point * init) const ; 
+    virtual double getRadius() const ; 
+    virtual SpaceDimensionality spaceDimensions() const ;  
     virtual std::vector<Point> getBoundingBox() const ;
+    virtual std::pair<Point, Point> getEndNormals() const ;
 } ;
 
 /** \brief Class for the description triangulated free surfaces. Work in progress.*/

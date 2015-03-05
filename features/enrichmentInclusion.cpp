@@ -169,7 +169,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 	
 	for(size_t i = 0 ; i < disc.size() ; i++)
 	{
-		Form * original ;
 		HomogeneisedBehaviour * hom = dynamic_cast<HomogeneisedBehaviour *>(disc[i]->getBehaviour());
 		if(hom)
 		{

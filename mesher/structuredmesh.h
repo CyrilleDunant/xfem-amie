@@ -82,6 +82,8 @@ public:
 
     virtual size_t getLastNodeId() const {return global_counter ;};
     virtual size_t size() const {return tree.size() ;} ;
+    
+    virtual bool step( double dt ) { return false ;};
 } ;
 
 }

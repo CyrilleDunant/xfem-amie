@@ -82,7 +82,7 @@ OrthotropicStiffness::OrthotropicStiffness(double E_1, double E_2, double G,  do
 } ;
 
 OrthotropicStiffness::OrthotropicStiffness(const OrthotropicStiffness * source) : LinearForm(source->param, true, false, source->getNumberOfDegreesOfFreedom()) , transform(source->transform),
-		transformt(source->transformt),transformset(source->transformset),v(source->v), paramBase(source->paramBase)
+		transformt(source->transformt), paramBase(source->paramBase),transformset(source->transformset),v(source->v)
 {
 } ;
 
