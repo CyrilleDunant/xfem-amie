@@ -321,8 +321,8 @@ set(ALL_LINK_FLAGS   ${OMP_LINK_FLAGS} m ${BIT32_FLAGS} ${MPI_LINK_FLAGS} ${MPI_
 
 add_library (Amie ${ALL_SRC})
 
-add_executable(single_sphere examples/main_single_sphere.cpp )
-target_link_libraries( single_sphere Amie ${ALL_LINK_FLAGS} )
+add_executable(dam examples/main_dam.cpp )
+target_link_libraries( dam Amie ${ALL_LINK_FLAGS} )
 
 add_executable(back_homogenisation examples/main_back_homogenisation.cpp )
 target_link_libraries( back_homogenisation Amie ${ALL_LINK_FLAGS} )

@@ -2483,7 +2483,13 @@ double LoftedPolygonPrism::volume() const {
 
 std::pair<Point, Point> LoftedPolygonPrism::getEndNormals() const
 {
-    return std::make_pair(interpolatingPointAndTangent(0.).second, interpolatingPointAndTangent(1.).second) ;
+    std::pair<Point, Point> n0 = interpolatingPointAndTangent(0.) ;
+    std::pair<Point, Point> n1 = interpolatingPointAndTangent(1.) ;
+    if(n0.second*(vstart-n0.first) < 0)
+        n0.second *= -1 ;
+    if(n1.second*(vend-n1.first) < 0)
+        n1.second *= -1 ;
+    return std::make_pair( n0.second, n1.second) ;
 }
 
 Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< Amie::Point, Amie::Point >& toCenter) const

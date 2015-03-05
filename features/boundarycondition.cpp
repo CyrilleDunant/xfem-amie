@@ -4707,7 +4707,7 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 
 
 GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d , int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { };
-GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal.norm()) { };
+GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { };
 
 void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {

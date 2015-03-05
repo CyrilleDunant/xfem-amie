@@ -1264,7 +1264,7 @@ VoxelGLDrawer::VoxelGLDrawer(const int r, const int c, const int s, trsFunc tc ,
 	
 	start_offset = 0 ;
 	
-	m_segmentDown  = 0 ;
+	m_segmentDown  = 1 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	m_zoom = 100 ;
@@ -1320,7 +1320,7 @@ VoxelGLDrawer::VoxelGLDrawer(QString f, QMainWindow *mainwin) : QGLWidget(mainwi
 	
 	start_offset = 0 ;
 	
-	m_segmentDown  = 0 ;
+	m_segmentDown  = 1 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	
@@ -1389,7 +1389,7 @@ VoxelGLDrawer::VoxelGLDrawer(QMainWindow *parent) : QGLWidget(parent) {
 	alpha = 255 ;
 
 	
-	m_segmentDown  = 0 ;
+	m_segmentDown  = 1 ;
 	m_segmentUp  = 255 ;
 	m_currentField = 0 ;
 	
@@ -1607,9 +1607,13 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	quint8 max = (*d)[0].max() ;
 	
 	
+    
 	for(int i = 0 ; i< c->size() ; i++)
 	{
-		(*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; (*d)[0][i] ; (*d)[0][i] ; //(quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
+        if(std::abs((*d)[0][i]) > 1e-12)
+            (*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; //(*d)[0][i] ; (*d)[0][i] ; (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
+        else
+           (*c)[i] = 0 ; 
 // 		if(abs((double)(*c)[i]- 0  ) <=1 || 
 // 			abs((double)(*c)[i] - 20 ) <=1 || 
 // 			abs((double)(*c)[i] - 40 ) <=1 ||
