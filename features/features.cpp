@@ -1339,7 +1339,7 @@ void FeatureTree::stitch()
 
     if ( is2D() )
     {
-        if ( elemOrder >= QUADRATIC )
+        if ( elemOrder >= QUADRATIC  && (elemOrder >= QUADRATIC_TIME_LINEAR || elemOrder < CONSTANT_TIME_LINEAR))
         {
 
             layer2d.begin()->second->setElementOrder ( elemOrder, realDeltaTime ) ;
@@ -1393,7 +1393,7 @@ void FeatureTree::stitch()
     }
     else if ( is3D() )
     {
-        if ( elemOrder >= QUADRATIC )
+        if ( elemOrder >= QUADRATIC  && (elemOrder >= QUADRATIC_TIME_LINEAR || elemOrder < CONSTANT_TIME_LINEAR))
         {
 
             dtree3D->setElementOrder ( elemOrder, realDeltaTime ) ;
