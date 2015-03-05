@@ -448,7 +448,7 @@ Vector ConfigTreeItem::readLineAsVector(std::string line, char s)
 	std::vector<double> v ;
 	std::string next = line ;
 	int sep = next.find(s) ;
-	while(sep != std::string::npos)
+	while(sep != (int)std::string::npos)
 	{
 		std::string current = next.substr(0, sep) ;
 		v.push_back( atof(current.c_str() ) ) ;

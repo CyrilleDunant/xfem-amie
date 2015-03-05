@@ -31,7 +31,7 @@ void step()
     int nsteps = 1;// number of steps between two clicks on the opengl thing
     featureTree->setMaxIterationsPerStep(50) ;
 
-    for(size_t i = 0 ; i < nsteps ; i++)
+    for(int i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
         featureTree->printReport();

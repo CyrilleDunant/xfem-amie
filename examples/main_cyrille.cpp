@@ -52,8 +52,8 @@
 #include <cmath>
 #include <typeinfo>
 #include <limits>
-#include <time.h> 
-#define DEBUG 
+#include <time.h>
+#define DEBUG
 using namespace Amie ;
 using namespace std;
 
@@ -110,10 +110,10 @@ int count = 0 ;
 double aggregateArea = 0;
 
 std::vector<double> energy ;
-SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(nullptr, nullptr, 
-																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() - sample.height()/2), 
-																	  new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() + sample.height()/2), 
-																	  new Point(sample.getCenter().getX() + sample.width()/2, sample.getCenter().getY() + sample.height()/2), nullptr), SPACE_TWO_DIMENSIONAL) ;
+SingleElementMesh<DelaunayTriangle, DelaunayTreeItem> * mesh = new SingleElementMesh<DelaunayTriangle, DelaunayTreeItem>(new DelaunayTriangle(nullptr, nullptr,
+        new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() - sample.height()/2),
+        new Point(sample.getCenter().getX() - sample.width()/2, sample.getCenter().getY() + sample.height()/2),
+        new Point(sample.getCenter().getX() + sample.width()/2, sample.getCenter().getY() + sample.height()/2), nullptr), SPACE_TWO_DIMENSIONAL) ;
 Point *pa = new Point(sample.getCenter().getX() - 2, sample.getCenter().getY()) ;
 Point *pb = new Point(sample.getCenter().getX() + 2, sample.getCenter().getY()) ;
 
@@ -156,14 +156,14 @@ Vector origYdisps1 ;
 // 	for(int k = 0 ; k < supertris[0]->getBoundingPoints().size() ; k++)
 // 		supertris[0]->getBoundingPoint(k).getId() = k ;
 // 	mesh->getLastNodeId()  =  supertris[0]->getBoundingPoints().size()+1;
-// 	
+//
 // 	crack0->enrich(mesh->getLastNodeId(), mesh);
-// 	
+//
 // 	for(size_t i = 0 ; i < triangles.size() ; i++)
 // 	{
 // 		if(triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR)
 // 		{
-// 
+//
 // 			for(size_t j = 0 ; j < triangles[i]->getBoundingPoints().size() ; j++)
 // 			{
 // 				Point test(triangles[i]->getBoundingPoint(j)) ;
@@ -180,8 +180,8 @@ Vector origYdisps1 ;
 // 						points0.insert(&triangles[i]->getBoundingPoint(j)) ;
 // 					}
 // 				}
-// 				
-// 				
+//
+//
 // 			}
 // 		}
 // 	}
@@ -191,66 +191,66 @@ Vector origYdisps1 ;
 
 void setLSBoundaryConditions(LeastSquaresApproximation * ls, int xy, const std::valarray<double> & x)
 {
-	ls->clearParameterValues();
-	for(auto i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
-	{
-		ls->setParameterValue(i->first->getId(), x[i->second->getId()*2+xy]);
-	}
+    ls->clearParameterValues();
+    for(auto i = coincidentPoints.begin() ; i != coincidentPoints.end() ; ++i)
+    {
+        ls->setParameterValue(i->first->getId(), x[i->second->getId()*2+xy]);
+    }
 }
 
 void setupLeastSquares(const std::valarray<double> & x)
 {
-	trans0.clear();
-	idsall.clear();
-	std::vector< size_t > ids0 (featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(featureTree->get2DMesh()->begin()->getCenter(), false).size()) ; //= supertris[0]->getDofIds() ;
-	for(size_t j = 0 ; j < ids0.size() ; j++)
-	{
-		trans0[j] = j ;
-	}
+    trans0.clear();
+    idsall.clear();
+    std::vector< size_t > ids0 (featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(featureTree->get2DMesh()->begin()->getCenter(), false).size()) ; //= supertris[0]->getDofIds() ;
+    for(size_t j = 0 ; j < ids0.size() ; j++)
+    {
+        trans0[j] = j ;
+    }
 
-	Matrix X0(ids0.size(), points0.size()+coincidentPoints.size()) ;
-		
-	origXdisps0.resize(points0.size()+coincidentPoints.size()) ;
-	origYdisps0.resize(points0.size()+coincidentPoints.size()) ;
-	
-	int indexj = 0 ;
-	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
-	{
-		origXdisps0[indexj] = x[(*i)->getId()*2] ;
-		origYdisps0[indexj] = x[(*i)->getId()*2+1] ;
-		std::vector<double> interp = featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(*(*i), false) ;
-		
-		for(size_t j = 0 ; j < interp.size() ; j++)
-		{
-			X0[trans0[j]][indexj] = interp[j] ;
-		}
-		indexj++ ;
-	}
-	
-	delete ls0 ;
-	ls0 = new LeastSquaresApproximation(origXdisps0, X0) ;
+    Matrix X0(ids0.size(), points0.size()+coincidentPoints.size()) ;
+
+    origXdisps0.resize(points0.size()+coincidentPoints.size()) ;
+    origYdisps0.resize(points0.size()+coincidentPoints.size()) ;
+
+    int indexj = 0 ;
+    for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
+    {
+        origXdisps0[indexj] = x[(*i)->getId()*2] ;
+        origYdisps0[indexj] = x[(*i)->getId()*2+1] ;
+        std::vector<double> interp = featureTree->get2DMesh()->begin()->getState().getInterpolatingFactors(*(*i), false) ;
+
+        for(size_t j = 0 ; j < interp.size() ; j++)
+        {
+            X0[trans0[j]][indexj] = interp[j] ;
+        }
+        indexj++ ;
+    }
+
+    delete ls0 ;
+    ls0 = new LeastSquaresApproximation(origXdisps0, X0) ;
 }
 
 
 // double distanceBetweenMeshes()
 // {
-// 
+//
 // 	crack0->enrich(mesh->getLastNodeId(), mesh);
 // 	setupLeastSquares() ;
 // 	setLSBoundaryConditions(ls0, 0);
 // 	ls0->setMeasures(origXdisps0) ;
 // 	ls0->optimize() ;
 // 	Vector x0disp = ls0->getParameters() ;
-// 	
+//
 // 	setLSBoundaryConditions(ls0, 1);
 // 	ls0->setMeasures(origYdisps0) ;
 // 	ls0->optimize() ;
 // 	Vector y0disp = ls0->getParameters() ;
-// 	
+//
 // 	double distancex = 0;
 // 	double distancey = 0;
 // 	int indexj = 0 ;
-// 
+//
 // 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
 // 	{
 // 		double dispx = 0 ;
@@ -260,7 +260,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 			dispx += ls0->getLinearModel()[j][indexj]*x0disp[j] ;
 // 			dispy += ls0->getLinearModel()[j][indexj]*y0disp[j] ;
 // 		}
-// 
+//
 // 		indexj++ ;
 // 		if(!isnan(dispx))
 // 			distancex += std::abs(dispx-x[(*i)->getId()*2]) ;
@@ -271,14 +271,14 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 		else
 // 			distancey += 1e6 ;
 // 	}
-// 
+//
 // 	return (distancex+distancey)/points0.size();
 // }
 
 // void optimize()
 // {
 // 	enrichedEquivalentElements() ;
-// 
+//
 // 	std::vector<double *> vars ;
 // 	vars.push_back( &pa->getY()) ;
 // 	vars.push_back( &pb->getY()) ;
@@ -286,7 +286,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 	vars.push_back( &pd->getX()) ;
 // 	vars.push_back( &pi->getX()) ;
 // 	vars.push_back( &pi->getY()) ;
-// 	
+//
 // 	std::vector<std::pair<double, double> > limits ;
 // 	limits.push_back(std::make_pair(sample.getCenter().getY()-sample.height()/2.1, sample.getCenter().getY()+sample.height()/2.1)) ;
 // 	limits.push_back(std::make_pair(sample.getCenter().getY()-sample.height()/2.1, sample.getCenter().getY()+sample.height()/2.1)) ;
@@ -294,10 +294,10 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.width()/2.1, sample.getCenter().getX()+sample.width()/2.1)) ;
 // 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.width()/2, sample.getCenter().getX()+sample.width()/2)) ;
 // 	limits.push_back(std::make_pair(sample.getCenter().getX()-sample.height()/2, sample.getCenter().getX()+sample.height()/2)) ;
-// 	
+//
 // 	GeneticAlgorithmOptimizer ga( vars, limits, &distanceBetweenMeshes) ;
 // 	ga.optimize(1e-12, 60, 150,  .1, .1) ;
-// 
+//
 // 	pa->getY() = ga.getValues()[0].second ;
 // 	pb->getY() = ga.getValues()[1].second ;
 // 	pc->getX() = ga.getValues()[2].second ;
@@ -305,9 +305,9 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 	pi->getX() = ga.getValues()[4].second ;
 // 	pi->getY() = ga.getValues()[5].second ;
 // 	crack0->enrich(mesh->getLastNodeId(), mesh);
-// 	
+//
 // 	crack0->print();
-// 
+//
 // 	ls0->setMeasures(origXdisps0) ;
 // 	setLSBoundaryConditions(ls0, 0);
 // 	ls0->optimize() ;
@@ -316,7 +316,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 	setLSBoundaryConditions(ls0, 1);
 // 	ls0->optimize() ;
 // 	Vector dispy = ls0->getApproximation() ;
-// 	
+//
 // 	ls0->printParameters() ;
 // 	int indexj = 0 ;
 // 	for(std::set<Point *>::const_iterator i = points0.begin() ; i != points0.end() ; i++)
@@ -324,7 +324,7 @@ void setupLeastSquares(const std::valarray<double> & x)
 // 		std::cout << (*i)->getX() << "  " << (*i)->getY() << "  " << x[(*i)->getId()*2] << "  "<< x[(*i)->getId()*2+1] << "  " << dispx[indexj] << "  " << dispy[indexj] << std::endl;
 // 		indexj++ ;
 // 	}
-// 	
+//
 // }
 bool go = true ;
 int countit = 0 ;
@@ -333,24 +333,24 @@ std::vector<double> sig ;
 std::vector<double> eps ;
 void step()
 {
-	
-	size_t max_growth_steps = 20;
-	size_t max_limit = 2000 ;
-	int limit = 0 ;
-	
-	for(size_t s = 0 ; s < max_growth_steps ; s++)
-	{
-		go = featureTree->step() ;
-		featureTree->setDeltaTime(.1);
-		scales.push_back(imposeddisptop->getScale());
 
-		if(go)
-		{
+    size_t max_growth_steps = 20;
+    size_t max_limit = 2000 ;
+    int limit = 0 ;
+
+    for(size_t s = 0 ; s < max_growth_steps ; s++)
+    {
+        go = featureTree->step() ;
+        featureTree->setDeltaTime(.1);
+        scales.push_back(imposeddisptop->getScale());
+
+        if(go)
+        {
 // 			imposeddispright->setData(1e1);
-			imposeddisptop->setData(1e1);
-		}
+            imposeddisptop->setData(1e1);
+        }
 
-		double da = 0 ;
+        double da = 0 ;
 
         Vector x = featureTree->getDisplacements() ;
 
@@ -384,10 +384,10 @@ void step()
         for(size_t k = 0 ; k < triangles.size() ; k++)
         {
             if(triangles[k]->getBehaviour()->type != VOID_BEHAVIOUR )
-            {       
+            {
                 double ar = triangles[k]->area() ;
                 volume += ar ;
-                for(int l = 0 ; l < npoints ;l++)
+                for(int l = 0 ; l < npoints ; l++)
                 {
                     xavg += x[triangles[k]->getBoundingPoint(l).getId()*2]*ar/npoints ;
                     yavg += x[triangles[k]->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
@@ -395,7 +395,7 @@ void step()
 
             }
         }
-            
+
         xavg /= volume ;
         yavg /= volume ;
         std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax(REAL_STRESS_FIELD) ;
@@ -403,7 +403,7 @@ void step()
         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax(VON_MISES_REAL_STRESS_FIELD) ;
         Vector stemp = featureTree->getAverageField(REAL_STRESS_FIELD) ;
         Vector etemp = featureTree->getAverageField(STRAIN_FIELD) ;
-        
+
         std::cout << std::endl ;
         std::cout << "max value :" << x.max() << std::endl ;
         std::cout << "min value :" << x.min() << std::endl ;
@@ -416,85 +416,85 @@ void step()
         std::cout << "min sigma12 :" << stempm.first[2]   << std::endl ;
         std::cout << "max sigma22 :" << stempm.second[1]  << std::endl ;
         std::cout << "min sigma22 :" << stempm.first[1]   << std::endl ;
-        
+
         std::cout << "max epsilon11 :" << etempm.second[0] << std::endl ;
         std::cout << "min epsilon11 :" << etempm.first[0]  << std::endl ;
         std::cout << "max epsilon12 :" << etempm.second[2] << std::endl ;
         std::cout << "min epsilon12 :" << etempm.first[2]  << std::endl ;
         std::cout << "max epsilon22 :" << etempm.second[1] << std::endl ;
         std::cout << "min epsilon22 :" << etempm.first[1]  << std::endl ;
-        
+
         std::cout << "max von Mises :" << vmm.second[0] << std::endl ;
         std::cout << "min von Mises :" << vmm.first[0] << std::endl ;
-        
+
         std::cout << "average sigma11 : " << stemp[0] << std::endl ;
         std::cout << "average sigma22 : " << stemp[1] << std::endl ;
         std::cout << "average sigma12 : " << stemp[2] << std::endl ;
         std::cout << "average epsilon11 : " << etemp[0] << std::endl ;
         std::cout << "average epsilon22 : " << etemp[1] << std::endl ;
         std::cout << "average epsilon12 : " << etemp[2] << std::endl ;
-        
+
         std::cout << std::endl ;;
-		
-		writer.reset(featureTree) ;
-		writer.getField(TWFT_PRINCIPAL_STRESS ) ;
-		writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
-		writer.getField(TWFT_CRITERION) ;
-		writer.getField(TWFT_STIFFNESS) ;
-		writer.getField(TWFT_DAMAGE) ;
-		writer.append() ;
-	}
+
+        writer.reset(featureTree) ;
+        writer.getField(TWFT_PRINCIPAL_STRESS ) ;
+        writer.getField(TWFT_PRINCIPAL_STRAIN ) ;
+        writer.getField(TWFT_CRITERION) ;
+        writer.getField(TWFT_STIFFNESS) ;
+        writer.getField(TWFT_DAMAGE) ;
+        writer.append() ;
+    }
 // 	for(size_t i = 0 ; i < energy.size() ; i++)
 // 		std::cout << energy[i] << std::endl ;
 }
 
 void HSVtoRGB( double *r, double *g, double *b, double h, double s, double v )
 {
-	int i;
-	double f, p, q, t;
-	if( s == 0 ) {
-                // achromatic (grey)
-		*r = *g = *b = v;
-		return;
-	}
-	h /= 60.;                        // sector 0 to 5
-	i = (int)floor( h );
-	f = h - i;                      // factorial part of h
-	p = v * ( 1. - s );
-	q = v * ( 1. - s * f );
-	t = v * ( 1. - s * ( 1. - f ) );
-	switch( i ) {
-	case 0:
-		*r = v;
-		*g = t;
-		*b = p;
-		break;
-	case 1:
-		*r = q;
-		*g = v;
-		*b = p;
-		break;
-	case 2:
-		*r = p;
-		*g = v;
-		*b = t;
-		break;
-	case 3:
-		*r = p;
-		*g = q;
-		*b = v;
-		break;
-	case 4:
-		*r = t;
-		*g = p;
-		*b = v;
-		break;
-	default:                // case 5:
-		*r = v;
-		*g = p;
-		*b = q;
-		break;
-	}
+    int i;
+    double f, p, q, t;
+    if( s == 0 ) {
+        // achromatic (grey)
+        *r = *g = *b = v;
+        return;
+    }
+    h /= 60.;                        // sector 0 to 5
+    i = (int)floor( h );
+    f = h - i;                      // factorial part of h
+    p = v * ( 1. - s );
+    q = v * ( 1. - s * f );
+    t = v * ( 1. - s * ( 1. - f ) );
+    switch( i ) {
+    case 0:
+        *r = v;
+        *g = t;
+        *b = p;
+        break;
+    case 1:
+        *r = q;
+        *g = v;
+        *b = p;
+        break;
+    case 2:
+        *r = p;
+        *g = v;
+        *b = t;
+        break;
+    case 3:
+        *r = p;
+        *g = q;
+        *b = v;
+        break;
+    case 4:
+        *r = t;
+        *g = p;
+        *b = v;
+        break;
+    default:                // case 5:
+        *r = v;
+        *g = p;
+        *b = q;
+        break;
+    }
 }
 
 
@@ -509,163 +509,195 @@ double lly = 0 ;
 
 struct Block
 {
-	Block()
-	{
-		series = rand()%2 ;
-		stiff = 1. ;
-	}
-	
-	Block(int nblocks)
-	{
-		int selfblocks = 1 ;
-		if(nblocks>1)
-			selfblocks = rand()%(nblocks)+1 ;
-		if(selfblocks > 1)
-		{
-			std::vector<int> subblocks(selfblocks) ;
-			for(int i = 0 ; i < selfblocks ; i++)
-			{
-				subblocks[i]++ ;
-				nblocks-- ;
-			}
-			
-			while(nblocks)
-			{
-				subblocks[rand()%selfblocks]++ ;
-				nblocks-- ;
-			}
-			for(int i = 0 ; i < selfblocks ; i++)
-			{
-				blocks.push_back(new Block(subblocks[i])) ;
-			}
-		}
-		else if(nblocks > 1)
-		{
-			blocks.push_back(new Block(nblocks)) ;
-		}
-		
-		series = rand()%2 ;
-		stiff = 1. ;
-	}
-	
-	~Block()
-	{
-		for(int i = 0 ; i < blocks.size() ; i++)
-			delete blocks[i] ;
-	}
-	std::vector<Block *> blocks ;
-	double stiff ;
-	bool series ;
-	double equivStifness() const
-	{
-		if(blocks.size() == 0)
-			return stiff ;
-		if(series)
-		{
-			double k = 0 ;
-			for(size_t i = 0 ; i < blocks.size() ; i++)
-			{
-				k += 1./blocks[i]->equivStifness() ;
-			}
-			
-			return 1./k ;
-		}
-		else
-		{
-			double k = 0 ;
-			for(size_t i = 0 ; i < blocks.size() ; i++)
-			{
-				k += blocks[i]->equivStifness() ;
-			}
-			
-			return k ;
-		}
-	}
+    Block()
+    {
+        series = rand()%2 ;
+        stiff = 1. ;
+    }
+
+    Block(int nblocks)
+    {
+        int selfblocks = 1 ;
+        if(nblocks>1)
+            selfblocks = rand()%(nblocks)+1 ;
+        if(selfblocks > 1)
+        {
+            std::vector<int> subblocks(selfblocks) ;
+            for(int i = 0 ; i < selfblocks ; i++)
+            {
+                subblocks[i]++ ;
+                nblocks-- ;
+            }
+
+            while(nblocks)
+            {
+                subblocks[rand()%selfblocks]++ ;
+                nblocks-- ;
+            }
+            for(int i = 0 ; i < selfblocks ; i++)
+            {
+                blocks.push_back(new Block(subblocks[i])) ;
+            }
+        }
+        else if(nblocks > 1)
+        {
+            blocks.push_back(new Block(nblocks)) ;
+        }
+
+        series = rand()%2 ;
+        stiff = 1. ;
+    }
+
+    ~Block()
+    {
+        for(size_t i = 0 ; i < blocks.size() ; i++)
+            delete blocks[i] ;
+    }
+    std::vector<Block *> blocks ;
+    double stiff ;
+    bool series ;
+    double equivStifness() const
+    {
+        if(blocks.size() == 0)
+            return stiff ;
+        if(series)
+        {
+            double k = 0 ;
+            for(size_t i = 0 ; i < blocks.size() ; i++)
+            {
+                k += 1./blocks[i]->equivStifness() ;
+            }
+
+            return 1./k ;
+        }
+        else
+        {
+            double k = 0 ;
+            for(size_t i = 0 ; i < blocks.size() ; i++)
+            {
+                k += blocks[i]->equivStifness() ;
+            }
+
+            return k ;
+        }
+    }
 } ;
 
 int main(int argc, char *argv[])
 {
 
-  // Material behaviour of the matrix
-	Matrix m0_paste=Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
+    // Material behaviour of the matrix
+    Matrix m0_paste=Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 
-	// Material behaviour of the fibres
-	Matrix m0_agg(3,3) ;
-	m0_agg[0][0] = E_agg/(1-nu*nu) ; m0_agg[0][1] =E_agg/(1-nu*nu)*nu ; m0_agg[0][2] = 0 ;
-	m0_agg[1][0] = E_agg/(1-nu*nu)*nu ; m0_agg[1][1] = E_agg/(1-nu*nu) ; m0_agg[1][2] = 0 ; 
-	m0_agg[2][0] = 0 ; m0_agg[2][1] = 0 ; m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ; 
+    // Material behaviour of the fibres
+    Matrix m0_agg(3,3) ;
+    m0_agg[0][0] = E_agg/(1-nu*nu) ;
+    m0_agg[0][1] =E_agg/(1-nu*nu)*nu ;
+    m0_agg[0][2] = 0 ;
+    m0_agg[1][0] = E_agg/(1-nu*nu)*nu ;
+    m0_agg[1][1] = E_agg/(1-nu*nu) ;
+    m0_agg[1][2] = 0 ;
+    m0_agg[2][0] = 0 ;
+    m0_agg[2][1] = 0 ;
+    m0_agg[2][2] = E_agg/(1-nu*nu)*(1.-nu)/2. ;
 
-	// Material behaviour for the "very" stiff inclusion
-	Matrix m0_stiff(3,3) ;
-	m0_stiff[0][0] = E_stiff/(1.-nu*nu) ; m0_stiff[0][1] =E_stiff/(1.-nu*nu)*nu ; m0_stiff[0][2] = 0 ;
-	m0_stiff[1][0] = E_stiff/(1.-nu*nu)*nu ; m0_stiff[1][1] = E_stiff/(1.-nu*nu) ; m0_stiff[1][2] = 0 ; 
-	m0_stiff[2][0] = 0 ; m0_stiff[2][1] = 0 ; m0_stiff[2][2] = E_stiff/(1.-nu*nu)*(1.-nu)/2. ; 
-	
-	Matrix m0_steely(3,3) ;
-	m0_steely[0][0] =E_paste/(1.-2.*nu*nu) ; m0_steely[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steely[0][2] = 0 ; 
-	m0_steely[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steely[1][1] =  E_stiff/(1.-2.*nu*nu) ; m0_steely[1][2] = 0 ; 
-	m0_steely[2][0] = 0 ; m0_steely[2][1] = 0 ; m0_steely[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ; 
+    // Material behaviour for the "very" stiff inclusion
+    Matrix m0_stiff(3,3) ;
+    m0_stiff[0][0] = E_stiff/(1.-nu*nu) ;
+    m0_stiff[0][1] =E_stiff/(1.-nu*nu)*nu ;
+    m0_stiff[0][2] = 0 ;
+    m0_stiff[1][0] = E_stiff/(1.-nu*nu)*nu ;
+    m0_stiff[1][1] = E_stiff/(1.-nu*nu) ;
+    m0_stiff[1][2] = 0 ;
+    m0_stiff[2][0] = 0 ;
+    m0_stiff[2][1] = 0 ;
+    m0_stiff[2][2] = E_stiff/(1.-nu*nu)*(1.-nu)/2. ;
 
-	Matrix m0_steelx(3,3) ;
-	m0_steelx[0][0] = E_stiff/(1.-2.*nu*nu) ; m0_steelx[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steelx[0][2] = 0 ; 
-	m0_steelx[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ; m0_steelx[1][1] = E_paste/(1.-2.*nu*nu) ; m0_steelx[1][2] = 0 ; 
-	m0_steelx[2][0] = 0 ; m0_steelx[2][1] = 0 ; m0_steelx[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ; 
-	
-	double nu_concreteSteel = nu ;
-	double nu_steelConcrete = nu* E_paste/E_stiff ;
-	
-	Matrix complianceSteelx(3,3) ;
-	complianceSteelx[0][0] = 1./E_stiff ;                complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
-	complianceSteelx[1][0] = -nu_concreteSteel/E_stiff ; complianceSteelx[1][1] =  1./E_paste ;
-	                                                                                                         complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
-	
-	m0_steelx = inverse3x3Matrix(complianceSteelx) ;
-	
-	// Material behaviour for the "very" soft inclusion
-	Matrix m0_soft(3,3) ;
-	m0_soft[0][0] = E_soft/(1.-nu*nu) ; m0_soft[0][1] =E_soft/(1.-nu*nu)*nu ; m0_soft[0][2] = 0 ;
-	m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ; m0_soft[1][1] = E_soft/(1.-nu*nu) ; m0_soft[1][2] = 0 ; 
-	m0_soft[2][0] = 0 ; m0_soft[2][1] = 0 ; m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ; 
+    Matrix m0_steely(3,3) ;
+    m0_steely[0][0] =E_paste/(1.-2.*nu*nu) ;
+    m0_steely[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ;
+    m0_steely[0][2] = 0 ;
+    m0_steely[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ;
+    m0_steely[1][1] =  E_stiff/(1.-2.*nu*nu) ;
+    m0_steely[1][2] = 0 ;
+    m0_steely[2][0] = 0 ;
+    m0_steely[2][1] = 0 ;
+    m0_steely[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ;
 
-	Matrix d(3,3) ;
-	d[0][0] = .1*E_paste ;
-	d[1][1] = .1*E_paste ;
-	d[2][2] = .1*E_paste ;
-	FeatureTree F(&sample) ;
-	featureTree = &F ;
+    Matrix m0_steelx(3,3) ;
+    m0_steelx[0][0] = E_stiff/(1.-2.*nu*nu) ;
+    m0_steelx[0][1] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ;
+    m0_steelx[0][2] = 0 ;
+    m0_steelx[1][0] = nu*sqrt(E_stiff*E_paste)/(1.-2.*nu*nu) ;
+    m0_steelx[1][1] = E_paste/(1.-2.*nu*nu) ;
+    m0_steelx[1][2] = 0 ;
+    m0_steelx[2][0] = 0 ;
+    m0_steelx[2][1] = 0 ;
+    m0_steelx[2][2] = 0.25*(E_paste+E_stiff-2.*nu*sqrt(E_stiff*E_paste))/(1.-2.*nu*nu) ;
 
-	double cradius = 1*4 ;
-	double mradius = 0.5 ;
-	IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
-	
-	PseudoPlastic * psp = new PseudoPlastic(m0_paste, E_paste, 20, mradius) ;
-	StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), /*new NonLocal*//*IsotropicLinearDamage()*/new PlasticStrain()) ; 
-	saf->criterion->setMaterialCharacteristicRadius(mradius);
-	Stiffness * sf = new Stiffness(m0_steelx) ;
+    double nu_concreteSteel = nu ;
+    double nu_steelConcrete = nu* E_paste/E_stiff ;
 
-// 	sample.setBehaviour(sf) ;	
-	sample.setBehaviour(saf) ;
+    Matrix complianceSteelx(3,3) ;
+    complianceSteelx[0][0] = 1./E_stiff ;
+    complianceSteelx[0][1] = -nu_steelConcrete/E_paste ;
+    complianceSteelx[1][0] = -nu_concreteSteel/E_stiff ;
+    complianceSteelx[1][1] =  1./E_paste ;
+    complianceSteelx[2][2] =  E_paste/(1.-nu*nu)*(1.-nu)*.5 ;
+
+    m0_steelx = inverse3x3Matrix(complianceSteelx) ;
+
+    // Material behaviour for the "very" soft inclusion
+    Matrix m0_soft(3,3) ;
+    m0_soft[0][0] = E_soft/(1.-nu*nu) ;
+    m0_soft[0][1] =E_soft/(1.-nu*nu)*nu ;
+    m0_soft[0][2] = 0 ;
+    m0_soft[1][0] = E_soft/(1.-nu*nu)*nu ;
+    m0_soft[1][1] = E_soft/(1.-nu*nu) ;
+    m0_soft[1][2] = 0 ;
+    m0_soft[2][0] = 0 ;
+    m0_soft[2][1] = 0 ;
+    m0_soft[2][2] = E_soft/(1.-nu*nu)*(1.-nu)/2. ;
+
+    Matrix d(3,3) ;
+    d[0][0] = .1*E_paste ;
+    d[1][1] = .1*E_paste ;
+    d[2][2] = .1*E_paste ;
+    FeatureTree F(&sample) ;
+    featureTree = &F ;
+
+    double cradius = 1*4 ;
+    double mradius = 0.5 ;
+    IsotropicLinearDamage * dfunc = new IsotropicLinearDamage() ;
+
+    PseudoPlastic * psp = new PseudoPlastic(m0_paste, E_paste, 20, mradius) ;
+    StiffnessAndFracture * saf = new StiffnessAndFracture(m0_paste, new NonLocalVonMises(20,E_paste, mradius), /*new NonLocal*//*IsotropicLinearDamage()*/new PlasticStrain()) ;
+    saf->criterion->setMaterialCharacteristicRadius(mradius);
+    Stiffness * sf = new Stiffness(m0_steelx) ;
+
+// 	sample.setBehaviour(sf) ;
+    sample.setBehaviour(saf) ;
 // 	sample.setBehaviour(psp) ;
 // 	sample.setBehaviour(new OrthothropicStiffness(E_paste, E_paste*.5, E_paste*.75, 0., 0)) ;
 // 	F.addFeature(&sample, new Pore(2, -7,2) );
 // 	F.addFeature(&sample, new Pore(2, 7,-2) );
 
 
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
-	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA , BOTTOM)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , BOTTOM_LEFT)) ;
 // 	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI , RIGHT)) ;
-	F.addBoundaryCondition(imposeddispright) ;
-	F.addBoundaryCondition(imposeddisptop) ;
+    F.addBoundaryCondition(imposeddispright) ;
+    F.addBoundaryCondition(imposeddisptop) ;
 
-	samplingnumber = atof(argv[1]);
-	F.setSamplingNumber(samplingnumber) ;
-	F.setOrder(LINEAR) ;
-	F.setMaxIterationsPerStep(800) ;
-	F.setDeltaTime(0.1);
+    samplingnumber = atof(argv[1]);
+    F.setSamplingNumber(samplingnumber) ;
+    F.setOrder(LINEAR) ;
+    F.setMaxIterationsPerStep(800) ;
+    F.setDeltaTime(0.1);
 
-	
+
 // 	delete dt ;
 // 	delete saf ;
-	
-	return 0 ;
+
+    return 0 ;
 }

@@ -128,7 +128,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         bool shiftRoot = false ;
         bool modeRoot = false ;
         error = 10 ;
-        for( int i = 1 ; i < states.size() ; i++ )
+        for( size_t i = 1 ; i < states.size() ; i++ )
         {
             currentDelta = states[i].delta ;
             currentScore = states[i].score ;
@@ -150,15 +150,15 @@ void DamageModel::step( ElementState &s , double maxscore)
             {
                 deltaRoot = (currentDelta > 0     && prevDelta ) < 0  ||
                             (currentDelta < 0     && prevDelta ) > 0  ||
-                            std::abs(currentDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 && 
-                            std::abs(prevDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 ;
+                            (std::abs(currentDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 && 
+                            std::abs(prevDelta) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5) ;
                 if(deltaRoot)
                     error = std::min(error, std::abs(currentDelta-prevDelta)) ;
 
                 scoreRoot = (currentScore > 0     && prevScore  < 0 ) ||
                             (currentScore < 0     && prevScore  > 0 ) ||
-                            std::abs(currentScore) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5  && 
-                            std::abs(prevScore)  < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5 ;
+                            (std::abs(currentScore) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5  && 
+                            std::abs(prevScore)  < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*.5) ;
                 if(scoreRoot)
                     error = std::min(error, std::abs(currentScore-prevScore)) ;
 

@@ -1,7 +1,7 @@
 //
 // C++ Implementation: conjugategradient
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -29,43 +29,43 @@ ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-	double realeps = std::max(1e-9, eps) ;
-	size_t Maxit ;
-	if(maxit != -1)
-		Maxit = maxit ;
-	else
-		Maxit = std::max(round(x.size()), 1000.) ;
-	if(x0.size() == assembly->getForces().size())
-	{
-		x.resize(x0.size());
-		x = x0 ;
-	}
-	else
-	{
+    double realeps = std::max(1e-9, eps) ;
+    size_t Maxit ;
+    if(maxit != -1)
+        Maxit = maxit ;
+    else
+        Maxit = std::max(round(x.size()), 1000.) ;
+    if(x0.size() == assembly->getForces().size())
+    {
+        x.resize(x0.size());
+        x = x0 ;
+    }
+    else
+    {
 // 		if(x0.size())
 // 		{
 // 			std::cout << "ouch" << std::endl ;
 // 			exit(0) ;
 // 		}
-		x = 0 ;
-		for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
-			x[i] = x0[i] ;
-	}
+        x = 0 ;
+        for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
+            x[i] = x0[i] ;
+    }
 // 	x = 0 ;
-    
-	
-	if(rowstart)
-	{
-		for(size_t i = 0 ; i < rowstart ; i++)
-			x[i] = assembly->getForces()[i] ;
-	}
-	InverseDiagonal P0(assembly->getMatrix()) ;
 
-	if(precond == nullptr && !cleanup)
-	{
-		cleanup = true ;
+
+    if(rowstart)
+    {
+        for(size_t i = 0 ; i < rowstart ; i++)
+            x[i] = assembly->getForces()[i] ;
+    }
+    InverseDiagonal P0(assembly->getMatrix()) ;
+
+    if(precond == nullptr && !cleanup)
+    {
+        cleanup = true ;
 // 		P = new InCompleteCholesky(A) ;
-		P = new InverseDiagonal(assembly->getMatrix()) ;
+        P = new InverseDiagonal(assembly->getMatrix()) ;
 //		P = new InverseDiagonalSquared(assembly->getMatrix()) ;
 //		P = new Inverse2x2Diagonal(assembly->getMatrix()) ;
         //   0.1      0.2   0.3   0.4   0.5     0.6   0.7   0.8     0.9  1.0  1.1   1.2   1.3   1.4   1.5   1.6  1.9
@@ -75,135 +75,135 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
 // 		P = new TriDiagonal(A) ;
 // 		P = new NullPreconditionner() ;
 // 		P = new GaussSeidellStep(A) ;
-	}
-	else if (precond != nullptr)
-	{
-		delete P ;
-		cleanup = false ;
-		P = precond ;
-	}
+    }
+    else if (precond != nullptr)
+    {
+        delete P ;
+        cleanup = false ;
+        P = precond ;
+    }
 
-	assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
-	int vsize = r.size() ;
-	double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-	r*=-1 ;
+    assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+    int vsize = r.size() ;
+    double err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+    r*=-1 ;
 
-	if (err0 < realeps)
-	{
-		if(verbose)
-			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-		return true ;
-	}
-	//*************************************
-	
-	
-	z = r ;
-	P->precondition(r,z) ;
+    if (err0 < realeps)
+    {
+        if(verbose)
+            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+        return true ;
+    }
+    //*************************************
 
-	p = z ;
-	q = assembly->getMatrix()*p ;
-	
-	double last_rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
-	double pq = parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
-	double alpha = last_rho/pq ;
-	
-	#pragma omp parallel for schedule(static) if (vsize > 10000)
-	for(int i = rowstart ; i < vsize ; i++)
-	{
-		r[i] -= q[i]*alpha ;
-		x[i] += p[i]*alpha ;
-	}
-	nit++ ;
-	//****************************************
-	
-	assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
-	#pragma omp parallel for schedule(static) if (vsize > 10000)
-	for(int i = rowstart ; i < vsize ; i++)
-			r[i] *= -1 ;
 
-	err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-	if (err0 < realeps)
-	{
-		if(verbose)
-			std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+    z = r ;
+    P->precondition(r,z) ;
 
-		return true ;
-	}
+    p = z ;
+    q = assembly->getMatrix()*p ;
+
+    double last_rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
+    double pq = parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
+    double alpha = last_rho/pq ;
+
+    #pragma omp parallel for schedule(static) if (vsize > 10000)
+    for(int i = rowstart ; i < vsize ; i++)
+    {
+        r[i] -= q[i]*alpha ;
+        x[i] += p[i]*alpha ;
+    }
+    nit++ ;
+    //****************************************
+
+    assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, colstart) ;
+    #pragma omp parallel for schedule(static) if (vsize > 10000)
+    for(int i = rowstart ; i < vsize ; i++)
+        r[i] *= -1 ;
+
+    err0 = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+    if (err0 < realeps)
+    {
+        if(verbose)
+            std::cerr << "\n CG "<< p.size() << " converged after " << nit << " iterations. Error : " << err0 << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+
+        return true ;
+    }
 #ifdef HAVE_OMP
-	double t0 = omp_get_wtime() ;
+    double t0 = omp_get_wtime() ;
 #else
-	double t0 = 0 ;
+
 #endif
 // 	double neps = /*std::min(*/realeps*realeps/*, err0*realeps)*/ ; //std::max(err0*realeps, realeps*realeps) ;
-	double rho = 0 ;
-	double beta = 0 ;
-	while((last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
-	{
+    double rho = 0 ;
+    double beta = 0 ;
+    while((last_rho*last_rho*vsize*vsize > std::max(realeps*realeps*err0, realeps*realeps) && nit < Maxit ) || nit < 16)
+    {
 //             if(nit < 256)
-		P->precondition(r, z) ;
+        P->precondition(r, z) ;
 //             else
 //                 P0.precondition(r, z) ;
 
-		rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
+        rho = parallel_inner_product_restricted(&r[rowstart], &z[rowstart], vsize-rowstart) ;
 
-		beta = rho/last_rho ;
-
-		
-		#pragma omp parallel for schedule(static) if (vsize > 10000)
-		for(int i = rowstart ; i < vsize ; i++)
-			p[i] = p[i]*beta+z[i] ;
-
-		assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
-		pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
-		alpha = rho/pq;
-	
-		if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
-		{
-			last_rho = 0 ;
-			break ;
-		}
-		#pragma omp parallel for schedule(static) if (vsize > 10000)
-		for(int i = rowstart ; i < vsize ; i++)
-		{
-			r[i] -= q[i]*alpha ;
-			x[i] += p[i]*alpha ;
-		}
-		
-		if(nit%256 == 0)
-		{
-			assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-			#pragma omp parallel for schedule(static) if (vsize > 10000)
-			for(int i = rowstart ; i < vsize ; i++)
-				r[i] *= -1 ;
-		}
-		if( verbose && nit%256 == 0 )
-		{
-			std::cerr << sqrt(rho) << std::endl  ;
-		}
+        beta = rho/last_rho ;
 
 
-		last_rho = rho ;
-		nit++ ;
-	}
+        #pragma omp parallel for schedule(static) if (vsize > 10000)
+        for(int i = rowstart ; i < vsize ; i++)
+            p[i] = p[i]*beta+z[i] ;
+
+        assign(q, assembly->getMatrix()*p, rowstart, colstart) ;
+        pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
+        alpha = rho/pq;
+
+        if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+        {
+            last_rho = 0 ;
+            break ;
+        }
+        #pragma omp parallel for schedule(static) if (vsize > 10000)
+        for(int i = rowstart ; i < vsize ; i++)
+        {
+            r[i] -= q[i]*alpha ;
+            x[i] += p[i]*alpha ;
+        }
+
+        if(nit%256 == 0)
+        {
+            assign(r, assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
+            #pragma omp parallel for schedule(static) if (vsize > 10000)
+            for(int i = rowstart ; i < vsize ; i++)
+                r[i] *= -1 ;
+        }
+        if( verbose && nit%256 == 0 )
+        {
+            std::cerr << sqrt(rho) << std::endl  ;
+        }
+
+
+        last_rho = rho ;
+        nit++ ;
+    }
 #ifdef HAVE_OMP
-	double delta = std::max((omp_get_wtime() - t0)*1e6, 1e-14) ;
+    double delta = std::max((omp_get_wtime() - t0)*1e6, 1e-14) ;
 #else
-	double delta = 1 ;
+    double delta = 1 ;
 #endif
-	
-	std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-	assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
-	double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
-	
-	if(verbose)
-	{
-		if(nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps))
-			std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-		else
-			std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
-	}
+    std::cerr << "mflops: "<< nit*((2.+2./256.)*assembly->getMatrix().array.size()+(4+1./256.)*p.size())/delta << std::endl ;
 
-	return nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps);
+    assign(r,assembly->getMatrix()*x-assembly->getForces(), rowstart, rowstart) ;
+    double err = sqrt( parallel_inner_product(&r[rowstart], &r[rowstart], vsize-rowstart)) ;
+
+    if(verbose)
+    {
+        if(nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps))
+            std::cerr << "\n CG " << p.size() << " converged after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+        else
+            std::cerr << "\n CG " << p.size() << " did not converge after " << nit << " iterations. Error : " << err << ", max : "  << x.max() << ", min : "  << x.min() <<std::endl ;
+    }
+
+    return nit <= Maxit && last_rho*last_rho< std::max(realeps*realeps*err0, realeps*realeps);
 }
 

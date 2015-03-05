@@ -2,7 +2,7 @@
 //
 // C++ Implementation: vonmises
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2007-2011
@@ -14,7 +14,7 @@
 namespace Amie {
 
 BoundedVonMises::BoundedVonMises(double thres, double damageThreshold, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : FractureCriterion(mirroring, delta_x, delta_y, delta_z)
-	, threshold(thres), dmodel(nullptr), damageThreshold(damageThreshold)
+    , threshold(thres), damageThreshold(damageThreshold), dmodel(nullptr)
 {
 
 }
@@ -26,33 +26,33 @@ BoundedVonMises::~BoundedVonMises()
 
 double BoundedVonMises::grade(ElementState &s)
 {
-	dmodel = s.getParent()->getBehaviour()->getDamageModel() ;
-	if(dmodel && dmodel->getState().max() > damageThreshold)
-		return -1. ;
-	
-	Vector v(0.,1) ;
-	s.getAverageField( VON_MISES_REAL_STRESS_FIELD, v) ;
-	double maxStress = v[0] ;
-	
-	if(maxStress > threshold )
-	{
-		return 1. - std::abs(threshold/maxStress) ;
-	}
-	else 
-	{
-		return -1.+ std::abs(maxStress/threshold);
-	}
+    dmodel = s.getParent()->getBehaviour()->getDamageModel() ;
+    if(dmodel && dmodel->getState().max() > damageThreshold)
+        return -1. ;
+
+    Vector v(0.,1) ;
+    s.getAverageField( VON_MISES_REAL_STRESS_FIELD, v) ;
+    double maxStress = v[0] ;
+
+    if(maxStress > threshold )
+    {
+        return 1. - std::abs(threshold/maxStress) ;
+    }
+    else
+    {
+        return -1.+ std::abs(maxStress/threshold);
+    }
 }
 
 FractureCriterion * BoundedVonMises::getCopy() const
 {
-	return new BoundedVonMises(threshold, damageThreshold) ;
+    return new BoundedVonMises(threshold, damageThreshold) ;
 }
 
 Material BoundedVonMises::toMaterial()
 {
-	Material mat ;
-	return mat ;
+    Material mat ;
+    return mat ;
 }
 
 

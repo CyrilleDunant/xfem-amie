@@ -290,7 +290,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	std::vector<ExpansiveZone *> zonesToPlace ;
 
 	srand(1);
-	for( size_t i = 0 ; i < n ; i++ )
+	for( int i = 0 ; i < n ; i++ )
 	{
 		Point pos( ( ( double )rand() / RAND_MAX - .5 ) * ( sample.width() - radius * radiusFraction ), ( ( double )rand() / RAND_MAX - .5 ) * ( sample.height() - radius * radiusFraction ) ) ;
 		bool alone  = true ;
@@ -316,7 +316,7 @@ std::vector<std::pair<ExpansiveZone *, Inclusion *> > generateExpansiveZonesHomo
 	{
 		bool placed = false ;
 
-		for( int j = 0 ; j < incs.size() ; j++ )
+		for( size_t j = 0 ; j < incs.size() ; j++ )
 		{
 			if( dist( zonesToPlace[i]->getCenter(), incs[j]->getCenter() ) < incs[j]->getRadius() - radius * radiusFraction /*&& incs[j]->getRadius() <= 0.008 && incs[j]->getRadius() > 0.004*/ && baseGeometry.in( zonesToPlace[i]->getCenter() ) )
 			{

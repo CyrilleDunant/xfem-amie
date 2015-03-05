@@ -80,7 +80,7 @@ int ParallelDelaunayTree::getDomain(const DelaunayTriangle * tet) const
                     break ;
                 }
             }
-            if( unique && mesh == domain_index )
+            if( unique && mesh == (int)domain_index )
                 return domain_index ;
         }
     }

@@ -65,10 +65,10 @@ double damageAtAngle ( const std::vector<std::pair<double, double> > & increment
 int RotatingCrack::getMode() const
 {
     if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
-            ( !firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 )
-              || firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 )
-              || !secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 )
-              || secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 1 )
+            ( (!firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ))
+              || (firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 ))
+              || (!secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ))
+              || (secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 1 ))
               || firstMet != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 )
               || secondMet != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
        )
