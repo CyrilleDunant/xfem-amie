@@ -1339,7 +1339,7 @@ void FeatureTree::stitch()
 
     if ( is2D() )
     {
-        if ( elemOrder >= QUADRATIC  && (elemOrder >= QUADRATIC_TIME_LINEAR || elemOrder < CONSTANT_TIME_LINEAR))
+        if ( elemOrder >= QUADRATIC )
         {
 
             layer2d.begin()->second->setElementOrder ( elemOrder, realDeltaTime ) ;
@@ -1362,6 +1362,9 @@ void FeatureTree::stitch()
                 case QUADRIC:
                 case QUINTIC:
                     projectTrianglesOnBoundaries ( 3, 0 ) ;
+                    break ;
+                case CONSTANT_TIME_LINEAR:
+                case LINEAR_TIME_LINEAR:
                     break ;
                 case QUADRATIC_TIME_LINEAR:
                     projectTrianglesOnBoundaries ( 1, 1 ) ;
@@ -1393,7 +1396,7 @@ void FeatureTree::stitch()
     }
     else if ( is3D() )
     {
-        if ( elemOrder >= QUADRATIC  && (elemOrder >= QUADRATIC_TIME_LINEAR || elemOrder < CONSTANT_TIME_LINEAR))
+        if ( elemOrder >= QUADRATIC )
         {
 
             dtree3D->setElementOrder ( elemOrder, realDeltaTime ) ;
@@ -1412,6 +1415,9 @@ void FeatureTree::stitch()
                 case QUADRIC:
                 case QUINTIC:
                     projectTetrahedronsOnBoundaries ( 3, 0 ) ;
+                    break ;
+                case CONSTANT_TIME_LINEAR:
+                case LINEAR_TIME_LINEAR:
                     break ;
                 case QUADRATIC_TIME_LINEAR:
                     projectTetrahedronsOnBoundaries ( 1, 1 ) ;
