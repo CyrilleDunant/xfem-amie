@@ -562,7 +562,7 @@ void VoxelGLDrawer::initializeGL() {
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 	
 	glEnable(GL_NORMALIZE) ;
-	glClearColor(0.0f,0.0f,0.0f,1.0f);                                      // Black Background
+	glClearColor(1.0f,1.0f,1.0f,1.0f);                                      // Black Background
 	glClearDepth(1.0f);                                                     // Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);     
 // 	glEnable(GL_ALPHA_TEST); 
@@ -672,14 +672,22 @@ void VoxelGLDrawer::initializePalette(){
         
     int min_val = (*valuesAtPoint)[m_currentField].min() ;
     int max_val = (*valuesAtPoint)[m_currentField].min() ;
-    for(int i = 0 ; i < 256 ; i++)
-    {
-            int r; 
-            int g; 
-            int b; 
-            HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
-            palette.push_back(RGBA2i(r,g,b,255)) ;
-    }
+//     for(int i = 0 ; i < 256 ; i++)
+//     {
+//             int r; 
+//             int g; 
+//             int b; 
+//             HSVtoRGB( &r, &g, &b, 180.*(double)i/256., 1, 1 )  ;
+//             palette.push_back(RGBA2i(r,g,b,255)) ;
+//     }
+     for(int i = 0 ; i < 64 ; i++)
+         palette.push_back(RGBA2i(0,255-i*4,255,255)) ;
+     for(int i = 64 ; i < 128 ; i++)
+         palette.push_back(RGBA2i(0,0,255-i*4,255)) ;
+     for(int i = 128 ; i < 192 ; i++)
+         palette.push_back(RGBA2i(i*4,0,0,255)) ;
+     for(int i = 192 ; i < 256 ; i++)
+         palette.push_back(RGBA2i(255,i*4,0,255)) ;
 
 }
 
@@ -1611,7 +1619,9 @@ void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<qui
 	for(int i = 0 ; i< c->size() ; i++)
 	{
         if(std::abs((*d)[0][i]) > 1e-12)
+        {
             (*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; //(*d)[0][i] ; (*d)[0][i] ; (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
+        }
         else
            (*c)[i] = 0 ; 
 // 		if(abs((double)(*c)[i]- 0  ) <=1 || 
