@@ -682,11 +682,11 @@ void VoxelGLDrawer::initializePalette(){
 //     }
      for(int i = 0 ; i < 64 ; i++)
          palette.push_back(RGBA2i(0,255-i*4,255,255)) ;
-     for(int i = 64 ; i < 128 ; i++)
+     for(int i = 0 ; i < 64 ; i++)
          palette.push_back(RGBA2i(0,0,255-i*4,255)) ;
-     for(int i = 128 ; i < 192 ; i++)
+     for(int i = 0 ; i < 64 ; i++)
          palette.push_back(RGBA2i(i*4,0,0,255)) ;
-     for(int i = 192 ; i < 256 ; i++)
+     for(int i = 0 ; i < 64 ; i++)
          palette.push_back(RGBA2i(255,i*4,0,255)) ;
 
 }
