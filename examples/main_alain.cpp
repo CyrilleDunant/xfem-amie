@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	F.addFeature(&box, notch) ;
 
 
-	while(F.getCurrentTime() < 110)
+	while(F.getCurrentTime() < 120)
 	{
 		disp->setData( 0.01*0.001*F.getCurrentTime()/1000) ;
 		time_step += 1. ;
