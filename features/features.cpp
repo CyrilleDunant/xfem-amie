@@ -188,7 +188,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 
 }
 
-FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
+FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form *> behaviourMap , const std::vector<double> & times ) :  state ( this ), nodes ( 0 ), grid ( nullptr ),grid3d ( nullptr )
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
@@ -200,7 +200,10 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     damageConverged = true ;
     stateConverged = false ;
     dtree = nullptr ;
-    dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
+    if(times.empty())
+        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
+    else
+        dtree3D = new MicDerivedMesh(voxelSource, behaviourMap,times) ;
     structuredMesh = true ;
 
     samplingRestriction = SAMPLE_NO_RESTRICTION ;
@@ -299,7 +302,7 @@ void FeatureTree::setPartition ( size_t partitionNumber )
                 {
                     double avg = ( i+1+j+1+k+1 ) /3. ;
                     double sigma = ( i+1-avg ) * ( i+1-avg ) + ( j+1-avg ) * ( j+1-avg ) + ( k+1-avg ) * ( k+1-avg ) ;
-                    if (  (int)( i+1 ) * ( j+1 ) * ( k+1 ) == partitionNumber )
+                    if (  ( i+1 ) * ( j+1 ) * ( k+1 ) == (int)partitionNumber )
                         triplet[sigma] = {i+1,j+1,k+1} ;
                 }
             }
@@ -2396,7 +2399,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( int i = targets.size() - 1 ; i >= 0  ; i-- )
         {
 
-            if ( !targets[i]->isEnrichmentFeature && targets[i]->in ( t->getCenter() ) && ( !onlyUpdate || onlyUpdate && targets[i]->isUpdated ) )
+            if ( !targets[i]->isEnrichmentFeature && targets[i]->in ( t->getCenter() ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
             {
                 bool notInChildren  = true ;
 
@@ -2608,7 +2611,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTetrahedron, DelaunayTree
         for ( int i = targets.size() - 1 ; i >= 0  ; i-- )
         {
 
-            if ( !targets[i]->isEnrichmentFeature && targets[i]->in ( t->getCenter() ) && ( !onlyUpdate || onlyUpdate && targets[i]->isUpdated ) )
+            if ( !targets[i]->isEnrichmentFeature && targets[i]->in ( t->getCenter() ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
             {
                 bool notInChildren  = true ;
 
@@ -4432,23 +4435,23 @@ bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
 
 void FeatureTree::stepMesh()
 {
-
+    behaviourChange = false ;
+    needAssembly = false ;
     if ( is2D() )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-            needMeshing =  j->second->step(deltaTime) || needMeshing;
+            behaviourChange =  j->second->step(deltaTime) || behaviourChange;
     }
     else if(is3D())
     {
         if(dtree3D)
-            needMeshing =  dtree3D->step(deltaTime) || needMeshing;
+            behaviourChange =  dtree3D->step(deltaTime) || behaviourChange;
     }
+    needAssembly = behaviourChange ;
 }
 
 bool FeatureTree::stepElements()
-{
-    behaviourChange = false ;
-    needAssembly = false ;
+{  
     stateConverged = false ;
     double maxScore = -1 ;
     double maxTolerance = 0 ;
@@ -5189,7 +5192,6 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
     bool behaviourChanged = ft->behaviourChanged() ;
     bool xfemChanged = ft->enrichmentChanged() ;
 
-    ft->stepMesh();
     bool samplingChanged = ft->needMeshing ;
 
     if ( samplingChanged )
@@ -5242,6 +5244,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         xfemStepped = false ;
         featureStepped = false;
     }
+    ft->stepMesh();
 
 // 			std::cout << 				sampled <<
 // 				meshed <<
@@ -8061,7 +8064,7 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
     }
     else
     {
-                Vector x = getDisplacements() ;
+         Vector x = getDisplacements() ;
 
         std::cout << "unknowns :" << x.size() << std::endl ;
 
@@ -8346,11 +8349,13 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
         else
         {
             if(printHeader)
-                std::cout << "max value        \tmin value        \tavg value        \tmax sigma11      \tmin sigma11      \tmax sigma22      \tmin sigma22      \tmax sigma33      \tmin sigma33      \tmax sigma12      \tmin sigma12      \tmax sigma13      \tmin sigma13      \tmax sigma23      \tmin sigma23      \tmax epsilon11    \tmin epsilon11    \tmax epsilon22    \tmin epsilon22    \tmax epsilon33    \tmin epsilon33    \tmax epsilon12    \tmin epsilon12    \tmax epsilon13    \tmin epsilon13    \tmax epsilon23    \tmin epsilon23    \tmax von Mises    \tmin von Mises    \taverage sigma11  \taverage sigma22  \taverage sigma33  taverage sigma12  \taverage sigma13  \taverage sigma23  \taverage epsilon11\taverage epsilon22\taverage epsilon33\taverage epsilon12\taverage epsilon13\taverage epsilon23" << std::endl ;
+                std::cout << "max value        \tmin value        \tavg value        \tmax sigma11      \tmin sigma11      \tmax sigma22      \tmin sigma22      \tmax sigma33      \tmin sigma33      \tmax sigma12      \tmin sigma12      \tmax sigma13      \tmin sigma13      \tmax sigma23      \tmin sigma23      \tmax epsilon11    \tmin epsilon11    \tmax epsilon22    \tmin epsilon22    \tmax epsilon33    \tmin epsilon33    \tmax epsilon12    \tmin epsilon12    \tmax epsilon13    \tmin epsilon13    \tmax epsilon23    \tmin epsilon23    \tmax von Mises    \tmin von Mises    \taverage sigma11  \taverage sigma22  \taverage sigma33  \taverage sigma12  \taverage sigma13  \taverage sigma23  \taverage epsilon11\taverage epsilon22\taverage epsilon33\taverage epsilon12\taverage epsilon13\taverage epsilon23" << std::endl ;
             for(size_t j = 0 ; j < reportValues.size() ; j++)
+            {
                 for(size_t i = 0 ; i < reportValues[j].size() ; i++)
                     std::cout << reportValues[j][i] << "\t" << std::flush ;
-            std::cout << std::endl ;
+                std::cout << std::endl ;
+            }
 
         }
     }

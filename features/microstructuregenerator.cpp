@@ -50,13 +50,13 @@ namespace Amie
 			double currentMinToMax = feats.front()->getRadius()/feats.back()->getRadius() ;
 			double currentFill = volume/sample->area() ;
 			
-			for(int i = 0  ; i < inclusions.size() ; i++)
+			for(size_t i = 0  ; i < inclusions.size() ; i++)
 				delete inclusions[i] ;
 			return 1./(.01*currentMinToMax/minMaxRatio + currentFill/fill) ;
 		}
 		else
 		{
-			for(int i = 0  ; i < inclusions.size() ; i++)
+			for(size_t i = 0  ; i < inclusions.size() ; i++)
 				delete inclusions[i] ;
 			return 1000 ;
 		}

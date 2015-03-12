@@ -2222,7 +2222,7 @@ DelaunayTree3D::DelaunayTree3D( Point *p0, Point *p1, Point *p2, Point *p3 ) : M
     maxDist = std::min(maxDist,dist(*p1, *p3)) ;
     maxDist = std::min(maxDist,dist(*p2, *p3)) ;
 
-    internalScale = 400000000./maxDist ;
+    internalScale = 4e12/maxDist ;
 
     p0->setId(0)  ;
     p1->setId(1)  ;

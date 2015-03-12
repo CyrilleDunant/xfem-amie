@@ -270,6 +270,7 @@ public:
 
 class LoftedPolygonPrism :  public NonConvexGeometry
 {
+    friend class Geometry ;
 protected:
     virtual void computeCenter() ;
     

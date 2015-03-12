@@ -22,18 +22,14 @@
 
 using namespace Amie ;
 
-DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : stepson(0), neighbour(0), tree(t), son(0), stepfather(nullptr),
-    father(father),
-    m_c(c),
-    dead(false),
-    erased(false),
+DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : dead(false), m_c(c), index(0),tree(t), father(father), stepfather(nullptr),first(nullptr) ,
+    second(nullptr) ,
+    third(nullptr),
     isPlane( false ),
     isTriangle( false ),
     isDeadTriangle( false),
-    index(0),
-    first(nullptr) ,
-    second(nullptr) ,
-    third(nullptr)  
+    erased(false),
+    stepson(0), neighbour(0),  son(0) 
 {
 
     if(t)
@@ -1165,7 +1161,7 @@ void DelaunayTreeItem::setStepfather(DelaunayTreeItem * s)
 }
 
 
-DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2), DelaunayTreeItem(t, father, c), neighbourhood(0)
+DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, DelaunayTreeItem * father,  Point *p0,  Point *p1, Point *p2,  Point * c) : TriElement(p0, p1, p2),DelaunayTreeItem(t, father, c),  neighbourhood(0)
 {
     first = &getBoundingPoint(0) ;
     second = &getBoundingPoint(1) ;
@@ -1180,7 +1176,7 @@ DelaunayTriangle::DelaunayTriangle(Mesh<DelaunayTriangle, DelaunayTreeItem> *t, 
     assert(third->getId() > -1) ;
 }
 
-DelaunayTriangle::DelaunayTriangle() : DelaunayTreeItem(nullptr, nullptr, nullptr), TriElement(), neighbourhood(0)
+DelaunayTriangle::DelaunayTriangle() :  TriElement(),DelaunayTreeItem(nullptr, nullptr, nullptr), neighbourhood(0)
 {
     first = &getBoundingPoint(0) ;
     second = &getBoundingPoint(1) ;

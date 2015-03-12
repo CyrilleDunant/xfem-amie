@@ -49,16 +49,24 @@ void step(FeatureTree * featureTree)
         featureTree->step() ;
 //         featureTree->printReport();
     }
-    VoxelWriter vw1("sphere_stiffness", 400) ;
-    vw1.getField(featureTree, VWFT_STIFFNESS) ;
-    vw1.write();
+    
+//     VoxelWriter("", 400).writeMap("stresses_0_0", featureTree, XI, 0., 400, VWFT_STRESS, 0) ;
+//     VoxelWriter("", 400).writeMap("stresses_0_1", featureTree, XI, 0., 400, VWFT_STRESS, 1) ;
+//     VoxelWriter("", 400).writeMap("stresses_0_2", featureTree, XI, 0., 400, VWFT_STRESS, 2) ;
+//     
+//     VoxelWriter("", 400).writeMap("stresses_50_0", featureTree, XI, 50., 400, VWFT_STRESS, 0) ;
+//     VoxelWriter("", 400).writeMap("stresses_50_1", featureTree, XI, 50., 400, VWFT_STRESS, 1) ;
+//     VoxelWriter("", 400).writeMap("stresses_50_2", featureTree, XI, 50., 400, VWFT_STRESS, 2) ;
 
-    VoxelWriter vw("sphere_stress", 400) ;
+    VoxelWriter vw("sphere_stress", 200) ;
     vw.getField(featureTree, VWFT_STRESS) ;
     vw.write();
-	VoxelWriter vw0("sphere_strain", 400) ;
+	VoxelWriter vw0("sphere_strain", 200) ;
 	vw0.getField(featureTree, VWFT_STRAIN) ;
 	vw0.write();
+    VoxelWriter vw1("sphere_stiffness", 200) ;
+    vw1.getField(featureTree, VWFT_STIFFNESS) ;
+    vw1.write();
     exit(0) ;
 }
 
@@ -79,10 +87,10 @@ int main(int argc, char *argv[])
     samplers.setBehaviour(new VoidForm()) ;
 
     std::valarray<Point *> damProfile(4) ;
-    damProfile[0] = new Point(0, 20, 0) ;
-    damProfile[1] = new Point(150, 20, 0) ;
-    damProfile[2] = new Point(150, -20, 0) ;
-    damProfile[3] = new Point(0, -40, 0) ;
+    damProfile[0] = new Point(0, 10, 0) ;
+    damProfile[1] = new Point(150, 10, 0) ;
+    damProfile[2] = new Point(150, -10, 0) ;
+    damProfile[3] = new Point(0, -20, 0) ;
     
     std::vector<Point> damArch ;
     for(double i = -1. ; i <= 1. ; i+=0.2)
@@ -123,10 +131,10 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
     
     //selfweight
-    F.addBoundaryCondition(new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_XI, dam.getPrimitive(), 23544 ) );
+    F.addBoundaryCondition(new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_XI, dam.getPrimitive(), -23544 ) );
 
     //water
-    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("-981 x 75 + *") ) );
+    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("981 x 75 + *") ) );
     
     F.setOrder(LINEAR) ;
 

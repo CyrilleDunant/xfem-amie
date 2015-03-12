@@ -430,10 +430,10 @@ void VoxelWriter::writeHeader()
     outstream.close() ;
 }
 
-void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis, double pos, int n, VWFieldType field, int k, int min, int max)
+void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis, double pos, int pixels_per_side, VWFieldType field, int field_variable_index, int min, int max)
 {
-    std::valarray<double> vals((n+1)*(n+1)) ;
-    voids.resize(false, (n+1)*(n+1));
+    std::valarray<double> vals((pixels_per_side+1)*(pixels_per_side+1)) ;
+    voids.resize((pixels_per_side+1)*(pixels_per_side+1), false);
 
     Hexahedron * box = dynamic_cast<Hexahedron *>(F->getFeature(0)) ;
     Point c = box->getCenter() ;
@@ -449,28 +449,33 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
     {
     case XI:
         origin.getX() = pos ;
-        xlocal = Point(0.,sy/n,0.) ;
-        ylocal = Point(0.,0.,sz/n) ;
+        xlocal = Point(0.,sy/pixels_per_side,0.) ;
+        ylocal = Point(0.,0.,sz/pixels_per_side) ;
         break ;
 
     case ETA:
         origin.getY() = pos ;
-        xlocal = Point(0.,0.,sz/n) ;
-        ylocal = Point(sx/n,0.,0.) ;
+        xlocal = Point(0.,0.,sz/pixels_per_side) ;
+        ylocal = Point(sx/pixels_per_side,0.,0.) ;
         break ;
 
     case ZETA:
         origin.getZ() = pos ;
-        xlocal = Point(sx/n,0.,0.) ;
-        ylocal = Point(0.,sy/n,0.) ;
+        xlocal = Point(sx/pixels_per_side,0.,0.) ;
+        ylocal = Point(0.,sy/pixels_per_side,0.) ;
         break ;
+    default:
+    {
+        std::cout << "unhandled axis for cut" << std::endl ;
+        exit(0) ;
+    }
     }
 
     int count = 0 ;
     VoxelWriter * dummy = new VoxelWriter("", 0) ;
-    for(int i = 0 ; i < n+1 ; i++)
+    for(int i = 0 ; i < pixels_per_side+1 ; i++)
     {
-        for(int j = 0 ; j < n+1 ; j++)
+        for(int j = 0 ; j < pixels_per_side+1 ; j++)
         {
             Point p(origin) ;
             p += (xlocal*(double) i) ;
@@ -482,13 +487,12 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
             {
                 for(size_t l = 0 ; l < tris.size() ; l++)
                 {
-                    if(tris[l]->in(p) && tris[l]->getBehaviour()->type == VOID_BEHAVIOUR)
+                    if(tris[l]->in(p) && tris[l]->getBehaviour()->type != VOID_BEHAVIOUR)
                     {
                         std::pair<bool, std::vector<double> > val = dummy->getDoubleValue(tris[l],p,field) ;
                         if(val.first)
                         {
-                            vals[count] = val.second[k] ;
-                            count++ ;
+                            vals[count] = val.second[numberOfFields(field)-1-field_variable_index] ;
                             done = true ;
                             break ;
                         }
@@ -496,34 +500,33 @@ void VoxelWriter::writeMap(std::string filename, FeatureTree * F, Variable axis,
                     else if(tris[l]->in(p) && tris[l]->getBehaviour()->type == VOID_BEHAVIOUR)
                     {
                         vals[count] = 0 ;
-                        voids[count] = 0 ;
-                        count++ ;
+                        voids[count] = true ;
 
                         done = true ;
                         break ;
                     }
                 }
             }
-            if(!done)
+            if(!done )
             {
                 vals[count] = 0 ;
-                count++ ;
             }
+            count++ ;
+            if(count%1000 == 0)
+                std::cerr << "\r printing map, elem " << count <<"/" << (pixels_per_side+1)*(pixels_per_side+1) << std::flush ;
         }
     }
+    std::cerr << std::endl ;
     delete dummy ;
-
-    std::valarray<unsigned char> val_int = normalizeArray(vals, voids, min,max) ;
-    vals.resize(0) ;
 
     std::fstream outfile ;
     outfile.open(filename.c_str(), std::ios::out) ;
     count = 0 ;
-    for(int i = 0 ; i < n+1 ; i++)
+    for(int i = 0 ; i < pixels_per_side+1 ; i++)
     {
-        for(int j = 0 ; j < n+1 ; j++)
+        for(int j = 0 ; j < pixels_per_side+1 ; j++)
         {
-            outfile << val_int[count] << " " ;
+            outfile << vals[count] << "  " ;
             count++ ;
         }
         outfile << std::endl ;
@@ -536,6 +539,15 @@ std::valarray<unsigned char> normalizeArray(const std::valarray<double> & val, c
     std::sort(&sortedArray[0], &sortedArray[sortedArray.size()]) ;
     double vmax = sortedArray[std::min(sortedArray.size()*1-1, (size_t)(sortedArray.size()*.99))] ;
     double vmin = sortedArray[sortedArray.size()*.01] ;
+    if(std::abs(vmax) > std::abs(vmin) )
+    {
+        vmin = -std::abs(vmax) ;
+    }
+    else
+    {
+        vmax = std::abs(vmin) ;
+    }
+    
     std::valarray<unsigned char> norm(val.size()) ;
     for(size_t i = 0 ; i < val.size() ; i++)
     {

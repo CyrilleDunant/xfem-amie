@@ -399,6 +399,64 @@ MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,
     vx.behaviourMap = behaviourMap ;
     vx.read(voxelSource, this);
     tree  = vx.getElements() ;
+    single = true ;
+//     additionalPoints = vx.getPoints() ;
+    global_counter = vx.getPoints().size() ;
+    generateCache() ;
+    
+    for(size_t i = 0 ; i < tree.size() ; i++)
+    {
+        tree[i]->tree = this ;
+    }
+}
+
+std::string makePixelName(const std::string & dirname, size_t v)
+{
+    std::stringstream constr ;
+    if(v < 10)
+        constr << dirname << "pixels00000" << v <<".txt";
+    else if(v < 100)
+        constr << dirname << "pixels0000" << v <<".txt";
+    else if(v < 1000)
+        constr << dirname << "pixels000" << v <<".txt";
+    else if(v < 10000)
+        constr << dirname << "pixels00" << v <<".txt";
+    else if(v < 100000)
+        constr << dirname << "pixels0" << v <<".txt";
+    else if(v < 1000000)
+        constr << dirname << "pixels" << v <<".txt";
+    
+    return constr.str() ;
+    
+}
+
+bool MicDerivedMesh::step( double dt )
+{
+    currentTime+=dt ;
+    if(single)
+        return false ;
+    
+    if(currentTime > times[currentMesh])
+    {
+        currentMesh++ ;
+        VoxelFilter vx ;
+        vx.behaviourMap = behaviourMap ;
+        vx.update(tree, makePixelName(voxelSource, currentMesh).c_str(), this);
+        return true ;
+    }
+    return false ;
+}
+
+MicDerivedMesh::MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times) : Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>(SPACE_THREE_DIMENSIONAL), times(times), voxelSource(voxelSource)
+{
+    this->behaviourMap = behaviourMap ;
+    VoxelFilter vx ;
+    vx.behaviourMap = behaviourMap ;
+    currentTime = 0 ;
+    currentMesh = 0 ;
+    vx.read(makePixelName(this->voxelSource.c_str(), 0).c_str(), this);
+    tree  = vx.getElements() ;
+    single = false ;
 //     additionalPoints = vx.getPoints() ;
     global_counter = vx.getPoints().size() ;
     generateCache() ;

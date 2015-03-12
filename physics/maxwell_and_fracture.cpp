@@ -110,7 +110,7 @@ std::vector<BoundaryCondition * > GeneralizedIterativeMaxwellAndFracture::getBou
 	Vector istress ;
 	for ( size_t i = 0 ; i < s.getParent()->getBoundingPoints().size() ; i++ )
 	{
-		if ( id == s.getParent()->getBoundingPoint( i ).getId() )
+		if ( (int)id == s.getParent()->getBoundingPoint( i ).getId() )
 		{
 			  Point p = s.getParent()->inLocalCoordinates(s.getParent()->getBoundingPoint(i)) ;
 			  Vector tmp = getImposedStress(p, s.getParent()) ;

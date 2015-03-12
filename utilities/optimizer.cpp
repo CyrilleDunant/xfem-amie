@@ -401,7 +401,7 @@ double GeneticAlgorithmOptimizer::generatorOptimize(double eps, int Maxit, int p
 			if(sorted.size() && test >= (double)i/((double)sorted.size()))
 			{
 				auto iter = sorted.begin() ;
-				for(size_t j = 0 ; j < (int)i-1 && j < sorted.size()-1 ; j++)
+				for(size_t j = 0 ; j < i-1 && j < sorted.size()-1 ; j++)
 					iter++ ;
 				newllindividuals.push_back(iter->second);
 
@@ -495,7 +495,7 @@ LeastSquaresApproximation::~LeastSquaresApproximation()
 	delete Q ;
 }
 
-LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), parameters(0., linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows())
+LeastSquaresApproximation::LeastSquaresApproximation(const Vector & measures, const Matrix & linearModel) : measures(measures), linearModel(linearModel), parameters(0., linearModel.numRows()), linearModelChanged(true), X0t(linearModel.numCols(), linearModel.numRows()), X0tX0(linearModel.numRows(), linearModel.numRows())
 {
 	Q = nullptr ;
 	X0t   = linearModel.transpose() ;

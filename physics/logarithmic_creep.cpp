@@ -5,12 +5,12 @@
 
 using namespace Amie ;
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.), isPurelyElastic(true), updated(true), accumulator(acc), fixCreepVariable(false), prevParam(param), timeDependentIntegration(false), prevEta(eta)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, LogCreepAccumulator * acc) : Viscoelasticity(PURE_ELASTICITY, rig, 2), C(rig), E(rig*0), R(rig*0), tau(0), reducedTimeStep(-1.),  accumulator(acc), isPurelyElastic(true), updated(true),fixCreepVariable(false), prevEta(eta), timeDependentIntegration(false), prevParam(param)
 {
 
 }
 
-LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), isPurelyElastic(false), accumulator(acc), updated(true), fixCreepVariable(false), prevParam(param), prevEta(eta), timeDependentIntegration(false)
+LogarithmicCreep::LogarithmicCreep(const Matrix & rig, const Matrix & vs, const Matrix & vr, double t, LogCreepAccumulator * acc) : Viscoelasticity(BURGER, rig, vr, vr*t, vs*t), C(rig), E(vs), R(vr), tau(t), reducedTimeStep(-1.), accumulator(acc), isPurelyElastic(false), updated(true), fixCreepVariable(false), prevEta(eta), timeDependentIntegration(false), prevParam(param)
 {
 
 }

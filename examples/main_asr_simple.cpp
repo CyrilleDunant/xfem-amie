@@ -98,7 +98,7 @@ void step()
 {
 	featureTree->setMaxIterationsPerStep(2000) ;
 	int nsteps = 1;
-	for(size_t i = 0 ; i < nsteps ; i++)
+	for(int i = 0 ; i < nsteps ; i++)
 	{
 
 		bool go_on = featureTree->step() ;

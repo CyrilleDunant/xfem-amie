@@ -431,7 +431,7 @@ Material NonLocalExponentiallyDecreasingMohrCoulomb::toMaterial()
 
 
 NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    ,limitstrain(limitstrain),limitystrain(std::max(limitystrain,limitstrain)), c(c), stiffness(E)
+    ,limitstrain(limitstrain),limitystrain(std::max(limitystrain,limitstrain)), stiffness(E), c(c)
 {
     metInTension = false ;
     upVal = E*limitstrain ;

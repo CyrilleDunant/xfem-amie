@@ -120,6 +120,79 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 }
 
 
+void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char* filename, Mesh <DelaunayTetrahedron, DelaunayTreeItem3D >* mesh )
+{
+    points.clear() ;
+    elems.clear() ;
+    if(behaviourMap.empty())
+    {
+        std::cerr << "no behaviours !" << std::endl ;
+        return ;
+    }
+
+    std::fstream file(filename) ;
+    int r ;
+    int c ;
+    int s ;
+
+
+    std::string dummy ;
+
+    if(file.is_open())
+    {
+        file >> dummy  ;
+        file >> dummy  ;
+        file >> r  ;
+        file >> c  ;
+        file >> s  ;
+    }
+    else
+    {
+        std::cerr << "could not open file !" << std::endl ;
+        return ;
+    }
+    long position = file.tellp() ;
+    file.close() ;
+    file.open(filename, std::ios::binary|std::ios::in) ;
+    file.seekp(position)  ;
+
+    std::vector<std::vector<std::vector<unsigned char> > > phase ;
+    for( int i = 0 ; i < r ; i++)
+    {
+        phase.push_back(std::vector<std::vector<unsigned char> >(0)) ;
+        for( int j = 0 ; j < c ; j++)
+        {
+            phase[i].push_back(std::vector<unsigned char>(0)) ;
+            for( int k = 0 ; k < s ; k++)
+            {
+                if(!file.eof())
+                {
+                    unsigned char behaviourKey ;
+                    file >> behaviourKey ;
+                    phase[i][j].push_back(behaviourKey) ;
+                }
+            }
+        }
+    }
+
+    int eindex = 0 ;
+    for( int i = 0 ; i < r ; i++)
+    {
+        for( int j = 0 ; j < c ; j++)
+        {
+            for( int k = 0 ; k < s ; k++)
+            {
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+            }
+        }
+    }
+}
+
 
 void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh )
 {

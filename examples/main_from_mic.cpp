@@ -23,33 +23,33 @@
 using namespace Amie ;
 
 
-FeatureTree * featureTree ;
 
-void step()
+
+void step(FeatureTree * featureTree )
 {
 
-    int nsteps = 1;// number of steps between two clicks on the opengl thing
+    int nsteps = 156;// number of steps between two clicks on the opengl thing
     featureTree->setMaxIterationsPerStep(50) ;
 
     for(int i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
-        featureTree->printReport();
+        featureTree->printReport( ( i == 0 ) , false);
     }
 // 	VoxelWriter vw1("sphere_stiffness", 100) ;
 // 	vw1.getField(featureTree, VWFT_STIFFNESS) ;
 // 	vw1.write();
 
-    VoxelWriter vw("sphere_stress_25", 200) ;
-    vw.getField(featureTree, VWFT_STRESS) ;
-    vw.write();
+//     VoxelWriter vw("sphere_stress_25", 200) ;
+//     vw.getField(featureTree, VWFT_STRESS) ;
+//     vw.write();
 //     VoxelWriter vw1("sphere_strain", 400) ;
 //     vw1.getField(featureTree, VWFT_STRESS) ;
 //     vw1.write();
-	VoxelWriter vw0("sphere_stiffness_25", 200) ;
-	vw0.getField(featureTree, VWFT_STIFFNESS) ;
-	vw0.write();
-    exit(0) ;
+// 	VoxelWriter vw0("sphere_stiffness_25", 200) ;
+// 	vw0.getField(featureTree, VWFT_STIFFNESS) ;
+// 	vw0.write();
+//     exit(0) ;
 }
 
 
@@ -63,23 +63,37 @@ int main(int argc, char *argv[])
 
     std::map<unsigned char,Form *> behaviourMap ;
     behaviourMap[0] = new C3SBehaviour() ;  // C3S
-    behaviourMap[1] = new Stiffness(m0) ; // pores ?
-    behaviourMap[2] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H 
-    behaviourMap[3] = new CHBehaviour() ; // CH ?
-    behaviourMap[4] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
-    behaviourMap[5] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
+    behaviourMap[1] = new C3SBehaviour() ;  // C2S
+    behaviourMap[2] = new C3SBehaviour() ;  // aluminate
+    behaviourMap[3] = new C3SBehaviour() ;  // ferrite
+    behaviourMap[4] = new C3SBehaviour() ;  // gypsum
+    behaviourMap[5] = new CSHBehaviour(INNER_CSH) ; // inner C-S-H 
+    behaviourMap[6] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
+    behaviourMap[7] = new CHBehaviour() ; // CH 
+    behaviourMap[8] = new CHBehaviour() ; // Ettringite 
+    behaviourMap[9] = new CHBehaviour() ; // Ettringite 
+    behaviourMap[10] = new CHBehaviour() ; // monosulfo 
+    behaviourMap[11] = new CHBehaviour() ; // monosulfo 
+    behaviourMap[12] = new CHBehaviour() ; // iron hydroxide 
+    behaviourMap[13] = new CHBehaviour() ; // iron hydroxide 
+    behaviourMap[14] = new CHBehaviour() ; // hydrogarnet
+    behaviourMap[15] = new CHBehaviour() ; // hydrogarnet
+    behaviourMap[16] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
+    behaviourMap[17] = new CSHBehaviour(OUTER_CSH) ;  // outer C-S-H
    
-   
+   std::vector<double> times ;
+   for(double i = 0 ; i < 24 ; i++)
+       times.push_back(i) ;
    
 //     behaviourMap[0] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // pores ?
 //     behaviourMap[1] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // C3S
 //     behaviourMap[2] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // CH ?
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
-    FeatureTree F( argv[1], behaviourMap ) ;
-    featureTree = &F ;
+    FeatureTree F( argv[1], behaviourMap, times ) ;
+    F.setDeltaTime(1);
     F.setOrder(LINEAR) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, -1.)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, TOP, -1.)) ;
 
@@ -88,7 +102,7 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
     
 
-    step() ;
+    step(&F) ;
 
     return 0 ;
 }

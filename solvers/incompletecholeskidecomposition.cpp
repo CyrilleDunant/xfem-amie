@@ -16,7 +16,7 @@
 
 using namespace Amie ;
 
-InCompleteCholesky::InCompleteCholesky(Assembly * A_) : A(A_), d(A_->getMatrix().diagonal())
+InCompleteCholesky::InCompleteCholesky(Assembly * A_) : d(A_->getMatrix().diagonal()), A(A_)
 {
 	stable = true ;
 	

@@ -50,9 +50,14 @@ class MicDerivedMesh : public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 protected:
     size_t global_counter ;
     std::vector<DelaunayTetrahedron *> tree ;
+    std::vector<double> times ;
     std::vector< Point *> additionalPoints ;
     std::map<unsigned char,Form *> behaviourMap ;
     virtual std::vector<DelaunayTetrahedron *> getElements()  {return tree ; };
+    bool single ;
+    int currentMesh ;
+    double currentTime ;
+    std::string voxelSource ;
 public:
 
     virtual int addToTree ( DelaunayTreeItem3D * toAdd ) ;
@@ -67,6 +72,7 @@ public:
     
 public:
     MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap) ;
+    MicDerivedMesh(const char * voxelSource, std::map<unsigned char,Form *> behaviourMap, std::vector<double> times) ;
     
     virtual ~MicDerivedMesh() {} ;
 
@@ -83,7 +89,7 @@ public:
     virtual size_t getLastNodeId() const {return global_counter ;};
     virtual size_t size() const {return tree.size() ;} ;
     
-    virtual bool step( double dt ) { return false ;};
+    virtual bool step( double dt ) ;
 } ;
 
 }

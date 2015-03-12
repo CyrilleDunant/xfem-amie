@@ -45,6 +45,9 @@ struct Viscoelasticity : public LinearForm
 	
 	// viscoelastic model represented
 	ViscoelasticModel model ;
+
+	// list of tensors for easy access
+	std::vector<Matrix> tensors ;
 	
 	// number of blocks (= 1+number of additionnal dofs)
 	int blocks ;

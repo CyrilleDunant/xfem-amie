@@ -470,7 +470,13 @@ public:
      * @return
      */
     FeatureTree ( Feature *first, int layer = -1, double fraction = 1,  size_t gridsize = 100 ) ;
-    FeatureTree ( const char * voxelSource, std::map<unsigned char, Form *> behaviourMap ) ;
+    
+    /** \brief construct a featuretree from a µic-output
+     * There are 2 modes: if times is empty, a single file is assumed. Otherwise, as time moves forward, successive meshes are loaded as the hydration advances.
+     * In the first case, the voxelSource is a voxel file, in the second it is the directory where the µic pixel files are located.
+     * 
+     */
+    FeatureTree ( const char * voxelSource, std::map<unsigned char, Form *> behaviourMap, const std::vector<double> & times = std::vector<double>()) ;
     virtual ~FeatureTree() ;
 
     void dumpFeatures ( std::string filename ) ;

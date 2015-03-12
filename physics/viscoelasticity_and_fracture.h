@@ -24,7 +24,6 @@ struct ViscoelasticityAndFracture : public Viscoelasticity
 {	
 	DamageModel * dfunc ;
 
-	std::vector<Matrix> tensors ;
 	Matrix elasticParam ;
 	Matrix viscousParam ;
 

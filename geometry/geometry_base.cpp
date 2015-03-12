@@ -2632,6 +2632,16 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
         if(g->getGeometryType() == SPHERE)
             return g->intersection(this) ;
     }
+    case LOFTED_POLYGON:
+    {
+        if(g->getGeometryType() == LOFTED_POLYGON)
+        {
+            // first, find an intersection point, assuming two lofted cylinders
+            double selfBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(this)->base.getRadius() ;
+            double gBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(g)->base.getRadius() ;
+            Point start = (dynamic_cast<const LoftedPolygonPrism *>(this)->interpolationPoints[0]+dynamic_cast<const LoftedPolygonPrism *>(g)->interpolationPoints[0])*0.5 ;
+        }
+    }
     default:
     {
         return ret ;
@@ -3968,6 +3978,45 @@ bool Segment::intersects(const Geometry *g) const
         double delta = uc*uc - v.sqNorm()*g->getCenter().sqNorm() - g->getRadius()*g->getRadius() ;
         return delta >= 0 ;
     }
+    case POLYGON_PRISM:
+    {
+            if(g->in(s) == !g->in(f))
+            return true ;
+        
+        
+        Point dir = first() - second();
+        int countin =0 ;
+        int pointcount = 0 ;
+        for(double i = 0 ; i < 1 ; i+=.2 )
+        {
+            Point toTest = second()+i*dir ;
+            pointcount++;
+            countin += g->in(toTest) ;
+        }
+        
+        if(countin && countin != pointcount)
+            return true ;
+        return false ;   
+    }
+    case LOFTED_POLYGON:
+    {
+        if(g->in(s) == !g->in(f))
+            return true ;
+        
+        Point dir = first() - second();
+        int countin =0 ;
+        int pointcount = 0 ;
+        for(double i = 0 ; i < 1 ; i+=.2 )
+        {
+            Point toTest = second()+i*dir ;
+            pointcount++;
+            countin += g->in(toTest) ;
+        }
+        
+        if(countin && countin != pointcount)
+            return true ;
+        return false ;
+    }
     default:
         return false ;
     }
@@ -4397,6 +4446,112 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         if(intersects(t3))
             ret.push_back(intersection(t3)[0]);
 
+        return ret ;
+    }
+    case POLYGON_PRISM:
+    {
+        std::vector<Point> ret ;
+        
+        if(!intersects(g))
+            return ret;
+        
+        Point dir = first() - second();
+
+        std::vector<bool> ins ;
+        std::vector<Point> tested ;
+        for(double i = 0 ; i < 1 ; i+=.1 )
+        {
+            Point toTest = second()+i*dir ;
+            ins.push_back(g->in(toTest)) ;
+            tested.push_back(toTest);
+        }
+        
+        std::vector< std::pair<Point,Point> > bounds ;
+        std::vector< std::pair<bool,bool> > boundsin ;
+        Point currentFirst = tested[0] ;
+        bool currentIn = ins[0] ;
+        for(size_t i = 1 ; i < tested.size() ; i++)
+        {
+            if(ins[i] != currentIn)
+            {
+               bounds.push_back(std::make_pair(currentFirst, tested[i]));
+               boundsin.push_back(std::make_pair(currentIn,ins[i]));
+               currentFirst = tested[i] ;
+               currentIn = ins[i] ;
+            }
+        }
+        
+        for(size_t i =0 ; i < bounds.size() ; i++)
+        {
+            for(size_t j = 0 ; j < 16 ; j++)
+            {
+                Point test = (bounds[i].first + bounds[i].second)*.5 ;
+                bool testin = g->in(test) ;
+                if(testin == boundsin[i].first)
+                {
+                    bounds[i].first = test ;
+                }
+                else
+                {
+                     bounds[i].second = test ;
+                }
+            }
+            
+            ret.push_back((bounds[i].first + bounds[i].second)*.5);
+        }
+        return ret ;
+    }
+    case LOFTED_POLYGON:
+    {
+        std::vector<Point> ret ;
+        
+        if(!intersects(g))
+            return ret;
+        
+        Point dir = first() - second();
+
+        std::vector<bool> ins ;
+        std::vector<Point> tested ;
+        for(double i = 0 ; i < 1 ; i+=.1 )
+        {
+            Point toTest = second()+i*dir ;
+            ins.push_back(g->in(toTest)) ;
+            tested.push_back(toTest);
+        }
+        
+        std::vector< std::pair<Point,Point> > bounds ;
+        std::vector< std::pair<bool,bool> > boundsin ;
+        Point currentFirst = tested[0] ;
+        bool currentIn = ins[0] ;
+        for(size_t i = 1 ; i < tested.size() ; i++)
+        {
+            if(ins[i] != currentIn)
+            {
+               bounds.push_back(std::make_pair(currentFirst, tested[i]));
+               boundsin.push_back(std::make_pair(currentIn,ins[i]));
+               currentFirst = tested[i] ;
+               currentIn = ins[i] ;
+            }
+        }
+        
+        for(size_t i = 0 ; i < bounds.size() ; i++)
+        {
+            for(size_t j = 0 ; j < 16 ; j++)
+            {
+                Point test = (bounds[i].first + bounds[i].second)*.5 ;
+                bool testin = g->in(test) ;
+                if(testin == boundsin[i].first)
+                {
+                    bounds[i].first = test ;
+                }
+                else
+                {
+                     bounds[i].second = test ;
+                }
+            }
+            
+            ret.push_back((bounds[i].first + bounds[i].second)*.5);
+        }
         return ret ;
     }
 

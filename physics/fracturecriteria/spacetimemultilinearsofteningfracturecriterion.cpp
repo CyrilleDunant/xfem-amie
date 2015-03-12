@@ -84,7 +84,7 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 	asymptote = new Line( *curve[p.size()], horizontal ) ;
 }
 
-SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), E(E_), stressStrainCurve(s), asymptote(l), renormStrain(e), renormStress(s_)
+SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), stressStrainCurve(s), E(E_),  asymptote(l), renormStrain(e), renormStress(s_)
 {
 
 }

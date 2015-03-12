@@ -4726,6 +4726,9 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
             
             if(i->getBehaviour()->type == VOID_BEHAVIOUR)
                 continue ;
+            
+            if(domain->in(i->getCenter()+faceNormal*i->getRadius()))
+                continue ;
 
             std::vector<Point> id  ;
 
@@ -4787,6 +4790,9 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
             if(elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
                 continue ;
 
+            if(domain->in(elements[i]->getCenter()+faceNormal*elements[i]->getRadius()))
+                continue ;
+                    
             std::vector<Point> id  ;
 
             for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )

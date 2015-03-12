@@ -68,6 +68,7 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
 	eta.resize(rig.numRows()*(1+n), rig.numCols()*(1+n)) ;
 	param = 0 ;
 	eta = 0 ;
+
 	
 	switch(model)
 	{
@@ -75,11 +76,14 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, int n,
 			placeMatrixInBlock( rig, 0,0, param) ;
 			break ;
 		case PURE_VISCOSITY:
+			tensors.push_back(rig*0) ;
 			placeMatrixInBlock( rig, 0,0, eta) ;
 			break ;
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
+	tensors.push_back(rig) ;
 
 } ;
 
@@ -116,14 +120,18 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & rig, const 
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
+	tensors.push_back(rig) ;
+	tensors.push_back(e) ;
+
 } ;
 
 Viscoelasticity::Viscoelasticity(const Matrix & rig, const Matrix & e, int b, int n, double r) : LinearForm(rig, false, false, (n+b)*((rig.numRows()/b)/3+1)), model(GENERAL_VISCOELASTICITY), blocks(n+b),effblocks(b)
 {
 	v.push_back(XI);
 	v.push_back(ETA);
-	if(rig.size() > 9)
-        v.push_back(ZETA);
+	if(rig.numCols()/(n+b) > 3)
+		v.push_back(ZETA);
 	v.push_back(TIME_VARIABLE);
 	
 	param.resize(rig.numRows()/b*blocks, rig.numCols()/b*blocks) ;
@@ -186,6 +194,12 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c_kv, const
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
+	tensors.push_back(c_kv) ;
+	tensors.push_back(e_kv) ;
+	tensors.push_back(c_mx) ;
+	tensors.push_back(e_mx) ;
+
 } ;
 
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::vector<std::pair<Matrix, Matrix> > & branches, int b, int n, double r) : LinearForm(c0, false, false, (1+n+b+branches.size())*(c0.numRows()/3+1)), model(m), blocks(1+n+b+branches.size()), effblocks(1+branches.size())
@@ -240,6 +254,13 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, std::ve
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
 
+	tensors.push_back(c0) ;
+	for(size_t i = 0 ; i < branches.size() ; i++)
+	{
+		tensors.push_back(branches[i].first) ;
+		tensors.push_back(branches[i].second) ;
+	}
+
 } ;
 
 Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const Matrix & c1, const Matrix & e1, int b, int n, double r) : LinearForm(c0, false, false, (2+n+b)*(c0.numRows()/3+1)), model(m), blocks(2+n+b), effblocks(2)
@@ -282,6 +303,11 @@ Viscoelasticity::Viscoelasticity(ViscoelasticModel m, const Matrix & c0, const M
 		default:
 			std::cout << "warning: wrong constructor for Viscoelasticity" << std::endl ;  
 	}
+
+	tensors.push_back(c0) ;
+	tensors.push_back(c1) ;
+	tensors.push_back(e1) ;
+
 } ;
 
 Viscoelasticity::~Viscoelasticity() {} ;
@@ -310,13 +336,13 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			a += b ;
 			
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			for(int i = 1 ; i < effblocks ; i++)
+			for(size_t i = 1 ; i < effblocks ; i++)
 			{
 				// first line
 				substractMatrixInBlock( a, i,0, ret ) ;
 				// first column
 				substractMatrixInBlock( a, 0,i, ret ) ;
-				for(int j = i+1 ; j < effblocks ; j++)
+				for(size_t j = i+1 ; j < effblocks ; j++)
 				{
 					// upper triangle
 					placeMatrixInBlock( a, i,j, ret ) ;
@@ -324,7 +350,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 					placeMatrixInBlock( a, j,i, ret ) ;
 				}
 			}
-			for(int i = 1 ; i < blocks ; i++)
+			for(size_t i = 1 ; i < blocks ; i++)
 			{
 				//stiffness (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -345,7 +371,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 			vm->ieval(Gradient(p_i)    * buffer * GradientDot(p_j, true), gp, Jinv,v, b) ;
 			a += b ;
 			placeMatrixInBlock( a, 0,0, ret ) ;
-			for(int i = 1 ; i < blocks ; i++)
+			for(size_t i = 1 ; i < blocks ; i++)
 			{
 				//stiffness (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -428,7 +454,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 		
 		default:
 		{
-			for(int i = 0 ; i < blocks ; i++)
+			for(size_t i = 0 ; i < blocks ; i++)
 			{
 				// elastic matrix (diagonal)
 				getBlockInMatrix(param, i,i, buffer) ;
@@ -437,7 +463,7 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
 				a += b ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				// elastic matrix (upper-triangle)
-				for(int j = i+1 ; j < blocks ; j++)
+				for(size_t j = i+1 ; j < blocks ; j++)
 				{
 					getBlockInMatrix(param, i,j, buffer) ;
 					vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
@@ -467,7 +493,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 	{
 		case GENERALIZED_KELVIN_VOIGT:
 		{
-			for(int i = 1 ; i < blocks ; i++)
+			for(size_t i = 1 ; i < blocks ; i++)
 			{
 				// viscosity (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -482,7 +508,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 		
 		case GENERALIZED_MAXWELL:
 		{
-			for(int i = 1 ; i < blocks ; i++)
+			for(size_t i = 1 ; i < blocks ; i++)
 			{
 				// viscosity (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -552,7 +578,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 		
 		default:
 		{
-			for(int i = 0 ; i < blocks ; i++)
+			for(size_t i = 0 ; i < blocks ; i++)
 			{
 				// viscous matrix (diagonal)
 				getBlockInMatrix(eta, i,i, buffer) ;
@@ -561,7 +587,7 @@ void Viscoelasticity::applyViscous(const Function & p_i, const Function & p_j, c
 				a += b ;
 				placeMatrixInBlock( a, i,i, ret ) ;
 				// viscous matrix (upper-triangle)
-				for(int j = i+1 ; j < blocks ; j++)
+				for(size_t j = i+1 ; j < blocks ; j++)
 				{
 					getBlockInMatrix(eta, i,j, buffer) ;
 					vm->ieval(GradientDot(p_i)    * buffer   * GradientDot(p_j, true), gp, Jinv,v,a);
@@ -593,8 +619,41 @@ Form * Viscoelasticity::getCopy() const
 {
 	Matrix rig = param ;
 	Matrix e = eta ;
+	switch(model)
+	{
+		case PURE_ELASTICITY:
+			return new Viscoelasticity( PURE_ELASTICITY, tensors[0], blocks-effblocks, rho) ;
+		case PURE_VISCOSITY:
+			return new Viscoelasticity( PURE_VISCOSITY, tensors[1], blocks-effblocks, rho) ;
+		case MAXWELL:
+			return new Viscoelasticity( MAXWELL, tensors[0], tensors[1],0, blocks-effblocks, rho) ;
+		case KELVIN_VOIGT:
+			return new Viscoelasticity( KELVIN_VOIGT, tensors[0], tensors[1],0, blocks-effblocks, rho) ;
+		case BURGER:
+			return new Viscoelasticity( BURGER, tensors[0], tensors[1], tensors[2], tensors[3],0, blocks-effblocks, rho) ;
+		case GENERALIZED_MAXWELL:
+		{
+			std::vector<std::pair<Matrix, Matrix> > branches ;
+			for(size_t i = 1 ; i < tensors.size() ; i+= 2)
+			{
+				branches.push_back( std::make_pair(tensors[i], tensors[i+1]) ) ;
+			}
+			return new Viscoelasticity( GENERALIZED_MAXWELL, tensors[0], branches,0, blocks-effblocks, rho) ;
+		}
+		case GENERALIZED_KELVIN_VOIGT:
+		{
+			std::vector<std::pair<Matrix, Matrix> > branches ;
+			for(size_t i = 1 ; i < tensors.size() ; i+= 2)
+			{
+				branches.push_back( std::make_pair(tensors[i], tensors[i+1]) ) ;
+			}
+			return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, tensors[0], branches,0, blocks-effblocks, rho) ;
+		}
+		case GENERAL_VISCOELASTICITY:
+			return new Viscoelasticity( rig, e, blocks) ;
+	}
+
 	Viscoelasticity * copy = new Viscoelasticity(rig, e, blocks) ;
-//     Viscoelasticity * copy = new Viscoelasticity(PURE_ELASTICITY, rig) ;
 	copy->model = model ;
 
 	return copy ; 

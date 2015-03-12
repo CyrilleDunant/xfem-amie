@@ -424,10 +424,10 @@ FixedCrack::FixedCrack ( double E, double nu ) :  E ( E ), nu ( nu )
 int FixedCrack::getMode() const
 {
     if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() &&
-            ( !firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 )
-              || firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 )
-              || !secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 )
-              || secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 1 ) )
+            ( (!firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ))
+              || (firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 0 ))
+              || (!secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ))
+              || (secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->directionInCompression ( 1 ) ))
        )
     {
         return 1 ;

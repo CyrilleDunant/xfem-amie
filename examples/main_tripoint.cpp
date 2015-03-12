@@ -158,7 +158,7 @@ void step()
 
                 double ar = k->area() ;
                 volume += ar ;
-                for ( size_t p = 0 ; p < npoints ; p++ )
+                for ( int p = 0 ; p < npoints ; p++ )
                 {
                     xavg += x[k->getBoundingPoint ( p ).getId() *2]*ar/npoints ;
                     yavg += x[k->getBoundingPoint ( p ).getId() *2+1]*ar/npoints ;
@@ -231,7 +231,7 @@ void step()
 
 
         std::fstream ldfile ( "ldn", std::ios::out )  ;
-        for ( int j = 0 ; j < loads.size() ; j++ )
+        for ( size_t j = 0 ; j < loads.size() ; j++ )
         {
             ldfile << displacements[j] << "   " << loads[j] << "   " << damages[j] << "   " << deltas[j] << "\n" ;
 

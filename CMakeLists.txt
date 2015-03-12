@@ -405,7 +405,7 @@ target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 add_executable(tripoint examples/main_tripoint.cpp )
 target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
 
-add_executable(visco examples/main_visco.cpp )
+add_executable(visco examples/main_single_2d_viscoelasticity.cpp )
 target_link_libraries( visco Amie ${ALL_LINK_FLAGS})
 
 add_executable(irradiation examples/main_irradiation.cpp )
