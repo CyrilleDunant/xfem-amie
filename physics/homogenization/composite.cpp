@@ -355,7 +355,7 @@ void BiphasicSelfConsistentComposite::getStrainConcentrationTensor()
 	Matrix S = inclusion.C ;
 	Matrix I = Composite::I4( S ) ;
 
-	while( error > POINT_TOLERANCE_2D )
+	while( error > POINT_TOLERANCE )
 	{
 		MoriTanakaMatrixInclusionComposite mtFictiousFirst( fictious, crystals.first ) ;
 		mtFictiousFirst.apply() ;
@@ -668,5 +668,5 @@ bool GeneralizedSelfConsistentComposite::converged()
 	Vector r = epsilon.array() ;
 	double rmax = std::abs( r.max() ) ;
 	double rmin = std::abs( r.min() ) ;
-	return std::max( rmax, rmin ) < POINT_TOLERANCE_3D ;
+	return std::max( rmax, rmin ) < POINT_TOLERANCE ;
 }

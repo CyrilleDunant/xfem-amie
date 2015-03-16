@@ -158,7 +158,6 @@ protected:
     size_t lastEnrichmentId ;
 
     bool renumbered ;
-    bool needAssembly ;
     bool needMeshing ;
     bool reuseDisplacements ;
     bool behaviourChange ;
@@ -300,7 +299,7 @@ protected:
                             renorm += fractions[j] ;
                         }
                     }
-                    if ( std::abs ( renorm ) > POINT_TOLERANCE_2D ) {
+                    if ( std::abs ( renorm ) > POINT_TOLERANCE ) {
                         i->getBehaviour()->getDamageModel()->getState ( true ) /= renorm ;
                     }
                 }
@@ -441,7 +440,7 @@ public:
                 }
             }
         }
-        if ( total < POINT_TOLERANCE_2D ) {
+        if ( total < POINT_TOLERANCE ) {
             return 0 ;
         }
         return dam/total ;
@@ -458,7 +457,7 @@ public:
                 }
             }
         }
-        if ( total < POINT_TOLERANCE_2D ) {
+        if ( total < POINT_TOLERANCE ) {
             return 0 ;
         }
         return dam/total ;

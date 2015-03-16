@@ -99,7 +99,7 @@ void StiffnessWithDiffusionDeformationAndFracture::step(double timestep, Element
 	{
 		for(size_t i = 0 ; i < tet->neighbour.size() ; i++)
 		{
-			if(tet->getNeighbour(i)->isTetrahedron())
+			if(tet->getNeighbour(i)->isTetrahedron)
 			{
 				StiffnessWithDiffusionDeformationAndFracture * b = dynamic_cast<StiffnessWithDiffusionDeformationAndFracture *>(dynamic_cast<DelaunayTriangle *>(tet->getNeighbour(i))->getBehaviour()) ;
 				if(b)

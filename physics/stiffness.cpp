@@ -51,6 +51,37 @@ Form * Stiffness::getCopy() const
 	return copy ; 
 }
 
+DerivedStiffness::DerivedStiffness(const Matrix & rig) : LinearForm(Matrix(), false, false, rig.numRows()/3+1), rig(rig)
+{
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(rig.size() > 9)
+    {
+        v.push_back(ZETA);
+    }
+} ;
+
+DerivedStiffness::~DerivedStiffness() { } ;
+
+void DerivedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
+{
+
+    vm->ieval(Gradient(p_i) * rig * Gradient(p_j, true), gp, Jinv,v, ret) ;
+
+}
+
+bool DerivedStiffness::fractured() const
+{
+    return false ;
+}
+
+Form * DerivedStiffness::getCopy() const 
+{
+    DerivedStiffness* copy = new DerivedStiffness( param) ;
+    
+    return copy ; 
+}
+
 
 PseudoPlastic::PseudoPlastic(const Amie::Matrix& rig, double E, double limitStrain, double radius): LinearForm(rig, false, true, rig.numRows()/3+1), alpha(0), radius(radius), change(true), limitStrain(limitStrain)
 {
@@ -93,7 +124,7 @@ void PseudoPlastic::apply(const Function & p_i, const Function & p_j, const Gaus
 
 void PseudoPlastic::step(double timestep, ElementState & currentState, double maxscore)
 {
-	if(timestep > POINT_TOLERANCE_2D)
+	if(timestep > POINT_TOLERANCE)
 	{
 		fixLastDamage() ;
 	}
@@ -105,7 +136,7 @@ void PseudoPlastic::step(double timestep, ElementState & currentState, double ma
 	Vector str = vm->getSmoothedField( PRINCIPAL_REAL_STRESS_FIELD, currentState) ;
 	double maxStress = sqrt( ( ( str[0] - str[1] ) * ( str[0] - str[1] ) + str[0] * str[0] + str[1] * str[1] ) / 2. ) ;
 	
-	if(maxStress > POINT_TOLERANCE_2D)
+	if(maxStress > POINT_TOLERANCE)
 	{
 		alpha = std::max(1.-(vm->threshold/maxStress)*(1.-alpha), lastDamage) ;
 		change = std::abs(alpha-lastalpha) > 1e-6 ;

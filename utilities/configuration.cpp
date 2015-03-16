@@ -796,16 +796,16 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 					if(ultimateTensileStrength < 0 && tensileStrength > 0)
 					{
 						double tensileStrengthDecreaseFactor = getFather()->getData("parameters.tensile_strength_decrease_factor",-1) ;
-						if(tensileStrengthDecreaseFactor > -POINT_TOLERANCE_2D)
+						if(tensileStrengthDecreaseFactor > -POINT_TOLERANCE)
 							ultimateTensileStrength = tensileStrength*(1.-tensileStrengthDecreaseFactor) ;
 					}
 					if(ultimateTensileStrain < 0 && tensileStrain > 0)
 					{
 						double tensileStrainIncreaseFactor = getFather()->getData("parameters.tensile_strain_increase_factor",-1) ;
-						if(tensileStrainIncreaseFactor > -POINT_TOLERANCE_2D)
+						if(tensileStrainIncreaseFactor > -POINT_TOLERANCE)
 							ultimateTensileStrain = tensileStrain*tensileStrainIncreaseFactor ;
 					}
-					if(ultimateTensileStrength > -POINT_TOLERANCE_2D && ultimateTensileStrain > 0)
+					if(ultimateTensileStrength > -POINT_TOLERANCE && ultimateTensileStrain > 0)
 						ptension.push_back( Point(ultimateTensileStrain, ultimateTensileStrength) ) ;
 				}
 				std::vector<Point> pcompression ;
@@ -824,16 +824,16 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 					if(ultimateCompressiveStrength > 0 && compressiveStrength < 0)
 					{
 						double compressiveStrengthDecreaseFactor = getFather()->getData("parameters.compressive_strength_decrease_factor",-1) ;
-						if(compressiveStrengthDecreaseFactor > -POINT_TOLERANCE_2D)
+						if(compressiveStrengthDecreaseFactor > -POINT_TOLERANCE)
 							ultimateCompressiveStrength = compressiveStrength*(1.-compressiveStrengthDecreaseFactor) ;
 					}
 					if(ultimateCompressiveStrain > 0 && compressiveStrain < 0)
 					{
 						double compressiveStrainIncreaseFactor = getFather()->getData("parameters.compressive_strain_increase_factor",-1) ;
-						if(compressiveStrainIncreaseFactor > -POINT_TOLERANCE_2D)
+						if(compressiveStrainIncreaseFactor > -POINT_TOLERANCE)
 							ultimateCompressiveStrain = compressiveStrain*compressiveStrainIncreaseFactor ;
 					}
-					if(ultimateCompressiveStrength < POINT_TOLERANCE_2D && ultimateCompressiveStrain < 0)
+					if(ultimateCompressiveStrength < POINT_TOLERANCE && ultimateCompressiveStrain < 0)
 						pcompression.push_back( Point(ultimateCompressiveStrain, ultimateCompressiveStrength) ) ;
 				}
 				double fmax = getFather()->getData("parameters.maximum_fraction",1.1) ;
@@ -1533,7 +1533,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
 		for(size_t i = 0 ; i < base.size() ; i++)
 		{
 			double newr = vm.eval(f, base[i]->getRadius()) ;
-			if(newr > POINT_TOLERANCE_2D && newr < base[i]->getRadius() - POINT_TOLERANCE_2D)
+			if(newr > POINT_TOLERANCE && newr < base[i]->getRadius() - POINT_TOLERANCE)
 			{
 				Inclusion * inc = new Inclusion( newr, base[i]->getCenter().getX(), base[i]->getCenter().getY()) ;
 				inc->setBehaviour(behaviour) ;

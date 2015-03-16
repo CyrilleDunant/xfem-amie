@@ -1176,7 +1176,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         getField ( REAL_STRESS_FIELD,  p_, strains, true ) ;
-        if ( std::abs ( strains ).max() < POINT_TOLERANCE_2D )
+        if ( std::abs ( strains ).max() < POINT_TOLERANCE )
         {
             ret = 0 ;
             if ( cleanup )
@@ -1206,7 +1206,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         getField ( STRAIN_FIELD,  p_, strains, true ) ;
-        if ( std::abs ( strains ).max() < POINT_TOLERANCE_2D )
+        if ( std::abs ( strains ).max() < POINT_TOLERANCE )
         {
             ret = 0 ;
             if ( cleanup )
@@ -1432,7 +1432,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1459,7 +1459,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1498,7 +1498,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1528,7 +1528,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += (tmp-imp)*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1569,7 +1569,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1600,7 +1600,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += ptmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1636,7 +1636,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1663,7 +1663,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1698,7 +1698,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1725,7 +1725,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1760,7 +1760,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1787,7 +1787,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1822,7 +1822,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1849,7 +1849,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1884,7 +1884,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1911,7 +1911,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1957,7 +1957,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                  total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -1994,7 +1994,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                  total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -2040,7 +2040,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                  total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -2081,7 +2081,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret /= total ;
             }
@@ -2109,7 +2109,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             ret += tmp*gp.gaussPoints[i].second*weights[i] ;
             total += gp.gaussPoints[i].second*weights[i] ;
         }
-        if ( total > POINT_TOLERANCE_2D )
+        if ( total > POINT_TOLERANCE )
         {
             ret /= total ;
         }
@@ -2185,7 +2185,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2215,7 +2215,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2257,7 +2257,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2287,7 +2287,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > POINT_TOLERANCE_2D )
+            if ( total > POINT_TOLERANCE )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2827,7 +2827,7 @@ void ElementState::initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * m
     buffer.resize ( displacements.size() ) ;
     buffer = 0 ;
 
-    if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE_3D && std::abs ( timePos ) < POINT_TOLERANCE_3D )
+    if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
         timePos = -0.1 ;
         previousTimePos = -0.2 ;
@@ -2851,7 +2851,7 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
     buffer.resize ( displacements.size() ) ;
     buffer = 0 ;
 
-    if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE_3D && std::abs ( timePos ) < POINT_TOLERANCE_3D )
+    if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
         timePos = -0.1 ;
         previousTimePos = -0.2 ;

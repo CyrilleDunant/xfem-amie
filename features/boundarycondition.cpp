@@ -1187,10 +1187,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -1280,10 +1280,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -1376,10 +1376,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -1701,10 +1701,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( k ) ) ;
                     }
                     if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
-                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -1760,7 +1760,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Point np ( normal[0], normal[1], normal[2] ) ;
             Point np0 ( -normal[1], normal[0], -normal[2] ) ;
-            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE_2D )
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
             {
                 np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
             }
@@ -1854,10 +1854,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( (int)id[j] == e->getBoundingPoint ( i ).getId() && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -1923,7 +1923,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Point np ( normal[0], normal[1], normal[2] ) ;
             Point np0 ( -normal[1], normal[0], -normal[2] ) ;
-            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE_2D )
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
             {
                 np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
             }
@@ -2869,10 +2869,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( id[j] == e->getBoundingPoint ( i ) && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -2982,10 +2982,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( id[j] == e->getBoundingPoint ( i ) && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -3096,10 +3096,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( id[j] == e->getBoundingPoint ( i ) && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -3420,10 +3420,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( id[j] == e->getBoundingPoint ( i ) && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -3489,7 +3489,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Point np ( normal[0], normal[1], normal[2] ) ;
             Point np0 ( -normal[1], normal[0], -normal[2] ) ;
-            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE_2D )
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
             {
                 np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
             }
@@ -3584,10 +3584,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
                     if ( id[j] == e->getBoundingPoint ( i ) && (
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE_3D  ||
-                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE_3D )
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->fourth ) < POINT_TOLERANCE )
                        )
                     {
                         if ( !first )
@@ -3653,7 +3653,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             Point np ( normal[0], normal[1], normal[2] ) ;
             Point np0 ( -normal[1], normal[0], -normal[2] ) ;
-            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE_2D )
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
             {
                 np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
             }
@@ -4102,7 +4102,7 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
             Point test ( i->getBoundingPoint ( j ) ) ;
             surface->project ( &test );
 
-            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE_2D )
+            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE )
             {
                 points.insert ( &i->getBoundingPoint ( j ) ) ;
             }
@@ -4145,7 +4145,7 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
             Point test ( i->getBoundingPoint ( j ) ) ;
             volume->project ( &test );
 
-            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE_3D )
+            if ( dist ( test, i->getBoundingPoint ( j ) ) < POINT_TOLERANCE )
             {
                 points.insert ( &i->getBoundingPoint ( j ) ) ;
             }
@@ -5323,7 +5323,7 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTri
         Point pmin ( minx, miny, 0., mint ) ;
         Point pmax ( maxx, maxy, 0., maxt ) ;
 
-        double tol = std::max ( std::min ( std::min ( maxx - minx, maxy - miny ), maxt-mint ) * .001, POINT_TOLERANCE_2D ) ;
+        double tol = std::max ( std::min ( std::min ( maxx - minx, maxy - miny ), maxt-mint ) * .001, POINT_TOLERANCE ) ;
 
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
@@ -5799,7 +5799,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
 
         for ( size_t j = 0 ; j < i->neighbour.size() ; j++ )
         {
-            if (i->getNeighbour ( j )->isSpace() )
+            if (i->getNeighbour ( j )->isSpace )
             {
                 space.push_back ( static_cast<DelaunayDemiSpace *> ( i->getNeighbour ( j ) ) ) ;
             }

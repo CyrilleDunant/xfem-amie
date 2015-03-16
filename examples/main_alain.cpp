@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
 	while(F.getCurrentTime() < 120)
 	{
-		disp->setData( 0.01*0.001*F.getCurrentTime()/1000) ;
+		disp->setData( 0.1*0.001*F.getCurrentTime()/1000) ;
 		time_step += 1. ;
 		F.setDeltaTime(time_step) ;
 		F.step() ;

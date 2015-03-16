@@ -138,7 +138,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		double a = values["imposed_deformation"] ;
 		for(size_t i = 0 ; i < 2+(imposed.size()==6) ; i++)
 		    imposed[i] = a ;
-//		if(std::abs(a) < POINT_TOLERANCE_2D)
+//		if(std::abs(a) < POINT_TOLERANCE)
 //		    imposed.resize(0) ;
 
 	}
@@ -287,7 +287,7 @@ void LogarithmicCreepWithExternalParameters::step(double timestep, ElementState 
 
 void LogarithmicCreepWithExternalParameters::preProcess( double timeStep, ElementState & currentState )
 {
-	if( reducedTimeStep > POINT_TOLERANCE_2D)
+	if( reducedTimeStep > POINT_TOLERANCE)
 	{
 		return ;
 	}
@@ -318,7 +318,7 @@ LogarithmicCreepWithExternalParameters::~LogarithmicCreepWithExternalParameters(
 std::vector<BoundaryCondition * > LogarithmicCreepWithExternalParameters::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
 {
     std::vector<BoundaryCondition * > ret = LogarithmicCreep::getBoundaryConditions(s, id, p_i, gp, Jinv ) ;
-    if(imposed.size() == 0 || ((imposed.max() < POINT_TOLERANCE_2D) && (imposed.min() > -POINT_TOLERANCE_2D)) || fractured())
+    if(imposed.size() == 0 || ((imposed.max() < POINT_TOLERANCE) && (imposed.min() > -POINT_TOLERANCE)) || fractured())
         return ret ;
     Vector istress = C*imposed ;
     if(dfunc)

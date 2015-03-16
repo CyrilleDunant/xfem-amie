@@ -153,14 +153,14 @@ double SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(ElementStat
 		if(inter.getX() < before.getX() && inter.getX() > after.getX())
 			return std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 		if(inter.getX() < before.getX() && inter.getX() < after.getX())
-			return std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+			return std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
 	}
 	else
 	{
 		if(inter.getX() > before.getX() && inter.getX() < after.getX())
 			return std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 		if(inter.getX() > before.getX() && inter.getX() > after.getX())
-			return std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+			return std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
 	}
 
 	return -1. ;
@@ -181,7 +181,7 @@ void SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumStress(do
 		targetMaxStress = currentMaxStress ;
 
 	double factor = 0.; 
-	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE)
 		factor = (targetStress-targetMaxStress)/(currentStress-currentMaxStress) ;
 
 	for(size_t i = 0 ; i < stressStrainCurve->size() ; i++)
@@ -208,7 +208,7 @@ void SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximumStrain(do
 		targetMaxStrain = currentMaxStrain ;
 
 	double factor = 0.; 
-	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE)
 		factor = (targetStrain-targetMaxStrain)/(currentStrain-currentMaxStrain) ;
 
 	for(size_t i = 0 ; i < stressStrainCurve->size() ; i++)
@@ -452,7 +452,7 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 			if(inter.getX() > before.getX() && inter.getX() < after.getX())
 				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
-				gtension = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+				gtension = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
 		}
 	}
 
@@ -499,7 +499,7 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 			}
 			else if(inter.getX() < before.getX() && inter.getX() < after.getX())
 			{
-				gcompression = std::min( -POINT_TOLERANCE_2D, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+				gcompression = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
 			}
 		}
 	}
@@ -526,7 +526,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetMaxStress = currentMaxStress ;
 
 	double factor = 0.; 
-	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE)
 		factor = (targetStress-targetMaxStress)/(currentStress-currentMaxStress) ;
 
 	for(size_t i = 0 ; i < tensileStressStrainCurve->size() ; i++)
@@ -556,7 +556,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetMaxStrain = currentMaxStrain ;
 
 	double factor = 0.; 
-	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE)
 		factor = (targetStrain-targetMaxStrain)/(currentStrain-currentMaxStrain) ;
 
 	for(size_t i = 0 ; i < tensileStressStrainCurve->size() ; i++)
@@ -584,7 +584,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetMaxStress = currentMaxStress ;
 
 	double factor = 0.; 
-	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStress-currentMaxStress) > POINT_TOLERANCE)
 		factor = (targetStress-targetMaxStress)/(currentStress-currentMaxStress) ;
 
 	for(size_t i = 0 ; i < compressiveStressStrainCurve->size() ; i++)
@@ -614,7 +614,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 		targetMaxStrain = currentMaxStrain ;
 
 	double factor = 0.; 
-	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE_2D)
+	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE)
 		factor = (targetStrain-targetMaxStrain)/(currentStrain-currentMaxStrain) ;
 
 	for(size_t i = 0 ; i < compressiveStressStrainCurve->size() ; i++)

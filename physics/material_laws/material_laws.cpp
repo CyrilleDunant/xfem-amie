@@ -221,15 +221,15 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
 
 double LinearInterpolatedExternalMaterialLaw::get(double x) const
 {
-    if(x < values.first[0]+POINT_TOLERANCE_2D)
+    if(x < values.first[0]+POINT_TOLERANCE)
         return values.second[0] ;
-    if(x > values.first[values.first.size()-1]-POINT_TOLERANCE_2D)
+    if(x > values.first[values.first.size()-1]-POINT_TOLERANCE)
         return values.second[values.second.size()-1] ;
 
     int i = 0 ;
     while(values.first[i]<x)
     {
-        if(std::abs(values.first[i]-x) < POINT_TOLERANCE_2D)
+        if(std::abs(values.first[i]-x) < POINT_TOLERANCE)
             return values.second[i] ;
         i++ ;
     }

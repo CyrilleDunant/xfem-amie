@@ -165,12 +165,12 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
 
 	if(dummy < 0 && (f == GENERALIZED_VISCOELASTIC_STRAIN_FIELD || f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD || f == STRAIN_FIELD || f == PRINCIPAL_STRAIN_FIELD || f == STRAIN_RATE_FIELD || f == REAL_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD || f == EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == MECHANICAL_STRAIN_FIELD || f == PRINCIPAL_MECHANICAL_STRAIN_FIELD) )
 	{
-		if(std::abs ( t-1 ) < POINT_TOLERANCE_2D)
+		if(std::abs ( t-1 ) < POINT_TOLERANCE)
 		{
 			tmp = getCachedFieldAtGaussPointAfter( f, gp, i, vm) ;
 			cached = true ;
 		}		
-		if(std::abs ( t+1 ) < POINT_TOLERANCE_2D)
+		if(std::abs ( t+1 ) < POINT_TOLERANCE)
 		{
 			tmp = getCachedFieldAtGaussPointBefore( f, gp, i, vm) ;
 			cached = true ;
@@ -188,7 +188,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
         delete vm ;
     }
 
-    if(total < POINT_TOLERANCE_2D)
+    if(total < POINT_TOLERANCE)
 	ret = 0. ;
     else
         ret /= total;
@@ -518,7 +518,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
         vm = new VirtualMachine() ;
     }
 
-    if ( std::abs ( t-1 ) < POINT_TOLERANCE_2D && averagestrainafter.size() > 0 )
+    if ( std::abs ( t-1 ) < POINT_TOLERANCE && averagestrainafter.size() > 0 )
     {
         stress = averagestressafter ;
         strain = averagestrainafter ;
@@ -530,7 +530,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
         return ;
     }
 
-    if ( std::abs ( t+1 ) < POINT_TOLERANCE_2D && averagestrainbefore.size() > 0 )
+    if ( std::abs ( t+1 ) < POINT_TOLERANCE && averagestrainbefore.size() > 0 )
     {
 
         stress = averagestressbefore ;
@@ -543,14 +543,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
         return ;
     }
 
-    if ( std::abs ( t+1 ) < POINT_TOLERANCE_2D )
+    if ( std::abs ( t+1 ) < POINT_TOLERANCE )
     {
         averagestressbefore.resize ( stress.size() );
         averagestrainbefore.resize ( strain.size() );
         averagestrainratebefore.resize ( strain_rate.size() );
     }
 
-    if ( std::abs ( t-1 ) < POINT_TOLERANCE_2D )
+    if ( std::abs ( t-1 ) < POINT_TOLERANCE )
     {
         averagestressafter.resize ( stress.size() );
         averagestrainafter.resize ( strain.size() );
@@ -894,14 +894,14 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
     strain /= total ;
     strain_rate /= total ;
 
-    if ( std::abs ( t+1 ) < POINT_TOLERANCE_2D )
+    if ( std::abs ( t+1 ) < POINT_TOLERANCE )
     {
         averagestressbefore = stress;
         averagestrainbefore = strain;
         averagestrainratebefore = strain_rate;
     }
 
-    if ( std::abs ( t-1 ) < POINT_TOLERANCE_2D )
+    if ( std::abs ( t-1 ) < POINT_TOLERANCE )
     {
         averagestressafter = stress;
         averagestrainafter = strain;

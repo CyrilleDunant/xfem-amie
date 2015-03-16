@@ -38,7 +38,7 @@ void TimeUnderLoadLogCreepAccumulator::preProcess( double timeStep, ElementState
 {
 	LogCreepAccumulator::preProcess(timeStep, currentState) ;
 
-	if(previousTimeStep < POINT_TOLERANCE_2D)
+	if(previousTimeStep < POINT_TOLERANCE)
 		previousTimeStep = timeStep ;
 
         Vector stress(2+(currentState.getParent()->spaceDimensions()==SPACE_THREE_DIMENSIONAL)) ; stress = 0 ;
@@ -60,7 +60,7 @@ void TimeUnderLoadLogCreepAccumulator::preProcess( double timeStep, ElementState
 double TimeUnderLoadLogCreepAccumulator::getKelvinVoigtSpringReduction() const 
 {
 	double t = 0. ;
-	if(accumulatedStress > POINT_TOLERANCE_2D && currentStress > POINT_TOLERANCE_2D)
+	if(accumulatedStress > POINT_TOLERANCE && currentStress > POINT_TOLERANCE)
 		t = accumulatedStress/currentStress ;
 	double x = 1.+t/tau ;
 	return 1./(1.+std::log(x)) ;
@@ -69,7 +69,7 @@ double TimeUnderLoadLogCreepAccumulator::getKelvinVoigtSpringReduction() const
 double TimeUnderLoadLogCreepAccumulator::getKelvinVoigtDashpotReduction() const 
 {
 	double t = 0. ;
-	if(accumulatedStress > POINT_TOLERANCE_2D && currentStress > POINT_TOLERANCE_2D)
+	if(accumulatedStress > POINT_TOLERANCE && currentStress > POINT_TOLERANCE)
 		t = accumulatedStress/currentStress ;
 	return 1.+t/tau ;
 }

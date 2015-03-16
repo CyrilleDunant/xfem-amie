@@ -106,7 +106,7 @@ ElementState * IterativeMaxwell::createElementState( IntegrableEntity * e)
 void IterativeMaxwell::updateElementState(double timestep, ElementState & currentState) const
 {
     LinearForm::updateElementState(timestep, currentState) ;
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
         return ;
     VirtualMachine vm ;
     Vector strain_prev( 0., 3+3*(num_dof == 3)) ;
@@ -130,7 +130,7 @@ void IterativeMaxwell::updateElementState(double timestep, ElementState & curren
 
 void IterativeMaxwell::preProcess( double timeStep, ElementState & currentState )
 {
-    if(timeStep < POINT_TOLERANCE_2D)
+    if(timeStep < POINT_TOLERANCE)
     {
         this->getInstantaneousCoefficients() ;
     }
@@ -325,7 +325,7 @@ void GeneralizedIterativeMaxwell::updateElementState(double timestep, ElementSta
 {
 // 	branches[2]->param = r0 ;
     LinearForm::updateElementState(timestep, currentState) ;
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
     {
         return ;
     }
@@ -364,7 +364,7 @@ void GeneralizedIterativeMaxwell::preProcess( double timeStep, ElementState & cu
 {
     if(currentState.getParent()->getGaussPoints().gaussPoints.size() != imposedStressAtGaussPoints.size())
         this->syncNumberOfGaussPoints(currentState) ;
-    if(timeStep < POINT_TOLERANCE_2D)
+    if(timeStep < POINT_TOLERANCE)
     {
 //		std::cout << param[0][0] << " " ;
 //		this->getInstantaneousCoefficients() ;

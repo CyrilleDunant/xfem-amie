@@ -86,18 +86,18 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 
         maxTensionStrain = (upTestVal+downTestVal)*.5 ;
         maxTension = maxTensionStrain*pseudoYoung ;
-        if(factor < POINT_TOLERANCE_2D)
-            return POINT_TOLERANCE_2D ;
+        if(factor < POINT_TOLERANCE)
+            return POINT_TOLERANCE ;
 
     }
 
     double criterion = 0 ;
-    if(maxTensionStrain > POINT_TOLERANCE_2D)
+    if(maxTensionStrain > POINT_TOLERANCE)
         criterion = std::abs(tstress/(maxTension)) ;
 
     return -1.+criterion ;
 
-    return POINT_TOLERANCE_2D ;
+    return POINT_TOLERANCE ;
 }
 
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
@@ -149,7 +149,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& 
     }
 
     double criterion = 0 ;
-    if(maxTension > POINT_TOLERANCE_2D)
+    if(maxTension > POINT_TOLERANCE)
         criterion = std::abs(tstress/maxTension) ;
     else
         criterion = tstress+1 ;
@@ -169,7 +169,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 // 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 // 	{
 // 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->getT()ensionFailure)
-// 			return POINT_TOLERANCE_2D ;
+// 			return POINT_TOLERANCE ;
 // 	}
 
     if(!rebarLocationsAndDiameters.empty() && !inRebarInfluence && distanceToRebar < 0 && effectiveInfluenceDistance < 0)
@@ -226,7 +226,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 // 	if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel()))
 // 	{
 // 		if(dynamic_cast<RotatingCrack *>(s.getParent()->getBehaviour()->getDamageModel())->compressionFailure)
-// 			return POINT_TOLERANCE_2D ;
+// 			return POINT_TOLERANCE ;
 // 	}
     double maxCompression = downVal  ;
 
@@ -237,7 +237,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
     if( cstrain < 0.1*critStrain )
     {
         double C_d = 0. ;
-        double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE_2D)) ;
+        double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE)) ;
 
         if(-compressiveTensileRatio > 0.28000)
             C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
@@ -267,7 +267,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 
     double criterion = 0 ;
 
-    if(std::abs(maxCompression) > POINT_TOLERANCE_2D)
+    if(std::abs(maxCompression) > POINT_TOLERANCE)
         criterion = std::abs(cstress/maxCompression) ;
 
 
@@ -285,7 +285,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 // 		stressc = criterion ;
 // 	}
     return stressc ;
-    return POINT_TOLERANCE_2D ;
+    return POINT_TOLERANCE ;
 }
 
 double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, double strain_te, double eps)
@@ -384,7 +384,7 @@ void NonLocalMCFT::initialise( ElementState &s)
 // 		return std::make_pair(0, 0) ;
 //
 // 	double r = delta_t/delta_n ;
-// 	if(std::abs(delta_n) < POINT_TOLERANCE_2D)
+// 	if(std::abs(delta_n) < POINT_TOLERANCE)
 // 		r = 0 ;
 // 	double f = a3+a4*std::abs(r*r*r) ;
 // 	double g = 1.+a4*r*r*r*r ;
@@ -442,7 +442,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         secondCompression = cstress < 0 ;
 
 
-        if(cpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus )
+        if(cpseudoYoung0 > POINT_TOLERANCE*youngModulus )
         {
 
             ccrit0 = getConcreteCompressiveCriterion(s, cpseudoYoung0, cstrain, tstress, cstress) ;
@@ -451,7 +451,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
                 firstMet = true ;
         }
 
-        if(tpseudoYoung0 > POINT_TOLERANCE_2D*youngModulus )
+        if(tpseudoYoung0 > POINT_TOLERANCE*youngModulus )
         {
             tcrit0 = getConcreteTensileCriterion(s, tpseudoYoung0, tstrain, tstress) ;
 
@@ -471,7 +471,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
             firstTension = true ;
         }
 
-        if(cpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus )
+        if(cpseudoYoung1 > POINT_TOLERANCE*youngModulus )
         {
             ccrit1 = getConcreteCompressiveCriterion(s, cpseudoYoung1, cstrain, tstress, cstress) ;
 
@@ -482,7 +482,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
             }
         }
 
-        if(tpseudoYoung1 > POINT_TOLERANCE_2D*youngModulus )
+        if(tpseudoYoung1 > POINT_TOLERANCE*youngModulus )
         {
             tcrit1 = getConcreteTensileCriterion(s, tpseudoYoung1, tstrain, tstress) ;
             if(tcrit1 > 0 && tcrit1 > ccrit0 && tcrit1 > tcrit0 && tcrit1 > ccrit1)
@@ -512,13 +512,13 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         double ccrit = -1 ;
         double tcrit = -1 ;
 
-        if(firstTension && tpseudoYoung > POINT_TOLERANCE_2D)
+        if(firstTension && tpseudoYoung > POINT_TOLERANCE)
         {
             tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
             firstMet = true ;
         }
 
-        if(secondCompression && cpseudoYoung > POINT_TOLERANCE_2D)
+        if(secondCompression && cpseudoYoung > POINT_TOLERANCE)
         {
             ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain, tstress, cstress) ;
             secondMet = true ;
@@ -533,13 +533,13 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         double ccrit = -1 ;
         double tcrit = -1 ;
 
-        if(firstTension && tpseudoYoung > POINT_TOLERANCE_2D)
+        if(firstTension && tpseudoYoung > POINT_TOLERANCE)
         {
             tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
             firstMet = true ;
         }
 
-        if(secondCompression && cpseudoYoung > POINT_TOLERANCE_2D)
+        if(secondCompression && cpseudoYoung > POINT_TOLERANCE)
         {
             ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain,tstress, cstress) ;
             secondMet = true ;

@@ -164,7 +164,7 @@ public:
     
     virtual ~ElementState() { } ;
 
-    ElementState & operator = ( Amie::ElementState& s ) ;
+    ElementState & operator = ( ElementState& s ) ;
 
     virtual void getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr ) const ;
 
@@ -186,9 +186,9 @@ public:
 
     virtual void getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
 
-    virtual double getAverageField ( Amie::FieldType f, Vector& ret, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>() ) ;
+    virtual double getAverageField ( FieldType f, Vector& ret, VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>() ) ;
 
-    virtual double getAverageField ( Amie::FieldType f, Amie::FieldType f_, Vector& ret, Vector& ret_, Amie::VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>() )  ;
+    virtual double getAverageField ( FieldType f, FieldType f_, Vector& ret, Vector& ret_, VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>() )  ;
 
     /** \brief return displacements at the nodes of the element*/
     const Vector & getDisplacements() const;
@@ -255,7 +255,7 @@ public:
     }
 
     virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
 
     const Mesh< DelaunayTriangle, DelaunayTreeItem > * getMesh2D() const {
         return mesh2d ;
@@ -320,7 +320,7 @@ public:
     virtual void getFieldAtGaussPoint ( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) ;
 
     virtual void initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * msh ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
 
     virtual void setInternalVariableAtGaussPoint ( Vector & v, size_t g, int i ) ;
 
@@ -342,8 +342,8 @@ public:
         return states.size() ;
     }
 
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
     virtual void step ( double dt, const Vector* d ) ;
 
 } ;
@@ -365,8 +365,8 @@ public:
         return states.size() ;
     }
 
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* msh ) ;
-    virtual void initialize ( Amie::Mesh< Amie::DelaunayTriangle, Amie::DelaunayTreeItem >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh ) ;
+    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
     virtual void step ( double dt, const Vector* d ) ;
 
 } ;

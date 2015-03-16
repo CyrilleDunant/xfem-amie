@@ -283,8 +283,7 @@ return this->LevelSet::timePlanes() ;                 \
 namespace Amie
 {
 
-static const double POINT_TOLERANCE_2D =  1e-12 ;//std::numeric_limits<double>::epsilon() ;
-static const double POINT_TOLERANCE_3D =  1e-12 ;//std::numeric_limits<double>::epsilon() ;
+static const double POINT_TOLERANCE =  1e-12 ;//std::numeric_limits<double>::epsilon() ;
 
 /** \brief defines the implemented geometries */
 typedef enum
@@ -1094,7 +1093,7 @@ public:
     {
 
         double n = norm();
-        if(n > POINT_TOLERANCE_2D)
+        if(n > POINT_TOLERANCE)
         {
             Vector ret(2) ;
             ret[0] = -vec.getY()/n ;

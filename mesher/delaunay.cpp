@@ -477,7 +477,7 @@ void DelaunayTree::extrude(double dt)
             next->getT() = tri[i]->getBoundingPoint(j).getT() ;
             next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
             bool increment = true ;
-            if(std::abs(next->getT() - end) < POINT_TOLERANCE_2D)
+            if(std::abs(next->getT() - end) < POINT_TOLERANCE)
             {
                 next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
                 increment = false ;
@@ -890,13 +890,13 @@ void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visited,std::vector<D
             {
                 DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getStepson(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
             if(getStepson(i)->isDeadTriangle)
             {
                 DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getStepson(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
 
             if( (getStepson(i)->inCircumCircle(*p)) || limit)
@@ -916,13 +916,13 @@ void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visited,std::vector<D
             {
                 DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getSon(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
             if(getSon(i)->isDeadTriangle)
             {
                 DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getSon(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
 
             if( (getSon(i)->inCircumCircle(*p)) || limit)
@@ -947,13 +947,13 @@ void DelaunayTreeItem::flatConflicts(std::valarray<bool> & visited,std::vector<D
             {
                 DelaunayTriangle * t = static_cast<DelaunayTriangle *>(getNeighbour(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
             if(getNeighbour(i)->isDeadTriangle)
             {
                 DelaunayDeadTriangle * t = static_cast<DelaunayDeadTriangle *>(getNeighbour(i)) ;
                 limit = std::abs(squareDist2D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
             }
             // 		limit = true ;
             if( (getNeighbour(i)->inCircumCircle(*p)) || limit)
@@ -1238,7 +1238,7 @@ bool DelaunayDeadTriangle::onCircumCircle(const Point & p) const
         return false ;
 
     double d = squareDist2D(center, p) ;
-    return  std::abs(d/(radius*radius)-1) < POINT_TOLERANCE_2D/radius ;
+    return  std::abs(d/(radius*radius)-1) < POINT_TOLERANCE/radius ;
 }
 
 bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
@@ -1256,7 +1256,7 @@ bool DelaunayDeadTriangle::inCircumCircle(const Point & p) const
 
 
     double d = squareDist2D(center, p) ;
-    return  d/(radius*radius)-1 < POINT_TOLERANCE_2D/radius ;
+    return  d/(radius*radius)-1 < POINT_TOLERANCE/radius ;
 
 }
 
@@ -1546,7 +1546,7 @@ bool DelaunayTriangle::inCircumCircle(const Point &p) const
         return false ;
 
     double d = dist(circumCenter, p) ;
-    return  d/radius-1 < POINT_TOLERANCE_2D ;
+    return  d/radius-1 < POINT_TOLERANCE ;
 }
 
 bool DelaunayTriangle::onCircumCircle(const Point &p) const
@@ -1561,7 +1561,7 @@ bool DelaunayTriangle::onCircumCircle(const Point &p) const
         return false ;
 
     double d = dist(getCircumCenter(), p) ;
-    return  std::abs(d/radius-1) < POINT_TOLERANCE_2D ;
+    return  std::abs(d/radius-1) < POINT_TOLERANCE ;
 }
 
 
@@ -1639,12 +1639,12 @@ std::pair< Point*,  Point*> DelaunayDemiPlane::nearestEdge(const Point & p) cons
 
 bool DelaunayDemiPlane::inCircumCircle(const Point &p) const
 {
-    return fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction < -POINT_TOLERANCE_2D ;
+    return fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction < -POINT_TOLERANCE ;
 }
 
 bool DelaunayDemiPlane::onCircumCircle(const Point &p) const
 {
-    return std::abs(fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction) < POINT_TOLERANCE_2D || isAligned(p, *first, *second);
+    return std::abs(fma(vector.getX(),(p.getY() - first->getY()), - vector.getY()*(p.getX() - first->getX())) * direction) < POINT_TOLERANCE || isAligned(p, *first, *second);
 }
 
 bool DelaunayDemiPlane::isVertex(const Point *p) const
@@ -2635,7 +2635,7 @@ void DelaunayTriangle::scaleCachedViscousElementaryMatrix(double s)
 
 void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double nextTimeStep)
 {
-    if(std::abs(previousTimeStep- nextTimeStep) < POINT_TOLERANCE_2D )
+    if(std::abs(previousTimeStep- nextTimeStep) < POINT_TOLERANCE )
         return ;
 
     if( getBehaviour() && !getBehaviour()->isViscous() )
@@ -2762,7 +2762,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
 // 						for(int k = 0 ; k < to_add.size()  ; k++ )
 // 						{
 // 							if(squareDist2D(&test, to_add[k])
-// 							   < POINT_TOLERANCE_2D)
+// 							   < POINT_TOLERANCE)
 // 							{
 // 								go = false ;
 // 								break ;
@@ -2793,7 +2793,7 @@ std::vector<Point *> DelaunayTriangle::getIntegrationHints() const
                 Point pr = *to_add[k] ;
                 tf.project(&pr) ;
                 if(dist(getEnrichmentFunction(i).getIntegrationHint(j), *to_add[k])
-                        < 0.001 || (dist(*to_add[k], pr) < 0.001 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE_2D))
+                        < 0.001 || (dist(*to_add[k], pr) < 0.001 && dist(*to_add[k], pr) > 2.*POINT_TOLERANCE))
                 {
                     go = false ;
                     break ;
@@ -2905,9 +2905,9 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
 
                 while(gp_alternative.size() < target)
                 {
-                    for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+                    for(double i = 0 ; i <= 1 ; i += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
                     {
-                        for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE_2D)/(npoints+1))
+                        for(double j = 0 ; j <= 1 ; j += 2.*(1.-POINT_TOLERANCE)/(npoints+1))
                         {
                             Point test = Point(i,j);
 // 							inLocalCoordinates(test).print();
@@ -2997,15 +2997,15 @@ const GaussPointArray & DelaunayTriangle::getSubTriangulatedGaussPoints()
                         enrichmentSource[l]->project(&q2) ;
                         q2 = inLocalCoordinates(q2) ;
 
-                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && f.in(q0) && squareDist2D(q0,*q.second[0]) < squareDist2D(*q.second[0], tri[j]->getCenter()))
+                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q0) && squareDist2D(q0,*q.second[0]) < squareDist2D(*q.second[0], tri[j]->getCenter()))
                         {
                             *q.second[0] = q0 ;
                         }
-                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && f.in(q1)&& squareDist2D(q1,*q.second[1]) < squareDist2D(*q.second[1], tri[j]->getCenter()))
+                        if(squareDist2D(p0, *tri[j]->first) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q1)&& squareDist2D(q1,*q.second[1]) < squareDist2D(*q.second[1], tri[j]->getCenter()))
                         {
                             *q.second[1] = q1 ;
                         }
-                        if(squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D && f.in(q2)&& squareDist2D(q2,*q.second[2]) < squareDist2D(*q.second[2], tri[j]->getCenter()))
+                        if(squareDist2D(p1, *tri[j]->second) < POINT_TOLERANCE*POINT_TOLERANCE && squareDist2D(p2, *tri[j]->third) < POINT_TOLERANCE*POINT_TOLERANCE && f.in(q2)&& squareDist2D(q2,*q.second[2]) < squareDist2D(*q.second[2], tri[j]->getCenter()))
                         {
                             *q.second[2] = q2 ;
                         }

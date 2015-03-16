@@ -72,12 +72,12 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
         ret[1] = tensionDamagey*(getState()[1] < thresholdDamageDensity);
 
     }
-    if(ret.max() > POINT_TOLERANCE_2D)
+    if(ret.max() > POINT_TOLERANCE)
         ret /= ret.max() ;
     Vector factor = -(state-1.) ;
 
     for(size_t i = 0 ; i < ret.size() ; i++)
-        if(ret[i] < POINT_TOLERANCE_2D)
+        if(ret[i] < POINT_TOLERANCE)
             ret[i] = 1 ;
 
     factor /= ret ;
@@ -123,12 +123,12 @@ void AnisotropicLinearDamage::computeDelta(const ElementState & s)
         ret[1] = tensionDamagey*(getState()[1] < thresholdDamageDensity);
 
     }
-    if(ret.max() > POINT_TOLERANCE_2D)
+    if(ret.max() > POINT_TOLERANCE)
         ret /= ret.max() ;
     Vector factor = -(state-1.) ;
 
     for(size_t i = 0 ; i < ret.size() ; i++)
-        if(ret[i] < POINT_TOLERANCE_2D)
+        if(ret[i] < POINT_TOLERANCE)
             ret[i] = 1 ;
 
     factor /= ret ;
@@ -138,7 +138,7 @@ void AnisotropicLinearDamage::computeDelta(const ElementState & s)
 
 Matrix AnisotropicLinearDamage::apply(const Matrix & m, const Point & p, const IntegrableEntity * e, int g ) const
 {
-    if(state.max() < POINT_TOLERANCE_2D)
+    if(state.max() < POINT_TOLERANCE)
         return m ;
     Matrix ret(m) ;
 

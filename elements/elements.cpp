@@ -1935,8 +1935,8 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
                 }
             }
         }
-        dXXdxx.threshold( POINT_TOLERANCE_3D ) ;
-        tj2.threshold( POINT_TOLERANCE_3D ) ;
+        dXXdxx.threshold( POINT_TOLERANCE ) ;
+        tj2.threshold( POINT_TOLERANCE ) ;
 
         Matrix c1(6,3) ;
         for(int X = 0 ; X < 3 ; X++)
@@ -2018,7 +2018,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
                     for(int c = 0 ; c < 3 ; c++)
                     {
                         tn3(a,b,c) = vm.dddeval( getShapeFunction(i), var[a], var[b], var[c],p.getX(),p.getY(),p.getZ(),p.getT()) ;
-                        tn3.threshold(POINT_TOLERANCE_3D) ;
+                        tn3.threshold(POINT_TOLERANCE) ;
                         tj2(a,b,c) += tn2(a,b)*tp(c)  ;
                         for(int d = 0 ; d < 3 ; d++)
                             tj3(a,b,c,d) += tn3(a,b,c)*tp(d) ;
@@ -2027,10 +2027,10 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
             }
         }
 
-        tjinv.threshold( POINT_TOLERANCE_3D ) ;
-        tj1.threshold(POINT_TOLERANCE_3D) ;
-        tj2.threshold(POINT_TOLERANCE_3D) ;
-        tj3.threshold(POINT_TOLERANCE_3D) ;
+        tjinv.threshold( POINT_TOLERANCE ) ;
+        tj1.threshold(POINT_TOLERANCE) ;
+        tj2.threshold(POINT_TOLERANCE) ;
+        tj3.threshold(POINT_TOLERANCE) ;
 
         Matrix T1 ;
         Matrix T2 ;
@@ -2172,9 +2172,9 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
             }
         }
 
-        dXXXdx.threshold( POINT_TOLERANCE_3D ) ;
-        dXXXdxx.threshold( POINT_TOLERANCE_3D ) ;
-        dXXXdxxx.threshold( POINT_TOLERANCE_3D ) ;
+        dXXXdx.threshold( POINT_TOLERANCE ) ;
+        dXXXdxx.threshold( POINT_TOLERANCE ) ;
+        dXXXdxxx.threshold( POINT_TOLERANCE ) ;
 
         Matrix m1 = dXXXdx.toMatrix(3,1) ;
         Matrix m2 = dXXXdxx.toMatrix(3,2) ;
@@ -2422,7 +2422,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
         		{
         			for(size_t j = 0 ; j < j2.numCols() ; j++)
         			{
-        				if( std::abs(j2[i][j]) < POINT_TOLERANCE_3D)
+        				if( std::abs(j2[i][j]) < POINT_TOLERANCE)
         					j2[i][j] = 0 ;
         			}
         		}
@@ -2431,7 +2431,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
         		{
         			for(size_t j = 0 ; j < j3.numCols() ; j++)
         			{
-        				if( std::abs(j3[i][j]) < POINT_TOLERANCE_3D)
+        				if( std::abs(j3[i][j]) < POINT_TOLERANCE)
         					j3[i][j] = 0 ;
         			}
         		}*/
@@ -4619,7 +4619,9 @@ void ElementaryVolume::setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem
         delete state ;
     }
     state = f->createElementState( this ) ;
-//	Form * old = behaviour ;
+//  Form * old = behaviour ;
+
+    delete behaviour ;
     behaviour = f ;
     if(init)
     {

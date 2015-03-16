@@ -2354,11 +2354,11 @@ Matrix VirtualMachine::gdeval(const Function &f, const Matrix & m, const std::ve
 // 				std::cout << dxi*m[1][0] << "\t" << deta*m[1][1] << "\t" << dtau*m[1][2] << std::endl ;
 //  				std::cout << dxi << "\t" << deta << "\t" << dtau << std::endl ;
 
-                if(std::abs(dxi) < POINT_TOLERANCE_3D)
+                if(std::abs(dxi) < POINT_TOLERANCE)
                     dxi = 0 ;
-                if(std::abs(deta) < POINT_TOLERANCE_3D)
+                if(std::abs(deta) < POINT_TOLERANCE)
                     deta = 0 ;
-                if(std::abs(dtau) < POINT_TOLERANCE_3D)
+                if(std::abs(dtau) < POINT_TOLERANCE)
                     dtau = 0 ;
 
                 Matrix ret(3,2) ;
@@ -3456,10 +3456,10 @@ void VirtualMachine::ieval(const DdGtMtG & d, const GaussPointArray &gp_, const 
 // 			ret.print() ;
 
 
-        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE_2D)
+        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE)
         {
 
             std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;
@@ -3624,10 +3624,10 @@ void VirtualMachine::ieval(const DdGtMtGD & d, const GaussPointArray &gp_, const
             gp_b.gaussPoints[i].first.getT() -= default_derivation_delta*100 ;
 
 
-        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE_2D ||
-                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE_2D)
+        if(std::abs(Jinv[0][0][dim]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][1][dim]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][dim][0]) > POINT_TOLERANCE ||
+                std::abs(Jinv[0][dim][1]) > POINT_TOLERANCE)
         {
 
             std::valarray<Matrix> domega (ievalDecomposed(d.second, gp_, Jinv, vars)) ;

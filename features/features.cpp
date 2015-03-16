@@ -149,7 +149,6 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     father2D = nullptr ;
     elemOrder = LINEAR ;
     renumbered = false ;
-    needAssembly = true ;
     setBehaviours = false ;
     behaviourChange = true ;
     solverConvergence = false ;
@@ -212,7 +211,6 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     father2D = nullptr ;
     elemOrder = LINEAR ;
     renumbered = false ;
-    needAssembly = true ;
     setBehaviours = true ;
     behaviourChange = false ;
     solverConvergence = false ;
@@ -704,20 +702,20 @@ bool FeatureTree::inRoot ( const Point &p ) const
 
     if ( is2D() )
     {
-        Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE_2D ) ;
-        Point p1 ( p.getX(), p.getY() - POINT_TOLERANCE_2D ) ;
-        Point p2 ( p.getX() + POINT_TOLERANCE_2D, p.getY() ) ;
-        Point p3 ( p.getX() - POINT_TOLERANCE_2D, p.getY() ) ;
+        Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE ) ;
+        Point p1 ( p.getX(), p.getY() - POINT_TOLERANCE ) ;
+        Point p2 ( p.getX() + POINT_TOLERANCE, p.getY() ) ;
+        Point p3 ( p.getX() - POINT_TOLERANCE, p.getY() ) ;
         return ( tree[0]->in ( p ) || tree[0]->in ( p0 ) || tree[0]->in ( p1 ) || tree[0]->in ( p2 ) || tree[0]->in ( p3 ) ) ;
     }
     else
     {
-        Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE_3D, p.getZ() ) ;
-        Point p1 ( p.getX(), p.getY() - POINT_TOLERANCE_3D, p.getZ() ) ;
-        Point p2 ( p.getX() + POINT_TOLERANCE_3D, p.getY(), p.getZ() ) ;
-        Point p3 ( p.getX() - POINT_TOLERANCE_3D, p.getY(), p.getZ() ) ;
-        Point p4 ( p.getX(), p.getY(), p.getZ() + POINT_TOLERANCE_3D ) ;
-        Point p5 ( p.getX(), p.getY(), p.getZ() - POINT_TOLERANCE_3D ) ;
+        Point p0 ( p.getX(), p.getY() + POINT_TOLERANCE, p.getZ() ) ;
+        Point p1 ( p.getX(), p.getY() - POINT_TOLERANCE, p.getZ() ) ;
+        Point p2 ( p.getX() + POINT_TOLERANCE, p.getY(), p.getZ() ) ;
+        Point p3 ( p.getX() - POINT_TOLERANCE, p.getY(), p.getZ() ) ;
+        Point p4 ( p.getX(), p.getY(), p.getZ() + POINT_TOLERANCE ) ;
+        Point p5 ( p.getX(), p.getY(), p.getZ() - POINT_TOLERANCE ) ;
         return ( tree[0]->in ( p ) || tree[0]->in ( p0 ) || tree[0]->in ( p1 ) || tree[0]->in ( p2 ) || tree[0]->in ( p3 ) || tree[0]->in ( p4 ) || tree[0]->in ( p5 ) ) ;
     }
 }
@@ -767,8 +765,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 tree[j]->project ( &proj_3 ) ;
                 
                 if (
-                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -794,11 +792,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -806,7 +804,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -824,8 +822,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 }
 
                 if (
-                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -852,11 +850,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -864,7 +862,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -882,8 +880,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 }
 
                 if (
-                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -909,11 +907,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -921,7 +919,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -939,8 +937,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 }
 
                 if (
-                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -966,11 +964,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -978,7 +976,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -996,8 +994,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 }
 
                 if (
-                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_1 , *tets[i]->second ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_3 , *tets[i]->fourth ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -1023,11 +1021,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -1035,7 +1033,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -1053,8 +1051,8 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                 }
 
                 if (
-                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D &&
-                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D
+                    squareDist3D ( proj_0 , *tets[i]->first ) < POINT_TOLERANCE * POINT_TOLERANCE &&
+                    squareDist3D ( proj_2 , *tets[i]->third ) < POINT_TOLERANCE * POINT_TOLERANCE
                 )
                 {
                     count++;
@@ -1080,11 +1078,11 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
                             dtest = std::max(dtest, dist(originalPoints[ni],tets[i]->getBoundingPoint ( k ))) ;
                         }
 
-                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D &&
-                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE_2D &&
+                        if ( tets[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE &&
+                                tets[i]->jacobianAtPoint ( e ) > POINT_TOLERANCE &&
                                 dtest < 0.1*tets[i]->getRadius()
                            )
                         {
@@ -1092,7 +1090,7 @@ void FeatureTree::projectTetrahedronsOnBoundaries ( size_t edge, size_t time )
 
                             for ( size_t j = 0 ; j < 4 ; j++ )
                             {
-                                if ( tets[i]->getNeighbour ( j )->isTetrahedron() )
+                                if ( tets[i]->getNeighbour ( j )->isTetrahedron )
                                 {
                                     dynamic_cast<DelaunayTetrahedron *> ( tets[i]->getNeighbour ( j ) )->moved = true ;
                                 }
@@ -1182,9 +1180,9 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                     tree[j]->project ( &proj_2 ) ;
                     bool changed  = true;
 
-                    if ( squareDist2D ( &proj_0 , triangles[i]->first ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_1 , triangles[i]->second ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_2 , triangles[i]->third ) > 10.*POINT_TOLERANCE_2D )
+                    if ( squareDist2D ( &proj_0 , triangles[i]->first ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_1 , triangles[i]->second ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_2 , triangles[i]->third ) > 10.*POINT_TOLERANCE )
                     {
                         count += changed ;
                         changed = false ;
@@ -1200,10 +1198,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
                                )
                             {
                                 triangles[i]->moved = true ;
@@ -1229,9 +1227,9 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 // 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(1)->getX() << ", " << (*triangles)[i]->getBoundingPoint(1)->getY() << std::endl ;
                     }
 
-                    if ( squareDist2D ( &proj_1 , triangles[i]->second ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_2 , triangles[i]->third ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_0 , triangles[i]->first ) > 10.*POINT_TOLERANCE_2D
+                    if ( squareDist2D ( &proj_1 , triangles[i]->second ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_2 , triangles[i]->third ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_0 , triangles[i]->first ) > 10.*POINT_TOLERANCE
                        )
                     {
                         count += changed ;
@@ -1248,10 +1246,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
                                )
                             {
                                 triangles[i]->moved = true ;
@@ -1277,9 +1275,9 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 // 						std::cerr << "--> " << (*triangles)[i]->getBoundingPoint(3)->getX() << ", " << (*triangles)[i]->getBoundingPoint(3)->getY() << std::endl ;
                     }
 
-                    if ( squareDist2D ( &proj_2 , triangles[i]->third ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_0, triangles[i]->first ) < POINT_TOLERANCE_2D &&
-                            squareDist2D ( &proj_1, triangles[i]->second ) > 10.*POINT_TOLERANCE_2D
+                    if ( squareDist2D ( &proj_2 , triangles[i]->third ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_0, triangles[i]->first ) < POINT_TOLERANCE &&
+                            squareDist2D ( &proj_1, triangles[i]->second ) > 10.*POINT_TOLERANCE
                        )
                     {
                         count += changed ;
@@ -1296,10 +1294,10 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
                                 tree[j]->project ( &triangles[i]->getBoundingPoint ( k ) ) ;
                             }
 
-                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE_2D &&
-                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE_2D
+                            if ( triangles[i]->jacobianAtPoint ( a ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( b ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( c ) > POINT_TOLERANCE &&
+                                    triangles[i]->jacobianAtPoint ( d ) > POINT_TOLERANCE
                                )
                             {
                                 triangles[i]->moved = true ;
@@ -1390,7 +1388,7 @@ void FeatureTree::stitch()
                     projectTrianglesOnBoundaries ( 3, 2 ) ;
                     break ;
                 default:
-                    std::cout << "unsupported order" << std::endl ;
+                    std::cerr << "unsupported order" << std::endl ;
                     exit(0) ;
                     break ;
                 }
@@ -1443,7 +1441,7 @@ void FeatureTree::stitch()
                     projectTetrahedronsOnBoundaries ( 3, 2 ) ;
                     break ;
                 default: 
-                   std::cout << "unsupported order" << std::endl ;
+                   std::cerr << "unsupported order" << std::endl ;
                     exit(0) ;
                     break ;
                 }
@@ -1530,15 +1528,15 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
                 for ( size_t j = 0 ; j < pointsToAdd.size() ; j++ )
                 {
-                    if ( uniquea && dist ( a, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniquea && dist ( a, pointsToAdd[j] ) < POINT_TOLERANCE )
                     {
                         uniquea = false ;
                     }
-                    if ( uniqueb && dist ( b, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniqueb && dist ( b, pointsToAdd[j] ) < POINT_TOLERANCE )
                     {
                         uniqueb = false ;
                     }
-                    if ( uniquec && dist ( c, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniquec && dist ( c, pointsToAdd[j] ) < POINT_TOLERANCE )
                     {
                         uniquec = false ;
                     }
@@ -1550,15 +1548,15 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
                 for ( size_t j = 0 ; j < illegalPoints.size() ; j++ )
                 {
-                    if ( uniquea && dist ( a, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniquea && dist ( a, illegalPoints[j] ) < POINT_TOLERANCE )
                     {
                         uniquea = false ;
                     }
-                    if ( uniqueb && dist ( b, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniqueb && dist ( b, illegalPoints[j] ) < POINT_TOLERANCE )
                     {
                         uniqueb = false ;
                     }
-                    if ( uniquec && dist ( c, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                    if ( uniquec && dist ( c, illegalPoints[j] ) < POINT_TOLERANCE )
                     {
                         uniquec = false ;
                     }
@@ -1608,15 +1606,15 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
             for ( size_t j = 0 ; j < pointsToAdd.size() ; j++ )
             {
-                if ( uniquea && dist ( a, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                if ( uniquea && dist ( a, pointsToAdd[j] ) < POINT_TOLERANCE )
                 {
                     uniquea = false ;
                 }
-                if ( uniqueb && dist ( b, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                if ( uniqueb && dist ( b, pointsToAdd[j] ) < POINT_TOLERANCE )
                 {
                     uniqueb = false ;
                 }
-                if ( uniquec && dist ( c, pointsToAdd[j] ) < POINT_TOLERANCE_2D )
+                if ( uniquec && dist ( c, pointsToAdd[j] ) < POINT_TOLERANCE )
                 {
                     uniquec = false ;
                 }
@@ -1628,15 +1626,15 @@ void FeatureTree::quadTreeRefine ( const Geometry * location )
 
             for ( size_t j = 0 ; j < illegalPoints.size() ; j++ )
             {
-                if ( uniquea && dist ( a, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                if ( uniquea && dist ( a, illegalPoints[j] ) < POINT_TOLERANCE )
                 {
                     uniquea = false ;
                 }
-                if ( uniqueb && dist ( b, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                if ( uniqueb && dist ( b, illegalPoints[j] ) < POINT_TOLERANCE )
                 {
                     uniqueb = false ;
                 }
-                if ( uniquec && dist ( c, illegalPoints[j] ) < POINT_TOLERANCE_2D )
+                if ( uniquec && dist ( c, illegalPoints[j] ) < POINT_TOLERANCE )
                 {
                     uniquec = false ;
                 }
@@ -1708,7 +1706,7 @@ void FeatureTree::sample()
                     tree[i]->isUpdated = false ;
                 }
 
-                if ( shape_factor < POINT_TOLERANCE_2D )
+                if ( shape_factor < POINT_TOLERANCE )
                 {
                     continue ;
                 }
@@ -1775,7 +1773,7 @@ void FeatureTree::sample()
 
 //				tree[i]->addMeshPointsInFather() ;
             }
-            std::cout << count << " particles meshed" << std::endl ;
+            std::cerr << count << " particles meshed" << std::endl ;
         }
         else if ( is3D() )
         {
@@ -1878,7 +1876,7 @@ void FeatureTree::sample()
                     }
                     double shape_factor = ( sqrt ( tree[0]->area() ) / ( 2.*M_PI * tree[0]->getRadius() ) ) / ( sqrt ( tree[i]->area() ) / ( 2.*M_PI * tree[i]->getRadius() ) );
 
-                    if ( shape_factor < POINT_TOLERANCE_2D )
+                    if ( shape_factor < POINT_TOLERANCE )
                     {
                         continue ;
                     }
@@ -1960,7 +1958,7 @@ void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
             }
         }
 
-        std::cout << count << " non-conformant triangles " << std::endl ;
+        std::cerr << count << " non-conformant triangles " << std::endl ;
 
         for ( auto j = dtree->begin() ; j != dtree->end()  ; j++ )
         {
@@ -1971,7 +1969,7 @@ void FeatureTree::refine ( size_t nit, SamplingCriterion *cri )
                 if ( !temp.empty() )
                 {
                     std::random_shuffle ( temp.begin(), temp.end() ) ;
-                    std::cout << "inserting " << temp.size() << " points" << std::endl ;
+                    std::cerr << "inserting " << temp.size() << " points" << std::endl ;
 
                     for ( size_t i = 0 ; i < temp.size() ; i++ )
                     {
@@ -4289,8 +4287,6 @@ void FeatureTree::solve()
     delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << "\rApplying coundary conditions... " << boundaryCondition.size() << "/" << boundaryCondition.size() << "...done  Time (s) " << delta / 1e6 << std::endl  ;
 
-    needAssembly = true ;
-
     if ( solverConvergence || reuseDisplacements )
     {
 
@@ -4354,7 +4350,6 @@ void FeatureTree::stepXfem()
                 if ( moved )
                 {
                     reuseDisplacements = false ;
-                    needAssembly = true ;
                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
@@ -4363,7 +4358,6 @@ void FeatureTree::stepXfem()
                 if ( moved )
                 {
                     reuseDisplacements = false ;
-                    needAssembly = true ;
                 }
             }
 
@@ -4373,7 +4367,6 @@ void FeatureTree::stepXfem()
                 {
 // 					tree[i]->print() ;
 // 					std::cout << "update ! " << std::endl ;
-                    needAssembly = true ;
                     needMeshing = true ;
                     reuseDisplacements = false ;
                 }
@@ -4392,7 +4385,6 @@ void FeatureTree::stepXfem()
                 if ( moved )
                 {
                     reuseDisplacements = false ;
-                    needAssembly = true ;
                 }
             }
             for ( size_t i = 0 ; i < enrichmentManagers.size() ; i++ )
@@ -4401,7 +4393,6 @@ void FeatureTree::stepXfem()
                 if ( moved )
                 {
                     reuseDisplacements = false ;
-                    needAssembly = true ;
                 }
             }
             for ( size_t i = 0 ; i < tree.size() ; i++ )
@@ -4410,7 +4401,6 @@ void FeatureTree::stepXfem()
                 {
 //                                      tree[i]->print() ;
 //                                      std::cout << "update ! " << std::endl ;
-                    needAssembly = true ;
                     needMeshing = true ;
                     reuseDisplacements = false ;
                 }
@@ -4435,23 +4425,22 @@ bool sortByScore ( DelaunayTriangle * tri1, DelaunayTriangle * tri2 )
 
 void FeatureTree::stepMesh()
 {
-    behaviourChange = false ;
-    needAssembly = false ;
+    
     if ( is2D() )
     {
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-            behaviourChange =  j->second->step(deltaTime) || behaviourChange;
+            j->second->step(deltaTime) ;
     }
     else if(is3D())
     {
         if(dtree3D)
-            behaviourChange =  dtree3D->step(deltaTime) || behaviourChange;
+            dtree3D->step(deltaTime);
     }
-    needAssembly = behaviourChange ;
 }
 
 bool FeatureTree::stepElements()
-{  
+{ 
+    behaviourChange = false ;
     stateConverged = false ;
     double maxScore = -1 ;
     double maxTolerance = 0 ;
@@ -4633,8 +4622,6 @@ bool FeatureTree::stepElements()
                                         if ( i->getBehaviour()->changed() )
                                         {
                                             #pragma omp atomic write
-                                            needAssembly = true ;
-                                            #pragma omp atomic write
                                             behaviourChange = true ;
                                             #pragma omp atomic update
                                             ccount++ ;
@@ -4650,12 +4637,10 @@ bool FeatureTree::stepElements()
                                             if ( !wasFractured )
                                             {
                                                 #pragma omp atomic write
-                                                needAssembly = true ;
-                                                #pragma omp atomic write
                                                 behaviourChange = true ;
                                             }
                                         }
-                                        else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+                                        else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE )
                                         {
                                             #pragma omp atomic update
                                             damagedVolume += are ;
@@ -4691,8 +4676,6 @@ bool FeatureTree::stepElements()
                                         i->getBehaviour()->getDamageModel()->postProcess() ;
                                         if ( i->getBehaviour()->changed() )
                                         {
-                                            #pragma omp atomic write
-                                            needAssembly = true ;
                                             #pragma omp atomic write
                                             behaviourChange = true ;
                                         }
@@ -4771,8 +4754,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    needAssembly = true ;
-                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
                     maxScore = -1. ;
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4798,10 +4780,10 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cout << maxScore << "]" << std::flush ;
+                    std::cerr << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
-                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE_2D )
+                        if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE )
                         {
                             std::cerr << "adjusting time step..." << std::endl ;
                             double begin = j->second->cbegin()->getBoundingPoint ( 0 ).getT() ;
@@ -4816,12 +4798,12 @@ bool FeatureTree::stepElements()
                             }
                             else
                             {
-                                std::cout << "negative time step: setting to 0..." << std::endl ;
+                                std::cerr << "negative time step: setting to 0..." << std::endl ;
                                 moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                             }
                         }
 
-                        if ( maxScore > 1.-POINT_TOLERANCE_2D )
+                        if ( maxScore > 1.-POINT_TOLERANCE )
                         {
                             moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                         }
@@ -4963,7 +4945,6 @@ bool FeatureTree::stepElements()
                                 #pragma omp critical
                                 if ( i->getBehaviour()->changed() )
                                 {
-                                    needAssembly = true ;
                                     behaviourChange = true ;
                                     ccount++ ;
                                 }
@@ -4975,11 +4956,10 @@ bool FeatureTree::stepElements()
 
                                     if ( !wasFractured )
                                     {
-                                        needAssembly = true ;
                                         behaviourChange = true ;
                                     }
                                 }
-                                else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE_3D )
+                                else if ( dmodel && dmodel->getState().max() > POINT_TOLERANCE )
                                 {
                                     damagedVolume += are ;
                                 }
@@ -5010,7 +4990,6 @@ bool FeatureTree::stepElements()
                                 {
                                     #pragma omp critical
                                     {
-                                        needAssembly = true ;
                                         behaviourChange = true ;
                                     }
                                 }
@@ -5044,7 +5023,7 @@ bool FeatureTree::stepElements()
 
             if ( !elastic && foundCheckPoint )
             {
-                std::cout << "[" << averageDamage << " ; " << std::flush ;
+                std::cerr << "[" << averageDamage << " ; " << std::flush ;
                 maxScore = -1. ;
                 maxTolerance = 1 ;
 // 				double maxs = -1 ;
@@ -5071,7 +5050,7 @@ bool FeatureTree::stepElements()
 // 				  }
 // 				}
 
-                std::cout << maxScore << "]" << std::flush ;
+                std::cerr << maxScore << "]" << std::flush ;
                 if ( dtree3D->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0. && maxScore < 1. )
                 {
                     std::cerr << "adjusting time step..." << std::endl ;
@@ -5087,7 +5066,7 @@ bool FeatureTree::stepElements()
                     }
                     else
                     {
-                        std::cout << "negative time step: setting to 0..." << std::endl ;
+                        std::cerr << "negative time step: setting to 0..." << std::endl ;
                         this->moveFirstTimePlanes ( 0., dtree3D->begin(), dtree3D->end() ) ;
                     }
                 }
@@ -5213,7 +5192,7 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 
     if ( stepChanged )
     {
-        if ( ft->deltaTime > POINT_TOLERANCE_2D )
+        if ( ft->deltaTime > POINT_TOLERANCE )
         {
             enriched = false ;
         }
@@ -5398,7 +5377,6 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 void FeatureTree::resetBoundaryConditions()
 {
     boundaryCondition.clear() ;
-    needAssembly = true ;
     if ( K )
     {
         K->clear() ;
@@ -5456,7 +5434,7 @@ bool FeatureTree::step()
         deltaTime = 0 ;
         if ( solverConverged() )
         {
-            std::cout << "." << std::flush ;
+            std::cerr << "." << std::flush ;
             notConvergedCounts = 0 ;
             if ( !foundCheckPoint )
             {
@@ -5473,7 +5451,7 @@ bool FeatureTree::step()
         {
             notConvergedCounts++ ;
             needexit = true ;
-            std::cout << "+" << std::flush ;
+            std::cerr << "+" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )
@@ -5551,13 +5529,13 @@ bool FeatureTree::stepToCheckPoint()
         deltaTime = 0 ;
         if ( solverConverged() )
         {
-            std::cout << "." << std::flush ;
+            std::cerr << "." << std::flush ;
             notConvergedCounts = 0 ;
         }
         else
         {
             notConvergedCounts++ ;
-            std::cout << "+" << std::flush ;
+            std::cerr << "+" << std::flush ;
         }
 
         if ( enrichmentChange || needMeshing )
@@ -5598,18 +5576,18 @@ bool FeatureTree::stepToCheckPoint()
 // 		state.setStateTo( XFEM_STEPPED, true ) ;
         if ( solverConverged() )
         {
-            std::cout << ":" << std::flush ;
+            std::cerr << ":" << std::flush ;
             notConvergedCounts = 0 ;
         }
         else
         {
             notConvergedCounts++ ;
-            std::cout << ";" << std::flush ;
+            std::cerr << ";" << std::flush ;
         }
         scaleBoundaryConditions ( 1 );
     }
 
-    std::cout  << std::endl ;
+    std::cerr  << std::endl ;
     setDeltaTime ( realdt ) ;
     return solverConverged();
 }
@@ -6417,8 +6395,6 @@ bool FeatureTree::isStable()
         }
     }
 
-
-    needAssembly = true ;
     setMaxIterationsPerStep ( maxitPerStep ) ;
     behaviourChange = meshChangeinit ;
     enrichmentChange = enrichmentChangeinit ;
@@ -6605,7 +6581,7 @@ void FeatureTree::initializeElements( )
             {
                 if ( !i->getBehaviour() )
                 {
-                    std::cout << "ouch" << std::endl ;
+                    std::cerr << "ouch" << std::endl ;
                 }
                 else
                 {
@@ -6658,7 +6634,7 @@ void FeatureTree::initializeElements( )
         {
             if ( !i->getBehaviour() )
             {
-                std::cout << "ouch" << std::endl ;
+                std::cerr << "ouch" << std::endl ;
             }
             i->refresh ( father3D );
             i->getState().initialize ( dtree3D ) ;
@@ -6784,7 +6760,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
             }
         }
 
-        if ( std::abs ( d ) > POINT_TOLERANCE_2D )
+        if ( std::abs ( d ) > POINT_TOLERANCE )
         {
             setDeltaTime ( prev - d ) ;
         }
@@ -6840,7 +6816,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
             }
         }
 
-        if ( std::abs ( d ) > POINT_TOLERANCE_2D )
+        if ( std::abs ( d ) > POINT_TOLERANCE )
         {
             setDeltaTime ( prev - d ) ;
         }
@@ -7058,7 +7034,7 @@ void FeatureTree::generateElements()
                             break ;
                         }
 
-                        if ( nullFatherFeatures[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), 2.*POINT_TOLERANCE_2D ) )
+                        if ( nullFatherFeatures[k]->inBoundary ( tree[i]->getBoundingPoint ( j ), 2.*POINT_TOLERANCE ) )
                         {
                             isIn = true ;
                             break ;
@@ -7067,7 +7043,7 @@ void FeatureTree::generateElements()
 
                     Point proj ( tree[i]->getBoundingPoint ( j ) ) ;
                     tree[0]->project ( &proj ) ;
-                    if ( dist ( proj, tree[i]->getBoundingPoint ( j ) ) < 2.*POINT_TOLERANCE_2D )
+                    if ( dist ( proj, tree[i]->getBoundingPoint ( j ) ) < 2.*POINT_TOLERANCE )
                     {
                         isIn = false ;
                     }
@@ -7080,7 +7056,7 @@ void FeatureTree::generateElements()
                     {
                         Point proj ( tree[i]->getBoundingPoint ( j ) ) ;
                         nullFatherFeatures[k]->project ( &proj ) ;
-                        if ( dist ( proj, tree[i]->getBoundingPoint ( j ) ) < 2.*POINT_TOLERANCE_2D )
+                        if ( dist ( proj, tree[i]->getBoundingPoint ( j ) ) < 2.*POINT_TOLERANCE )
                         {
                             isIn = true ;
                             break ;
@@ -7198,7 +7174,7 @@ void FeatureTree::generateElements()
                         break ;
                     }
 
-                    if ( nullFatherFeatures[k]->inBoundary ( tree[i]->getInPoint ( j ), 2.*POINT_TOLERANCE_2D ) )
+                    if ( nullFatherFeatures[k]->inBoundary ( tree[i]->getInPoint ( j ), 2.*POINT_TOLERANCE ) )
                     {
                         isIn = true ;
                         break ;
@@ -7331,12 +7307,12 @@ void FeatureTree::generateElements()
 
                         Point proj ( inter[k] ) ;
                         tree[0]->project ( &proj ) ;
-                        Point proj0 ( inter[k] + Point ( 2.*POINT_TOLERANCE_3D, 0, 0 ) ) ;
-                        Point proj1 ( inter[k] + Point ( -2.*POINT_TOLERANCE_3D, 0, 0 ) ) ;
-                        Point proj2 ( inter[k] + Point ( 0, 2.*POINT_TOLERANCE_3D, 0 ) ) ;
-                        Point proj3 ( inter[k] + Point ( 0, -2.*POINT_TOLERANCE_3D, 0 ) ) ;
-                        Point proj4 ( inter[k] + Point ( 0, 0, 2.*POINT_TOLERANCE_3D ) ) ;
-                        Point proj5 ( inter[k] + Point ( 0, 0, -2.*POINT_TOLERANCE_3D ) ) ;
+                        Point proj0 ( inter[k] + Point ( 2.*POINT_TOLERANCE, 0, 0 ) ) ;
+                        Point proj1 ( inter[k] + Point ( -2.*POINT_TOLERANCE, 0, 0 ) ) ;
+                        Point proj2 ( inter[k] + Point ( 0, 2.*POINT_TOLERANCE, 0 ) ) ;
+                        Point proj3 ( inter[k] + Point ( 0, -2.*POINT_TOLERANCE, 0 ) ) ;
+                        Point proj4 ( inter[k] + Point ( 0, 0, 2.*POINT_TOLERANCE ) ) ;
+                        Point proj5 ( inter[k] + Point ( 0, 0, -2.*POINT_TOLERANCE ) ) ;
 
                         int position = tree[0]->in ( proj0 )
                                        + tree[0]->in ( proj1 )
@@ -7362,7 +7338,7 @@ void FeatureTree::generateElements()
                                         + tree[0]->in ( proj5 ) ;
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && /*inRoot(inter[k]) && */ ( ( onSurface && tooClose == 5 ) || ( onEdge && tooClose == 4 ) || onVertex ) )
+                        if ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && /*inRoot(inter[k]) && */ ( ( onSurface && tooClose == 5 ) || ( onEdge && tooClose == 4 ) || onVertex ) )
                         {
                             Point *p = new Point ( inter[k] ) ;
                             additionalPoints.push_back ( p ) ;
@@ -7374,10 +7350,10 @@ void FeatureTree::generateElements()
                     {
                         Point proj ( inter[k] ) ;
                         tree[0]->project ( &proj ) ;
-                        Point proj0 ( inter[k] + Point ( 2.*POINT_TOLERANCE_3D, 0, 0 ) ) ;
-                        Point proj1 ( inter[k] + Point ( -2.*POINT_TOLERANCE_3D, 0, 0 ) ) ;
-                        Point proj2 ( inter[k] + Point ( 0, 2.*POINT_TOLERANCE_3D, 0 ) ) ;
-                        Point proj3 ( inter[k] + Point ( 0, -2.*POINT_TOLERANCE_3D, 0 ) ) ;
+                        Point proj0 ( inter[k] + Point ( 2.*POINT_TOLERANCE, 0, 0 ) ) ;
+                        Point proj1 ( inter[k] + Point ( -2.*POINT_TOLERANCE, 0, 0 ) ) ;
+                        Point proj2 ( inter[k] + Point ( 0, 2.*POINT_TOLERANCE, 0 ) ) ;
+                        Point proj3 ( inter[k] + Point ( 0, -2.*POINT_TOLERANCE, 0 ) ) ;
 
 
                         int position = tree[0]->in ( proj0 )
@@ -7399,7 +7375,7 @@ void FeatureTree::generateElements()
 
 
                         // no overlap with other features, intersection is indeed on the surface, and not too near another part of the surface
-                        if ( ( feature->onBoundary ( inter[k], pointDensity*0.33 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE_3D * POINT_TOLERANCE_3D && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
+                        if ( ( feature->onBoundary ( inter[k], pointDensity*0.33 ) ) || ( !indescendants && squareDist3D ( proj, inter[k] ) < POINT_TOLERANCE * POINT_TOLERANCE && inRoot ( inter[k] ) && ( ( onEdge && tooClose == 3 ) || onVertex ) ) )
                         {
                             Point *p = new Point ( inter[k] ) ;
                             additionalPoints.push_back ( p ) ;

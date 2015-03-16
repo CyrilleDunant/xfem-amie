@@ -48,7 +48,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
         for ( size_t i = 0 ; i < inProjector.size() ; i++ )
         {
             double n = inProjector[i].norm() ;
-            if ( weight[i] < POINT_TOLERANCE_2D )
+            if ( weight[i] < POINT_TOLERANCE )
             {
                 *c = dist ( projs[i], inProjector[i].second() ) /n ;
                 return ;
@@ -57,7 +57,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
             res += ( 1./weight[i] ) *dist ( projs[i], inProjector[i].second() ) /n ;
             renorm += 1./weight[i] ;
         }
-        if ( weight.back() < POINT_TOLERANCE_2D )
+        if ( weight.back() < POINT_TOLERANCE )
         {
             *c = 1 ;
             return ;
@@ -65,7 +65,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
         res += ( 1./weight.back() ) * ( 1.-dist ( projs.back(), test ) /inGeo->getRadius() ) ;
         renorm += 1./weight.back() ;
 
-        if ( renorm > POINT_TOLERANCE_2D )
+        if ( renorm > POINT_TOLERANCE )
         {
             res /= renorm ;
         }
@@ -98,7 +98,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
         for ( size_t i = 0 ; i < outProjector.size() ; i++ )
         {
             double n = outProjector[i].norm()  ;
-            if ( weight[i] < POINT_TOLERANCE_2D )
+            if ( weight[i] < POINT_TOLERANCE )
             {
                 *c = dist ( projs[i], outProjector[i].second() ) /n ;
                 return ;
@@ -107,7 +107,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
             res += ( 1./weight[i] ) *dist ( projs[i], outProjector[i].second() ) /n ;
             renorm += 1./weight[i] ;
         }
-        if ( weight.back() < POINT_TOLERANCE_2D )
+        if ( weight.back() < POINT_TOLERANCE )
         {
             *c = 1 ;
             return ;
@@ -116,7 +116,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
         res += ( 1./weight.back() ) * ( 1.-dist ( projs.back(), test ) /inGeo->getRadius() ) ;
         renorm += 1./weight.back() ;
 
-        if ( renorm > POINT_TOLERANCE_2D )
+        if ( renorm > POINT_TOLERANCE )
         {
             res /= renorm ;
         }

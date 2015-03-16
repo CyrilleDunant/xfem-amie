@@ -282,18 +282,18 @@ bool operator==(const Point & p_, const Point &p)
 {
 
 
-    if(std::abs(p.getX()-p_.getX()) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getX()-p_.getX()) > 2.*POINT_TOLERANCE)
         return false ;
-    if(std::abs(p.getY()-p_.getY()) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getY()-p_.getY()) > 2.*POINT_TOLERANCE)
         return false ;
-    if(std::abs(p.getZ()-p_.getZ()) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getZ()-p_.getZ()) > 2.*POINT_TOLERANCE)
         return false ;
-    if(std::abs(p.getT()-p_.getT()) > 2.*POINT_TOLERANCE_2D)
+    if(std::abs(p.getT()-p_.getT()) > 2.*POINT_TOLERANCE)
         return false ;
 
     return true ;
 
-//     return dist(p, *this) < POINT_TOLERANCE_2D ;
+//     return dist(p, *this) < POINT_TOLERANCE ;
 // 	Point mid = (p+ *this)*.5 ;
 // 	double d =  std::max(p.norm(), norm()) ;
 // 	if(d < POINT_TOLERANCE)
@@ -326,9 +326,9 @@ bool operator!=(const Point & p_ ,const Point & p)
     return !(p_ == p) ;
 //     double pnorm = p.norm() ;
 //     double tnorm = norm() ;
-//     if(pnorm <= 4.*POINT_TOLERANCE_2D && tnorm <= 4.*POINT_TOLERANCE_2D)
+//     if(pnorm <= 4.*POINT_TOLERANCE && tnorm <= 4.*POINT_TOLERANCE)
 //         return false ;
-//     return dist(p, *this) >= 4.*POINT_TOLERANCE_2D ;
+//     return dist(p, *this) >= 4.*POINT_TOLERANCE ;
 }
 
 Point operator-(const Point & p_, const Point &p)
@@ -477,7 +477,7 @@ bool operator >(const Point & p_, const Point &p)
     if(p == p_)
         return false ;
 
-    double tol = POINT_TOLERANCE_2D ;
+    double tol = POINT_TOLERANCE ;
     return (p_.y > p.getY() )
            || (( std::abs(p_.y - p.getY()) < tol)
                && (p_.x > p.getX()))
@@ -628,7 +628,7 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
     switch(transformation)
     {
     case SCALE:
-        if( p.getX() < POINT_TOLERANCE_2D || p.getY() < POINT_TOLERANCE_2D || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE_2D) )
+        if( p.getX() < POINT_TOLERANCE || p.getY() < POINT_TOLERANCE || ( g->spaceDimensions() == SPACE_THREE_DIMENSIONAL && p.getZ() < POINT_TOLERANCE) )
         {
             std::cout << "try to scale geometry with factor = 0... do nothing instead" << std::endl ;
             return ;
@@ -835,11 +835,11 @@ bool Plane::intersects(const Line &l) const
     double denominator = l.vector()*v ;
 
     // line is in the plane
-    if(std::abs(numerator) < POINT_TOLERANCE_3D && std::abs(denominator) < POINT_TOLERANCE_3D)
+    if(std::abs(numerator) < POINT_TOLERANCE && std::abs(denominator) < POINT_TOLERANCE)
         return true ;
 
     // the intersection exists and is unique
-    if(std::abs(denominator) > POINT_TOLERANCE_3D)
+    if(std::abs(denominator) > POINT_TOLERANCE)
         return true ;
 
     return false ;
@@ -852,11 +852,11 @@ bool Plane::intersects(const Segment &l) const
     double denominator = l.vector()*v ;
 
     // segment is in the plane
-    if(std::abs(numerator) < POINT_TOLERANCE_3D && std::abs(denominator) < POINT_TOLERANCE_3D)
+    if(std::abs(numerator) < POINT_TOLERANCE && std::abs(denominator) < POINT_TOLERANCE)
         return true ;
 
     // the intersection exists and is unique
-    if(std::abs(denominator) > POINT_TOLERANCE_3D)
+    if(std::abs(denominator) > POINT_TOLERANCE)
     {
         double t = numerator/denominator ;
 
@@ -992,7 +992,7 @@ bool Plane::on(const Point &point) const
 {
     double d = v*p ;
     double dtest = point*v ;
-    return std::abs(d-dtest) < POINT_TOLERANCE_3D ;
+    return std::abs(d-dtest) < POINT_TOLERANCE ;
 }
 
 std::vector<Point> Plane::intersection(const Geometry * g) const
@@ -1123,11 +1123,11 @@ Point Plane::intersection(const Line &l) const
 {
     double lambda = 0  ;
 
-    if(std::abs(v*(l.origin() + l.vector() - p )) < POINT_TOLERANCE_3D)
+    if(std::abs(v*(l.origin() + l.vector() - p )) < POINT_TOLERANCE)
     {
         return l.origin() ;
     }
-    else if(std::abs(v*l.vector()) >= POINT_TOLERANCE_3D)
+    else if(std::abs(v*l.vector()) >= POINT_TOLERANCE)
     {
         lambda = -(v*(l.origin()-p))/(v*l.vector()) ;
         return l.origin() + l.vector()*lambda ;
@@ -1171,11 +1171,11 @@ Point Plane::intersection(const Segment &l) const
     double denominator = l.vector()*v ;
 
     // segment is in the plane
-    if(std::abs(numerator) < POINT_TOLERANCE_3D && std::abs(denominator) < POINT_TOLERANCE_3D)
+    if(std::abs(numerator) < POINT_TOLERANCE && std::abs(denominator) < POINT_TOLERANCE)
         return l.midPoint() ;
 
     // the intersection exists and is unique
-    if(std::abs(denominator) > POINT_TOLERANCE_3D)
+    if(std::abs(denominator) > POINT_TOLERANCE)
     {
         double t = numerator/denominator ;
 
@@ -1523,7 +1523,7 @@ bool Geometry::intersects(const Geometry *g) const
 
         if(g->getGeometryType() == ELLIPSE)
         {
-            if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())+POINT_TOLERANCE_2D)
+            if(dist(g->getCenter(),getCenter()) > (getRadius()+g->getRadius())+POINT_TOLERANCE)
 	    {
                 return false ;
 	    }
@@ -1839,7 +1839,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 {
                     for(size_t j  = i+1 ; j < intersection.size() ; j++)
                     {
-                        if(squareDist3D(intersection[i], intersection[j])< 128*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+                        if(squareDist3D(intersection[i], intersection[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                         {
                             haveDuplicates = true ;
                             intersection.erase(intersection.begin()+j) ;
@@ -1957,7 +1957,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             {
                 for(size_t j  = i+1 ; j < ret.size() ; j++)
                 {
-                    if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+                    if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                     {
                         haveDuplicates = true ;
                         ret.erase(ret.begin()+j) ;
@@ -2016,26 +2016,26 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                     double y = sqrt(y_squared_0) ;
                     double x = sqrt(r*r-y_squared_0) ;
                     Point A(x,y) ;
-                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(A) ;
 
                     Point B(-x,y) ;
-                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(B) ;
 
                     Point C(-x,-y) ;
-                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(C) ;
 
                     Point D(x,-y) ;
-                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(D) ;
 
@@ -2055,26 +2055,26 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                     double y = sqrt(y_squared_0) ;
 
                     Point A(x,y) ;
-                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(A) ;
 
                     Point B(-x,y) ;
-                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(B) ;
 
                     Point C(-x,-y) ;
-                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(C) ;
 
                     Point D(x,-y) ;
-                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE*POINT_TOLERANCE &&
+                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE*POINT_TOLERANCE
                       )
                         ret.push_back(D) ;
                 }
@@ -2088,26 +2088,26 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                     double y = sqrt(y_squared_1) ;
 
                     Point A(x,y) ;
-                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(A, getCenter()) -r*r) < POINT_TOLERANCE &&
+                            std::abs(squareDist(A, g->getCenter()) -R*R) < POINT_TOLERANCE
                       )
                         ret.push_back(A) ;
 
                     Point B(-x,y) ;
-                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(B, getCenter()) -r*r) < POINT_TOLERANCE &&
+                            std::abs(squareDist(B, g->getCenter()) -R*R) < POINT_TOLERANCE
                       )
                         ret.push_back(B) ;
 
                     Point C(-x,-y) ;
-                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(C, getCenter()) -r*r) < POINT_TOLERANCE &&
+                            std::abs(squareDist(C, g->getCenter()) -R*R) < POINT_TOLERANCE
                       )
                         ret.push_back(C) ;
 
                     Point D(x,-y) ;
-                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE_2D &&
-                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE_2D
+                    if(std::abs(squareDist(D, getCenter()) -r*r) < POINT_TOLERANCE &&
+                            std::abs(squareDist(D, g->getCenter()) -R*R) < POINT_TOLERANCE
                       )
                         ret.push_back(D) ;
                 }
@@ -2245,7 +2245,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
             double r0 = getRadius() ;
             double r1 = g->getRadius() ;
 
-            if (dc < POINT_TOLERANCE_3D)
+            if (dc < POINT_TOLERANCE)
                 return ret ;
 
             double cosAngleInSelf = ((r0*r0+dc*dc-r1*r1)/(2.*r0*dc)) ;
@@ -2524,7 +2524,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 {
                     for(size_t j  = i+1 ; j < ret.size() ; j++)
                     {
-                        if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                        if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                         {
                             haveDuplicates = true ;
                             ret.erase(ret.begin()+j) ;
@@ -2595,7 +2595,7 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
                 {
                     for(size_t j  = i+1 ; j < ret.size() ; j++)
                     {
-                        if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                        if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                         {
                             haveDuplicates = true ;
                             ret.erase(ret.begin()+j) ;
@@ -3074,7 +3074,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
             //! this is a usual cross product of two vectors...
             if(  ((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) -
                     ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() - temphull[temphull.size()-2]->getY() ) >
-                    POINT_TOLERANCE_2D )
+                    POINT_TOLERANCE )
             {
                 temphull.push_back(*i) ;
             }
@@ -3082,7 +3082,7 @@ ConvexPolygon::ConvexPolygon(const PointSet * po) : PointSet(po->size())
             {
                 while( !(((*i)->getY() - (*temphull.rbegin())->getY())*((*temphull.rbegin())->getX() - temphull[temphull.size()-2]->getX() ) -
                          ((*i)->getX() - (*temphull.rbegin())->getX())*((*temphull.rbegin())->getY() -temphull[temphull.size()-2]->getY() ) >
-                         POINT_TOLERANCE_2D))
+                         POINT_TOLERANCE))
                 {
                     temphull.pop_back();
                 }
@@ -3245,7 +3245,7 @@ Point Line::intersection(const Line &l) const
     mxy[1][0] = v.getY() ;
     mxy[1][1] = -l.vector().getY() ;
 
-    if(std::abs(det(mxy)) > POINT_TOLERANCE_3D)
+    if(std::abs(det(mxy)) > POINT_TOLERANCE)
     {
         vec[0] = l.origin().getX() - p.getX() ;
         vec[1] = l.origin().getY() - p.getY() ;
@@ -3263,7 +3263,7 @@ Point Line::intersection(const Line &l) const
     mxz[1][0] = v.getZ() ;
     mxz[1][1] = -l.vector().getZ() ;
 
-    if(std::abs(det(mxz)) > POINT_TOLERANCE_3D)
+    if(std::abs(det(mxz)) > POINT_TOLERANCE)
     {
         vec[0] = l.origin().getX() - p.getX() ;
         vec[1] = l.origin().getZ() - p.getZ() ;
@@ -3281,7 +3281,7 @@ Point Line::intersection(const Line &l) const
     myz[1][0] = v.getZ() ;
     myz[1][1] = -l.vector().getZ() ;
 
-    if(std::abs(det(myz)) > POINT_TOLERANCE_3D)
+    if(std::abs(det(myz)) > POINT_TOLERANCE)
     {
         vec[0] = l.origin().getY() - p.getY() ;
         vec[1] = l.origin().getZ() - p.getZ() ;
@@ -3342,7 +3342,7 @@ bool Line::intersects(const TriPoint &g) const
     mat[2][0] = v.getZ();
     mat[2][1] = g.point[1]->getZ()-g.point[0]->getZ();
     mat[2][2] = g.point[2]->getZ()-g.point[0]->getZ();
-    return abs(det(mat)) > POINT_TOLERANCE_3D ;
+    return abs(det(mat)) > POINT_TOLERANCE ;
 
 
 }
@@ -3353,9 +3353,9 @@ std::vector<Point> Line::intersection(const TriPoint &s) const
     double a = -(s.normal*(p-*s.point[0])) ;
     double b = v*s.normal ;
 
-    if(b < POINT_TOLERANCE_3D)
+    if(b < POINT_TOLERANCE)
     {
-        if(abs(a) > POINT_TOLERANCE_3D)
+        if(abs(a) > POINT_TOLERANCE)
             return std::vector<Point>(0) ;
 
         Triangle t(*s.point[0], *s.point[1], *s.point[2]) ;
@@ -3389,7 +3389,7 @@ bool Line::intersects(const Geometry *g) const
         Point onEllipse2(onEllipse) ;
         onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
         int nnn = 0 ;
-        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE_2D)
+        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
         {
             onEllipse2 = onEllipse ;
             onLine = this->projection(onEllipse) ;
@@ -3397,7 +3397,7 @@ bool Line::intersects(const Geometry *g) const
             nnn++ ;
         }
 
-        return (onLine-onEllipse).norm() < POINT_TOLERANCE_2D*100. ;
+        return (onLine-onEllipse).norm() < POINT_TOLERANCE*100. ;
     }
     case TRIANGLE:
     {
@@ -3512,7 +3512,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
         Point onEllipse2(onEllipse) ;
         onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
         int nnn = 0 ;
-        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE_2D)
+        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
         {
             onEllipse2 = onEllipse ;
             onLine = this->projection(onEllipse) ;
@@ -3546,7 +3546,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
                 dir = true ;
             }
             dx = dx/10. ;
-            if(dx < POINT_TOLERANCE_2D * 100.) {
+            if(dx < POINT_TOLERANCE * 100.) {
                 // line is tangent
                 return ret ;
             }
@@ -3566,7 +3566,7 @@ std::vector<Point> Line::intersection(const Geometry * g) const
         onEllipse2 = (onEllipse) ;
         onEllipse = dynamic_cast<const Ellipse*>(g)->project(onLine) ;
         nnn = 0 ;
-        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE_2D)
+        while((onEllipse-onEllipse2).norm() > POINT_TOLERANCE)
         {
             onEllipse2 = onEllipse ;
             onLine = this->projection(onEllipse) ;
@@ -3642,13 +3642,13 @@ std::vector<Point> Line::intersection(const Geometry * g) const
                    -g->getRadius()*g->getRadius() ;
         double delta = b*b - 4*a*c ;
 
-        if(std::abs(delta) < POINT_TOLERANCE_3D)
+        if(std::abs(delta) < POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             ret.push_back(p+v*(-b/(2.*a))) ;
             return ret ;
         }
-        else if (delta >= POINT_TOLERANCE_3D)
+        else if (delta >= POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             ret.push_back(p+v*((-b + sqrt(delta))/(2.*a))) ;
@@ -3682,7 +3682,7 @@ Point Line::projection(const Point &m ) const
 Point Segment::normal() const
 {
     double n = norm();
-    if(n > POINT_TOLERANCE_2D)
+    if(n > POINT_TOLERANCE)
         return Point(-vec.getY(), vec.getX())/n ;
 
     return Point(0, 0) ;
@@ -3696,7 +3696,7 @@ Point Segment::normal(const Point & inside) const
         sign = -1 ;
 
     double n = norm();
-    if(n > POINT_TOLERANCE_2D)
+    if(n > POINT_TOLERANCE)
         return Point(-vec.getY()*sign, vec.getX()*sign)/n ;
 
     return Point(0, 0) ;
@@ -3710,7 +3710,7 @@ Vector Segment::normalv(const Point & p) const
     if(!sameSide)
         sign = -1 ;
     double n = vec.norm();
-    if(n > POINT_TOLERANCE_2D)
+    if(n > POINT_TOLERANCE)
     {
         Vector ret(2) ;
         ret[0] = -vec.getY()/n*sign ;
@@ -4033,9 +4033,9 @@ bool Segment::intersects(const TriPoint *g) const
     Point n = u ^ v ;
     double a = -(n*w0) ;
     double b = n*dir;
-    if (std::abs(b) < POINT_TOLERANCE_2D)
+    if (std::abs(b) < POINT_TOLERANCE)
     {
-        if (std::abs(a) < POINT_TOLERANCE_2D)
+        if (std::abs(a) < POINT_TOLERANCE)
             return true;
         return false ;
     }
@@ -4055,10 +4055,10 @@ bool Segment::intersects(const TriPoint *g) const
     double vv = v*v;
     double d = uv*uv - uu*vv ;
     double s = (uv*wv - vv*wu)/d ;
-    if (s < -POINT_TOLERANCE_2D || s > 1.+POINT_TOLERANCE_2D)        // I is outside T
+    if (s < -POINT_TOLERANCE || s > 1.+POINT_TOLERANCE)        // I is outside T
         return false;
     double t = (uv*wu - uu*wv)/d ;
-    if (t < -POINT_TOLERANCE_2D || (s + t) > 1.+POINT_TOLERANCE_2D)
+    if (t < -POINT_TOLERANCE || (s + t) > 1.+POINT_TOLERANCE)
         return false ;
 
     return true ;
@@ -4095,7 +4095,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
 
         for(size_t i = 0 ; i <  gt->getBoundingPoints().size() ;  i++)
         {
-            if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE_2D)
+            if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE)
                 pts.push_back(gt->getBoundingPoint(i));
         }
 
@@ -4222,7 +4222,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
             {
                 for(size_t j  = i+1 ; j < ret.size() ; j++)
                 {
-                    if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+                    if(squareDist3D(ret[i], ret[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                     {
                         haveDuplicates = true ;
                         ret.erase(ret.begin()+j) ;
@@ -4247,7 +4247,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
     case CIRCLE:
     {
         double a = vec.getX()*vec.getX() + vec.getY()*vec.getY() ;
-        if(a < POINT_TOLERANCE_2D)
+        if(a < POINT_TOLERANCE)
             return std::vector<Point>(0) ;
         double dx = s.getX()-g->getCenter().getX() ;
         double dy = s.getY()-g->getCenter().getY() ;
@@ -4255,7 +4255,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         double c = dx*dx + dy*dy -g->getRadius()*g->getRadius() ;
         double delta = b*b - 4.*a*c ;
 
-        if(std::abs(delta) < POINT_TOLERANCE_2D)
+        if(std::abs(delta) < POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             Point A(s+vec*(-b/(2.*a))) ;
@@ -4263,7 +4263,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
                 ret.push_back(A) ;
             return ret ;
         }
-        else if (delta >= POINT_TOLERANCE_2D)
+        else if (delta >= POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
@@ -4336,7 +4336,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         double c = dx*dx + dy*dy + dz*dz-g->getRadius()*g->getRadius() ;
         double delta = b*b - 4.*a*c ;
 
-        if(std::abs(delta) < POINT_TOLERANCE_3D)
+        if(std::abs(delta) < POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             Point A(s+vec*(-b/(2.*a))) ;
@@ -4344,7 +4344,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
                 ret.push_back(A) ;
             return ret ;
         }
-        else if (delta >= POINT_TOLERANCE_3D)
+        else if (delta >= POINT_TOLERANCE)
         {
             std::vector<Point> ret ;
             Point A(s+vec*(-b + sqrt(delta))/(2.*a)) ;
@@ -4574,16 +4574,16 @@ bool Segment::intersects(const Segment & l) const
     Matrix m(2,2) ;
     Vector v(2) ;
 
-    if(std::abs(vec.getX()) < POINT_TOLERANCE_2D && std::abs(l.vector().getX()) < POINT_TOLERANCE_2D)
+    if(std::abs(vec.getX()) < POINT_TOLERANCE && std::abs(l.vector().getX()) < POINT_TOLERANCE)
     {
         return false ;
     }
 
-    if(std::abs(vec.getY()) < POINT_TOLERANCE_2D && std::abs(l.vector().getY()) < POINT_TOLERANCE_2D)
+    if(std::abs(vec.getY()) < POINT_TOLERANCE && std::abs(l.vector().getY()) < POINT_TOLERANCE)
     {
         return false ;
     }
-    if(dist(vec/vec.norm(), l.vector()/l.vector().norm()) < POINT_TOLERANCE_2D)
+    if(dist(vec/vec.norm(), l.vector()/l.vector().norm()) < POINT_TOLERANCE)
     {
         return false ;
     }
@@ -4635,12 +4635,12 @@ bool Segment::on(const Point &p) const
     double ds = dist(s, p) ;
     double df = dist(f, p) ;
 
-    if(ds < 2.*POINT_TOLERANCE_2D || df < 2.*POINT_TOLERANCE_2D)
+    if(ds < 2.*POINT_TOLERANCE || df < 2.*POINT_TOLERANCE)
         return true ;
     if(!isAligned(p, f, s))
         return false ;
 
-    return std::abs(ds + df - dist(f, s)) < 2.*POINT_TOLERANCE_2D ;
+    return std::abs(ds + df - dist(f, s)) < 2.*POINT_TOLERANCE ;
 
 }
 
@@ -4737,7 +4737,7 @@ TriPoint::TriPoint(const Point * p0, const Point * p1, const Point * p2) : point
     normal = (*p0-*p1)^(*p2-*p1) ;
     center = (*p0+*p1+*p2)/3. ;
     double n =  normal.norm() ;
-    if(n > POINT_TOLERANCE_3D)
+    if(n > POINT_TOLERANCE)
         normal /= n ;
 
 }
@@ -4875,9 +4875,9 @@ bool Segment::intersects(const TriPoint &g) const
     Point w0 = second() - *g.point[0];
     double a = -((u ^ v)*w0) ;
     double b = (u ^ v)*dir;
-    if (std::abs(b) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+    if (std::abs(b) < POINT_TOLERANCE*POINT_TOLERANCE)
     {
-        if (std::abs(a) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+        if (std::abs(a) < POINT_TOLERANCE*POINT_TOLERANCE)
             return true;
 
         return false ;
@@ -4885,7 +4885,7 @@ bool Segment::intersects(const TriPoint &g) const
 
     double r = a / b ;
 
-    if(r < -POINT_TOLERANCE_2D || r > 1.+POINT_TOLERANCE_2D)
+    if(r < -POINT_TOLERANCE || r > 1.+POINT_TOLERANCE)
         return false ;
 
     Point intersect(second()+dir*r) ;
@@ -4898,10 +4898,10 @@ bool Segment::intersects(const TriPoint &g) const
     double vv = v*v;
     double d = uv*uv -uu*vv ;
     double s = (uv*wv-vv*wu)/d ;
-    if (s < -POINT_TOLERANCE_2D || s > 1.+POINT_TOLERANCE_2D)        // I is outside T
+    if (s < -POINT_TOLERANCE || s > 1.+POINT_TOLERANCE)        // I is outside T
         return false;
     double t = (uv*wu-uu*wv)/d ;
-    if (t < -POINT_TOLERANCE_2D || (s + t) > 1.+POINT_TOLERANCE_2D)
+    if (t < -POINT_TOLERANCE || (s + t) > 1.+POINT_TOLERANCE)
         return false ;
 
     return true ;
@@ -4991,7 +4991,7 @@ bool isOnTheSameSide(const Point & test, const Point & witness, const Point & f0
     Point frontier(f1.getX()*norm-f0.getX()*norm,f1.getY()*norm-f0.getY()*norm,f1.getZ()*norm-f0.getZ()*norm) ;
     Point yes(witness.getX()*norm-f0.getX()*norm,witness.getY()*norm-f0.getY()*norm,witness.getZ()*norm-f0.getZ()*norm) ;
     Point perhaps(test.getX()*norm-f0.getX()*norm,test.getY()*norm-f0.getY()*norm,test.getZ()*norm-f0.getZ()*norm) ;
-    return (frontier^yes).getZ()*(frontier^perhaps).getZ() > -POINT_TOLERANCE_2D ;
+    return (frontier^yes).getZ()*(frontier^perhaps).getZ() > -POINT_TOLERANCE ;
 }
 
 bool isOnTheSameSide(const Point * test, const Point *witness, const Point *f0, const Point *f1, double norm)
@@ -5082,7 +5082,7 @@ Matrix rotateToVector (Point * toRotate, const Point & toVector)
 {
     Point x= *toRotate^toVector ;
     double n = x.sqNorm() ;
-    if(n < POINT_TOLERANCE_2D)
+    if(n < POINT_TOLERANCE)
     {
         return identity(3) ;
     }
@@ -5090,7 +5090,7 @@ Matrix rotateToVector (Point * toRotate, const Point & toVector)
     double costheta = *toRotate*toVector/sqrt(toRotate->sqNorm()*toVector.sqNorm()) ;
     double theta = acos(costheta);
     
-    if(std::abs(theta-M_PI) < POINT_TOLERANCE_2D)
+    if(std::abs(theta-M_PI) < POINT_TOLERANCE)
     {
         x = Point(toRotate->getY(), -toRotate->getX(), 0) ;
         x /= x.norm() ;
@@ -5353,7 +5353,7 @@ OrientableCircle::OrientableCircle(double r,double x, double y, double z, Point 
 {
     gType = ORIENTABLE_CIRCLE ;
     this->center = Point(x,y,z) ;
-    if(n.norm() > POINT_TOLERANCE_3D)
+    if(n.norm() > POINT_TOLERANCE)
     {
         this->normal = n/n.norm() ;
         this->radius = r ;
@@ -5369,7 +5369,7 @@ OrientableCircle::OrientableCircle(double r,const Point * p0, Point n )
 {
     gType = ORIENTABLE_CIRCLE ;
     this->center = *p0 ;
-    if(n.norm() > POINT_TOLERANCE_3D)
+    if(n.norm() > POINT_TOLERANCE)
     {
         this->normal = n/n.norm() ;
         this->radius = r ;
@@ -5385,7 +5385,7 @@ OrientableCircle::OrientableCircle(double r,const Point p0, Point n )
 {
     gType = ORIENTABLE_CIRCLE ;
     this->center = p0 ;
-    if(n.norm() > POINT_TOLERANCE_3D)
+    if(n.norm() > POINT_TOLERANCE)
     {
         this->normal = n/n.norm() ;
         this->radius = r ;
@@ -5416,14 +5416,14 @@ std::vector<Point> OrientableCircle::getSamplingBoundingPoints(size_t num_points
     if(num_points == 0)
         return ret ;
 
-    if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]))
+    if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]))
     {
         start[0] = 0 ;
         start[1] = normal.getZ()*radius ;
         start[2] = -normal.getY()*radius ;
     }
 
-    if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
+    if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]) < POINT_TOLERANCE)
     {
         start[0] = normal.getZ()*radius ;
         start[1] = 0 ;
@@ -5473,14 +5473,14 @@ void OrientableCircle::sampleBoundingSurface(size_t num_points)
     start[1] = normal.getX()*radius ;
     start[2] = 0 ;
 
-    if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]))
+    if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]))
     {
         start[0] = 0 ;
         start[1] = normal.getZ()*radius ;
         start[2] = -normal.getY()*radius ;
     }
 
-    if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
+    if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]) < POINT_TOLERANCE)
     {
         start[0] = normal.getZ()*radius ;
         start[1] = 0 ;
@@ -5531,7 +5531,7 @@ void OrientableCircle::sampleSurface(size_t num_points)
     double dr = 4.*M_PI*radius/num_points ;
     double rad = radius-dr ;
 
-    while(rad > POINT_TOLERANCE_3D)
+    while(rad > POINT_TOLERANCE)
     {
 
         size_t nPoints = (size_t)round((double)num_points*(rad/radius)) ;
@@ -5543,14 +5543,14 @@ void OrientableCircle::sampleSurface(size_t num_points)
         start[1] = normal.getX()*rad ;
         start[2] = 0 ;
 
-        if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
+        if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]) < POINT_TOLERANCE)
         {
             start[0] = 0 ;
             start[1] = normal.getZ()*rad ;
             start[2] = -normal.getY()*rad ;
         }
 
-        if(std::abs(start[0]) < POINT_TOLERANCE_3D && std::abs(start[1]) < POINT_TOLERANCE_3D && std::abs(start[2]) < POINT_TOLERANCE_3D)
+        if(std::abs(start[0]) < POINT_TOLERANCE && std::abs(start[1]) < POINT_TOLERANCE && std::abs(start[2]) < POINT_TOLERANCE)
         {
             start[0] = normal.getZ()*rad ;
             start[1] = 0 ;
@@ -5612,7 +5612,7 @@ void OrientableCircle::project(Point * p) const
 {
     Plane plane(center, normal) ;
     Point pproj = plane.projection(*p) ;
-    if(squareDist3D(center, pproj) > POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+    if(squareDist3D(center, pproj) > POINT_TOLERANCE*POINT_TOLERANCE)
     {
         Point vec = pproj-center ;
         vec/=vec.norm() ;
@@ -5649,7 +5649,7 @@ double signedAlignement(const Point &test, const Point &f0, const Point &f1)
 
     Point n(a^b) ;
     double d = n.norm() ;
-    if(d  < POINT_TOLERANCE_2D)
+    if(d  < POINT_TOLERANCE)
         return 0 ;
     n /= d ;
 
@@ -5670,7 +5670,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     Point f0_(f0.getX()-centre.getX(), f0.getY()-centre.getY(), f0.getZ()-centre.getZ()) ;
     Point f1_(f1.getX()-centre.getX(), f1.getY()-centre.getY(), f1.getZ()-centre.getZ()) ;
     Point test_(test.getX()-centre.getX(), test.getY()-centre.getY(), test.getZ()-centre.getZ()) ;
-    double scale = sqrt(4.*POINT_TOLERANCE_2D/(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
+    double scale = sqrt(4.*POINT_TOLERANCE/(std::max(std::max(f0_.sqNorm(), f1_.sqNorm()), test_.sqNorm()))) ;
     f0_   *= scale ;
     f1_   *= scale ;
     test_ *= scale ;
@@ -5684,17 +5684,17 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
     if(na >= nb && na >= nc)
     {
         Line l(f0_,Point((f1_.getX()-f0_.getX())/na,(f1_.getY()-f0_.getY())/na,(f1_.getZ()-f0_.getZ())/na)) ;
-        Sphere s(POINT_TOLERANCE_2D, test_) ;
+        Sphere s(POINT_TOLERANCE, test_) ;
         return l.intersects(&s) ;
     }
     if(nb >= na && nb >= nc)
     {
         Line l(f0_,Point((test_.getX()-f0_.getX())/nb,(test_.getY()-f0_.getY())/nb,(test_.getZ()-f0_.getZ())/nb)) ;
-        Sphere s(POINT_TOLERANCE_2D, f1_) ;
+        Sphere s(POINT_TOLERANCE, f1_) ;
         return l.intersects(&s) ;
     }
     Line l(f1_,Point((test_.getX()-f1_.getX())/nc,(test_.getY()-f1_.getY())/nc,(test_.getZ()-f1_.getZ())/nc)) ;
-    Sphere s(POINT_TOLERANCE_2D, f0_) ;
+    Sphere s(POINT_TOLERANCE, f0_) ;
     return l.intersects(&s) ;
 }
 
@@ -5726,7 +5726,7 @@ int coplanarCount( Point *const* pts, int numpoints, const Point &f0, const Poin
         }
 
         double c0 = AB*(f2_-test_) ;
-        if(c0*c0 > POINT_TOLERANCE_3D)
+        if(c0*c0 > POINT_TOLERANCE)
             continue ;
 
         double c1 = AB.getX()*(f2_.getX()-test_.getX()-normal.getX())+AB.getY()*(f2_.getY()-test_.getY()-normal.getY())+AB.getZ()*(f2_.getZ()-test_.getZ()-normal.getZ()) ;
@@ -5759,7 +5759,7 @@ bool isCoplanar(const Point &test, const Point &f0, const Point &f1, const Point
 
     double c0 = signedCoplanarity(test_, f0_, f1_, f2_) ;
     double c02 = c0*c0 ;
-    if(c02 > POINT_TOLERANCE_3D)
+    if(c02 > POINT_TOLERANCE)
         return false ;
 
     Point normal = Point(f1_.getX()-f0_.getX(),f1_.getY()-f0_.getY(),f1_.getZ()-f0_.getZ())^Point(f2_.getX()-f0_.getX(),f2_.getY()-f0_.getY(),f2_.getZ()-f0_.getZ()) ;

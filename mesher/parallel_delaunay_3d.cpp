@@ -24,9 +24,9 @@ namespace Amie
 
 bool ParallelDelaunayTree3D::isSame(const DelaunayTreeItem3D * i0, const DelaunayTreeItem3D * i1) const
 {
-    if(i0->isTetrahedron() && !i1->isTetrahedron())
+    if(i0->isTetrahedron && !i1->isTetrahedron)
         return false ;
-    if(i0->isSpace() && !i1->isSpace())
+    if(i0->isSpace && !i1->isSpace)
         return false ;
     return i0->isVertex( i1->first ) && i0->isVertex( i1->second ) && i0->isVertex( i1->third )  && i0->isVertex( i1->fourth ) ;
 }
@@ -168,11 +168,11 @@ bool interacts(const Geometry * g , DelaunayTreeItem3D * item)
 {
 
 //     checkfather = false ;
-    if( item->isSpace() )
+    if( item->isSpace )
     {
         return false ;
     }
-    else if( item->isTetrahedron())
+    else if( item->isTetrahedron)
     {
         if(g->in(*item->first)  ||
                 g->in(*item->second) ||
@@ -185,7 +185,7 @@ bool interacts(const Geometry * g , DelaunayTreeItem3D * item)
 
         for(size_t j = 0 ; j < item->neighbour.size() ;  j++)
         {
-            if(item->getNeighbour(j)->isSpace())
+            if(item->getNeighbour(j)->isSpace)
                 continue ;
 
             DelaunayTreeItem3D * n = item->getNeighbour(j) ;

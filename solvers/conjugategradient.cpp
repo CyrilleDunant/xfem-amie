@@ -157,7 +157,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
         pq =  parallel_inner_product_restricted(&q[rowstart], &p[rowstart], vsize-rowstart);
         alpha = rho/pq;
 
-        if(std::abs(pq) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+        if(std::abs(pq) < POINT_TOLERANCE*POINT_TOLERANCE)
         {
             last_rho = 0 ;
             break ;

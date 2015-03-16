@@ -829,7 +829,7 @@ GranuloFromCumulativePSD::GranuloFromCumulativePSD(const std::string & filename,
 double GranuloFromCumulativePSD::getNext2DDiameter(double diameter, double frac, double dmax)
 {
 
-	if(diameter < 2.*radius.front()+POINT_TOLERANCE_2D)
+	if(diameter < 2.*radius.front()+POINT_TOLERANCE)
 	{
 		return 2.*radius.front() ;
 	}
@@ -851,7 +851,7 @@ double GranuloFromCumulativePSD::getNext2DDiameter(double diameter, double frac,
 }
 double GranuloFromCumulativePSD::getNext3DDiameter(double diameter, double frac, double dmax)
 {
-	if(diameter < 2.*radius.front()+POINT_TOLERANCE_2D)
+	if(diameter < 2.*radius.front()+POINT_TOLERANCE)
 	{
 		return 2.*radius.front() ;
 	}

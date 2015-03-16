@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
         Vector tmp(3) ;
         done++ ;
 
-        if(aggregateArea < POINT_TOLERANCE_2D)
+        if(aggregateArea < POINT_TOLERANCE)
         {
             for(auto i = F.get2DMesh()->begin() ; i != F.get2DMesh()->end() ; i++)
             {

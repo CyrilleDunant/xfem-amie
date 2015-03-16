@@ -77,7 +77,7 @@ std::pair<Vector, Vector> PlasticStrain::computeDamageIncrement(ElementState & s
         stressMatrix[1][0] = stress[2] ;
         Matrix incrementalStrainMatrix(stressMatrix.numRows(), stressMatrix.numCols()) ;
         double iftynorm = std::abs(stressMatrix.array()).max() ;
-        if(iftynorm < POINT_TOLERANCE_2D)
+        if(iftynorm < POINT_TOLERANCE)
             iftynorm = 1 ;
         Matrix m_p(stressMatrix) ;
         Matrix m_m(stressMatrix) ;
@@ -117,8 +117,8 @@ int PlasticStrain::getMode() const
 // 		&&(
 // 			inCompression != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(1)
 // 		|| inTension != es->getParent()->getBehaviour()->getFractureCriterion()->directionMet(0)
-// 		|| inCompression && compressivePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE_2D
-// 		|| inTension && tensilePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE_2D
+// 		|| inCompression && compressivePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE
+// 		|| inTension && tensilePlasticVariable <= kappa_0 && getPlasticity() >= kappa_0-POINT_TOLERANCE
 // 		)
 // 	)
 // 	{
@@ -168,7 +168,7 @@ double PlasticStrain::getAngleShift() const
     istrain[1] = incrementalStrainMatrix[1][1] ;
     istrain[2] = 0.5*(incrementalStrainMatrix[0][1]+incrementalStrainMatrix[1][0]) ;
     double nimposed = sqrt(std::inner_product(&imposedStrain[0],&imposedStrain[3],&imposedStrain[0],0.)) ;
-    if(std::abs(imposedStrain).max() > POINT_TOLERANCE_2D)
+    if(std::abs(imposedStrain).max() > POINT_TOLERANCE)
     {
         istrain /= sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
         istrain *= .1;
@@ -176,9 +176,9 @@ double PlasticStrain::getAngleShift() const
     }
     double dp = std::inner_product(&istrain[0],&istrain[3], &imposedStrain[0], double(0.))/(nimposed*nimposed) ;
     double angle = acos(dp) ;
-    if(std::abs(dp-1.) < POINT_TOLERANCE_2D)
+    if(std::abs(dp-1.) < POINT_TOLERANCE)
         angle = 0 ;
-    if(nimposed < POINT_TOLERANCE_2D)
+    if(nimposed < POINT_TOLERANCE)
         angle = 0 ;
     if (angle < 0 )
         angle += M_PI ;
@@ -296,7 +296,7 @@ bool PlasticStrain::fractured() const
 
 void PlasticStrain::postProcess()
 {
-    if(converged && es && state[0] > POINT_TOLERANCE_2D)
+    if(converged && es && state[0] > POINT_TOLERANCE)
     {
 
 // 		if(inCompression )

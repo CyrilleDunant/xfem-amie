@@ -98,7 +98,7 @@ std::vector<Feature *> Amie::placement2D(const Geometry* box, std::vector<Featur
         tries++ ;
 
         double scale = 1. ;
-        if(minDist > POINT_TOLERANCE_2D)
+        if(minDist > POINT_TOLERANCE)
         {
             scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
             Point s( scale, scale ) ;
@@ -208,7 +208,7 @@ std::vector<Feature *> Amie::placement3D(const Geometry* box, std::vector<Featur
         tries++ ;
 
         double scale = 1. ;
-        if(minDist > POINT_TOLERANCE_2D)
+        if(minDist > POINT_TOLERANCE)
         {
             scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
             Point s( scale, scale, scale ) ;
@@ -284,7 +284,7 @@ std::vector<Feature *> Amie::placement2DInInclusions(const Geometry* box, std::v
         tries++ ;
 
         double scale = 1. ;
-        if(minDist > POINT_TOLERANCE_2D)
+        if(minDist > POINT_TOLERANCE)
         {
             scale = (inclusions[i]->getRadius()+minDist)/inclusions[i]->getRadius() ;
             Point s( scale, scale ) ;

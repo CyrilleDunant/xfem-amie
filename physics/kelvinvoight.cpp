@@ -334,7 +334,7 @@ std::vector<BoundaryCondition * > NewmarkNumeroffKelvinVoigt::getBoundaryConditi
 
 void NewmarkNumeroffKelvinVoigt::step( double timestep, ElementState &s )
 {
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
         return ;
     s.getParent()->behaviourUpdated = true ;
 }
@@ -356,7 +356,7 @@ ElementState * NewmarkNumeroffKelvinVoigt::createElementState( IntegrableEntity 
 void NewmarkNumeroffKelvinVoigt::updateElementState(double timestep, ElementState & currentState) const
 {
     LinearForm::updateElementState(timestep, currentState) ;
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
         return ;
     for(size_t g = 0 ; g < imposedAtGaussPoints.size() ; g++)
     {
@@ -381,7 +381,7 @@ Matrix NewmarkNumeroffKelvinVoigt::getTensor(const Point & p, IntegrableEntity *
 
 void NewmarkNumeroffKelvinVoigt::preProcess( double timeStep, ElementState & currentState )
 {
-    if(timeStep < POINT_TOLERANCE_2D)
+    if(timeStep < POINT_TOLERANCE)
         return ;
 
     param = stiffness + (viscosity / (alpha*timeStep)) ;
@@ -497,7 +497,7 @@ std::vector<BoundaryCondition * > ExponentiallyPredictedKelvinVoigt::getBoundary
 
 void ExponentiallyPredictedKelvinVoigt::step( double timestep, ElementState &s )
 {
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
         return ;
     s.getParent()->behaviourUpdated = true ;
 }
@@ -519,7 +519,7 @@ ElementState * ExponentiallyPredictedKelvinVoigt::createElementState( Integrable
 void ExponentiallyPredictedKelvinVoigt::updateElementState(double timestep, ElementState & currentState) const
 {
     LinearForm::updateElementState(timestep, currentState) ;
-    if(timestep < POINT_TOLERANCE_2D)
+    if(timestep < POINT_TOLERANCE)
         return ;
     for(size_t g = 0 ; g < imposedAtGaussPoints.size() ; g++)
     {
@@ -552,7 +552,7 @@ Matrix ExponentiallyPredictedKelvinVoigt::getTensor(const Point & p, IntegrableE
 
 void ExponentiallyPredictedKelvinVoigt::preProcess( double timeStep, ElementState & currentState )
 {
-    if(timeStep < POINT_TOLERANCE_2D)
+    if(timeStep < POINT_TOLERANCE)
         return ;
 
     Vector expl = std::exp(-decay) ;

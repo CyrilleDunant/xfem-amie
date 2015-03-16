@@ -154,7 +154,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
     
     if(mesh2d)
     {
-// 		thresholdScore = POINT_TOLERANCE_2D ;
+// 		thresholdScore = POINT_TOLERANCE ;
         // outside of the checkpoints, we only care about the order of the elements in
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
@@ -202,7 +202,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         if(ci == s.getParent() && met())
                             inset = true ;
                         
-                        if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
+                        if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
                         maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;
@@ -336,7 +336,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     {
                         if(ci == s.getParent() && met())
                             inset = true ;
-                        if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE_2D)
+                        if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
                         maxModeInNeighbourhood = std::max(maxModeInNeighbourhood, ci->getBehaviour()->getDamageModel()->getMode()) ;

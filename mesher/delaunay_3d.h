@@ -42,15 +42,14 @@ class DelaunayTreeItem3D
 {
 
 protected:
-    bool m_dead ;
-    bool m_isSpace ;
-    bool m_isTetrahedron ;
-    bool m_isDeadTetrahedron ;
-    bool m_erased ;
+    
+    
+    
+   
+    
 // 	std::bitset<6> state ;
 // 	std::bitset<6>::reference dead() ;
-    bool dead() const ;
-    bool & dead() ;
+
 public:
     const Point * killer ; //!< Point killer.
     const Point * creator ; //!< Point creator.
@@ -65,15 +64,11 @@ public:
     Point * third ; //!<  Defining point. Is always <em>isVertex</em> the item.
     Point * fourth ; //!<  Defining point. Function differs if item is a triangle or point.
 
-    bool & isSpace() ;
-    bool & isTetrahedron() ;
-    bool & isDeadTetrahedron() ;
-    bool & erased()  ;
-    bool isSpace() const;
-    bool isTetrahedron() const;
-    bool isDeadTetrahedron() const;
-    bool erased() const ;
-    bool isAlive() const ; //!< Accessor. Are we dead ?
+    bool erased ;
+    bool isSpace ;
+    bool isTetrahedron ;
+    bool isDeadTetrahedron ;
+    bool dead ;
 
     std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
     std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
@@ -375,7 +370,7 @@ public:
         std::vector<DelaunayTetrahedron*> ret ;
         for(size_t i = 0 ; i < targets.size() ; i++)
         {
-            if(targets[i]->isAlive() && targets[i]->isTetrahedron() && !targets[i]->isDeadTetrahedron() )
+            if(!targets[i]->dead && targets[i]->isTetrahedron && !targets[i]->isDeadTetrahedron )
                 ret.push_back(static_cast< DelaunayTetrahedron *> (targets[i])) ;
         }
         return ret ;

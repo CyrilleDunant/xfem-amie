@@ -190,7 +190,7 @@ std::vector<Point> OrientedRectangle::getBoundingBox() const
 
 void OrientedRectangle::computeCircumCenter()
 {
-	if (fabs(boundingPoints[1]->getY()-boundingPoints[0]->getY()) < 20*POINT_TOLERANCE_2D)
+	if (fabs(boundingPoints[1]->getY()-boundingPoints[0]->getY()) < 20*POINT_TOLERANCE)
 	{
 		double m2 = - (boundingPoints[2]->getX()-boundingPoints[1]->getX()) / (boundingPoints[2]->getY()-boundingPoints[1]->getY());
 		double mx2 = (boundingPoints[1]->getX() + boundingPoints[2]->getX()) / 2.0;
@@ -200,7 +200,7 @@ void OrientedRectangle::computeCircumCenter()
 
 		circumCenter = Point(xc, yc) ;
 	}
-	else if (fabs(boundingPoints[2]->getY()-boundingPoints[1]->getY()) < 20*POINT_TOLERANCE_2D)
+	else if (fabs(boundingPoints[2]->getY()-boundingPoints[1]->getY()) < 20*POINT_TOLERANCE)
 	{
 		double m1 = - (boundingPoints[1]->getX()-boundingPoints[0]->getX()) / (boundingPoints[1]->getY()-boundingPoints[0]->getY());
 		double mx1 = (boundingPoints[0]->getX() + boundingPoints[1]->getX()) / 2.0;
@@ -553,7 +553,7 @@ std::vector<Point> Triangle::getBoundingBox() const
 void Triangle::computeCircumCenter()
 {
 
-	if (std::abs(getBoundingPoint(1).getY()-getBoundingPoint(0).getY()) < 100.*POINT_TOLERANCE_2D)
+	if (std::abs(getBoundingPoint(1).getY()-getBoundingPoint(0).getY()) < 100.*POINT_TOLERANCE)
 	{
 		double m2  =  (getBoundingPoint(1).getX()-getBoundingPoint(2).getX() ) / (getBoundingPoint(2).getY()-getBoundingPoint(1).getY());
 		double mx2 = (getBoundingPoint(1).getX() + getBoundingPoint(2).getX()) ;
@@ -563,7 +563,7 @@ void Triangle::computeCircumCenter()
 
 		circumCenter.set(xc/2., yc/2.) ;
 	}
-	else if (std::abs(getBoundingPoint(2).getY()-getBoundingPoint(1).getY()) < 100.*POINT_TOLERANCE_2D)
+	else if (std::abs(getBoundingPoint(2).getY()-getBoundingPoint(1).getY()) < 100.*POINT_TOLERANCE)
 	{
 		double m1  =  (getBoundingPoint(0).getX() - getBoundingPoint(1).getX() ) / (getBoundingPoint(1).getY()-getBoundingPoint(0).getY());
 		double mx1 = (getBoundingPoint(0).getX() + getBoundingPoint(1).getX()) ;
@@ -602,7 +602,7 @@ bool Triangle::inCircumCircle(const Point & p) const
 	if(squareDist2D(circumCenter, p) < .99*sqradius)
 		return true ;
 
-	double delta = POINT_TOLERANCE_2D ;
+	double delta = POINT_TOLERANCE ;
 	Point a(p) ;
 	a.getX() += delta ;
 	a.getY() += delta ;
@@ -622,7 +622,7 @@ bool Triangle::inCircumCircle(const Point & p) const
 			&&  squareDist2D(circumCenter, g) < sqradius;
 	double x = circumCenter.getX() -p.getX() ;
 	double y = circumCenter.getY() -p.getY() ;
-	return  fma(x, x, y*y)< sqradius*(1. - 100.*POINT_TOLERANCE_2D)  ;
+	return  fma(x, x, y*y)< sqradius*(1. - 100.*POINT_TOLERANCE)  ;
 }
 
 bool Triangle::inCircumCircle(const Point *p) const
@@ -639,7 +639,7 @@ bool Triangle::inCircumCircle(const Point *p) const
 	if(squareDist2D(circumCenter, *p) < .99*sqradius)
 		return true ;
 
-	double delta = POINT_TOLERANCE_2D ;
+	double delta = POINT_TOLERANCE ;
 	Point a(*p) ;
 	a.getX() += delta ;
 	a.getY() += delta ;
@@ -659,7 +659,7 @@ bool Triangle::inCircumCircle(const Point *p) const
 			&&  squareDist2D(circumCenter, g) < sqradius;
 	double x = circumCenter.getX() -p->getX() ;
 	double y = circumCenter.getY() -p->getY() ;
-	return  fma(x, x, y*y) < sqradius*(1. - 100.*POINT_TOLERANCE_2D)  ;
+	return  fma(x, x, y*y) < sqradius*(1. - 100.*POINT_TOLERANCE)  ;
 }
 
 
@@ -680,7 +680,7 @@ double Triangle::area() const
 // 		pointsInTimePlane = 0 ;
 // 		double init = getBoundingPoint(0).getT() ;
 // 		int counter = 0 ;
-// 		while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE_2D)
+// 		while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE)
 // 			pointsInTimePlane++ ;
 // 	}
 	Segment s0(getBoundingPoint(0), getBoundingPoint(pointsInTimePlane/3)) ;
@@ -693,7 +693,7 @@ double Triangle::area() const
 void Triangle::project(Point * p) const
 {
 	Segment s(getCenter(), *p) ;
-	if(dist(*p, getCircumCenter()) < POINT_TOLERANCE_2D)
+	if(dist(*p, getCircumCenter()) < POINT_TOLERANCE)
 		return ;
 
 	Segment s0(getBoundingPoint(0), getBoundingPoint(getBoundingPoints().size()/(3*timePlanes()))) ;
@@ -748,14 +748,14 @@ bool Triangle::in(const Point &p) const
 // 	bool isAPoint = false ;
 // 	for (int i = 0; i <  getBoundingPoints().size(); i++)
 // 	{
-// 		if(squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+// 		if(squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE*POINT_TOLERANCE)
 // 		{
 // 			return true ;
 // 		}
 // 	}
 //
 // 	Point proj(p) ; project(&proj) ;
-// 	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+// 	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE*POINT_TOLERANCE ;
 // 	if(isOnSurface)
 // 		return true ;
 //
@@ -793,7 +793,7 @@ bool Triangle::in(const Point &p) const
 // 		bool isAPoint = false ;
 	for (size_t i = 0; i <  getBoundingPoints().size(); i++)
 	{
-		if(p == getBoundingPoint(i) || squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+		if(p == getBoundingPoint(i) || squareDist2D( p, getBoundingPoint(i))  < POINT_TOLERANCE*POINT_TOLERANCE)
 		{
 			return true ;
 		}
@@ -801,7 +801,7 @@ bool Triangle::in(const Point &p) const
 
 	Point proj(p) ;
 	project(&proj) ;
-	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D ;
+	bool isOnSurface = squareDist2D(p, proj) < POINT_TOLERANCE*POINT_TOLERANCE ;
 	if(isOnSurface)
 		return true ;
 
@@ -1316,7 +1316,7 @@ std::vector<Point> Circle::getBoundingBox() const
 
 void Circle::project(Point * p) const
 {
-	if(squareDist2D(p, &getCenter() ) < POINT_TOLERANCE_2D*POINT_TOLERANCE_2D)
+	if(squareDist2D(p, &getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
 	{
 		p->getX() +=getRadius() ;
 		return ;
@@ -1766,7 +1766,7 @@ const Point Ellipse::getPointOnEllipse(double theta) const
 
 Point Ellipse::project(const Point &p) const
 {
-	if((p-center).norm() < POINT_TOLERANCE_2D*100.)
+	if((p-center).norm() < POINT_TOLERANCE*100.)
 	{
 		return p+getMajorAxis() ;
 	} else {
@@ -1842,7 +1842,7 @@ void Ellipse::project(Point * p) const
 		double tmin = 0. ;
 		double tmax = M_PI * 2. ;
 		int iter = 0 ;
-		while(std::abs(tmin-tmax) > POINT_TOLERANCE_2D && iter < 16)
+		while(std::abs(tmin-tmax) > POINT_TOLERANCE && iter < 16)
 		{
 			iter++ ;
 			double dtheta = (tmax - tmin) / 32. ;
@@ -1961,7 +1961,7 @@ Function Ellipse::getEllipseFormFunction() const
 
 bool Ellipse::in(const Point &p) const
 {
-	return VirtualMachine().eval(getEllipseFormFunction(),p) < POINT_TOLERANCE_2D ;
+	return VirtualMachine().eval(getEllipseFormFunction(),p) < POINT_TOLERANCE ;
 }
 
 std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, double alpha, double beta) const
@@ -2025,7 +2025,7 @@ std::vector<Point> Ellipse::getSampleBoundingPointsOnArc(size_t num_points, doub
 
 void Ellipse::sampleBoundingSurface (size_t num_points)
 {
-	if( getMinorAxis().norm() < POINT_TOLERANCE_2D || getMajorAxis().norm() < POINT_TOLERANCE_2D )
+	if( getMinorAxis().norm() < POINT_TOLERANCE || getMajorAxis().norm() < POINT_TOLERANCE )
 		return ;
 	
 	if(num_points < 3)
@@ -2047,7 +2047,7 @@ void Ellipse::sampleBoundingSurface (size_t num_points)
 
 void Ellipse::sampleSurface (size_t num_points)
 {
-	if( getMinorAxis().norm() < POINT_TOLERANCE_2D || getMajorAxis().norm() < POINT_TOLERANCE_2D )
+	if( getMinorAxis().norm() < POINT_TOLERANCE || getMajorAxis().norm() < POINT_TOLERANCE )
 		return ;
 	
 	if(num_points < 3)
@@ -2416,14 +2416,14 @@ void Polygon::sampleSurface(size_t num_points)
                 if(&newSegments[i] == testSegment)
                     continue ;
                 
-                if(dist(newPoints.back(), newSegments[i].first()) < POINT_TOLERANCE_2D)
+                if(dist(newPoints.back(), newSegments[i].first()) < POINT_TOLERANCE)
                 {
                     newPoints.push_back(newSegments[i].second());
                     testSegment = &newSegments[i] ;
                     found = true ;
                     break ;
                 }
-                if(dist(newPoints.back(), newSegments[i].second()) < POINT_TOLERANCE_2D)
+                if(dist(newPoints.back(), newSegments[i].second()) < POINT_TOLERANCE)
                 {
                     newPoints.push_back(newSegments[i].first());
                     testSegment = &newSegments[i] ;
@@ -2485,10 +2485,10 @@ void Polygon::sampleSurface(size_t num_points)
 bool Polygon::in(const Point & v) const
 {
     Point out = center + Point(0, getRadius()*2.) ;
-    Segment s(out, v+Point(POINT_TOLERANCE_2D,-POINT_TOLERANCE_2D)) ;
-    Segment s0(out, v+Point(-POINT_TOLERANCE_2D,-POINT_TOLERANCE_2D)) ;
-    Segment s1(out, v+Point(-POINT_TOLERANCE_2D,POINT_TOLERANCE_2D)) ;
-    Segment s2(out, v+Point(POINT_TOLERANCE_2D,POINT_TOLERANCE_2D)) ;
+    Segment s(out, v+Point(POINT_TOLERANCE,-POINT_TOLERANCE)) ;
+    Segment s0(out, v+Point(-POINT_TOLERANCE,-POINT_TOLERANCE)) ;
+    Segment s1(out, v+Point(-POINT_TOLERANCE,POINT_TOLERANCE)) ;
+    Segment s2(out, v+Point(POINT_TOLERANCE,POINT_TOLERANCE)) ;
     
     int interCount = 0 ;
     int interheadcount = 0 ;

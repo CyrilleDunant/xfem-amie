@@ -228,7 +228,7 @@ public:
                 for ( size_t k = 0 ; k < targets.size() ; k++ ) {
                     Point proj ( * ( *i ) ) ;
                     targets[k]->project ( &proj ) ;
-                    if ( targets[k]->in ( * ( *i ) ) || dist ( proj, * ( *i ) ) < 128.*POINT_TOLERANCE_2D ) {
+                    if ( targets[k]->in ( * ( *i ) ) || dist ( proj, * ( *i ) ) < 128.*POINT_TOLERANCE ) {
                         coincidentElements[dist ( * ( *i ), targets[k]->getCenter() )] = targets[k] ;
                     }
                 }

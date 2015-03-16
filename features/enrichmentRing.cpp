@@ -196,7 +196,7 @@ void EnrichmentRing::enrich(size_t & lastId,  Mesh<DelaunayTriangle, DelaunayTre
 					double d = dist(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0]),triCircleIntersectionPoints[1]) ;
 					double dr = std::abs(getRadius()-self.getRadius()) ;
 					int numPoints = 2.*round(d/dr) ;
-					if(dr > POINT_TOLERANCE_2D && numPoints < 32)
+					if(dr > POINT_TOLERANCE && numPoints < 32)
 					{
 						hint.push_back(ring[i]->inLocalCoordinates(triCircleIntersectionPoints[0])) ;
 						std::vector<Point> pts = circles[h]->getSamplingBoundingPointsOnArc(numPoints,triCircleIntersectionPoints[0],triCircleIntersectionPoints[1]  ) ;

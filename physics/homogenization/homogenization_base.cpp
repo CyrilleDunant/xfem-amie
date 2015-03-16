@@ -710,7 +710,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 
 	if(pt == PLANE_STRESS)
 	{
-		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
+		if(E_1 > POINT_TOLERANCE && E_2 > POINT_TOLERANCE)
 		{
 // 			Matrix A(2,2) ;
 // 			A[0][0] = E_1/std::max(E_1, E_2) ; A[0][1] = -E_2/std::max(E_1, E_2) ;
@@ -733,13 +733,13 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			
 			cg[2][2] = G ;
 		}
-		else if(E_1 > POINT_TOLERANCE_2D)
+		else if(E_1 > POINT_TOLERANCE)
 		{
 			cg[0][0] = E_1 ;
 			cg[2][2] = 0 ;
 
 		}
-		else if(E_2 > POINT_TOLERANCE_2D)
+		else if(E_2 > POINT_TOLERANCE)
 		{
 			cg[1][1] = E_2 ;
 			cg[2][2] = 0 ;
@@ -749,7 +749,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 	}
 	else if (pt == PLANE_STRAIN)
 	{
-		if(E_1 > POINT_TOLERANCE_2D && E_2 > POINT_TOLERANCE_2D)
+		if(E_1 > POINT_TOLERANCE && E_2 > POINT_TOLERANCE)
 		{
 			Matrix A(2,2) ;
 
@@ -765,12 +765,12 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			cg[1][0] = cg[0][1] ;  cg[1][1] = E_2*(1.-nu32*nu23)/nupe ;
 			cg[2][2] = E_1*E_2/(E_2*(1.+nu12)*(1.-2.*nu12)+E_1*(1.+nu21)*(1.-2.*nu21)) ;
 		}
-		else if(E_1 > POINT_TOLERANCE_2D)
+		else if(E_1 > POINT_TOLERANCE)
 		{
 			cg[0][0] = E_1 ;
 			cg[2][2] = G ;
 		}
-		else if(E_2 > POINT_TOLERANCE_2D)
+		else if(E_2 > POINT_TOLERANCE)
 		{
 			cg[1][1] = E_2 ;
 			cg[2][2] = G ;

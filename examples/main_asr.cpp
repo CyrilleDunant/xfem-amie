@@ -78,7 +78,7 @@ void step()
 	int nstepstot = 90;
 	featureTree->setMaxIterationsPerStep( 400 ) ;
 
-	for( size_t i = 0 ; i < nsteps ; i++ )
+	for( int i = 0 ; i < nsteps ; i++ )
 	{
 		std::cout << "\r iteration " << i << "/" << nsteps << std::flush ;
 		bool go_on = featureTree->step() ;
@@ -131,7 +131,7 @@ void step()
 				{				
 					double ar = k->area() ;
 					volume += ar ;
-					for(size_t l = 0 ; l < npoints ;l++)
+					for(int l = 0 ; l < npoints ;l++)
 					{
 						xavg += x[k->getBoundingPoint(l).getId()*2]*ar/npoints ;
 						yavg += x[k->getBoundingPoint(l).getId()*2+1]*ar/npoints ;
@@ -211,7 +211,7 @@ void step()
 					{
 						stopped_reaction++ ;
 
-						for( size_t m = 0 ; m < current_number ; m++ )
+						for( int m = 0 ; m < current_number ; m++ )
 						{
 							reactedArea -= zones[z - 1 - m].first->area() ;
 							zones[z - 1 - m].first->setRadius( zones[z].first->getRadius() - delta_r ) ;
@@ -405,9 +405,6 @@ int main( int argc, char *argv[] )
 	double itzSize = 0.00002;
 //	int inclusionNumber = 10 ;
  	int inclusionNumber = 8172 ;
-
-	double masseInitiale = 1.06366e-05 * .9;
-	double densite = 1.;
 
 	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
 	std::vector<Inclusion *> inclusions ;

@@ -122,8 +122,6 @@ bool VoxelFilter::existsPath(std::vector<std::vector<std::vector<unsigned char> 
 
 void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char* filename, Mesh <DelaunayTetrahedron, DelaunayTreeItem3D >* mesh )
 {
-    points.clear() ;
-    elems.clear() ;
     if(behaviourMap.empty())
     {
         std::cerr << "no behaviours !" << std::endl ;

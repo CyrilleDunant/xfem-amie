@@ -91,7 +91,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 	
 	while((i < b.size()/4) && 
 	      (delta_new > eps*eps*delta_0) && 
-	      (delta_new > 4.*POINT_TOLERANCE_2D*POINT_TOLERANCE_2D))
+	      (delta_new > 4.*POINT_TOLERANCE*POINT_TOLERANCE))
 	{
 		bool successefulSecant = false ;
 		size_t secantcount = 0;

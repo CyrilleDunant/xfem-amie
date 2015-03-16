@@ -9,7 +9,8 @@
 #include <fstream>
 #include <iomanip>
 
-using namespace Amie ;
+namespace Amie
+{
 
 
 
@@ -181,7 +182,7 @@ bool RegularOctahedron::in(const Point &p) const
 
     Point local = p-center ;
     double test = std::abs(local.getX()) + std::abs(local.getY()) + std::abs(local.getZ()) ;
-    return (test-length/std::sqrt(2.)) < POINT_TOLERANCE_3D ;
+    return (test-length/std::sqrt(2.)) < POINT_TOLERANCE ;
 
 // 	return true ;
     Matrix rot(3,3) ;
@@ -515,13 +516,13 @@ bool Tetrahedron::in(const Point & p) const
 
         v_ = Point(coeff[0],coeff[1],coeff[2],p.getT() );
     }
-    if(v_.getX() < -POINT_TOLERANCE_3D)
+    if(v_.getX() < -POINT_TOLERANCE)
         return false ;
-    if(v_.getY() < -POINT_TOLERANCE_3D)
+    if(v_.getY() < -POINT_TOLERANCE)
         return false ;
-    if(v_.getZ() < -POINT_TOLERANCE_3D)
+    if(v_.getZ() < -POINT_TOLERANCE)
         return false ;
-    if(v_.getX()+v_.getY()+v_.getZ() > 1+3.*POINT_TOLERANCE_3D)
+    if(v_.getX()+v_.getY()+v_.getZ() > 1+3.*POINT_TOLERANCE)
         return false ;
     return true ;
 
@@ -544,7 +545,7 @@ bool Tetrahedron::in(const Point & p) const
 // 		return true ;
 // 	}
 // 	Point  pg = getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-// 	if(squareDist3D(pg, v) <POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+// 	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
 // 		return true ;
 //
 // 	if(getBoundingPoints().size() == 4)
@@ -723,7 +724,7 @@ bool Tetrahedron::inCircumSphere(const Point *p) const
 
     double d = dist(&circumCenter, p) ;
 
-    return  d-radius < POINT_TOLERANCE_3D ;
+    return  d-radius < POINT_TOLERANCE ;
 }
 
 Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7)
@@ -906,7 +907,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
             bool in = false ;
             for(size_t k = 0 ; k < points.size() ; k++)
             {
-                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     in = true ;
                     break ;
@@ -926,7 +927,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
             bool in = false ;
             for(size_t k = 0 ; k < points.size() ; k++)
             {
-                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     in = true ;
                     break ;
@@ -946,7 +947,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
             bool in = false ;
             for(size_t k = 0 ; k < points.size() ; k++)
             {
-                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     in = true ;
                     break ;
@@ -966,7 +967,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
             bool in = false ;
             for(size_t k = 0 ; k < points.size() ; k++)
             {
-                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     in = true ;
                     break ;
@@ -986,7 +987,7 @@ std::vector<Point> Hexahedron::getSamplingBoundingPoints(size_t num_points) cons
             bool in = false ;
             for(size_t k = 0 ; k < points.size() ; k++)
             {
-                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[k], candidate)< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     in = true ;
                     break ;
@@ -1140,12 +1141,12 @@ void Hexahedron::sampleSurface(size_t num_points)
 
 bool Hexahedron::in(const Point & v) const
 {
-    return v.getX() >= (center.getX() - size_x*.5 - POINT_TOLERANCE_3D) &&
-           v.getX() <= (center.getX() + size_x*.5 + POINT_TOLERANCE_3D) &&
-           v.getY() >= (center.getY() - size_y*.5 - POINT_TOLERANCE_3D) &&
-           v.getY() <= (center.getY() + size_y*.5 + POINT_TOLERANCE_3D) &&
-           v.getZ() >= (center.getZ() - size_z*.5 - POINT_TOLERANCE_3D) &&
-           v.getZ() <= (center.getZ() + size_z*.5 + POINT_TOLERANCE_3D) ;
+    return v.getX() >= (center.getX() - size_x*.5 - POINT_TOLERANCE) &&
+           v.getX() <= (center.getX() + size_x*.5 + POINT_TOLERANCE) &&
+           v.getY() >= (center.getY() - size_y*.5 - POINT_TOLERANCE) &&
+           v.getY() <= (center.getY() + size_y*.5 + POINT_TOLERANCE) &&
+           v.getZ() >= (center.getZ() - size_z*.5 - POINT_TOLERANCE) &&
+           v.getZ() <= (center.getZ() + size_z*.5 + POINT_TOLERANCE) ;
 }
 
 double Hexahedron::area() const
@@ -1341,7 +1342,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
     //z = r cos(theta)
 
     std::vector<Point> points ;
-    if(r  < POINT_TOLERANCE_3D)
+    if(r  < POINT_TOLERANCE)
         return points ;
 
 // 		first we sample a cube.
@@ -1444,7 +1445,7 @@ std::vector<Point> Sphere::getSamplingPointsOnSphere(size_t num_points, double r
         {
             for(size_t j  = i+1 ; j < points.size() ; j++)
             {
-                if(squareDist3D(points[i], points[j])< 128*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D(points[i], points[j])< 128*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     haveDuplicates = true ;
                     points.erase(points.begin()+j) ;
@@ -1482,7 +1483,7 @@ void Sphere::smooth(std::vector<Point> & points,double r, size_t iter) const
         {
             for(size_t k = j+1 ; k < points.size() ; k++)
             {
-                if(squareDist3D( points[j], points[k]) > 512.*POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+                if(squareDist3D( points[j], points[k]) > 512.*POINT_TOLERANCE*POINT_TOLERANCE)
                 {
                     vec.set(points[j].getX()-points[k].getX(),points[j].getY()-points[k].getY(),points[j].getZ()-points[k].getZ()) ;
                     double n = vec.sqNorm() ;
@@ -1651,7 +1652,7 @@ bool Sphere::in(const Point & v) const
         return false ;
     if(v.getZ() > center.getZ()+1.0001*getRadius())
         return false ;
-    return squareDist3D(v, getCenter()) < getRadius()*getRadius() + 2.*getRadius()*POINT_TOLERANCE_3D + POINT_TOLERANCE_3D*POINT_TOLERANCE_3D;
+    return squareDist3D(v, getCenter()) < getRadius()*getRadius() + 2.*getRadius()*POINT_TOLERANCE + POINT_TOLERANCE*POINT_TOLERANCE;
 }
 
 double Sphere::area() const
@@ -1675,7 +1676,7 @@ void Sphere::project(Point * p, double r) const
     //y = r sin(theta) sin(phi)
     //z = r cos(theta)
     int id = p->getId() ;
-    if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+    if(squareDist3D(*p, getCenter() ) < POINT_TOLERANCE*POINT_TOLERANCE)
     {
         p->getX() =+ r ;
         return ;
@@ -1683,7 +1684,7 @@ void Sphere::project(Point * p, double r) const
 
     Point p_prime = *p-getCenter() ;
     double n = p_prime.norm() ;
-    if(std::abs(n - r) < POINT_TOLERANCE_3D)
+    if(std::abs(n - r) < POINT_TOLERANCE)
         return ;
     p_prime *= r/n ;
     *p = getCenter()+p_prime ;
@@ -1799,7 +1800,7 @@ PolygonPrism::PolygonPrism(const std::valarray<Point *> & points, const Point & 
     Matrix rotx_(3,3) ;
     Matrix roty(3,3) ;
 
-    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE)
     {
         double angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
         double cost = cos(angle) ;
@@ -2099,7 +2100,7 @@ Matrix LoftedPolygonPrism::rotateToVector(const Point & vector) const
     double cost  ;
     double sint  ;
     
-    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getZ()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
         cost = cos(angle) ;
@@ -2113,7 +2114,7 @@ Matrix LoftedPolygonPrism::rotateToVector(const Point & vector) const
 
         renormAxis = rotx*renormAxis ;
     }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getZ()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getX(),renormAxis.getZ()) ;
         cost = cos(angle) ;
@@ -2126,7 +2127,7 @@ Matrix LoftedPolygonPrism::rotateToVector(const Point & vector) const
         roty[2][2] = cost ;
         renormAxis = roty*renormAxis ;
     }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getY()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getY()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getX(),renormAxis.getY()) ;
         cost = cos(angle) ;
@@ -2156,7 +2157,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
     double cost  ;
     double sint  ;
     
-    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getZ()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getY()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getY(),renormAxis.getZ()) ;
         cost = cos(angle) ;
@@ -2170,7 +2171,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
 
         renormAxis = rotx*renormAxis ;
     }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getZ()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getZ()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getX(),renormAxis.getZ()) ;
 
@@ -2183,7 +2184,7 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
         roty[2][2] = cost ;
         renormAxis = roty*renormAxis ;
     }
-    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE_2D || std::abs(renormAxis.getY()) > POINT_TOLERANCE_2D)
+    if(std::abs(renormAxis.getX()) > POINT_TOLERANCE || std::abs(renormAxis.getY()) > POINT_TOLERANCE)
     {
         angle = atan2( renormAxis.getX(),renormAxis.getY()) ;
         cost = cos(angle) ;
@@ -2494,7 +2495,7 @@ std::pair<Point, Point> LoftedPolygonPrism::getEndNormals() const
 
 Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< Amie::Point, Amie::Point >& toCenter) const
 {
-    if(squareDist3D(toCenter.first, interpolationPoints.front()) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D )
+    if(squareDist3D(toCenter.first, interpolationPoints.front()) < POINT_TOLERANCE*POINT_TOLERANCE )
     {
         Point tpoint(init) ;
         tpoint -= interpolationPoints.front() ;
@@ -2514,7 +2515,7 @@ Point LoftedPolygonPrism::projectTest(const Amie::Point& init, const std::pair< 
             return tpoint;
         }
     } 
-    if(squareDist3D(toCenter.first, interpolationPoints.back()) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+    if(squareDist3D(toCenter.first, interpolationPoints.back()) < POINT_TOLERANCE*POINT_TOLERANCE)
     {
         Point tpoint(init) ;
         tpoint -= interpolationPoints.back() ;
@@ -2572,10 +2573,10 @@ std::pair<Point,Point> LoftedPolygonPrism::projectToCenterLine(const Point& p, d
     {
         double dh = 1e-6 ;
         double distDerivative = (squareDist3D(interpolatingPointAndTangent(closestCoordinate+dh).first,p)- squareDist3D(interpolatingPointAndTangent(closestCoordinate-dh).first,p))/(2.*dh) ;
-        if(std::abs(distDerivative) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+        if(std::abs(distDerivative) < POINT_TOLERANCE*POINT_TOLERANCE)
             break ;
         double distSecondDerivative = (squareDist3D(interpolatingPointAndTangent(closestCoordinate+dh).first,p) -2.*closestCoordinateDistance + squareDist3D(interpolatingPointAndTangent(closestCoordinate-dh).first,p))/(dh*dh) ;
-        if(std::abs(distSecondDerivative) < POINT_TOLERANCE_3D*POINT_TOLERANCE_3D)
+        if(std::abs(distSecondDerivative) < POINT_TOLERANCE*POINT_TOLERANCE)
             break ;
         closestCoordinate = closestCoordinate - distDerivative/distSecondDerivative ;
         if(closestCoordinate > 1.)
@@ -2795,4 +2796,4 @@ std::vector<Point> PolygonPrism::getBoundingBox() const
 }
 
 
-
+}

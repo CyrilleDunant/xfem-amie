@@ -21,7 +21,7 @@ CSHBehaviour::CSHBehaviour(CSHType type, double E, double nu, SpaceDimensionalit
 
 Form * CSHBehaviour::getCopy() const 
 {
-	return new Stiffness(Matrix(param.numRows(), param.numCols(), const_cast<Vector *>(&param.array()))) ;
+	return new DerivedStiffness(param) ;
 }
 
 

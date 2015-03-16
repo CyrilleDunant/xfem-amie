@@ -102,7 +102,7 @@ void StrainRateDependentStrengthMaterialLaw::preProcess(GeneralizedSpaceTimeVisc
 
     Vector pstrain(2) ; pstrain=0. ;
     s.getAverageField(PRINCIPAL_STRAIN_FIELD, pstrain, nullptr, -1, 1.) ;
-    if(std::abs(pstrain.max()) < POINT_TOLERANCE_2D*dt && std::abs(pstrain.min()) < POINT_TOLERANCE_2D*dt)
+    if(std::abs(pstrain.max()) < POINT_TOLERANCE*dt && std::abs(pstrain.min()) < POINT_TOLERANCE*dt)
 	return ;
 
     double strainrate = 0. ;

@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 				}
 				for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
 				{
-					if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE_3D)
+					if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE)
 					{
 						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).getId(), 1.e-5)) ;
 					}

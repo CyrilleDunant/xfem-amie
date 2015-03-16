@@ -438,7 +438,7 @@ double HydratingDiffusionCementPaste::getDeltadoh(double saturation, ElementStat
 	double maxRelativeHumidity = 0.999 ;
 	double factor = (saturation-thresholdRelativeHumidity)/(maxRelativeHumidity-thresholdRelativeHumidity) ;
 	
-	if(factor < POINT_TOLERANCE_2D)
+	if(factor < POINT_TOLERANCE)
 		return 0. ;
 
 	DelaunayTriangle * diffusionElement = dynamic_cast<DelaunayTriangle *>(currentState.getParent()) ;

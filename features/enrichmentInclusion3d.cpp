@@ -45,7 +45,7 @@ void EnrichmentInclusion3D::update(Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> 
 		std::vector<DelaunayTetrahedron *> candidates = dtree->getConflictingElements(&getCenter()) ;
 		for(size_t i = 0 ; i < candidates.size() ; i++)
 		{
-			if(candidates[i]->isTetrahedron() && candidates[i]->in(getCenter()))
+			if(candidates[i]->isTetrahedron && candidates[i]->in(getCenter()))
 			{
 				cache.push_back(static_cast<DelaunayTetrahedron *>(candidates[i])) ;
 				break ;

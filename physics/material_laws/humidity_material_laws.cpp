@@ -110,7 +110,7 @@ void SorptionIsothermHysteresisMaterialLaw::preProcess(GeneralizedSpaceTimeVisco
 	double hprev = s.get("relative_humidity_previous", defaultValues) ;
 
 	// constant humidity, do nothing
-	if(!first && std::abs(h-hprev) < POINT_TOLERANCE_2D)
+	if(!first && std::abs(h-hprev) < POINT_TOLERANCE)
 		return ;
 
 	if(!s.has("bet_adsorption_desorption_shift"))

@@ -155,7 +155,7 @@ bool CrackManager::step(double dt, Vector * v, Mesh< DelaunayTriangle, DelaunayT
         std::pair<double, double>  cscore = movingSet[0].second->computeJIntegralAtTip(movingTips[0].second, dtree) ;
         double currentScore = (cscore.first*cscore.first+cscore.second*cscore.second)/criticalEnergy -1 ;
         
-        if(currentScore < maxScore - POINT_TOLERANCE_3D)
+        if(currentScore < maxScore - POINT_TOLERANCE)
         {
             upExtension = currentExtension ;
             currentExtension = (upExtension+downExtension)*.5 ;

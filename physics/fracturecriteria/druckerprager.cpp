@@ -60,7 +60,7 @@ double DruckerPrager::grade(ElementState &s)
 		pseudomodulus = modulus*dfactor ;
 	}
 	
-	if(pseudomodulus < POINT_TOLERANCE_2D)
+	if(pseudomodulus < POINT_TOLERANCE)
 	  return -1 ;
 	if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
 	{
@@ -75,7 +75,7 @@ double DruckerPrager::grade(ElementState &s)
 		maxStrain = maxStress/pseudomodulus ;
 	}
 
-// 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE_2D)
+// 	if(maxStress > upthreshold && maxStress > POINT_TOLERANCE)
 // 	{
 // // 		std::cout << factor << ", "<< maxStress<< std::endl ;
 // 		metInTension = true ;
@@ -83,21 +83,21 @@ double DruckerPrager::grade(ElementState &s)
 // 		inTension = true ;
 // 		return 1. - std::abs(upthreshold/maxStress) ;
 // 	}
-// 	else if(maxStress >= 0 && std::abs(upthreshold) > POINT_TOLERANCE_2D)
+// 	else if(maxStress >= 0 && std::abs(upthreshold) > POINT_TOLERANCE)
 // 	{
 // 		metInTension = false ;
 // 		metInCompression = false ;
 // 		inTension = true ;
 // 		return -1.+ std::abs(maxStress/upthreshold) ;
 // 	}
-// 	else if(maxStress < downthreshold && maxStress < -POINT_TOLERANCE_2D)
+// 	else if(maxStress < downthreshold && maxStress < -POINT_TOLERANCE)
 // 	{
 // 		metInTension = false ;
 // 		metInCompression = true ;
 // 		inTension = false ;
 // 		return 1. - std::abs(downthreshold/maxStress) ;
 // 	}
-// 	else if(std::abs(downthreshold) > POINT_TOLERANCE_2D)
+// 	else if(std::abs(downthreshold) > POINT_TOLERANCE)
 // 	{
 // 		metInTension = false ;
 // 		metInCompression = false ;
@@ -110,7 +110,7 @@ double DruckerPrager::grade(ElementState &s)
 	
 	double effectiveUp = upthreshold*factor*dfactor ;
 	double effectiveDown = downthreshold*factor*dfactor ;
-	if(maxStress > effectiveUp && maxStrain > POINT_TOLERANCE_2D)
+	if(maxStress > effectiveUp && maxStrain > POINT_TOLERANCE)
 	{
 // 		std::cout << factor << ", "<< maxStress<< std::endl ;
 		metInTension = true ;
@@ -118,21 +118,21 @@ double DruckerPrager::grade(ElementState &s)
 		inTension = true ;
 		return 1. - std::abs(effectiveUp/maxStress) ;
 	}
-	else if(maxStress >= 0 && std::abs(effectiveUp) > POINT_TOLERANCE_2D)
+	else if(maxStress >= 0 && std::abs(effectiveUp) > POINT_TOLERANCE)
 	{
 		metInTension = false ;
 		metInCompression = false ;
 		inTension = true ;
 		return -1.+ std::abs(maxStress/effectiveUp) ;
 	}
-	else if(maxStress < effectiveDown && maxStress < -POINT_TOLERANCE_2D)
+	else if(maxStress < effectiveDown && maxStress < -POINT_TOLERANCE)
 	{
 		metInTension = false ;
 		metInCompression = true ;
 		inTension = false ;
 		return 1. - std::abs(effectiveDown/maxStress) ;
 	}
-	else if(std::abs(effectiveDown) > POINT_TOLERANCE_2D)
+	else if(std::abs(effectiveDown) > POINT_TOLERANCE)
 	{
 		metInTension = false ;
 		metInCompression = false ;

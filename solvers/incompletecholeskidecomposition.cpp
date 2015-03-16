@@ -20,17 +20,17 @@ InCompleteCholesky::InCompleteCholesky(Assembly * A_) : d(A_->getMatrix().diagon
 {
 	stable = true ;
 	
-	for(int i = 0 ; i < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; i++)
+	for(int i = 0 ; i < (int)(A->getMatrix().row_size.size()*A->getMatrix().stride) ; i++)
 	{
 		d[i] = 1./d[i] ;
-		for(int j = i+1 ; j < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; j++)
+		for(int j = i+1 ; j < (int)(A->getMatrix().row_size.size()*A->getMatrix().stride) ; j++)
 			d[j] = A->getMatrix()[i][j]*d[i] ;
 		
-		for(int j = i+1 ; j < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; j++)
+		for(int j = i+1 ; j < (int)(A->getMatrix().row_size.size()*A->getMatrix().stride) ; j++)
 		{
-			for(int k = j ; k < (int)A->getMatrix().row_size.size()*A->getMatrix().stride ; k++)
+			for(int k = j ; k < (int)(A->getMatrix().row_size.size()*A->getMatrix().stride) ; k++)
 			{
-				if( std::abs(A->getMatrix()[k][j]) < POINT_TOLERANCE_2D )
+				if( std::abs(A->getMatrix()[k][j]) < POINT_TOLERANCE )
 				{
 					double dummy = -A->getMatrix()[i][j]*d[k] ;
 					A->getMatrix()[k][k] += std::abs(dummy) ;

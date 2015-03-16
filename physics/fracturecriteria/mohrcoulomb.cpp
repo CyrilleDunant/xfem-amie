@@ -257,7 +257,7 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
     double d = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
-    if(1.-d < POINT_TOLERANCE_2D)
+    if(1.-d < POINT_TOLERANCE)
     {
         double c0 = std::abs(maxStress/upVal) ;
         double c1 = std::abs(minStress/downVal) ;
@@ -277,13 +277,13 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
 
     double tfactor = 1.-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness) ;
 // 	if(maxStrain > limittstrain)
-// 		return POINT_TOLERANCE_2D ;
+// 		return POINT_TOLERANCE ;
 // 	if(maxStrain <= upVal/stiffness)
 // 		tfactor = 1 ;
 
     double cfactor = 1.-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness) ;
 // 	if(minStrain < limitcstrain)
-// 		return POINT_TOLERANCE_2D ;
+// 		return POINT_TOLERANCE ;
 // 	if(minStrain > downVal/stiffness)
 // 		cfactor = 1 ;
 //
@@ -296,20 +296,20 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
         metInTension = true;
         scores.push_back(std::abs( maxStrain / upStrain ));
     }
-    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
+    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE)
         scores.push_back(-1. + std::abs( maxStrain / upStrain ));
     else if(maxStrain > 0)
-        return POINT_TOLERANCE_2D ;
+        return POINT_TOLERANCE ;
 
     if( minStrain <= downStrain && minStrain < 0 )
     {
         metInCompression = true ;
         scores.push_back(std::abs( minStrain / downStrain )) ;
     }
-    else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
+    else if(minStrain < 0  && downStrain < -POINT_TOLERANCE)
         scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
     else if(minStrain < 0)
-        return POINT_TOLERANCE_2D ;
+        return POINT_TOLERANCE ;
 
     std::sort(scores.begin(), scores.end()) ;
 // 	if (scores.back() > .99)
@@ -370,7 +370,7 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 
     double tfactor = exp(-(maxStrain-upVal/stiffness)/(limittstrain-upVal/stiffness)) ;
 // 	if(maxStrain > limittstrain)
-// 		return POINT_TOLERANCE_2D ;
+// 		return POINT_TOLERANCE ;
 // 	if(tfactor < 1e-1)
 // 		tfactor = 1e-1 ;
     if(maxStrain <= upVal/stiffness)
@@ -378,7 +378,7 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
 
     double cfactor = exp(-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness)) ;
 // 	if(minStrain < limitcstrain)
-// 		return POINT_TOLERANCE_2D ;
+// 		return POINT_TOLERANCE ;
     if(minStrain > downVal/stiffness)
         cfactor = 1 ;
 //
@@ -392,20 +392,20 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
         metInTension = true;
         scores.push_back(1. - std::abs( upStrain / maxStrain ));
     }
-    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE_2D)
+    else if(maxStrain > 0 && upStrain > POINT_TOLERANCE)
         scores.push_back(-1. + std::abs( maxStrain / upStrain ));
     else if(maxStrain > 0)
-        return -POINT_TOLERANCE_2D ;
+        return -POINT_TOLERANCE ;
 
 // 	if( minStrain <= downStrain && minStrain < 0 )
 // 	{
 // 		metInCompression = true ;
 // 		scores.push_back(1. - std::abs( downStrain / minStrain )) ;
 // 	}
-// 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE_2D)
+// 	else if(minStrain < 0  && downStrain < -POINT_TOLERANCE)
 // 		scores.push_back(-1. + std::abs( minStrain / downStrain )) ;
 // 	else if(minStrain < 0)
-// 		return POINT_TOLERANCE_2D ;
+// 		return POINT_TOLERANCE ;
 
     std::sort(scores.begin(), scores.end()) ;
 // 	if (scores.back() > .99)
@@ -430,8 +430,8 @@ Material NonLocalExponentiallyDecreasingMohrCoulomb::toMaterial()
 
 
 
-NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    ,limitstrain(limitstrain),limitystrain(std::max(limitystrain,limitstrain)), stiffness(E), c(c)
+NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ), stiffness(E)
+    ,limitstrain(limitstrain),limitystrain(std::max(limitystrain,limitstrain)), c(c)
 {
     metInTension = false ;
     upVal = E*limitstrain ;
@@ -478,10 +478,10 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
         metInTension = true;
         scores.push_back(1. - std::abs( upStrain / maxStrain ));
     }
-    else if( upStrain > POINT_TOLERANCE_2D)
+    else if( upStrain > POINT_TOLERANCE)
         scores.push_back(-1. + std::abs( maxStrain / upStrain ));
     else if(maxStrain > 0)
-        return POINT_TOLERANCE_2D ;
+        return POINT_TOLERANCE ;
 
     std::sort(scores.begin(), scores.end()) ;
     return scores.back() ;

@@ -131,13 +131,13 @@ std::vector<DelaunayTriangle *> StructuredMesh::getConflictingElements(const Poi
 			static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->project(&proj1) ;
 			if(tree[i*2*grid.pixels[0].size()+j*2]->isAlive())
 			{
-				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(*p) || dist(proj0, *p) < 128.*POINT_TOLERANCE_2D)
+				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])->in(*p) || dist(proj0, *p) < 128.*POINT_TOLERANCE)
 					ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2])) ;
 			}
 			
 			if(tree[i*2*grid.pixels[0].size()+j*2+1]->isAlive())
 			{
-				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(*p)|| dist(proj1, *p) < 128.*POINT_TOLERANCE_2D)
+				if(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])->in(*p)|| dist(proj1, *p) < 128.*POINT_TOLERANCE)
 					ret.push_back(static_cast<DelaunayTriangle *>(tree[i*2*grid.pixels[0].size()+j*2+1])) ;
 			}
 		}
@@ -494,7 +494,7 @@ void MicDerivedMesh::extrude(double dt)
             next->getT() = tri[i]->getBoundingPoint(j).getT() ;
             next->getT() = end + dt * (next->getT() - beginning) / (end - beginning) ;
             bool increment = true ;
-            if(std::abs(next->getT() - end) < POINT_TOLERANCE_2D)
+            if(std::abs(next->getT() - end) < POINT_TOLERANCE)
             {
                 next = &tri[i]->getBoundingPoint(j+indexOfLastTimePlane) ;
                 increment = false ;

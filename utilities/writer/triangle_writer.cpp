@@ -832,7 +832,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 // 
 // 			for( int i = 0 ; i < triangles.size() ; i++ )
 // 			{
-// 				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+// 				if( triangles[i]->getBehaviour() && triangles[i]->getBehaviour()->type != VOID_BEHAVIOUR &&  triangles[i]->getBehaviour()->getDamageModel() &&  triangles[i]->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
 // 				{
 // 
 // 					std::pair<double, double> np = triangles[i]->getBehaviour()->getFractureCriterion()->getCrackOpeningAndSlip(triangles[i]->getState()) ;
@@ -1089,7 +1089,7 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
 			
 			case TWFT_CRACK_ANGLE:
 			{
-				if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE_2D)
+				if( tri->getBehaviour()->getFractureCriterion() && tri->getBehaviour()->getDamageModel()->getState().max() > POINT_TOLERANCE)
 				{
 					double angle = 180.*tri->getBehaviour()->getFractureCriterion()->getSmoothedField(PRINCIPAL_STRESS_ANGLE_FIELD,  tri->getState())[0]/M_PI ;
 					while (angle < 0)

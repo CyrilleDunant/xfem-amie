@@ -19,7 +19,7 @@ CHBehaviour::CHBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffne
 
 Form * CHBehaviour::getCopy() const 
 {
-	return new Stiffness(Matrix(param.numRows(), param.numCols(), const_cast<Vector *>(&param.array()))) ;
+	return new DerivedStiffness(param) ;
 }
 
 

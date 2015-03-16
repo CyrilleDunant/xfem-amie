@@ -52,7 +52,7 @@ double damageAtAngle ( const std::vector<std::pair<double, double> > & increment
     for ( size_t i = 0 ; i <  increments.size() ; i++ )
     {
         rettest += increments[i].second ;
-        if ( cos ( increments[i].first - angle ) > POINT_TOLERANCE_2D )
+        if ( cos ( increments[i].first - angle ) > POINT_TOLERANCE )
         {
             double a = cos ( increments[i].first - angle ) * cos ( increments[i].first - angle ) ;
             ret +=  a * increments[i].second ;
@@ -102,7 +102,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             E_1 *=  1. - ss  ;
 
             double nunu = nu ;
-            if ( getState().max() > POINT_TOLERANCE_2D )
+            if ( getState().max() > POINT_TOLERANCE )
             {
                 nunu = nu*exp ( -1./ ( 1.-std::max ( fs,ss ) ) ) ;
                 E_0 /= 1.-nunu*nunu ;
@@ -110,7 +110,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             }
 
             double G = E_0*E_1/ ( E_0+E_1 ) ;
-            if ( E_0+E_1 < POINT_TOLERANCE_2D*E )
+            if ( E_0+E_1 < POINT_TOLERANCE*E )
             {
                 G = 0 ;
             }
@@ -172,7 +172,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         {
             angles_scores.push_back( std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()));
             std::sort(angles_scores.begin(),angles_scores.end());
-            if(angles_scores.back().first < M_PI + .05*M_PI- POINT_TOLERANCE_2D)
+            if(angles_scores.back().first < M_PI + .05*M_PI- POINT_TOLERANCE)
             {  
                 originalAngle += .2*M_PI ;
                 stiff->setAngle ( originalAngle) ;     
@@ -449,7 +449,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement ( ElementState &s
             s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         es = &s ;
-// 		if(getState().max() < POINT_TOLERANCE_2D)
+// 		if(getState().max() < POINT_TOLERANCE)
         if ( !angleset )
         {
             currentAngle = s.getParent()->getBehaviour()->getFractureCriterion()->getSmoothedField ( PRINCIPAL_STRESS_ANGLE_FIELD, s ) [0];
@@ -554,7 +554,7 @@ std::pair< Vector, Vector > FixedCrack::computeDamageIncrement ( ElementState &s
 Matrix FixedCrack::apply ( const Matrix & m, const Point & p, const IntegrableEntity * e, int g ) const
 {
 
-    if ( getState().max() < POINT_TOLERANCE_2D )
+    if ( getState().max() < POINT_TOLERANCE )
     {
         return m ;
     }

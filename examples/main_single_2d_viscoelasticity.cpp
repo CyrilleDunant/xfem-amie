@@ -114,10 +114,10 @@ int main(int argc, char *argv[])
     Matrix C_tau = Material::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
     Matrix C_eta = Material::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
     //TimeUnderLoadLogCreepAccumulator * accu = new TimeUnderLoadLogCreepAccumulator();
-    Viscoelasticity paste(BURGER, E_kv, C_kv, C_eta, C_tau,1);
+    Viscoelasticity * paste = new Viscoelasticity(BURGER, E_kv, C_kv, C_eta, C_tau,1);
     //IterativeMaxwell paste (E, t_char) ;
 //    , &crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.9999, 1e-9, 0.99)) ;
-    samplers.setBehaviour( &paste );
+    samplers.setBehaviour( paste );
 
     //LogarithmicCreepWithExternalParameters aggregates("young_modulus = 60e9, poisson_ratio = 0.2") ;
 
@@ -153,13 +153,15 @@ int main(int argc, char *argv[])
 	std::cout << "Pas de temps "<< i << std::endl ;
 	std::cout << "\n" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl;
     std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
-    if(fichier_data)
+    if(fichier_data.is_open())
     {
         fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
         fichier_data.close();
     }
     else
+    {
         std::cerr << "Erreur à l'ouverture !" << std::endl;
+    }
 
 	std::string test = "../../../../amie_data/test_single_2d_viscoelasticity" ;
 	TriangleWriter writer(test.c_str(), &F, 1.) ;
@@ -183,13 +185,15 @@ int main(int argc, char *argv[])
         std::cout << "Pas de temps "<< i << std::endl ;
         std::cout << "\n" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl;
         std::ofstream fichier_data(test_data.c_str(), std::ios::out | std::ios::app);
-            if(fichier_data)
+            if(fichier_data.is_open())
             {
                     fichier_data << F.getCurrentTime() << " ; " << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << " ; " << F.getAverageField( REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
                     fichier_data.close();
             }
             else
+            {
                     std::cerr << "Erreur à l'ouverture !" << std::endl;
+            }
 
         std::string test = "../../../../amie_data/test_single_2d_viscoelasticity" ;
         TriangleWriter writer(test.c_str(), &F, 1.) ;
@@ -199,7 +203,7 @@ int main(int argc, char *argv[])
         writer.getField(TWFT_STIFFNESS) ;
         writer.write() ;
     }
-
+    fichier_data.close();
     return 0 ;
 
 }

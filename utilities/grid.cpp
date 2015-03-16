@@ -310,12 +310,12 @@ Voxel::~Voxel()
 
 bool Voxel::coOccur(const Point & p) const
 {
-	return p.getX() >= tlf.getX()-POINT_TOLERANCE_3D 
-	   &&  p.getX() <= trf.getX()+POINT_TOLERANCE_3D 
-	   &&  p.getY() >= blf.getY()-POINT_TOLERANCE_3D 
-	   &&  p.getY() <= tlf.getY()+POINT_TOLERANCE_3D 
-	   &&  p.getZ() >= blb.getZ()-POINT_TOLERANCE_3D 
-	   &&  p.getZ() <= tlf.getZ()+POINT_TOLERANCE_3D;
+	return p.getX() >= tlf.getX()-POINT_TOLERANCE 
+	   &&  p.getX() <= trf.getX()+POINT_TOLERANCE 
+	   &&  p.getY() >= blf.getY()-POINT_TOLERANCE 
+	   &&  p.getY() <= tlf.getY()+POINT_TOLERANCE 
+	   &&  p.getZ() >= blb.getZ()-POINT_TOLERANCE 
+	   &&  p.getZ() <= tlf.getZ()+POINT_TOLERANCE;
 }
 
 int Voxel::computeFillFactor() const
@@ -419,10 +419,10 @@ bool Pixel::coOccur(const Geometry * const inc) const
 
 bool Pixel::coOccur(const Point & p) const
 {
-	return p.getX() >= tl.getX() - POINT_TOLERANCE_2D 
-	   &&  p.getX() <= tr.getX() + POINT_TOLERANCE_2D 
-	   &&  p.getY() >= bl.getY() - POINT_TOLERANCE_2D 
-	   &&  p.getY() <= tl.getY() + POINT_TOLERANCE_2D ;
+	return p.getX() >= tl.getX() - POINT_TOLERANCE 
+	   &&  p.getX() <= tr.getX() + POINT_TOLERANCE 
+	   &&  p.getY() >= bl.getY() - POINT_TOLERANCE 
+	   &&  p.getY() <= tl.getY() + POINT_TOLERANCE ;
 }
 
 void Pixel::remove(const Geometry * inc)

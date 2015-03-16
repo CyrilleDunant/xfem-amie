@@ -587,7 +587,7 @@ void Assembly::checkZeroLines()
         size_t j = 0 ;
         while(zeros && (j < ndof))
         {
-            zeros = (getMatrix()[i][j] < POINT_TOLERANCE_2D) ;
+            zeros = (getMatrix()[i][j] < POINT_TOLERANCE) ;
             j++ ;
         }
         if(zeros && (j==ndof))
@@ -792,7 +792,7 @@ bool Assembly::make_final()
             }
 
             dmax = std::abs(test.array()).max() ;
-            if(dmax > POINT_TOLERANCE_2D)
+            if(dmax > POINT_TOLERANCE)
             {
                 for(size_t j = 0 ; j < test.numRows() ; j++)
                 {
@@ -974,7 +974,7 @@ bool Assembly::make_final()
             }
 
             dmax = std::abs(test.array()).max() ;
-            if(dmax > POINT_TOLERANCE_3D)
+            if(dmax > POINT_TOLERANCE)
             {
                 for(size_t j = 0 ; j < test.numRows() ; j++)
                 {

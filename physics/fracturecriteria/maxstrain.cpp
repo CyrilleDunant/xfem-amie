@@ -222,7 +222,7 @@ double SpaceTimeNonLocalEllipsoidalMixedCriterion::grade(ElementState &s)
 	Point after( stateAfter.second.max()*renormStrain/surface->getMinorRadius() , stateAfter.first.max()*renormStress/surface->getMajorRadius()) ;
 	
 	
-	if(stateAfter.second.max() <= POINT_TOLERANCE_2D || stateAfter.first.max() <= POINT_TOLERANCE_2D)
+	if(stateAfter.second.max() <= POINT_TOLERANCE || stateAfter.first.max() <= POINT_TOLERANCE)
 		return -1 ;
 	
 	if(after.getX() > surface->getCenter().getX()/surface->getMinorRadius()+1)

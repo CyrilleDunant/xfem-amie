@@ -189,7 +189,7 @@ void GeneralizedIterativeMaxwellAndFracture::updateElementState(double timestep,
 {
 // 	branches[2]->param = r0 ;
 	LinearForm::updateElementState(timestep, currentState) ;
-	if(timestep < POINT_TOLERANCE_2D)
+	if(timestep < POINT_TOLERANCE)
 	{
 		return ;
 	}
@@ -224,7 +224,7 @@ void GeneralizedIterativeMaxwellAndFracture::preProcess( double timeStep, Elemen
 {
 	if(currentState.getParent()->getGaussPoints().gaussPoints.size() != imposedStressAtGaussPoints.size())
 	      this->syncNumberOfGaussPoints(currentState) ;
-	if(timeStep < POINT_TOLERANCE_2D)
+	if(timeStep < POINT_TOLERANCE)
 	{
 //		std::cout << param[0][0] << " " ;
 //		this->getInstantaneousCoefficients() ;

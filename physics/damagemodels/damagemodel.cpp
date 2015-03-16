@@ -137,10 +137,10 @@ void DamageModel::step( ElementState &s , double maxscore)
             currentMode = states[i].mode ;
             if(     ((currentDelta > 0    && prevDelta  < 0)     ||
                     (currentDelta < 0     && prevDelta  > 0 ))   ||
-                    (std::abs(currentDelta) < POINT_TOLERANCE_2D && std::abs(prevDelta) < POINT_TOLERANCE_2D) ||
+                    (std::abs(currentDelta) < POINT_TOLERANCE && std::abs(prevDelta) < POINT_TOLERANCE) ||
                     ((currentScore > 0     && prevScore  < 0  )   ||
                      (currentScore < 0     && prevScore  > 0))    ||
-                    (std::abs(currentScore) < POINT_TOLERANCE_2D  && std::abs(prevScore)  < POINT_TOLERANCE_2D) ||
+                    (std::abs(currentScore) < POINT_TOLERANCE  && std::abs(prevScore)  < POINT_TOLERANCE) ||
                     ((currentProximity > 0 && prevProximity < 0 )  ||
                      (currentProximity < 0 && prevProximity > 0 )) ||
                     ((currentShift > 0     && prevShift < 0 )     ||
@@ -203,7 +203,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 getState( true ) = downState + ( upState - downState ) * trialRatio;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
-                    if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE_2D)
+                    if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
                         state[i] += damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
@@ -216,7 +216,7 @@ void DamageModel::step( ElementState &s , double maxscore)
                 getState( true ) = downState + ( upState - downState ) * trialRatio  ;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
-                    if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE_2D)
+                    if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                     {
                         state[i] += 0.25*damageDensityTolerance ;
                         state[i] = std::min(state[i], 1.) ;
@@ -239,7 +239,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
             for(size_t i = 0 ; i <  state.size() ; i++)
             {
-                if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE_2D)
+                if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
                 {
                     state[i] = downState[i] + 0.05;
                     state[i] = std::min(state[i], 1.) ;

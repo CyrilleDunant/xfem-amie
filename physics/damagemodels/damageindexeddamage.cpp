@@ -60,7 +60,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 				-1./(1.-totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getScoreAtState())/dcdd,
 				-originalEnergy/totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() 
  														) ;
-			if(std::abs(dcdd) < POINT_TOLERANCE_2D)
+			if(std::abs(dcdd) < POINT_TOLERANCE)
 				maxdd = 0 ;
 			if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] > 1)
 				maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] ;
@@ -90,7 +90,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		}
 		detot = sqrt(detot) ;
 		deavg /= vtot ;
-		if(detot < POINT_TOLERANCE_2D)
+		if(detot < POINT_TOLERANCE)
 			detot = 1 ;
 
 // 		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;
@@ -150,7 +150,7 @@ void IndexedLinearDamage::computeDelta(const ElementState & s)
 			-1./(1.-totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getScoreAtState())/dcdd,
 														-originalEnergy/totry[mindeddindex]->getBehaviour()->getFractureCriterion()->getEnergyDamageDifferential() 
 		) ;
-		if(std::abs(dcdd) < POINT_TOLERANCE_2D)
+		if(std::abs(dcdd) < POINT_TOLERANCE)
 			maxdd = 0 ;
 		if(maxdd + totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] > 1)
 			maxdd = 1.-totry[mindeddindex]->getBehaviour()->getDamageModel()->getState()[0] ;
@@ -181,7 +181,7 @@ void IndexedLinearDamage::computeDelta(const ElementState & s)
 	}
 	detot = sqrt(detot) ;
 	deavg /= vtot ;
-	if(detot < POINT_TOLERANCE_2D)
+	if(detot < POINT_TOLERANCE)
 		detot = 1 ;
 	
 	// 		std::pair<double, double> ener_delta = e->getDeltaEnergyDeltaCriterion(s,dd) ;

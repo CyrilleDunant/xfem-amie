@@ -2373,9 +2373,9 @@ void Function::operator*=(const double a)
 
 void Function::operator/=(const double a)  
 {
-	if(std::abs(a-1) < POINT_TOLERANCE_2D)
+	if(std::abs(a-1) < POINT_TOLERANCE)
 		return ;
-	if(std::abs(a) < POINT_TOLERANCE_2D)
+	if(std::abs(a) < POINT_TOLERANCE)
 	{
 		std::cout << "Divide By Zero" << std::endl ;
 		exit(0) ;
@@ -2403,7 +2403,7 @@ void Function::operator/=(const double a)
 
 void Function::operator+=(const double a) 
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
+	if(std::abs(a) < POINT_TOLERANCE)
 		return ;
 	byteCode.push_back(TOKEN_OPERATION_PLUS);
 	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
@@ -2416,7 +2416,7 @@ void Function::operator+=(const double a)
 
 void Function::operator-=(const double a)  
 {
-	if(std::abs(a) < POINT_TOLERANCE_2D)
+	if(std::abs(a) < POINT_TOLERANCE)
 		return ;
 	byteCode.push_back(TOKEN_OPERATION_MINUS);
 	adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0); adress_a.push_back(0);
