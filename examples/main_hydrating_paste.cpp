@@ -48,10 +48,6 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {	
 
-  // scale factor (to be adjusted for the meshing)
-  double scale = 1. ;
-  if(argc > 1)
-    scale = atof(argv[1]) ;
 
   // creates a 3D box of width, height and depth = 0.04, and centered on the point 0,0,0
   // (length are in meters)

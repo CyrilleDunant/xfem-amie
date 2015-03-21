@@ -124,7 +124,7 @@ Vector thermalDeformation(Vector matrixProp, Vector inclusionProp, int nInc, dou
 	std::vector<Inclusion *> inc = buildInclusion(nInc,pInc) ;
 	
 	sample.setBehaviour(mTDef) ;
-	for(int i = 0 ; i < inc.size() ; i++)
+	for(size_t i = 0 ; i < inc.size() ; i++)
 	{
 		  inc[i]->setBehaviour(iTDef) ;
 		  F.addFeature(&sample, inc[i]) ;

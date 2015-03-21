@@ -381,7 +381,7 @@ std::vector<std::valarray<int> > * HexahedronBoundaryParser::getData(size_t face
 
 int ConfigParser::getIndentLevel( std::string test ) 
 {
-	int i = 0 ;
+	size_t i = 0 ;
 	while(test[i] == '.' && i < test.size())
 		i++ ;
 	return i ;

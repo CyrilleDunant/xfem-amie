@@ -578,7 +578,7 @@ int main(int argc, char *argv[])
 	percent = atof(argv[1]) ;
 
 	double E_csh = 31e9 ;
-	double nu_csh = .28 ;
+// 	double nu_csh = .28 ;
 	double nu_incompressible = .499997 ;
 	
 	double E = percent*E_csh ;
@@ -607,8 +607,8 @@ int main(int argc, char *argv[])
 	double itzSize = 4e-5;
 	int inclusionNumber = 5000 ; // 10 100 500 1000 2000 4000
 
-	double masseInitiale = .00000743;
-	double densite = 1.;
+// 	double masseInitiale = .00000743;
+// 	double densite = 1.;
 // 	inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);
 //	inclusions = GranuloBolome(4.79263e-07/.47, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
 	inclusions = PSDGenerator::get2DInclusions(0.0025, 4.79263e-07/.47, new PSDBolomeD(), PSDEndCriteria(-1, 0.001, inclusionNumber)) ;

@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), previousTensileImposedStrain(0.,3), imposedStrain(0.,3)
+PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), imposedStrain(0.,3), previousTensileImposedStrain(0.,3)
 {
     getState(true).resize(1, 0.);
     isNull = false ;
@@ -172,7 +172,7 @@ double PlasticStrain::getAngleShift() const
     {
         istrain /= sqrt(istrain[0]*istrain[0]+istrain[1]*istrain[1]+istrain[2]*istrain[2]) ;
         istrain *= .1;
-        nimposed*(1.-getDamage()) ;
+//         nimposed*(1.-getDamage()) ;
     }
     double dp = std::inner_product(&istrain[0],&istrain[3], &imposedStrain[0], double(0.))/(nimposed*nimposed) ;
     double angle = acos(dp) ;

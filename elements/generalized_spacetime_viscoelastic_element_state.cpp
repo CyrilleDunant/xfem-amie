@@ -2861,6 +2861,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         this->getField(GRADIENT_FIELD, p_, ret, true) ;
         ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) ;
         return ;
+    case INTERNAL_VARIABLE_FIELD:
+        std::cout << "field not handled" << std::endl ;
+        exit(0) ;
     }
 }
 

@@ -172,8 +172,8 @@ void IterativeMaxwell::setNumberOfGaussPoints(size_t n)
 void IterativeMaxwell::getCoefficients(double timestep)
 {
     double alpha = exp(-timestep/chartime) ;
-    double gamma = 1.-alpha ;
-    double lambda = gamma*(chartime/timestep) ;
+//     double gamma = 1.-alpha ;
+//     double lambda = gamma*(chartime/timestep) ;
     coeff_unext = timestep/(chartime+timestep) ;//1.-lambda ;
     coeff_uprev = 0. ;//gamma - coeff_unext ;
     coeff_aprev = 1-coeff_unext ;//alpha ;

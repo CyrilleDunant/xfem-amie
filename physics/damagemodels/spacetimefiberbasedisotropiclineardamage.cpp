@@ -115,7 +115,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 	}
 	
 	double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-	double dt = s.getNodalDeltaTime() ;
+// 	double dt = s.getNodalDeltaTime() ;
 /*	if(! fractured() && score > 0)
 		std::cout << timeTolerance*dt << "/" << maxscore-score << "   " ;*/
 

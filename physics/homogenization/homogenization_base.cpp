@@ -722,7 +722,7 @@ Matrix Material::orthothropicCauchyGreen(double E_1, double E_2, double G,  doub
 			
 			//nu_12*nu_21 = nu*nu ;
 			double nu_21 = (nu/E_1)*sqrt(E_1*E_2) ;
-			double nu_12 = (nu/E_2)*sqrt(E_1*E_2) ;
+// 			double nu_12 = (nu/E_2)*sqrt(E_1*E_2) ;
 
 			double gamma = 1./(1.-nu*nu) ;
 

@@ -128,7 +128,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         if(needGlobalMaximumScore)
             max = maxscore ;
 
-        std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
+//         std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
         change = false ;
         if(!s.getParent()->getBehaviour()->getFractureCriterion())
         {
@@ -633,7 +633,7 @@ bool FixedCrack::fractured() const
 // 	if ( fraction < 0 )
     return false ;
 
-    return ( firstTension && firstTensionFailure || !firstTension && firstCompressionFailure ) || ( secondTension && secondTensionFailure || !secondTension && secondCompressionFailure ) ;
+    return ( (firstTension && firstTensionFailure) || (!firstTension && firstCompressionFailure) ) || ( (secondTension && secondTensionFailure) || (!secondTension && secondCompressionFailure) ) ;
 
 }
 

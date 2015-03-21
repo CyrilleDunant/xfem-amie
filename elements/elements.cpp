@@ -569,6 +569,9 @@ GaussPointArray gaussPointSet(Order order, const TriElement * t)
         fin[13] = std::pair<Point, double>(Point(0.333333333333333, 0.333333333333333,0,0.577350269189626), 0.1125) ;
         break;
     }
+    case REGULAR_GRID:
+        std::cout << "this should not be called : invalid element order" << std::endl ;
+        exit(0) ;
     }
 
     if(t->moved)

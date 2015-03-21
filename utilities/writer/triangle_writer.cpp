@@ -964,7 +964,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( FieldType f
 	int pointsPerPlane = pointsPerTri ;
 	if(source->get2DMesh(layer)->begin()->timePlanes() > 1)
 		pointsPerPlane /= source->get2DMesh(layer)->begin()->timePlanes() ;
-	int factor = pointsPerPlane/3 ;
+// 	int factor = pointsPerPlane/3 ;
 
 	int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
 

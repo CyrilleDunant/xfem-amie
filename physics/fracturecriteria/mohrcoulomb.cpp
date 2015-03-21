@@ -116,8 +116,8 @@ double NonLocalMohrCoulomb::grade( ElementState &s )
     Vector pstrain = pstressStrain.second ;
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
-    double maxStrain = pstrain.max() ;
-    double minStrain = pstrain.min() ;
+//     double maxStrain = pstrain.max() ;
+//     double minStrain = pstrain.min() ;
 
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;
@@ -164,9 +164,9 @@ double SpaceTimeNonLocalMohrCoulomb::grade( ElementState &s )
 
     inIteration = true ;
 
-    double effectiveStiffness = stiffness ;
-    if(s.getParent()->getBehaviour()->getDamageModel())
-        effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
+//     double effectiveStiffness = stiffness ;
+//     if(s.getParent()->getBehaviour()->getDamageModel())
+//         effectiveStiffness = stiffness*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
     double upStress = upVal * stiffness ;
     double downStress = downVal * stiffness ;
 
@@ -376,14 +376,14 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
     if(maxStrain <= upVal/stiffness)
         tfactor = 1 ;
 
-    double cfactor = exp(-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness)) ;
+//     double cfactor = exp(-(-minStrain+downVal/stiffness)/(-limitcstrain+downVal/stiffness)) ;
 // 	if(minStrain < limitcstrain)
 // 		return POINT_TOLERANCE ;
-    if(minStrain > downVal/stiffness)
-        cfactor = 1 ;
+//     if(minStrain > downVal/stiffness)
+//         cfactor = 1 ;
 //
     double  upStrain = tfactor*upVal/effectiveStiffness ;
-    double  downStrain = cfactor*downVal/effectiveStiffness ;
+//     double  downStrain = cfactor*downVal/effectiveStiffness ;
     std::vector<double> scores ;
     scores.push_back(-1);
 
@@ -455,7 +455,7 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
 // 	double maxStress = pstress.max() ;
 // 	double minStress = pstress.min() ;
     double maxStrain = pstrain.max() ;
-    double minStrain = pstrain.min() ;
+//     double minStrain = pstrain.min() ;
 
 // 	std::cout << maxStress << ", " << maxStrain << std::endl ;
     metInTension = false ;

@@ -20,9 +20,8 @@
 namespace Amie
 {
 
-
-NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
-    , rtype(r), upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)*0.9), downVal( down ), youngModulus(youngModulus)
+NonLocalMCFT::NonLocalMCFT( double down, double youngModulus,  double charRad, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ),
+    rtype(r), upVal( /*0.66*1e6*pow(std::abs(down*1e-6),.33)*/ .33e6*sqrt(-down*1e-6)*0.9),  downVal( down ), youngModulus(youngModulus)
 {
     physicalCharacteristicRadius = charRad ;
     critStrain = -0.00163 ;//-0.0015;
@@ -232,7 +231,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
 
 
 
-    double maxCompressionStrain = downVal/pseudoYoung  ;
+//     double maxCompressionStrain = downVal/pseudoYoung  ;
 
     if( cstrain < 0.1*critStrain )
     {
@@ -261,7 +260,7 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
             k_c = 0.67 - f_p/62e6 ;
         }
         maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
-        maxCompressionStrain = maxCompression/pseudoYoung ;
+//         maxCompressionStrain = maxCompression/pseudoYoung ;
 
     }
 

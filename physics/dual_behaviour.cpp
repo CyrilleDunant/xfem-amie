@@ -246,7 +246,7 @@ std::vector<BoundaryCondition * > BimaterialInterface::getBoundaryConditions(con
 	Vector z = VirtualMachine().eval(ztransform,gp) ;
 	Vector t = VirtualMachine().eval(ttransform,gp) ;
 	std::valarray<bool> inIn(false, x.size()) ;
-	int inCount = 0;
+	size_t inCount = 0;
 	for(size_t i = 0 ; i < gp.gaussPoints.size() ; i++)
 	{
 		if(inGeometry->in(Point(x[i],y[i],z[i],t[i])))

@@ -39,9 +39,9 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 
 	double e1 = p[0].getX() ;
 	upVal = e1 ;
-	double e2 = p[1].getX() ;
+// 	double e2 = p[1].getX() ;
 	double s1 = p[0].getY() ;
-	double s2 = p[1].getY() ;
+// 	double s2 = p[1].getY() ;
 
 	double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 	std::valarray<Point *> curve ;
@@ -52,7 +52,7 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 	{
 		curve[i+1] = &p[i] ;
 	}
-	double stressAtInfinity = curve[p.size()]->getY() ;
+// 	double stressAtInfinity = curve[p.size()]->getY() ;
 	Point horizontal(1.,0.) ;
 
 	stressStrainCurve = new SegmentedLine( curve ) ;
@@ -64,9 +64,9 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 {
 	double e1 = p[0].getX()*renormStrain ;
 	upVal = e1 ;
-	double e2 = p[1].getX()*renormStrain ;
+// 	double e2 = p[1].getX()*renormStrain ;
 	double s1 = p[0].getY()*renormStress ;
-	double s2 = p[1].getY()*renormStress ;
+// 	double s2 = p[1].getY()*renormStress ;
 
 	double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 	std::valarray<Point *> curve ;
@@ -77,14 +77,14 @@ SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLi
 	{
 		curve[i+1] = new Point(p[i].getX()*renormStrain, p[i].getY()*renormStress) ;
 	}
-	double stressAtInfinity = curve[p.size()]->getY()*renormStress ;
+// 	double stressAtInfinity = curve[p.size()]->getY()*renormStress ;
 	Point horizontal(1.,0.) ;
 
 	stressStrainCurve = new SegmentedLine( curve ) ;
 	asymptote = new Line( *curve[p.size()], horizontal ) ;
 }
 
-SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), stressStrainCurve(s), E(E_),  asymptote(l), renormStrain(e), renormStress(s_)
+SpaceTimeNonLocalMultiLinearSofteningFractureCriterion::SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( SegmentedLine * s, Line * l, double E_, double e, double s_, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : MaximumStrain(E_, mirroring, delta_x, delta_y, delta_z), stressStrainCurve(s),  asymptote(l), E(E_), renormStrain(e), renormStress(s_)
 {
 
 }
@@ -250,9 +250,9 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 
 		double e1 = p[0].getX() ;
 		upVal = e1 ;
-		double e2 = p[1].getX() ;
+// 		double e2 = p[1].getX() ;
 		double s1 = p[0].getY() ;
-		double s2 = p[1].getY() ;
+// 		double s2 = p[1].getY() ;
 
 		double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 		std::valarray<Point *> curve ;
@@ -263,7 +263,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 		{
 			curve[i+1] = &p[i] ;
 		}
-		double stressAtInfinity = curve[p.size()]->getY() ;
+// 		double stressAtInfinity = curve[p.size()]->getY() ;
 		Point horizontal(1.,0.) ;
 
 		tensileStressStrainCurve = new SegmentedLine( curve ) ;
@@ -292,10 +292,10 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 	    p.pop_back() ;
 
 
-		double e1 = p[0].getX() ;
-		double e2 = p[1].getX() ;
+// 		double e1 = p[0].getX() ;
+// 		double e2 = p[1].getX() ;
 		double s1 = p[0].getY() ;
-		double s2 = p[1].getY() ;
+// 		double s2 = p[1].getY() ;
 
 		double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 		std::valarray<Point *> curve ;
@@ -306,7 +306,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 		{
 			curve[i+1] = &p[i] ;
 		}
-		double stressAtInfinity = curve[p.size()]->getY() ;
+// 		double stressAtInfinity = curve[p.size()]->getY() ;
 		Point horizontal(1.,0.) ;
 
 		compressiveStressStrainCurve = new SegmentedLine( curve ) ;
@@ -325,9 +325,9 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 	{
 		double e1 = ptension[0].getX()*renormStrain ;
 		upVal = e1 ;
-		double e2 = ptension[1].getX()*renormStrain ;
+// 		double e2 = ptension[1].getX()*renormStrain ;
 		double s1 = ptension[0].getY()*renormStress ;
-		double s2 = ptension[1].getY()*renormStress ;
+// 		double s2 = ptension[1].getY()*renormStress ;
 
 		double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 		std::valarray<Point *> curve ;
@@ -338,7 +338,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 		{
 			curve[i+1] = new Point(ptension[i].getX()*renormStrain, ptension[i].getY()*renormStress) ;
 		}
-		double stressAtInfinity = curve[ptension.size()]->getY()*renormStress ;
+// 		double stressAtInfinity = curve[ptension.size()]->getY()*renormStress ;
 		Point horizontal(1.,0.) ;
 
 		tensileStressStrainCurve = new SegmentedLine( curve ) ;
@@ -346,10 +346,10 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 	}
 	if(pcompression.size() > 0)
 	{
-		double e1 = pcompression[0].getX()*renormStrain ;
-		double e2 = pcompression[1].getX()*renormStrain ;
+// 		double e1 = pcompression[0].getX()*renormStrain ;
+// 		double e2 = pcompression[1].getX()*renormStrain ;
 		double s1 = pcompression[0].getY()*renormStress ;
-		double s2 = pcompression[1].getY()*renormStress ;
+// 		double s2 = pcompression[1].getY()*renormStress ;
 
 		double stressAtOrigin = s1 ;//(s2 - (s1*e2/e1))/(1.-e2/e1) ;
 		std::valarray<Point *> curve ;
@@ -360,7 +360,7 @@ AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::AsymmetricSpac
 		{
 			curve[i+1] = new Point(pcompression[i].getX()*renormStrain, pcompression[i].getY()*renormStress) ;
 		}
-		double stressAtInfinity = curve[pcompression.size()]->getY()*renormStress ;
+// 		double stressAtInfinity = curve[pcompression.size()]->getY()*renormStress ;
 		Point horizontal(1.,0.) ;
 
 		compressiveStressStrainCurve = new SegmentedLine( curve ) ;

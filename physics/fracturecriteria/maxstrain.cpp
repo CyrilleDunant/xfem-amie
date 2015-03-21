@@ -89,7 +89,7 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	double Esoft = maxstress / ( yieldstrain - upVal) ;
 	double Einst = stateAfter.first.max() / stateAfter.second.max() ; //maxstress/upVal * (1.-s.getParent()->getBehaviour()->getDamageModel()->getState().max()) ;
 // ;
-	double Eprev = stateBefore.first.max() / stateBefore.second.max() ;
+// 	double Eprev = stateBefore.first.max() / stateBefore.second.max() ;
 	double epsMax = (Esoft / (Esoft+Einst))*yieldstrain ;
 
 	double maxStrainBefore = stateBefore.second.max() ;
