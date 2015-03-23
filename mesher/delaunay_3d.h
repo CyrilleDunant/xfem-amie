@@ -70,7 +70,7 @@ public:
     bool isDeadTetrahedron ;
     bool dead ;
 
-    std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
+    std::valarray<unsigned int> stepson ; //!< neighbours created later than ourselves
     std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
     std::valarray<unsigned int> son ;//!< items created by our destruction.
 
@@ -465,7 +465,7 @@ public:
 
 std::pair<std::vector<DelaunayTetrahedron *>, std::vector<Point *> > quad(const DelaunayTetrahedron * t) ;
 
-} ;
+} 
 
 
 

@@ -93,7 +93,7 @@ public:
 } ;
 
 
-} ;
+} 
 
 
 #endif // GENERALIZED_SPACETIME_VISCOELASTIC_ELEMENT_STATE

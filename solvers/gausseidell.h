@@ -1,7 +1,7 @@
 //
 // C++ Interface: gausseidell
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -14,7 +14,7 @@
 
 #include "solver.h"
 
-namespace Amie 
+namespace Amie
 {
 
 /** \brief Gauß-Seidell solver for symmetric systems
@@ -23,11 +23,11 @@ namespace Amie
 */
 struct GaussSeidel : public LinearSolver
 {
-	virtual ~GaussSeidel() { } ;
-	GaussSeidel(Assembly *a) ;
-	virtual bool solve(const Vector &x0, Preconditionner * precond= nullptr, const double eps = 1e-20, const int maxit = -1, bool verbose = false)  ;
+    virtual ~GaussSeidel() { } ;
+    GaussSeidel(Assembly *a) ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond= nullptr, const double eps = 1e-20, const int maxit = -1, bool verbose = false)  ;
 } ;
 
-} ;
+}
 
 #endif

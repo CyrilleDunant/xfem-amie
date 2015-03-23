@@ -21,12 +21,19 @@ typedef enum
 struct CSHBehaviour : public Stiffness
 {
     // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
-    CSHBehaviour(CSHType type, double E=25e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+    CSHBehaviour(CSHType type, Function ageingFunction = Function("1"), double E=16e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+    CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, double E=16e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+    double currentTime ;
+    CSHType CshType ;
+    Function ageingFunction ;
+    bool function ;
+    std::vector<double> densities ;
+    std::vector<double> times ;
 
     virtual Form * getCopy() const ;
+    virtual void step(double timestep, ElementState& s, double maxScore);
 
 } ;
 
-} ;
-
+} 
 #endif // PASTE_BEHAVIOUR

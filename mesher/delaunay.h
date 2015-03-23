@@ -60,7 +60,7 @@ public:
     bool isDeadTriangle ;
 
     bool erased ;
-    std::valarray<unsigned int> stepson ; ;//!< neighbours created later than ourselves
+    std::valarray<unsigned int> stepson ; //!< neighbours created later than ourselves
     std::valarray<unsigned int> neighbour ; //!< neighbours. three for triangles, any number for planes.
     std::valarray<unsigned int> son ;//!< items created by our destruction.
 
@@ -482,7 +482,7 @@ struct EqItems
 
 std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > quad(const DelaunayTriangle * t) ;
 
-} ;
+} 
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
 void makeNeighbours( Amie::DelaunayTreeItem *t0, Amie::DelaunayTreeItem *t1 ) ;

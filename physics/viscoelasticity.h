@@ -106,7 +106,7 @@ struct Viscoelasticity : public LinearForm
 } ;
 
 
-} ;
+} 
 
 
 #endif

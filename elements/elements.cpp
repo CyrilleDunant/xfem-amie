@@ -996,7 +996,7 @@ const GaussPointArray & TriElement::genGaussPoints()
     }
     setCachedGaussPoints(new GaussPointArray(fin, order))  ;
     return *getCachedGaussPoints() ;
-} ;
+} 
 
 
 TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1, p2), moved(false)
@@ -1013,7 +1013,7 @@ TriElement::TriElement( Point * p0,  Point * p1,  Point * p2) : Triangle(p0, p1,
     	(*shapefunc)[1] = Function(one-xi-eta) ;
     //2
     	(*shapefunc)[2] = Function(xi) ;*/
-};
+}
 
 TriElement::TriElement(Order order_ ): moved(false)
 {

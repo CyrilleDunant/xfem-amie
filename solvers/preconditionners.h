@@ -1,7 +1,7 @@
 //
 // C++ Interface: preconditionners
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -17,22 +17,22 @@
 
 namespace Amie
 {
-	
+
 /** \brief Abstract preconditionner interface*/
-	struct Preconditionner
-	{
-		virtual ~Preconditionner() { } ;
-		virtual void precondition(const Vector &, Vector &) = 0;
-	} ;
-	
-/** \brief Placeholder preconditionner, does nothing*/
-	struct NullPreconditionner : public Preconditionner
-	{
-		virtual ~NullPreconditionner() { } ;
-		virtual void precondition(const Vector &v, Vector &)  ;
-	} ;
-
-
+struct Preconditionner
+{
+    virtual ~Preconditionner() { } ;
+    virtual void precondition(const Vector &, Vector &) = 0;
 } ;
+
+/** \brief Placeholder preconditionner, does nothing*/
+struct NullPreconditionner : public Preconditionner
+{
+    virtual ~NullPreconditionner() { } ;
+    virtual void precondition(const Vector &v, Vector &)  ;
+} ;
+
+
+}
 
 #endif

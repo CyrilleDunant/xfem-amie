@@ -212,7 +212,7 @@ public:
 } ;
 
 
-} ;
+} 
 
 bool operator ==(const std::pair<Amie::Point*, double> & a, const Amie::Point* b) ;
 

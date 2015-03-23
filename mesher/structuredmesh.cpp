@@ -1,6 +1,7 @@
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2010-2011
 
 #include "structuredmesh.h"
+#include "../physics/materials/csh_behaviour.h"
 
 using namespace Amie ;
 
@@ -436,9 +437,18 @@ bool MicDerivedMesh::step( double dt )
     if(single)
         return false ;
     
-    if(currentTime > times[currentMesh])
+    for(auto b : behaviourMap)
     {
-        currentMesh++ ;
+        ElementState es(nullptr);
+        b.second->step(dt, es, -1);
+    }
+    
+    int initalMesh = currentMesh ;
+    while(currentTime > times[currentMesh] && currentMesh < (int)times.size())
+         currentMesh++ ;
+    
+    if(initalMesh != currentMesh)
+    {
         VoxelFilter vx ;
         vx.behaviourMap = behaviourMap ;
         vx.update(tree, makePixelName(voxelSource, currentMesh).c_str(), this);
@@ -535,7 +545,7 @@ int MicDerivedMesh::addToTree ( DelaunayTreeItem3D * toAdd )
     tree.push_back(static_cast<DelaunayTetrahedron *>(toAdd)); 
     return tree.size()-1 ;
     
-} ;
+} 
 
 void MicDerivedMesh::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep, const TetrahedralElement *father )
 {
@@ -826,7 +836,7 @@ std::vector<DelaunayTetrahedron *> MicDerivedMesh::getNeighbourhood(DelaunayTetr
         ret.push_back((DelaunayTetrahedron *)tree[idx]);
     }
     return ret ;
-};
+}
 
 std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( const Point  * p )  
 {
@@ -835,7 +845,7 @@ std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( cons
         if(e->inCircumSphere(*p))
             ret.push_back(e);
     return ret ;
-};
+}
 
 std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( const Geometry * g )
 {
@@ -844,7 +854,7 @@ std::vector<DelaunayTetrahedron *> MicDerivedMesh::getConflictingElements ( cons
         if(g->in(e->getCenter()) || e->in(g->getCenter()))
             ret.push_back(e);
     return ret ;
-} ;
+} 
     
 
 void MicDerivedMesh::setElementOrder ( Order elemOrder, double dt  ){

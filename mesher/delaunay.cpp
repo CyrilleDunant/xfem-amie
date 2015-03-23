@@ -2002,7 +2002,7 @@ DelaunayTree::~DelaunayTree()
     for(size_t i = 0 ; i < additionalPoints.size() ; i++)
         delete additionalPoints[i] ;
 
-} ;
+} 
 
 void DelaunayTree::insertIf( Point *p, std::vector<SamplingCriterion *> v, double minScore )
 {

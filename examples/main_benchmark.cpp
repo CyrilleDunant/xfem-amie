@@ -182,8 +182,8 @@ int main(int argc, char *argv[])
     std::cout << "<properties>\t\tdouble : value of the Young's Modulus or Diffusion coefficient of the inclusion(s)" << std::endl ;
     std::cout << "<sampling>\t\tinteger : number of points at the surface of the REV" << std::endl ;
 
-//	if(argc != 7)
-//		return 1 ;
+//    if(argc != 7)
+//        return 1 ;
 
     BenchmarkMicrostructure micro = S1 ;//getMicrostructure(std::string(argv[1])) ;
     BenchmarkPhenomenon pheno = ELASTICITY ;//getPhenomenon(std::string(argv[2])) ;
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
         sample.setBehaviour(new Stiffness(m0)) ;
 
         m1 = m0 * prop ;
-//		m1.print() ;
+//        m1.print() ;
         E = prop ;
         std::cout << prop << std::endl ;
         m1[0][0] = 1. - nu ;
@@ -274,63 +274,63 @@ int main(int argc, char *argv[])
     }
 
     std::string str_micro = "S1" ;
-//	if(micro != O1)
-//	{
+//    if(micro != O1)
+//    {
     std::vector<Inclusion3D * > inclusions ;
-//		if(micro == S1)
-//		{*/
+//        if(micro == S1)
+//        {*/
     inclusions.push_back(new Inclusion3D(0.0623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ())) ;
     inclusions[0]->setBehaviour(behaviour) ;
     F.addFeature(&sample, inclusions[0]) ;
-    /*			std::cout << inclusions[0]->volume() << std::endl ;
-    			std::cout << sample.volume() << std::endl ;
-    			std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
-    		}
-    		else if(micro == XS1)
-    		{
-    			Vector a(6) ; a = 0 ;
-    			featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(), m1, a));
-    		}
-    		else
-    		{
-    			str_micro = "S2024" ;
-    		 	int n = 2024 ;
-    			std::string file = "sphere_2024.getT()xt" ;
-    		 	std::vector<std::string> columns ;
-    		 	columns.push_back("center_x") ;
-    		 	columns.push_back("center_y") ;
-    		 	columns.push_back("center_z") ;
-    		 	columns.push_back("radius") ;
-    			if(micro == S3200)
-    			{
-    				str_micro = "S3200" ;
-    				n = 3200 ;
-    				file = "sphere_3200.getT()xt" ;
-    				columns.clear() ;
-    			 	columns.push_back("radius") ;
-    			 	columns.push_back("center_x") ;
-    			 	columns.push_back("center_y") ;
-    			 	columns.push_back("center_z") ;
-    			}
-    			GranuloFromFile spheres(file, columns) ;
-    			inclusions = spheres.getInclusion3D(n, scale) ;
-    			for(size_t i = 0 ; i < inclusions.size() ; i++)
-    			{
-    				inclusions[i]->setBehaviour(behaviour) ;
-    				F.addFeature(&sample, inclusions[i]) ;
-    			}
-    		}
+    /*            std::cout << inclusions[0]->volume() << std::endl ;
+                std::cout << sample.volume() << std::endl ;
+                std::cout << inclusions[0]->volume()/sample.volume() << std::endl ;
+            }
+            else if(micro == XS1)
+            {
+                Vector a(6) ; a = 0 ;
+                featureTree->addFeature(&sample, new ExpansiveZone3D(&sample, 0.623*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ(), m1, a));
+            }
+            else
+            {
+                str_micro = "S2024" ;
+                 int n = 2024 ;
+                std::string file = "sphere_2024.getT()xt" ;
+                 std::vector<std::string> columns ;
+                 columns.push_back("center_x") ;
+                 columns.push_back("center_y") ;
+                 columns.push_back("center_z") ;
+                 columns.push_back("radius") ;
+                if(micro == S3200)
+                {
+                    str_micro = "S3200" ;
+                    n = 3200 ;
+                    file = "sphere_3200.getT()xt" ;
+                    columns.clear() ;
+                     columns.push_back("radius") ;
+                     columns.push_back("center_x") ;
+                     columns.push_back("center_y") ;
+                     columns.push_back("center_z") ;
+                }
+                GranuloFromFile spheres(file, columns) ;
+                inclusions = spheres.getInclusion3D(n, scale) ;
+                for(size_t i = 0 ; i < inclusions.size() ; i++)
+                {
+                    inclusions[i]->setBehaviour(behaviour) ;
+                    F.addFeature(&sample, inclusions[i]) ;
+                }
+            }
 
-    	}
-    	else
-    	{
-    		str_micro = "O1" ;
-    		OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ()) ;
-    		oct->setBehaviour(behaviour) ;
-    		std::cout << oct->volume() << std::endl ;
-    		std::cout << sample.volume() << std::endl ;
-    		F.addFeature(&sample, oct) ;
-    	}*/
+        }
+        else
+        {
+            str_micro = "O1" ;
+            OctahedralInclusion* oct = new OctahedralInclusion(nullptr, 0.4182554*std::sqrt(2.)*scale, sample.getCenter().getX(), sample.getCenter().getY(), sample.getCenter().getZ()) ;
+            oct->setBehaviour(behaviour) ;
+            std::cout << oct->volume() << std::endl ;
+            std::cout << sample.volume() << std::endl ;
+            F.addFeature(&sample, oct) ;
+        }*/
 
     F.setSamplingNumber(sampling) ;
     F.setMaxIterationsPerStep(2);
@@ -345,66 +345,66 @@ int main(int argc, char *argv[])
     Function pos("x") ;
     Function grad = pos*1./(length*scale) ;
 
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 0)) ;
-    /*	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;*/
-    /*	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
-    	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;*/
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 0)) ;
+    /*    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;*/
+    /*    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_FRONT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_FRONT)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, TOP_LEFT_BACK)) ;
+        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, TOP_LEFT_BACK)) ;*/
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ZETA, FRONT, 1.)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP, 1.)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, LEFT)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-//	F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-    /*	if(pheno == ELASTICITY)
-    	{
-    		F.step() ;
-    		tets= F.getElements3D() ;
-    		for(size_t i = 0 ; i < F.get3DMesh()->begin().size() ; i++)
-    		{
-    			if(tets[i]->getBehaviour()->param[0][0] > 1.)
-    			{
-    				GaussPointArray gp = tets[i]->getGaussPoints() ;
-    				std::valarray<Matrix> Jinv( Matrix(), tets[i]->getGaussPoints().gaussPoints.size() ) ;
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, BOTTOM_LEFT_BACK)) ;
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+//    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+    /*    if(pheno == ELASTICITY)
+        {
+            F.step() ;
+            tets= F.getElements3D() ;
+            for(size_t i = 0 ; i < F.get3DMesh()->begin().size() ; i++)
+            {
+                if(tets[i]->getBehaviour()->param[0][0] > 1.)
+                {
+                    GaussPointArray gp = tets[i]->getGaussPoints() ;
+                    std::valarray<Matrix> Jinv( Matrix(), tets[i]->getGaussPoints().gaussPoints.size() ) ;
 
-    				for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
-    				{
-    						tets[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
-    				}
-    				for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
-    				{
-    					if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE)
-    					{
-    						F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).getId(), 1.e-5)) ;
-    					}
-    				}
-    			}
-    		}
-    /*		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
-    		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
-    		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
-    		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;		*/
-//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.e-5)) ;
-//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 1.)) ;
-//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
-//		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
-    /*		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
-    		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
-    	}
-    	else
-    	{
-    		F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_FLUX_XI, RIGHT, 1.)) ;
-    	}*/
+                    for ( size_t j = 0 ; j < gp.gaussPoints.size() ; j++ )
+                    {
+                            tets[i]->getInverseJacobianMatrix( gp.gaussPoints[j].first, Jinv[j] ) ;
+                    }
+                    for(size_t j = 0 ; j < tets[i]->getBoundingPoints().size() ; j++)
+                    {
+                        if(abs(tets[i]->getBoundingPoint(j).getX() - length*scale) < POINT_TOLERANCE)
+                        {
+                            F.addBoundaryCondition(new DofDefinedBoundaryCondition(SET_STRESS_XI,tets[i],gp,Jinv, tets[i]->getBoundingPoint(j).getId(), 1.e-5)) ;
+                        }
+                    }
+                }
+            }
+//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, TOP, grad)) ;
+//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BOTTOM, grad)) ;
+//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, BACK, grad)) ;
+//           F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, FRONT, grad)) ;        
+//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, RIGHT, 1.e-5)) ;
+//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_STRESS_XI, LEFT, 1.)) ;
+//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM)) ;
+//        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BACK)) ;
+    /*        F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, BOTTOM_LEFT_BACK)) ;
+            F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, BOTTOM_LEFT_BACK)) ;
+        }
+        else
+        {
+            F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_FLUX_XI, RIGHT, 1.)) ;
+        }*/
 
     F.step() ;
 
@@ -502,9 +502,9 @@ int main(int argc, char *argv[])
             << "D11 = " << average_flux[0]/average_gradient[0] << std::endl ;
         out.close() ;
 
-        /*		VoxelWriter vw("fem_s1", 100) ;
-        		vw.getField(featureTree, VWFT_FLUX) ;
-        		vw.write();*/
+        /*        VoxelWriter vw("fem_s1", 100) ;
+                vw.getField(featureTree, VWFT_FLUX) ;
+                vw.write();*/
 
         break ;
     }
@@ -592,8 +592,8 @@ int main(int argc, char *argv[])
         std::cout << "average strain22 : " <<  std::setprecision(16) << average_strain[1]/total_volume << std::endl ;
         std::cout << "average strain33 : " <<  std::setprecision(16) << average_strain[2]/total_volume << std::endl ;
 
-        /*		average_strain[1] = (average_strain[1]+average_strain[2])*.5 ;
-        		average_stress[1] = (average_stress[1]+average_stress[2])*.5 ;*/
+        /*        average_strain[1] = (average_strain[1]+average_strain[2])*.5 ;
+                average_stress[1] = (average_stress[1]+average_stress[2])*.5 ;*/
 
         Matrix K(2,2) ;
         K[0][0] = average_strain[0] ;
@@ -611,24 +611,24 @@ int main(int argc, char *argv[])
 
         gettimeofday(&t1, NULL) ;
 
-        double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
+//         double delta = t1.tv_sec*1000000 - t0.tv_sec*1000000 + t1.tv_usec - t0.tv_usec ;
 
         std::string filebench("benchmark.getT()xt") ;
-        /*		std::fstream out ;
-        		out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
-        		out << "ELASTICITY\t" << str_micro ;
-        			if(order==2)
-        				out << "QUAD" ;
-        			out << "\t" << "E_inc = " << prop << "\t"
-        			<< "dof = " << x.size() << "\t"
-        			<< "C1111 = " << c[0] << "\t"
-        			<< "C1122 = " << c[1] << std::endl ;
-        		out << "Time to solve (s) =" << delta/1e6 << std::endl ;
-        		out.close() ;*/
+        /*        std::fstream out ;
+                out.open(filebench.c_str(), std::ios::out|std::ios::app) ;
+                out << "ELASTICITY\t" << str_micro ;
+                    if(order==2)
+                        out << "QUAD" ;
+                    out << "\t" << "E_inc = " << prop << "\t"
+                    << "dof = " << x.size() << "\t"
+                    << "C1111 = " << c[0] << "\t"
+                    << "C1122 = " << c[1] << std::endl ;
+                out << "Time to solve (s) =" << delta/1e6 << std::endl ;
+                out.close() ;*/
 
-        /*		VoxelWriter vw("simulation_out_stiffness", 200) ;
-        		vw.getField(featureTree, VWFT_STIFFNESS) ;
-        		vw.write();*/
+        /*        VoxelWriter vw("simulation_out_stiffness", 200) ;
+                vw.getField(featureTree, VWFT_STIFFNESS) ;
+                vw.write();*/
 
         VoxelWriter vw0("simulation_out_stress", 100) ;
         vw0.getField(featureTree, VWFT_STRESS) ;

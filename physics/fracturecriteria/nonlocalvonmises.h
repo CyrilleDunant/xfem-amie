@@ -55,6 +55,6 @@ namespace Amie {
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 	};
 
-} ;
+} 
 
 #endif

@@ -154,25 +154,6 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
 
-    std::vector<std::vector<std::vector<unsigned char> > > phase ;
-    for( int i = 0 ; i < r ; i++)
-    {
-        phase.push_back(std::vector<std::vector<unsigned char> >(0)) ;
-        for( int j = 0 ; j < c ; j++)
-        {
-            phase[i].push_back(std::vector<unsigned char>(0)) ;
-            for( int k = 0 ; k < s ; k++)
-            {
-                if(!file.eof())
-                {
-                    unsigned char behaviourKey ;
-                    file >> behaviourKey ;
-                    phase[i][j].push_back(behaviourKey) ;
-                }
-            }
-        }
-    }
-
     int eindex = 0 ;
     for( int i = 0 ; i < r ; i++)
     {
@@ -180,17 +161,81 @@ void VoxelFilter::update(std::vector< DelaunayTetrahedron* > & tree, const char*
         {
             for( int k = 0 ; k < s ; k++)
             {
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
-                tree[eindex++]->setBehaviour(mesh,behaviourMap[phase[i][j][k]]->getCopy()) ;
+                if(!file.eof())
+                {
+                    unsigned char behaviourKey ;
+                    file >> behaviourKey ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                    tree[eindex++]->setBehaviour(mesh,behaviourMap[behaviourKey]->getCopy()) ;
+                }
             }
         }
     }
 }
 
+
+void VoxelFilter::printStatistics(const char* filename)
+{
+    std::fstream file(filename) ;
+    int r ;
+    int c ;
+    int s ;
+
+
+    std::string dummy ;
+
+    if(file.is_open())
+    {
+        file >> dummy  ;
+        file >> dummy  ;
+        file >> r  ;
+        file >> c  ;
+        file >> s  ;
+    }
+    else
+    {
+        std::cerr << "could not open file !" << std::endl ;
+        return ;
+    }
+    long position = file.tellp() ;
+    file.close() ;
+    file.open(filename, std::ios::binary|std::ios::in) ;
+    file.seekp(position)  ;
+    std::cout << "volume is " << r << " x " << c << " x " << s << std::endl ;
+    
+    std::map<unsigned char, int> phases ;
+    for( int i = 0 ; i < r ; i++)
+    {
+        for( int j = 0 ; j < c ; j++)
+        {
+            for( int k = 0 ; k < s ; k++)
+            {
+                if(!file.eof())
+                {
+                    unsigned char behaviourKey ;
+                    file >> behaviourKey ;
+                    if(phases.find(behaviourKey) == phases.end())
+                    {
+                        phases[behaviourKey] = 1 ;
+                    }
+                    else
+                    {
+                        phases[behaviourKey]++ ;
+                    }
+                }
+            }
+        }
+    }
+    
+    for (auto p : phases)
+    {
+        std::cout << (int)p.first << "  " << (double)p.second/(r*c*s) << std::endl ;
+    }
+}
 
 void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * mesh )
 {
@@ -227,7 +272,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
     file.close() ;
     file.open(filename, std::ios::binary|std::ios::in) ;
     file.seekp(position)  ;
-    std::cout << "volume is " << r << " x " << c << " x " << s << std::endl ;
+    std::cerr << "volume is " << r << " x " << c << " x " << s << std::endl ;
 //     r = 3 ;
 //     c = 3 ;
 //     s = 3 ;
@@ -238,7 +283,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
         {
             for( int k = 0 ; k < s+1 ; k++)
             {
-                points.push_back(new Point(100.*((double)i/r), 100.*(double)j/c  ,100.*(double)k/s)) ;
+                points.push_back(new Point(1e-4*((double)i/r), 1e-4*(double)j/c  ,1e-4*(double)k/s)) ;
                 points.back()->setId(index++) ;
             }
         }
@@ -268,7 +313,7 @@ void VoxelFilter::read(const char * filename, Mesh<DelaunayTetrahedron, Delaunay
         }
     }
 
-    std::cout << "generated phases" << std::endl ;
+    std::cerr << "generated phases" << std::endl ;
     int eindex = 0 ;
     for( int i = 0 ; i < r ; i++)
     {

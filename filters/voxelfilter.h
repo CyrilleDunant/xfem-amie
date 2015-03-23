@@ -75,6 +75,7 @@ public:
 /** \brief return the elements forming the mesh*/
 	const std::vector<DelaunayTetrahedron *> & getElements() const ;
     void update(std::vector< DelaunayTetrahedron* > & tree, const char* filename, Mesh <DelaunayTetrahedron, DelaunayTreeItem3D >* mesh = nullptr);
+    void printStatistics(const char* file);
 
 };
 

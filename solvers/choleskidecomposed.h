@@ -1,7 +1,7 @@
 //
 // C++ Interface: choleskidecomposed
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -15,37 +15,37 @@
 
 #include "solver.h"
 
-namespace Amie 
+namespace Amie
 {
 
 /** \brief direct solver for lower-triangular system*/
-	struct LowerTriangular : public LinearSolver 
-	{
-		Vector d ;
-		virtual ~LowerTriangular() { } ;
-		LowerTriangular(Assembly * a) ;
-		virtual bool solve(const Vector &x0,  Preconditionner * precond= nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
-	} ;
-	
-/** \brief direct solver for upper-triangular system*/
-	struct UpperTriangular : public LinearSolver 
-	{
-		Vector d ;
-		virtual ~UpperTriangular() { } ;
-		UpperTriangular(Assembly *a) ;
-		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
-	} ;
-	
-/** \brief Direct Solver for Symmetric Systems. The Matrix is assumed to have been Cholesky-decomposed*/
-	struct CholeskiDecomposed : public LinearSolver
-	{
-		const Vector &d ;
-		Vector y ;
-		virtual ~CholeskiDecomposed() { } ;
-		CholeskiDecomposed(Assembly * a, const Vector& d_) ;
-		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
-	};
-
+struct LowerTriangular : public LinearSolver
+{
+    Vector d ;
+    virtual ~LowerTriangular() { } ;
+    LowerTriangular(Assembly * a) ;
+    virtual bool solve(const Vector &x0,  Preconditionner * precond= nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
 } ;
+
+/** \brief direct solver for upper-triangular system*/
+struct UpperTriangular : public LinearSolver
+{
+    Vector d ;
+    virtual ~UpperTriangular() { } ;
+    UpperTriangular(Assembly *a) ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+} ;
+
+/** \brief Direct Solver for Symmetric Systems. The Matrix is assumed to have been Cholesky-decomposed*/
+struct CholeskiDecomposed : public LinearSolver
+{
+    const Vector &d ;
+    Vector y ;
+    virtual ~CholeskiDecomposed() { } ;
+    CholeskiDecomposed(Assembly * a, const Vector& d_) ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-12 , const int maxit = -1, bool verbose = true)  ;
+};
+
+}
 
 #endif

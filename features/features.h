@@ -309,7 +309,7 @@ protected:
         }
 
         std::cout << " ...done."<< std::endl ;
-    } ;
+    } 
 
 public:
     /** \brief return the 2D mesh*/
@@ -682,6 +682,7 @@ public:
     void stepMesh();
     
     void printReport(bool printHeader = true, bool vertical = true) ;
+    void printReport(const std::vector<FieldType> & fields, bool vertical = true) ;
 
 
 } ;
@@ -774,6 +775,6 @@ struct PairPointFeatureLess_Than_z {
     }
 } ;
 
-} ;
+} 
 
 #endif // __FEATURES_H_

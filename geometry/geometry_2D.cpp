@@ -2276,7 +2276,7 @@ Polygon::Polygon(const std::valarray<Point *> & points) : NonConvexGeometry(0), 
     computeCenter();
 }
 
-Polygon::~Polygon() { };
+Polygon::~Polygon() { }
 
 void Polygon::sampleBoundingSurface(size_t num_points)
 {

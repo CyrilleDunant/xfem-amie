@@ -311,7 +311,7 @@ std::vector<DelaunayTriangle *> ParallelDelaunayTree::getNeighbourhood(DelaunayT
         }
         return ret ;
     }
-};
+}
 
 void ParallelDelaunayTree::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
 {   
@@ -667,7 +667,7 @@ unsigned int ParallelDelaunayTree::generateCache ()
     }
     allElementsCacheID = position ;
     return position ;
-};
+}
 
 Vector ParallelDelaunayTree::getField( FieldType f, unsigned int cacheID, int dummy, double t) 
 {

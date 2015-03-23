@@ -84,7 +84,7 @@ public:
 	virtual void reset()  ;
 };
 
-};
+}
 
 #endif
 

@@ -1,7 +1,7 @@
 //
 // C++ Interface: lineardamage
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
@@ -23,52 +23,52 @@ namespace Amie {
 class SpaceTimeFiberBasedIsotropicLinearDamage : public DamageModel
 {
 protected:
-	double fibreFraction ;
-	double timeTolerance ;
-	Function visc ;
+    double fibreFraction ;
+    double timeTolerance ;
+    Function visc ;
 
 public:
-	/** \brief Constructor. Set the number of degrees of freedom
-	 * 
-	 * @param numDof number of degrees of freedom
-	 */
-	SpaceTimeFiberBasedIsotropicLinearDamage(double f = 0.1, double tol = 0.001, double cutoff = 0.6) ;
+    /** \brief Constructor. Set the number of degrees of freedom
+     *
+     * @param numDof number of degrees of freedom
+     */
+    SpaceTimeFiberBasedIsotropicLinearDamage(double f = 0.1, double tol = 0.001, double cutoff = 0.6) ;
 
-	virtual ~SpaceTimeFiberBasedIsotropicLinearDamage();
+    virtual ~SpaceTimeFiberBasedIsotropicLinearDamage();
 
-	/** \brief Increment the damage
-	 * 
-	 * @param s ElementState passed as a parameter
-	 */
-	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
-	virtual void computeDelta(const ElementState & s) ;
+    /** \brief Increment the damage
+     *
+     * @param s ElementState passed as a parameter
+     */
+    virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
+    virtual void computeDelta(const ElementState & s) ;
 
-	/** \brief Increment the damage from the current state of the element considered
-	 * 
-	 * @param s ElementState
-	 */
-	virtual void step(ElementState & s, double maxscore)  ;
+    /** \brief Increment the damage from the current state of the element considered
+     *
+     * @param s ElementState
+     */
+    virtual void step(ElementState & s, double maxscore)  ;
 
-	void setLogitViscousDamageLaw(double a, double b, double c) ;
+    void setLogitViscousDamageLaw(double a, double b, double c) ;
 
-	/** \brief compute the new stifness matrix after damage
-	 * 
-	 * \f$ K' = K(1-d) \f$
-	 * @param m Matrix to modify
-	 * @return the new Matrix
-	 */
-	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
-	virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
-	
-	virtual void postProcess() ;
-	
-	/** \brief return true is the element concerned is fractured 
-		*/
-	virtual bool fractured() const  ;
-	
-	virtual DamageModel * getCopy() const ;
+    /** \brief compute the new stifness matrix after damage
+     *
+     * \f$ K' = K(1-d) \f$
+     * @param m Matrix to modify
+     * @return the new Matrix
+     */
+    virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+    virtual Matrix applyViscous(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+
+    virtual void postProcess() ;
+
+    /** \brief return true is the element concerned is fractured
+    	*/
+    virtual bool fractured() const  ;
+
+    virtual DamageModel * getCopy() const ;
 };
 
-};
+}
 
 #endif

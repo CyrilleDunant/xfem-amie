@@ -16,18 +16,18 @@
 #include "../features/inclusion.h"
 namespace Amie
 {
-	std::vector<Feature *> placement(const Amie::Geometry* box, std::vector< Amie::Feature* > inclusions, int* nombreGranulatsPlaces, int nombreGranulatsDejaPlaces = 0, int triesMax = 6400, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), bool verbose = true) ;
-	std::vector<Amie::EllipsoidalInclusion *> placement_with_rotation(const Amie::Geometry* box, std::vector< Amie::EllipsoidalInclusion* > inclusions, int* nombreGranulatsPlaces, int triesMax, bool verbose = true) ;
-	
-	std::vector<Feature *> placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
-    std::vector<Feature *> placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
-        
-	std::vector<Feature *> placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
-	
+std::vector<Feature *> placement(const Amie::Geometry* box, std::vector< Amie::Feature* > inclusions, int* nombreGranulatsPlaces, int nombreGranulatsDejaPlaces = 0, int triesMax = 6400, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), bool verbose = true) ;
+std::vector<Amie::EllipsoidalInclusion *> placement_with_rotation(const Amie::Geometry* box, std::vector< Amie::EllipsoidalInclusion* > inclusions, int* nombreGranulatsPlaces, int triesMax, bool verbose = true) ;
+
+std::vector<Feature *> placement2D(const Geometry* box, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
+std::vector<Feature *> placement3D(const Geometry* box, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
+
+std::vector<Feature *> placement2DInInclusions(const Geometry* box, std::vector<Geometry *> base, std::vector<Feature *> inclusions, double minDist = 0., int placedAggregates = 0, int tries = 6400, double orientation = M_PI, std::vector<Geometry *> exclusionZones = std::vector<Geometry *>()) ;
+
 // 	double masseInitiale;
 // 	double densite;
 
-	double chiffreAleatoire(double );
-} ;
+double chiffreAleatoire(double );
+}
 
 #endif

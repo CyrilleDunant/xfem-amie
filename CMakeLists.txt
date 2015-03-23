@@ -309,11 +309,11 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(DEBUG_BUILD EQUAL 1)
 #     set(CMAKE_BUILD_TYPE Debug)
-	add_definitions(-g3 -O0 -DNDEBUG -funroll-loops -Wall)
+	add_definitions(-g3 -O0 -DNDEBUG -funroll-loops -Wall -Wpedantic)
 	message (STATUS "  Debug Build")
 else()
 #     set(CMAKE_BUILD_TYPE Release)
-	add_definitions(-g3 -O3 ${BIT32_FLAGS} -DNDEBUG -funroll-loops -Wall )
+	add_definitions(-g3 -O3 ${BIT32_FLAGS} -DNDEBUG -funroll-loops -Wall -Wpedantic)
 	message (STATUS "  Optimised Build")
 endif(DEBUG_BUILD EQUAL 1)
 

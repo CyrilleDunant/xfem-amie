@@ -295,7 +295,7 @@ public:
 /** \brief Get a new grid, given a number of divisions*/
 	Grid3D getGrid(int div) const ;
 } ;
-} ;
+} 
 
 
 

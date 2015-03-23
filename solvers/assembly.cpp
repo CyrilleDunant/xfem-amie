@@ -23,7 +23,7 @@ using namespace Amie ;
 
 LagrangeMultiplier::LagrangeMultiplier(std::valarray<unsigned int> i, Vector c, double b, int my_id ) : ids(i), coefs(c), id(my_id), value(b), type(GENERAL)
 {
-} ;
+} 
 
 CoordinateIndexedIncompleteSparseMatrix LagrangeMultiplier::getMatrix() const
 {
@@ -1712,7 +1712,7 @@ ParallelAssembly::ParallelAssembly(const std::vector<Geometry *> & domains) : do
         assembly.push_back(Assembly());
 }
 
-ParallelAssembly::~ParallelAssembly() { } ;
+ParallelAssembly::~ParallelAssembly() { } 
 
 size_t ParallelAssembly::getMaxDofID() const
 {

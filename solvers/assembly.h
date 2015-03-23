@@ -555,7 +555,7 @@ public:
 } ;
 
 
-} ;
+} 
 
 std::map<std::pair<size_t, size_t>, Amie::Matrix> incompleteCholeskyDecomposition(std::map<std::pair<size_t, size_t>, Amie::Matrix>  & morseMatrix) ;
 Vector operator *(const std::map< std::pair<size_t, size_t>, Amie::Matrix > A , const Vector x) ;

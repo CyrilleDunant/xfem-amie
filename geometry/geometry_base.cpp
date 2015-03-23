@@ -2637,9 +2637,9 @@ std::vector<Point> Geometry::intersection(const Geometry * g) const
         if(g->getGeometryType() == LOFTED_POLYGON)
         {
             // first, find an intersection point, assuming two lofted cylinders
-            double selfBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(this)->base.getRadius() ;
-            double gBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(g)->base.getRadius() ;
-            Point start = (dynamic_cast<const LoftedPolygonPrism *>(this)->interpolationPoints[0]+dynamic_cast<const LoftedPolygonPrism *>(g)->interpolationPoints[0])*0.5 ;
+//             double selfBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(this)->base.getRadius() ;
+//             double gBaseDiameter = dynamic_cast<const LoftedPolygonPrism *>(g)->base.getRadius() ;
+//             Point start = (dynamic_cast<const LoftedPolygonPrism *>(this)->interpolationPoints[0]+dynamic_cast<const LoftedPolygonPrism *>(g)->interpolationPoints[0])*0.5 ;
         }
     }
     default:
@@ -2685,7 +2685,7 @@ PointSet::PointSet(size_t npoints)
     for(size_t i = 0 ; i < npoints ; i++)
         boundingPoints[i] = nullptr ;
     this->chullEndPos = 0;
-} ;
+} 
 
 size_t ConvexGeometry::size() const
 {
@@ -5638,7 +5638,7 @@ double OrientableCircle::getRadius() const
 bool isCoplanar(const Point *test, const Point *f0, const Point *f1,const Point *f2, double renorm)
 {
     return isCoplanar(*test, *f0, *f1, *f2, renorm) ;
-} ;
+} 
 
 double signedAlignement(const Point &test, const Point &f0, const Point &f1)
 {
@@ -5701,7 +5701,7 @@ bool isAligned(const Point &test, const Point &f0, const Point &f1)
 bool isAligned(const Point *test, const Point *f0, const Point *f1)
 {
     return isAligned(*test, *f0, *f1) ;
-} ;
+} 
 
 
 int coplanarCount( Point *const* pts, int numpoints, const Point &f0, const Point &f1, const Point &f2, double renorm)
@@ -5774,12 +5774,12 @@ bool isCoplanar(const Point &test, const Point &f0, const Point &f1, const Point
     bool positive = c0 > 0 || c1 > 0 || c2 > 0 ;
     bool negative = c0 < 0 || c1 < 0 || c2 < 0 ;
     return  positive && negative ;
-} ;
+} 
 
 double coplanarity(const Point *test, const Point *f0, const Point *f1,const Point *f2)
 {
     return coplanarity(*test, *f0, *f1, *f2) ;
-} ;
+} 
 
 double coplanarity(const Point &test, const Point &f0, const Point &f1, const Point &f2)
 {
@@ -5789,7 +5789,7 @@ double coplanarity(const Point &test, const Point &f0, const Point &f1, const Po
     Point C(f2-test) ;
 
     return  std::abs(triProduct(A, B, C))  ;
-} ;
+} 
 
 double signedCoplanarity(const Point &test, const Point &f0, const Point &f1, const Point &f2)
 {
@@ -5799,12 +5799,12 @@ double signedCoplanarity(const Point &test, const Point &f0, const Point &f1, co
     Point C(f2-test) ;
 
     return  triProduct(A, B, C)  ;
-} ;
+} 
 
 double signedCoplanarity(const Point *test, const Point *f0, const Point *f1,const Point *f2)
 {
     return signedCoplanarity(*test, *f0, *f1, *f2) ;
-} ;
+} 
 
 double triProduct(const Point &A, const Point &B, const Point &C)
 {

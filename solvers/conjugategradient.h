@@ -1,7 +1,7 @@
- //
+//
 // C++ Interface: conjugategradient
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -15,24 +15,26 @@
 
 #include "solver.h"
 
-namespace Amie 
+namespace Amie
 {
-	class LinearSolver ;
+class LinearSolver ;
 /** \brief preconditionned Conjugate Gradient for symmetric systems*/
-	struct ConjugateGradient : public LinearSolver
-	{
-		Vector r ;
-		Vector z ;
-		Vector p ;
-		Vector q ;
-		bool cleanup ;
-		Preconditionner * P ;
-		size_t nit ;
-		virtual ~ConjugateGradient() { if(cleanup) delete P ;} ;
-		ConjugateGradient(Assembly * a) ;
-		virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
-	} ;
-
+struct ConjugateGradient : public LinearSolver
+{
+    Vector r ;
+    Vector z ;
+    Vector p ;
+    Vector q ;
+    bool cleanup ;
+    Preconditionner * P ;
+    size_t nit ;
+    virtual ~ConjugateGradient() {
+        if(cleanup) delete P ;
+    } ;
+    ConjugateGradient(Assembly * a) ;
+    virtual bool solve(const Vector &x0, Preconditionner * precond = nullptr, const double eps = 1e-10, const int maxit = -1, bool verbose = false)  ;
 } ;
+
+}
 
 #endif

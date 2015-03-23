@@ -357,7 +357,7 @@ double NonLocalExponentiallyDecreasingMohrCoulomb::grade( ElementState &s )
     double maxStress = pstress.max() ;
     double minStress = pstress.min() ;
     double maxStrain = pstrain.max() ;
-    double minStrain = pstrain.min() ;
+//     double minStrain = pstrain.min() ;
 
 // 	std::cout << pstress0[0] << ", " << pstress0[1] << ", "<< pstress0[2] << std::endl ;
     metInTension = false ;

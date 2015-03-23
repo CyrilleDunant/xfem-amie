@@ -23,13 +23,14 @@ void RadiationInducedExpansionMaterialLaw::preProcess(GeneralizedSpaceTimeViscoE
 
 ArrheniusMaterialLaw::ArrheniusMaterialLaw(std::string a, std::string args, char sep) : ExternalMaterialLaw(args, sep), affected(a)
 {
-    coefficient = affected ; coefficient.append("_activation_energy") ;
+    coefficient = affected ;
+    coefficient.append("_activation_energy") ;
 }
 
 void ArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(defaultValues.find(affected) == defaultValues.end())
-	defaultValues[affected] = s.get(affected, defaultValues) ;
+        defaultValues[affected] = s.get(affected, defaultValues) ;
 
 
     double T = s.get("temperature", defaultValues) ;
@@ -44,7 +45,7 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
         return ;
 
     if(defaultValues.find("creep_characteristic_time") == defaultValues.end())
-	defaultValues["creep_characteristic_time"] = s.get("creep_characteristic_time", defaultValues) ;
+        defaultValues["creep_characteristic_time"] = s.get("creep_characteristic_time", defaultValues) ;
 
     double T = s.get("temperature", defaultValues) ;
     double T0 = defaultValues["temperature"] ;
@@ -53,5 +54,5 @@ void CreepArrheniusMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticEleme
 }
 
 
-} ;
+}
 

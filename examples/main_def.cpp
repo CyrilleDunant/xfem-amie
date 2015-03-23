@@ -41,7 +41,7 @@ void step(FeatureTree * featureTree )
     int nsteps = 1;
     featureTree->setDeltaTime(0.0004);
     featureTree->setMaxIterationsPerStep(128) ;
-    for(size_t i = 0 ; i < nsteps ; i++)
+    for(int i = 0 ; i < nsteps ; i++)
     {
         featureTree->step() ;
         featureTree->printReport(i == 0);

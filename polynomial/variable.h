@@ -28,6 +28,6 @@ typedef enum : signed char
 	W_VARIABLE
 } Variable ;
 
-} ;
+} 
 
 #endif

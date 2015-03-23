@@ -309,7 +309,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(Dela
         }
         return ret ;
     }
-};
+}
 
 void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
 {
@@ -745,7 +745,7 @@ unsigned int ParallelDelaunayTree3D::generateCache ()
     }
     allElementsCacheID = position ;
     return position ;
-};
+}
 
 Vector ParallelDelaunayTree3D::getField( FieldType f, int cacheID, int dummy, double t)
 {

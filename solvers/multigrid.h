@@ -178,6 +178,6 @@ namespace Amie
 		} ;
 	} ;
 
-} ;
+} 
 
 #endif

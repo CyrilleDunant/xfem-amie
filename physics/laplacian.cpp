@@ -1,7 +1,7 @@
 //
 // C++ Implementation: stiffness
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -14,30 +14,30 @@
 
 using namespace Amie ;
 
-Laplacian::Laplacian(const Matrix & rig) : LinearForm(rig, false, false, 1) 
+Laplacian::Laplacian(const Matrix & rig) : LinearForm(rig, false, false, 1)
 {
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(param.size() == 9)
-		v.push_back(ZETA);
-} ;
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(param.size() == 9)
+        v.push_back(ZETA);
+}
 
-Laplacian::~Laplacian() { } ;
+Laplacian::~Laplacian() { } 
 
 void Laplacian::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine *vm) const
 {
-	ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)  ;
+    ret[0][0] = vm->ieval(VectorGradient(p_i) * param * VectorGradient(p_j, true),  gp, Jinv, v)  ;
 
 }
 
 bool Laplacian::fractured() const
 {
-	return false ;
+    return false ;
 }
 
-Form * Laplacian::getCopy() const 
+Form * Laplacian::getCopy() const
 {
-	Laplacian * copy =  new Laplacian(*this) ;
-	
-	return copy ; 
+    Laplacian * copy =  new Laplacian(*this) ;
+
+    return copy ;
 }

@@ -314,6 +314,6 @@ public:
 
 
 	
-} ;
+} 
 
 #endif //FEATURE_BASE_H

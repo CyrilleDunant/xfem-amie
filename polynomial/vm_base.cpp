@@ -13,7 +13,7 @@
 namespace Amie
 {
 
-VirtualMachine::VirtualMachine() { } ;
+VirtualMachine::VirtualMachine() { } 
 
 
 double VirtualMachine::eval(const Function &f, const double x, const double y, const double z, const double t, const double u, const double v, const double w)
@@ -4415,4 +4415,4 @@ double VirtualMachine::ieval(const DtD & d, IntegrableEntity *e, const std::vect
     return ret ;
 
 }
-} ;
+} 

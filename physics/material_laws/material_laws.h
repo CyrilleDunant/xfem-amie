@@ -252,7 +252,7 @@ struct WeibullDistributedMaterialLaw : public ExternalMaterialLaw
 
 } ;
 
-} ;
+} 
 
 
 #endif // __MATERIAL_LAW_H_

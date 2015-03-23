@@ -44,7 +44,7 @@ namespace Amie
             bool converged()  ;
     } ;
     
-} ;
+} 
 
 
 #endif // CRACK_MANAGER

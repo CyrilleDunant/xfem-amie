@@ -54,6 +54,6 @@ namespace Amie
 		virtual void precondition(const Vector &v,Vector &)  ;
 	} ;
 
-} ;
+} 
 
 #endif

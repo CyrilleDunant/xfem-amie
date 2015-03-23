@@ -23,32 +23,32 @@ namespace Amie
 
 struct NonLinearStiffness : public NonLinearForm
 {
-	NonLinearStiffness(Function f, double n, IntegrableEntity * parent) ;
-	NonLinearStiffness(Function f, double n, SpaceDimensionality dim) ;
+    NonLinearStiffness(Function f, double n, IntegrableEntity * parent) ;
+    NonLinearStiffness(Function f, double n, SpaceDimensionality dim) ;
 
-	Function E ;
-	double nu ;
-	IntegrableEntity * parent ;
-	
-	virtual ~NonLinearStiffness() ;
-	
-	virtual bool hasInducedForces() const;
-	
-	virtual bool hasInducedMatrix() const ;
-	
-	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
-	
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+    Function E ;
+    double nu ;
+    IntegrableEntity * parent ;
 
-	virtual void setParent(IntegrableEntity * p) ; 
-	
-	virtual bool isActive() const ;
-	
-	virtual Form * getCopy() const ;
-	
-} ;
+    virtual ~NonLinearStiffness() ;
+
+    virtual bool hasInducedForces() const;
+
+    virtual bool hasInducedMatrix() const ;
+
+    virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
+
+    virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+
+    virtual void setParent(IntegrableEntity * p) ;
+
+    virtual bool isActive() const ;
+
+    virtual Form * getCopy() const ;
 
 } ;
+
+}
 
 #endif // __ PHYSICS_H_
 

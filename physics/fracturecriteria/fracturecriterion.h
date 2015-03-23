@@ -176,6 +176,6 @@ public:
     virtual double getTensileLimit(const ElementState & s) const = 0 ;
 };
 
-} ;
+} 
 
 #endif

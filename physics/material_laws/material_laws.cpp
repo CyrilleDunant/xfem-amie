@@ -40,7 +40,7 @@ std::map<std::string, double> parseDefaultValues(std::string args, char sep)
 
 void ExternalMaterialLaw::setDefaultValue(std::string str, double d)
 {
-	defaultValues[str] = d ;
+    defaultValues[str] = d ;
 }
 
 void ConstantExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt )
@@ -55,24 +55,24 @@ void SpaceTimeDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
     p.setT( s.getNodalCentralTime() ) ;
     switch(op)
     {
-	case SET:
-	        s.set(external, VirtualMachine().eval(f, p) ) ;
-		break ;
-	case ADD:
-		s.add( external, VirtualMachine().eval(f, p) ) ;
-		break ;
-	case MULTIPLY:
-		s.multiply( external, VirtualMachine().eval(f, p) ) ;
-		break ;
-	case SUBSTRACT:
-		s.add( external, -1. * VirtualMachine().eval(f, p) ) ;
-		break ;
-	case DIVIDE:
-		s.multiply( external, 1. / VirtualMachine().eval(f, p) ) ;
-		break ;
-	default:
-	        s.set(external, VirtualMachine().eval(f, p) ) ;
-		break ;
+    case SET:
+        s.set(external, VirtualMachine().eval(f, p) ) ;
+        break ;
+    case ADD:
+        s.add( external, VirtualMachine().eval(f, p) ) ;
+        break ;
+    case MULTIPLY:
+        s.multiply( external, VirtualMachine().eval(f, p) ) ;
+        break ;
+    case SUBSTRACT:
+        s.add( external, -1. * VirtualMachine().eval(f, p) ) ;
+        break ;
+    case DIVIDE:
+        s.multiply( external, 1. / VirtualMachine().eval(f, p) ) ;
+        break ;
+    default:
+        s.set(external, VirtualMachine().eval(f, p) ) ;
+        break ;
     }
 }
 
@@ -81,24 +81,24 @@ void SimpleDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeViscoEl
     double x = s.get(coordinate, defaultValues) ;
     switch(op)
     {
-	case SET:
-	        s.set(external, VirtualMachine().eval(f, x) ) ;
-		break ;
-	case ADD:
-		s.add( external, VirtualMachine().eval(f, x) ) ;
-		break ;
-	case MULTIPLY:
-		s.multiply( external, VirtualMachine().eval(f, x) ) ;
-		break ;
-	case SUBSTRACT:
-		s.add( external, -1. * VirtualMachine().eval(f, x) ) ;
-		break ;
-	case DIVIDE:
-		s.multiply( external, 1. / VirtualMachine().eval(f, x) ) ;
-		break ;
-	default:
-	        s.set(external, VirtualMachine().eval(f, x) ) ;
-		break ;
+    case SET:
+        s.set(external, VirtualMachine().eval(f, x) ) ;
+        break ;
+    case ADD:
+        s.add( external, VirtualMachine().eval(f, x) ) ;
+        break ;
+    case MULTIPLY:
+        s.multiply( external, VirtualMachine().eval(f, x) ) ;
+        break ;
+    case SUBSTRACT:
+        s.add( external, -1. * VirtualMachine().eval(f, x) ) ;
+        break ;
+    case DIVIDE:
+        s.multiply( external, 1. / VirtualMachine().eval(f, x) ) ;
+        break ;
+    default:
+        s.set(external, VirtualMachine().eval(f, x) ) ;
+        break ;
     }
 }
 
@@ -116,34 +116,48 @@ void VariableDependentExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisco
         p = s.getParent()->getCenter() ;
         p.setT( s.getNodalCentralTime() ) ;
     }
-    if( has('x')) { p.setX( s.get(coordinates['x'], defaultValues)) ; }
-    if( has('y')) { p.setY( s.get(coordinates['y'], defaultValues)) ; }
-    if( has('z')) { p.setZ( s.get(coordinates['z'], defaultValues)) ; }
-    if( has('t')) { p.setT( s.get(coordinates['t'], defaultValues)) ; }
+    if( has('x')) {
+        p.setX( s.get(coordinates['x'], defaultValues)) ;
+    }
+    if( has('y')) {
+        p.setY( s.get(coordinates['y'], defaultValues)) ;
+    }
+    if( has('z')) {
+        p.setZ( s.get(coordinates['z'], defaultValues)) ;
+    }
+    if( has('t')) {
+        p.setT( s.get(coordinates['t'], defaultValues)) ;
+    }
     Point q ;
-    if( has('u')) { p.setX( s.get(coordinates['u'], defaultValues)) ; }
-    if( has('v')) { p.setY( s.get(coordinates['v'], defaultValues)) ; }
-    if( has('w')) { p.setZ( s.get(coordinates['w'], defaultValues)) ; }
+    if( has('u')) {
+        p.setX( s.get(coordinates['u'], defaultValues)) ;
+    }
+    if( has('v')) {
+        p.setY( s.get(coordinates['v'], defaultValues)) ;
+    }
+    if( has('w')) {
+        p.setZ( s.get(coordinates['w'], defaultValues)) ;
+    }
     switch(op)
     {
-	case SET:
-	        s.set(external, VirtualMachine().eval(f, p, q) ) ;
-		break ;
-	case ADD:
-		s.add( external, VirtualMachine().eval(f, p, q) ) ;
-		break ;
-	case MULTIPLY:
-		s.multiply( external, VirtualMachine().eval(f, p, q) ) ;
-		break ;
-	case SUBSTRACT:
-		s.add( external, -1. * VirtualMachine().eval(f, p, q) ) ;
-		break ;
-	case DIVIDE:
-		s.multiply( external, 1. / VirtualMachine().eval(f, p, q) ) ;
-		break ;
-	default:
-	        s.set(external, VirtualMachine().eval(f, p, q) ) ;
-		break ;
+    case SET:
+        s.set(external, VirtualMachine().eval(f, p, q) ) ;
+        break ;
+    case ADD:
+        s.add( external, VirtualMachine().eval(f, p, q) ) ;
+        break ;
+    case MULTIPLY:
+        s.multiply( external, VirtualMachine().eval(f, p, q) ) ;
+        break ;
+    case SUBSTRACT:
+        s.add( external, -1. * VirtualMachine().eval(f, p, q) ) ;
+        break ;
+    case DIVIDE:
+        s.multiply( external, 1. / VirtualMachine().eval(f, p, q) ) ;
+        break ;
+    default:
+        s.set(external, VirtualMachine().eval(f, p, q) ) ;
+        break ;
     }
 }
 
@@ -197,24 +211,24 @@ void LinearInterpolatedExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVisc
         v = get(s.get(external.first, defaultValues)) ;
     switch(op)
     {
-	case SET:
-		s.set(external.second, v) ;
-		break ;
-	case ADD:
-		s.add(external.second, v) ;
-		break ;
-	case MULTIPLY:
-		s.multiply(external.second, v) ;
-		break ;
-	case SUBSTRACT:
-		s.add(external.second, -1.*v) ;
-		break ;
-	case DIVIDE:
-		s.multiply(external.second, 1./v) ;
-		break ;
-	default:
-		s.set(external.second, v) ;
-		break ;
+    case SET:
+        s.set(external.second, v) ;
+        break ;
+    case ADD:
+        s.add(external.second, v) ;
+        break ;
+    case MULTIPLY:
+        s.multiply(external.second, v) ;
+        break ;
+    case SUBSTRACT:
+        s.add(external.second, -1.*v) ;
+        break ;
+    case DIVIDE:
+        s.multiply(external.second, 1./v) ;
+        break ;
+    default:
+        s.set(external.second, v) ;
+        break ;
 
     }
 }
@@ -284,118 +298,116 @@ void TimeIntegralMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElemen
 
 void MaximumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-	Vector values(coordinates.size()) ;
-	values = 0. ;
-	for(size_t i = 0 ; i < coordinates.size() ; i++)
-		values[i] = s.get( coordinates[i], defaultValues) ;
-	double v = values.max() ;
+    Vector values(coordinates.size()) ;
+    values = 0. ;
+    for(size_t i = 0 ; i < coordinates.size() ; i++)
+        values[i] = s.get( coordinates[i], defaultValues) ;
+    double v = values.max() ;
     switch(op)
     {
-	case SET:
-		s.set(external, v) ;
-		break ;
-	case ADD:
-		s.add(external, v) ;
-		break ;
-	case MULTIPLY:
-		s.multiply(external, v) ;
-		break ;
-	case SUBSTRACT:
-		s.add(external, -1.*v) ;
-		break ;
-	case DIVIDE:
-		s.multiply(external, 1./v) ;
-		break ;
-	default:
-		s.set(external, v) ;
-		break ;
+    case SET:
+        s.set(external, v) ;
+        break ;
+    case ADD:
+        s.add(external, v) ;
+        break ;
+    case MULTIPLY:
+        s.multiply(external, v) ;
+        break ;
+    case SUBSTRACT:
+        s.add(external, -1.*v) ;
+        break ;
+    case DIVIDE:
+        s.multiply(external, 1./v) ;
+        break ;
+    default:
+        s.set(external, v) ;
+        break ;
     }
 }
 
 
 void MinimumMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-	Vector values(coordinates.size()) ;
-	values = 0. ;
-	for(size_t i = 0 ; i < coordinates.size() ; i++)
-		values[i] = s.get( coordinates[i], defaultValues) ;
-	double v = values.min() ;
+    Vector values(coordinates.size()) ;
+    values = 0. ;
+    for(size_t i = 0 ; i < coordinates.size() ; i++)
+        values[i] = s.get( coordinates[i], defaultValues) ;
+    double v = values.min() ;
     switch(op)
     {
-	case SET:
-		s.set(external, v) ;
-		break ;
-	case ADD:
-		s.add(external, v) ;
-		break ;
-	case MULTIPLY:
-		s.multiply(external, v) ;
-		break ;
-	case SUBSTRACT:
-		s.add(external, -1.*v) ;
-		break ;
-	case DIVIDE:
-		s.multiply(external, 1./v) ;
-		break ;
-	default:
-		s.set(external, v) ;
-		break ;
+    case SET:
+        s.set(external, v) ;
+        break ;
+    case ADD:
+        s.add(external, v) ;
+        break ;
+    case MULTIPLY:
+        s.multiply(external, v) ;
+        break ;
+    case SUBSTRACT:
+        s.add(external, -1.*v) ;
+        break ;
+    case DIVIDE:
+        s.multiply(external, 1./v) ;
+        break ;
+    default:
+        s.set(external, v) ;
+        break ;
     }
 }
 
 void ExponentiallyDecreasingMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-	double targetValue = s.get(target, defaultValues) ;
-	double currentValue = s.get(output, defaultValues) ;
-	double tau = s.get(coefficient, defaultValues) ;
-	double nextValue = targetValue + (currentValue-targetValue)*(1-exp(-dt/tau)) ;
-	s.set( output, nextValue ) ;
+    double targetValue = s.get(target, defaultValues) ;
+    double currentValue = s.get(output, defaultValues) ;
+    double tau = s.get(coefficient, defaultValues) ;
+    double nextValue = targetValue + (currentValue-targetValue)*(1-exp(-dt/tau)) ;
+    s.set( output, nextValue ) ;
 
 }
 
 void GetFieldMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-	Vector v( fieldTypeElementarySize(field, SPACE_TWO_DIMENSIONAL, 1) ) ;
-	s.getAverageField( field, v, nullptr, 0, 1.) ;
-	for(size_t i = 0 ; i < v.size() ; i++)
-	{
-		s.set( getParameterName(i), v[i] ) ;
-	}
+    Vector v( fieldTypeElementarySize(field, SPACE_TWO_DIMENSIONAL, 1) ) ;
+    s.getAverageField( field, v, nullptr, 0, 1.) ;
+    for(size_t i = 0 ; i < v.size() ; i++)
+    {
+        s.set( getParameterName(i), v[i] ) ;
+    }
 }
 
-std::string GetFieldMaterialLaw::getParameterName(size_t i) const 
+std::string GetFieldMaterialLaw::getParameterName(size_t i) const
 {
-	std::string b = base ;
-	b.append("_") ;
-	b.append(itoa(i)) ;
-	return b ;
+    std::string b = base ;
+    b.append("_") ;
+    b.append(itoa(i)) ;
+    return b ;
 }
 
 WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::string a, std::string w, double sh, double sc, double v, std::string args, char sep) : ExternalMaterialLaw(args, sep), weib(w), shape(sh), scale(sc)
 {
-	affected.push_back(a) ;
-	defaultValues[weib] = 1. ;
+    affected.push_back(a) ;
+    defaultValues[weib] = 1. ;
 }
 
 WeibullDistributedMaterialLaw::WeibullDistributedMaterialLaw( std::vector<std::string> aff, std::string w, double sh, double sc, double v, std::string args, char sep)  : ExternalMaterialLaw(args, sep), weib(w), shape(sh), scale(sc), variability(v)
 {
-	for(size_t i = 0 ; i < aff.size() ; i++)
-		affected.push_back(aff[i]) ;
-	defaultValues[weib] = 1. ;
+    for(size_t i = 0 ; i < aff.size() ; i++)
+        affected.push_back(aff[i]) ;
+    defaultValues[weib] = 1. ;
 }
 
 void WeibullDistributedMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
-	if(!s.has(weib))
-	{
-		s.set(weib, std::max(0., 1. - variability + variability*RandomNumber().weibull(1.,5.)) ) ;
-	}
-	double w = s.get(weib, defaultValues) ;
-	for(size_t i = 0 ; i < affected.size() ; i++)
-		s.multiply(affected[i], w) ;
+    if(!s.has(weib))
+    {
+        s.set(weib, std::max(0., 1. - variability + variability*RandomNumber().weibull(1.,5.)) ) ;
+    }
+    double w = s.get(weib, defaultValues) ;
+    for(size_t i = 0 ; i < affected.size() ; i++)
+        s.multiply(affected[i], w) ;
 }
 
-
-
-} ;
+}
 

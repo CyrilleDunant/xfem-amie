@@ -223,7 +223,19 @@ std::vector<std::valarray<double> > VoxelWriter::getDoubleValues(FeatureTree * F
                                 p.getX() += ((top_right.getX())-(bottom_left.getX()))*((double)(i))/(double(nVoxelX-1)) ;
                                 p.getY() += ((top_right.getY())-(bottom_left.getY()))*((double)(j))/(double(nVoxelY-1)) ;
                                 p.getZ() += ((top_right.getZ())-(bottom_left.getZ()))*((double)(k))/(double(nVoxelZ-1)) ;
-                                if(!t->in(p) || !t->getBehaviour())
+                                
+                                if((!t->in(p) 
+                                    && !t->in(p+Point(-16.*POINT_TOLERANCE, -16.*POINT_TOLERANCE,-16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point(-16.*POINT_TOLERANCE, -16.*POINT_TOLERANCE, 16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point(-16.*POINT_TOLERANCE,  16.*POINT_TOLERANCE,-16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point(-16.*POINT_TOLERANCE,  16.*POINT_TOLERANCE, 16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point( 16.*POINT_TOLERANCE, -16.*POINT_TOLERANCE,-16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point( 16.*POINT_TOLERANCE, -16.*POINT_TOLERANCE, 16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point( 16.*POINT_TOLERANCE,  16.*POINT_TOLERANCE,-16.*POINT_TOLERANCE)) 
+                                    && !t->in(p+Point( 16.*POINT_TOLERANCE,  16.*POINT_TOLERANCE, 16.*POINT_TOLERANCE)) 
+                                    
+                                ) 
+                                    || !t->getBehaviour())
                                     continue ;
                                 if( t->getBehaviour()->type != VOID_BEHAVIOUR)
                                 {
@@ -594,7 +606,7 @@ int numberOfFields(VWFieldType field)
 }
 
 
-} ;
+} 
 
 
 

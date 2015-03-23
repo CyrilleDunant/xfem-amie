@@ -65,7 +65,7 @@ struct CreepArrheniusMaterialLaw : public ExternalMaterialLaw
 };
 
 
-} ;
+} 
 
 
 #endif // __TEMPERATURE_MATERIAL_LAW_H_

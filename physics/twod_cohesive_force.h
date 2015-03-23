@@ -23,75 +23,75 @@ namespace Amie
 // class Diffusion2D :public LinearForm
 // {
 // public:
-// 
+//
 // 	double c ;
-// 	
+//
 // 	double alpha ;
 // 	double tau   ;
-// 	
+//
 // 	Diffusion2D(double capacity, double conductivityX, double conductivityY) ;
-// 	
+//
 // 	virtual ~Diffusion2D() ;
-// 	
-// 	
+//
+//
 // 	virtual Matrix apply(const Function & p_i, const Function & p_j, const IntegrableEntity *e) const;
-// 	
+//
 // 	virtual Matrix apply(const Function & p_i, const Function & p_j, const std::valarray< std::pair<Point,double> > &gp, const std::valarray<Matrix> &Jinv, Matrix & ret) const;
-// 	
+//
 // 	virtual void step(double timestep, ElementState * currentState) ;
-// 	
+//
 // 	/** Check for fracture state
 // 	 *
 // 	 * @return true if the element is fractured
 // 	 */
 // 	virtual bool fractured() const;
-// 	
-// 	
+//
+//
 // 	/** get Copy of the behaviour
 // 	 *
 // 	 * @return pointer to the copy. Caller is responsible for cleaning memory
 // 	 */
 // 	virtual Form * getCopy() const ;
-// 
+//
 // 	virtual bool hasInducedForces() const ;
-// 	
+//
 // 	virtual void getForces(const ElementState & s, const Function & p_i, const std::valarray< std::pair<Point, double> > &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-// 	
+//
 // } ;
 
 class TwoDCohesiveForces : public NonLinearForm
 {
 public:
 
-	std::vector<Point> normals ;
-	const IntegrableEntity * source ;
-	const IntegrableEntity * target ;
-	double startArea ;
-	
-	bool active ;
-	
-	TwoDCohesiveForces(const IntegrableEntity *s, const IntegrableEntity *t, const SegmentedLine * sl) ;
+    std::vector<Point> normals ;
+    const IntegrableEntity * source ;
+    const IntegrableEntity * target ;
+    double startArea ;
 
-	virtual Form * getCopy() const ;
-	
-	virtual ~TwoDCohesiveForces() ;
-		
-	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-	
-	virtual bool hasInducedForces() const ;
-	
-	virtual bool hasInducedMatrix() const ;
-	
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-	std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const; 
+    bool active ;
 
-	virtual void step(double timestep, ElementState & currentState) ;
+    TwoDCohesiveForces(const IntegrableEntity *s, const IntegrableEntity *t, const SegmentedLine * sl) ;
 
-	virtual bool isActive() const ;
+    virtual Form * getCopy() const ;
+
+    virtual ~TwoDCohesiveForces() ;
+
+    virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+
+    virtual bool hasInducedForces() const ;
+
+    virtual bool hasInducedMatrix() const ;
+
+    virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+    std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+
+    virtual void step(double timestep, ElementState & currentState) ;
+
+    virtual bool isActive() const ;
 } ;
 
 
-} ;
+}
 
 #endif // __ PHYSICS_H_
 

@@ -162,54 +162,54 @@ double interpolate ( const double a, const double b )
 
 Memory::Memory()
 {
-} ;
+} 
 
 Memory::~Memory()
 {
-} ;
+} 
 
 
 Context::Context ( const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ ) : x ( x_ ), y ( y_ ), z ( z_ ), t ( t_ ), u ( u_ ), v ( v_ ), w ( w_ )
 {
 
-} ;
+} 
 
 Context::Context ( const double & x_, const double & y_, const double & z_, const double & t_, const double & u_, const double & v_ ) : x ( x_ ), y ( y_ ), z ( z_ ), t ( t_ ), u ( u_ ), v ( v_ ), w ( 0 )
 {
 
-} ;
+} 
 
 Context::Context ( const double & x_, const double & y_, const double & z_, const double & t_, const double & u_ ) : x ( x_ ), y ( y_ ), z ( z_ ), t ( t_ ), u ( u_ ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 Context::Context ( const double & x_, const double & y_, const double & z_, const double & t_ ) : x ( x_ ), y ( y_ ), z ( z_ ), t ( t_ ), u ( 0 ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 
 Context::Context ( const double & x_, const double & y_, const double & z_ ) : x ( x_ ), y ( y_ ), z ( z_ ), t ( 0 ), u ( 0 ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 Context::Context ( const double & x_, const double & y_ ) : x ( x_ ), y ( y_ ), z ( 0 ), t ( 0 ), u ( 0 ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 
 Context::Context ( const double & x_ ) : x ( x_ ), y ( 0 ), z ( 0 ), t ( 0 ), u ( 0 ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 Context::Context() : x ( 0 ), y ( 0 ), z ( 0 ), t ( 0 ), u ( 0 ), v ( 0 ), w ( 0 )
 {
 
-} ;
+} 
 
 void Context::set ( const double & x_, const double & y_ , const double & z_ , const double & t_ , const double & u_ , const double & v_ , const double & w_ )
 {
@@ -235,16 +235,12 @@ void Context::set ( const double & x_, const double & y_ )
     y = y_;
 }
 
-
 void Context::set ( const double & x_ )
 {
     x = x_;
 }
 
-
-
-
-GeometryOperation::GeometryOperation() { } ;
+GeometryOperation::GeometryOperation() { } 
 
 
 PositionOperation::PositionOperation ( const Segment & s_ )
@@ -284,14 +280,12 @@ void PositionOperation::eval ( double * a, double * b, double * c ) const
 GeometryOperation * PositionOperation::getCopy() const
 {
     return new PositionOperation ( s ) ;
-};
+}
 
 int PositionOperation::adressOffset() const
 {
     return -1 ;
 }
-
-
 
 LineDistanceOperation::LineDistanceOperation ( const Line & l_ ) : l ( l_ )
 {
@@ -307,7 +301,7 @@ void LineDistanceOperation::eval ( double * a, double * b, double * c ) const
 GeometryOperation * LineDistanceOperation::getCopy() const
 {
     return new LineDistanceOperation ( l ) ;
-};
+}
 
 int LineDistanceOperation::adressOffset() const
 {
@@ -324,7 +318,7 @@ void InHomogeneousProjectionOperation::eval ( double * a, double * b, double * c
 GeometryOperation * InHomogeneousProjectionOperation::getCopy() const
 {
     return new InHomogeneousProjectionOperation ( inGeo, inProjector, outProjector ) ;
-};
+}
 
 int InHomogeneousProjectionOperation::adressOffset() const
 {
@@ -353,7 +347,7 @@ void DomainOperation::eval ( double * a, double * b, double * c ) const
 GeometryOperation * DomainOperation::getCopy() const
 {
     return new DomainOperation ( geo ) ;
-};
+}
 
 int DomainOperation::adressOffset() const
 {
@@ -383,7 +377,7 @@ void DomainBinaryOperation::eval ( double * a, double * b, double * c ) const
 GeometryOperation * DomainBinaryOperation::getCopy() const
 {
     return new DomainBinaryOperation ( geo ) ;
-};
+}
 
 int DomainBinaryOperation::adressOffset() const
 {
@@ -405,7 +399,7 @@ void PointDistanceBinaryOperation::eval ( double * a, double * b, double * c ) c
 GeometryOperation * PointDistanceBinaryOperation::getCopy() const
 {
     return new PointDistanceBinaryOperation ( Point ( x0, y0 ) ) ;
-};
+}
 
 int PointDistanceBinaryOperation::adressOffset() const
 {
@@ -429,14 +423,12 @@ void PointDistanceTrinaryOperation::eval ( double * a, double * b, double * c ) 
 GeometryOperation * PointDistanceTrinaryOperation::getCopy() const
 {
     return new PointDistanceTrinaryOperation ( Point ( x0, y0, z0 ) ) ;
-};
+}
 
 int PointDistanceTrinaryOperation::adressOffset() const
 {
     return -2 ;
 }
-
-
 
 RotationBinaryOperation::RotationBinaryOperation ( double a ) : cangle ( cos ( a ) ), sangle ( sin ( a ) )
 {
@@ -460,7 +452,6 @@ int RotationBinaryOperation::adressOffset() const
 {
     return 0 ;
 }
-
 
 AngleBinaryOperation::AngleBinaryOperation ( double a, const Point & p ) :cangle ( cos ( a ) ), sangle ( sin ( a ) ), pivot ( p.getX() *cos ( a ) +p.getY() *sin ( a ), -p.getX() *sin ( a ) +p.getY() *cos ( a ) )
 {

@@ -15,7 +15,7 @@
 
 namespace Amie {
 
-PlasticStrain::PlasticStrain() : previousCompressiveImposedStrain(0.,3), imposedStrain(0.,3), previousTensileImposedStrain(0.,3)
+PlasticStrain::PlasticStrain() : imposedStrain(0.,3), previousCompressiveImposedStrain(0.,3),  previousTensileImposedStrain(0.,3)
 {
     getState(true).resize(1, 0.);
     isNull = false ;

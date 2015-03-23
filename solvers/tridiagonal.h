@@ -1,7 +1,7 @@
 //
 // C++ Interface: inversediagonal
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -19,18 +19,19 @@
 namespace Amie
 {
 
-	/** \brief Tridiagonal preconditionner*/
-	struct TriDiagonal  : public Preconditionner
-	{
-		Vector diagonal ;
-		Vector upper ;
-		Vector c ;
-		virtual ~TriDiagonal() {  ;}
-		TriDiagonal(const CoordinateIndexedSparseMatrix &A) ;
-		virtual void precondition(const Vector &v,Vector &)  ;
-	} ;
-	
-
+/** \brief Tridiagonal preconditionner*/
+struct TriDiagonal  : public Preconditionner
+{
+    Vector diagonal ;
+    Vector upper ;
+    Vector c ;
+    virtual ~TriDiagonal() {
+        ;
+    }
+    TriDiagonal(const CoordinateIndexedSparseMatrix &A) ;
+    virtual void precondition(const Vector &v,Vector &)  ;
 } ;
+
+}
 
 #endif

@@ -658,7 +658,7 @@ Matrix makeStressOrStrainMatrix ( const Vector & stressOrStrain ) ;
 
 int isGaussPoint ( const Point & p, IntegrableEntity * e ) ;
 Vector toPrincipal ( const Vector & stressOrStrain ) ;
-} ;
+} 
 
 
 #endif

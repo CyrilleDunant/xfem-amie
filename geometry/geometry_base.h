@@ -1702,7 +1702,7 @@ struct PointLess_Than_y
     }
 } ;
 
-} ;
+} 
 
 #endif
 

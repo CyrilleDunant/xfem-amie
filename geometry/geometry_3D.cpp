@@ -1693,7 +1693,7 @@ void Sphere::project(Point * p, double r) const
 
 }
 
-void Sphere::computeCenter() { } ;
+void Sphere::computeCenter() { } 
 
 double Sphere::getRadius() const
 {
@@ -2200,9 +2200,9 @@ Matrix LoftedPolygonPrism::rotateFromVector(const Point & vector) const
     return -inverse3x3Matrix(rotx*roty*rotx_) ;
 }
 
-PolygonPrism::~PolygonPrism() { };
+PolygonPrism::~PolygonPrism() { }
 
-LoftedPolygonPrism::~LoftedPolygonPrism() { };
+LoftedPolygonPrism::~LoftedPolygonPrism() { }
 
 void PolygonPrism::sampleBoundingSurface(size_t num_points)
 {

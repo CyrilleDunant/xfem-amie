@@ -50,7 +50,7 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTriangl
     v.push_back( ETA );
 
     reverted = false ;
-} ;
+}
 
 HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, DelaunayTriangle *self ) : LinearForm( Matrix(), true, false, 2 ), equivalent( nullptr ), mesh( nullptr ), self2d( self ), self3d( nullptr )
 {
@@ -176,12 +176,12 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( FeatureTree *mesh, DelaunayTetrahe
 
     reverted = false ;
 
-} ;
+}
 
 HomogeneisedBehaviour::~HomogeneisedBehaviour()
 {
 //	delete equivalent ;
-} ;
+}
 
 
 void HomogeneisedBehaviour::apply( const Function &p_i, const Function &p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine *vm ) const

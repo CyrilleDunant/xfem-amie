@@ -658,7 +658,7 @@ FunctionMatrix inverse3x3FunctionMatrix ( const FunctionMatrix m ) ;
  */
 GtFM operator * ( const Gradient & g, const FunctionMatrix & m ) ;
 
-} ;
+} 
 
 #endif
 

@@ -24,7 +24,7 @@ IterativeMaxwell::IterativeMaxwell(const Matrix & rig, double e) : LinearForm(ri
 }
 
 
-IterativeMaxwell::~IterativeMaxwell() { } ;
+IterativeMaxwell::~IterativeMaxwell() { } 
 
 void IterativeMaxwell::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -171,7 +171,7 @@ void IterativeMaxwell::setNumberOfGaussPoints(size_t n)
 
 void IterativeMaxwell::getCoefficients(double timestep)
 {
-    double alpha = exp(-timestep/chartime) ;
+//     double alpha = exp(-timestep/chartime) ;
 //     double gamma = 1.-alpha ;
 //     double lambda = gamma*(chartime/timestep) ;
     coeff_unext = timestep/(chartime+timestep) ;//1.-lambda ;
@@ -217,7 +217,7 @@ GeneralizedIterativeMaxwell::~GeneralizedIterativeMaxwell()
     for(size_t b = 0 ; b < branches.size() ; b++)
         delete branches[b] ;
 
-} ;
+} 
 
 void GeneralizedIterativeMaxwell::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
@@ -454,19 +454,6 @@ void GeneralizedIterativeMaxwell::getInstantaneousCoefficients()
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 Maxwell::Maxwell(const Matrix & rig, const Matrix & e ) : LinearForm(e, false, false, e.numRows()/3+1), decay(e)
 {
     Matrix s(e.numRows(), e.numRows()) ;
@@ -480,9 +467,9 @@ Maxwell::Maxwell(const Matrix & rig, const Matrix & e ) : LinearForm(e, false, f
         v.push_back(ZETA);
     v.push_back(TIME_VARIABLE);
 
-} ;
+} 
 
-Maxwell::~Maxwell() { } ;
+Maxwell::~Maxwell() { } 
 
 ElementState * Maxwell::createElementState( IntegrableEntity * e)
 {
@@ -586,9 +573,9 @@ StandardLinearSolid::StandardLinearSolid(const Matrix & riga, const Matrix & rig
         v.push_back(ZETA);
     v.push_back(TIME_VARIABLE);
 
-} ;
+} 
 
-StandardLinearSolid::~StandardLinearSolid() { } ;
+StandardLinearSolid::~StandardLinearSolid() { } 
 
 ElementState * StandardLinearSolid::createElementState( IntegrableEntity * e)
 {

@@ -1048,4 +1048,4 @@ Vector solveSystem(const Matrix & A, const Vector & b, Vector & x)
     return x ;
 }
 
-} ;
+} 

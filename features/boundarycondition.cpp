@@ -7,9 +7,9 @@
 
 using namespace Amie ;
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { } ;
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { } 
 
-BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { } ;
+BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { } 
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
@@ -20,9 +20,9 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefi
 
 }
 
-BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ), nearest ( p ) {} ;
+BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ), nearest ( p ) {} 
 
-BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ), nearest ( p ) {} ;
+BoundingBoxNearestNodeDefinedBoundaryCondition::BoundingBoxNearestNodeDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, Point p, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ), nearest ( p ) {} 
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( 0 ), zmax ( 0 )
 {
@@ -4122,7 +4122,7 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 
     }
 
-};
+}
 
 void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
@@ -4164,7 +4164,7 @@ void ElementDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
         a->setPointAlong ( ETA, disps[1], ( *i )->getId() ) ;
         a->setPointAlong ( ZETA, disps[2], ( *i )->getId() ) ;
     }
-};
+}
 
 bool isInBoundary2D ( Point test, Point min, Point max )
 {
@@ -4706,8 +4706,8 @@ void BoundingBoxNearestNodeDefinedBoundaryCondition::apply ( Assembly * a, Mesh<
 }
 
 
-GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d , int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { };
-GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { };
+GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, double d , int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { }
+GeometryAndFaceDefinedSurfaceBoundaryCondition::GeometryAndFaceDefinedSurfaceBoundaryCondition(LagrangeMultiplierType t, Geometry * source, const Point & normal, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ),faceNormal(normal/normal.norm()) { }
 
 void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
@@ -4835,9 +4835,9 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
     }
 }
 
-GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
+GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
-GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
+GeometryDefinedSurfaceBoundaryCondition::GeometryDefinedSurfaceBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
 void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
@@ -4951,9 +4951,9 @@ void GeometryDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<Delauna
 
 
 
-GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
+GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, double d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
-GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { };
+GeometryDefinedBoundaryCondition::GeometryDefinedBoundaryCondition ( LagrangeMultiplierType t, Geometry * source, const Function & d, int a ) : BoundaryCondition ( t, d, a ), domain ( source ) { }
 
 void GeometryDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {
@@ -5696,9 +5696,9 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
     }
 }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), axis ( a ), function ( false ) { } ;
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), axis ( a ), function ( false ) { } 
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), dataFunction ( d ), axis ( a ), function ( true ) { } ;
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), dataFunction ( d ), axis ( a ), function ( true ) { } 
 
 void BoundaryCondition::setScale ( double d )
 {
@@ -5853,7 +5853,7 @@ TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : 
 {
     goToNext = true ;
     previousDisp.resize ( 0 ) ;
-} ;
+} 
 
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t )
 {

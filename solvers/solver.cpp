@@ -22,10 +22,10 @@ Solver::~Solver()
 {
 }
 
-LinearSolver::LinearSolver(Assembly * a) : Solver(a) {} ;
+LinearSolver::LinearSolver(Assembly * a) : Solver(a) {} 
 
 
-NonLinearSolver::NonLinearSolver(Assembly * a) : Solver(a) { } ;
+NonLinearSolver::NonLinearSolver(Assembly * a) : Solver(a) { } 
 
 
 }

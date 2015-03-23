@@ -1,7 +1,7 @@
 //
 // C++ Interface: inclompletecholeskidecomposition
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2013
@@ -19,18 +19,18 @@
 namespace Amie
 {
 
-    struct Assembly ;
-	struct InCompleteCholesky  : public Preconditionner
-	{
-		bool stable ;
-		Vector d ;
-		Assembly * A ;
-		virtual ~InCompleteCholesky() { } ;
-		InCompleteCholesky(Assembly * A) ;
-		virtual void precondition(const Vector &v,Vector &)  ;
-	} ;
-
-
+struct Assembly ;
+struct InCompleteCholesky  : public Preconditionner
+{
+    bool stable ;
+    Vector d ;
+    Assembly * A ;
+    virtual ~InCompleteCholesky() { } ;
+    InCompleteCholesky(Assembly * A) ;
+    virtual void precondition(const Vector &v,Vector &)  ;
 } ;
 
-#endif 
+
+}
+
+#endif

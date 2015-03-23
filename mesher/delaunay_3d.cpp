@@ -1237,7 +1237,7 @@ DelaunayDeadTetrahedron::DelaunayDeadTetrahedron( DelaunayTetrahedron *parent ) 
     dead = true ;
 }
 
-DelaunayDeadTetrahedron::~DelaunayDeadTetrahedron() { } ;
+DelaunayDeadTetrahedron::~DelaunayDeadTetrahedron() { } 
 
 const Point * DelaunayDeadTetrahedron::getCircumCenter() const
 {

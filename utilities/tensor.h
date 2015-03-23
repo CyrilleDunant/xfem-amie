@@ -59,5 +59,5 @@ public:
   
 } ;
 
-} ;
+} 
 #endif // TENSOR_H

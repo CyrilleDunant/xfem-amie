@@ -1,7 +1,7 @@
 //
 // C++ Interface: mass
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -22,24 +22,26 @@
 namespace Amie
 {
 
-	struct Mass : public LinearForm
-	{
-		std::vector<Variable> v ;
-		double density ;
-		
-		Mass(double rho, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
-		
-		virtual ~Mass() ;
-		
-		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-		
-		virtual bool fractured() const { return false ; }
-		
-		virtual Form * getCopy() const ;
-		
-	} ;
-	
-	
+struct Mass : public LinearForm
+{
+    std::vector<Variable> v ;
+    double density ;
+
+    Mass(double rho, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
+
+    virtual ~Mass() ;
+
+    virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
+
+    virtual bool fractured() const {
+        return false ;
+    }
+
+    virtual Form * getCopy() const ;
+
 } ;
+
+
+}
 
 #endif

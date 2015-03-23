@@ -282,7 +282,7 @@ DamageModel::DamageModel(): state(0)
     damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 1e-6) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
-} ;
+} 
 
 double DamageModel::getThresholdDamageDensity() const
 {
@@ -318,4 +318,4 @@ bool DamageModel::changed() const
 {
     return change ;
 }
-} ;
+} 

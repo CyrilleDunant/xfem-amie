@@ -25,11 +25,11 @@
 
 using namespace Amie ;
 
-ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), cleanup(false), P(nullptr), nit(0) { };
+ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()),z(x.size()),p(x.size()) ,q(x.size()), cleanup(false), P(nullptr), nit(0) { }
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
-    double realeps = std::max(1e-9, eps) ;
+    double realeps = std::max(1e-6, eps) ;
     size_t Maxit ;
     if(maxit != -1)
         Maxit = maxit ;

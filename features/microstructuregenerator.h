@@ -29,61 +29,61 @@
 
 namespace Amie
 {
-	struct MicrostructureGenerator
-	{
-		
-		MicrostructureGenerator() { }; 
-		virtual std::vector<Feature *> getFeatures(Geometry * sample) = 0;
-		virtual double score() = 0;
-		virtual void print() const = 0 ;
-	} ;
-	
-	
-	struct AggregateDistribution2DGenerator : public MicrostructureGenerator
-	{
-		
-		double area ;
-		double dmax ;
-		double fill ;
-		double minMaxRatio ;
-		double itzSize ;
-		double inclusionNumber ;
-		double massOfAggregates ;
-		Geometry * sample ;
-		
-		AggregateDistribution2DGenerator(double area, double dmax, double itzSize, double fill, double minMaxRatio) ;
-		
-		virtual std::vector<Feature *> getFeatures(Geometry * sample) ;
-		virtual double score() ;
-		virtual void print() const ;
-	} ;
-	
-	/** \brief Utility class to convert circles to any distribution*/
-	struct InclusionConverter
-	{
-		GeometryType geom ;
-		RandomDistribution * area ;
-		RandomDistribution * aspectRatio ;
-		RandomDistribution * orientation ;
-		
-		InclusionConverter(GeometryType type, RandomDistribution * a = new ConstantDistribution(1.), RandomDistribution * ar = new ConstantDistribution(1.), RandomDistribution * o = new ConstantDistribution(0.)) ;
-		
-		void setArea(RandomDistribution * a) ;
-		void setAspectRatio(RandomDistribution * ar) ;
-		void setOrientation(RandomDistribution * o) ;
-		
-		void setArea(double a) ;
-		void setAspectRatio(double ar) ;
-		void setOrientation(double o) ;
-		
-		Feature * convert(Inclusion * inc) const ;
-		std::vector<Feature *> convert(std::vector<Inclusion *> inc) const ;
-		
-		
-	} ;
-	
-	
+struct MicrostructureGenerator
+{
+
+    MicrostructureGenerator() { };
+    virtual std::vector<Feature *> getFeatures(Geometry * sample) = 0;
+    virtual double score() = 0;
+    virtual void print() const = 0 ;
 } ;
+
+
+struct AggregateDistribution2DGenerator : public MicrostructureGenerator
+{
+
+    double area ;
+    double dmax ;
+    double fill ;
+    double minMaxRatio ;
+    double itzSize ;
+    double inclusionNumber ;
+    double massOfAggregates ;
+    Geometry * sample ;
+
+    AggregateDistribution2DGenerator(double area, double dmax, double itzSize, double fill, double minMaxRatio) ;
+
+    virtual std::vector<Feature *> getFeatures(Geometry * sample) ;
+    virtual double score() ;
+    virtual void print() const ;
+} ;
+
+/** \brief Utility class to convert circles to any distribution*/
+struct InclusionConverter
+{
+    GeometryType geom ;
+    RandomDistribution * area ;
+    RandomDistribution * aspectRatio ;
+    RandomDistribution * orientation ;
+
+    InclusionConverter(GeometryType type, RandomDistribution * a = new ConstantDistribution(1.), RandomDistribution * ar = new ConstantDistribution(1.), RandomDistribution * o = new ConstantDistribution(0.)) ;
+
+    void setArea(RandomDistribution * a) ;
+    void setAspectRatio(RandomDistribution * ar) ;
+    void setOrientation(RandomDistribution * o) ;
+
+    void setArea(double a) ;
+    void setAspectRatio(double ar) ;
+    void setOrientation(double o) ;
+
+    Feature * convert(Inclusion * inc) const ;
+    std::vector<Feature *> convert(std::vector<Inclusion *> inc) const ;
+
+
+} ;
+
+
+}
 
 
 

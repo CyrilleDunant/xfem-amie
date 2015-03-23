@@ -195,6 +195,6 @@ struct ExponentiallyPredictedKelvinVoigt : public LinearForm
 
 
 
-} ;
+} 
 
 #endif

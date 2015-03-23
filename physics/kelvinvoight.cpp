@@ -26,9 +26,9 @@ KelvinVoight::KelvinVoight(const Matrix & rig, const Matrix & e, double characte
     if(param.size() > 9)
         v.push_back(ZETA);
     v.push_back(TIME_VARIABLE);
-} ;
+} 
 
-KelvinVoight::~KelvinVoight() { } ;
+KelvinVoight::~KelvinVoight() { } 
 
 ElementState * KelvinVoight::createElementState( IntegrableEntity * e)
 {
@@ -267,7 +267,7 @@ NewmarkNumeroffKelvinVoigt::NewmarkNumeroffKelvinVoigt(const Matrix & rig, const
 
 }
 
-NewmarkNumeroffKelvinVoigt::~NewmarkNumeroffKelvinVoigt() { } ;
+NewmarkNumeroffKelvinVoigt::~NewmarkNumeroffKelvinVoigt() { } 
 
 void NewmarkNumeroffKelvinVoigt::apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const
 {
@@ -429,7 +429,7 @@ decay(d)
     imposedAtGaussPoints[0] = 0. ;
 }
 
-ExponentiallyPredictedKelvinVoigt::~ExponentiallyPredictedKelvinVoigt() { } ;
+ExponentiallyPredictedKelvinVoigt::~ExponentiallyPredictedKelvinVoigt() { } 
 
 void ExponentiallyPredictedKelvinVoigt::apply( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm ) const
 {

@@ -15,40 +15,50 @@ namespace Amie
 class TimeDependentCircle : public Circle
 {
 protected:
-	Function radius_t ;
-	std::vector< std::pair<double, double> > circles ;
-	bool linear ;
-	bool constant ;
-	
+    Function radius_t ;
+    std::vector< std::pair<double, double> > circles ;
+    bool linear ;
+    bool constant ;
+
 public:
-	TimeDependentCircle(Function r = Function(), const Point & center = Point());
-	TimeDependentCircle(Function r, Point* center);
-	TimeDependentCircle(double r0, double rate, const Point & center);
-	TimeDependentCircle(double r0, double rate, Point * center);
+    TimeDependentCircle(Function r = Function(), const Point & center = Point());
+    TimeDependentCircle(Function r, Point* center);
+    TimeDependentCircle(double r0, double rate, const Point & center);
+    TimeDependentCircle(double r0, double rate, Point * center);
 
-	void setTimeCircles( Vector & instants ) ;
-	void setLinear(bool l) { linear = l ; constant = false ;}
-	void setConstant(bool c) { linear = false ; constant = c ;}
-	
-	double radiusAtTime(const Point & p) const ;
-	double radiusAtTime(Point * p) const ;
-	Circle circleAtTime(const Point & p) const ;
-	Circle circleAtTime(Point * p) const ;
-	
-	double timeAtRadius( double r ) const ;
-	
-	virtual bool in(const Point &v) const ;
+    void setTimeCircles( Vector & instants ) ;
+    void setLinear(bool l) {
+        linear = l ;
+        constant = false ;
+    }
+    void setConstant(bool c) {
+        linear = false ;
+        constant = c ;
+    }
 
-	virtual void setRadius(double ) { };
+    double radiusAtTime(const Point & p) const ;
+    double radiusAtTime(Point * p) const ;
+    Circle circleAtTime(const Point & p) const ;
+    Circle circleAtTime(Point * p) const ;
 
-	virtual void project(Point * p) const;
-	
-	Function getRadiusFunction() const { return radius_t ; }
-	Function getRadiusFunction(Function & time) const ;
-	
-	void setInitialTime( double t) { center.getT() = t ; }
+    double timeAtRadius( double r ) const ;
+
+    virtual bool in(const Point &v) const ;
+
+    virtual void setRadius(double ) { };
+
+    virtual void project(Point * p) const;
+
+    Function getRadiusFunction() const {
+        return radius_t ;
+    }
+    Function getRadiusFunction(Function & time) const ;
+
+    void setInitialTime( double t) {
+        center.getT() = t ;
+    }
 } ;
 
-} ;
+}
 
 #endif // _ST_GEOMETRY_2D_H_

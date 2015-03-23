@@ -1,7 +1,7 @@
 //
 // C++ Interface: stiffness_and_fracture
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -24,80 +24,80 @@
 namespace Amie
 {
 
-	/** \brief A linear Elastic Law with a pluggable fracture criterion
-	*
-	* The field param is the Cauchy-Green Strain Tensor
-	*/
-	struct StiffnessAndIndexedFracture : public LinearForm
-	{
+/** \brief A linear Elastic Law with a pluggable fracture criterion
+*
+* The field param is the Cauchy-Green Strain Tensor
+*/
+struct StiffnessAndIndexedFracture : public LinearForm
+{
 // 		AnisotropicLinearDamage * dfunc ;
-		IndexedLinearDamage * dfunc ;
+    IndexedLinearDamage * dfunc ;
 // 		IsotropicLinearDamage dfunc ;
-		double eps ;
-		FractureCriterion * criterion ;
-		double sigmaRupt ;
-		std::vector<Variable> v ;
+    double eps ;
+    FractureCriterion * criterion ;
+    double sigmaRupt ;
+    std::vector<Variable> v ;
 
-		/** \brief Constructor
-		* 
-		* @param rig Complete expression of the Cauchy-Green Strain Tensor
-		* @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
-		*/
-		StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.007)  ;
-		void setNeighbourhoodRadius(double d ) ;
+    /** \brief Constructor
+    *
+    * @param rig Complete expression of the Cauchy-Green Strain Tensor
+    * @param c  FractureCriterion to use. The behaviour is responsible for deleting the criterion upon cleanup.
+    */
+    StiffnessAndIndexedFracture(const Matrix & rig, FractureCriterion * c, double eps = 0.007)  ;
+    void setNeighbourhoodRadius(double d ) ;
 
-		virtual ~StiffnessAndIndexedFracture();
-		
-		/** Apply the law.
-		* @param p_i first basis polynomial.
-		* @param p_j second basis polynomial.
-		* @param gp integration points
-		* @param Jinv inverse Jacobian matrix at the integration points
-		* @param ret, matrix to store the result
-		* @param vm VirtualMachine to use to perform the computation
-		* @return matrix resulting of \f$ \nabla H^T K \nabla H \f$.
-		*/
-		virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
-		
-		/** \brief Check for fracture
-		*
-		* @param timestep elapsed time
-		* @param currentState state of the element
-		* 
-		* if the yield criterion is true, se fractured state to true
-		*/
-		virtual void step(double timestep, ElementState & currentState, double maxscore) ;
+    virtual ~StiffnessAndIndexedFracture();
 
-		/** \brief Check for fracture state
-		*
-		* @return true if the element is fractured
-		*/
-		virtual bool fractured() const ;
-		
-		
-		/** \brief get Copy of the behaviour
-		*
-		* The copy also copies the damage state.
-		* @return pointer to the copy. Caller is responsible for cleaning memory
-		*/
-		virtual Form * getCopy() const ;
+    /** Apply the law.
+    * @param p_i first basis polynomial.
+    * @param p_j second basis polynomial.
+    * @param gp integration points
+    * @param Jinv inverse Jacobian matrix at the integration points
+    * @param ret, matrix to store the result
+    * @param vm VirtualMachine to use to perform the computation
+    * @return matrix resulting of \f$ \nabla H^T K \nabla H \f$.
+    */
+    virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const ;
 
-		/** \brief return true if the damage state has been modfied*/
-		virtual bool changed() const ;
+    /** \brief Check for fracture
+    *
+    * @param timestep elapsed time
+    * @param currentState state of the element
+    *
+    * if the yield criterion is true, se fractured state to true
+    */
+    virtual void step(double timestep, ElementState & currentState, double maxscore) ;
 
-		/** \brief Return the (damaged) Stifness tensor*/
-		virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+    /** \brief Check for fracture state
+    *
+    * @return true if the element is fractured
+    */
+    virtual bool fractured() const ;
 
-		/** \brief Acessor, return the stifness criterion in use*/
-		virtual FractureCriterion * getFractureCriterion() const ;
 
-		virtual DamageModel * getDamageModel() const ;
-		
-	} ;
-	
+    /** \brief get Copy of the behaviour
+    *
+    * The copy also copies the damage state.
+    * @return pointer to the copy. Caller is responsible for cleaning memory
+    */
+    virtual Form * getCopy() const ;
 
+    /** \brief return true if the damage state has been modfied*/
+    virtual bool changed() const ;
+
+    /** \brief Return the (damaged) Stifness tensor*/
+    virtual Matrix getTensor(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
+
+    /** \brief Acessor, return the stifness criterion in use*/
+    virtual FractureCriterion * getFractureCriterion() const ;
+
+    virtual DamageModel * getDamageModel() const ;
 
 } ;
 
 
-#endif 
+
+}
+
+
+#endif

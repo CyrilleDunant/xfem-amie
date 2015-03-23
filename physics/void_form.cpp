@@ -1,7 +1,7 @@
 //
 // C++ Implementation: void_form
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -17,34 +17,34 @@ using namespace Amie ;
 
 VoidForm::VoidForm() : LinearForm(Matrix(1,1),false, false, 0 )
 {
-	this->num_dof = 0 ;
-	this->type = VOID_BEHAVIOUR ;
-	this->time_d = false ;
+    this->num_dof = 0 ;
+    this->type = VOID_BEHAVIOUR ;
+    this->time_d = false ;
 }
 
 void VoidForm::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const
 {
 }
 
-void VoidForm::step(double timestep, ElementState & currentState, double maxscore) 
+void VoidForm::step(double timestep, ElementState & currentState, double maxscore)
 {
-	
+
 }
 
 void VoidForm::updateElementState(double timestep, ElementState & s) const
 {
-	
+
 }
 
-bool VoidForm::fractured() const 
+bool VoidForm::fractured() const
 {
-	return false ;
+    return false ;
 }
 
-VoidForm::~VoidForm() { } ;
+VoidForm::~VoidForm() { }
 
-Form * VoidForm::getCopy() const 
+Form * VoidForm::getCopy() const
 {
-	return new VoidForm(*this) ;
+    return new VoidForm(*this) ;
 }
 

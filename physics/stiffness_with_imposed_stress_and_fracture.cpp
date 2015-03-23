@@ -33,13 +33,13 @@ StiffnessWithImposedStressAndFracture::StiffnessWithImposedStressAndFracture(con
 	if(!d) { dfunc = new /*NonLocal*/IsotropicLinearDamage() ; } else { dfunc = d ; }
 	criterion = c ;
 
-} ;
+} 
 
 StiffnessWithImposedStressAndFracture::~StiffnessWithImposedStressAndFracture() 
 {
 	delete criterion ;
 	delete dfunc ;
-} ;
+} 
 
 FractureCriterion * StiffnessWithImposedStressAndFracture::getFractureCriterion() const
 {

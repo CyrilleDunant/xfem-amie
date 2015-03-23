@@ -257,6 +257,6 @@ class GlobalForceBoundaryCondition : public BoundaryCondition
 } ;
 
 
-} ;
+} 
 
 #endif

@@ -5381,7 +5381,7 @@ void FeatureTree::resetBoundaryConditions()
     {
         K->clear() ;
     }
-} ;
+} 
 
 bool FeatureTree::step()
 {
@@ -8336,6 +8336,59 @@ void FeatureTree::printReport(bool printHeader, bool vertical)
         }
     }
 }
+
+void FeatureTree::printReport(const std::vector<FieldType> & fields, bool vertical)
+{
+
+    if(is2D())
+    {
+
+        if(vertical)
+        {
+            for(auto f : fields)
+            {
+                Vector vals = get2DMesh()->getField(f) ;
+                for(size_t i = 0 ; i < vals.size() ;  i++)
+                    std::cout << vals[i] << std::endl ;
+            }
+                
+        }
+        else
+        {
+            for(auto f : fields)
+            {
+                Vector vals = get2DMesh()->getField(f) ;
+                for(size_t i = 0 ; i < vals.size() ;  i++)
+                    std::cout << vals[i] <<  "  " << std::flush ;
+            }
+            std::cout << std::endl ;
+        }
+    }
+    else
+    {
+        if(vertical)
+        {
+            for(auto f : fields)
+            {
+                Vector vals = get3DMesh()->getField(f) ;
+                for(size_t i = 0 ; i < vals.size() ;  i++)
+                    std::cout << vals[i] << std::endl ;
+            }
+                
+        }
+        else
+        {
+            for(auto f : fields)
+            {
+                Vector vals = get3DMesh()->getField(f) ;
+                for(size_t i = 0 ; i < vals.size() ;  i++)
+                    std::cout << vals[i] <<  "  " << std::flush ;
+            }
+            std::cout << std::endl ;
+        }
+    }
+}
+
 void FeatureTree::homothety ( double before, double now, double after )
 {
     std::valarray<bool> nodes ( getDisplacements().size() /2 ) ;

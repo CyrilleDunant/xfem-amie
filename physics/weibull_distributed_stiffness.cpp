@@ -1,7 +1,7 @@
 //
 // C++ Implementation: weibull_distributed_stiffness
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@gmail.com>, (C) 2007-2011
@@ -27,53 +27,53 @@ using namespace Amie ;
 
 WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt ,MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), variability(.1), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
 {
-	materialRadius = .001;
-		
-	v.push_back(XI);
-	v.push_back(ETA);
-	if(dim == SPACE_THREE_DIMENSIONAL)
-		v.push_back(ZETA);
-	damageModel = nullptr ;
-} ;
+    materialRadius = .001;
 
-WeibullDistributedStiffness::~WeibullDistributedStiffness() { } ;
+    v.push_back(XI);
+    v.push_back(ETA);
+    if(dim == SPACE_THREE_DIMENSIONAL)
+        v.push_back(ZETA);
+    damageModel = nullptr ;
+}
+
+WeibullDistributedStiffness::~WeibullDistributedStiffness() { } 
 
 void WeibullDistributedStiffness::apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &ret, VirtualMachine * vm) const
 {
-	vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
+    vm->ieval(Gradient(p_i) * param * Gradient(p_j, true), gp, Jinv,v,ret) ;
 }
 
 bool WeibullDistributedStiffness::fractured() const
 {
-	return false ;
+    return false ;
 }
 
-Form * WeibullDistributedStiffness::getCopy() const 
+Form * WeibullDistributedStiffness::getCopy() const
 {
-	double weib = RandomNumber().weibull(1,5) ;
-	double factor = 1 - variability + variability*weib ;
-	StiffnessAndFracture * copy = new StiffnessAndFracture(
-								Material::cauchyGreen(std::make_pair(E,nu), true,dim)*factor, 
-								new NonLocalMCFT(
-										down*factor ,
-										E,
-										materialRadius, UPPER_BOUND,
-										mirroring, dx, dy, dz)
-									 ) ;
-	if(damageModel)
-	{
-		delete copy->dfunc ;
-		copy->dfunc = damageModel->getCopy() ;
-	}
-	copy->criterion->setMaterialCharacteristicRadius(materialRadius);
-	copy->dfunc->setThresholdDamageDensity(.99);
-	copy->dfunc->setSecondaryThresholdDamageDensity(.99);
+    double weib = RandomNumber().weibull(1,5) ;
+    double factor = 1 - variability + variability*weib ;
+    StiffnessAndFracture * copy = new StiffnessAndFracture(
+        Material::cauchyGreen(std::make_pair(E,nu), true,dim)*factor,
+        new NonLocalMCFT(
+            down*factor ,
+            E,
+            materialRadius, UPPER_BOUND,
+            mirroring, dx, dy, dz)
+    ) ;
+    if(damageModel)
+    {
+        delete copy->dfunc ;
+        copy->dfunc = damageModel->getCopy() ;
+    }
+    copy->criterion->setMaterialCharacteristicRadius(materialRadius);
+    copy->dfunc->setThresholdDamageDensity(.99);
+    copy->dfunc->setSecondaryThresholdDamageDensity(.99);
 
-	return copy ; 
+    return copy ;
 }
 
 void WeibullDistributedStiffness::setDamageModel(DamageModel * newmodel)
 {
-	damageModel = newmodel ;
+    damageModel = newmodel ;
 }
 

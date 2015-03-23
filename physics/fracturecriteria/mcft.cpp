@@ -618,7 +618,7 @@ double NonLocalMCFT::getTensileLimit(const ElementState & s) const
 
     return (upTestVal+downTestVal)*.5 ;
 
-} ;
+}
 
 FractureCriterion *NonLocalMCFT::getCopy() const
 {
@@ -631,9 +631,9 @@ Material NonLocalMCFT::toMaterial()
     return mat ;
 }
 
-NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMCFT(down, youngModulus, charDistance, r , mirroring, delta_x, delta_y, delta_z) { } ;
+NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMCFT(down, youngModulus, charDistance, r , mirroring, delta_x, delta_y, delta_z) { }
 
-NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { };
+NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { }
 
 double NonLocalSpaceTimeMCFT::grade(ElementState &s)
 {

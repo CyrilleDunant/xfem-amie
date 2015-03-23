@@ -350,7 +350,7 @@ public:
 
         }
 
-    } ;
+    } 
 
     template <class ETARGETTYPE>
     /** \brief Return the displacements in source mesh projected on current mesh.

@@ -1611,14 +1611,14 @@ std::valarray<bool> outOfSphere(const std::vector< std::valarray<quint8> > *d, c
 
 void phaseInfo (const std::vector< std::valarray<quint8> > *d, std::valarray<quint8> * c, std::valarray<bool> * res, const int r, const int co, const int s){
 	
-	quint8 min = (*d)[0].min() ;
+	quint8 min = std::min((*d)[0].min(), (quint8)0) ;
 	quint8 max = (*d)[0].max() ;
 	
 	
     
 	for(int i = 0 ; i< c->size() ; i++)
 	{
-        if(std::abs((*d)[0][i]) > 1e-12)
+        if((*d)[0][i])
         {
             (*c)[i] = (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; //(*d)[0][i] ; (*d)[0][i] ; (quint8)round(255.*(double)((*d)[0][i]-min)/(double)(max-min)) ; 
         }
