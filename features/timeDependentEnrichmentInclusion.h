@@ -43,7 +43,7 @@ public:
 	
 } ;
 
-class TimeDependentHomogenisingInclusion : public EnrichmentInclusion, public TimeDependentCircle
+class TimeDependentHomogenisingInclusion final: public EnrichmentInclusion, public TimeDependentCircle
 {
 protected:  
 	std::map<DelaunayTriangle *, Form *> homogeneised;

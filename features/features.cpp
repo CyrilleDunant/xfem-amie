@@ -6746,7 +6746,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
                                       i->getBoundingPoint ( k+k0*t ).getY(),
                                       0.,
                                       i->getBoundingPoint ( k+k0*t ).getT() + d* ( i->timePlanes()-t ) /i->timePlanes() ) ;
-                            i->getStatePointer()->getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
+                            i->getState().getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
 
                             for ( size_t n = 0 ; n < ndof ; n++ )
                             {
@@ -6802,7 +6802,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
                                       i->getBoundingPoint ( k+k0*t ).getY(),
                                       i->getBoundingPoint ( k+k0*t ).getZ(),
                                       i->getBoundingPoint ( k+k0*t ).getT() + d* ( i->timePlanes()-t ) /i->timePlanes() ) ;
-                            i->getStatePointer()->getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
+                            i->getState().getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
 
                             for ( size_t n = 0 ; n < ndof ; n++ )
                             {

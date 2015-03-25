@@ -20,7 +20,7 @@
 namespace Amie
 {
 
-class ParallelDelaunayTree :public Mesh<DelaunayTriangle, DelaunayTreeItem>
+class ParallelDelaunayTree final:public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
     int getDomain(const DelaunayTriangle * tet) const ;
     int getMesh(const DelaunayTreeItem * self) const;

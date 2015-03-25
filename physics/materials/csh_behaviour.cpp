@@ -11,7 +11,8 @@
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
 
-using namespace Amie ;
+namespace Amie
+{
 
 CSHBehaviour::CSHBehaviour(CSHType type,Function ageingFunction, double E, double nu, SpaceDimensionality dim) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(ageingFunction), function(true)
 {
@@ -41,7 +42,7 @@ Form * CSHBehaviour::getCopy() const
             while(times[index] < currentTime && index < times.size())
                 index++ ;
             
-            double fac = std::min(densities[index], 1.) ;
+            double fac = densities[index] ;
             return new Stiffness(param*fac) ;
             
         }
@@ -50,4 +51,4 @@ Form * CSHBehaviour::getCopy() const
 }
 
 
-
+}

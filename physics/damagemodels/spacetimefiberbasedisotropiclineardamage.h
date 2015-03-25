@@ -20,7 +20,7 @@ namespace Amie {
  * This damage allows a better simulation of materials exhibitng different failure behaviour in traction and compression.
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
-class SpaceTimeFiberBasedIsotropicLinearDamage : public DamageModel
+class SpaceTimeFiberBasedIsotropicLinearDamage final: public DamageModel
 {
 protected:
     double fibreFraction ;

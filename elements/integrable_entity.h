@@ -378,7 +378,7 @@ public:
     KelvinVoightSpaceTimeElementState ( KelvinVoightSpaceTimeElementState &s ) ;
     KelvinVoightSpaceTimeElementState & operator = ( KelvinVoightSpaceTimeElementState & s ) ;
 
-    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const ;
+    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const final;
 
     virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
 
@@ -508,10 +508,7 @@ struct IntegrableEntity : public Geometry
     virtual void print() const = 0;
 
     virtual const ElementState & getState() const ;
-    virtual ElementState & getState() ;
-    virtual ElementState * getStatePointer() {
-        return state ;
-    } ;
+    virtual ElementState & getState() final;
     virtual void setState ( ElementState * state ) ;
 
     virtual Mesh<DelaunayTriangle, DelaunayTreeItem> * get2DMesh() const = 0 ;
@@ -552,25 +549,25 @@ public:
     virtual void apply ( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm ) const = 0 ;
     virtual void applyViscous ( const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix &, VirtualMachine * vm ) const { } ;
 
-    virtual bool isSymmetric() const {
+    virtual bool isSymmetric() const final{
         return symmetric ;
     }
-    virtual void setSymmetric ( bool s ) {
+    virtual void setSymmetric ( bool s ) final{
         symmetric = s ;
     }
 
-    virtual bool timeDependent() const {
+    virtual bool timeDependent() const final{
         return this->time_d ;
     } ;
 
-    virtual void setTimeDependent ( bool t ) {
+    virtual void setTimeDependent ( bool t ) final{
         time_d = t ;
     }
-    virtual void setSpaceDependent ( bool s ) {
+    virtual void setSpaceDependent ( bool s ) final{
         space_d = s ;
     }
 
-    virtual bool spaceDependent() const {
+    virtual bool spaceDependent() const final{
         return this->space_d ;
     } ;
 
@@ -578,10 +575,10 @@ public:
 
     virtual Vector getForcesFromAppliedStress ( const Function & data, size_t index, size_t externaldofs,  Function & shape, IntegrableEntity * e,const GaussPointArray & gp, const std::valarray<Matrix> & Jinv, std::vector<Variable> & v, bool isVolumic = false, const Vector & normal = Vector() ) ;
 
-    virtual const Geometry * getSource() const {
+    virtual const Geometry * getSource() const final {
         return source  ;
     }
-    virtual void setSource ( const Geometry *  src ) {
+    virtual void setSource ( const Geometry *  src ) final{
         source = src ;
     }
 
@@ -591,7 +588,7 @@ public:
         return false ;
     }
 
-    virtual size_t getNumberOfDegreesOfFreedom() const {
+    virtual size_t getNumberOfDegreesOfFreedom() const final {
         return num_dof ;
     }
 

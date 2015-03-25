@@ -165,9 +165,9 @@ public:
 
     virtual std::vector<Point> getBoundingBox() const ;
 
-    virtual double getXSize() const ;
-    virtual double getYSize() const ;
-    virtual double getZSize() const ;
+    virtual double getXSize() const final;
+    virtual double getYSize() const final;
+    virtual double getZSize() const final;
 
 } ;
 

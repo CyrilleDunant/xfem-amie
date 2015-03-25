@@ -19,7 +19,7 @@ namespace Amie {
 /** \brief Isotropic linear damage model. The stifness of an affected element is scaled by a factor between 1 and 1 - .9999999
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
-class IsotropicLinearDamage : public DamageModel
+class IsotropicLinearDamage final: public DamageModel
 {
 protected:
 	double eps ;
@@ -55,7 +55,7 @@ public:
 	virtual DamageModel * getCopy() const { return new IsotropicLinearDamage() ;}
 };
 
-class IsotropicLinearDamageRate : public DamageModel
+class IsotropicLinearDamageRate final: public DamageModel
 {
 protected:
 	double eps ;

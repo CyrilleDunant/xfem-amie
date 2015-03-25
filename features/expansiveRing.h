@@ -18,7 +18,7 @@ namespace Amie
  * attribute an imposed-strain elastic behaviour
  * to the material contained within
 */
-class ExpansiveRing :  public EnrichmentRing
+class ExpansiveRing final:  public EnrichmentRing
 {
 
 	Vector imposedDef ;

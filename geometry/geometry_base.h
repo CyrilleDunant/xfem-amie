@@ -1009,7 +1009,7 @@ public:
 };
 
 /** \brief Helper class used to compute geometry-geometry intersections*/
-class Segment
+class Segment final
 {
 protected:
     Point f ;
@@ -1431,7 +1431,7 @@ public:
 } ;
 
 /** \brief Helper class. sample-able circle given a normal and a center in 3-space*/
-class OrientableCircle : public ConvexGeometry
+class OrientableCircle final : public ConvexGeometry
 {
 protected:
 

@@ -108,7 +108,7 @@ public:
 	virtual bool moved() const ;
 
 /** \brief compute and cache the elements to enrich*/
-	void update(Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* dtree) ;
+	void update(Amie::Mesh< Amie::DelaunayTetrahedron, Amie::DelaunayTreeItem3D >* dtree) final;
 
 protected:
 	bool changed ;

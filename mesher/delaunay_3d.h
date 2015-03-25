@@ -134,7 +134,7 @@ public:
 //! \brief Tetrahedron item the tree, defined by four points.
 /*!The points are also stored as a valarray of points(inherited from \c Triangle ). Those are stored clockwise but should only be used when creating the final mesh. They insure the proper orientation of the triangles.
 */
-class DelaunayTetrahedron : virtual public TetrahedralElement, public DelaunayTreeItem3D
+class DelaunayTetrahedron final: virtual public TetrahedralElement, public DelaunayTreeItem3D
 {
 public:
 
@@ -332,7 +332,7 @@ public:
 //changed
 
 /** \brief Mesh container. provides log n search facilities*/
-class DelaunayTree3D :public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
+class DelaunayTree3D final: public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
     friend class FeatureTree ;
     friend class ParallelDelaunayTree3D ;

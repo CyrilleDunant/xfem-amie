@@ -112,7 +112,7 @@ public:
 	 * 
 	 * @param f Children to add.
 	 */
-	virtual void addChild(Feature * const f) ;
+	virtual void addChild(Feature * const f) final;
 
 	/** \brief Remove a child of the feature.
 	 * 
@@ -134,7 +134,7 @@ public:
 	 * @return thefather Feature. It can be nullptr !
 	 */
 	virtual const Feature * getFather() const;
-	virtual  Feature * getFather() ;
+	virtual  Feature * getFather() final;
 	
 	
 	/** \brief Return the children
@@ -147,7 +147,7 @@ public:
 	 * 
 	 * @return a pointer to the m_c member. This is a vector containing the pointers to the children.
 	 */
-	virtual std::vector< Feature *> & getChildren();
+	virtual std::vector< Feature *> & getChildren() final;
 
 	virtual void addMeshPointsInFather() { } ;
 

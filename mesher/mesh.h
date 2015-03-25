@@ -658,9 +658,9 @@ public:
         std::map<std::string, double> dummy ;
         bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
         for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
-            if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getStatePointer()))
+            if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()))
             {
-                if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).has(f))
+                if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState())->has(f))
                 {
                     double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
                     ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;

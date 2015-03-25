@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
     }
 
 
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(F.get2DMesh()->begin()->getStatePointer()) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(F.get2DMesh()->begin()->getState()) ;
     std::map<std::string, double> dummy ;
 
 //    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1) ;
@@ -311,8 +311,8 @@ int main(int argc, char *argv[])
         damagePaste /= areaPaste ;
         damageAggregates /= areaAggregates ;
 
-        std::cout << F.getCurrentTime() << "\t" << state->get("temperature", dummy) << "\t" << state->get("neutron_fluence", dummy) << "\t" << state->get("relative_humidity", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1]  << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
-        out << F.getCurrentTime() << "\t" << state->get("temperature", dummy) << "\t" << state->get("neutron_fluence", dummy) << "\t" << state->get("relative_humidity", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
+        std::cout << F.getCurrentTime() << "\t" << state.get("temperature", dummy) << "\t" << state.get("neutron_fluence", dummy) << "\t" << state.get("relative_humidity", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1]  << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
+        out << F.getCurrentTime() << "\t" << state.get("temperature", dummy) << "\t" << state.get("neutron_fluence", dummy) << "\t" << state.get("relative_humidity", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
 
     }
 

@@ -18,7 +18,7 @@ namespace Amie
 {
 
 /** \brief rectangular Feature with sides aligned to the axes*/
-class Sample :  public Rectangle,  public Feature
+class Sample final:  public Rectangle,  public Feature
 {
 public:
 

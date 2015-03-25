@@ -126,7 +126,7 @@ public:
 //! \brief Triangle item the tree, defined by three points.
 /*!The points are also stored as a valarray of points(inherited from \c Triangle ). Those are stored clockwise but should only be used when creating the final mesh. They insure the proper orientation of the triangles.
 */
-class DelaunayTriangle : public TriElement, public DelaunayTreeItem
+class DelaunayTriangle final: public TriElement, public DelaunayTreeItem
 {
     friend class DelaunayTree ;
     Vector cachedForces;
@@ -335,7 +335,7 @@ public:
 } ;
 
 /** \brief Mesh container. provides log n search facilities*/
-class DelaunayTree : public Mesh<DelaunayTriangle, DelaunayTreeItem>
+class DelaunayTree final: public Mesh<DelaunayTriangle, DelaunayTreeItem>
 {
     friend class FeatureTree ;
     friend class ParallelDelaunayTree ;

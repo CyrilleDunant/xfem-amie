@@ -21,7 +21,7 @@ namespace Amie {
 	@author Cyrille Dunant <cyrille.dunant@epfl.ch>
 */
 class OrthotropicStiffness ;
-class RotatingCrack : public DamageModel
+class RotatingCrack final: public DamageModel
 {
 protected:
 	

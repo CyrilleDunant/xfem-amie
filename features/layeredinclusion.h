@@ -19,7 +19,7 @@ namespace Amie
 {
 
 /** \brief Layered Inclusion */
-class LayeredInclusion :public LayeredCircle, virtual public CompositeFeature
+class LayeredInclusion final:public LayeredCircle, virtual public CompositeFeature
 {
 protected:
 	std::vector<Form *> layeredBehaviour ;

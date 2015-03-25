@@ -254,7 +254,7 @@ int aggCachePosition = F.get2DMesh()->generateCache( allinc ) ;
 
 
 //forgot
-    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(elements[0]->getStatePointer()) ;
+    GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & state = dynamic_cast< GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(elements[0]->getState()) ;
     std::map<std::string, double> dummy ;
 //if i want to apply stress
 //    BoundingBoxDefinedBoundaryCondition * stress = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_INDEXED_AXIS, TOP_AFTER, 0., 1) ;
@@ -322,8 +322,8 @@ int aggCachePosition = F.get2DMesh()->generateCache( allinc ) ;
         damagePaste /= areaPaste ;
         damageAggregates /= areaAgg ;
 
-        std::cout << F.getCurrentTime() << "\t" << state->get("temperature", dummy) << "\t" << state->get("neutron_fluence", dummy) << "\t" << state->get("relative_humidity", dummy) <<  "\t"  << state->get("stress_load", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1]  << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
-        out << F.getCurrentTime() << "\t" << state->get("temperature", dummy) << "\t" << state->get("neutron_fluence", dummy) << "\t" << state->get("relative_humidity", dummy) << "\t" << state->get("stress_load", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << strainPaste[0] << "\t" << strainPaste[1] << "\t" << strainAgg[0] << "\t" << strainAgg[1]<< "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
+        std::cout << F.getCurrentTime() << "\t" << state.get("temperature", dummy) << "\t" << state.get("neutron_fluence", dummy) << "\t" << state.get("relative_humidity", dummy) <<  "\t"  << state.get("stress_load", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1]  << "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
+        out << F.getCurrentTime() << "\t" << state.get("temperature", dummy) << "\t" << state.get("neutron_fluence", dummy) << "\t" << state.get("relative_humidity", dummy) << "\t" << state.get("stress_load", dummy) <<  "\t" << strain[0] << "\t" << strain[1] << "\t" << stress[0] << "\t" << stress[1] << "\t" << strainPaste[0] << "\t" << strainPaste[1] << "\t" << strainAgg[0] << "\t" << strainAgg[1]<< "\t" << damageAggregates << "\t" << damagePaste << std::endl ;
 
     }
  MultiTriangleWriter trg("elleuch_misa","elleuch_misa_2", &F, 1.) ;

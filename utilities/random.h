@@ -21,7 +21,7 @@ namespace Amie
 
 
 /** \brief RandomNumber generator
-* This class provides a quick access to various random distributions, by 
+* This class provides a quick access to various random distributions, by
 * using the standard c++ rand() function. When a RandomNumber object is instantiated
 * the seed of the pseudo-random suite is reset according to the local time machine.
 * In the following description, u refers to a random number between 0 and 1 drawn from a
@@ -32,92 +32,127 @@ class RandomNumber
 protected:
 
 public:
-	/**
-	* \brief simple constructor
-	*/
-	RandomNumber() ;
+    /**
+    * \brief simple constructor
+    */
+    RandomNumber() ;
 
-	/**
-	* \brief reset the seed based on machine time
-	*/
-	virtual void reset() { exit(0) ; std::cout << "caca!" << std::endl ; std::srand((unsigned) time(0)) ; } ;
-	/**
-	* \brief reset the seed according to an arbitrary number
-	*/
-	virtual void reset(int seed) {  exit(0) ; std::srand(seed) ; } ;
+    /**
+    * \brief reset the seed based on machine time
+    */
+    virtual void reset() {
+        exit(0) ;
+        std::cout << "caca!" << std::endl ;
+        std::srand((unsigned) time(0)) ;
+    } ;
+    /**
+    * \brief reset the seed according to an arbitrary number
+    */
+    virtual void reset(int seed) {
+        exit(0) ;
+        std::srand(seed) ;
+    } ;
 
-	/**
-	* @return a double between 0 and 1 chosen from an uniform distribution
-	*/
-	virtual double uniform() const {return (double) rand() / (double) (RAND_MAX-1) ; } ;
-	/**
-	* @return a double between 0 and a chosen from an uniform distribution
-	*/
-	virtual double uniform(double a) const {return a*uniform() ; } ;
-	/**
-	* @return a double between a and b chosen from an uniform distribution
-	*/
-	virtual double uniform(double a, double b) const {return a + (b-a)*uniform() ; } ;
-	/**
-	* @return an integer between 0 and the number of faces (useful for shuffling vectors)
-	*/
-	virtual int dice(int faces) const {return (int) uniform((double) faces) ; } ;
+    /**
+    * @return a double between 0 and 1 chosen from an uniform distribution
+    */
+    virtual double uniform() const {
+        return (double) rand() / (double) (RAND_MAX-1) ;
+    } ;
+    /**
+    * @return a double between 0 and a chosen from an uniform distribution
+    */
+    virtual double uniform(double a) const {
+        return a*uniform() ;
+    } ;
+    /**
+    * @return a double between a and b chosen from an uniform distribution
+    */
+    virtual double uniform(double a, double b) const {
+        return a + (b-a)*uniform() ;
+    } ;
+    /**
+    * @return an integer between 0 and the number of faces (useful for shuffling vectors)
+    */
+    virtual int dice(int faces) const {
+        return (int) uniform((double) faces) ;
+    } ;
 
-	/**
-	* @return a double between 0 and 1, following a triangular probability density function centered on 0.5
-	*/
-	virtual double triangular() const {return uniform() + uniform() ; } ;
-	/**
-	* @return a double between 0 and a, following a triangular probability density function centered on a/2
-	*/
-	virtual double triangular(double a) const {return a * triangular() ; } ;
-	/**
-	* @return a double between a and b, following a triangular probability density function centered on (a+b)/2
-	*/
-	virtual double triangular(double a, double b) const {return a + (b-a) * triangular() ; } ;
+    /**
+    * @return a double between 0 and 1, following a triangular probability density function centered on 0.5
+    */
+    virtual double triangular() const {
+        return uniform() + uniform() ;
+    } ;
+    /**
+    * @return a double between 0 and a, following a triangular probability density function centered on a/2
+    */
+    virtual double triangular(double a) const {
+        return a * triangular() ;
+    } ;
+    /**
+    * @return a double between a and b, following a triangular probability density function centered on (a+b)/2
+    */
+    virtual double triangular(double a, double b) const {
+        return a + (b-a) * triangular() ;
+    } ;
 
-	/**
-	* @param a the rate of the distribution (equals to the inverse of the mean value of the distribution).
-	* @return a positive random number following an exponential distribution: -a*ln(u)
-	*/
-	virtual double exponential(double a) const {return -a * std::log(uniform()) ; } ;
-	/**
-	* @param a the mean of the 
-	* @return a random number following an extreme value distribution: a-b*ln(-ln(u))
-	*/
-	virtual double extreme_value(double a, double b) const {return a - b * std::log(- std::log(uniform())) ; } ;
+    /**
+    * @param a the rate of the distribution (equals to the inverse of the mean value of the distribution).
+    * @return a positive random number following an exponential distribution: -a*ln(u)
+    */
+    virtual double exponential(double a) const {
+        return -a * std::log(uniform()) ;
+    } ;
+    /**
+    * @param a the mean of the
+    * @return a random number following an extreme value distribution: a-b*ln(-ln(u))
+    */
+    virtual double extreme_value(double a, double b) const {
+        return a - b * std::log(- std::log(uniform())) ;
+    } ;
 
-	/**
-	* @return a random number following an normal distribution (0,1)
-	*/
-	virtual double normal() const ;
-	/**
-	* @return a random number following an normal distribution centered on a, width controled by b
-	*/
-	virtual double normal(double a, double b) const { return a + sqrt(b) * normal() ; } ;
-	/**
-	* @return a random number following a normal distribution (in a logarithmic scale)
-	*/
-	virtual double lognormal(double a, double b) const { return std::exp(a + b * normal()) ; };
+    /**
+    * @return a random number following an normal distribution (0,1)
+    */
+    virtual double normal() const ;
+    /**
+    * @return a random number following an normal distribution centered on a, width controled by b
+    */
+    virtual double normal(double a, double b) const {
+        return a + sqrt(b) * normal() ;
+    } ;
+    /**
+    * @return a random number following a normal distribution (in a logarithmic scale)
+    */
+    virtual double lognormal(double a, double b) const {
+        return std::exp(a + b * normal()) ;
+    };
 
-	/**
-	* @return a random number following an logistic distribution a+b*ln(u/(1-u)), centered on a, width controled by b
-	*/
-	virtual double logistic(double a, double b) const ;
-	/**
-	* @return a random number following a Cauchy distribution a+b*tan(PI*(u-0.5)) , centered on a, width controled by b
-	*/
-	virtual double cauchy(double a, double b) const { return a + b * std::tan(M_PI*(uniform()-0.5)) ; } ;
-	virtual double xhi2(int a) const ;
-	virtual double erlang(double a, int b) const ;
-	/**
-	* @return a random number following a Pareto distribution a*(1-u^(-1/b))
-	*/
-	virtual double pareto(double a, double b) const { return a * (1.- std::pow(uniform(), -1./b)) ; } ;
-	/**
-	* @return a random number following a weibull distribution a*(-ln(u)^(1/b))
-	*/
-	virtual double weibull(double a, double b) const { return a * std::pow(- std::log(uniform()), 1./b) ;};
+    /**
+    * @return a random number following an logistic distribution a+b*ln(u/(1-u)), centered on a, width controled by b
+    */
+    virtual double logistic(double a, double b) const ;
+    /**
+    * @return a random number following a Cauchy distribution a+b*tan(PI*(u-0.5)) , centered on a, width controled by b
+    */
+    virtual double cauchy(double a, double b) const {
+        return a + b * std::tan(M_PI*(uniform()-0.5)) ;
+    } ;
+    virtual double xhi2(int a) const ;
+    virtual double erlang(double a, int b) const ;
+    /**
+    * @return a random number following a Pareto distribution a*(1-u^(-1/b))
+    */
+    virtual double pareto(double a, double b) const {
+        return a * (1.- std::pow(uniform(), -1./b)) ;
+    } ;
+    /**
+    * @return a random number following a weibull distribution a*(-ln(u)^(1/b))
+    */
+    virtual double weibull(double a, double b) const {
+        return a * std::pow(- std::log(uniform()), 1./b) ;
+    };
 
 } ;
 
@@ -128,23 +163,27 @@ public:
 class RandomGenerator : public RandomNumber
 {
 protected:
-	long n ;
-	long max ;
-	long step ;
+    long n ;
+    long max ;
+    long step ;
 
 public:
-	RandomGenerator() ;
-	RandomGenerator(long seed) ;
-	RandomGenerator(long seed, long m, long s) ;
+    RandomGenerator() ;
+    RandomGenerator(long seed) ;
+    RandomGenerator(long seed, long m, long s) ;
 
-	virtual void reset() ;
-	virtual void reset(long seed) ;
-	virtual double uniform() ;
+    virtual void reset() ;
+    virtual void reset(long seed) ;
+    virtual double uniform() ;
 
-	long getMax() {return max ; }
-	long getStep() {return step ; }
-	void setMax(long m) ;
-	void setStep(long s) ;
+    long getMax() {
+        return max ;
+    }
+    long getStep() {
+        return step ;
+    }
+    void setMax(long m) ;
+    void setStep(long s) ;
 
 } ;
 
@@ -153,132 +192,164 @@ public:
 
 struct RandomDistribution
 {
-	RandomNumber * rnd ;
-	
-	RandomDistribution() ;
+    RandomNumber * rnd ;
 
-	virtual RandomNumber * getRandomNumber() { return rnd ; } ;
-	virtual double draw() const { return rnd->uniform() ; }
+    RandomDistribution() ;
+
+    virtual RandomNumber * getRandomNumber() {
+        return rnd ;
+    } ;
+    virtual double draw() const {
+        return rnd->uniform() ;
+    }
 } ;
 
 struct ConstantDistribution : public RandomDistribution
 {
-		double c ;
-		
-		ConstantDistribution() ;
-		ConstantDistribution(double x) ;
-		
-		virtual double draw() const { return c ; }
+    double c ;
+
+    ConstantDistribution() ;
+    ConstantDistribution(double x) ;
+
+    virtual double draw() const {
+        return c ;
+    }
 } ;
 
 struct StepDistribution : public RandomDistribution
 {
-		std::vector<double> values ;
-		
-		StepDistribution() ;
-		StepDistribution(std::vector<double> v) ;
-		StepDistribution(std::valarray<double> v) ;
-		
-		virtual double draw() const { return values[rnd->dice(values.size())] ; }		
+    std::vector<double> values ;
+
+    StepDistribution() ;
+    StepDistribution(std::vector<double> v) ;
+    StepDistribution(std::valarray<double> v) ;
+
+    virtual double draw() const {
+        return values[rnd->dice(values.size())] ;
+    }
 } ;
 
 struct UniformDistribution : public RandomDistribution
 {
-	double a ;
-	double b ;
-	
-	UniformDistribution() ;
-	UniformDistribution(double x) ;
-	UniformDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->uniform(a,b) ; }  
+    double a ;
+    double b ;
+
+    UniformDistribution() ;
+    UniformDistribution(double x) ;
+    UniformDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->uniform(a,b) ;
+    }
 } ;
 
 struct TriangularDistribution : public UniformDistribution
 {
-	TriangularDistribution() ;
-	TriangularDistribution(double x) ;
-	TriangularDistribution(double x, double y) ;
-  
-	virtual double draw() const { return rnd->triangular(a,b) ; }
+    TriangularDistribution() ;
+    TriangularDistribution(double x) ;
+    TriangularDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->triangular(a,b) ;
+    }
 } ;
 
 struct ExponentialDistribution : public RandomDistribution
 {
-	double a ;
-	
-	ExponentialDistribution(double x) ;
-	
-	virtual double draw() const { return rnd->exponential(a) ; }
+    double a ;
+
+    ExponentialDistribution(double x) ;
+
+    virtual double draw() const {
+        return rnd->exponential(a) ;
+    }
 } ;
 
 struct NormalDistribution : public UniformDistribution
 {
-	NormalDistribution() ;
-	NormalDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->normal(a,b) ; }
+    NormalDistribution() ;
+    NormalDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->normal(a,b) ;
+    }
 } ;
 
 struct LogNormalDistribution : public NormalDistribution
 {
-	LogNormalDistribution() ;
-	LogNormalDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->lognormal(a,b) ; }
+    LogNormalDistribution() ;
+    LogNormalDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->lognormal(a,b) ;
+    }
 } ;
 
 struct ExtremeValueDistribution : public NormalDistribution
 {
-	ExtremeValueDistribution(double x, double y) ;
+    ExtremeValueDistribution(double x, double y) ;
 
-	virtual double draw() const { return rnd->extreme_value(a,b) ; }
+    virtual double draw() const {
+        return rnd->extreme_value(a,b) ;
+    }
 } ;
 
 struct LogisticDistribution : public NormalDistribution
 {
-	LogisticDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->logistic(a,b) ; }
+    LogisticDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->logistic(a,b) ;
+    }
 } ;
 
 struct CauchyDistribution : public NormalDistribution
 {
-	CauchyDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->cauchy(a,b) ; }
+    CauchyDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->cauchy(a,b) ;
+    }
 } ;
 
 struct Xhi2Distribution : public RandomDistribution
 {
-	int n ;
-	
-	Xhi2Distribution(int x) ;
-	
-	virtual double draw() const { return rnd->xhi2(n) ; }
+    int n ;
+
+    Xhi2Distribution(int x) ;
+
+    virtual double draw() const {
+        return rnd->xhi2(n) ;
+    }
 } ;
 
 struct ErlangDistribution : public Xhi2Distribution
 {
-	double a ;
-	
-	ErlangDistribution(double x, int y) ;
-	
-	virtual double draw() const { return rnd->erlang(a,n) ; }
+    double a ;
+
+    ErlangDistribution(double x, int y) ;
+
+    virtual double draw() const {
+        return rnd->erlang(a,n) ;
+    }
 } ;
 
 struct ParetoDistribution : public NormalDistribution
 {
-	ParetoDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->pareto(a,b) ; }
+    ParetoDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->pareto(a,b) ;
+    }
 } ;
 
 struct WeibullDistribution : public NormalDistribution
 {
-	WeibullDistribution(double x, double y) ;
-	
-	virtual double draw() const { return rnd->weibull(a,b) ; }
+    WeibullDistribution(double x, double y) ;
+
+    virtual double draw() const {
+        return rnd->weibull(a,b) ;
+    }
 } ;
 
 

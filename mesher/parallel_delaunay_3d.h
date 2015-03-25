@@ -20,7 +20,7 @@
 namespace Amie
 {
     
-class ParallelDelaunayTree3D : virtual public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
+class ParallelDelaunayTree3D final: virtual public Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>
 {
     int getDomain(const DelaunayTetrahedron * tet) const;
     int getMesh(const DelaunayTreeItem3D * self) const;

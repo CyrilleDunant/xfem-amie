@@ -26,7 +26,7 @@ struct PasteBehaviour : public WeibullDistributedStiffness
 
 } ;
 
-struct HydratingMechanicalCementPaste : public LinearForm
+struct HydratingMechanicalCementPaste final: public LinearForm
 {
 
     std::vector<Variable> v ;
@@ -72,7 +72,7 @@ struct HydratingMechanicalCementPaste : public LinearForm
 
 } ;
 
-struct HydratingDiffusionCementPaste : public LinearForm
+struct HydratingDiffusionCementPaste final: public LinearForm
 {
     std::vector<Variable> v ;
     Vector saturation ;

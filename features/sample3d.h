@@ -17,7 +17,7 @@
 namespace Amie
 {
 
-class Sample3D :  public Hexahedron,  public Feature
+class Sample3D final:  public Hexahedron,  public Feature
 {
 public:
 	/** \brief Sample3D constructor.

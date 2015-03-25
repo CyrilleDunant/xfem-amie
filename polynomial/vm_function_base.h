@@ -72,7 +72,7 @@ g = g(f) ;            // x-> sin(2x)
  * Functions can have the variables x, y, z, t, u, v, w, which will be passed at evaluation.
  * Functions depend on VirtualMachine for their evaluation.
  */
-class Function
+class Function final
 {
 protected :
     std::vector< Point > iPoint ;
@@ -245,7 +245,7 @@ public:
      */
     Function ( Geometry * inGeo, const std::vector<Segment> & inProjector, const std::vector<Segment> &outProjector, const Function &x, const Function &y ) ;
 
-    virtual ~Function()  ;
+    virtual ~Function() final ;
 
 // 	void setTransform(const ElementarySurface * s) ;
 // 	void setTransform(const ElementaryVolume * s) ;

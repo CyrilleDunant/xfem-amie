@@ -115,9 +115,6 @@ void step()
 {
 
     size_t nsteps = 600*4 ; //16*10;
-    size_t nit = 2 ;
-    size_t tries = 0 ;
-    int totit = 0 ;
     double delta_d = 0.0175e-3 ;
 
     for ( size_t v = 0 ; v < nsteps ; v++ )

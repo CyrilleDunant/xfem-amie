@@ -42,7 +42,7 @@ struct MtV ;
 struct MtMtM ;
 
 /** \brief Full matrix class*/
-class Matrix
+class Matrix final
 {
     Vector *v;
     size_t r, c;

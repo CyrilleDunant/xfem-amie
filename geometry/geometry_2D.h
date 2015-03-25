@@ -47,7 +47,7 @@ public:
     virtual bool inCircumCircle(const Point *p) const ;
 
     /** \brief return reference to the circumcenter*/
-    virtual const Point & getCircumCenter() const;
+    virtual const Point & getCircumCenter() const ;
 
     /** \brief return circumRadius*/
     virtual double getRadius() const ;
@@ -291,7 +291,7 @@ public:
     virtual std::vector<Point> getSamplingBoundingPoints(size_t num_points) const ;
 
     /** \brief return set of points sampling the bounding surface, given two angles (in radians)*/
-    virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const ;
+    virtual std::vector<Point> getSamplingBoundingPointsOnArc(size_t num_points, const Point & start, const Point & finish) const final;
 
     /** \brief Sample the disc.
      *
@@ -444,13 +444,13 @@ public:
      *
      * @return the first point of the set. This is equivalent to getBoundingPoint(0).
      */
-    virtual Point * getHead() const ;
+    virtual Point * getHead() const final;
 
     /** \brief Return second extremity.
      *
      * @return the last point of the set. This is equivalent to getBoundingPoint(getBoundingPoints().size()-1).
      */
-    virtual Point * getTail() const ;
+    virtual Point * getTail() const final;
 
     virtual void project(Point *) const;
 

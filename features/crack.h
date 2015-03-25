@@ -30,7 +30,7 @@ namespace Amie
  * The enrichment strategy is the following: first the tips are enriched. Then the forks are enriched.
  * Then, if there remain unenriched elements crossed by the branches, those are enriched.
  */
-class BranchedCrack : public EnrichmentFeature,  public SegmentedLine
+class BranchedCrack final : public EnrichmentFeature,  public SegmentedLine
 {
 protected:
 	std::vector<SegmentedLine *> branches ;

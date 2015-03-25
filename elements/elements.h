@@ -76,14 +76,14 @@ public:
     virtual const std::vector< size_t > getDofIds() const ;
 
     virtual const Function & getShapeFunction(size_t i) const ;
-    virtual Function & getShapeFunction(size_t i) ;
+    virtual Function & getShapeFunction(size_t i) final;
 
     virtual const Function & getEnrichmentFunction(size_t i) const ;
-    virtual const std::vector<Function>  & getEnrichmentFunctions() const ;
+    virtual const std::vector<Function>  & getEnrichmentFunctions() const final;
 
     virtual Function getXTransform() const ;
     virtual Function getYTransform() const ;
-    virtual Function getTTransform() const ;
+    virtual Function getTTransform() const final;
     Function getdXTransform(Variable) const ;
     Function getdYTransform(Variable) const ;
     Function getdTTransform(Variable) const ;
@@ -98,7 +98,7 @@ public:
 
     virtual Vector getNonLinearForces() = 0 ;
 
-    virtual Form * getBehaviour() const ;
+    virtual Form * getBehaviour() const final;
     void setBehaviour( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh, Form* f );
 
     virtual NonLinearForm * getNonLinearBehaviour() const;
@@ -107,12 +107,12 @@ public:
     virtual void step(double dt, const Vector * displacements) ;
     virtual void nonLinearStep(double dt, const Vector * displacements) ;
 
-    Order getOrder() const;
+    Order getOrder() const final;
     void setOrder(Order) ;
 
     virtual void compileAndPrecalculate();
-    virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
-    virtual std::vector<size_t> clearAllEnrichment() ;
+    virtual std::vector<size_t> clearEnrichment(const Geometry * g) final;
+    virtual std::vector<size_t> clearAllEnrichment() final;
 
 } ;
 
@@ -141,7 +141,7 @@ public:
 
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
-    virtual void clearElementaryMatrix() {
+    virtual void clearElementaryMatrix() final{
         cachedElementaryMatrix.resize(0);
         cachedViscousElementaryMatrix.resize(0) ;
     } ;
@@ -153,29 +153,29 @@ public:
 
     double  jacobianAtPoint(const Point & p) const ;
 
-    void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
+    void getInverseJacobianMatrix(const Point & p, Matrix & ret) final;
 
-    const GaussPointArray & getGaussPoints();
+    const GaussPointArray & getGaussPoints() final;
 
-    virtual const std::valarray< Function > & getShapeFunctions() const ;
-    virtual std::valarray< Function > & getShapeFunctions() ;
+    virtual const std::valarray< Function > & getShapeFunctions() const final;
+    virtual std::valarray< Function > & getShapeFunctions() final;
 
-    virtual bool isMoved() const;
+    virtual bool isMoved() const final;
 
     virtual void print() const;
 
-    virtual Point inLocalCoordinates(const Point &p) const ;
+    virtual Point inLocalCoordinates(const Point &p) const final;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
 
     virtual Vector getNonLinearForces()  ;
-    virtual Function getXTransform() const ;
-    virtual Function getYTransform() const ;
-    virtual Function getXTransformAtCentralNodalTime() const ;
-    virtual Function getYTransformAtCentralNodalTime() const ;
-    virtual Function getZTransformAtCentralNodalTime() const {
+    virtual Function getXTransform() const final;
+    virtual Function getYTransform() const final;
+    virtual Function getXTransformAtCentralNodalTime() const final;
+    virtual Function getYTransformAtCentralNodalTime() const final;
+    virtual Function getZTransformAtCentralNodalTime() const final{
         return Function("0") ;
     }
-    virtual Function getTTransformAtCentralNodalTime() const {
+    virtual Function getTTransformAtCentralNodalTime() const final{
         return Function("0") ;
     }
 
@@ -225,18 +225,18 @@ public:
     virtual const GaussPointArray & getGaussPoints() = 0 ;
 
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() = 0;
-    virtual Form * getBehaviour() const ;
-    virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f );
+    virtual Form * getBehaviour() const final;
+    virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f ) final;
 
     virtual NonLinearForm * getNonLinearBehaviour() const ;
 
     virtual const std::valarray< Function > & getShapeFunctions() const = 0 ;
     virtual std::valarray< Function > & getShapeFunctions() = 0 ;
     virtual const Function & getShapeFunction(size_t i) const ;
-    virtual Function & getShapeFunction(size_t i)  ;
-    virtual const Function & getEnrichmentFunction(size_t i) const  ;
+    virtual Function & getShapeFunction(size_t i)  final;
+    virtual const Function & getEnrichmentFunction(size_t i) const final ;
 // 	virtual Function & getEnrichmentFunction(size_t i)  ;
-    virtual const std::vector< Function>  & getEnrichmentFunctions() const ;
+    virtual const std::vector< Function>  & getEnrichmentFunctions() const final;
 // 	virtual std::vector< Function>  & getEnrichmentFunctions() ;
     virtual Function getXTransform() const ;
     virtual Function getYTransform() const ;
@@ -251,7 +251,7 @@ public:
     virtual double getdZTransform(Variable v, const Point & p) const ;
     virtual double getdTTransform(Variable v, const Point & p) const ;
 
-    virtual void setEnrichment(const Function &  p, Geometry * g) ;
+    virtual void setEnrichment(const Function &  p, Geometry * g) final;
 
     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
 
@@ -268,8 +268,8 @@ public:
     virtual void step(double dt, const Vector * displacements) ;
     virtual void nonLinearStep(double dt, const Vector *displacements) ;
 
-    virtual Order getOrder() const;
-    virtual void setOrder(Order) ;
+    virtual Order getOrder() const final;
+    virtual void setOrder(Order) final;
 
     virtual void compileAndPrecalculate();
     virtual std::vector<size_t> clearEnrichment(const Geometry * g) ;
@@ -282,7 +282,7 @@ class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
     std::valarray< Function > *shapefunc ;
-    const GaussPointArray & genGaussPoints();
+    const GaussPointArray & genGaussPoints() final;
     bool isFather ;
     std::vector<Matrix> cachedJinv ;
 public:
@@ -304,12 +304,12 @@ public:
     void refresh(const TetrahedralElement * parent);
 
     virtual void print() const;
-    virtual Point inLocalCoordinates(const Point & p) const ;
+    virtual Point inLocalCoordinates(const Point & p) const final;
 
-    virtual Function getXTransform() const ;
-    virtual Function getYTransform() const ;
-    virtual Function getZTransform() const ;
-    virtual Function getTTransform() const ;
+    virtual Function getXTransform() const final;
+    virtual Function getYTransform() const final;
+    virtual Function getZTransform() const final;
+    virtual Function getTTransform() const final;
 
 
     virtual Mesh< DelaunayTriangle, DelaunayTreeItem >* get2DMesh() const {
@@ -319,30 +319,30 @@ public:
         return nullptr ;
     };
 
-    virtual const GaussPointArray & getGaussPoints()
+    virtual const GaussPointArray & getGaussPoints() final
     {
         return genGaussPoints() ;
     }
 
-    virtual Function getdXTransform(Variable v) const ;
-    virtual Function getdYTransform(Variable v) const ;
-    virtual Function getdZTransform(Variable v) const ;
-    virtual Function getdTTransform(Variable v) const ;
+    virtual Function getdXTransform(Variable v) const final;
+    virtual Function getdYTransform(Variable v) const final;
+    virtual Function getdZTransform(Variable v) const final;
+    virtual Function getdTTransform(Variable v) const final;
 
-    virtual double getdXTransform(Variable v, const Point & p) const ;
-    virtual double getdYTransform(Variable v, const Point & p) const ;
-    virtual double getdZTransform(Variable v, const Point & p) const ;
-    virtual double getdTTransform(Variable v, const Point & p) const ;
+    virtual double getdXTransform(Variable v, const Point & p) const final;
+    virtual double getdYTransform(Variable v, const Point & p) const final;
+    virtual double getdZTransform(Variable v, const Point & p) const final;
+    virtual double getdTTransform(Variable v, const Point & p) const final;
 
     virtual ~TetrahedralElement();
 
     friend class ElementaryVolume ;
 } ;
 
-class HexahedralElement : public Hexahedron,  public ElementaryVolume
+class HexahedralElement final: public Hexahedron,  public ElementaryVolume
 {
 protected :
-    const GaussPointArray & genGaussPoints() ;
+    const GaussPointArray & genGaussPoints() final;
     std::valarray< Function > *shapefunc ;
     std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
 public:
@@ -357,7 +357,7 @@ public:
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
 
 
-    const GaussPointArray & getGaussPoints()
+    const GaussPointArray & getGaussPoints() final
     {
         return genGaussPoints() ;
     }
