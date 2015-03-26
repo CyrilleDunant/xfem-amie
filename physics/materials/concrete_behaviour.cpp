@@ -8,7 +8,6 @@
 #include "concrete_behaviour.h"
 #include "../stiffness_and_fracture.h"
 #include "../stiffness.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../fracturecriteria/mcft.h"
 #include "../../utilities/random.h"

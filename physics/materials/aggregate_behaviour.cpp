@@ -10,7 +10,6 @@
 #include "../stiffness.h"
 #include "../viscoelasticity.h"
 #include "../viscoelasticity_and_fracture.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../damagemodels/rotatingcrack.h"
 #include "../damagemodels/fiberbasedisotropiclineardamage.h"

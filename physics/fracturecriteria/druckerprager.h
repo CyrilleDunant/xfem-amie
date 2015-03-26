@@ -69,8 +69,6 @@ public:
         return false ;
     }
 
-    virtual Material toMaterial() ;
-
     virtual double getTensileLimit(const ElementState & s) const {
         return upthreshold ;
     } ;

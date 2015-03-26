@@ -48,13 +48,13 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 	{
 		double k_inst = values["bulk_modulus"] ;
 		double mu_inst = values["shear_modulus"] ;
-		C = Material::cauchyGreen( k_inst, mu_inst, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		C = Tensor::cauchyGreen( k_inst, mu_inst, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	else
 	{
 		double E_inst = values["young_modulus"] ;
 		double nu_inst = values["poisson_ratio"] ;
-		C = Material::cauchyGreen( E_inst, nu_inst, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+		C = Tensor::cauchyGreen( E_inst, nu_inst, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 	}
 	param = 0. ;
 	placeMatrixInBlock( C, 0,0, param) ;
@@ -66,20 +66,20 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 		{
 			double k_visc = values["creep_bulk"] ;
 			double mu_visc = values["creep_shear"] ;
-			E = Material::cauchyGreen( k_visc, mu_visc, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			E = Tensor::cauchyGreen( k_visc, mu_visc, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
 		else
 		{
 			double E_visc = values["creep_modulus"] ;
 			double nu_visc = values["creep_poisson"] ;
-			E = Material::cauchyGreen( E_visc, nu_visc, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			E = Tensor::cauchyGreen( E_visc, nu_visc, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
 		double a = 0. ;
 		if(values.find("recoverable_bulk") != values.end())
 		{
 			double k_rec = values["recoverable_bulk"] ;
 			double mu_rec = values["recoverable_shear"] ;
-			R = Material::cauchyGreen( k_rec, mu_rec, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+			R = Tensor::cauchyGreen( k_rec, mu_rec, false, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 		}
 		else
 		{
@@ -101,7 +101,7 @@ void LogarithmicCreepWithExternalParameters::makeProperties(std::map<std::string
 					double mu_visc = values["creep_shear"] ;
 					nu_rec = (3.*k_visc-2.*mu_visc)/(2.*(3*k_visc+mu_visc)) ;
 				}
-				R = Material::cauchyGreen( E_rec, nu_rec, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
+				R = Tensor::cauchyGreen( E_rec, nu_rec, true, (param.numCols()==9) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL, plane) ;
 			}
 			else
 			{

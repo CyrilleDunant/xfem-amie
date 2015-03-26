@@ -12,7 +12,6 @@
 
 #include "stiffness_with_imposed_stress_and_fracture.h"
 #include "../features/boundarycondition.h"
-#include "homogenization/homogenization_base.h"
 #include "homogenization/composite.h"
 #include "fracturecriteria/ruptureenergy.h"
 #include "fracturecriteria/mcft.h"

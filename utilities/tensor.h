@@ -8,6 +8,13 @@
 namespace Amie
 {
 
+typedef enum
+{
+	PLANE_STRESS,
+	PLANE_STRAIN,
+	PLANE_STRESS_FREE_G,
+} planeType ; 
+
   
 class Tensor
 {
@@ -55,6 +62,11 @@ public:
 	void print() const ;
 	
 	void threshold(double thr) ;
+
+	static Matrix cauchyGreen(std::pair<double,double> prop, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRESS) ;
+	static Matrix cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality dim, planeType pt = PLANE_STRESS) ;
+	static Matrix orthothropicCauchyGreen(double E_1, double E_2, double G,  double nu, planeType pt= PLANE_STRESS) ;
+	static Matrix orthothropicCauchyGreen(double E_1, double E_2, double E_3, double G_1, double G_2, double G_3,  double nu) ;
 		
   
 } ;

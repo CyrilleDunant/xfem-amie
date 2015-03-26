@@ -28,7 +28,6 @@
 #include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
-#include "../physics/homogenization/homogenization_base.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/polygonSample.h"
@@ -108,11 +107,11 @@ int main(int argc, char *argv[])
     double delay = 0. ;
     int b = 0 ;
     int a = 0 ;
-    Matrix E_kv = Material::cauchyGreen( k_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix E_kv = Tensor::cauchyGreen( k_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
     E_kv.print();
-    Matrix C_kv = Material::cauchyGreen( am_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_tau = Material::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_eta = Material::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix C_kv = Tensor::cauchyGreen( am_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix C_tau = Tensor::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix C_eta = Tensor::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
     //TimeUnderLoadLogCreepAccumulator * accu = new TimeUnderLoadLogCreepAccumulator();
     Viscoelasticity * paste = new Viscoelasticity(BURGER, E_kv, C_kv, C_eta, C_tau,1);
     //IterativeMaxwell paste (E, t_char) ;

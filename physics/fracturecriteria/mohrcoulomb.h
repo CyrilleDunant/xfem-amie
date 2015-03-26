@@ -48,8 +48,6 @@ public:
  * @param s ElementState to consider
 */
 	virtual double grade(ElementState &s)  ;
-
-	virtual Material toMaterial() ;
 		
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
 };
@@ -94,8 +92,6 @@ public:
  * @param s ElementState to consider
 */
 	virtual double grade(ElementState &s)  ;
-
-	virtual Material toMaterial() ;
 
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 	
@@ -166,8 +162,6 @@ public:
 */
 	virtual double grade(ElementState &s)  ;
 
-	virtual Material toMaterial() ;
-
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 	
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
@@ -223,8 +217,6 @@ public:
 */
 	virtual double grade(ElementState &s)  ;
 
-	virtual Material toMaterial() ;
-
 	virtual void scale(double f) { upVal *=f ; downVal *= f ; } ;
 	
 	virtual double getTensileLimit(const ElementState & s) const {return upVal ;};
@@ -267,8 +259,6 @@ public:
  * @param s ElementState to consider
 */
 	virtual double grade(ElementState &s)  ;
-
-	virtual Material toMaterial() ;
 
 	virtual void scale(double f) { upVal *=f ; } ;
 	

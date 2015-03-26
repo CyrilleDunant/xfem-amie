@@ -10,7 +10,6 @@
 #include "../stiffness.h"
 #include "../viscoelasticity.h"
 #include "../viscoelasticity_and_fracture.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../damagemodels/fiberbasedisotropiclineardamage.h"
 #include "../../utilities/random.h"
@@ -256,7 +255,7 @@ Form * PseudoBurgerViscoDamagePasteBehaviour::getCopy() const
 
 
 
-HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * diffusionTree) :LinearForm(Material::cauchyGreen(std::make_pair(1,0.2), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS), true, true, 2),  diffusionTree(diffusionTree)
+HydratingMechanicalCementPaste::HydratingMechanicalCementPaste(FeatureTree * diffusionTree) :LinearForm(Tensor::cauchyGreen(std::make_pair(1,0.2), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS), true, true, 2),  diffusionTree(diffusionTree)
 {
     v.push_back(XI);
     v.push_back(ETA);
@@ -343,7 +342,7 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 
 // 	std::cout << E << "  " << nu << std::endl ;
 
-    return Material::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
+    return Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 }
 
 double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, double doh)

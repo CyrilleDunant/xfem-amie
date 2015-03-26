@@ -16,7 +16,6 @@
 
 
 #include "physics_base.h"
-#include "homogenization/homogenization_base.h"
 #include "../features/features.h"
 #include "../mesher/delaunay.h"
 #include "../mesher/delaunay_3d.h"
@@ -33,7 +32,6 @@ struct HomogeneisedBehaviour : public LinearForm
 {
     Form * equivalent ;
     Form * original ;
-    Material base ;
     FeatureTree * mesh ;
     DelaunayTriangle * self2d ;
     DelaunayTetrahedron * self3d ;

@@ -625,12 +625,6 @@ FractureCriterion *NonLocalMCFT::getCopy() const
     return new NonLocalMCFT( *this ) ;
 }
 
-Material NonLocalMCFT::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, double charDistance, RedistributionType r, MirrorState mirroring, double delta_x, double delta_y, double delta_z) : NonLocalMCFT(down, youngModulus, charDistance, r , mirroring, delta_x, delta_y, delta_z) { }
 
 NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { }

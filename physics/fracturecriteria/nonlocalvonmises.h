@@ -47,8 +47,6 @@ namespace Amie {
 	 * @param s ElementState to consider
 	*/
 		virtual double grade(ElementState &s)  ;
-
-		virtual Material toMaterial() ;
 		
 		virtual void scale(double d ) { threshold *= d ;}
 		

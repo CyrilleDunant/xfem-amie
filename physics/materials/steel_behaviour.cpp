@@ -7,7 +7,6 @@
 
 #include "steel_behaviour.h"
 #include "../stiffness_and_fracture.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
 

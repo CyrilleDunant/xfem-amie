@@ -76,12 +76,6 @@ double CreepRupture::grade( ElementState &s )
 	
 }
 
-Material CreepRupture::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 
 
 }

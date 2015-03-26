@@ -14,7 +14,6 @@
 #define __STIFFNESS_WITH_DEF
 
 #include "physics_base.h"
-#include "homogenization/homogenization_base.h"
 
 namespace Amie
 {

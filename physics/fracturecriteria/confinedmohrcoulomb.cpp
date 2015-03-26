@@ -115,10 +115,4 @@ FractureCriterion * ConfinedMohrCoulomb::getCopy() const
 	return new ConfinedMohrCoulomb(*this) ;
 }
 
-Material ConfinedMohrCoulomb::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 }

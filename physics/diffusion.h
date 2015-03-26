@@ -14,7 +14,6 @@
 #define __DIFFUSION_H_
 
 #include "physics_base.h"
-#include "homogenization/homogenization_base.h"
 
 namespace Amie
 {

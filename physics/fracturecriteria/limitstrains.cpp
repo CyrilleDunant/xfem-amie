@@ -56,11 +56,5 @@ FractureCriterion * LimitStrains::getCopy() const
 	return new LimitStrains(*this) ;
 }
 
-Material LimitStrains::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 
 }

@@ -16,7 +16,6 @@
 #include "physics_base.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/damagemodel.h"
-#include "homogenization/homogenization_base.h"
 #include "fracturecriteria/nonlocalvonmises.h"
 
 namespace Amie

@@ -14,7 +14,6 @@
 #define __STIFFNESS_WITH_STRESS_FRACTURE
 
 #include "physics_base.h"
-#include "homogenization/homogenization_base.h"
 #include "fracturecriteria/fracturecriterion.h"
 #include "damagemodels/lineardamage.h"
 #include "damagemodels/anisotropicdamage.h"

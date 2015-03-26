@@ -154,10 +154,4 @@ FractureCriterion * DruckerPrager::getCopy() const
 	return ret  ;
 }
 
-Material DruckerPrager::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 }

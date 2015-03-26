@@ -7,18 +7,17 @@
 
 #include "csh_behaviour.h"
 #include "../stiffness_and_fracture.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
 
 namespace Amie
 {
 
-CSHBehaviour::CSHBehaviour(CSHType type,Function ageingFunction, double E, double nu, SpaceDimensionality dim) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(ageingFunction), function(true)
+CSHBehaviour::CSHBehaviour(CSHType type,Function ageingFunction, double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(ageingFunction), function(true)
 {
 }
 
-CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(Function("1")), function(false), densities(densities), times(times)
+CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(Function("1")), function(false), densities(densities), times(times)
 {
 }
 

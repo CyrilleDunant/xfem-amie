@@ -49,12 +49,6 @@ FractureCriterion * BoundedVonMises::getCopy() const
     return new BoundedVonMises(threshold, damageThreshold) ;
 }
 
-Material BoundedVonMises::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 
 
 }

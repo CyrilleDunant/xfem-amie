@@ -13,7 +13,7 @@
 
 #include "../polynomial/vm_base.h"
 #include "../polynomial/vm_function_matrix.h"
-#include "../physics/homogenization/homogenization_base.h"
+#include "../utilities/tensor.h"
 
 namespace Amie
 {

@@ -20,12 +20,11 @@
 #include "fracturecriteria/confinedmohrcoulombwithstrain.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/ruptureenergy.h"
-#include "homogenization/homogenization_base.h"
 #include "../utilities/random.h"
 
 using namespace Amie ;
 
-WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt ,MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), variability(.1), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
+WeibullDistributedStiffness::WeibullDistributedStiffness(double E, double nu, SpaceDimensionality dim, double down, double up, planeType pt ,MirrorState mirroring, double dx, double dy, double dz) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim, pt), true, true, dim), variability(.1), down(down), up(up), E(E), nu(nu), dim(dim), mirroring(mirroring), dx(dx), dy(dy), dz(dz)
 {
     materialRadius = .001;
 
@@ -53,7 +52,7 @@ Form * WeibullDistributedStiffness::getCopy() const
     double weib = RandomNumber().weibull(1,5) ;
     double factor = 1 - variability + variability*weib ;
     StiffnessAndFracture * copy = new StiffnessAndFracture(
-        Material::cauchyGreen(std::make_pair(E,nu), true,dim)*factor,
+        Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)*factor,
         new NonLocalMCFT(
             down*factor ,
             E,

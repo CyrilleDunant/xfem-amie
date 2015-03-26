@@ -23,7 +23,6 @@
 #include "fracturecriteria/ruptureenergy.h"
 #include "fracturecriteria/maxstrain.h"
 #include "fracturecriteria/limitstrains.h"
-#include "homogenization/homogenization_base.h"
 #include "homogenization/phase.h"
 #include "homogenization/composite.h"
 #include "../features/features.h"

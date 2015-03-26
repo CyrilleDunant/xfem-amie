@@ -7,13 +7,12 @@
 
 #include "c3s_behaviour.h"
 #include "../stiffness_and_fracture.h"
-#include "../homogenization/homogenization_base.h"
 #include "../fracturecriteria/mohrcoulomb.h"
 #include "../../utilities/random.h"
 
 using namespace Amie ;
 
-C3SBehaviour::C3SBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Material::cauchyGreen(std::make_pair(E,nu), true,dim))
+C3SBehaviour::C3SBehaviour(double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim))
 {
 }
 

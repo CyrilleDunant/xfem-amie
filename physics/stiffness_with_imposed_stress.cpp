@@ -12,7 +12,6 @@
 
 #include "stiffness_with_imposed_stress.h"
 #include "../features/boundarycondition.h"
-#include "homogenization/homogenization_base.h"
 #include "homogenization/composite.h"
 
 using namespace Amie ;
@@ -36,7 +35,7 @@ StiffnessWithImposedStress::StiffnessWithImposedStress(const Matrix & rig, Vecto
         v.push_back(ZETA);
 }
 
-StiffnessWithImposedStress::StiffnessWithImposedStress(double E, double nu, double beta, SpaceDimensionality dim) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim)
+StiffnessWithImposedStress::StiffnessWithImposedStress(double E, double nu, double beta, SpaceDimensionality dim) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim)
 {
     v.push_back(XI);
     v.push_back(ETA);

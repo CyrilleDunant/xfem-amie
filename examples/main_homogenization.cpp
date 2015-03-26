@@ -24,7 +24,6 @@
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
-#include "../physics/homogenization/homogenization_base.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"

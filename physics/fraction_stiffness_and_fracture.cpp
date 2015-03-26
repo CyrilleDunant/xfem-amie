@@ -96,10 +96,4 @@ Matrix FractionStiffnessAndFracture::getTensor(const Point & p, IntegrableEntity
     return dfunc->apply(param) ;
 }
 
-Material FractionStiffnessAndFracture::toMaterial()
-{
-    Material mat(getTensor(Point(0,0))) ;
-    mat.setProperties(criterion->toMaterial()) ;
-    return mat ;
-}
 

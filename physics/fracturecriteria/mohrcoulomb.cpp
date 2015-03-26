@@ -87,12 +87,6 @@ FractureCriterion *MohrCoulomb::getCopy() const
     return new MohrCoulomb( *this ) ;
 }
 
-Material MohrCoulomb::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 NonLocalMohrCoulomb::NonLocalMohrCoulomb( double up, double down, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
     , upVal( up ), downVal( down ), stiffness(E)
 {
@@ -215,12 +209,6 @@ FractureCriterion *NonLocalMohrCoulomb::getCopy() const
     return new NonLocalMohrCoulomb( *this ) ;
 }
 
-Material NonLocalMohrCoulomb::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 
 
 NonLocalLinearlyDecreasingMohrCoulomb::NonLocalLinearlyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
@@ -326,12 +314,6 @@ FractureCriterion *NonLocalLinearlyDecreasingMohrCoulomb::getCopy() const
     return new NonLocalLinearlyDecreasingMohrCoulomb( *this ) ;
 }
 
-Material NonLocalLinearlyDecreasingMohrCoulomb::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 NonLocalExponentiallyDecreasingMohrCoulomb::NonLocalExponentiallyDecreasingMohrCoulomb( double up, double down,double limittstrain, double limitcstrain, double E, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z )
     , upVal( up ), downVal( down ), stiffness(E),limittstrain(limittstrain),limitcstrain(limitcstrain)
 {
@@ -422,12 +404,6 @@ FractureCriterion *NonLocalExponentiallyDecreasingMohrCoulomb::getCopy() const
     return new NonLocalExponentiallyDecreasingMohrCoulomb( *this ) ;
 }
 
-Material NonLocalExponentiallyDecreasingMohrCoulomb::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 
 
 NonLocalInverseRootMohrCoulomb::NonLocalInverseRootMohrCoulomb(double limitstrain, double limitystrain, double E,double c, MirrorState mirroring, double delta_x, double delta_y, double delta_z ) : FractureCriterion( mirroring, delta_x, delta_y, delta_z ), stiffness(E)
@@ -490,12 +466,6 @@ double NonLocalInverseRootMohrCoulomb::grade( ElementState &s )
 FractureCriterion *NonLocalInverseRootMohrCoulomb::getCopy() const
 {
     return new NonLocalInverseRootMohrCoulomb( *this ) ;
-}
-
-Material NonLocalInverseRootMohrCoulomb::toMaterial()
-{
-    Material mat ;
-    return mat ;
 }
 
 }

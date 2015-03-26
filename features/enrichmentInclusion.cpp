@@ -7,9 +7,9 @@
 #include "inclusion.h"
 #include "feature_base.h"
 #include "sample.h"
-#include "../physics/homogeneised_behaviour.h"
 #include "../physics/stiffness.h"
 #include "../physics/maxwell.h"
+#include "../physics/homogeneised_behaviour.h"
 #include "../physics/void_form.h"
 #include "../polynomial/vm_function_extra.h"
 

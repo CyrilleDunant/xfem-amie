@@ -169,8 +169,6 @@ public:
         return physicalCharacteristicRadius ;
     } ;
 
-    virtual Material toMaterial() ;
-
     double getScoreAtState() const ;
 
     virtual double getTensileLimit(const ElementState & s) const = 0 ;

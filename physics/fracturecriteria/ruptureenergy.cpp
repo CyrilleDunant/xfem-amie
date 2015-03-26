@@ -53,10 +53,4 @@ FractureCriterion * RuptureEnergy::getCopy() const
 	return new RuptureEnergy(*this) ;
 }
 
-Material RuptureEnergy::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 }

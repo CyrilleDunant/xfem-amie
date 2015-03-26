@@ -12,7 +12,6 @@
 
 #include "stiffness_with_imposed_deformation.h"
 #include "../features/boundarycondition.h"
-#include "homogenization/homogenization_base.h"
 
 using namespace Amie ;
 
@@ -25,7 +24,7 @@ StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(const Matrix & 
     this->time_d = false ;
 }
 
-StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Material::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim),v(2)
+StiffnessWithImposedDeformation::StiffnessWithImposedDeformation(double E, double nu, double alpha, SpaceDimensionality dim) : LinearForm(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim), false, false, dim),v(2)
 {
     v.push_back(XI) ;
     v.push_back(ETA) ;

@@ -51,8 +51,6 @@ public:
 	 */
 	virtual FractureCriterion * getCopy() const;
 
-	virtual Material toMaterial() ;
-		
 	virtual double getTensileLimit(const ElementState & s) const {return upVal*20e9 ; } ;
 };
 

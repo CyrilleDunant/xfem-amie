@@ -57,10 +57,4 @@ FractureCriterion * NonLocalVonMises::getCopy() const
 	return new NonLocalVonMises(threshold,E,  getMaterialCharacteristicRadius()) ;
 }
 
-Material NonLocalVonMises::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 }

@@ -42,8 +42,6 @@ public:
 
 	virtual double grade(ElementState &s)  ;
 
-	virtual Material toMaterial() ;
-		
 	virtual double getTensileLimit(const ElementState & s) const {return maxStress ;};
 
 };

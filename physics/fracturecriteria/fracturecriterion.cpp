@@ -467,11 +467,5 @@ bool FractureCriterion::met() const
     return metAtStep ;
 }
 
-Material FractureCriterion::toMaterial()
-{
-    Material mat ;
-    return mat ;
-}
-
 
 

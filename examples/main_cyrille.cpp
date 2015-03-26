@@ -587,7 +587,7 @@ int main(int argc, char *argv[])
 {
 
     // Material behaviour of the matrix
-    Matrix m0_paste=Material::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
+    Matrix m0_paste=Tensor::cauchyGreen(std::make_pair(E_paste,nu), true,SPACE_TWO_DIMENSIONAL) ;
 
     // Material behaviour of the fibres
     Matrix m0_agg(3,3) ;

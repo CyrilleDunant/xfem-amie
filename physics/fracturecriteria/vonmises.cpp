@@ -42,13 +42,6 @@ FractureCriterion * VonMises::getCopy() const
 	return new VonMises(threshold) ;
 }
 
-Material VonMises::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
-
 VonMisesStrain::VonMisesStrain(double thresh) : threshold(thresh)
 {
 }
@@ -76,12 +69,6 @@ double VonMisesStrain::grade(ElementState &s)
 FractureCriterion * VonMisesStrain::getCopy() const
 {
 	return new VonMisesStrain(threshold) ;
-}
-
-Material VonMisesStrain::toMaterial()
-{
-	Material mat ;
-	return mat ;
 }
 
 }

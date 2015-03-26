@@ -424,11 +424,11 @@ Matrix ConfigTreeItem::getStiffnessMatrix(SpaceDimensionality dim, planeType pt)
     {
         double k = getData("bulk_modulus",1e9) ;
         double mu = getData("shear_modulus", 1e9) ;
-        return Material::cauchyGreen( k, mu, false, dim, pt) ;
+        return Tensor::cauchyGreen( k, mu, false, dim, pt) ;
     } else {
         double E = getData("young_modulus",1e9) ;
         double nu = getData("poisson_ratio", 0.2) ;
-        return Material::cauchyGreen( E, nu, true, dim, pt) ;
+        return Tensor::cauchyGreen( E, nu, true, dim, pt) ;
     }
 }
 

@@ -49,12 +49,6 @@ FractureCriterion * MaximumStrain::getCopy() const
 	return new MaximumStrain(*this) ;
 }
 
-Material MaximumStrain::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 double SpaceTimeNonLocalMaximumStrain::grade(ElementState &s)
 {
 	if( s.getParent()->getBehaviour()->fractured() )

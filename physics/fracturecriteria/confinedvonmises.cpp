@@ -70,10 +70,4 @@ FractureCriterion * ConfinedVonMises::getCopy() const
 	return new ConfinedVonMises(thresholdup, thresholddown) ;
 }
 
-Material ConfinedVonMises::toMaterial()
-{
-	Material mat ;
-	return mat ;
-}
-
 }

@@ -19,7 +19,6 @@
 #include "damagemodels/anisotropicdamage.h"
 #include "damagemodels/isotropiclineardamage.h"
 #include "damagemodels/nonlocalisotropiclineardamage.h"
-#include "homogenization/homogenization_base.h"
 
 namespace Amie
 {

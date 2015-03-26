@@ -18,7 +18,6 @@
 #include "damagemodels/fractiondamage.h"
 #include "damagemodels/anisotropicdamage.h"
 #include "damagemodels/isotropiclineardamage.h"
-#include "homogenization/homogenization_base.h"
 
 namespace Amie
 {
@@ -94,8 +93,6 @@ struct FractionStiffnessAndFracture : public LinearForm
     virtual FractureCriterion * getFractureCriterion() const ;
 
     virtual DamageModel * getDamageModel() const ;
-
-    virtual Material toMaterial() ;
 
 } ;
 

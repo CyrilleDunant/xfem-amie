@@ -27,7 +27,6 @@
 #include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
-#include "../physics/homogenization/homogenization_base.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
@@ -57,6 +56,9 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
+//	omp_set_num_threads(1) ;
+
+
 	Sample box(nullptr, 0.01,0.01,0.,0.) ;
 
 	FeatureTree F(&box) ;
@@ -77,7 +79,7 @@ int main(int argc, char *argv[])
 	tensionCurve.push_back(p0) ;
 	tensionCurve.push_back(p1) ;
 	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion * crit =  new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( tensionCurve, compressionCurve, 15e9) ; 
-	crit->setMaterialCharacteristicRadius(0.001) ;
+	crit->setMaterialCharacteristicRadius(0.1) ;
 
 	LogarithmicCreepWithExternalParameters paste("young_modulus = 15e9, poisson_ratio = 0.3, creep_modulus = 30e9, creep_poisson = 0.3, creep_characteristic_time = 1.", crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9, 1.) ) ;
 	box.setBehaviour(&paste) ;
