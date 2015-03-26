@@ -42,9 +42,9 @@ int main(int argc, char *argv[])
             std::string testval = std::string(argv[i+1]) ;
             bool isDouble = (testval.find_first_not_of("0123456789.e-") == std::string::npos ) ;
             if(isDouble)
-                ConfigTreeItem * next = new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
+                new ConfigTreeItem( define, test, atof(testval.c_str()) ) ;
             else
-                ConfigTreeItem * next = new ConfigTreeItem( define, test, testval ) ;
+                new ConfigTreeItem( define, test, testval ) ;
         }
     }
 

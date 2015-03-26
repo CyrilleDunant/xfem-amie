@@ -473,7 +473,7 @@ void ConfigParser::readData()
             if(sep == std::string::npos)
             {
 //				std::cout << line.substr(level) << std::endl ;
-                ConfigTreeItem * cnf = new ConfigTreeItem( current , line.substr(level) ) ;
+                new ConfigTreeItem( current , line.substr(level) ) ;
 //				current->printTree() ;
             }
             else
@@ -484,7 +484,7 @@ void ConfigParser::readData()
                 label = label.substr(level) ;
                 if(isDouble)
                 {
-                    ConfigTreeItem * cnf = new ConfigTreeItem( current , label, atof(right.c_str()) ) ;
+                    new ConfigTreeItem( current , label, atof(right.c_str()) ) ;
                 }
                 else
                 {
@@ -511,7 +511,7 @@ void ConfigParser::readData()
                     						}
                     					}
                     					else*/
-                    ConfigTreeItem * cnf = new ConfigTreeItem( current , label, right ) ;
+                    new ConfigTreeItem( current , label, right ) ;
                 }
             }
 

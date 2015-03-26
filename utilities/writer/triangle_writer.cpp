@@ -740,6 +740,10 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
             }
 
             break ;
+
+        default:
+            break ;
+
         }
 
     }
@@ -753,7 +757,7 @@ std::vector<std::valarray<double> > TriangleWriter::getDoubleValues( TWFieldType
 
             int pointsPerTimePlanes = pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
             int factor = pointsPerTimePlanes / 3 ;
-            if( timePlane[layerTranslator[layer]] >= source->get2DMesh(layer)->begin()->timePlanes() )
+            if( timePlane[layerTranslator[layer]] >= (signed long) source->get2DMesh(layer)->begin()->timePlanes() )
                 timePlane[layerTranslator[layer]] = source->get2DMesh(layer)->begin()->timePlanes() - 1 ;
 
             int time_offset = timePlane[layerTranslator[layer]] * pointsPerTri / source->get2DMesh(layer)->begin()->timePlanes() ;
@@ -1279,6 +1283,10 @@ std::pair<bool, std::vector<double> > TriangleWriter::getDoubleValue( DelaunayTr
             found = true ;
             break ;
         }
+        default:
+            break ;
+
+
 
         }
     }
@@ -1537,8 +1545,12 @@ std::string nameOfField(FieldType field)
         return std::string("Von Mises Stress") ;
     case VON_MISES_EFFECTIVE_STRESS_FIELD :
         return std::string("") ;
+    case PRINCIPAL_STRAIN_ANGLE_FIELD :
+        return std::string("Principal Strain Angle") ;
     case PRINCIPAL_STRESS_ANGLE_FIELD :
-        return std::string("Principal Angle") ;
+        return std::string("Principal Stress Angle") ;
+    case SCALAR_DAMAGE_FIELD :
+        return std::string("Scalar Damage") ;
     case INTERNAL_VARIABLE_FIELD :
         return std::string("") ;
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD :
@@ -1619,7 +1631,11 @@ int numberOfFields( FieldType field )
         return 3 ;
     case VON_MISES_EFFECTIVE_STRESS_FIELD :
         return 3 ;
+    case PRINCIPAL_STRAIN_ANGLE_FIELD :
+        return 3 ;
     case PRINCIPAL_STRESS_ANGLE_FIELD :
+        return 3 ;
+    case SCALAR_DAMAGE_FIELD :
         return 3 ;
     case INTERNAL_VARIABLE_FIELD :
         return 3 ;

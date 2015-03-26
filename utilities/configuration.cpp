@@ -999,41 +999,39 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
             if(!hasChild("fracture_criterion"))
             {
                 ConfigTreeItem * crit = new ConfigTreeItem(nullptr, "fracture_criterion") ;
-                ConfigTreeItem * critType = new ConfigTreeItem(crit, "type", "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS") ;
-                ConfigTreeItem * critRad = new ConfigTreeItem(crit, "material_characteristic_radius", getData("parameters.material_characteristic_radius", 1e4)) ;
-                ConfigTreeItem * critStrain = new ConfigTreeItem(crit, "strain_renormalization_factor", getData("parameters.strain_renormalization_factor", 1e4)) ;
-                ConfigTreeItem * critStress = new ConfigTreeItem(crit, "stress_renormalization_factor", getData("parameters.stress_renormalization_factor", 1e-6)) ;
+                new ConfigTreeItem(crit, "type", "MULTI_LINEAR_SOFTENING_TENSILE_COMPRESSIVE_STRESS") ;
+                new ConfigTreeItem(crit, "material_characteristic_radius", getData("parameters.material_characteristic_radius", 1e4)) ;
+                new ConfigTreeItem(crit, "strain_renormalization_factor", getData("parameters.strain_renormalization_factor", 1e4)) ;
+                new ConfigTreeItem(crit, "stress_renormalization_factor", getData("parameters.stress_renormalization_factor", 1e-6)) ;
                 if(hasChildFromFullLabel("parameters.tension_file_name"))
-                    ConfigTreeItem * critTFile = new ConfigTreeItem(crit, "tension_file_name", getStringData("parameters.tension_file_name", "")) ;
+                    new ConfigTreeItem(crit, "tension_file_name", getStringData("parameters.tension_file_name", "")) ;
                 if(hasChildFromFullLabel("parameters.compression_file_name"))
-                    ConfigTreeItem * critCFile = new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
+                    new ConfigTreeItem(crit, "compression_file_name", getStringData("parameters.compression_file_name", "")) ;
                 if(hasChildFromFullLabel("parameters.strain_stress_curve"))
                 {
                     ConfigTreeItem * critCurve = new ConfigTreeItem(crit, "strain_stress_curve") ;
                     if(hasChildFromFullLabel("parameters.strain_stress_curve.tension"))
                     {
                         ConfigTreeItem * critTCurve = new ConfigTreeItem(critCurve, "tension") ;
-                        ConfigTreeItem * critTStrain = new ConfigTreeItem(critTCurve, "strain", getStringData("parameters.strain_stress_curve.tension.strain","1,1")) ;
-                        ConfigTreeItem * critTStress = new ConfigTreeItem(critTCurve, "stress", getStringData("parameters.strain_stress_curve.tension.stress","1e9,0")) ;
+                        new ConfigTreeItem(critTCurve, "strain", getStringData("parameters.strain_stress_curve.tension.strain","1,1")) ;
+                        new ConfigTreeItem(critTCurve, "stress", getStringData("parameters.strain_stress_curve.tension.stress","1e9,0")) ;
                     }
                     if(hasChildFromFullLabel("parameters.strain_stress_curve.compression"))
                     {
                         ConfigTreeItem * critCCurve = new ConfigTreeItem(critCurve, "compression") ;
-                        ConfigTreeItem * critCStrain = new ConfigTreeItem(critCCurve, "strain", getStringData("parameters.strain_stress_curve.compression.strain","-1,-1")) ;
-                        ConfigTreeItem * critCStress = new ConfigTreeItem(critCCurve, "stress", getStringData("parameters.strain_stress_curve.compression.stress","-1e9,0")) ;
+                        new ConfigTreeItem(critCCurve, "strain", getStringData("parameters.strain_stress_curve.compression.strain","-1,-1")) ;
+                        new ConfigTreeItem(critCCurve, "stress", getStringData("parameters.strain_stress_curve.compression.stress","-1e9,0")) ;
                     }
                 }
                 this->addChild(crit) ;
-                if(this == nullptr)
-                    std::cout << "hem" << std::endl ;
             }
             if(!hasChild("damage_model"))
             {
                 ConfigTreeItem * dam = new ConfigTreeItem(nullptr, "damage_model") ;
-                ConfigTreeItem * damType = new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
-                ConfigTreeItem * damIncr = new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
-                ConfigTreeItem * damMax = new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
-                ConfigTreeItem * damTol = new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
+                new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
+                new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
+                new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
+                new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
                 this->addChild(dam) ;
             }
         }
