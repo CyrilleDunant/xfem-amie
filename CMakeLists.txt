@@ -328,6 +328,12 @@ target_link_libraries( back_homogenisation Amie ${ALL_LINK_FLAGS} )
 add_executable(single_2d_inclusion examples/main_single_2d_inclusion.cpp )
 target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} )
 
+add_executable(elas_CSH_CASH examples/main_elas_CSH_CASH.cpp ) 
+target_link_libraries( elas_CSH_CASH Amie ${ALL_LINK_FLAGS} ) 
+
+add_executable(visco_CSH_CASH examples/main_visco_CSH_CASH.cpp)
+target_link_libraries( visco_CSH_CASH Amie ${ALL_LINK_FLAGS} ) 
+
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 
