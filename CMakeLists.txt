@@ -325,11 +325,11 @@ target_link_libraries( dam Amie ${ALL_LINK_FLAGS} )
 add_executable(back_homogenisation examples/main_back_homogenisation.cpp )
 target_link_libraries( back_homogenisation Amie ${ALL_LINK_FLAGS} )
 
-add_executable(single_2d_inclusion examples/main_single_2d_inclusion.cpp )
-target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} ) 
+add_executable(visco_CSH_CASH examples/main_visco_CSH_CASH.cpp )
+target_link_libraries( visco_CSH_CASH Amie ${ALL_LINK_FLAGS} )
 
-add_executable(visco_CSH_CASH examples/main_visco_CSH_CASH.cpp)
-target_link_libraries( visco_CSH_CASH Amie ${ALL_LINK_FLAGS} ) 
+add_executable(single_2d_inclusion examples/main_single_2d_inclusion.cpp )
+target_link_libraries( single_2d_inclusion Amie ${ALL_LINK_FLAGS} )
 
 add_executable(3d_asr  examples/main_3d_asr.cpp  )
 target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
@@ -405,9 +405,6 @@ target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 
 add_executable(tripoint examples/main_tripoint.cpp )
 target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
-
-add_executable(visco examples/main_single_2d_viscoelasticity.cpp )
-target_link_libraries( visco Amie ${ALL_LINK_FLAGS})
 
 add_executable(irradiation examples/main_irradiation.cpp )
 target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})

@@ -28,7 +28,6 @@
 #include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
-#include "../physics/homogenization/homogenization_base.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/polygonSample.h"
@@ -113,15 +112,15 @@ int main(int argc, char *argv[])
     // Cement paste
     double k_elas = 23.0e9;
     double nu_elas = 0.24 ;
-    Matrix E_cp_elas = Material::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
     std::vector<std::pair<Matrix, Matrix> > branches ;
     double factor_k = 1.28 ;
     std::vector<double> K_chaine_cp = {5.4e10/factor_k, 6.2e10/factor_k,3.4e10/factor_k} ;
 	for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
 	{
 		double tau = std::pow(10., (double) i - 1 );
-		Matrix K_i = Material::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-		Matrix Am_i = Material::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+		Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
+		Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
 		branches.push_back(std::make_pair(K_i, Am_i)) ;
 	}
 //Aggregates
@@ -135,7 +134,7 @@ int main(int argc, char *argv[])
     double rmax_pore = 0.004;
     double rmin_pore = rmax_pore*0.01 ;
     double f_pore = 0.1;
-    Matrix E_agg = Material::cauchyGreen( k_agg, nu_agg, true, SPACE_TWO_DIMENSIONAL) ;
+    Matrix E_agg = Tensor::cauchyGreen( k_agg, nu_agg, true, SPACE_TWO_DIMENSIONAL) ;
     Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
     Viscoelasticity * vaggregates = new Viscoelasticity( PURE_ELASTICITY, E_agg, 3) ;
 
