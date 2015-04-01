@@ -21,6 +21,8 @@ struct GelBehaviour : public StiffnessWithImposedDeformation
 
 struct ViscoElasticOnlyGelBehaviour : public GelBehaviour
 {
+    int freeblocks ;
+
     ViscoElasticOnlyGelBehaviour(double E=22e9, double nu=0.18, double alpha=0.22, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL) ;
 
     Form * getCopy() const ;

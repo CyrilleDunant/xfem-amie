@@ -83,6 +83,8 @@ struct Viscoelasticity : public LinearForm
 
 	virtual bool changed() const ;
 
+        virtual void setBlocks(int maxBlocks) ;
+
 	virtual Vector getImposedStress(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 	virtual Vector getImposedStrain(const Point & p, IntegrableEntity * e = nullptr, int g = -1) const ;
 

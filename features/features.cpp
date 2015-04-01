@@ -16,14 +16,18 @@
 #include "../physics/void_form.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
-#include "../physics/kelvinvoight.h"
+#include "../physics/materials/aggregate_behaviour.h"
+#include "../physics/materials/gel_behaviour.h"
+#include "../physics/materials/paste_behaviour.h"
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
 #include "../physics/homogeneised_behaviour.h"
+#include "../physics/diffusion.h"
 #include "../solvers/multigrid.h"
 #include "../solvers/multigridstep.h"
 #include "../mesher/parallel_delaunay.h"
+#include "../utilities/behaviour_converter.h"
 #include <time.h>
 #include <sys/time.h>
 
@@ -4798,7 +4802,7 @@ bool FeatureTree::stepElements()
                             }
                             else
                             {
-                                std::cerr << "negative time step: setting to 0..." << std::endl ;
+                                std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
                                 moveFirstTimePlanes ( 0., j->second->begin(), j->second->end() ) ;
                             }
                         }
@@ -5066,7 +5070,7 @@ bool FeatureTree::stepElements()
                     }
                     else
                     {
-                        std::cerr << "negative time step: setting to 0..." << std::endl ;
+                        std::cerr << "time step too small: setting to " << minDeltaTime << std::endl ;
                         this->moveFirstTimePlanes ( 0., dtree3D->begin(), dtree3D->end() ) ;
                     }
                 }
@@ -5168,6 +5172,12 @@ bool FeatureTree::stepElements()
 
 void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
 {
+    if( !spaceTimeSwitched )
+    {
+        ft->checkSpaceTimeConsistency() ;
+        spaceTimeSwitched = true ;
+    }
+
     bool behaviourChanged = ft->behaviourChanged() ;
     bool xfemChanged = ft->enrichmentChanged() ;
 
@@ -5383,6 +5393,118 @@ void FeatureTree::resetBoundaryConditions()
     }
 } 
 
+void FeatureTree::checkSpaceTimeConsistency()
+{
+    bool spaceTimeElemOrder = (elemOrder >= CONSTANT_TIME_LINEAR && elemOrder < QUADTREE_REFINED);
+    bool spaceTimeElemBehaviour = false ;
+    bool isDiffusion = false ;
+    int maxBlocks = 1 ;
+    for(size_t i = 0 ; i < tree.size() ; i++)
+    {
+        Form * behaviour = tree[i]->getBehaviour() ;
+        if(dynamic_cast<Viscoelasticity*>(behaviour))
+        {
+            spaceTimeElemBehaviour = true ;
+            if( dynamic_cast<Viscoelasticity*>(behaviour)->blocks > maxBlocks )
+                maxBlocks = dynamic_cast<Viscoelasticity*>(behaviour)->blocks ;
+        } 
+        if ( (dynamic_cast<AggregateBehaviour *>(behaviour) || dynamic_cast<PasteBehaviour *>(behaviour) || dynamic_cast<GelBehaviour *>(behaviour)) && maxBlocks < 3)
+        {
+            maxBlocks = 3 ;
+        }
+        if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) || dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) || 
+            dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) || dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ||
+            dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour))
+        {
+            spaceTimeElemBehaviour = true ;
+            int fblocks = 3 ;
+            if( dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyAggregateBehaviour*>(behaviour)->freeblocks ; }
+            else if( dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoDamageAggregateBehaviour*>(behaviour)->freeblocks ; }
+            else if( dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyPasteBehaviour*>(behaviour)->freeblocks ; }
+            else if( dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoDamagePasteBehaviour*>(behaviour)->freeblocks ; }
+            else if( dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour) ) { fblocks += dynamic_cast<ViscoElasticOnlyGelBehaviour*>(behaviour)->freeblocks ; }
+            if(fblocks > maxBlocks)
+                maxBlocks = fblocks ;
+
+        }
+        Diffusion * dbehaviour = dynamic_cast<Diffusion *>(tree[i]->getBehaviour()) ;
+        if(dbehaviour)
+        {
+            spaceTimeElemBehaviour = true ;
+            isDiffusion = true ;
+        }
+        if(isDiffusion && !dbehaviour)
+        {
+            std::cout << "unable to do transport-mechanical analysis" << std::endl ;
+            exit(0) ;
+        }
+
+    }
+
+    if( spaceTimeElemBehaviour && !spaceTimeElemOrder )
+    {
+        switch(elemOrder)
+        {
+            case CONSTANT:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to CONSTANT_TIME_LINEAR element order" << std::endl ;
+                setOrder(CONSTANT_TIME_LINEAR) ;
+                break ;
+            case LINEAR:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to LINEAR_TIME_LINEAR element order" << std::endl ;
+                setOrder(LINEAR_TIME_LINEAR) ;
+                break ;
+            case QUADRATIC:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUADRATIC_TIME_LINEAR element order" << std::endl ;
+                setOrder(QUADRATIC_TIME_LINEAR) ;
+                break ;
+            case CUBIC:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to CUBIC_TIME_LINEAR element order" << std::endl ;
+                setOrder(CUBIC_TIME_LINEAR) ;
+                break ;
+            case QUADRIC:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUADRIC_TIME_LINEAR element order" << std::endl ;
+                setOrder(QUADRIC_TIME_LINEAR) ;
+                break ;
+            case QUINTIC:
+                std::cout << "element type inappropriate for space-time finite element analysis, switching to QUINTIC_TIME_LINEAR element order" << std::endl ;
+                setOrder(QUINTIC_TIME_LINEAR) ;
+                break ;
+            case QUADTREE_REFINED:
+            case REGULAR_GRID:
+                std::cout << "unable to convert " << (elemOrder == QUADTREE_REFINED ? "QUADTREE_REFINED" : "REGULAR_GRID") << " to space-time finite elements" << std::endl ;
+                exit(0) ;
+                break ;
+            default:
+                break ;
+        }
+        spaceTimeElemOrder = true ;
+    }
+
+    if(spaceTimeElemOrder && !isDiffusion)
+    {
+        for(size_t i = 0 ; i < tree.size() ; i++)
+        {
+            std::cout << "\rchecking space-time finite element behaviour (feature " << i << "/" << tree.size() << ")" << std::flush ;
+            if(! BehaviourConverter::toSpaceTimeBehaviour( tree[i], maxBlocks ) )
+            {
+                std::cout << "conversion of behaviour to space-time failed for feature " << i << "/" << tree.size() << std::endl ;
+                exit( 0 ) ;
+            }
+
+            if(tree[i]->isEnrichmentFeature && !dynamic_cast<TimeDependentEnrichmentInclusion*>(tree[i]) )
+            {
+                std::cout << "enrichment inconsistent with space-time finite elements for feature " << i << "/" << tree.size() << std::endl ;
+                exit( 0 ) ;
+            }
+
+
+        }
+        std::cout << "\rchecking space-time finite element behaviour (feature " << tree.size() << "/" << tree.size() << ") ...done" << std::endl ;
+    }
+
+
+}
+
 bool FeatureTree::step()
 {
 
@@ -5497,6 +5619,9 @@ bool FeatureTree::step()
     }
     std::cerr << it << "/" << maxitPerStep << "." << std::flush ;
     damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( it < maxitPerStep ) ;
+
+    if(damageConverged)
+	K->setPreviousDisplacements() ;
 
     return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
 }

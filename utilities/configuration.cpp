@@ -1559,18 +1559,19 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         Sample * placement = nullptr ;
         int tries = getData("placement.tries", 1e6) ;
         double spacing = getData("placement.spacing",1e-5) ;
+        int seed = getData("placement.seed", 0) ;
         if(hasChildFromFullLabel("placement.box"))
         {
             placement = getChildFromFullLabel("placement.box")->getSample() ;
         }
         if(base.size() == 0)
         {
-            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers) ;
+            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
             std::cout << ret.size() << std::endl ;
         }
         else
         {
-            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers) ;
+            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
     }
 
@@ -1639,10 +1640,18 @@ LagrangeMultiplierType ConfigTreeItem::translateLagrangeMultiplierType(std::stri
         return SET_ALONG_XI_ZETA ;
     if(type == "SET_ALONG_ETA_ZETA")
         return SET_ALONG_ETA_ZETA ;
+    if(type == "INCREMENT_ALONG_XI")
+        return INCREMENT_ALONG_XI ;
+    if(type == "INCREMENT_ALONG_ETA")
+        return INCREMENT_ALONG_ETA ;
+    if(type == "INCREMENT_ALONG_ZETA")
+        return INCREMENT_ALONG_ZETA ;
     if(type == "FIX_ALONG_INDEXED_AXIS")
         return FIX_ALONG_INDEXED_AXIS ;
     if(type == "SET_ALONG_INDEXED_AXIS")
         return SET_ALONG_INDEXED_AXIS ;
+    if(type == "INCREMENT_ALONG_INDEXED_AXIS")
+        return INCREMENT_ALONG_INDEXED_AXIS ;
     if(type == "SET_FORCE_XI")
         return SET_FORCE_XI ;
     if(type == "SET_FORCE_ETA")
@@ -2003,6 +2012,8 @@ FieldType ConfigTreeItem::translateFieldType( std::string field, bool & ok)
         return STRAIN_RATE_FIELD ;
     if(field == "STRAIN_FIELD")
         return STRAIN_FIELD ;
+    if(field == "MECHANICAL_STRAIN_FIELD")
+        return MECHANICAL_STRAIN_FIELD ;
     if(field == "EFFECTIVE_STRESS_FIELD")
         return EFFECTIVE_STRESS_FIELD ;
     if(field == "REAL_STRESS_FIELD")

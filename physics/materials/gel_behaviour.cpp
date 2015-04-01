@@ -15,7 +15,7 @@ GelBehaviour::GelBehaviour(double E, double nu, double alpha, SpaceDimensionalit
 
 }
 
-ViscoElasticOnlyGelBehaviour::ViscoElasticOnlyGelBehaviour(double E, double nu, double alpha, SpaceDimensionality dim): GelBehaviour(E,nu,alpha,dim)
+ViscoElasticOnlyGelBehaviour::ViscoElasticOnlyGelBehaviour(double E, double nu, double alpha, SpaceDimensionality dim): GelBehaviour(E,nu,alpha,dim), freeblocks(0)
 {
 
 }
@@ -24,5 +24,5 @@ Form * ViscoElasticOnlyGelBehaviour::getCopy() const
 {
 	Matrix c = param ;
 	Vector a = imposed ;
-	return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, c, a, 2 ) ;
+	return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, c, a, 2 + freeblocks ) ;
 }

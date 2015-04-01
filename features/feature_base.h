@@ -107,7 +107,7 @@ public:
 	virtual Form * getBehaviour( const Point & p ) const ;
 	
 	virtual Form * getBehaviour() const ;
-	
+
 	/** \brief Add a child to the feature.
 	 * 
 	 * @param f Children to add.

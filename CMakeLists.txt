@@ -182,6 +182,7 @@ utilities/pid.cpp
 utilities/itoa.cpp
 utilities/placement.cpp
 utilities/random.cpp
+utilities/behaviour_converter.cpp
 utilities/samplingcriterion.cpp
 features/microstructuregenerator.cpp
 utilities/writer/triangle_writer.cpp

@@ -112,6 +112,16 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                  a->setPointAlong ( XI, data, id[idit] ) ;
             break ;
 
+        case INCREMENT_ALONG_XI:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+	    if(n>2)
+	            a->setPointAlongIndexedAxis ( 0, a->getPreviousDisplacements()[ id[idit]*n ] + data, id[idit] ) ;
+	    else	
+                 a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[idit]*n ] + data, id[idit] ) ;
+            break ;
+
         case FIX_ALONG_ETA:
         {
 	    if(n > 2)
@@ -148,9 +158,26 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 	            a->setPointAlong ( ETA, data, id[idit] ) ;
             break ;
 
+        case INCREMENT_ALONG_ETA:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+	    if(n>2)
+	            a->setPointAlongIndexedAxis ( 1, a->getPreviousDisplacements()[ id[idit]*n + 1 ] + data, id[idit] ) ;
+	    else	
+                 a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[idit]*n + 1 ] + data, id[idit] ) ;
+            break ;
+
         case SET_ALONG_INDEXED_AXIS:
 //				std::cout << axis << "\t" << id[idit] << "\t" << data << std::endl ;
             a->setPointAlongIndexedAxis ( axis, data, id[idit] ) ;
+            break ;
+
+        case INCREMENT_ALONG_INDEXED_AXIS:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            a->setPointAlongIndexedAxis ( axis, a->getPreviousDisplacements()[ id[idit]*n + axis ] + data, id[idit] ) ;
             break ;
 
         case SET_FORCE_XI:
@@ -942,6 +969,16 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             a->setPointAlong ( XI, data, id[i] ) ;
             break ;
 
+        case INCREMENT_ALONG_XI:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+	    if(n>3)
+	            a->setPointAlongIndexedAxis ( 0, a->getPreviousDisplacements()[ id[i]*n ] + data, id[i] ) ;
+	    else	
+                 a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i]*n ] + data, id[i] ) ;
+            break ;
+
         case FIX_ALONG_ETA:
             a->setPointAlong ( ETA, 0., id[i] ) ;
             break ;
@@ -949,6 +986,17 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         case SET_ALONG_ETA:
             a->setPointAlong ( ETA, data, id[i] ) ;
             break ;
+
+        case INCREMENT_ALONG_ETA:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+	    if(n>3)
+	            a->setPointAlongIndexedAxis ( 1, a->getPreviousDisplacements()[ id[i]*n + 1 ] + data, id[i] ) ;
+	    else	
+                 a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i]*n + 1 ] + data, id[i] ) ;
+            break ;
+
 
         case FIX_ALONG_ZETA:
             a->setPointAlong ( ZETA, 0., id[i] ) ;
@@ -978,9 +1026,28 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             a->setPointAlong ( ZETA, data, id[i] ) ;
             break ;
 
+        case INCREMENT_ALONG_ZETA:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+	    if(n>3)
+	            a->setPointAlongIndexedAxis ( 2, a->getPreviousDisplacements()[ id[i]*n + 2 ] + data, id[i] ) ;
+	    else	
+                 a->setPointAlong ( ZETA, a->getPreviousDisplacements()[ id[i]*n + 2] + data, id[i] ) ;
+            break ;
+
+
         case SET_ALONG_INDEXED_AXIS:
             a->setPointAlongIndexedAxis ( axis, data, id[i] ) ;
             break ;
+
+        case INCREMENT_ALONG_INDEXED_AXIS:
+            if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            a->setPointAlongIndexedAxis ( axis, a->getPreviousDisplacements()[ id[i]*n + axis ] + data, id[i] ) ;
+            break ;
+
 
         case SET_FORCE_XI:
 
@@ -2048,15 +2115,34 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             break ;
 
         case FIX_ALONG_XI:
-            a->setPointAlong ( XI, 0, id[i].getId() ) ;
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 0, 0, id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, 0, id[i].getId() ) ;
             break ;
 
         case SET_ALONG_XI:
-            a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 0, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_XI:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ETA:
-            a->setPointAlong ( ETA, 0, id[i].getId() ) ;
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 1, 0, id[i].getId() ) ;
+            else
+                a->setPointAlong ( ETA, 0, id[i].getId() ) ;
             break ;
             
         case FIX_ALONG_ALL:
@@ -2077,7 +2163,27 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
         }
 
         case SET_ALONG_ETA:
-            a->setPointAlong ( ETA,  vm.eval ( data, id[i] ), id[i].getId() ) ;
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 1, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_ETA:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            if(n > 2)
+                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n+1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_INDEXED_AXIS:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            a->setPointAlongIndexedAxis( axis, a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
@@ -2751,15 +2857,34 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             break ;
 
         case FIX_ALONG_XI:
-            a->setPointAlong ( XI, 0, id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 0, 0, id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, 0, id[i].getId() ) ;
             break ;
 
         case SET_ALONG_XI:
-            a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 0, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_XI:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 0, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, a->getPreviousDisplacements()[ id[i].getId()*n ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ETA:
-            a->setPointAlong ( ETA, 0, id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 1, 0, id[i].getId() ) ;
+            else
+                a->setPointAlong ( XI, 0, id[i].getId() ) ;
             break ;
             
         case FIX_ALONG_ALL:
@@ -2783,19 +2908,55 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         }
 
         case SET_ALONG_ETA:
-            a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 1, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_ETA:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 1, a->getPreviousDisplacements()[ id[i].getId()*n + 1 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ETA, a->getPreviousDisplacements()[ id[i].getId()*n + 1] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case FIX_ALONG_ZETA:
-            a->setPointAlong ( ZETA, 0, id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 2, 0, id[i].getId() ) ;
+            else
+                a->setPointAlong ( ZETA, 0, id[i].getId() ) ;
             break ;
 
         case SET_ALONG_ZETA:
-            a->setPointAlong ( ZETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 2, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ZETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_ZETA:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            if(n > 3)
+                a->setPointAlongIndexedAxis( 2, a->getPreviousDisplacements()[ id[i].getId()*n + 2 ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
+            else
+                a->setPointAlong ( ZETA, a->getPreviousDisplacements()[ id[i].getId()*n + 2] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
             a->setPointAlongIndexedAxis ( axis, vm.eval ( data, id[i] ), id[i].getId() ) ;
+            break ;
+
+        case INCREMENT_ALONG_INDEXED_AXIS:
+            if( a->getPreviousDisplacements().size() == 0 )
+                break ;
+
+            a->setPointAlongIndexedAxis( axis , a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
         case SET_FORCE_XI:

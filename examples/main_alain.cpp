@@ -62,40 +62,31 @@ int main(int argc, char *argv[])
 	Sample box(nullptr, 0.01,0.01,0.,0.) ;
 
 	FeatureTree F(&box) ;
-	F.setSamplingNumber(16) ;
-	F.setOrder(LINEAR_TIME_LINEAR) ;
+	F.setSamplingNumber(4) ;
+//	F.setOrder(LINEAR_TIME_LINEAR) ;
 	double time_step = 1. ;
 	F.setDeltaTime(time_step) ;
 
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER) ) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER) ) ;
-	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0) ;
+	BoundingBoxDefinedBoundaryCondition * disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0.00001) ;
 	F.addBoundaryCondition(disp) ;
 
-	Point p0(0.0001,1.5e6) ;
-	Point p1(0.0003,0.) ;
-	std::vector<Point> tensionCurve ;
-	std::vector<Point> compressionCurve ;
-	tensionCurve.push_back(p0) ;
-	tensionCurve.push_back(p1) ;
-	AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion * crit =  new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( tensionCurve, compressionCurve, 15e9) ; 
-	crit->setMaterialCharacteristicRadius(0.1) ;
+        ViscoElasticOnlyPasteBehaviour falsePaste ;
+        falsePaste.freeblocks = 1 ;
+	box.setBehaviour(&falsePaste) ;
 
-	LogarithmicCreepWithExternalParameters paste("young_modulus = 15e9, poisson_ratio = 0.3, creep_modulus = 30e9, creep_poisson = 0.3, creep_characteristic_time = 1.", crit, new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-9, 1.) ) ;
-	box.setBehaviour(&paste) ;
-
+	LogarithmicCreepWithExternalParameters paste("young_modulus = 15e9, poisson_ratio = 0.3, creep_modulus = 30e9, creep_poisson = 0.3, creep_characteristic_time = 1.") ;
 	Inclusion * notch = new Inclusion( 0.001, -0.005, 0.) ;
-	notch->setBehaviour(new VoidForm()) ;
+	notch->setBehaviour(&paste) ;
 	F.addFeature(&box, notch) ;
-
 
 	while(F.getCurrentTime() < 120)
 	{
-		disp->setData( 0.1*0.001*F.getCurrentTime()/1000) ;
 		time_step += 1. ;
 		F.setDeltaTime(time_step) ;
 		F.step() ;
-		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
+		std::cout << F.getAssembly()->getNumberOfDegreesOfFreedom() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
 	}
 
 

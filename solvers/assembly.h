@@ -39,18 +39,25 @@ typedef enum
 	FIX_ALONG_ALL,
 	FIX_ALONG_XI,
 	SET_ALONG_XI,
+	INCREMENT_ALONG_XI,
 	FIX_ALONG_ETA,
 	SET_ALONG_ETA,
+	INCREMENT_ALONG_ETA,
 	FIX_ALONG_ZETA,
 	SET_ALONG_ZETA,
+	INCREMENT_ALONG_ZETA,
 	FIX_ALONG_XI_ETA,
 	SET_ALONG_XI_ETA,
+	INCREMENT_ALONG_XI_ETA,
 	FIX_ALONG_XI_ZETA,
 	SET_ALONG_XI_ZETA,
+	INCREMENT_ALONG_XI_ZETA,
 	FIX_ALONG_ETA_ZETA,
 	SET_ALONG_ETA_ZETA,
+	INCREMENT_ALONG_ETA_ZETA,
 	FIX_ALONG_INDEXED_AXIS,
 	SET_ALONG_INDEXED_AXIS,
+	INCREMENT_ALONG_INDEXED_AXIS,
 	SET_FORCE_XI,
 	SET_FORCE_ETA,
 	SET_FORCE_ZETA,
@@ -200,6 +207,7 @@ protected:
 	Vector naturalBoundaryConditionForces ;
 	Vector displacements ;
 	Vector prevDisplacements ;
+	Vector realPrevDisplacements ;
 	Vector externalForces ;
 	Vector nonLinearExternalForces ;
 	Vector addToExternalForces ;
@@ -294,6 +302,10 @@ public:
 /** \brief return result of the system*/
 	Vector & getDisplacements() {return displacements ;}
 // 	const Vector & getForces() const;
+
+	Vector & getPreviousDisplacements() {return realPrevDisplacements ;}
+
+	void setPreviousDisplacements() { realPrevDisplacements = displacements ; }
 	
 /** \brief set boundary condition. Point with ID id is fixed*/
 	void fixPoint(size_t id) ;

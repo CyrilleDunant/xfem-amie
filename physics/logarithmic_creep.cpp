@@ -165,6 +165,7 @@ Form * LogarithmicCreep::getCopy() const
         copy = new LogarithmicCreep( C, accumulator->getCopy() ) ;
     else
         copy = new LogarithmicCreep( C, E, R, tau, accumulator->getCopy() ) ;
+    copy->setBlocks(blocks) ;
     return copy ;
 }
 
@@ -254,6 +255,7 @@ Form * LogarithmicCreepWithImposedDeformation::getCopy() const
         copy = new LogarithmicCreepWithImposedDeformation( C, imposed, accumulator->getCopy() ) ;
     else
         copy = new LogarithmicCreepWithImposedDeformation( C, E, R, tau, imposed, accumulator->getCopy() ) ;
+    copy->setBlocks(blocks) ;
     return copy ;
 }
 
@@ -354,6 +356,7 @@ Form * LogarithmicCreepWithImposedDeformationAndFracture::getCopy() const
         copy->dfunc->setDamageDensityTolerance(dfunc->getDamageDensityTolerance());
         copy->dfunc->setThresholdDamageDensity(dfunc->getThresholdDamageDensity());
     }
+    copy->setBlocks(blocks) ;
     return copy ;
 }
 

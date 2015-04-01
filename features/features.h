@@ -55,6 +55,7 @@ class FeatureTree
 {
 protected:
     typedef enum {
+        SPACETIME_SWITCH,
         SAMPLED,
         MESHED,
         RENUMBERED,
@@ -70,6 +71,7 @@ protected:
     } StateType ;
 
     struct State {
+        bool spaceTimeSwitched ;
         bool sampled ;
         bool meshed ;
         bool renumbered ;
@@ -88,6 +90,7 @@ protected:
 
 
         State ( FeatureTree * ft ) : ft ( ft ) {
+            spaceTimeSwitched = false ;
             sampled = false ;
             meshed = false;
             renumbered = false;
@@ -197,6 +200,9 @@ protected:
 
     /** \brief  Project all points on their respective boundaries.*/
     void stitch() ;
+
+    /** \brief  Check element order and behaviour for space-time calculations.*/
+    void checkSpaceTimeConsistency() ;
 
     /** \brief Project all points on their respective boundaries (triangles only)
      * @param edge number of additionnal points on the edge of the triangles
