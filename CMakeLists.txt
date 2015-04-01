@@ -108,7 +108,6 @@ physics/fracturecriteria/fracturecriterion.cpp
 physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp
 physics/radialstiffnessgradient.cpp
-physics/kelvinvoight.cpp
 physics/fracturecriteria/maxstrain.cpp 
 physics/fracturecriteria/mohrcoulomb.cpp
 physics/fracturecriteria/mcft.cpp
@@ -119,10 +118,10 @@ physics/spatially_distributed_stiffness.cpp
 physics/homogeneised_behaviour.cpp 
 physics/stiffness_and_fracture.cpp 
 physics/stiffness.cpp 
-physics/maxwell.cpp 
-physics/maxwell_and_fracture.cpp 
-physics/parallel_behaviour.cpp 
-physics/serial_behaviour.cpp 
+#physics/maxwell.cpp 
+#physics/maxwell_and_fracture.cpp 
+#physics/parallel_behaviour.cpp 
+#physics/serial_behaviour.cpp 
 physics/orthotropicstiffness.cpp 
 physics/stiffness_and_indexed_fracture.cpp
 physics/fraction_stiffness_and_fracture.cpp

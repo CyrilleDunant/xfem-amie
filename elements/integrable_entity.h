@@ -326,67 +326,6 @@ public:
 
 } ;
 
-class ParallelElementState : public ElementState
-{
-protected:
-    std::vector<ElementState *> states ;
-
-public:
-    ParallelElementState ( IntegrableEntity *, std::vector<ElementState *> s ) ;
-    ParallelElementState ( ParallelElementState &s ) ;
-    ParallelElementState & operator = ( ParallelElementState & s ) ;
-
-    ElementState & getState ( size_t i ) ;
-    const ElementState & getState ( size_t i ) const ;
-    size_t getNumberOfStates() const {
-        return states.size() ;
-    }
-
-    virtual void initialize ( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh ) ;
-    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
-    virtual void step ( double dt, const Vector* d ) ;
-
-} ;
-
-
-class SerialElementState : public ElementState
-{
-protected:
-    std::vector<ElementState *> states ;
-
-public:
-    SerialElementState ( IntegrableEntity *, std::vector<ElementState *> s ) ;
-    SerialElementState ( SerialElementState &s ) ;
-    SerialElementState & operator = ( SerialElementState & s ) ;
-
-    ElementState & getState ( size_t i ) ;
-    const ElementState& getState ( size_t i ) const ;
-    size_t getNumberOfStates() const {
-        return states.size() ;
-    }
-
-    virtual void initialize ( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh ) ;
-    virtual void initialize ( Mesh< DelaunayTriangle, DelaunayTreeItem >* msh ) ;
-    virtual void step ( double dt, const Vector* d ) ;
-
-} ;
-
-class KelvinVoightSpaceTimeElementState : public ElementState
-{
-public:
-    KelvinVoightSpaceTimeElementState ( IntegrableEntity * e ) ;
-    KelvinVoightSpaceTimeElementState ( KelvinVoightSpaceTimeElementState &s ) ;
-    KelvinVoightSpaceTimeElementState & operator = ( KelvinVoightSpaceTimeElementState & s ) ;
-
-    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const final;
-
-    virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
-
-// 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
-
-} ;
-
-
 /** \brief container for a set of Gauss points*/
 struct GaussPointArray {
     std::valarray< std::pair<Point, double> > gaussPoints ;

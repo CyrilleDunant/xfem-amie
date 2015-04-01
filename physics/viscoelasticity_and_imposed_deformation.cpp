@@ -71,24 +71,47 @@ void ViscoelasticityAndImposedDeformation::applyViscous( const Function & p_i, c
 
 Form * ViscoelasticityAndImposedDeformation::getCopy() const
 {
-    if(model == PURE_ELASTICITY)
+    Matrix rig = param ;
+    Matrix e = eta ;
+    Vector a = imposedStrain ;
+    switch(model)
     {
-        if(blocks > 1)
+    case PURE_ELASTICITY:
+        return new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, tensors[0], a, blocks-effblocks, rho) ;
+    case PURE_VISCOSITY:
+        return new ViscoelasticityAndImposedDeformation( PURE_VISCOSITY, tensors[1], a, blocks-effblocks, rho) ;
+    case MAXWELL:
+        return new ViscoelasticityAndImposedDeformation( MAXWELL, tensors[0], tensors[1],a, 0, blocks-effblocks, rho) ;
+    case KELVIN_VOIGT:
+        return new ViscoelasticityAndImposedDeformation( KELVIN_VOIGT, tensors[0], tensors[1],a, 0, blocks-effblocks, rho) ;
+    case BURGER:
+        return new ViscoelasticityAndImposedDeformation( BURGER, tensors[2], tensors[3], tensors[0], tensors[1],a, 0, blocks-effblocks, rho) ;
+    case GENERALIZED_MAXWELL:
+    {
+        std::vector<std::pair<Matrix, Matrix> > branches ;
+        for(size_t i = 1 ; i < tensors.size() ; i+= 2)
         {
-            Matrix rig( param.numCols()/blocks, param.numRows()/blocks) ;
-            for(size_t i = 0 ; i < rig.numCols() ; i++)
-            {
-                for(size_t j = 0 ; j < rig.numRows() ; j++)
-                    rig[i][j] = param[i][j] ;
-            }
-            Vector imp = imposedStrain ;
-            return new ViscoelasticityAndImposedDeformation( model, rig, imp, blocks-1, rho) ;
+            branches.push_back( std::make_pair(tensors[i], tensors[i+1]) ) ;
         }
-        Matrix rig = param ;
-        Vector imp = imposedStrain ;
-        return new ViscoelasticityAndImposedDeformation( model, rig, imp) ;
+        return new ViscoelasticityAndImposedDeformation( GENERALIZED_MAXWELL, tensors[0], branches,a, 0, blocks-effblocks, rho) ;
     }
-    return new ViscoelasticityAndImposedDeformation(*this) ;
+    case GENERALIZED_KELVIN_VOIGT:
+    {
+        std::vector<std::pair<Matrix, Matrix> > branches ;
+        for(size_t i = 1 ; i < tensors.size() ; i+= 2)
+        {
+            branches.push_back( std::make_pair(tensors[i], tensors[i+1]) ) ;
+        }
+        return new ViscoelasticityAndImposedDeformation( GENERALIZED_KELVIN_VOIGT, tensors[0], branches,a, 0, blocks-effblocks, rho) ;
+    }
+    case GENERAL_VISCOELASTICITY:
+        return new ViscoelasticityAndImposedDeformation( rig, e, blocks, a) ;
+    }
+
+    ViscoelasticityAndImposedDeformation * copy = new ViscoelasticityAndImposedDeformation(rig, e, blocks, a) ;
+    copy->model = model ;
+
+    return copy ;
 }
 
 Vector ViscoelasticityAndImposedDeformation::getImposedStrain(const Point & p, IntegrableEntity * e , int g ) const
@@ -106,9 +129,6 @@ std::vector<BoundaryCondition * > ViscoelasticityAndImposedDeformation::getBound
     std::vector<BoundaryCondition * > ret ;
     if(v.size() == 3)
     {
-// 		Vector tmp = imposedStress ;
-// 		tmp[17] = imposedStrain[24] ;
-
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_XI, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposedStress[0]));
         ret.push_back(new DofDefinedBoundaryCondition(SET_VOLUMIC_STRESS_ETA, dynamic_cast<ElementarySurface *>(s.getParent()),gp,Jinv, id, imposedStress[1]));
     }

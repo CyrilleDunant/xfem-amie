@@ -11,7 +11,6 @@
 #include "../physics/damagemodels/fractiondamage.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/stiffness.h"
-#include "../physics/maxwell.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/materials/aggregate_behaviour.h"
 

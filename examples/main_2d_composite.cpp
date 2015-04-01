@@ -5,15 +5,10 @@
 //
 
 #include "main.h"
-#include "../features/boundarycondition.h"
-#include "../features/features.h"
-#include "../physics/material_laws/material_laws.h"
-#include "../polynomial/vm_function_base.h"
 #include "../utilities/configuration.h"
 #include "../utilities/parser.h"
 
 #include <fstream>
-
 #include <cmath>
 #include <typeinfo>
 #include <limits>

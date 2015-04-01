@@ -7,10 +7,8 @@
 
 #include "../features/features.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
-#include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
-#include "../features/crack.h"
 #include "../utilities/itoa.h"
 #include "../utilities/writer/triangle_writer.h"
 
@@ -22,7 +20,6 @@
 #include <time.h> 
 #define DEBUG 
 
-#include "../features/sample3d.h"
 
 using namespace Amie ;
 using namespace std;

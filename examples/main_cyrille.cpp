@@ -14,7 +14,6 @@
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
-#include "../physics/kelvinvoight.h"
 #include "../physics/fracturecriteria/vonmises.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/fracturecriteria/maxstrain.h"

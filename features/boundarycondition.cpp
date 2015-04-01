@@ -246,7 +246,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model != PURE_ELASTICITY )
+                if ( visc && visc->model > KELVIN_VOIGT )
                 {
 	    	    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
 		    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
@@ -313,7 +313,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model != PURE_ELASTICITY )
+                if ( visc && visc->model > KELVIN_VOIGT )
                 {
 	    	    a->addForceToExternalForces ( 0, forces[0], id[idit] ) ;
 		    a->addForceToExternalForces ( 1, forces[1], id[idit] ) ;
@@ -1568,7 +1568,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model != PURE_ELASTICITY )
+                if ( visc && visc->model > KELVIN_VOIGT )
                 {
                 a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
                 a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
@@ -1642,7 +1642,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model != PURE_ELASTICITY )
+                if ( visc && visc->model > KELVIN_VOIGT )
                 {
                 a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
             a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
@@ -1715,7 +1715,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[j], gp, Jinv, v, true, Vector() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc && visc->model != PURE_ELASTICITY )
+                if ( visc && visc->model > KELVIN_VOIGT )
                 {
                 a->addForceToExternalForces ( 0, forces[0], id[j] ) ;
                 a->addForceToExternalForces ( 1, forces[1], id[j] ) ;
@@ -2257,7 +2257,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc )
+                if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
@@ -2314,7 +2314,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc )
+                if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
@@ -3374,7 +3374,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( ZETA, forces[1], id[i].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc )
+                if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
@@ -3434,7 +3434,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc )
+                if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
@@ -3494,7 +3494,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
-                if ( visc )
+                if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {

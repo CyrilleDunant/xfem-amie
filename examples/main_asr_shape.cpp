@@ -7,34 +7,20 @@
 //
 
 #include "main.h"
-#include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics_base.h"
-#include "../physics/fracturecriteria/mohrcoulomb.h"
-#include "../physics/fracturecriteria/ruptureenergy.h"
-#include "../physics/weibull_distributed_stiffness.h"
-#include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
-#include "../physics/stiffness_with_imposed_deformation.h"
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
-#include "../features/microstructuregenerator.h"
 #include "../features/expansiveZone.h"
-#include "../features/crack.h"
-#include "../features/enrichmentInclusion.h"
-#include "../mesher/delaunay_3d.h"
-#include "../solvers/assembly.h"
-#include "../utilities/itoa.h"
 #include "../utilities/granulo.h"
 #include "../utilities/placement.h"
 #include "../utilities/random.h"
 #include "../utilities/writer/triangle_writer.h"
 
 #include <fstream>
-
 #include <cmath>
 #include <typeinfo>
 #include <limits>

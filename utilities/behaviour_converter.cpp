@@ -7,6 +7,7 @@
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_with_imposed_deformation.h"
 #include "../physics/viscoelasticity.h"
+#include "../physics/viscoelasticity_and_imposed_deformation.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
@@ -20,6 +21,8 @@ using namespace Amie ;
 
 bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks ) 
 {
+     Point p ;
+
      Form * behaviour = f->getBehaviour() ;
      if( !behaviour )
      {
@@ -47,8 +50,8 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
      {
          if(dynamic_cast<ElasticOnlyAggregateBehaviour *>(behaviour))
          {
-             ViscoElasticOnlyAggregateBehaviour * converted = new ViscoElasticOnlyAggregateBehaviour( 59e9, 0.3, (behaviour->getTensor( Point(0,0) ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-             converted->param = behaviour->getTensor( Point(0,0) ) ;
+             ViscoElasticOnlyAggregateBehaviour * converted = new ViscoElasticOnlyAggregateBehaviour( 59e9, 0.3, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
+             converted->param = behaviour->getTensor( p ) ;
              converted->freeblocks = maxBlocks-3 ;
              f->setBehaviour( converted ) ;
              return true ;
@@ -63,8 +66,8 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
              dynamic_cast<ViscoDamageAggregateBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
              return true ;
          }
-         ViscoDamageAggregateBehaviour * converted = new ViscoDamageAggregateBehaviour( 59e9, 0.3, dynamic_cast<AggregateBehaviour *>(behaviour)->up, 0.00008, (behaviour->getTensor( Point(0,0) ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( Point(0,0) ) ;
+         ViscoDamageAggregateBehaviour * converted = new ViscoDamageAggregateBehaviour( 59e9, 0.3, dynamic_cast<AggregateBehaviour *>(behaviour)->up, 0.00008, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
+         converted->param = behaviour->getTensor( p ) ;
          converted->freeblocks = maxBlocks-3 ;
          f->setBehaviour( converted ) ;
          return true ;
@@ -76,8 +79,8 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
      {
          if(dynamic_cast<ElasticOnlyPasteBehaviour *>(behaviour))
          {
-             ViscoElasticOnlyPasteBehaviour * converted = new ViscoElasticOnlyPasteBehaviour( 12e9, 0.2, 0.3, 0.37, (behaviour->getTensor( Point(0,0) ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-             converted->param = behaviour->getTensor( Point(0,0) ) ;
+             ViscoElasticOnlyPasteBehaviour * converted = new ViscoElasticOnlyPasteBehaviour( 12e9, 0.2, 0.3, 0.37, (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
+             converted->param = behaviour->getTensor( p ) ;
              converted->freeblocks = maxBlocks-3 ;
              f->setBehaviour( converted ) ;
              return true ;
@@ -92,8 +95,8 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
              dynamic_cast<ViscoDamagePasteBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
              return true ;
          }
-         ViscoDamagePasteBehaviour * converted = new ViscoDamagePasteBehaviour( 12e9, 0.3, dynamic_cast<PasteBehaviour *>(behaviour)->up, 0.00015 , (behaviour->getTensor( Point(0,0) ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( Point(0,0) ) ;
+         ViscoDamagePasteBehaviour * converted = new ViscoDamagePasteBehaviour( 12e9, 0.3, dynamic_cast<PasteBehaviour *>(behaviour)->up, 0.00015 , (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
+         converted->param = behaviour->getTensor( p ) ;
          converted->freeblocks = maxBlocks-3 ;
          f->setBehaviour( converted ) ;
          return true ;
@@ -108,8 +111,8 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
              dynamic_cast<ViscoElasticOnlyGelBehaviour *>(behaviour)->freeblocks = maxBlocks-3 ;
              return true ;
          }
-         ViscoElasticOnlyGelBehaviour * converted = new ViscoElasticOnlyGelBehaviour( 22e9, 0.18, dynamic_cast<GelBehaviour*>(behaviour)->imposed[0], (behaviour->getTensor( Point(0,0) ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
-         converted->param = behaviour->getTensor( Point(0,0) ) ;
+         ViscoElasticOnlyGelBehaviour * converted = new ViscoElasticOnlyGelBehaviour( 22e9, 0.18, dynamic_cast<GelBehaviour*>(behaviour)->imposed[0], (behaviour->getTensor( p ).numCols() == 3) ? SPACE_TWO_DIMENSIONAL : SPACE_THREE_DIMENSIONAL ) ;
+         converted->param = behaviour->getTensor( p ) ;
          converted->freeblocks = maxBlocks-3 ;
          f->setBehaviour( converted ) ;
          return true ;
@@ -119,7 +122,16 @@ bool BehaviourConverter::toSpaceTimeBehaviour( Feature * f, int maxBlocks )
      // attempt space-time conversion
      else if(dynamic_cast<Stiffness *>(behaviour))
      {
-         f->setBehaviour( new Viscoelasticity( PURE_ELASTICITY, behaviour->getTensor( Point(0,0) ), maxBlocks) ) ;
+         f->setBehaviour( new Viscoelasticity( PURE_ELASTICITY, behaviour->getTensor( p ), maxBlocks-1) ) ;
+         return true ;
+     }
+
+     // generic elastic with imposed deformation behaviour
+     // attempt space-time conversion
+     else if(dynamic_cast<StiffnessWithImposedDeformation *>(behaviour))
+     {
+         Vector v = behaviour->getImposedStrain( p ) ;
+         f->setBehaviour( new ViscoelasticityAndImposedDeformation( PURE_ELASTICITY, behaviour->getTensor( p ), v, maxBlocks-1 ) ) ;
          return true ;
      }
 

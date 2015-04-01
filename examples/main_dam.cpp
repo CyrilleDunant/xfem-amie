@@ -5,23 +5,13 @@
 //
 
 #include "main.h"
-#include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics_base.h"
 #include "../physics/stiffness.h"
-#include "../physics/stiffness_and_fracture.h"
-#include "../features/pore.h"
-#include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/polygonSample3d.h"
 #include "../features/loftedPolygonSample3d.h"
-#include "../features/inclusion.h"
 #include "../features/inclusion3d.h"
-#include "../features/expansiveZone.h"
-#include "../mesher/delaunay_3d.h"
 #include "../utilities/writer/voxel_writer.h"
-#include "../features/expansiveZone3d.h"
-#include "../polynomial/vm_function_extra.h"
 #include <sys/time.h>
 
 #include <fstream>

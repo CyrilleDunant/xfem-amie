@@ -6,27 +6,12 @@
 //
 
 #include "main.h"
-#include "../utilities/samplingcriterion.h"
 #include "../features/features.h"
-#include "../physics/physics_base.h"
-#include "../physics/homogenization/composite.h"
-#include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/laplacian.h"
-#include "../physics/diffusion.h"
-#include "../physics/fracturecriteria/ruptureenergy.h"
 #include "../features/pore.h"
-#include "../features/sample.h"
 #include "../features/sample3d.h"
-#include "../features/inclusion.h"
 #include "../features/inclusion3d.h"
-#include "../features/expansiveZone.h"
-#include "../features/crack.h"
-#include "../features/enrichmentInclusion.h"
-#include "../mesher/delaunay_3d.h"
-#include "../features/expansiveZone3d.h"
-#include "../solvers/assembly.h"
 #include "../utilities/granulo.h"
-#include "../utilities/placement.h"
 #include "../physics/stiffness.h"
 #include <sys/time.h>
 
@@ -67,10 +52,6 @@ double timepos = 0.1 ;
 bool firstRun = true ;
 
 std::vector<DelaunayTriangle *> tris__ ;
-
-std::pair<std::vector<Inclusion * >, std::vector<Pore * > > i_et_p ;
-
-std::vector<std::pair<ExpansiveZone *, Inclusion *> > zones ;
 
 Vector b(0) ;
 Vector x(0) ;
