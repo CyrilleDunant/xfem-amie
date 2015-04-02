@@ -24,6 +24,7 @@
 #endif
 #include "../physics/homogeneised_behaviour.h"
 #include "../physics/diffusion.h"
+#include "../physics/finite_difference_viscoelasticity.h"
 #include "../solvers/multigrid.h"
 #include "../solvers/multigridstep.h"
 #include "../mesher/parallel_delaunay.h"
@@ -5407,7 +5408,34 @@ void FeatureTree::checkSpaceTimeConsistency()
             spaceTimeElemBehaviour = true ;
             if( dynamic_cast<Viscoelasticity*>(behaviour)->blocks > maxBlocks )
                 maxBlocks = dynamic_cast<Viscoelasticity*>(behaviour)->blocks ;
-        } 
+        }
+        if(dynamic_cast<FiniteDifferenceViscoelasticity*>(behaviour))
+        {
+            ViscoelasticModel model = dynamic_cast<FiniteDifferenceViscoelasticity *>(behaviour)->model ;
+            int tensors = dynamic_cast<FiniteDifferenceViscoelasticity *>(behaviour)->tensors.size() ;
+            int blocks = 1 ;
+            switch(model)
+            {
+            case PURE_ELASTICITY:
+            case PURE_VISCOSITY:
+            case KELVIN_VOIGT:
+                blocks = 1 ;
+                break ;
+            case MAXWELL:
+                blocks = 2 ;
+                break ;
+            case BURGER:
+                blocks = 3 ;
+                break ;
+            case GENERALIZED_KELVIN_VOIGT:
+            case GENERALIZED_MAXWELL:
+            case GENERAL_VISCOELASTICITY:
+                blocks = (tensors-1)/2 ;
+                break ;
+            }
+            if(blocks > maxBlocks)
+                maxBlocks = blocks ;
+        }
         if ( (dynamic_cast<AggregateBehaviour *>(behaviour) || dynamic_cast<PasteBehaviour *>(behaviour) || dynamic_cast<GelBehaviour *>(behaviour)) && maxBlocks < 3)
         {
             maxBlocks = 3 ;
