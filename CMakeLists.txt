@@ -51,7 +51,7 @@ features/polygonSample.cpp
 features/polygonSample3d.cpp
 features/loftedPolygonSample3d.cpp
 features/vibratingcircularmembrane.cpp 
-filters/voxelfilter.cpp 
+filters/voxelfilter.cpp
 filters/voxelporefilter.cpp 
 polynomial/vm_base.cpp 
 polynomial/vm_function_base.cpp 
@@ -104,6 +104,7 @@ physics/dual_behaviour.cpp
 physics/viscoelasticity.cpp 
 physics/viscoelasticity_and_fracture.cpp 
 physics/viscoelasticity_and_imposed_deformation.cpp 
+physics/finite_difference_viscoelasticity.cpp 
 physics/fracturecriteria/fracturecriterion.cpp 
 physics/fracturecriteria/limitstrains.cpp 
 physics/linearstiffnessgradient.cpp

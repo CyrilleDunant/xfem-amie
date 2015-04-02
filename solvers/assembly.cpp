@@ -581,16 +581,16 @@ void Assembly::checkZeroLines()
 {
     std::cerr << "removing 0-only lines..." << std::flush ;
     bool zeros = true ;
-    for(size_t i = 0 ; i < ndof ; i++)
+    for(size_t i = 0 ; i < externalForces.size() ; i++)
     {
-        zeros = true ;
+        zeros = (getMatrix()[i][i] < POINT_TOLERANCE) ;
         size_t j = 0 ;
-        while(zeros && (j < ndof))
+        while(zeros && (j < externalForces.size() ))
         {
             zeros = (getMatrix()[i][j] < POINT_TOLERANCE) ;
             j++ ;
         }
-        if(zeros && (j==ndof))
+        if(zeros && (j==externalForces.size()))
         {
             getMatrix()[i][i] = 1 ;
             externalForces[i] = 0. ;
