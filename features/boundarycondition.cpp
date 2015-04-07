@@ -6010,7 +6010,7 @@ void ProjectionDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetr
 }
 
 
-TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : BoundaryCondition ( GENERAL, 0. ), initialValue ( i )
+TimeContinuityBoundaryCondition::TimeContinuityBoundaryCondition ( double i ) : BoundaryCondition ( GENERAL, 0. ), initialValue ( i ), instant(1.)
 {
     goToNext = true ;
     previousDisp.resize ( 0 ) ;
@@ -6061,17 +6061,16 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
     }
     else
     {
-
+//        std::cout << "instant = " << instant << std::endl ;
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {
             for ( size_t j = 0 ; j < dofPerPlane ; j++ )
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+ ( int ) goToNext ) *dof + j*dof + n], dofPerPlane*i + j, true )  ;
+                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i ) *dof + j*dof + n]*(1.-instant) + previousDisp[ dofPerPlane* ( i + 1 ) *dof + j*dof + n]*instant, dofPerPlane*i + j, true )  ;
                 }
             }
-
         }
     }
 }
@@ -6128,7 +6127,7 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahe
             {
                 for ( size_t n = 0 ; n < dof ; n++ )
                 {
-                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i+ ( int ) goToNext ) *dof + j*dof + n], dofPerPlane*i + j, true )  ;
+                    a->setPointAlongIndexedAxis ( n, previousDisp[ dofPerPlane* ( i ) *dof + j*dof + n]*(1.-instant) + previousDisp[ dofPerPlane* ( i + 1 ) *dof + j*dof + n]*instant, dofPerPlane*i + j, true )  ;
                 }
             }
 

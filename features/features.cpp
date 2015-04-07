@@ -3858,6 +3858,8 @@ Vector FeatureTree::setSteppingParameters ( ConfigTreeItem * config, ConfigTreeI
     setMinDeltaTime ( minDeltaTime ) ;
     setMaxIterationsPerStep ( maxIter ) ;
     Vector cinstants ( nSteps+1 ) ;
+    if( config->hasChild( "solver_precision" ) ) 
+        K->setEpsilon( config->getData ( "solver_precision", POINT_TOLERANCE ) ) ;
     if ( config->hasChild ( "list_of_time_steps" ) )
     {
         if(config->getStringData("list_of_time_steps").find(',') != std::string::npos)
@@ -4759,7 +4761,7 @@ bool FeatureTree::stepElements()
 
                 if (foundCheckPoint )
                 {
-                    std::cerr << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
+                    std::cout << "[" << averageDamage << " ; " << ccount << " ; " <<  std::flush ;
                     maxScore = -1. ;
                     maxTolerance = 1 ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
@@ -4785,7 +4787,7 @@ bool FeatureTree::stepElements()
                         }
                     }
 
-                    std::cerr << maxScore << "]" << std::flush ;
+                    std::cout << maxScore << "]" << std::flush ;
                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                     {
                         if ( j->second->begin()->getOrder() >= LINEAR_TIME_LINEAR && maxScore > 0 && maxScore < 1.-POINT_TOLERANCE )
@@ -5554,7 +5556,11 @@ bool FeatureTree::step()
         TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[i] ) ;
         if ( timec != nullptr )
         {
-            timec->goToNext = stateConverged ;
+            timec->goToNext = stateConverged && !behaviourChanged();
+            if(!behaviourChanged())
+                timec->instant = 1. ;
+            else if(!damageConverged)
+                timec->instant = 0. ;
         }
     }
 
@@ -5575,7 +5581,11 @@ bool FeatureTree::step()
                 TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[k] ) ;
                 if ( timec )
                 {
-                    timec->goToNext = stateConverged ;
+                    timec->goToNext = stateConverged && !behaviourChanged() ;
+                    if(!behaviourChanged())
+                        timec->instant = 1. ;
+                    else if(!damageConverged)
+                        timec->instant = 0. ;
                 }
             }
         }
@@ -6881,7 +6891,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
 
     if ( dtree )
     {
-        VirtualMachine vm ;
+        /*VirtualMachine vm ;
         if ( i.size() && i->timePlanes() > 1 )
         {
 
@@ -6904,18 +6914,28 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
                             for ( size_t n = 0 ; n < ndof ; n++ )
                             {
                                 double z = buff[n] ;
-                                K->setDisplacementByDof ( i->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
+//                                K->setDisplacementByDof ( i->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
                             }
 //							std::cout << i << ";" << k << std::endl ;
                         }
                     }
                 }
             }
-        }
+        }*/
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
             setDeltaTime ( prev - d ) ;
+        }
+
+        for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
+        {
+            TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
+            if(timec)
+            {
+//                std::cout << "move\t" << d << "\t" << prev << std::endl ;
+                timec->instant = d/prev ;
+            }
         }
 
     }
@@ -6937,7 +6957,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
     if ( dtree3D )
     {
 
-        VirtualMachine vm ;
+/*        VirtualMachine vm ;
         if ( i.size() && i->timePlanes() > 1 )
         {
 
@@ -6967,11 +6987,21 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
                     }
                 }
             }
-        }
+        }*/
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
             setDeltaTime ( prev - d ) ;
+        }
+
+        for(size_t i = 0 ; i < boundaryCondition.size() ; i++)
+        {
+            TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
+            if(timec)
+            {
+//                std::cout << "move\t" << d << "\t" << prev << std::endl ;
+                timec->instant = d/prev ;
+            }
         }
 
     }

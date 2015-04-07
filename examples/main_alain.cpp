@@ -60,25 +60,37 @@ int main(int argc, char *argv[])
 	F.setSamplingNumber(1) ;
 	double time_step = 1. ;
 	F.setDeltaTime(time_step) ;
+	F.setMaxIterationsPerStep(1000) ;
 
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER) ) ;
 	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6) ) ;
-//	F.addBoundaryCondition(disp) ;
+//	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6) ) ;
+	BoundaryCondition* disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0. ) ;
+	F.addBoundaryCondition(disp) ;
 
-	LogarithmicCreepWithExternalParameters paste("young_modulus = 1e9, poisson_ratio = 0.3, imposed_deformation = 0.01, creep_modulus = 30e9, creep_poisson = 0.3, creep_characteristic_time = 1.") ;
-	box.setBehaviour(new /*FiniteDifference*/Viscoelasticity( GENERALIZED_MAXWELL, paste.C, paste.C*2, paste.C*10, BACKWARD_EULER) ) ;
-//	box.setBehaviour( &paste ) ;
+	std::vector<Point> tension ;
+	std::vector<Point> compression ;
+	tension.push_back( Point( 0.02, 20e6 ) ) ;
+	tension.push_back( Point( 0.12, 0e6 ) ) ;
+	FractureCriterion* crit = new AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion( tension, compression, 1e9 ) ;
+	DamageModel* dam = new SpaceTimeFiberBasedIsotropicLinearDamage( 0.01, 0.1, 0.999 ) ;
+
+	LogarithmicCreepWithExternalParameters paste("young_modulus = 1e9, poisson_ratio = 0.3", crit, dam) ;
+//	box.setBehaviour(new /*FiniteDifference*/Viscoelasticity( GENERALIZED_MAXWELL, paste.C, paste.C*2, paste.C*10, BACKWARD_EULER) ) ;
+	box.setBehaviour( &paste ) ;
 
 	F.step() ;
-	std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
+	std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
 
-	while(F.getCurrentTime() < 600)
+	while(F.getCurrentTime() < 300)
 	{
 		time_step += 1. ;
+		disp->setData( F.getCurrentTime()*0.00001 ) ;
 		F.setDeltaTime(time_step) ;
 		F.step() ;
-		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1)[1] << std::endl ;
+                double strain = F.getAverageField( STRAIN_FIELD, -1, 1.)[1] ;
+                double stress = 20e6*(1.-(strain-0.02)/0.1) ;
+		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << stress << std::endl ;
 	}
 
 

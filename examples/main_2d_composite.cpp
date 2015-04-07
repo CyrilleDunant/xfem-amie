@@ -8,6 +8,9 @@
 #include "../utilities/configuration.h"
 #include "../utilities/parser.h"
 
+#ifdef HAVE_OMP
+#include <omp>
+#endif
 #include <fstream>
 #include <cmath>
 #include <typeinfo>
@@ -45,11 +48,13 @@ int main(int argc, char *argv[])
 
     ConfigTreeItem * problem = ConfigParser::readFile(file, define) ;
 
-    /*	if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
-    	{
-    		int threads = (int) problem->getData("parallel.number_of_threads", 1) ;*/
-//		omp_set_num_threads(1) ;
-//	}
+#ifdef HAVE_OMP
+    if(problem->hasChildFromFullLabel("parallel.number_of_threads"))
+    {
+        int threads = (int) problem->getData("parallel.number_of_threads", 1) ;
+        omp_set_num_threads(threads) ;
+    }
+#endif
 
     FeatureTree F(problem->getChild("sample")->getSample()) ;
     if(problem->hasChildFromFullLabel("sample.sampling_number"))
