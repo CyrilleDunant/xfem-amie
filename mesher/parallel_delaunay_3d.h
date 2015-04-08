@@ -68,7 +68,9 @@ public:
 
     virtual DelaunayTreeItem3D * getInTree(int index) const
     {
+        exit(0) ;
         return nullptr ;
+        
     }
     
     virtual size_t size() const
@@ -106,7 +108,7 @@ public:
         int elemID = caches[cacheID][position] ;
         
         return static_cast<const DelaunayTetrahedron *>(meshes[meshId]->getInTree(elemID)) ;
-    };
+    }
     
     virtual  DelaunayTetrahedron * getElement(size_t cacheID, size_t position)  
     {
@@ -114,7 +116,7 @@ public:
         int elemID = caches[cacheID][position] ;
         
         return static_cast<DelaunayTetrahedron *>(meshes[meshId]->getInTree(elemID)) ;
-    };
+    }
         
     
 } ;

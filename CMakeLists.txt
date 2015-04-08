@@ -308,7 +308,7 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(DEBUG_BUILD EQUAL 1)
 #     set(CMAKE_BUILD_TYPE Debug)
-	add_definitions(-g3 -O0 -DNDEBUG -funroll-loops -Wall -Wpedantic )
+	add_definitions(-g3 -Og -DNDEBUG -funroll-loops -Wall -Wpedantic )
 	message (STATUS "  Debug Build")
 else()
 #     set(CMAKE_BUILD_TYPE Release)
@@ -421,6 +421,9 @@ target_link_libraries( tension Amie ${ALL_LINK_FLAGS})
 
 add_executable( pore_pressure examples/main_crystal_pressure.cpp )
 target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
+
+add_executable( visu examples/main_visu_behavior.cpp )
+target_link_libraries( visu Amie ${ALL_LINK_FLAGS})
 
 add_executable( cyrille_test examples/main_cyrille.cpp )
 target_link_libraries( cyrille_test Amie ${ALL_LINK_FLAGS})

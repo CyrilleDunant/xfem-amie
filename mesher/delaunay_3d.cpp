@@ -740,7 +740,7 @@ void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vecto
     }
 }
 
-void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * > &ret, const Amie::Point *p )
+void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * > &ret, const Point *p )
 {
 
     if( visited[index] )
@@ -792,10 +792,10 @@ void DelaunayTreeItem3D::conflicts(std::valarray<bool> & visited, std::vector< D
 
 }
 
-void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Amie::Point *p, int threadid )
+void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vector< DelaunayTreeItem3D * >& toTest, std::vector< DelaunayTreeItem3D * > & ret, const Point *p, int threadid )
 {
-    if(threadid >= 0 && index%(threadid+1) != 0)
-        return ;
+//     if(threadid >= 0 && index%(threadid+1) != 0)
+//         return ;
 
     if(visited[index])
         return  ;
@@ -817,23 +817,23 @@ void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vecto
 // 	{
     for ( size_t i  = 0 ;  i < stepson.size() ; i++)
     {
-        bool limit = false ;
+//         bool limit = false ;
         if(!visited[stepson[i]])
         {
-            if(getStepson(i)->isTetrahedron && !getStepson(i)->isDeadTetrahedron)
-            {
-                DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getStepson(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
-            if(getStepson(i)->isDeadTetrahedron)
-            {
-                DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getStepson(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
+//             if(getStepson(i)->isTetrahedron && !getStepson(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getStepson(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
+//             if(getStepson(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getStepson(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
 
-            if( (getStepson(i)->inCircumSphere(*p)) || limit)
+            if( (getStepson(i)->inCircumSphere(*p)) /*|| limit*/)
             {
                 toTest.push_back(getStepson(i)) ;
             }
@@ -845,23 +845,23 @@ void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vecto
 // 	{
     for (size_t i  = 0 ;  i < son.size() ; i++)
     {
-        bool limit = false ;
+//         bool limit = false ;
         if(!visited[son[i]])
         {
-            if(getSon(i)->isTetrahedron && !getSon(i)->isDeadTetrahedron)
-            {
-                DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getSon(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
-            if(getSon(i)->isDeadTetrahedron)
-            {
-                DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getSon(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
+//             if(getSon(i)->isTetrahedron && !getSon(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getSon(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
+//             if(getSon(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getSon(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
 //
-            if( (getSon(i)->inCircumSphere(*p)) || limit)
+            if( (getSon(i)->inCircumSphere(*p)) /*|| limit*/)
             {
                 toTest.push_back(getSon(i)) ;
             }
@@ -873,23 +873,23 @@ void DelaunayTreeItem3D::flatConflicts(std::valarray<bool> & visited, std::vecto
 // 	{
     for (size_t i  = 0 ;  i < neighbour.size() ; i++)
     {
-        bool limit = false ;
+//         bool limit = false ;
         if(!visited[neighbour[i]])
         {
-            if(getNeighbour(i)->isTetrahedron && !getNeighbour(i)->isDeadTetrahedron)
-            {
-                DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getNeighbour(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
-            if(getNeighbour(i)->isDeadTetrahedron)
-            {
-                DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getNeighbour(i)) ;
-                limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
-                        < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
-            }
+//             if(getNeighbour(i)->isTetrahedron && !getNeighbour(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayTetrahedron * t = static_cast<DelaunayTetrahedron *>(getNeighbour(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),*p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
+//             if(getNeighbour(i)->isDeadTetrahedron)
+//             {
+//                 DelaunayDeadTetrahedron * t = static_cast<DelaunayDeadTetrahedron *>(getNeighbour(i)) ;
+// //                 limit = std::abs(squareDist3D(t->getCircumCenter(),p)-t->getRadius()*t->getRadius())
+// //                         < 20000.*POINT_TOLERANCE*POINT_TOLERANCE ;
+//             }
             // 		limit = true ;
-            if( (getNeighbour(i)->inCircumSphere(*p)) || limit)
+            if( (getNeighbour(i)->inCircumSphere(*p)) /*|| limit*/)
             {
                 toTest.push_back(getNeighbour(i)) ;
             }
@@ -2474,6 +2474,28 @@ void DelaunayTree3D::purge()
     std::cerr << " ...done. " << tree.size() << " elements kept from " << originalSize << "." << std::endl ;
 }
 
+std::vector< DelaunayTetrahedron* > DelaunayTree3D::getConflictingElements(const Point* p)
+{
+    std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
+    std::vector<DelaunayTetrahedron*> ret ;
+    for(size_t i = 0 ; i < targets.size() ; i++)
+    {
+        if(targets[i]->isTetrahedron && !targets[i]->isDeadTetrahedron )
+            ret.push_back(static_cast< DelaunayTetrahedron *> (targets[i])) ;
+    }
+    return ret ;
+}
+
+std::vector<DelaunayTetrahedron *> DelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element) const
+{
+    std::vector<DelaunayTetrahedron *> ret ;
+    for(const auto & idx : element->neighbourhood)
+    {
+        ret.push_back((DelaunayTetrahedron *)tree[idx]);
+    }
+    return ret ;
+}
+
 std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts(const Geometry *g )
 {
 
@@ -2491,7 +2513,7 @@ std::vector<DelaunayTetrahedron *> DelaunayTree3D::conflicts(const Geometry *g )
 
     if(origin)
     {
-
+        
         std::vector<DelaunayTetrahedron *> ret = getNeighbouringElementsInGeometry( origin, g ) ;
 
         return ret ;
@@ -2527,7 +2549,7 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
         }
     }
 
-    if( !neighbourhood && buildNeighbourhood )
+    if( true/*!neighbourhood && buildNeighbourhood*/ )
     {
         neighbourhood = true ;
         std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;
@@ -2652,6 +2674,9 @@ void DelaunayTetrahedron::clearElementaryMatrix()
 
 std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix()
 {
+/*    delete cachedGps ;
+    cachedGps = nullptr ;
+    behaviourUpdated = true */;
     if( !behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() )
     {
         return cachedElementaryMatrix ;
@@ -2672,7 +2697,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     }
 
     Matrix J(ndofs, ndofs) ;
-    getInverseJacobianMatrix(Point( 1./3.,1./3.), J ) ;
+    getInverseJacobianMatrix(Point( 1./25.,1./25.,1./25.), J ) ;
     std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
     if(moved)
     {

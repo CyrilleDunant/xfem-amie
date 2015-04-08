@@ -1197,26 +1197,26 @@ void Hexahedron::project(Point * p) const
     Line l11(bbox[3], bbox[3]-bbox[7]) ;
 
     std::map<double, Point> targets ;
-    targets[dist(p0.projection(*p), *p)] = p0.projection(*p) ;
-    targets[dist(p1.projection(*p), *p)] = p1.projection(*p) ;
-    targets[dist(p2.projection(*p), *p)] = p2.projection(*p) ;
-    targets[dist(p3.projection(*p), *p)] = p3.projection(*p) ;
-    targets[dist(p4.projection(*p), *p)] = p4.projection(*p) ;
-    targets[dist(p5.projection(*p), *p)] = p5.projection(*p) ;
-    targets[dist(l0.projection(*p), *p)] = l0.projection(*p) ;
-    targets[dist(l1.projection(*p), *p)] = l1.projection(*p) ;
-    targets[dist(l2.projection(*p), *p)] = l2.projection(*p) ;
-    targets[dist(l3.projection(*p), *p)] = l3.projection(*p) ;
-    targets[dist(l4.projection(*p), *p)] = l4.projection(*p) ;
-    targets[dist(l5.projection(*p), *p)] = l5.projection(*p) ;
-    targets[dist(l6.projection(*p), *p)] = l6.projection(*p) ;
-    targets[dist(l7.projection(*p), *p)] = l7.projection(*p) ;
-    targets[dist(l8.projection(*p), *p)] = l8.projection(*p) ;
-    targets[dist(l9.projection(*p), *p)] = l9.projection(*p) ;
-    targets[dist(l10.projection(*p), *p)] = l10.projection(*p) ;
-    targets[dist(l11.projection(*p), *p)] = l11.projection(*p) ;
+    targets[squareDist3D(p0.projection(*p), *p)] = p0.projection(*p) ;
+    targets[squareDist3D(p1.projection(*p), *p)] = p1.projection(*p) ;
+    targets[squareDist3D(p2.projection(*p), *p)] = p2.projection(*p) ;
+    targets[squareDist3D(p3.projection(*p), *p)] = p3.projection(*p) ;
+    targets[squareDist3D(p4.projection(*p), *p)] = p4.projection(*p) ;
+    targets[squareDist3D(p5.projection(*p), *p)] = p5.projection(*p) ;
+    targets[squareDist3D(l0.projection(*p), *p)] = l0.projection(*p) ;
+    targets[squareDist3D(l1.projection(*p), *p)] = l1.projection(*p) ;
+    targets[squareDist3D(l2.projection(*p), *p)] = l2.projection(*p) ;
+    targets[squareDist3D(l3.projection(*p), *p)] = l3.projection(*p) ;
+    targets[squareDist3D(l4.projection(*p), *p)] = l4.projection(*p) ;
+    targets[squareDist3D(l5.projection(*p), *p)] = l5.projection(*p) ;
+    targets[squareDist3D(l6.projection(*p), *p)] = l6.projection(*p) ;
+    targets[squareDist3D(l7.projection(*p), *p)] = l7.projection(*p) ;
+    targets[squareDist3D(l8.projection(*p), *p)] = l8.projection(*p) ;
+    targets[squareDist3D(l9.projection(*p), *p)] = l9.projection(*p) ;
+    targets[squareDist3D(l10.projection(*p), *p)] = l10.projection(*p) ;
+    targets[squareDist3D(l11.projection(*p), *p)] = l11.projection(*p) ;
     for(size_t i = 0 ; i < 8 ; i++)
-        targets[dist(*p, bbox[i])] = bbox[i] ;
+        targets[squareDist3D(*p, bbox[i])] = bbox[i] ;
 
     for(auto i = targets.begin() ; i!=targets.end() ; ++i)
     {

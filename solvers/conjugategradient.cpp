@@ -29,6 +29,7 @@ ConjugateGradient::ConjugateGradient( Assembly* a ) :LinearSolver(a), r(x.size()
 
 bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const double eps, const int maxit, bool verbose)
 {
+
     double realeps = std::max(1e-6, eps) ;
     size_t Maxit ;
     if(maxit != -1)
@@ -61,6 +62,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }
     InverseDiagonal P0(assembly->getMatrix()) ;
 
+    
     if(precond == nullptr && !cleanup)
     {
         cleanup = true ;

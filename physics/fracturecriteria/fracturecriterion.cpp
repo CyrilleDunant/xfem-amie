@@ -21,28 +21,28 @@
 using namespace Amie ;
 
 FractureCriterion::FractureCriterion(MirrorState mirroring, double delta_x, double delta_y, double delta_z) :
-   initialScore(1),
-   physicalCharacteristicRadius(.008),
-   scoreAtState(-1), 
-   deltaScoreAtState(0),
-   criterionDamageDifferential(0),
-   mirroring(mirroring),
-   delta_x(delta_x), delta_y(delta_y), delta_z(delta_z),
-   metAtStep(false),
-   stable(true),
-   minDeltaInNeighbourhood(1),
-   maxModeInNeighbourhood(-1),
-   maxScoreInNeighbourhood(0),
-   maxAngleShiftInNeighbourhood(0), 
-   scoreTolerance(5e-3),
-   checkpoint(true),
-   inset(false),
-   smoothingType(QUARTIC_COMPACT),  
-   cachedInfluenceRatio(1),
-   cacheID(-1),
-   cachecoreID(-1),
-   inIteration(false),
-   mesh2d(nullptr), mesh3d(nullptr)  
+    initialScore(1),
+    physicalCharacteristicRadius(.008),
+    scoreAtState(-1),
+    deltaScoreAtState(0),
+    criterionDamageDifferential(0),
+    mirroring(mirroring),
+    delta_x(delta_x), delta_y(delta_y), delta_z(delta_z),
+    metAtStep(false),
+    stable(true),
+    minDeltaInNeighbourhood(1),
+    maxModeInNeighbourhood(-1),
+    maxScoreInNeighbourhood(0),
+    maxAngleShiftInNeighbourhood(0),
+    scoreTolerance(5e-3),
+    checkpoint(true),
+    inset(false),
+    smoothingType(QUARTIC_COMPACT),
+    cachedInfluenceRatio(1),
+    cacheID(-1),
+    cachecoreID(-1),
+    inIteration(false),
+    mesh2d(nullptr), mesh3d(nullptr)
 {
 }
 
@@ -50,22 +50,22 @@ Vector FractureCriterion::getSmoothedField(FieldType f0,  ElementState &s ,doubl
 {
     if(!mesh2d && !mesh3d)
         initialiseCache(s) ;
-    
+
     if(mesh2d)
         return mesh2d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t) ;
     return mesh3d->getSmoothedField(f0, cachecoreID, s.getParent(), -1., t) ;
-    
+
 }
 
 std::pair<Vector, Vector> FractureCriterion::getSmoothedFields( FieldType f0, FieldType f1, ElementState &s ,double t)
 {
     if(!mesh2d && !mesh3d)
         initialiseCache(s) ;
-    
+
     if(mesh2d)
         return mesh2d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t) ;
     return mesh3d->getSmoothedFields(f0, f1, cachecoreID, s.getParent(), -1., t) ;
-  
+
 }
 
 void FractureCriterion::initialiseCache( ElementState & s)
@@ -77,16 +77,16 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rr = x*x+y*y ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-        
+
         double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
         Circle epsilonAll( std::max(physicalCharacteristicRadius*1.1, s.getParent()->getRadius()*3. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Circle epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh2d = s.getMesh2D() ;
         cachecoreID = mesh2d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
-	if(s.getParent()->timePlanes() > 1)
-		cacheID = cachecoreID ;
-	else
-	        cacheID = mesh2d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
+        if(s.getParent()->timePlanes() > 1)
+            cacheID = cachecoreID ;
+        else
+            cacheID = mesh2d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
     }
     if(s.getMesh3D())
     {
@@ -96,17 +96,17 @@ void FractureCriterion::initialiseCache( ElementState & s)
         Function rr = x*x+y*y+z*z ;
         Function rrn =  rr/(physicalCharacteristicRadius * physicalCharacteristicRadius) ;
         Function smooth =  (smoothingType == GAUSSIAN_NONCOMPACT)?f_exp(rrn*-0.5):(rrn-1.)*(rrn-1.)*f_positivity(1.-rrn) ;
-        
+
         double overlap = (smoothingType == QUARTIC_COMPACT)?6.:8. ;
         Sphere epsilonAll( std::max(physicalCharacteristicRadius, s.getParent()->getRadius()*2. )*overlap+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         Sphere epsilonReduced(physicalCharacteristicRadius*1.1+s.getParent()->getRadius(),s.getParent()->getCenter()) ;
         mesh3d = s.getMesh3D() ;
         cachecoreID = mesh3d->generateCache(&epsilonReduced, s.getParent()->getBehaviour()->getSource(), smooth) ;
-	if(s.getParent()->timePlanes() > 1)
-		cacheID = cachecoreID ;
-	else
-	        cacheID = mesh3d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
-        
+        if(s.getParent()->timePlanes() > 1)
+            cacheID = cachecoreID ;
+        else
+            cacheID = mesh3d->generateCache(&epsilonAll, s.getParent()->getBehaviour()->getSource()) ;
+
     }
 }
 
@@ -115,7 +115,7 @@ double FractureCriterion::getMaxScoreInNeighbourhood(ElementState & s)
     double maxScore = scoreAtState ;
     if(!mesh2d && !mesh3d)
         initialiseCache(s) ;
-    
+
     if(mesh2d)
     {
         for(auto i =  mesh2d->begin(cacheID) ; i !=  mesh2d->end(cacheID) ; i++)
@@ -151,7 +151,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
     {
         initialiseCache(s);
     }
-    
+
     if(mesh2d)
     {
 // 		thresholdScore = POINT_TOLERANCE ;
@@ -162,11 +162,11 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         {
 //             if(!(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
 //                 return std::make_pair(0.,0.) ;
-//          
+//
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-            inset = false ;
+                inset = false ;
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-            inIteration = false ;
+                inIteration = false ;
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
             {
                 damagingSet.clear();
@@ -189,19 +189,19 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 {
                     DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(mesh2d->getCache(cacheID)[i])) ;
                     if(!ci->getBehaviour()->getDamageModel())
-                         continue ;
-                        
-                     if(ci->getBehaviour()->fractured())
-                         continue ;
-                     
-                    if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 && 
-                        ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
+                        continue ;
+
+                    if(ci->getBehaviour()->fractured())
+                        continue ;
+
+                    if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
+                            ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
                     {
- 
+
                         if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                        if(ci == s.getParent() && met())
-                            inset = true ;
-                        
+                            if(ci == s.getParent() && met())
+                                inset = true ;
+
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
@@ -230,12 +230,12 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     proximitySet.clear() ;
                 }
                 if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
-                    inIteration = true ;
+                    if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
+                        inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-            inIteration = true ;
+                inIteration = true ;
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
@@ -326,13 +326,13 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                 {
                     DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(mesh3d->getCache(cacheID)[i])) ;
                     if(!ci->getBehaviour()->getDamageModel())
-                         continue ;
-                        
-                     if(ci->getBehaviour()->fractured())
-                         continue ;
-                     
-                    if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 && 
-                        ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
+                        continue ;
+
+                    if(ci->getBehaviour()->fractured())
+                        continue ;
+
+                    if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
+                            ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
                     {
                         if(ci == s.getParent() && met())
                             inset = true ;
@@ -428,7 +428,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
 
 void FractureCriterion::step(ElementState &s)
 {
-    
+
     if(!mesh2d && !mesh3d )
         initialiseCache(s) ;
 
@@ -446,9 +446,9 @@ void FractureCriterion::step(ElementState &s)
 
 }
 
-    double FractureCriterion::getScoreAtState() const {
-        return scoreAtState ;
-    }
+double FractureCriterion::getScoreAtState() const {
+    return scoreAtState ;
+}
 
 FractureCriterion::~FractureCriterion()
 {

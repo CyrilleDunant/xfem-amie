@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 		branches.push_back(std::make_pair(Ei, Zi)) ;
 	}
 
-	Viscoelasticity vpaste( GENERALIZED_KELVIN_VOIGT, C, branches) ;
-	Viscoelasticity vaggregates( PURE_ELASTICITY, Cagg, 8) ;
+	Viscoelasticity * vpaste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, C, branches) ;
+	Viscoelasticity * vaggregates = new Viscoelasticity( PURE_ELASTICITY, Cagg, 8) ;
 
 	for(size_t i = 0 ; i < 8 ; i++)
 	{
@@ -109,8 +109,8 @@ int main(int argc, char *argv[])
 	box.setBehaviour(&vpaste) ;
 	obox.setBehaviour(&paste) ;
 
-	std::vector<Feature *> finc = PSDGenerator::get2DConcrete( &F, &vaggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
-	std::vector<Feature *> ginc = PSDGenerator::get2DConcrete( &G, &aggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
+	std::vector<Feature *> finc = PSDGenerator::get2DConcrete( &F, vaggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
+	std::vector<Feature *> ginc = PSDGenerator::get2DConcrete( &G, aggregates, 50, 0.01, 0.00001, new PSDBolomeA()) ; 
 	std::vector<Geometry *> fagg ;
 	std::vector<Geometry *> gagg ;
 	for(size_t i = 0 ; i < finc.size() ; i++)

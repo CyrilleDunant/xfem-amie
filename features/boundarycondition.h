@@ -35,35 +35,35 @@ public:
     BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) = 0 ;
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) = 0 ;
-    void setData(double newval) {
+    virtual void setData(double newval) {
         data = newval ;
     }
-    void setData(const Function & f) {
+    virtual void setData(const Function & f) {
         dataFunction = f ;
     }
-    double getData() const {
+    virtual double getData() const {
         return data ;
     }
-    int getAxisIndex() const {
+    virtual int getAxisIndex() const {
         return axis ;
     }
-    void setAxisIndex(int a) {
+    virtual void setAxisIndex(int a) {
         axis = a ;
     }
-    void clearCache()
+    virtual void clearCache()
     {
         cache.clear();
         cache2d.clear();
         cache3d.clear();
-    } ;
+    }
 
     virtual void setScale(double) ;
     virtual double getScale() const;
 
     LagrangeMultiplierType getConditionType() const {
         return condition ;
-    }  ;
-    virtual ~BoundaryCondition() {} ;
+    } 
+    virtual ~BoundaryCondition() {}
 } ;
 
 class PlaneSectionsBoundaryConditions final: public BoundaryCondition
@@ -72,7 +72,7 @@ class PlaneSectionsBoundaryConditions final: public BoundaryCondition
     double uplimit ;
     double downlimit ;
 public:
-    PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), uplimit(up), downlimit(down) { };
+    PlaneSectionsBoundaryConditions(bool isVertical, double down, double up, int a = 0) :BoundaryCondition(GENERAL, 0.),  isVertical(isVertical), uplimit(up), downlimit(down) { }
     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) ;
 } ;
@@ -81,9 +81,9 @@ public:
 class NullBoundaryCondition final: public BoundaryCondition
 {
 public:
-    NullBoundaryCondition() : BoundaryCondition(nullptr_CONDITION, 0.) { } ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) {} ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) {} ;
+    NullBoundaryCondition() : BoundaryCondition(nullptr_CONDITION, 0.) { }
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) {}
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) {}
 } ;
 
 /** \brief Boundary condition object for usage in multigrid solver. Work in Progress*/

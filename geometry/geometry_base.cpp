@@ -487,7 +487,7 @@ bool operator >(const Point & p_, const Point &p)
            ||(( std::abs(p_.y - p.getY()) < tol)
               && ( std::abs(p_.x - p.getX()) < tol)
               && ( std::abs(p_.z - p.getZ()) < tol)
-              && (p_.z> p.getZ()));
+              && (p_.t> p.getT()));
 }
 
 Point operator*(const Point & p_, const double p)
@@ -528,17 +528,17 @@ Point operator*( const double p,const Point & p_)
 
 double operator*(const Point & p_, const Point &p)
 {
-#ifdef HAVE_SSE4
-    vecdouble r ;
-    r.vec = _mm_dp_pd(p.vecxy, p_.vecxy, 61) ;
-    r.vec += _mm_dp_pd(p.veczt, p_.veczt, 62) ;
-    return r.val[0] + r.val[1];
-#elif defined HAVE_SSE3
-    vecdouble r ;
-    r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
-    return r.val[0] + r.val[1];
-#endif
-    return p.getX()*p_.x+p.getY()*p_.y+p.getZ()*p_.z+p.getT()*p_.t ;
+// #ifdef HAVE_SSE4
+//     vecdouble r ;
+//     r.vec = _mm_dp_pd(p.vecxy, p_.vecxy, 61) ;
+//     r.vec += _mm_dp_pd(p.veczt, p_.veczt, 62) ;
+//     return r.val[0] + r.val[1];
+// #elif defined HAVE_SSE3
+//     vecdouble r ;
+//     r.vec = _mm_add_pd(_mm_mul_pd(p.vecxy, vecxy), _mm_mul_pd(p.veczt, veczt)) ;
+//     return r.val[0] + r.val[1];
+// #endif
+    return p.getX()*p_.x+p.getY()*p_.y+p.getZ()*p_.z/*+p.getT()*p_.t*/ ;
 
 }
 
@@ -547,8 +547,8 @@ double operator*(const Point & p_, const Vector &p)
     double ret = p_.x*p[0] + p_.y*p[1] ;
     if(p.size() > 2)
         ret+=p_.z*p[2] ;
-    if(p.size() > 3)
-        ret+=p_.t*p[3] ;
+//     if(p.size() > 3)
+//         ret+=p_.t*p[3] ;
     return ret ;
 }
 

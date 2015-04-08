@@ -76,7 +76,6 @@ public:
 
     virtual std::vector<ETYPE *> getNeighbouringElementsInGeometry ( ETYPE * start , const Geometry * g ) {
         if ( !start ) {
-// 					std::cout << "nullptr" << std::endl ;
             return std::vector<ETYPE *>() ;
         }
 
@@ -86,6 +85,7 @@ public:
         std::vector<ETYPE *> neighbourhood = getNeighbourhood ( start ) ;
         for ( const auto & neighbour : neighbourhood ) {
             if ( neighbour->timePlanes() > 1 ) {
+                std::cout << "\n!!!!!!!!!! wahh?" << std::endl ;
                 if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                     to_test.insert ( neighbour ) ;
                 } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
@@ -156,6 +156,11 @@ public:
 
     virtual ETYPE * getUniqueConflictingElement ( const Point  * p ) {
         std::vector<ETYPE *> elements = getConflictingElements ( p ) ;
+        for ( const auto & element : elements ) {
+            if (  *p == element->getCenter() ) {
+                return element ;
+            }
+        }
         for ( const auto & element : elements ) {
             if ( element->in ( *p ) ) {
                 return element ;
@@ -369,6 +374,7 @@ public:
 
     virtual unsigned int generateCache( Geometry * source) {
         //search for first empty cache slot ;
+        getElements() ;
         if ( caches.empty() ) {
             caches.push_back ( std::vector<int>() );
             coefs.push_back ( std::vector<std::vector<double>>() );
@@ -401,6 +407,7 @@ public:
 
     virtual unsigned int generateCacheOut( std::vector<unsigned int> ids )
     {
+        getElements() ;
         if ( caches.empty() ) {
             caches.push_back ( std::vector<int>() );
             coefs.push_back ( std::vector<std::vector<double>>() );
@@ -454,6 +461,7 @@ public:
 
     virtual unsigned int generateCache( std::vector<Geometry *> source) {
         //search for first empty cache slot ;
+        getElements() ;
         if ( caches.empty() ) {
             caches.push_back ( std::vector<int>() );
             coefs.push_back ( std::vector<std::vector<double>>() );
@@ -492,6 +500,7 @@ public:
 
     virtual unsigned int generateCache ( const Geometry * locus, const Geometry * source = nullptr, Function smoothing = Function ( "1" ) ) {
         size_t position = 0;
+        getElements() ;
         #pragma omp critical
         {
             VirtualMachine vm ;
@@ -570,6 +579,7 @@ public:
 
     virtual unsigned int generateCache ()
     {
+        getElements() ;
         #pragma omp critical
         {
             //search for first empty cache slot ;
@@ -606,6 +616,7 @@ public:
 
     virtual unsigned int generateCache (ElementChecker * c)
     {
+        getElements() ;
         size_t position = 0;
         #pragma omp critical
         {
@@ -749,24 +760,26 @@ public:
     }
 
     virtual Vector getSmoothedField (  FieldType f0, int cacheID, IntegrableEntity * e,int dummy = 0, double t = 0 ) {
-        Vector first ;
-        Vector strain ;
-        Vector stress ;
-        Vector strainrate ;
-        Vector buffer ;
         int tsize = 3 ;
         int psize = 2 ;
         if (spaceDimensions == SPACE_THREE_DIMENSIONAL ) {
             tsize = 6 ;
             psize = 3 ;
         }
+        Vector first ;
+        Vector strain ;
+        Vector stress ;
+        Vector strainrate ;
+        Vector buffer ;
+
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
         VirtualMachine vm ;
         if ( f0 == PRINCIPAL_STRAIN_FIELD || f0 == REAL_STRESS_FIELD || f0 == EFFECTIVE_STRESS_FIELD || f0 == PRINCIPAL_REAL_STRESS_FIELD || f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
-            //we first need to compute the strain field
+            //we first need to compute the strain field 
+            buffer.resize(tsize);
             if ( !spaceTime ) {
                 double sumFactors ( 0 ) ;
-
+               
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
@@ -775,6 +788,10 @@ public:
                         strain.resize ( buffer.size(), 0. );
                     }
                     strain += buffer*v ;
+//                     std::cout <<v << "  "<< buffer[0] << "  " << strain[0] << std::endl ;
+//                     std::cout <<v << "  "<< buffer.size() << "  " << strain.size() << std::endl ;
+//                     if(isnan(strain[0]))
+//                         exit(0) ;
                     sumFactors += v ;
                 }
                 strain /= sumFactors ;
@@ -1103,9 +1120,10 @@ public:
         size_t position ;
 
     public:
-        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { } ;
+        iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t cacheID, size_t position) : msh(msh), cacheID(cacheID), position(position) { /*msh->getElements() ;*/ } 
         iterator( Mesh<ETYPE, EABSTRACTTYPE> * msh, size_t position) : msh(msh), position(position)
         {
+//             msh->getElements() ;
             if(msh->allElementsCacheID == -1)
                 msh->allElementsCacheID = msh->generateCache() ;
             cacheID = msh->allElementsCacheID ;

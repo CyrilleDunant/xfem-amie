@@ -282,7 +282,7 @@ class TetrahedralElement : public Tetrahedron,  public ElementaryVolume
 {
 protected :
     std::valarray< Function > *shapefunc ;
-    const GaussPointArray & genGaussPoints() final;
+    virtual const GaussPointArray & genGaussPoints() final;
     bool isFather ;
     std::vector<Matrix> cachedJinv ;
 public:

@@ -912,6 +912,7 @@ bool Assembly::make_final()
 
             std::vector<size_t> ids = element3d[i]->getDofIds() ;
             std::valarray<std::valarray<Matrix > > mother = element3d[i]->getElementaryMatrix();
+
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 ids[j] *= ndof ;

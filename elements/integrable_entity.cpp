@@ -12,7 +12,7 @@
 #include "../physics/damagemodels/damagemodel.h"
 #include <unistd.h>
 
-namespace Amie{
+namespace Amie {
 
 
 size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t blocks )
@@ -67,9 +67,9 @@ size_t fieldTypeElementarySize ( FieldType f, SpaceDimensionality dim, size_t bl
         return dim == SPACE_THREE_DIMENSIONAL ? 6*blocks : 3*blocks ;
     default:
     {
-        std::cout << f << " non-handled field !" << std::endl ; 
-         exit ( 0 ) ;
-         return 0 ;
+        std::cout << f << " non-handled field !" << std::endl ;
+        exit ( 0 ) ;
+        return 0 ;
     }
     }
     std::cout << f << " non-existing field !" << std::endl ;
@@ -144,7 +144,7 @@ Vector Form::getImposedStrain ( const Point & p, IntegrableEntity * e, int g ) c
 bool Form::hasInducedForces() const
 {
     return false || ( getDamageModel() && getDamageModel()->hasInducedForces() );
-} 
+}
 
 std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const
 {
@@ -155,7 +155,7 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementSta
     }
 
     return  ret ;
-} 
+}
 
 // void Form::setFractureCriterion(FractureCriterion * frac)
 // {
@@ -617,10 +617,10 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     switch ( f )
     {
     case SCALAR_DAMAGE_FIELD:
-	if(parent->getBehaviour()->getDamageModel())
-		ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
-	else
-		ret[0] = 0. ;
+        if(parent->getBehaviour()->getDamageModel())
+            ret[0] = parent->getBehaviour()->getDamageModel()->getState().max() ;
+        else
+            ret[0] = 0. ;
         if ( cleanup )
         {
             delete vm ;
@@ -665,9 +665,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         }
         return ;
     case MECHANICAL_STRAIN_FIELD:
-	this->getField( STRAIN_FIELD, p_, ret, true, vm) ;
-	if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
-		ret -= parent->getBehaviour()->getImposedStrain(p_) ;
+        this->getField( STRAIN_FIELD, p_, ret, true, vm) ;
+        if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
+            ret -= parent->getBehaviour()->getImposedStrain(p_) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1187,7 +1187,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             ret[0] =  0.5*atan2 ( strains[0] - strains[1] , 0.5*strains[2] ) ;
-            
+
         }
         else
         {
@@ -1374,7 +1374,7 @@ void ElementState::getFieldAtGaussPoint ( FieldType f, size_t p, Vector & ret, V
 
 double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine * vm, int dummy, double t, std::vector<double> weights )
 {
-#pragma omp critical
+    #pragma omp critical
     while(true) {
 //         usleep(1) ;
         bool test = true;
@@ -1389,7 +1389,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             break ;
         }
     }
-   
+
     bool cleanup = !vm ;
     if ( !vm )
     {
@@ -1407,14 +1407,15 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     {
         weights.resize ( gp.gaussPoints.size(), 1. ) ;
     }
-    
-    
+
+
     switch ( f )
     {
     case STRAIN_FIELD :
-        
+
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
         {
+            
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
@@ -1427,11 +1428,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
+//                 std::cout << "a "<< ret[0] << "  " << ret[1] << "  " << weights[i] << std::endl ;
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE)
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE))
             {
                 ret /= total ;
             }
@@ -1443,6 +1445,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             {
                 delete vm ;
             }
+//             std::cout << " = "<< ret[0] << std::endl ;
         }
         else
         {
@@ -1455,10 +1458,11 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
+//                 std::cout << "b "<< tmp[0] << "  " << tmp[1] << std::endl ;
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1483,7 +1487,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-		Vector imp( tmp.size() ) ; imp = 0. ;
+                Vector imp( tmp.size() ) ;
+                imp = 0. ;
                 getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
@@ -1491,13 +1496,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
                 ret += (tmp-imp) *gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1515,19 +1520,20 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-		Vector imp( tmp.size() ) ; imp = 0. ;
+                Vector imp( tmp.size() ) ;
+                imp = 0. ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
                 ret += (tmp-imp)*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1553,22 +1559,23 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-		Vector imp( tmp.size() ) ; imp = 0. ;
+                Vector imp( tmp.size() ) ;
+                imp = 0. ;
                 getField ( STRAIN_FIELD, gp.gaussPoints[i].first, tmp, true,vm, i ) ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j] = tmp[j] ;
                 }
-		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-		Vector ptmp = toPrincipal(tmp-imp) ;
+                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                Vector ptmp = toPrincipal(tmp-imp) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 ret += ptmp *gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1586,20 +1593,21 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
-		Vector imp( tmp.size() ) ; imp = 0. ;
+                Vector imp( tmp.size() ) ;
+                imp = 0. ;
                 for ( size_t j = 0 ; j < strainAtGaussPoints.size() /gp.gaussPoints.size() ; j++ )
                 {
                     tmp[j] = strainAtGaussPoints[i*strainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
-		if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
-		    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-		Vector ptmp = toPrincipal(tmp-imp) ;
+                if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
+                    imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
+                Vector ptmp = toPrincipal(tmp-imp) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 ret += ptmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1616,7 +1624,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         lock = false ;
         return v;
     case PRINCIPAL_STRAIN_FIELD :
-        
+
         if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
         {
             pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()), 0. ) ;
@@ -1635,7 +1643,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1657,12 +1665,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstrainAtGaussPoints[i*pstrainAtGaussPoints.size() /gp.gaussPoints.size() +j];
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1679,7 +1687,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         lock = false ;
         return v;
     case REAL_STRESS_FIELD:
-        
+
         if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
             stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
@@ -1692,12 +1700,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     stressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1719,12 +1727,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = stressAtGaussPoints[i*tmp.size() +j];
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1754,12 +1762,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     pstressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1781,12 +1789,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstressAtGaussPoints[i*tmp.size() +j];
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1816,12 +1824,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     stressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1843,12 +1851,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = stressAtGaussPoints[i*tmp.size() +j];
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1878,12 +1886,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     pstressAtGaussPoints[i*tmp.size() +j] = tmp[j] ;
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1905,12 +1913,12 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 {
                     tmp[j] = pstressAtGaussPoints[i*tmp.size() +j];
                 }
-                                if(ret.size() != tmp.size())
+                if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1926,8 +1934,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         #pragma omp atomic write
         lock = false ;
         return v;
-        
-     case PRINCIPAL_STRESS_ANGLE_FIELD:
+
+    case PRINCIPAL_STRESS_ANGLE_FIELD:
         if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
             stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
@@ -1942,8 +1950,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != 1)
                     ret.resize(1, 0.);
-                
- 
+
+
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
                     ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
@@ -1954,9 +1962,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
                     ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
                 }
-                 total += gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -1980,7 +1988,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != 1)
                     ret.resize(1, 0.);
-                
+
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
                     ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
@@ -1991,9 +1999,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
                     ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
                 }
-                 total += gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2009,8 +2017,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         #pragma omp atomic write
         lock = false ;
         return v;
-        
-     case PRINCIPAL_STRAIN_ANGLE_FIELD:
+
+    case PRINCIPAL_STRAIN_ANGLE_FIELD:
         if ( strainAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
         {
             strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
@@ -2025,8 +2033,8 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != 1)
                     ret.resize(1, 0.);
-                
- 
+
+
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
                     ret[0] +=  atan2 ( tmp[0] - tmp[1] , tmp[2] )*gp.gaussPoints[i].second*weights[i] ;
@@ -2037,9 +2045,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                     ret[1] += atan2 ( tmp[0] - tmp[2], tmp[4] )*gp.gaussPoints[i].second*weights[i] ;
                     ret[2] += atan2 ( tmp[1] - tmp[2], tmp[5] )*gp.gaussPoints[i].second*weights[i] ;
                 }
-                 total += gp.gaussPoints[i].second*weights[i] ;
+                total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2063,7 +2071,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != 1)
                     ret.resize(1, 0.);
-                
+
                 if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
                 {
                     if(ret.size() != 1)
@@ -2080,7 +2088,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret /= total ;
             }
@@ -2095,20 +2103,20 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         }
         #pragma omp atomic write
         lock = false ;
-        return v; 
-         
+        return v;
+
     default :
 
         Vector tmp (ret) ;
         for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
         {
-            
+
             getField ( f, gp.gaussPoints[i].first, tmp,true,  vm, dummy ) ;
 
             ret += tmp*gp.gaussPoints[i].second*weights[i] ;
             total += gp.gaussPoints[i].second*weights[i] ;
         }
-        if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+        if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
         {
             ret /= total ;
         }
@@ -2128,7 +2136,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
 double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, Vector & ret_, VirtualMachine * vm,  int dummy, double t, std::vector<double> weights )
 {
-#pragma omp critical
+    #pragma omp critical
     while(true) {
 //         usleep(1) ;
         bool test = true;
@@ -2143,7 +2151,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
             break ;
         }
     }
-    
+
     bool cleanup = !vm ;
     if ( !vm )
     {
@@ -2158,7 +2166,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     {
         weights.resize ( gp.gaussPoints.size(), 1. );
     }
-    
+
     if ( f == STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
         if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
@@ -2184,7 +2192,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2214,7 +2222,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2256,7 +2264,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 total += gp.gaussPoints[i].second*weights[i] ;
 
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2286,7 +2294,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret_ += tmp_*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }
-            if ( total > SPACE_TWO_DIMENSIONAL ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE )
+            if ( total > ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ? POINT_TOLERANCE*POINT_TOLERANCE : POINT_TOLERANCE*POINT_TOLERANCE*POINT_TOLERANCE) )
             {
                 ret_ /= total ;
                 ret /= total ;
@@ -2296,13 +2304,13 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
                 ret = 0 ;
                 ret_ = 0 ;
             }
-            
+
         }
         #pragma omp atomic write
         lock = false ;
         return v;
     }
-    
+
 
     getAverageField ( f, ret,vm, dummy ) ;
     v = getAverageField ( f_, ret_,vm, dummy );

@@ -2824,6 +2824,7 @@ const GaussPointArray & TetrahedralElement::genGaussPoints()
         Matrix J ;
 // 		getInverseJacobianMatrix(fin[0].first, J);
         double j = volume()*3. ;
+
         if(order < CONSTANT_TIME_LINEAR)
             j *= 2. ;
         for(size_t i = 0 ; i < fin.size() ; i++)
@@ -3370,6 +3371,8 @@ void TetrahedralElement::refresh(const TetrahedralElement * parent)
     if(!parent)
         return ;
     setOrder( parent->getOrder() );
+    delete cachedGps ;
+    cachedGps = nullptr ;
 //
 // 	if(shapefunc)
 // 	{

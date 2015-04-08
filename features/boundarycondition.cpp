@@ -2555,7 +2555,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -2676,7 +2676,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                         if ( !first )
@@ -3576,11 +3576,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ) && (
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
@@ -3740,11 +3740,11 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
                 {
-                    if ( id[j] == e->getBoundingPoint ( i ) )
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() )
                     {
                         shapeFunctions.push_back ( e->getShapeFunction ( i ) ) ;
                     }
-                    if ( id[j] == e->getBoundingPoint ( i ) && (
+                    if ( id[j].getId() == e->getBoundingPoint ( i ).getId() && (
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->first ) < POINT_TOLERANCE  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->second ) < POINT_TOLERANCE  ||
                                 squareDist3D ( &e->getBoundingPoint ( i ), dynamic_cast<DelaunayTetrahedron *> ( e )->third ) < POINT_TOLERANCE  ||
@@ -3876,13 +3876,17 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             istr = transform* ( imposed ) ;
 
-            for ( size_t i = 0 ; i < shapeFunctions.size() ; ++i )
+            
+            for ( size_t k = 0 ; k < shapeFunctions.size() ; ++k )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( istr, shapeFunctions[i], gpe, Jinve, v, false, normal ) ;
+                imposed[0] = vm.eval ( data, id[k] ) ;
+//                 std::cout << id[k].getX() << "  " << imposed[0] << std::endl ;
+                istr = transform* ( imposed ) ;
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( istr, shapeFunctions[k], gpe, Jinve, v, false, normal ) ;
 
-                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
-                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
-                a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+                a->addForceOn ( XI, forces[0], id[k].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[k].getId() ) ;
+                a->addForceOn ( ZETA, forces[2], id[k].getId() ) ;
             }
 
             return ;
@@ -4936,47 +4940,44 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
 
 void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-
-    if ( cache3d.empty() )
+    if ( cache.empty() )
     {
-        std::vector<DelaunayTetrahedron *> elements = t->getConflictingElements ( domain ) ;
+//         std::vector<DelaunayTetrahedron *> elements = t->getConflictingElements ( domain ) ;
+        unsigned int cacheid = t->generateCache(domain, nullptr) ;
         double tol = domain->getRadius() * .001 ;
-        for ( size_t i = 0 ; i < elements.size() ; ++i )
+        for ( auto i = t->begin(cacheid) ; i != t->end(cacheid) ; i++ )
         {
-            if ( elements[i]->getBehaviour()->getDamageModel() && elements[i]->getBehaviour()->getDamageModel()->fractured() )
-            {
+            std::cerr << i.getPosition() << std::endl ;
+            if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
                 continue ;
-            }
             
-            if(elements[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+            if(i->getBehaviour()->type == VOID_BEHAVIOUR)
                 continue ;
 
-            if(domain->in(elements[i]->getCenter()+faceNormal*elements[i]->getRadius()))
+            if(domain->in(i->getCircumCenter()+faceNormal*i->getRadius()))
                 continue ;
                     
             std::vector<Point> id  ;
 
-            for ( size_t j = 0 ;  j < elements[i]->getBoundingPoints().size() ; ++j )
+            for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                Point test = elements[i]->getBoundingPoint ( j ) ;
-                if(domain->in(test+faceNormal*elements[i]->getRadius()))
-                    continue ;
+                Point test = i->getBoundingPoint ( j ) ;
+
                 domain->project ( &test );
 
-                if ( squareDist3D ( test, elements[i]->getBoundingPoint ( j ) ) < tol*tol )
+                if ( squareDist3D ( test, i->getBoundingPoint ( j ) ) < tol*tol )
                 {
-                    id.push_back ( elements[i]->getBoundingPoint ( j ) ) ;
+                    id.push_back ( i->getBoundingPoint ( j ) ) ;
                 }
             }
             if ( !id.empty() )
             {
-                cache3d.push_back ( elements[i] );
+                cache3d.push_back ( i );
                 cache.push_back ( id );
             }
         }
-    }
-
-    for ( size_t i = 0 ; i < cache3d.size() ; i++ )
+    }    
+    for ( size_t i = 0 ; i < cache.size() ; i++ )
     {
         GaussPointArray gp = cache3d[i]->getGaussPoints() ;
         std::valarray<Matrix> Jinv ( Matrix(), cache3d[i]->getGaussPoints().gaussPoints.size() ) ;

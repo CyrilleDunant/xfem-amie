@@ -61,29 +61,11 @@ int ParallelDelaunayTree3D::getMesh(const DelaunayTreeItem3D * self) const
 int ParallelDelaunayTree3D::getDomain(const DelaunayTetrahedron * tet) const
 {
     int mesh = getMesh(tet) ;
-    std::valarray<bool> inDomain(false, domains.size()) ;
-    #pragma omp parallel for
+    
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
-        inDomain[domain_index] = domains[domain_index]->in(tet->getCenter()) ;
-    }
-
-    for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
-    {
-        if(inDomain[domain_index])
-        {
-            bool unique  = true ;
-            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
-            {
-                if(inDomain[k])
-                {
-                    unique = false ;
-                    break ;
-                }
-            }
-            if( unique && mesh == (int)domain_index )
-                return domain_index ;
-        }
+        if(domains[domain_index]->in(tet->getCenter()) && mesh == domain_index)
+            return domain_index ;
     }
     return -1 ;
 }
@@ -93,19 +75,7 @@ int ParallelDelaunayTree3D::getDomain(const Point & center) const
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
         if(domains[domain_index]->in(center))
-        {
-            bool unique  = true ;
-            for(size_t k = domain_index+1 ; k < domains.size() ; k++)
-            {
-                if(domains[k]->in(center))
-                {
-                    unique = false ;
-                    break ;
-                }
-            }
-            if(unique)
                 return domain_index ;
-        }
     }
     return -1 ;
 }
@@ -131,7 +101,7 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getConflictingElement
         std::vector<DelaunayTetrahedron *> tmpConflicts = meshes[i]->getConflictingElements(p) ;
         for(size_t j = 0 ; j < tmpConflicts.size() ; j++)
         {
-            if(getDomain(tmpConflicts[i]) != 1)
+            if(getDomain(tmpConflicts[i]) != -1)
                 conflicts[i].push_back(tmpConflicts[j]) ;
         }
     }
@@ -283,40 +253,76 @@ std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getElements()
 
 std::vector<DelaunayTetrahedron *> ParallelDelaunayTree3D::getNeighbourhood(DelaunayTetrahedron * element) const
 {
-    std::vector<DelaunayTetrahedron *> ret ;
+//     Sphere sp(element->getRadius()*1.1, element->getCircumCenter()) ;
+//     std::vector<DelaunayTetrahedron *> ret ;
+//     for(size_t i = 0 ; i < meshes.size() ; i++)
+//     {
+//         std::vector<DelaunayTetrahedron *> res = meshes[i]->getConflictingElements(&sp) ;
+//         for(size_t j = 0 ; j < res.size() ; j++)
+//         {
+//             if(getDomain(res[j]) == i && res[j]->isNeighbour)
+//         }
+//     }
+    
+
+    
+    std::set<DelaunayTetrahedron *> ret ;
     int domain = getDomain(element) ;
     if(domain == -1)
     {
         for(const auto & idx : element->neighbourhood)
         {
-            ret.push_back((DelaunayTetrahedron *)meshes[domain]->tree[idx]);
+            ret.insert((DelaunayTetrahedron *)meshes[domain]->tree[idx]);
         }
-        return ret ;
+        std::vector<DelaunayTetrahedron *> res ;
+        res.insert(res.end(),ret.begin(), ret.end() ) ;
+        return res ;
     }
     else
     {
+        std::set<int> possibledomains ;
         for(const auto & idx : element->neighbourhood)
         {
             DelaunayTetrahedron * n = (DelaunayTetrahedron *)meshes[domain]->tree[idx] ;
-            if(getDomain(n) == domain)
-                ret.push_back(n);
-            else
+            int pdom = getDomain(n->getCenter()) ;
+            if(pdom != domain && pdom != -1)
+                possibledomains.insert(pdom);
+            else if(getDomain(n) == domain)
+               ret.insert(n); 
+        }
+        
+        std::set<DelaunayTetrahedron *> elementduplicates ;
+        for(const auto & d : possibledomains)
+        {
+            DelaunayTetrahedron * an = meshes[d]->getUniqueConflictingElement(&element->getCenter()) ;
+            if(an && an->getCenter() == element->getCenter())
+                elementduplicates.insert(an);
+        }
+
+        for(const auto & ed : elementduplicates)
+        {
+            
+            int currentDomain = getMesh(ed) ;
+            
+            for(const auto & pn : ed->neighbourhood)
             {
-                int altDomain = getDomain(n->getCenter()) ;
-                DelaunayTetrahedron * an = meshes[altDomain]->getUniqueConflictingElement(&n->getCenter()) ;
-                ret.push_back(an);
+                DelaunayTetrahedron * n = dynamic_cast<DelaunayTetrahedron *>(meshes[currentDomain]->tree[pn]) ;
+                if(n && getDomain(n) == currentDomain && n->numberOfCommonVertices(element))
+                    ret.insert(n);
             }
         }
-        return ret ;
+        std::vector<DelaunayTetrahedron *> res ;
+        res.insert(res.end(), ret.begin(), ret.end() ) ;
+        return res ;
     }
 }
 
 void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_planes, double timestep)
-{
+{    
+
     std::vector<DelaunayTetrahedron *> tet = getElements() ;
-    std::map<DelaunayTetrahedron *, bool> visited ;
-    for(const auto & t : tet)
-        visited[t] = false ;
+    std::sort(tet.begin(), tet.end()) ;
+    std::set<DelaunayTetrahedron *> visited ;
 
     if( nodes_per_side > 1 )
         nodes_per_side = 1 ;
@@ -373,7 +379,10 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
     std::cerr << "setting order... elements 0/" << tet.size() << std::flush ;
     for( size_t i = 0 ; i < tet.size() ; i++ )
     {
-        if(i%1000 == 0)
+        delete tet[i]->cachedGps ;
+        tet[i]->cachedGps = nullptr ;
+        tet[i]->behaviourUpdated = true ; 
+//         if(i%1000 == 0)
             std::cerr << "\rsetting order... elements " << i+1 << "/" << tet.size() << std::flush ;
 
         std::vector<std::pair<Point, Point> > sides ;
@@ -385,7 +394,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
         sides.push_back( std::make_pair( tet[i]->getBoundingPoint( 0 ), tet[i]->getBoundingPoint( 2 ) ) ) ;
 
 
-        visited[tet[i]] = true ;
+        visited.insert(tet[i]); ;
 
         size_t nodes_per_plane = nodes_per_side * 6 + 4 ;
 
@@ -424,11 +433,14 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
 
                     if( !foundPoint )
                     {
-                        std::vector<DelaunayTetrahedron *> toTest =  getNeighbourhood(tet[i]);
+                        std::vector<DelaunayTetrahedron *> toTest = getNeighbourhood(tet[i]);
+//                         for( size_t j = 0 ; j < tet[i]->neighbourhood.size() ; j++ )
+//                             if(std::binary_search(tet.begin(), tet.end(), tet[i]->getNeighbourhood(j)))
+//                                 toTest.push_back(tet[i]->getNeighbourhood(j));
 
                         for( size_t j = 0 ; j < toTest.size() ; j++ )
                         {
-                            if( visited[toTest[j]] && tet[i] != toTest[j])
+                            if( visited.find(toTest[j]) != visited.end() && tet[i] != toTest[j])
                             {
                                 for( size_t k = 0 ; k < toTest[j]->getBoundingPoints().size() ; k++ )
                                 {
@@ -475,9 +487,9 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
             {
                 std::cout << "ouch !" << std::endl ;
 
-                for( size_t k = 0 ; k < newPoints.size() ; k++ )
-                    if( newPoints[k] )
-                        newPoints[k]->print() ;
+                for( size_t l = 0 ; l < newPoints.size() ; l++ )
+                    if( newPoints[l] )
+                        newPoints[l]->print() ;
 
                 exit( 0 ) ;
             }
@@ -487,7 +499,7 @@ void ParallelDelaunayTree3D::addSharedNodes( size_t nodes_per_side, size_t time_
 
     }
 
-    std::cerr << "setting order... elements " << tet.size() << "/" << tet.size() << " ...done."<< std::endl ;
+    std::cerr << "\rsetting order... elements " << tet.size() << "/" << tet.size() << " ...done."<< std::endl ;
 }
 
 void ParallelDelaunayTree3D::setElementOrder( Order elemOrder, double dt )
@@ -593,6 +605,7 @@ void ParallelDelaunayTree3D::setElementOrder( Order elemOrder, double dt )
         break ;
 
     }
+    generateCache() ;
 }
 
 void ParallelDelaunayTree3D::extrude(double dt)

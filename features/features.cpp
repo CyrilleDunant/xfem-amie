@@ -543,6 +543,8 @@ void FeatureTree::setOrder ( Order ord )
 
     if(ord == elemOrder)
         return ;
+    
+
 
     state.stitched = false ;
     state.renumbered = false ;
@@ -576,6 +578,8 @@ void FeatureTree::setOrder ( Order ord )
 
 void FeatureTree::renumber()
 {
+    for(auto & bc : boundaryCondition)
+        bc->clearCache() ;
     if ( is2D() )
     {
         size_t count = 0 ;
@@ -1343,6 +1347,9 @@ void FeatureTree::projectTrianglesOnBoundaries ( size_t edge, size_t time )
 void FeatureTree::stitch()
 {
 
+    for(auto & bc : boundaryCondition)
+        bc->clearCache() ;
+        
     if ( is2D() )
     {
         if ( elemOrder >= QUADRATIC )
@@ -1406,6 +1413,7 @@ void FeatureTree::stitch()
         {
 
             dtree3D->setElementOrder ( elemOrder, realDeltaTime ) ;
+            dtree3D->clearCaches();
 
             if ( projectOnBoundaries )
             {
@@ -4482,33 +4490,6 @@ bool FeatureTree::stepElements()
                 volume += std::accumulate ( cachedVolumes[lcounter].begin(), cachedVolumes[lcounter].end(), double ( 0 ) ) ;
                 lcounter++ ;
             }
-
-
-
-            /*                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                            {
-                                #pragma omp parallel
-                                {
-                                    #pragma omp single
-                                    {
-                                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                                    {
-                                        #pragma omp task firstprivate(i)
-                                        {
-                                            if ( i.getPosition() % 1000 == 0 )
-                                            {
-                                                std::cerr << "\r checking for fractures (-1)... " << i.getPosition() << "/" << i.size() << std::flush ;
-                                            }
-
-                                            if ( i->getBehaviour()->getFractureCriterion() && dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion()) )
-                                            {
-            					dynamic_cast<AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion*>(i->getBehaviour()->getFractureCriterion())->currentFraction = averageDamage ;
-                                            }
-                                        }
-                                    }
-                                    }
-                                }
-                            }*/
 
             double adamage = 0 ;
             if ( !elastic )
@@ -7755,7 +7736,7 @@ void FeatureTree::generateElements()
 #ifdef HAVE_OPENMP
         double t0 = omp_get_wtime() ;
 #endif
-        dtree3D = new ParallelDelaunayTree3D ( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first, domains ) ;
+        dtree3D = new /*Parallel*/DelaunayTree3D ( meshPoints[0].first, meshPoints[1].first, meshPoints[2].first, meshPoints[3].first/*, domains*/ ) ;
         dtree3D->insert ( meshPoints[4].first ) ;
         dtree3D->insert ( meshPoints[5].first ) ;
         dtree3D->insert ( meshPoints[6].first ) ;
@@ -7879,159 +7860,6 @@ void FeatureTree::generateElements()
 void FeatureTree::shuffleMeshPoints()
 {
     std::random_shuffle ( meshPoints.begin(), meshPoints.end() ) ;
-    return ;
-    std::cout << "shuffling mesh points... " ;
-
-    std::deque<std::pair<Point *, const Feature * > > shuffled ;
-
-    for ( size_t i = 0 ; i < meshPoints.size() ; i++ )
-    {
-        shuffled.push_back ( meshPoints[i] ) ;
-    }
-
-    meshPoints.clear() ;
-
-    std::random_shuffle ( shuffled.begin(), shuffled.end() ) ;
-
-    std::vector<bool> visited ;
-
-    for ( size_t i = 0 ; i < shuffled.size() ; i++ )
-    {
-        visited.push_back ( true ) ;
-    }
-
-    size_t ix = 0 ;
-    size_t iy = 0 ;
-    size_t iz = 0 ;
-
-    size_t p = 0 ;
-
-    size_t np = shuffled.size() / 2 ;
-
-    if ( is2D() )
-    {
-        np =  std::pow ( np, 0.5 ) + 1 ;
-        Grid *shufflingGrid = new Grid ( static_cast<Sample *> ( tree[0] )->width() * 1.01, static_cast<Sample *> ( tree[0] )->height() * 1.01, np, tree[0]->getCenter() ) ;
-
-        while ( meshPoints.size() < shuffled.size() )
-        {
-            Point ptest ( shuffled[p].first->getX(), shuffled[p].first->getY() ) ;
-
-            if ( ( visited[p] ) && ( shufflingGrid->pixels[ix][iy]->coOccur ( ptest ) ) )
-            {
-                visited[p] = false ;
-                meshPoints.push_back ( shuffled[p] ) ;
-                ix++ ;
-
-                if ( ix == shufflingGrid->getLengthX() )
-                {
-                    ix = 0 ;
-                    iy++ ;
-
-                    if ( iy == shufflingGrid->getLengthY() )
-                    {
-                        iy = 0 ;
-                    }
-                }
-
-                p = 0 ;
-            }
-            else
-            {
-                p++ ;
-
-                if ( p == shuffled.size() )
-                {
-                    p = 0 ;
-                    ix++ ;
-
-                    if ( ix == shufflingGrid->getLengthX() )
-                    {
-                        ix = 0 ;
-                        iy++ ;
-
-                        if ( iy == shufflingGrid->getLengthY() )
-                        {
-                            iy = 0 ;
-                        }
-                    }
-
-//					shufflingGrid->pixels[ix][iy]->print() ;
-                }
-            }
-        }
-
-        delete shufflingGrid ;
-    }
-
-    if ( is3D() )
-    {
-        np = std::pow ( np, 0.3333333 ) + 1 ;
-        Grid3D *shufflingGrid = new Grid3D ( static_cast<Sample3D *> ( tree[0] )->getXSize() * 1.01,
-                                             static_cast<Sample3D *> ( tree[0] )->getYSize() * 1.01,
-                                             static_cast<Sample3D *> ( tree[0] )->getZSize() * 1.01, np, tree[0]->getCenter() ) ;
-
-        while ( meshPoints.size() < shuffled.size() )
-        {
-            Point ptest ( shuffled[p].first->getX(), shuffled[p].first->getY(), shuffled[p].first->getZ() ) ;
-
-            if ( ( visited[p] ) && ( shufflingGrid->pixels[ix][iy][iz]->coOccur ( ptest ) ) )
-            {
-                visited[p] = false ;
-                meshPoints.push_back ( shuffled[p] ) ;
-                ix++ ;
-
-                if ( ix == shufflingGrid->getLengthX() )
-                {
-                    ix = 0 ;
-                    iy++ ;
-
-                    if ( iy == shufflingGrid->getLengthY() )
-                    {
-                        iy = 0 ;
-                        iz++ ;
-
-                        if ( iz == shufflingGrid->getLengthY() )
-                        {
-                            iz = 0 ;
-                        }
-                    }
-                }
-
-                p = 0 ;
-            }
-            else
-            {
-                p++ ;
-
-                if ( p == shuffled.size() )
-                {
-                    p = 0 ;
-                    ix++ ;
-
-                    if ( ix == shufflingGrid->getLengthX() )
-                    {
-                        ix = 0 ;
-                        iy++ ;
-
-                        if ( iy == shufflingGrid->getLengthY() )
-                        {
-                            iy = 0 ;
-                            iz++ ;
-
-                            if ( iz == shufflingGrid->getLengthZ() )
-                            {
-                                iz = 0 ;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    std::random_shuffle ( meshPoints.begin(), meshPoints.end() );
-    std::cout << "done... " << std::endl ;
 }
 
 void FeatureTree::printReport(bool printHeader, bool vertical)

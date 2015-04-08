@@ -352,29 +352,20 @@ protected:
 public:
     virtual size_t size() const {
         return tree.size() ;
-    } ;
+    } 
     virtual double getInternalScale() const {
         return internalScale ;
-    } ;
+    } 
     virtual std::vector<Point * > & getAdditionalPoints() {
         return additionalPoints ;
-    };
+    }
     virtual const std::vector<Point * > & getAdditionalPoints() const {
         return additionalPoints ;
-    };
+    }
 
 
-    virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Amie::Point* p)
-    {
-        std::vector< DelaunayTreeItem3D* > targets = conflicts(p) ;
-        std::vector<DelaunayTetrahedron*> ret ;
-        for(size_t i = 0 ; i < targets.size() ; i++)
-        {
-            if(!targets[i]->dead && targets[i]->isTetrahedron && !targets[i]->isDeadTetrahedron )
-                ret.push_back(static_cast< DelaunayTetrahedron *> (targets[i])) ;
-        }
-        return ret ;
-    };
+    virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Point* p) ;
+    
     virtual std::vector< DelaunayTetrahedron* > getConflictingElements(const Geometry* g)
     {
         return conflicts(g) ;
@@ -384,7 +375,7 @@ public:
 public:
     size_t getLastNodeId() const {
         return global_counter ;
-    }  ;
+    } 
     std::vector<DelaunayDemiSpace *> space ;
 
     DelaunayTree3D ( Point * p0,  Point *p1,  Point *p2, Point *p3) ;
@@ -399,20 +390,10 @@ public:
 
     virtual DelaunayTreeItem3D * getInTree(int index) const
     {
-// 		if( index >= 0 && index < tree.size())
         return tree[index] ;
-// 		return nullptr ;
     }
 
-    virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) const
-    {
-        std::vector<DelaunayTetrahedron *> ret ;
-        for(const auto & idx : element->neighbourhood)
-        {
-            ret.push_back((DelaunayTetrahedron *)tree[idx]);
-        }
-        return ret ;
-    };
+    virtual std::vector<DelaunayTetrahedron *> getNeighbourhood(DelaunayTetrahedron * element) const ;
 
     void insert( Point *p) ;
     void insert( Segment *s) ;

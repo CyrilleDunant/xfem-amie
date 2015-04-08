@@ -763,7 +763,7 @@ Vector Viscoelasticity::getForcesFromAppliedStress( const Vector & data, Functio
 {
     if(isVolumic)
     {
-        return (VirtualMachine().ieval(GradientDot( shape ) * data, gp, Jinv, v)) ;
+        return VirtualMachine().ieval(GradientDot( shape ) * data, gp, Jinv, v) ;
     }
     return data * VirtualMachine().ieval(Differential( shape, TIME_VARIABLE ), gp, Jinv, v) ;
 }
