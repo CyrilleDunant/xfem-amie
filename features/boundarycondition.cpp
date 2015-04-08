@@ -3327,6 +3327,7 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             return ;
         }
+        
         case SET_VOLUMIC_STRESS_XI:
         {
             if ( e->getBehaviour()->fractured() )
@@ -3368,20 +3369,20 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 0, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 0, 3, shapeFunctions[j], e, gp, Jinv, v, true ) ;
 
-                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
-                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
-                a->addForceOn ( ZETA, forces[1], id[i].getId() ) ;
+                a->addForceOn ( XI, forces[0], id[j].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[j].getId() ) ;
+                a->addForceOn ( ZETA, forces[1], id[j].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
-                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[j].getId() ) ;
                     }
                 }
             }
@@ -3428,26 +3429,27 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 1, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 1, 3, shapeFunctions[j], e, gp, Jinv, v, true ) ;
 
-                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
-                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
-                a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+                a->addForceOn ( XI, forces[0], id[j].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[j].getId() ) ;
+                a->addForceOn ( ZETA, forces[2], id[j].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
-                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[j].getId() ) ;
                     }
                 }
             }
 
             return ;
         }
+        
         case SET_VOLUMIC_STRESS_ZETA:
         {
             if ( e->getBehaviour()->fractured() )
@@ -3488,20 +3490,20 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             for ( size_t j = 0 ; j < shapeFunctions.size() ; ++j )
             {
-                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 2, 3, shapeFunctions[i], e, gp, Jinv, v, true ) ;
+                Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 2, 3, shapeFunctions[j], e, gp, Jinv, v, true ) ;
 
-                a->addForceOn ( XI, forces[0], id[i].getId() ) ;
-                a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
-                a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
+                a->addForceOn ( XI, forces[0], id[j].getId() ) ;
+                a->addForceOn ( ETA, forces[1], id[j].getId() ) ;
+                a->addForceOn ( ZETA, forces[2], id[j].getId() ) ;
 
                 Viscoelasticity * visc = dynamic_cast<Viscoelasticity *> ( e->getBehaviour() ) ;
                 if ( visc && visc->model > KELVIN_VOIGT)
                 {
                     for ( int b = 1 ; b < visc->blocks ;  b++ )
                     {
-                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[i].getId() ) ;
-                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[i].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b, -forces[0], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+1, -forces[1], id[j].getId() ) ;
+                        a->addForceOnIndexedAxis ( 3*b+2, -forces[2], id[j].getId() ) ;
                     }
                 }
             }
@@ -5357,8 +5359,11 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, De
     if ( cache.empty() )
     {
 
+        
         for ( auto i = t->begin() ; i != t->end() ; i++ )
         {
+            if(i.getPosition()%1000 == 0)
+                std::cerr << "\r dof " <<i.getPosition() << "/" << i.size() << std::flush ;
             if ( i->getBehaviour()->getDamageModel() && i->getBehaviour()->getDamageModel()->fractured() )
             {
                 continue ;
@@ -5396,6 +5401,7 @@ void GlobalBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, De
                 apply3DBC ( i,gp, Jinv, id, condition, dataFunction*getScale(), a ) ;
             }
         }
+        std::cerr << "\r dof " <<t->begin().size() << "/" << t->begin().size() << std::endl ;
     }
     else
     {
