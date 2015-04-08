@@ -108,6 +108,26 @@ struct Viscoelasticity : public LinearForm
 } ;
 
 
+typedef enum 
+{
+	LOGPOWER_CREEP,
+        ACI_CREEP,
+        CEB_CREEP,
+        B3_DRYING_CREEP,
+        JSCE_CREEP,
+        FIB_CREEP,
+} CreepComplianceModel ;
+
+struct ViscoelasticKelvinVoigtChainGenerator
+{
+        ViscoelasticKelvinVoigtChainGenerator() { } ;
+
+        static double getLCoefficient( CreepComplianceModel model, double tau, std::map<std::string, double> args) ;
+
+        static std::vector< std::pair<Matrix, Matrix> > getKelvinVoigtChain( double E_creep, double nu_creep, CreepComplianceModel model, std::string args, double tau0, int branches, SpaceDimensionality dim = SPACE_TWO_DIMENSIONAL, planeType pt = PLANE_STRESS) ;
+} ;
+
+
 } 
 
 

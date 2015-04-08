@@ -1,4 +1,5 @@
 #include "viscoelasticity.h"
+#include "material_laws/material_laws.h"
 #include "../elements/generalized_spacetime_viscoelastic_element_state.h"
 
 using namespace Amie ;
@@ -838,5 +839,115 @@ void Viscoelasticity::print() const
     }
 }
 
+
+double ViscoelasticKelvinVoigtChainGenerator::getLCoefficient( CreepComplianceModel model, double tau, std::map<std::string, double> args) 
+{
+    switch(model)
+    {
+    case LOGPOWER_CREEP:
+    {
+        if(args.find("n") != args.end())
+        {
+            double n = args["n"] ;
+            double tau_n = std::pow(tau, n) ;
+            return n*tau_n/(1+tau_n) ;
+        }
+        return exp(-1./tau) ;
+    }
+    case ACI_CREEP:
+    {
+        double a = 10 ;
+        double n = 0.6 ; 
+        if(args.find("a") != args.end())
+            a = args["a"] ;
+        if(args.find("n") != args.end())
+            n = args["n"] ;
+        double tau_n = std::pow(tau, n) ;
+        return a * n * tau_n / ((a + tau_n)*(a + tau_n)) ;
+    }
+    case CEB_CREEP:
+    {
+        double n = 0.3 ;
+        double beta = 775 ;
+        if(args.find("beta") != args.end())
+            beta = args["beta"] ;
+        if(args.find("n") != args.end())
+            n = args["n"] ;
+        return tau * std::pow( tau/(tau+beta), n-1 )*beta/((beta+tau)*(beta+tau)) ;
+    }
+    case B3_DRYING_CREEP:
+    {
+        double tau_shrinkage = 0.1 ;
+        double tau_cure = 28 ;
+        double tau_loading = 28 ;
+        double h = 1 ;
+        if(args.find("tau_shrinkage") != args.end())
+            tau_shrinkage = args["tau_shrinkage"] ;
+        if(args.find("tau_cure") != args.end())
+            tau_cure = args["tau_cure"] ;
+        if(args.find("tau_loading") != args.end())
+            tau_loading = args["tau_loading"] ;
+        if(args.find("h") != args.end())
+            h = args["h"] ;
+        double b = 8*(1-h) ;
+        double xhi_cure = (tau_cure - tau_loading)/tau_shrinkage ;
+        if(xhi_cure < 0)
+            xhi_cure = 0 ;
+        double sqrttau = sqrt( tau - xhi_cure ) ;
+        double expbtanhtau = exp(b*tanh(sqrttau)) ;
+        double expbtanhxhi = exp(b*tanh(sqrt(-xhi_cure))) ;
+        return tau*b*expbtanhtau / (4*sqrt( sqrttau*sqrttau*( expbtanhtau - expbtanhxhi)*cosh(sqrttau)*cosh(sqrttau) )) ;
+    }
+    case JSCE_CREEP:
+    {
+        double c = -0.09 ;
+        double n = 0.6 ;
+        if(args.find("c") != args.end())
+            c = args["c"] ;
+        if(args.find("n") != args.end())
+            n = args["n"] ;
+        double tau_n = std::pow(tau, n) ;
+        return (-exp(c*tau_n))*c*tau_n ;
+    }
+    case FIB_CREEP:
+    {
+        double tau_loading = 28 ;
+        if(args.find("tau_loading") != args.end())
+            tau_loading = args["tau_loading"] ;
+        double c = 0.035+30./tau_loading ;
+        c *= c ;
+        return exp(-1./(c*tau)) ;
+    }
+    }
+    return -1 ;
+}
+
+
+std::vector< std::pair<Matrix, Matrix> > ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( double E_creep, double nu_creep, CreepComplianceModel model, std::string args, double tau0, int b, SpaceDimensionality dim, planeType pt) 
+{
+    std::vector< std::pair<Matrix, Matrix> > branches ;
+    double tau = tau0 ;
+    std::map<std::string, double> val = parseDefaultValues(args, ',') ;
+    for(int i = 0 ; i < b ; i++)
+    {
+        double E = E_creep/log(10) ;
+        double L = ViscoelasticKelvinVoigtChainGenerator::getLCoefficient(model, tau, val) ;
+        if(model != LOGPOWER_CREEP && model != FIB_CREEP)
+        {
+            double tauprev = tau*0.51442831563 ;
+            double taunext = tau*1.94390543758 ;
+            L = (ViscoelasticKelvinVoigtChainGenerator::getLCoefficient(model, tauprev, val) + ViscoelasticKelvinVoigtChainGenerator::getLCoefficient(model, taunext, val))/2 ;
+        }
+        if(L > POINT_TOLERANCE)
+        {
+            E /= L ;
+            Matrix C = Tensor::cauchyGreen( E, nu_creep, true, dim, pt) ;
+            Matrix eta = C*tau ;
+            branches.push_back(std::make_pair(C, eta)) ;
+        }
+        tau *= 10 ;
+    }
+    return branches ;
+}
 
 
