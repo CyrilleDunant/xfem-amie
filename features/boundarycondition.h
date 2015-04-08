@@ -272,6 +272,17 @@ public:
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
+class GlobalBoundaryCondition final: public BoundaryCondition
+{
+
+public:
+    
+    GlobalBoundaryCondition(LagrangeMultiplierType t, double d = 0, int a = 0) ;
+    GlobalBoundaryCondition(LagrangeMultiplierType t,  const Function & d, int a = 0) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
+
 
 }
 

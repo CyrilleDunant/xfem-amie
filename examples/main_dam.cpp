@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 //     }
 //     exit(0) ;
     
-    samplers.setBehaviour(/*new VoidForm()*/new Stiffness(m1)) ;
+    samplers.setBehaviour(new VoidForm()) ;
 
     std::valarray<Point *> damProfile(4) ;
     damProfile[0] = new Point(0, 10, 0) ;
@@ -122,21 +122,19 @@ int main(int argc, char *argv[])
     F.setPartition(1);
 
     //fixed at the bottom
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_XI, RIGHT)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ETA, TOP)) ;
-    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ZETA, FRONT)) ;
+    F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(FIX_ALONG_ALL, RIGHT)) ;
 
     //fixed by the mountain
-//     std::pair<Point, Point> normals = dam.getEndNormals() ;
-//     F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.first)) ;
-//     F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
+    std::pair<Point, Point> normals = dam.getEndNormals() ;
+    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.first)) ;
+    F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
 
-    
+    //water load
     waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, samplers.getPrimitive(), Point(0,0,-1) , Function("0.981 x 73 +  *")*f_positivity(Function("x 73 +")) ) ;
     F.addBoundaryCondition(waterload) ;
     
-     //selfweight
-     F.addBoundaryCondition(new GeometryDefinedBoundaryCondition( SET_VOLUMIC_STRESS_XI, samplers.getPrimitive(), -23544 ) );
+    //selfweight
+    F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, -23544 ) );
     
     step(&F, &dam) ;
 
