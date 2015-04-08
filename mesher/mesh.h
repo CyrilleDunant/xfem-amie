@@ -69,6 +69,15 @@ public:
     virtual std::vector<ETYPE *> getConflictingElements ( const Point  * p )  = 0;
     virtual std::vector<ETYPE *> getConflictingElements ( const Geometry * g ) = 0;
     virtual std::vector<ETYPE *> getNeighbourhood ( ETYPE * element ) const = 0 ;
+    virtual std::vector<ETYPE *> getConflictingElements ( const Segment  * s, double width = 0.001 )  
+    {
+        Point A = s->first() ;
+        Point B = s->second() ;
+        Point n = s->normal()*width ;
+        OrientedRectangle rect( A-n, B-n, B+n, A+n) ;
+        return getConflictingElements( &rect) ;
+    }
+
 
     virtual bool step(double dt) {
         return false ;
@@ -85,7 +94,7 @@ public:
         std::vector<ETYPE *> neighbourhood = getNeighbourhood ( start ) ;
         for ( const auto & neighbour : neighbourhood ) {
             if ( neighbour->timePlanes() > 1 ) {
-                std::cout << "\n!!!!!!!!!! wahh?" << std::endl ;
+//                std::cout << "\n!!!!!!!!!! wahh?" << std::endl ;
                 if ( g->in ( neighbour->getCenter() ) || neighbour->in ( g->getCenter() ) || g->intersects ( neighbour->getPrimitive() ) ) {
                     to_test.insert ( neighbour ) ;
                 } else if ( g->getGeometryType() == TIME_DEPENDENT_CIRCLE ) {
@@ -405,6 +414,39 @@ public:
 
     }
 
+    virtual unsigned int generateCache( Segment * source, double width = 0.001) {
+        //search for first empty cache slot ;
+        getElements() ;
+        if ( caches.empty() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+        size_t position = 0;
+        for ( ; position < caches.size() ; position++ ) {
+            if ( caches[position].empty() ) {
+                break ;
+            }
+        }
+        if ( position == caches.size() ) {
+            caches.push_back ( std::vector<int>() );
+            coefs.push_back ( std::vector<std::vector<double>>() );
+        }
+
+        std::vector<ETYPE *> elems = getConflictingElements ( source, width ) ;
+        if(elems.empty())
+            elems = getConflictingElements ( &source->first() ) ;
+
+        for ( auto & element : elems ) {
+            if(source->intersects(dynamic_cast<IntegrableEntity *>(element)))
+            {
+                caches[position].push_back ( element->index ) ;
+                coefs[position].push_back ( std::vector<double>() ) ;
+            }
+        }
+        return position ;
+
+    }
+
     virtual unsigned int generateCacheOut( std::vector<unsigned int> ids )
     {
         getElements() ;
@@ -668,12 +710,12 @@ public:
         double w = 0. ;
         std::map<std::string, double> dummy ;
         bool is2d = (static_cast<ETYPE *> ( getInTree ( caches[realID][0] ) )->spaceDimensions() == SPACE_TWO_DIMENSIONAL) ;
-        for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
+        for ( size_t i = 0 ; i < caches[realID].size() ; i++ ) {
             if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()))
             {
                 if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState())->has(f))
                 {
-                    double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
+                    double a = ((is2d) ? static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->area() : static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->volume()) ;
                     ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realID][i] ) )->getState()).get(f, dummy)*a ;
                     w += a ;
                 }
@@ -699,6 +741,39 @@ public:
             double v = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) )->getState().getAverageField ( f, buffer, nullptr, dummy, t, coefs[cacheID][i] ) ;
             ret += buffer * v ;
             w +=v ;
+        }
+        return ret/w ;
+    }
+
+    virtual Vector getField( FieldType f, Segment * source, int cacheID = -1, int dummy = 0, double t = 0) {
+        int realCacheID = cacheID ;
+        if(cacheID == -1)
+            realCacheID = allElementsCacheID ;
+
+        VirtualMachine vm ;
+        size_t blocks = 0 ;
+        for ( size_t i = 0 ; i < caches[realCacheID].size() && !blocks; i++ ) {
+            blocks = static_cast<ETYPE *>(getInTree ( caches[realCacheID][i] ))->getBehaviour()->getNumberOfDegreesOfFreedom() / spaceDimensions ;
+        }
+        Vector ret ( 0., fieldTypeElementarySize ( f, spaceDimensions, blocks ) ) ;
+        Vector buffer ( ret ) ;
+        double w = 0 ;
+        if( caches[realCacheID].size() == 0)
+           return ret ;
+
+        double realT = static_cast<ETYPE *>( getInTree ( caches[realCacheID][0] ) )->getBoundingPoint(0).getT()*(1.-t)/2. + static_cast<ETYPE *>( getInTree ( caches[realCacheID][0] ) )->getBoundingPoint( static_cast<ETYPE *>(getInTree ( caches[realCacheID][0] ))->getBoundingPoints().size()-1 ).getT()*(1.+t)/2. ;
+
+        for ( size_t i = 0 ; i < caches[realCacheID].size() ; i++ ) {
+            std::vector<Point> inter = source->intersection( dynamic_cast<IntegrableEntity *>( getInTree ( caches[realCacheID][i] ) ) ) ;
+            if(source->intersects( dynamic_cast<IntegrableEntity *>( getInTree ( caches[realCacheID][i] ) ) ) && inter.size() == 2)
+            {
+                Segment local(inter[0], inter[1]) ;
+                Point mid = local.midPoint() ;
+                mid.setT( realT ) ;
+                static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState().getField ( f, mid, buffer, false, nullptr, dummy) ;
+                ret += buffer * local.norm() ;
+                w += local.norm() ;
+            }
         }
         return ret/w ;
     }

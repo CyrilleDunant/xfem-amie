@@ -3882,7 +3882,10 @@ bool Segment::intersects(const Geometry *g) const
     {
         std::vector<Point> pts ;
         std::multimap<double, Point> pt ;
-        if( g->getBoundingPoints().size() != 3)
+        size_t planes = 1 ;
+        if(g->timePlanes() > 1)
+            planes = g->timePlanes() ;
+        if( g->getBoundingPoints().size() != 3*planes)
         {
             for(size_t i = 0 ; i < g->getBoundingPoints().size() ;  i++)
             {
@@ -4093,7 +4096,7 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         std::vector<Point> pts ;
         const Triangle * gt = dynamic_cast<const Triangle *>(g) ;
 
-        for(size_t i = 0 ; i <  gt->getBoundingPoints().size() ;  i++)
+        for(size_t i = 0 ; i <  gt->getBoundingPoints().size()/gt->timePlanes() ;  i++)
         {
             if(std::abs(dist(gt->getCircumCenter(), gt->getBoundingPoint(i))-gt->getRadius()) < POINT_TOLERANCE)
                 pts.push_back(gt->getBoundingPoint(i));
@@ -4103,7 +4106,12 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         {
             Segment s(pts[i], pts[(i+1)%pts.size()]) ;
             if(s.intersects(*this))
-                ret.push_back( s.intersection(*this)) ;
+            {
+                if(on(pts[i]))
+                    ret.push_back(pts[i]) ;
+                else
+                    ret.push_back( s.intersection(*this)) ;
+            }
         }
         std::sort(ret.begin(), ret.end()) ;
         auto e = std::unique(ret.begin(), ret.end()) ;

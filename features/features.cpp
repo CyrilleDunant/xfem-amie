@@ -5803,6 +5803,51 @@ Vector FeatureTree::getAverageField ( FieldType f, int grid , double t )
 
 }
 
+Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldType f, int dummy, double t )
+{
+    if(boundaryCache.find(edge) == boundaryCache.end())
+    {
+        if(is2D())
+        {
+            Segment * pos = nullptr ;
+            switch(edge)
+            {
+            case TOP:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case BOTTOM:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case LEFT:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case RIGHT:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            default:
+               std::cout << "cannot calculate field on selected boundary" << std::endl ;
+               return get2DMesh()->getField ( f, -1, t ) ;
+            }
+            unsigned int id = get2DMesh()->generateCache( pos ) ;
+            boundaryCache[ edge ] = std::make_pair( pos, id ) ;
+        }
+        else
+        {
+            std::cout << "cannot calculate field on selected boundary" << std::endl ;
+            return get3DMesh()->getField ( f, -1, t ) ;
+        }
+    }
+
+
+    if ( is2D() )
+    {
+        return get2DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, dummy, t ) ;
+    }
+
+    return get3DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second, dummy, t ) ;
+
+}
+
 std::vector<double>  FeatureTree::getMacroscopicStrain ( const Geometry * base, double tol )
 {
     Vector disps = getDisplacements() ;

@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 	F.setDeltaTime(time_step) ;
 	F.setMaxIterationsPerStep(1000) ;
 
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT_AFTER) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM) ) ;
+	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, 1e6) ) ;
 //	BoundaryCondition* disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0. ) ;
 //	F.addBoundaryCondition(disp) ;
 
@@ -73,17 +73,27 @@ int main(int argc, char *argv[])
 //	box.setBehaviour(new /*FiniteDifference*/Viscoelasticity( GENERALIZED_MAXWELL, paste.C, paste.C*2, paste.C*10, BACKWARD_EULER) ) ;
 //	box.setBehaviour( &paste ) ;
         std::vector< std::pair<Matrix, Matrix> > branches = ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( 1e9, 0.3, LOGPOWER_CREEP, std::string("n=0.5"), 0.001, 8 ) ;
-        box.setBehaviour( new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, paste.C, branches ) ) ;
+        box.setBehaviour( new Viscoelasticity( PURE_ELASTICITY, paste.C ) ) ;
 
 	F.step() ;
-	std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[1] << std::endl ;
+
+        Segment top( Point(-0.005, 0.005), Point(0.005, 0.005)) ;
+        int cachetop = F.get2DMesh()->generateCache( &top ) ;
+
+       	std::cout << F.getCurrentTime() << "\t" << F.getAverageFieldOnBoundary( TOP, REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << F.getAverageFieldOnBoundary( RIGHT, DISPLACEMENT_FIELD, -1, 1.)[1]  << std::endl ;
+
+        F.getFeature(0)->getBoundingBox()[0].print() ;
+        F.getFeature(0)->getBoundingBox()[1].print() ;
+        F.getFeature(0)->getBoundingBox()[2].print() ;
+        F.getFeature(0)->getBoundingBox()[3].print() ;
 
 	while(F.getCurrentTime() < 300)
 	{
 		time_step += 1. ;
 		F.setDeltaTime(time_step) ;
 		F.step() ;
-		std::cout << F.getCurrentTime() << "\t" << F.getAverageField( STRAIN_FIELD, -1, 1.)[1] << "\t" << F.getAverageField(REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << 1+log(1+F.getCurrentTime()) << std::endl ;
+                
+           	std::cout << F.getCurrentTime() << "\t" << F.getAverageFieldOnBoundary( TOP, REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << F.getAverageFieldOnBoundary( RIGHT, DISPLACEMENT_FIELD, -1, 1.)[1]  << std::endl ;
 	}
 
 

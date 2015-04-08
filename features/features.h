@@ -324,6 +324,8 @@ public:
     /** \brief return the 3D mesh*/
     Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * get3DMesh ( ) ;
 
+    std::map< BoundingBoxPosition, std::pair< Segment *, unsigned int> > boundaryCache ;
+
     void shuffleMeshPoints() ;
 
     void setInitialValue ( double v ) {
@@ -622,6 +624,8 @@ public:
     Vector getAverageField ( FieldType f, int grid = -1, double t = 0 ) ;
 // 	Vector getAverageField( FieldType f, const std::vector<DelaunayTriangle *> & tri) ;
 // 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
+
+    Vector getAverageFieldOnBoundary( BoundingBoxPosition position, FieldType f, int dummy = 0, double t = 0) ;
 
     std::pair<Vector, Vector> getFieldMinMax ( FieldType f, int grid = -1, double t = 0 ) ;
     std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri ) ;
