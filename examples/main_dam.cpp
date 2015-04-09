@@ -38,18 +38,18 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
 
         if(i == 0)
         {
-            VoxelWriter vw("stress_full", 250) ;
-            vw.getField(featureTree, VWFT_STRESS) ;
+            VoxelWriter vw("stress_full", 50) ;
+            vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
-            VoxelWriter vw1("stiffness", 250) ;
+            VoxelWriter vw1("stiffness", 50) ;
             vw1.getField(featureTree, VWFT_STIFFNESS) ;
             vw1.write();
             waterload->setData(Function("0.981 x 40 + *")*f_positivity(Function("x 40 +")));
         }
         if(i == 1)
         {
-            VoxelWriter vw("stress_empty", 250) ;
-            vw.getField(featureTree, VWFT_STRESS) ;
+            VoxelWriter vw("stress_empty", 50) ;
+            vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
         }
 //         featureTree->printReport();
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     damProfile[3] = new Point(0, -20, 0) ;
     
     std::vector<Point> damArch ;
-    for(double i = -1. ; i <= 1. ; i+=0.1)
+    for(double i = -1. ; i <= 1. ; i+=0.05)
     {
         damArch.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
     }
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     galleryProfile[4] = new Point(-2.5, 2.5, 0) ;
     
     std::vector<Point> galleryArch ;
-    for(double i = -.9 ; i <= .9 ; i+=0.1)
+    for(double i = -.9 ; i <= .9 ; i+=0.05)
     {
         galleryArch.push_back(Point(-50,i*100.,  20.*(1.-i*i) ));
     }
@@ -130,11 +130,11 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
 
     //water load
-    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, samplers.getPrimitive(), Point(0,0,-1) , Function("0.981 x 73 +  *")*f_positivity(Function("x 73 +")) ) ;
+    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,-1) , Function("0.981 x 73 +  *")*f_positivity(Function("x 73 +")) ) ;
     F.addBoundaryCondition(waterload) ;
     
     //selfweight
-    F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, -23544 ) );
+//     F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, -23544 ) );
     
     step(&F, &dam) ;
 

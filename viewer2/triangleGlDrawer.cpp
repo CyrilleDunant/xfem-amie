@@ -150,10 +150,10 @@ void TriangleGLDrawer::paintGL()
 
 	glColor3f( 0., 0., 0. ) ;
 	int elapsedTime = startTime.msecsTo( QTime::currentTime() );
-	renderText( 10, 20, QString( "%0 fps" ).arg( 1000.0f / ( float )elapsedTime ) );
+// 	renderText( 10, 20, QString( "%0 fps" ).arg( 1000.0f / ( float )elapsedTime ) );
 	size_t r, g, b ;
 
-	renderText( 10, 40, QString( "%0 []" ).arg( ( float )valUnderCursor) );
+// 	renderText( 10, 40, QString( "%0 []" ).arg( ( float )valUnderCursor) );
 	
 	
 	if( !limits.empty() )
@@ -198,10 +198,10 @@ void TriangleGLDrawer::paintGL()
 		{
 
 			double v = i * ( limits[currentSet].first - ( limits[currentSet].first - limits[currentSet].second ) * ( 1. - fracup / 10000. ) ) + ( 1. - i ) * ( limits[currentSet].second + ( limits[currentSet].first - limits[currentSet].second ) * fracdown / 10000. ) ;
-			renderText( ( .805 - 0.5 ) + 0.05,
-			            ( i - 0.5 )*.7,
-			            0.,
-			            QString::number( v, 'f', 2) );
+// 			renderText( ( .805 - 0.5 ) + 0.05,
+// 			            ( i - 0.5 )*.7,
+// 			            0.,
+// 			            QString::number( v, 'f', 2) );
 		}
 	}
 

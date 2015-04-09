@@ -71,7 +71,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
 
 
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && !alternate) // initiate iteration
+    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && ((!alternate && alternating) || !alternating)) // initiate iteration
     {
         initalState = state ;
         error = score ;
@@ -101,7 +101,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
 
     }
-    else if( !converged && !alternate)
+    else if( !converged && ((!alternate && alternating) || !alternating))
     {
 
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;

@@ -86,7 +86,6 @@ double RotatingCrack::getAngleShift() const
 
 void RotatingCrack::step(ElementState & s, double maxscore)
 {
-
     if(!alternate)
     {
         if ( s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
@@ -123,12 +122,12 @@ void RotatingCrack::step(ElementState & s, double maxscore)
     }
     else
     {
-//         double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
-//         double max = maxScoreInNeighbourhood ;
-//         if(needGlobalMaximumScore)
-//             max = maxscore ;
+        double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
+        double max = maxScoreInNeighbourhood ;
+        if(needGlobalMaximumScore)
+            max = maxscore ;
 
-//         std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
+        std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
         change = false ;
         if(!s.getParent()->getBehaviour()->getFractureCriterion())
         {

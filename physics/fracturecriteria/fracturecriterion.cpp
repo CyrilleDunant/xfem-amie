@@ -158,6 +158,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         // outside of the checkpoints, we only care about the order of the elements in
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
+        
         if(checkpoint ) //new iteration
         {
 //             if(!(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
@@ -221,7 +222,6 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     }
                 }
             }
-
             if(!inset)
             {
                 if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
