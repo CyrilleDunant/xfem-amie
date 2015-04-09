@@ -56,6 +56,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
     std::pair<double, double> setChange = s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
+//     std::cout << "#" << score << std::endl ;
     if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -67,9 +68,11 @@ void DamageModel::step( ElementState &s , double maxscore)
         alternate = true ;
         return ;
     }
-
+//     std::cout << "#!" << score << std::endl ;
+    
     std::pair<Vector, Vector> damageIncrement = computeDamageIncrement( s ) ;
-
+    
+//     std::cout << "#! " << s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() << "  "<< !alternate <<  "  "<<alternating << "  "<< !alternating << "  " << converged << "  " <<std::endl ;
 
     if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && ((!alternate && alternating) || !alternating)) // initiate iteration
     {
@@ -103,7 +106,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
     else if( !converged && ((!alternate && alternating) || !alternating))
     {
-
+//         std::cout << "#!" << score << std::endl ;
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
         change = true ;
@@ -274,6 +277,7 @@ DamageModel::DamageModel(): state(0)
     delta = 1 ;
     effectiveDeltaFraction = 1 ;
     alternate = false ;
+    alternating = false ;
     needGlobalMaximumScore = false ;
     // The exploration increment is crucial for finding
     // the correct distribution of damage: the effect

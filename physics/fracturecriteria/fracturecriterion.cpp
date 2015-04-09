@@ -186,9 +186,10 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             maxAngleShiftInNeighbourhood = 0 ;
             if(thresholdScore > 0 )
             {
-                for(size_t i = 0 ; i< mesh2d->getCache(cacheID).size() ; i++)
+//                 std::cout << "plouf" << std::endl ;
+                for(auto ci = mesh2d->begin(cacheID) ; ci != mesh2d->end(cacheID) ; ci++)
                 {
-                    DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(mesh2d->getCache(cacheID)[i])) ;
+//                     DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(mesh2d->getCache(cacheID)[i])) ;
                     if(!ci->getBehaviour()->getDamageModel())
                         continue ;
 
@@ -198,11 +199,13 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
                             ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
                     {
+//                         std::cout << "plif" << std::endl ;
 
                         if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
                             if(ci == s.getParent() && met())
                                 inset = true ;
-
+//                         if(inset)
+//                             std::cout << "pluf" << (ci == s.getParent() && met()) << (!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)) << "  "<< s.getParent()->getBehaviour()->getDamageModel()->getState()[0]<<std::endl ;
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
@@ -234,6 +237,8 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
+            
+//             std::cout << "plaf" << std::endl ;
             if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
                 inIteration = true ;
             if(!newSet.empty())
@@ -322,9 +327,9 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             maxAngleShiftInNeighbourhood = 0 ;
             if(thresholdScore > 0 )
             {
-                for(size_t i = 0 ; i< mesh3d->getCache(cacheID).size() ; i++)
+                for(auto ci = mesh3d->begin(cacheID) ; ci != mesh3d->end() ; ci++)
                 {
-                    DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(mesh3d->getCache(cacheID)[i])) ;
+//                     DelaunayTetrahedron * ci = static_cast<DelaunayTetrahedron *>( mesh3d->getInTree(mesh3d->getCache(cacheID)[i])) ;
                     if(!ci->getBehaviour()->getDamageModel())
                         continue ;
 
