@@ -29,8 +29,9 @@ GeometryAndFaceDefinedSurfaceBoundaryCondition * waterload ;
 void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
 {
     Sample3D samplers(nullptr, 249.99,249.99,249.99,0,0,0) ;
-    int nsteps = 4;// number of steps between two clicks on the opengl thing
+    int nsteps = 5;// number of steps between two clicks on the opengl thing
     featureTree->setMaxIterationsPerStep(50) ;
+    Point crest(-74,0,20) ;
     
     for(int i = 0 ; i < nsteps ; i++)
     {
@@ -38,20 +39,40 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
 
         if(i == 0)
         {
-            VoxelWriter vw("stress_full", 50) ;
+            VoxelWriter vw("stress_empty", 200) ;
             vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
-            VoxelWriter vw1("stiffness", 50) ;
+            VoxelWriter vw1("stiffness", 200) ;
             vw1.getField(featureTree, VWFT_STIFFNESS) ;
             vw1.write();
-            waterload->setData(Function("0.981 x 40 + *")*f_positivity(Function("x 40 +")));
+            waterload->setData(Function("9810 x 41 + *")*f_positivity(Function("x 41 +")));
+            
         }
         if(i == 1)
         {
-            VoxelWriter vw("stress_empty", 50) ;
+
+            waterload->setData(Function("9810 x 52 + *")*f_positivity(Function("x 52 +")));
+        }
+        if(i == 2)
+        {
+            VoxelWriter vw("stress_intermediate", 200) ;
+            vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
+            vw.write();
+            waterload->setData(Function("9810 x 63 + *")*f_positivity(Function("x 63 +")));
+        }
+        if(i == 3)
+        {
+            waterload->setData(Function("9810 x 74 + *")*f_positivity(Function("x 74 +")));
+        }
+        if(i == 4 )
+        {
+            VoxelWriter vw("stress_full", 50) ;
             vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
         }
+        Vector crestDisp = featureTree->getDisplacements(&crest) ;
+        std::cout << crestDisp[0] << "  " << crestDisp[1] << "  " << crestDisp[2] << std::endl ;
+        
 //         featureTree->printReport();
     }
 
@@ -84,10 +105,10 @@ int main(int argc, char *argv[])
     samplers.setBehaviour(new VoidForm()) ;
 
     std::valarray<Point *> damProfile(4) ;
-    damProfile[0] = new Point(0, 10, 0) ;
-    damProfile[1] = new Point(150, 10, 0) ;
-    damProfile[2] = new Point(150, -10, 0) ;
-    damProfile[3] = new Point(0, -20, 0) ;
+    damProfile[0] = new Point(0, 8, 0) ;
+    damProfile[1] = new Point(150, 8, 0) ;
+    damProfile[2] = new Point(150, -8, 0) ;
+    damProfile[3] = new Point(0, -17, 0) ;
     
     std::vector<Point> damArch ;
     for(double i = -1. ; i <= 1. ; i+=0.05)
@@ -95,29 +116,46 @@ int main(int argc, char *argv[])
         damArch.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
     }
     
-    std::valarray<Point *> galleryProfile(5) ;
-    galleryProfile[0] = new Point(-2.5, -2.5, 0) ;
-    galleryProfile[1] = new Point(2.5, -2.5, 0) ;
-    galleryProfile[2] = new Point(3, 0, 0) ;
-    galleryProfile[3] = new Point(2.5, 2.5, 0) ;
-    galleryProfile[4] = new Point(-2.5, 2.5, 0) ;
+    std::valarray<Point *> galleryProfile0(5) ;
+    galleryProfile0[0] = new Point(-1., -1., 0) ;
+    galleryProfile0[1] = new Point(1., -1., 0) ;
+    galleryProfile0[2] = new Point(2, 0, 0) ;
+    galleryProfile0[3] = new Point(1., 1., 0) ;
+    galleryProfile0[4] = new Point(-1., 1., 0) ;
     
-    std::vector<Point> galleryArch ;
+    std::valarray<Point *> galleryProfile1(5) ;
+    galleryProfile1[0] = new Point(-1., -1., 0) ;
+    galleryProfile1[1] = new Point(1., -1., 0) ;
+    galleryProfile1[2] = new Point(2, 0, 0) ;
+    galleryProfile1[3] = new Point(1., 1., 0) ;
+    galleryProfile1[4] = new Point(-1., 1., 0) ;
+    
+    std::vector<Point> galleryArch0 ;
     for(double i = -.9 ; i <= .9 ; i+=0.05)
     {
-        galleryArch.push_back(Point(-50,i*100.,  20.*(1.-i*i) ));
+        galleryArch0.push_back(Point(-50,i*100.,  20.*(1.-i*i) ));
     }
 
+    std::vector<Point> galleryArch1 ;
+    for(double i = -.9 ; i <= .9 ; i+=0.05)
+    {
+        galleryArch1.push_back(Point(0,i*100.,  20.*(1.-i*i) ));
+    }
+    
     LoftedPolygonalSample3D dam(&samplers, damProfile,damArch) ;
     
     dam.setBehaviour(/*new Viscoelasticity( PURE_ELASTICITY, m1)*/new Stiffness(m1)) ;
     
-    LoftedPolygonalSample3D gallery(&dam, galleryProfile, galleryArch) ;
-    gallery.setBehaviour(new VoidForm()) ;
+    LoftedPolygonalSample3D gallery0(&dam, galleryProfile0, galleryArch0) ;
+    gallery0.setBehaviour(new VoidForm()) ;
+    
+    LoftedPolygonalSample3D gallery1(&dam, galleryProfile1, galleryArch1) ;
+    gallery1.setBehaviour(new VoidForm()) ;
     
     F.addFeature(&samplers, &dam) ;
     F.setDeltaTime(1.);
-    F.addFeature(&dam, &gallery) ;
+    F.addFeature(&dam, &gallery0) ;
+    F.addFeature(&dam, &gallery1) ;
     F.setSamplingNumber(atof(argv[1])) ;
     F.setPartition(1);
 
@@ -130,11 +168,11 @@ int main(int argc, char *argv[])
     F.addBoundaryCondition(new GeometryAndFaceDefinedSurfaceBoundaryCondition(FIX_ALONG_ALL, dam.getPrimitive(), normals.second)) ;
 
     //water load
-    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,-1) , Function("0.981 x 73 +  *")*f_positivity(Function("x 73 +")) ) ;
+    waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("9810 x 30 +  *")*f_positivity(Function("x 30 +")) ) ;
     F.addBoundaryCondition(waterload) ;
     
     //selfweight
-//     F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, -23544 ) );
+    F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, 23544 ) );
     
     step(&F, &dam) ;
 

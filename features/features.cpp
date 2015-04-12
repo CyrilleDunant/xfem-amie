@@ -3516,7 +3516,7 @@ Vector FeatureTree::getDisplacements ( Point * pt, int g , bool stepTree )
                 return ret ;
             }
         }
-        ret.resize ( 2 , 0. ) ;
+        ret.resize ( 3 , 0. ) ;
         return ret ;
     }
 }

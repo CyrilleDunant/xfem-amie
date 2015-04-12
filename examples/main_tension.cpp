@@ -303,7 +303,7 @@ int main ( int argc, char *argv[] )
 
 
 // 	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-    Sample samplef ( 0.6, 0.6,  0.3, 0.3 ) ;
+    Sample samplef ( 0.3, 0.6,  0.15, 0.3 ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
@@ -337,8 +337,8 @@ int main ( int argc, char *argv[] )
     t1.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit*.96,PLANE_STRAIN, UPPER_BOUND, SPACE_TWO_DIMENSIONAL ) );
     t0.setBehaviourSource ( &samplef );
     t1.setBehaviourSource ( &samplef );
-//     F.addFeature ( &samplef, &t0 );
-//     F.addFeature ( &samplef, &t1 );
+    F.addFeature ( &samplef, &t0 );
+    F.addFeature ( &samplef, &t1 );
     
     Pore pore(mradius*.15, samplef.getCenter()) ;
 //     F.addFeature(&samplef, &pore);
