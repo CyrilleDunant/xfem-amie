@@ -39,13 +39,14 @@ void step(FeatureTree * featureTree, LoftedPolygonalSample3D * dam)
 
         if(i == 0)
         {
-            VoxelWriter vw("stress_empty", 200) ;
+            VoxelWriter vw("stress_full", 200) ;
             vw.getField(featureTree, VWFT_PRINCIPAL_STRESS) ;
             vw.write();
             VoxelWriter vw1("stiffness", 200) ;
             vw1.getField(featureTree, VWFT_STIFFNESS) ;
             vw1.write();
             waterload->setData(Function("9810 x 41 + *")*f_positivity(Function("x 41 +")));
+            exit(0) ;
             
         }
         if(i == 1)
@@ -170,6 +171,7 @@ int main(int argc, char *argv[])
     //water load
     waterload = new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_NORMAL_STRESS, dam.getPrimitive(), Point(0,0,1) , Function("9810 x 30 +  *")*f_positivity(Function("x 30 +")) ) ;
     F.addBoundaryCondition(waterload) ;
+    waterload->setData(Function("9810 x 74 + *")*f_positivity(Function("x 74 +")));
     
     //selfweight
     F.addBoundaryCondition(new GlobalBoundaryCondition( SET_VOLUMIC_STRESS_XI, 23544 ) );

@@ -6,18 +6,12 @@
 //
 
 #include "csh_behaviour.h"
-#include "../stiffness_and_fracture.h"
-#include "../fracturecriteria/mohrcoulomb.h"
-#include "../../utilities/random.h"
+#include "../homogenization/composite.h"
 
 namespace Amie
 {
 
-CSHBehaviour::CSHBehaviour(CSHType type,Function ageingFunction, double E, double nu, SpaceDimensionality dim) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(ageingFunction), function(true)
-{
-}
-
-CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), ageingFunction(Function("1")), function(false), densities(densities), times(times)
+CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, bool fromPorosity, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)),fromPorosity(fromPorosity), currentTime(0), CshType(type), densities(densities), times(times)
 {
 }
 
@@ -30,21 +24,56 @@ Form * CSHBehaviour::getCopy() const
 {
     if(CshType == OUTER_CSH)
     {
-        if(function)
+        if(!fromPorosity)
         {
-            double fac = std::min(VirtualMachine().eval(ageingFunction, 0., 0., 0., currentTime), 1.) ;
+            double fac = 1. ;
+            if(!densities.empty())
+            {
+                size_t index = 0 ;
+                fac = densities[index] ;
+                while(times[index] < currentTime && index < times.size())
+                    index++ ;
+                
+                if(index >= times.size() || densities.size() == 1)
+                    fac = densities.back() ;
+                else 
+                {
+                    double wb = times[index]-currentTime ;
+                    double wa = currentTime-times[index-1] ;
+                    fac = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
+                }
+            }
+                
             return new Stiffness(param*fac) ;
         }
         else
         {
-            size_t index = 0 ;
-            while(times[index] < currentTime && index < times.size())
-                index++ ;
+            double phi = 0. ;
+            if(!densities.empty())
+            {
+                size_t index = 0 ;
+                phi = densities[index] ;
+                while(times[index] < currentTime && index < times.size())
+                    index++ ;
+                
+                if(index >= times.size() || densities.size() == 1)
+                    phi = densities.back() ;
+                else 
+                {
+                    double wb = times[index]-currentTime ;
+                    double wa = currentTime-times[index-1] ;
+                    phi = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
+                }
+            }
             
-            double fac = densities[index] ;
+            Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)), phi) ;
+            Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
+            BiphasicSelfConsistentComposite sc(porosity,csh) ;
+            double fac = sc.getBehaviour()->getTensor(Point())[0][0]/param[0][0]  ;
             return new Stiffness(param*fac) ;
-            
         }
+            
+
     }
     return new DerivedStiffness(param) ;
 }
