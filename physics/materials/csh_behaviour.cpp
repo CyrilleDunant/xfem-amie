@@ -65,9 +65,10 @@ Form * CSHBehaviour::getCopy() const
                     phi = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
                 }
             }
-            
-            Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)), phi) ;
-            Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
+            Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
+            Phase porosity(&sp, phi) ;
+            Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
+            Phase csh(&scsh, 1.-phi) ;
             BiphasicSelfConsistentComposite sc(porosity,csh) ;
             double fac = sc.getBehaviour()->getTensor(Point())[0][0]/param[0][0]  ;
             return new Stiffness(param*fac) ;

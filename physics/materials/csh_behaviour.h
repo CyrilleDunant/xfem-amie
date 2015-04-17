@@ -21,12 +21,12 @@ typedef enum
 struct CSHBehaviour : public Stiffness
 {
     // per http://www.sciencedirect.com/science/article/pii/S1359645408008720
-	// 38 low 39: high  -- 1
-	//        27: high  -- 1.1        36 correct
-    //        42: high                36:correct
-//     CSHBehaviour(CSHType type, Function ageingFunction = Function("1"), double E=280e9, double nu=0.25,  SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
-    bool fromPorosity ;
-    CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, bool fromPorosity= false, double E=36e9, double nu=0.25, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+    //    0.32    0.40    0.48
+    //            1.21
+    //h   36
+    //l    
+bool fromPorosity ;
+    CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, bool fromPorosity= false, double E=24e9, double nu=0.25, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
     double currentTime ;
     CSHType CshType ;
 //     Function ageingFunction ;

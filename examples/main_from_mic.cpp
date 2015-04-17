@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     }
   
     for(size_t i = 0 ; i < densities.size() ; i++)
-        densities[i] *= 1.1 ;
+        densities[i] *= 1.21 ;
   
     
     std::map<unsigned char,Form *> behaviourMap ;
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( argv[1], behaviourMap, timesd ) ;
-    F.setDeltaTime(1.);
+    F.setDeltaTime(5.);
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, -1e-6)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
