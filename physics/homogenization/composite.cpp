@@ -41,10 +41,10 @@ Matrix Composite::eshelby( Matrix C )
 	double nu = 0.2 ;
 	double a = C[0][0] ;
 	double b = C[0][1] ;
-//    if(C.size()==36)
-	nu = b / ( a + b ) ;
-//    else
-//	nu = b / a ;
+	if(a+b > POINT_TOLERANCE)
+		nu = b / ( a + b ) ;
+	else
+		nu = 0 ;
 
 	if( S.size() == 9 )
 	{
@@ -262,9 +262,17 @@ ReussMatrixInclusionComposite::ReussMatrixInclusionComposite( Phase mat, Phase i
 
 void ReussMatrixInclusionComposite::getStrainConcentrationTensor()
 {
-	B = inclusion.C ;
-	Composite::invertTensor( B );
-	B *= matrix.C ;
+	if(inclusion.C.array().max() > POINT_TOLERANCE)
+	{
+		B = inclusion.C ;
+		Composite::invertTensor( B );
+		B *= matrix.C ;
+	}
+	else
+	{
+		std::cout << "Reuss scheme not valid for empty inclusions // fall back on Voigt scheme" << std::endl ;
+		B = Composite::I4( matrix.C) ;
+	}
 }
 
 MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( DelaunayTriangle *tri, Feature *inc ) : MatrixInclusionComposite( tri, inc )
@@ -284,14 +292,23 @@ MoriTanakaMatrixInclusionComposite::MoriTanakaMatrixInclusionComposite( Phase ma
 
 void MoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
-	Matrix I = Composite::I4( C ) ;
-	Matrix S = Composite::eshelby( matrix.C ) ;
+	if(matrix.C.array().max() > POINT_TOLERANCE)
+	{
+		Matrix I = Composite::I4( C ) ;
+		Matrix S = Composite::eshelby( matrix.C ) ;
 
-	B = matrix.C ;
-	Composite::invertTensor( B ) ;
-	B *= S * ( inclusion.C - matrix.C ) ;
-	B += I ;
-	Composite::invertTensor( B ) ;
+		B = matrix.C ;
+		Composite::invertTensor( B ) ;
+		B *= S * ( inclusion.C - matrix.C ) ;
+		B += I ;
+		Composite::invertTensor( B ) ;
+
+	}
+	else
+	{
+		B = matrix.C ;
+	}
+
 
 }
 
@@ -312,14 +329,21 @@ InverseMoriTanakaMatrixInclusionComposite::InverseMoriTanakaMatrixInclusionCompo
 
 void InverseMoriTanakaMatrixInclusionComposite::getStrainConcentrationTensor()
 {
-	Matrix I = Composite::I4( C ) ;
-	Matrix S = Composite::eshelby( inclusion.C ) ;
+	if(matrix.C.array().max() > POINT_TOLERANCE)
+	{
+		Matrix I = Composite::I4( C ) ;
+		Matrix S = Composite::eshelby( inclusion.C ) ;
 
-	B = inclusion.C ;
-	Composite::invertTensor( B ) ;
-	B *= S * ( matrix.C - inclusion.C ) ;
-	B += I ;
-//    Composite::invertTensor(B) ;
+		B = inclusion.C ;
+		Composite::invertTensor( B ) ;
+		B *= S * ( matrix.C - inclusion.C ) ;
+		B += I ;
+	}
+	else
+	{
+		std::cout << "Inverse Mori-Tanaka scheme not valid for empty matrix // fall back on Voigt scheme" << std::endl ;
+		B = Composite::I4( matrix.C) ;
+	}
 }
 
 BiphasicSelfConsistentComposite::BiphasicSelfConsistentComposite( DelaunayTriangle *tri, Feature *inc ) : MatrixInclusionComposite( tri, inc )
@@ -586,23 +610,38 @@ ReussMatrixMultiInclusionComposite::ReussMatrixMultiInclusionComposite( Delaunay
 void ReussMatrixMultiInclusionComposite::getStrainLocalizationTensor()
 {
 	C = Matrix( matrix.C.numRows(), matrix.C.numCols() ) ;
+	bool zero = false ;
 
 	for( size_t i = 0 ; i < grains.size() ; i++ )
 	{
-		Matrix Cg = grains[i].C ;
-		Composite::invertTensor( Cg ) ;
-		C += Cg * grains[i].volume ;
+		if(grains[i].C.array().max() > POINT_TOLERANCE)
+		{
+			Matrix Cg = grains[i].C ;
+			Composite::invertTensor( Cg ) ;
+			C += Cg * grains[i].volume ;
+		}
+		else
+			zero = true ;
 
 	}
 
-	Composite::invertTensor( C ) ;
-
-	for( size_t i = 0 ; i < grains.size() ; i++ )
+	if(!zero)
 	{
-		Matrix Cg = grains[i].C ;
-		Composite::invertTensor( Cg ) ;
-		grains[i].A = Cg * C ;
+		Composite::invertTensor( C ) ;
 
+		for( size_t i = 0 ; i < grains.size() ; i++ )
+		{
+			Matrix Cg = grains[i].C ;
+			Composite::invertTensor( Cg ) ;
+			grains[i].A = Cg * C ;
+	
+		}
+	}
+	else
+	{
+		std::cout << "Reuss scheme not valid for empty inclusions // fall back on Voigt scheme" << std::endl ;
+		for( size_t i = 0 ; i < grains.size() ; i++ )
+			grains[i].A = Composite::I4( C ) ;
 	}
 }
 
@@ -661,9 +700,12 @@ bool GeneralizedSelfConsistentComposite::converged()
 		return false ;
 
 	Matrix epsilon = matrix.C - previous.C ;
-	Matrix S = matrix.C ;
-	Composite::invertTensor( S ) ;
-	epsilon *= S ;
+	if(matrix.C.array().max() > POINT_TOLERANCE)
+	{
+		Matrix S = matrix.C ;
+		Composite::invertTensor( S ) ;
+		epsilon *= S ;
+	}
 
 	Vector r = epsilon.array() ;
 	double rmax = std::abs( r.max() ) ;

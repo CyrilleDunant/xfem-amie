@@ -29,7 +29,7 @@ public:
 	Phase(DelaunayTetrahedron * tet) ;
 	Phase(Feature * f) ;
 	Phase(Feature * f, DelaunayTriangle * tri) ;
-	Phase(Form * behaviour, double f) ;
+	Phase(Form * behaviour, double f, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
 	Phase(const Phase & p) ;
 
 	virtual void apply() ;
@@ -40,9 +40,9 @@ public:
 	Phase & operator = (const Phase & p) ;
 
 private:
-	void stiffnessFromBehaviour() ;
-	void expansionFromBehaviour() ;
-	void ruptureFromBehaviour() ;
+	void stiffnessFromBehaviour(SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+	void expansionFromBehaviour(SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+	void ruptureFromBehaviour(SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
 
 };
 

@@ -16,13 +16,13 @@ Phase::Phase()
 	A = Matrix( 6, 6 ) ;
 }
 
-Phase::Phase( Form * b, double f)
+Phase::Phase( Form * b, double f, SpaceDimensionality dim)
 {
 	behaviour = b ;
 	volume = f ;
-	stiffnessFromBehaviour() ;
-	expansionFromBehaviour() ;
-	ruptureFromBehaviour() ;
+	stiffnessFromBehaviour(dim) ;
+	expansionFromBehaviour(dim) ;
+	ruptureFromBehaviour(dim) ;
 	A = Matrix( C.numRows(), C.numCols() ) ;
 }	
 
@@ -166,8 +166,15 @@ Phase &Phase::operator =( const Phase &p )
 	return *this ;
 }
 
-void Phase::stiffnessFromBehaviour()
+void Phase::stiffnessFromBehaviour(SpaceDimensionality dim)
 {
+	if(behaviour->type == VOID_BEHAVIOUR)
+	{
+		C.resize( 3+3*(dim == SPACE_THREE_DIMENSIONAL), 3+3*(dim == SPACE_THREE_DIMENSIONAL)) ;
+		C = 0. ;
+		return ;
+	}
+
 	Matrix tmp =  behaviour->getTensor( Point(0.,0.) ) ;
 	if(dynamic_cast<BimaterialInterface *>(behaviour))
 	{
@@ -196,16 +203,27 @@ void Phase::stiffnessFromBehaviour()
 		
 }
 
-void Phase::expansionFromBehaviour()
+void Phase::expansionFromBehaviour(SpaceDimensionality dim)
 {
+	if(behaviour->type == VOID_BEHAVIOUR)
+	{
+		beta.resize( 3+3*(dim == SPACE_THREE_DIMENSIONAL)) ;
+		beta = 0. ;
+		return ;
+	}
+
 	Vector tmp = behaviour->getImposedStress( Point( 1. / 3, 1. / 3, 1. / 3 ) ) ;
 	beta.resize( tmp.size() );
 	beta = tmp ;
 }
 
-void Phase::ruptureFromBehaviour()
+void Phase::ruptureFromBehaviour(SpaceDimensionality dim)
 {
     lambda.clear() ;
+    if(behaviour->type == VOID_BEHAVIOUR)
+    {
+	return ;
+    }
     FractureCriterion * frac = behaviour->getFractureCriterion() ;
     if(frac)
     {
