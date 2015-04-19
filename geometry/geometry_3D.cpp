@@ -638,19 +638,11 @@ double Tetrahedron::volume() const
 {
     if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
     {
-        Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
-        Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
-        Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
-
-        return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
+        return ((getBoundingPoint(1)- getBoundingPoint(2))^(getBoundingPoint(1)- getBoundingPoint(0)))*(getBoundingPoint(1)- getBoundingPoint(3))/6. ;
     }
     else
     {
-        Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
-        Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
-        Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
-
-        return ((s1.vector())^(s0.vector()))*(s2.vector())/6. ;
+        return ((getBoundingPoint(2)- getBoundingPoint(4))^(getBoundingPoint(2)- getBoundingPoint(0)))*(getBoundingPoint(2)- getBoundingPoint(6))/6. ;
     }
 }
 

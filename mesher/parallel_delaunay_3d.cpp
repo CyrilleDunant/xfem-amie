@@ -64,7 +64,7 @@ int ParallelDelaunayTree3D::getDomain(const DelaunayTetrahedron * tet) const
     
     for(size_t domain_index = 0 ; domain_index < domains.size() ;  domain_index++)
     {
-        if(domains[domain_index]->in(tet->getCenter()) && mesh == domain_index)
+        if(domains[domain_index]->in(tet->getCenter()) && mesh == (int)domain_index)
             return domain_index ;
     }
     return -1 ;

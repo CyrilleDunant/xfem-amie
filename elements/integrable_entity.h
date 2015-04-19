@@ -144,6 +144,17 @@ protected:
 
 
     Vector buffer ;
+    
+    bool effectivePStressAtGaussPointsSet ;
+    bool strainAtGaussPointsSet ;
+    bool stressAtGaussPointsSet ;
+    bool pstrainAtGaussPointsSet ;
+    bool pstressAtGaussPointsSet ;
+    bool displacementsSet ;
+    bool enrichedDisplacementsSet ;
+    bool previousDisplacementsSet ;
+    bool previousEnrichedDisplacementsSet ;
+    bool bufferSet ;
 
     double timePos ;
     double previousTimePos ;

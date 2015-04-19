@@ -242,7 +242,7 @@ inline double parallel_inner_product(const double *  v0, const double *  v1, int
     double result = 0 ;
     #pragma omp parallel
     {
-        #pragma omp for reduction(+:result) schedule(static,size/(2*omp_get_num_threads()))
+        #pragma omp for reduction(+:result)
         for(int i = 0 ; i < size ; ++i)
             result = result + *(v0+i)* *(v1+i) ;
     }
@@ -259,7 +259,7 @@ inline double parallel_inner_product_restricted(const double * __restrict__ v0, 
     double result = 0 ;
     #pragma omp parallel
     {
-        #pragma omp for reduction(+:result) schedule(static,size/(2*omp_get_num_threads()))
+        #pragma omp for reduction(+:result)
         for(int i = 0 ; i < size ; ++i)
             result = result + *(v0+i)* *(v1+i) ;
     }

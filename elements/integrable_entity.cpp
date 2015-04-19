@@ -409,6 +409,7 @@ ElementState::ElementState ( ElementState &s )
     parent = s.getParent();
     mesh2d = s.getMesh2D() ;
     mesh3d = s.getMesh3D() ;
+    
 }
 
 Vector ElementState::getAverageDisplacement ( VirtualMachine * vm ) const

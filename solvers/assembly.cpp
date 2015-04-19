@@ -64,14 +64,14 @@ Assembly::Assembly()
     rowstart = 0 ;
     colstart = 0 ;
     ndofmax = 0 ;
-    this->coordinateIndexedMatrix = nullptr ;
-    this->nonLinearPartialMatrix = nullptr;
+    coordinateIndexedMatrix = nullptr ;
+    nonLinearPartialMatrix = nullptr;
     multiplier_offset = 0 ;
-    this->displacements.resize(0) ;
-    this->externalForces.resize(0) ;
-    this->prevDisplacements.resize(0) ;
-    this->naturalBoundaryConditionForces.resize(0) ;
-    this->boundaryMatrix = nullptr ;
+    displacements.resize(0) ;
+    externalForces.resize(0) ;
+    prevDisplacements.resize(0) ;
+    naturalBoundaryConditionForces.resize(0) ;
+    boundaryMatrix = nullptr ;
     ndof = 1 ;
     dim = SPACE_THREE_DIMENSIONAL ;
     epsilon = 1e-16 ;
@@ -80,32 +80,32 @@ Assembly::Assembly()
 
 Assembly::~Assembly()
 {
-    delete this->coordinateIndexedMatrix ;
-    delete this->nonLinearPartialMatrix ;
+    delete coordinateIndexedMatrix ;
+    delete nonLinearPartialMatrix ;
 }
 
 Vector & Assembly::getForces()
 {
-    if(this->coordinateIndexedMatrix == nullptr)
+    if(coordinateIndexedMatrix == nullptr)
         make_final() ;
 
-    return this->externalForces ;
+    return externalForces ;
 }
 
 Vector & Assembly::getNaturalBoundaryConditionForces()
 {
-    if(this->coordinateIndexedMatrix == nullptr)
+    if(coordinateIndexedMatrix == nullptr)
         make_final() ;
 
-    return this->naturalBoundaryConditionForces ;
+    return naturalBoundaryConditionForces ;
 }
 
 Vector & Assembly::getNonLinearForces()
 {
-    if(this->coordinateIndexedMatrix == nullptr)
+    if(coordinateIndexedMatrix == nullptr)
         make_final() ;
 
-    return this->nonLinearExternalForces ;
+    return nonLinearExternalForces ;
 }
 
 void Assembly::add(ElementarySurface * e, double scale)
@@ -141,7 +141,7 @@ bool Assembly::nonLinearStep()
 // 			std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
         if(element2d[i]->getNonLinearBehaviour() != nullptr)
         {
-            element2d[i]->nonLinearStep(0, &this->displacements) ;
+            element2d[i]->nonLinearStep(0, &displacements) ;
             nl = true ;
         }
 
@@ -177,15 +177,15 @@ bool Assembly::nonLinearStep()
     }
 
 
-    delete this->nonLinearPartialMatrix ;
-    this->nonLinearPartialMatrix = new CoordinateIndexedIncompleteSparseMatrix(nonlin_row_index, nonlin_column_index) ;
-    if(this->nonLinearExternalForces.size() != this->externalForces.size())
+    delete nonLinearPartialMatrix ;
+    nonLinearPartialMatrix = new CoordinateIndexedIncompleteSparseMatrix(nonlin_row_index, nonlin_column_index) ;
+    if(nonLinearExternalForces.size() != externalForces.size())
     {
-        this->nonLinearExternalForces.resize(this->externalForces.size()) ;
-        this->nonLinearExternalForces = 0 ;
+        nonLinearExternalForces.resize(externalForces.size()) ;
+        nonLinearExternalForces = 0 ;
     }
 
-    this->nonLinearExternalForces = 0 ;
+    nonLinearExternalForces = 0 ;
 
     for(size_t i = 0 ; i < element2d.size() ; i++)
     {
@@ -244,8 +244,8 @@ bool Assembly::nonLinearStep()
 
                     if(!hasBC)
                     {
-                        this->nonLinearExternalForces[ids[j]*2] += /*this->nonLinearExternalForces[ids[j]*2]*0.2+*/forces[j*2]/**0.8*/ ;
-                        this->nonLinearExternalForces[ids[j]*2+1] += /*this->nonLinearExternalForces[ids[j]*2+1]*0.2+*/forces[j*2+1]/**0.8*/ ;
+                        nonLinearExternalForces[ids[j]*2] += /*nonLinearExternalForces[ids[j]*2]*0.2+*/forces[j*2]/**0.8*/ ;
+                        nonLinearExternalForces[ids[j]*2+1] += /*nonLinearExternalForces[ids[j]*2+1]*0.2+*/forces[j*2+1]/**0.8*/ ;
                     }
                 }
             }
@@ -259,16 +259,12 @@ bool Assembly::nonLinearStep()
 
 void Assembly::setBoundaryConditions()
 {
-    this->externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
-    this->externalForces = 0 ;
-    this->naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
-    this->naturalBoundaryConditionForces = 0 ;
-    this->nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride) ;
-    this->nonLinearExternalForces = 0 ;
-    if(this->addToExternalForces.size() != this->externalForces.size())
+    externalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+    naturalBoundaryConditionForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+    nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
+    if(addToExternalForces.size() != externalForces.size())
     {
-	this->addToExternalForces.resize(this->externalForces.size()) ; 
-	this->addToExternalForces = 0. ;
+	addToExternalForces.resize(externalForces.size(), 0.) ; 
     }
 
     std::sort(multipliers.begin(), multipliers.end()) ;
@@ -318,7 +314,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
-		    this->addToExternalForces[id] = 0. ;
+		    addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -328,8 +324,8 @@ void Assembly::setBoundaryConditions()
                                 if(id == (columnBlockIndex*stride+n))
                                 {
                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                    this->externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
-                                    this->naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
+                                    externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
+                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
                                     val = 0 ;
                                 }
                             }
@@ -363,7 +359,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
-		    this->addToExternalForces[id] = 0. ;
+		    addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -373,8 +369,8 @@ void Assembly::setBoundaryConditions()
                                 if(id == (columnBlockIndex*stride+n))
                                 {
                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
-                                    this->externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
-                                    this->naturalBoundaryConditionForces[lineBlockIndex*stride+m]  -= multipliers[p].getValue()*val ;
+                                    externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
+                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m]  -= multipliers[p].getValue()*val ;
                                     val = 0 ;
                                 }
                             }
@@ -416,17 +412,17 @@ void Assembly::setBoundaryConditions()
                 || multipliers[i].type == SET_FORCE_ZETA
                 || multipliers[i].type == SET_FORCE_INDEXED_AXIS)
         {
-            this->externalForces[multipliers[i].getId()] += multipliers[i].getValue() ;
+            externalForces[multipliers[i].getId()] += multipliers[i].getValue() ;
         }
         else if(multipliers[i].type == SET_GLOBAL_FORCE_VECTOR)
         {
-            this->externalForces += multipliers[i].coefs ;
+            externalForces += multipliers[i].coefs ;
         }
 
     }
 
-    if(this->addToExternalForces.size() == this->externalForces.size())
-	    this->externalForces += this->addToExternalForces ;
+    if(addToExternalForces.size() == externalForces.size())
+	    externalForces += addToExternalForces ;
 
 
     if( dim == SPACE_TWO_DIMENSIONAL &&  element2d[0]->getOrder() >= CONSTANT_TIME_LINEAR)
@@ -715,11 +711,14 @@ bool Assembly::make_final()
                 max = ndofmax ;
             if(displacements.size() != max)
             {
-                displacements.resize(max) ;
-		addToExternalForces.resize(max) ;
+                displacements.resize(max, 0.) ;
+		addToExternalForces.resize(max, 0.) ;
             }
-            displacements = 0 ;
-	    addToExternalForces = 0 ;
+            else
+            {
+                displacements = 0 ;
+                addToExternalForces = 0 ;
+            }
         }
         else
         {
@@ -808,7 +807,10 @@ bool Assembly::make_final()
         }
 
         std::cerr << " ...done" << std::endl ;
-        getMatrix().stride =  element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        int i = 0 ;
+        while(element2d[i]->getBehaviour() && element2d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+            i++ ;
+        getMatrix().stride =  element2d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
         setBoundaryConditions() ;
         checkZeroLines() ;
@@ -885,20 +887,20 @@ bool Assembly::make_final()
                 current++ ;
             }
             delete map ;
-            this->coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
+            coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
             if(max < ndofmax)
                 max = ndofmax ;
-            if(this->displacements.size() != max)
+            if(displacements.size() != max)
             {
-                this->displacements.resize(max) ;
-                this->displacements = 0 ;
+                displacements.resize(max) ;
+                displacements = 0 ;
             }
 
             std::cerr << " ...done" << std::endl ;
         }
         else
         {
-            max = this->coordinateIndexedMatrix->accumulated_row_size.size() ;
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
         }
 
         coordinateIndexedMatrix->array = 0 ;
@@ -990,8 +992,10 @@ bool Assembly::make_final()
 			element3d[i]->clearElementaryMatrix() ;
         }
 
-//
-        getMatrix().stride =   element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        int i = 0 ;
+        while(element3d[i]->getBehaviour() && element3d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+            i++ ;
+        getMatrix().stride =   element3d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         std::cerr << " ...done" << std::endl ;
 
         setBoundaryConditions() ;
@@ -1009,22 +1013,22 @@ bool Assembly::mgprepare()
 
 CoordinateIndexedSparseMatrix & Assembly::getMatrix()
 {
-    return *this->coordinateIndexedMatrix ;
+    return *coordinateIndexedMatrix ;
 }
 
 const CoordinateIndexedSparseMatrix & Assembly::getMatrix() const
 {
-    return *this->coordinateIndexedMatrix ;
+    return *coordinateIndexedMatrix ;
 }
 
 CoordinateIndexedIncompleteSparseMatrix & Assembly::getNonLinearMatrix()
 {
-    return *this->nonLinearPartialMatrix ;
+    return *nonLinearPartialMatrix ;
 }
 
 void Assembly::print()
 {
-    if(this->coordinateIndexedMatrix == nullptr)
+    if(coordinateIndexedMatrix == nullptr)
         make_final() ;
 
     for(size_t i = 0 ; i < externalForces.size() ; i++)
@@ -1425,7 +1429,7 @@ void Assembly::fixPoint(size_t id, Amie::Variable v)
 
 bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 {
-    if(this->coordinateIndexedMatrix == nullptr)
+    if(coordinateIndexedMatrix == nullptr)
         make_final() ;
 
     GaussSeidel gs(this) ;
@@ -1438,7 +1442,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 {
     bool ret = true ;
-// 	if(this->coordinateIndexedMatrix == nullptr)
+// 	if(coordinateIndexedMatrix == nullptr)
 // 	double lambda_min = smallestEigenValue(getMatrix()) ;
 // 	double lambda_max = largestEigenValue(getMatrix()) ;
 // // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;

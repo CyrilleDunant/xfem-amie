@@ -858,7 +858,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, 0, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, 0, t, coefs[cacheID][i] );
                     if ( !strain.size() ) {
                         strain.resize ( buffer.size(), 0. );
                     }
@@ -879,7 +879,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }
@@ -888,7 +888,7 @@ public:
                 }
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
@@ -951,7 +951,7 @@ public:
             double sumFactors ( 0 ) ;
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
-                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
                 if ( first.size() != buffer.size()) {
                     first.resize ( buffer.size(), 0. );
                 }
@@ -993,7 +993,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     IntegrableEntity *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                     if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                        double v = ci->getState().getAverageField ( STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                         strain += buffer*v ;
                         sumFactors += v ;
                     }
@@ -1018,7 +1018,7 @@ public:
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrain.size() ) {
                         tmpstrain.resize ( buffer.size(), 0. );
                     }
@@ -1029,7 +1029,7 @@ public:
                 for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                     ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD, buffer, &vm, dummy, t, coefs[cacheID][i] );
                     if ( !tmpstrainrate.size() ) {
                         tmpstrainrate.resize ( buffer.size(), 0. );
                     }
@@ -1162,7 +1162,7 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
 
-                double v = ci->getState().getAverageField ( f0, buffer, nullptr, dummy, t, coefs[cacheID][i] );
+                double v = ci->getState().getAverageField ( f0, buffer, &vm, dummy, t, coefs[cacheID][i] );
                 if ( !first.size() ) {
                     first.resize ( 0., buffer.size() );
                 }
@@ -1172,7 +1172,7 @@ public:
             for ( size_t i = 0 ; i < caches[cacheID].size() ; i++ ) {
                 ETYPE *ci = static_cast<ETYPE *> ( getInTree ( caches[cacheID][i] ) ) ;
                 if ( ci->getBehaviour()->getSource() == e->getBehaviour()->getSource() ) {
-                    double v = ci->getState().getAverageField ( f1, buffer, nullptr, dummy, t,coefs[cacheID][i] );
+                    double v = ci->getState().getAverageField ( f1, buffer, &vm, dummy, t,coefs[cacheID][i] );
                     if ( !second.size() ) {
                         second.resize ( 0., buffer.size() );
                     }

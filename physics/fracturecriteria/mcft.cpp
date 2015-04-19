@@ -349,7 +349,7 @@ void NonLocalMCFT::initialise( ElementState &s)
             k_low = k ;
         count++ ;
 
-    } while(std::abs(integral-energy) > 1e-6*energy && count < 64) ;
+    } while(std::abs(integral-energy) > 1e-4*energy && count < 64) ;
 
 
 
