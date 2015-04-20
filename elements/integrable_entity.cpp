@@ -491,7 +491,7 @@ Vector toPrincipal ( const Vector & stressOrStrain )
     {
         double trace = stressOrStrain[0] + stressOrStrain[1] ;
         double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
-        double delta = sqrt(trace*trace-det) ;
+        double delta = sqrt(trace*trace - 4.*det) ;
         double angle =  0.5*atan2 ( stressOrStrain[0] - stressOrStrain[1] , 0.5*stressOrStrain[2] ) ;
         if(cos(angle) < 0)
         {
