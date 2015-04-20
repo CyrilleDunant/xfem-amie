@@ -341,9 +341,6 @@ target_link_libraries( 3d_asr Amie  ${ALL_LINK_FLAGS})
 add_executable(hyd_paste examples/main_hydrating_paste.cpp )
 target_link_libraries( hyd_paste Amie ${ALL_LINK_FLAGS})
 
-add_executable(example examples/main.cpp )
-target_link_libraries( example Amie ${ALL_LINK_FLAGS})
-
 add_executable(def examples/main_def.cpp )
 target_link_libraries( def Amie ${ALL_LINK_FLAGS})
 

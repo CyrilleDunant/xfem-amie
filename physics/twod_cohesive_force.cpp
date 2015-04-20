@@ -166,9 +166,6 @@ void TwoDCohesiveForces::step(double timestep, ElementState & s)
 // 		this->state = currentState ;
 
 
-    s.getPreviousDisplacements() = s.getDisplacements() ;
-    s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
-
     size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     int offset = ndofs-1 ;
 

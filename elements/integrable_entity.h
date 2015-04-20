@@ -128,8 +128,6 @@ class ElementState
 {
 protected:
 
-    Vector effectivePStressAtGaussPoints ;
-
     Vector strainAtGaussPoints ;
     Vector stressAtGaussPoints ;
 
@@ -139,22 +137,12 @@ protected:
     Vector displacements ;
     Vector enrichedDisplacements ;
 
-    Vector previousDisplacements ;
-    Vector previousEnrichedDisplacements ;
-
-
     Vector buffer ;
     
-    bool effectivePStressAtGaussPointsSet ;
     bool strainAtGaussPointsSet ;
     bool stressAtGaussPointsSet ;
     bool pstrainAtGaussPointsSet ;
     bool pstressAtGaussPointsSet ;
-    bool displacementsSet ;
-    bool enrichedDisplacementsSet ;
-    bool previousDisplacementsSet ;
-    bool previousEnrichedDisplacementsSet ;
-    bool bufferSet ;
 
     double timePos ;
     double previousTimePos ;
@@ -212,19 +200,6 @@ public:
 
     /** \brief return enriched displacements at the nodes of the element*/
     Vector & getEnrichedDisplacements() ;
-
-    /** \brief return displacements at the nodes of the element*/
-    const Vector & getPreviousDisplacements() const;
-
-    /** \brief return displacements at the nodes of the element*/
-    Vector & getPreviousDisplacements() ;
-
-    /** \brief return enriched displacements at the nodes of the element*/
-    const Vector & getPreviousEnrichedDisplacements() const;
-
-    /** \brief return enriched displacements at the nodes of the element*/
-    Vector & getPreviousEnrichedDisplacements() ;
-
 
     /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
     std::vector<Point> getPrincipalFrame ( const Point &p, bool local = false, VirtualMachine * vm = nullptr, StressCalculationMethod m = REAL_STRESS )  ;

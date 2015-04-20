@@ -42,9 +42,6 @@ void LinearForm::updateElementState(double timestep, ElementState & s) const
     if( type == VOID_BEHAVIOUR)
         return ;
 
-    s.getPreviousDisplacements() = s.getDisplacements() ;
-    s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
-
     size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     if(s.getParent()->getBoundingPoints().size()*ndofs != s.getDisplacements().size())
     {
@@ -72,9 +69,6 @@ void LinearForm::updateElementState(double timestep, ElementState & s) const
 
 void NonLinearForm::updateElementState(double timestep, ElementState & s) const
 {
-
-    s.getPreviousDisplacements() = s.getDisplacements() ;
-    s.getPreviousEnrichedDisplacements() = s.getEnrichedDisplacements() ;
 
     size_t ndofs = s.getParent()->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     int offset = ndofs-1 ;

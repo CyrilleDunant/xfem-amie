@@ -333,27 +333,6 @@ Vector &ElementState::getEnrichedDisplacements()
     return this->enrichedDisplacements ;
 }
 
-const Vector &ElementState::getPreviousDisplacements() const
-{
-    return this->previousDisplacements ;
-}
-
-Vector &ElementState::getPreviousDisplacements()
-{
-    return this->previousDisplacements ;
-}
-
-const Vector &ElementState::getPreviousEnrichedDisplacements() const
-{
-    return this->previousEnrichedDisplacements ;
-}
-
-Vector &ElementState::getPreviousEnrichedDisplacements()
-{
-    return this->previousEnrichedDisplacements ;
-}
-
-
 
 ElementState &ElementState::operator = ( ElementState &s )
 {
@@ -361,12 +340,6 @@ ElementState &ElementState::operator = ( ElementState &s )
     displacements = s.getDisplacements() ;
     enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
     enrichedDisplacements  = s.getEnrichedDisplacements();
-
-    previousDisplacements.resize ( s.getPreviousDisplacements().size() ) ;
-    previousDisplacements = s.getPreviousDisplacements() ;
-    previousEnrichedDisplacements.resize ( s.getPreviousEnrichedDisplacements().size() ) ;
-    previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
-
 
     buffer.resize ( s.getBuffer().size() ) ;
     buffer = s.getBuffer() ;
@@ -377,6 +350,11 @@ ElementState &ElementState::operator = ( ElementState &s )
     parent = s.getParent();
     mesh2d = s.getMesh2D() ;
     mesh3d = s.getMesh3D() ;
+    
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
     return *this ;
 }
 
@@ -385,7 +363,6 @@ ElementState::ElementState ( ElementState &s )
     lock = false ;
     strainAtGaussPoints.resize ( 0 ) ;
     stressAtGaussPoints.resize ( 0 ) ;
-    effectivePStressAtGaussPoints.resize ( 0 ) ;
     pstrainAtGaussPoints.resize ( 0 ) ;
     pstressAtGaussPoints.resize ( 0 ) ;
 
@@ -393,11 +370,6 @@ ElementState::ElementState ( ElementState &s )
     displacements = s.getDisplacements() ;
     enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
     enrichedDisplacements  = s.getEnrichedDisplacements();
-
-    previousDisplacements.resize ( s.getPreviousDisplacements().size() ) ;
-    previousDisplacements = s.getPreviousDisplacements() ;
-    previousEnrichedDisplacements.resize ( s.getPreviousEnrichedDisplacements().size() ) ;
-    previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
 
 
     buffer.resize ( s.getBuffer().size() ) ;
@@ -410,6 +382,10 @@ ElementState::ElementState ( ElementState &s )
     mesh2d = s.getMesh2D() ;
     mesh3d = s.getMesh3D() ;
     
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
 }
 
 Vector ElementState::getAverageDisplacement ( VirtualMachine * vm ) const
@@ -1413,12 +1389,18 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     switch ( f )
     {
     case STRAIN_FIELD :
-
+        
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {
-            
+        {   
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
-
+            strainAtGaussPointsSet = false ;
+        }
+        
+        if ( !strainAtGaussPointsSet)
+        {   
+            strainAtGaussPoints = 0 ;
+            strainAtGaussPointsSet = true ;
+            
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -1481,9 +1463,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case MECHANICAL_STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) , 0. ) ;
+        if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            strainAtGaussPointsSet = false ;
+        }
+        
+        if ( !strainAtGaussPointsSet)
+        {   
+            strainAtGaussPoints = 0 ;
+            strainAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1553,9 +1542,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
 
-        if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) , 0. ) ;
+        if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            strainAtGaussPointsSet = false ;
+        }
+        
+        if ( !strainAtGaussPointsSet)
+        {   
+            strainAtGaussPoints = 0 ;
+            strainAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1626,9 +1622,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case PRINCIPAL_STRAIN_FIELD :
 
-        if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
-        {
-            pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()), 0. ) ;
+        if ( pstrainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
+        {   
+            pstrainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
+            pstrainAtGaussPointsSet = false ;
+        }
+        
+        if ( !pstrainAtGaussPointsSet)
+        {   
+            pstrainAtGaussPoints = 0 ;
+            pstrainAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1689,9 +1692,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case REAL_STRESS_FIELD:
 
-        if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
+        if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            stressAtGaussPoints = false ;
+        }
+        
+        if ( !stressAtGaussPointsSet)
+        {   
+            stressAtGaussPoints = 0 ;
+            stressAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -1750,11 +1760,17 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         lock = false ;
         return v;
     case PRINCIPAL_REAL_STRESS_FIELD :
-        if ( pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
-        {
-            pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) ) ;
-
-
+        if ( pstressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
+        {   
+            pstressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
+            pstressAtGaussPoints = false ;
+        }
+        
+        if ( !pstressAtGaussPointsSet)
+        {   
+            pstressAtGaussPoints = 0 ;
+            pstressAtGaussPoints = true ;
+            
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( pstressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -1812,10 +1828,17 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         lock = false ;
         return v;
     case EFFECTIVE_STRESS_FIELD:
-        if ( stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
-
+        if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            stressAtGaussPoints = false ;
+        }
+        
+        if ( !stressAtGaussPointsSet)
+        {   
+            stressAtGaussPoints = 0 ;
+            stressAtGaussPointsSet = true ;
+            
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Point p_ = gp.gaussPoints[i].first ;
@@ -1874,10 +1897,17 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         lock = false ;
         return v;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-        if ( pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()) )
-        {
-            pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size()), 0. ) ;
-
+        if ( pstressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
+        {   
+            pstressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
+            pstressAtGaussPoints = false ;
+        }
+        
+        if ( !pstressAtGaussPointsSet)
+        {   
+            pstressAtGaussPoints = 0 ;
+            pstressAtGaussPointsSet = true ;
+            
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Point p_ = gp.gaussPoints[i].first ;
@@ -1937,9 +1967,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
 
     case PRINCIPAL_STRESS_ANGLE_FIELD:
-        if ( stressAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
+        if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            stressAtGaussPoints = false ;
+        }
+        
+        if ( !stressAtGaussPointsSet)
+        {   
+            stressAtGaussPoints = 0 ;
+            stressAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2020,9 +2057,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
 
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
-        if ( strainAtGaussPoints.size() !=  (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()) )
-        {
-            strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size()), 0. ) ;
+        if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
+        {   
+            strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
+            strainAtGaussPoints = false ;
+        }
+        
+        if ( !strainAtGaussPointsSet)
+        {   
+            strainAtGaussPoints = 0 ;
+            strainAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2171,11 +2215,21 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     if ( f == STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
         if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
-                stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
+             stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
         {
-
             strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
             stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
+            strainAtGaussPointsSet = false ;
+            stressAtGaussPointsSet = false ;
+        }
+        
+        
+        if ( !strainAtGaussPointsSet || !stressAtGaussPointsSet)
+        {
+            strainAtGaussPoints = 0 ;
+            stressAtGaussPoints = 0 ;
+            strainAtGaussPointsSet = true ;
+            stressAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2245,10 +2299,21 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
-                pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
+             pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
         {
             pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
             pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
+            pstrainAtGaussPointsSet = false ;
+            pstressAtGaussPointsSet = false ;
+        }
+        
+        
+        if ( !pstrainAtGaussPointsSet || !pstressAtGaussPointsSet)
+        {
+            pstrainAtGaussPoints = 0 ;
+            pstressAtGaussPoints = 0 ;
+            pstrainAtGaussPointsSet = true ;
+            pstressAtGaussPointsSet = true ;
 
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
@@ -2827,20 +2892,21 @@ void ElementState::initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * m
     {
         ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     }
-    displacements.resize ( parent->getBoundingPoints().size() *ndofs ) ;
-    displacements = 0 ;
-    previousDisplacements.resize ( displacements.size() ) ;
-    previousDisplacements = 0 ;
+    displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
 
-    buffer.resize ( displacements.size() ) ;
-    buffer = 0 ;
+
+    buffer.resize ( displacements.size() , 0.) ;
 
     if ( std::abs ( timePos - previousTimePos ) < POINT_TOLERANCE && std::abs ( timePos ) < POINT_TOLERANCE )
     {
         timePos = -0.1 ;
         previousTimePos = -0.2 ;
     }
-
+    
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
 }
 
 void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
@@ -2851,10 +2917,8 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
     {
         ndofs = parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     }
-    displacements.resize ( parent->getBoundingPoints().size() *ndofs ) ;
+    displacements.resize ( parent->getBoundingPoints().size() *ndofs, 0. ) ;
     displacements = 0 ;
-    previousDisplacements.resize ( displacements.size() ) ;
-    previousDisplacements = 0 ;
 
     buffer.resize ( displacements.size() ) ;
     buffer = 0 ;
@@ -2864,7 +2928,11 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
         timePos = -0.1 ;
         previousTimePos = -0.2 ;
     }
-
+    
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
 }
 
 const Vector &ElementState::getBuffer() const
@@ -2880,13 +2948,10 @@ Vector &ElementState::getBuffer()
 void ElementState::step ( double dt, const Vector *d )
 {
 
-    strainAtGaussPoints.resize ( 0 );
-    stressAtGaussPoints.resize ( 0 );
-
-    pstrainAtGaussPoints.resize ( 0 );
-    pstressAtGaussPoints.resize ( 0 );
-
-    effectivePStressAtGaussPoints.resize ( 0 );
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
 
     if ( parent->getBehaviour() && parent->getBehaviour()->type != VOID_BEHAVIOUR )
     {
@@ -3134,16 +3199,10 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
 {
     strainAtGaussPoints.resize ( 0 );
     stressAtGaussPoints.resize ( 0 );
-    effectivePStressAtGaussPoints.resize ( 0 );
     displacements.resize ( s.getDisplacements().size() ) ;
     displacements = s.getDisplacements() ;
     enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
     enrichedDisplacements  = s.getEnrichedDisplacements();
-
-    previousDisplacements.resize ( s.getPreviousDisplacements().size() ) ;
-    previousDisplacements = s.getPreviousDisplacements() ;
-    previousEnrichedDisplacements.resize ( s.getPreviousEnrichedDisplacements().size() ) ;
-    previousEnrichedDisplacements = s. getPreviousEnrichedDisplacements();
 
     buffer.resize ( s.getBuffer().size() ) ;
     buffer = s.getBuffer() ;
@@ -3165,6 +3224,11 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
             internalVariablesAtGaussPoints[g][k].resize ( p ) ;
         }
     }
+    
+    strainAtGaussPointsSet = false ;
+    stressAtGaussPointsSet = false ;
+    pstrainAtGaussPointsSet = false ;
+    pstressAtGaussPointsSet = false ;
 
     return *this ;
 }

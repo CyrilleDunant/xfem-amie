@@ -8,9 +8,9 @@
 #include "../polynomial/vm_function_extra.h"
 #include "../utilities/writer/voxel_writer.h"
 #include "../physics/materials/c3s_behaviour.h"
-#include "../physics/homogenization/phase.h"
 #include "../physics/materials/csh_behaviour.h"
 #include "../physics/materials/ch_behaviour.h"
+#include "../physics/homogenization/composite.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -68,21 +68,42 @@ int main(int argc, char *argv[])
          
     while(!time_and_densities.eof())
     {
+        double correction = 0.8 ;
         double t ;
         double d032,d040,d048 ;
-        time_and_densities >> t >> d032 >> d040 >> d048 ;
+        double p032, p040, p048 ;
+        double phi ;
+        time_and_densities >> t >> d032 >> d040 >> d048 >>p032>> p040>> p048;
         timesd.push_back(t) ;
         if(atoi(argv[3]) == 0)
-            densities.push_back(d032);
+        {
+            densities.push_back(d032 * correction);
+            phi = p032 ;
+        }
         else if(atoi(argv[3]) == 1)
-            densities.push_back(d040);
+        {
+            densities.push_back(d040 * correction);
+            phi = p040 ;
+        }
         else
-            densities.push_back(d048);
+        {
+            densities.push_back(d048 * correction );
+            phi = p048 ;
+        }
+        
+        if(t > 15)
+        {
+            Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
+            Phase porosity(&sp, phi) ;
+            Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
+            Phase csh(&scsh, 1.-phi) ;
+            BiphasicSelfConsistentComposite sc(porosity,csh) ;
+            double fac = sc.getBehaviour()->getTensor(Point())[0][0]/scsh.param[0][0]  ;
+            if(fac < densities.back())
+                densities.back() = fac ;
+        }
+        
     }
-  
-    for(size_t i = 0 ; i < densities.size() ; i++)
-        densities[i] *= 1.21 ;
-  
     
     std::map<unsigned char,Form *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;  // C3S
@@ -103,7 +124,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( argv[1], behaviourMap, timesd ) ;
-    F.setDeltaTime(5.);
+    F.setDeltaTime(10);
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, -1e-6)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;
