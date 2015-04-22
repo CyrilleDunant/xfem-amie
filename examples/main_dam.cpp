@@ -13,6 +13,7 @@
 #include "../features/inclusion3d.h"
 #include "../polynomial/vm_function_extra.h"
 #include "../utilities/writer/voxel_writer.h"
+#include "../physics/homogenization/composite.h"
 #include <sys/time.h>
 
 #include <fstream>
@@ -94,14 +95,21 @@ int main(int argc, char *argv[])
     E = 37e9 ;
     Matrix m1 = Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
     
-//     for(double phi = 0 ;  phi <= 1 ; phi +=0.01)
-//     {
-//         Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
-//         Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), phi) ;
-//         BiphasicSelfConsistentComposite sc(porosity,csh) ;
-//         std::cout << phi << "  "<< sc.getBehaviour()->getTensor(Point())[0][0]/((1+.25)*(1.-2*.25)/(1-.25)) << std::endl ;
-//     }
-//     exit(0) ;
+    for(double phi = 1 ;  phi >=0  ; phi -=0.01)
+    {
+        Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0.03,0.00), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
+        Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), phi) ;
+        BiphasicSelfConsistentComposite sc(csh,porosity) ;
+        double c00 = sc.getBehaviour()->getTensor(Point())[0][0] ;
+        double c55 = sc.getBehaviour()->getTensor(Point())[5][5] ;
+        double mu = c55 ;
+        double K = c00+mu*4./3. ;
+        E = 9.*K*(K-mu)/(3.*K-mu) ;
+        nu =mu/(3.*K-mu) ;
+        
+        std::cout << 1.-phi << "  "<< E << "  "<< nu << std::endl ;
+    }
+    exit(0) ;
     
     samplers.setBehaviour(new VoidForm()) ;
 

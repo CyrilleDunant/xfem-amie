@@ -68,14 +68,15 @@ int main(int argc, char *argv[])
          
     while(!time_and_densities.eof())
     {
-        double correction = 1.8 ;
+        double correction = 1.6 ; // sc is 1
         double t ;
         double d032,d040,d048,d032_,d040_,d048_ ;
         double p032, p040, p048 ;
         double sc032, sc040, sc048 ;
         double phi ;
+                           // 1      2       3       4       5       6      7        8       9        10        11       12       13
         time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
-        timesd.push_back(t-1.5) ;
+        timesd.push_back(t) ;
         if(atoi(argv[3]) == 0)
         {
             densities.push_back(d032_ * correction);
