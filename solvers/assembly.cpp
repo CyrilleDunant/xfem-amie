@@ -264,7 +264,7 @@ void Assembly::setBoundaryConditions()
     nonLinearExternalForces.resize(coordinateIndexedMatrix->row_size.size()*coordinateIndexedMatrix->stride, 0.) ;
     if(addToExternalForces.size() != externalForces.size())
     {
-	addToExternalForces.resize(externalForces.size(), 0.) ; 
+        addToExternalForces.resize(externalForces.size(), 0.) ; 
     }
 
     std::sort(multipliers.begin(), multipliers.end()) ;
@@ -273,8 +273,6 @@ void Assembly::setBoundaryConditions()
     {
         multiplierIds[i] = multipliers[i].getId() ;
     }
-
-
 
     int stride = coordinateIndexedMatrix->stride ;
     timeval time0, time1 ;
@@ -314,7 +312,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
-		    addToExternalForces[id] = 0. ;
+                    addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -359,7 +357,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
-		    addToExternalForces[id] = 0. ;
+                    addToExternalForces[id] = 0. ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m))
@@ -621,7 +619,7 @@ bool Assembly::make_final()
 
             for(size_t i = 0 ; i < element2d.size() ; i++)
             {
-                if(i%1000 == 0)
+                if(i%100000 == 0)
                     std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
                 std::vector<size_t> ids = element2d[i]->getDofIds() ;
                 size_t additionalDofPerPlane = ids.size()/instants - dofsperplane ;
@@ -712,7 +710,7 @@ bool Assembly::make_final()
             if(displacements.size() != max)
             {
                 displacements.resize(max, 0.) ;
-		addToExternalForces.resize(max, 0.) ;
+                addToExternalForces.resize(max, 0.) ;
             }
             else
             {
@@ -723,21 +721,22 @@ bool Assembly::make_final()
         else
         {
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+                std::set<unsigned long int> dofsToUpdate = updatedDofs ;
+            for(size_t i = 0 ; i < multipliers.size() ; i++)
+                dofsToUpdate.insert(multipliers[i].getId()) ;
         }
 
         coordinateIndexedMatrix->array = 0 ;
-        double dmax = 0 ;
-        double vmax = 0 ;
-        
+
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
                 continue ;
-            if(i%1000 == 0)
+            if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
             std::valarray<std::valarray<Matrix > > mother = element2d[i]->getElementaryMatrix();
-            Matrix test(ids.size()*ndof, ids.size()*ndof) ;
+//             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 for(size_t n = 0 ; n < ndof ; n++)
@@ -755,8 +754,8 @@ bool Assembly::make_final()
                         {
                             getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * mother[j][k][n][m] ;
                             getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * mother[k][j][n][m] ;
-                            test[j*ndof+n][k*ndof+m] = scales[i] * mother[j][k][n][m] ;
-                            test[k*ndof+n][j*ndof+m] = scales[i] * mother[k][j][n][m] ;
+//                             test[j*ndof+n][k*ndof+m] = scales[i] * mother[j][k][n][m] ;
+//                             test[k*ndof+n][j*ndof+m] = scales[i] * mother[k][j][n][m] ;
                         }
                     }
                 }
@@ -782,27 +781,27 @@ bool Assembly::make_final()
                             {
                                 getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * vmother[j][k][n][m] ;
                                 getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * vmother[k][j][n][m] ;
-                                test[j*ndof+n][k*ndof+m] = scales[i] * vmother[j][k][n][m] ;
-                                test[k*ndof+n][j*ndof+m] = scales[i] * vmother[k][j][n][m] ;
+//                                 test[j*ndof+n][k*ndof+m] = scales[i] * vmother[j][k][n][m] ;
+//                                 test[k*ndof+n][j*ndof+m] = scales[i] * vmother[k][j][n][m] ;
                             }
                         }
                     }
                 }
             }
 
-            dmax = std::abs(test.array()).max() ;
-            if(dmax > POINT_TOLERANCE)
-            {
-                for(size_t j = 0 ; j < test.numRows() ; j++)
-                {
-                    for(size_t k = j+1 ; k < test.numCols() ; k++)
-                    {
-                        vmax = std::abs(test[j][k]-test[k][j]) ;
-                        symmetric = symmetric && (vmax/dmax < 1e-12) ;
-
-                    }
-                }
-            }
+//             dmax = std::abs(test.array()).max() ;
+//             if(dmax > POINT_TOLERANCE)
+//             {
+//                 for(size_t j = 0 ; j < test.numRows() ; j++)
+//                 {
+//                     for(size_t k = j+1 ; k < test.numCols() ; k++)
+//                     {
+//                         vmax = std::abs(test[j][k]-test[k][j]) ;
+//                         symmetric = symmetric && (vmax/dmax < 1e-12) ;
+// 
+//                     }
+//                 }
+//             }
 //  			element2d[i]->clearElementaryMatrix() ;
         }
 
@@ -834,7 +833,7 @@ bool Assembly::make_final()
 
             for(size_t i = 0 ; i < element3d.size() ; i++)
             {
-                if(i%1000 == 0)
+                if(i%100000 == 0)
                     std::cerr << "\r computing sparsness pattern... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
                 std::vector<size_t> ids = element3d[i]->getDofIds() ;
 
@@ -904,12 +903,10 @@ bool Assembly::make_final()
         }
 
         coordinateIndexedMatrix->array = 0 ;
-        double dmax = 0 ;
-        double vmax = 0 ;
 
         for(size_t i = 0 ; i < element3d.size() ; i++)
         {
-            if(i%1000 == 0)
+            if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 
             std::vector<size_t> ids = element3d[i]->getDofIds() ;
@@ -919,7 +916,7 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
-            Matrix test(ids.size()*ndof, ids.size()*ndof) ;
+//             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
 
@@ -939,8 +936,8 @@ bool Assembly::make_final()
                         {
                             getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * mother[j][k][l][m] ;
                             getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * mother[k][j][l][m] ;
-                            test[j*ndof+l][k*ndof+m] = scales[i] * mother[j][k][l][m] ;
-                            test[k*ndof+l][j*ndof+m] = scales[i] * mother[k][j][l][m] ;
+//                             test[j*ndof+l][k*ndof+m] = scales[i] * mother[j][k][l][m] ;
+//                             test[k*ndof+l][j*ndof+m] = scales[i] * mother[k][j][l][m] ;
                         }
                     }
                 }
@@ -968,27 +965,27 @@ bool Assembly::make_final()
                             {
                                 getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * vmother[j][k][l][m] ;
                                 getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * vmother[k][j][l][m] ;
-                                test[j*ndof+l][k*ndof+m] = scales[i] * vmother[j][k][l][m] ;
-                                test[k*ndof+l][j*ndof+m] = scales[i] * vmother[k][j][l][m] ;
+//                                 test[j*ndof+l][k*ndof+m] = scales[i] * vmother[j][k][l][m] ;
+//                                 test[k*ndof+l][j*ndof+m] = scales[i] * vmother[k][j][l][m] ;
                             }
                         }
                     }
                 }
             }
 
-            dmax = std::abs(test.array()).max() ;
-            if(dmax > POINT_TOLERANCE)
-            {
-                for(size_t j = 0 ; j < test.numRows() ; j++)
-                {
-                    for(size_t k = j+1 ; k < test.numCols() ; k++)
-                    {
-                        vmax = std::abs(test[j][k]-test[k][j]) ;
-                        symmetric = symmetric && (vmax/dmax < 1e-12) ;
-
-                    }
-                }
-            }
+//             dmax = std::abs(test.array()).max() ;
+//             if(dmax > POINT_TOLERANCE)
+//             {
+//                 for(size_t j = 0 ; j < test.numRows() ; j++)
+//                 {
+//                     for(size_t k = j+1 ; k < test.numCols() ; k++)
+//                     {
+//                         vmax = std::abs(test[j][k]-test[k][j]) ;
+//                         symmetric = symmetric && (vmax/dmax < 1e-12) ;
+// 
+//                     }
+//                 }
+//             }
 			element3d[i]->clearElementaryMatrix() ;
         }
 
@@ -1451,7 +1448,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
     timeval time0, time1 ;
     gettimeofday(&time0, nullptr);
 
-    if(make_final() )
+    if( make_final() )
     {
 
         ConjugateGradientWithSecant cg(this) ;
@@ -1461,15 +1458,6 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
             cg.rowstart = rowstart;
             cg.colstart = colstart;
         }
-
-//         for(size_t i = 0 ; i < 192 ; i++)
-//         {
-//             for(size_t j = 0 ; j < 192 ; j++)
-//                 std::cout << getMatrix()[i][j] << "   " << std::flush ;
-//             std::cout << std::endl ;
-//         }
-//         for(size_t i = 0 ; i < 192 ; i++)
-//             std::cout << getForces()[i] << "   " << std::flush ;
 
         ret = cg.solve(x0, nullptr, epsilon, -1, verbose) ;
         gettimeofday(&time1, nullptr);
@@ -1486,8 +1474,7 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
             }
         }
 
-
-	    addToExternalForces = 0 ;
+        addToExternalForces = 0 ;
 
     }
     else
@@ -1523,11 +1510,6 @@ bool Assembly::mgsolve(LinearSolver * mg, Vector x0, Preconditionner *pg, int Ma
     displacements = mg->x ;
 
     return ret ;
-}
-
-void Assembly::fix()
-{
-    make_final() ;
 }
 
 bool Assembly::cgnpsolve(const Vector b, size_t maxit)
@@ -2022,12 +2004,6 @@ void ParallelAssembly::setSpaceDimension(SpaceDimensionality d)
 SpaceDimensionality ParallelAssembly::getSpaceDimension() const
 {
     return  assembly[0].getSpaceDimension() ;
-}
-
-void ParallelAssembly::fix()
-{
-    for( size_t i = 0 ;  i < domains.size() ; i++ )
-        assembly[i].fix() ; 
 }
 
 void ParallelAssembly::clear()

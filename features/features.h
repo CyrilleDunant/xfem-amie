@@ -112,6 +112,7 @@ protected:
     State state ;
 protected:
 
+    std::set<long unsigned int> changedDofs ;
     std::vector<Vector> reportValues ; 
     SamplingRestrictionType samplingRestriction ;
 

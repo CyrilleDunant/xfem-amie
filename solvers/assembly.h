@@ -227,6 +227,7 @@ public:
 	virtual ~Assembly() ;
 
 	size_t getMaxDofID() const ; 
+    std::set<unsigned long int> updatedDofs ;
 
 /** \brief add element to assembly*/
 	void add(ElementarySurface * e, double scale = 1.) ;
@@ -387,7 +388,6 @@ public:
 	void setSpaceDimension(SpaceDimensionality d) ;
 	SpaceDimensionality getSpaceDimension() const ;
 
-	void fix() ;
 	void clear() ;
     void clearElements() ;
 } ;
@@ -561,7 +561,6 @@ public:
     void setSpaceDimension(SpaceDimensionality d) ;
     SpaceDimensionality getSpaceDimension() const ;
 
-    void fix() ;
     void clear() ;
     void clearElements() ;
 } ;

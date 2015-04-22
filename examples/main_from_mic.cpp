@@ -68,40 +68,41 @@ int main(int argc, char *argv[])
          
     while(!time_and_densities.eof())
     {
-        double correction = 0.8 ;
+        double correction = 1.8 ;
         double t ;
-        double d032,d040,d048 ;
+        double d032,d040,d048,d032_,d040_,d048_ ;
         double p032, p040, p048 ;
+        double sc032, sc040, sc048 ;
         double phi ;
-        time_and_densities >> t >> d032 >> d040 >> d048 >>p032>> p040>> p048;
-        timesd.push_back(t) ;
+        time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
+        timesd.push_back(t-1.5) ;
         if(atoi(argv[3]) == 0)
         {
-            densities.push_back(d032 * correction);
+            densities.push_back(d032_ * correction);
             phi = p032 ;
         }
         else if(atoi(argv[3]) == 1)
         {
-            densities.push_back(d040 * correction);
+            densities.push_back(d040_ * correction);
             phi = p040 ;
         }
         else
         {
-            densities.push_back(d048 * correction );
+            densities.push_back(d048_ * correction );
             phi = p048 ;
         }
         
-        if(t > 15)
-        {
-            Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
-            Phase porosity(&sp, phi) ;
-            Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
-            Phase csh(&scsh, 1.-phi) ;
-            BiphasicSelfConsistentComposite sc(porosity,csh) ;
-            double fac = sc.getBehaviour()->getTensor(Point())[0][0]/scsh.param[0][0]  ;
-            if(fac < densities.back())
-                densities.back() = fac ;
-        }
+//         if(t > 15)
+//         {
+//             Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
+//             Phase porosity(&sp, phi) ;
+//             Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
+//             Phase csh(&scsh, 1.-phi) ;
+//             BiphasicSelfConsistentComposite sc(porosity,csh) ;
+//             double fac = sc.getBehaviour()->getTensor(Point())[0][0]/scsh.param[0][0]  ;
+//             if(fac < densities.back())
+//                 densities.back() = fac ;
+//         }
         
     }
     

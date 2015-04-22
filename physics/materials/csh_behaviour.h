@@ -27,7 +27,11 @@ struct CSHBehaviour : public Stiffness
     //l   23                  28     
     //              0.8               gap = 
     //h   35
-    //l   30 
+    //l   30                  29
+    //               new approach
+    //              1
+    //h
+    //l                       22
     bool fromPorosity ;
     CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, bool fromPorosity= false, double E=32e9, double nu=0.25, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
     double currentTime ;
