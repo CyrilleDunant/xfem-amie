@@ -2543,13 +2543,13 @@ std::vector<DelaunayTetrahedron *>  DelaunayTree3D::getTetrahedrons( bool buildN
     std::valarray<bool> visited(false, tree.size()) ;
     for( const auto & item : tree )
     {
-        if( !item->dead && item->isTetrahedron )
+        if( !item->dead && item->isTetrahedron && !item->isDeadTetrahedron)
         {
             ret.push_back( ( DelaunayTetrahedron * )( item ) ) ;
         }
     }
 
-    if( true/*!neighbourhood && buildNeighbourhood*/ )
+    if( !neighbourhood && buildNeighbourhood )
     {
         neighbourhood = true ;
         std::cerr << "\r building neighbourhood... element 0/" << ret.size() << std::flush ;

@@ -147,7 +147,7 @@ void ConstSparseVector::parallel_product(const Vector &v, double *dest, const si
         {
             __m128d tmp =  _mm_add_pd( _mm_load_pd(*dest_iterator), _mm_add_pd( _mm_mul_pd(*array_iterator,  _mm_set1_pd(*vec_iterator)), _mm_mul_pd(*(array_iterator+1), _mm_set1_pd(*(vec_iterator+1))))) ;
             _mm_store_pd(dest, _mm_add_pd(tmp, dest)) ;
-            _mm_store_pd(dest_iterator, _mm_add_pd(tmp, dest_iterator))
+            _mm_store_pd(dest_iterator, _mm_add_pd(tmp, dest_iterator)) ;
         }
 #else
         const double * array_iterator0 = &array[start*4] ;

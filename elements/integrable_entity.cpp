@@ -350,7 +350,7 @@ ElementState &ElementState::operator = ( ElementState &s )
     parent = s.getParent();
     mesh2d = s.getMesh2D() ;
     mesh3d = s.getMesh3D() ;
-    
+
     strainAtGaussPointsSet = false ;
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;
@@ -381,7 +381,7 @@ ElementState::ElementState ( ElementState &s )
     parent = s.getParent();
     mesh2d = s.getMesh2D() ;
     mesh3d = s.getMesh3D() ;
-    
+
     strainAtGaussPointsSet = false ;
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;
@@ -446,7 +446,7 @@ Matrix makeStressOrStrainMatrix ( const Vector & stressOrStrain )
         Matrix ret2 ( 2,2 ) ;
         ret2[0][0] = stressOrStrain[0] ;
         ret2[1][1] = stressOrStrain[1] ;
-        ret2[1][0] = ret2[0][1] = stressOrStrain[2] * .5 ;
+        ret2[1][0] = ret2[0][1] = stressOrStrain[2]  ;
         return ret2 ;
     }
     else if ( stressOrStrain.size() == 6 )
@@ -455,9 +455,9 @@ Matrix makeStressOrStrainMatrix ( const Vector & stressOrStrain )
         ret3[0][0] = stressOrStrain[0] ;
         ret3[1][1] = stressOrStrain[1] ;
         ret3[2][2] = stressOrStrain[2] ;
-        ret3[2][0] = ret3[0][2] = stressOrStrain[3] * .5 ;
-        ret3[2][1] = ret3[1][2] = stressOrStrain[4] * .5 ;
-        ret3[1][0] = ret3[0][1] = stressOrStrain[5] * .5 ;
+        ret3[2][0] = ret3[0][2] = stressOrStrain[3]  ;
+        ret3[2][1] = ret3[1][2] = stressOrStrain[4]  ;
+        ret3[1][0] = ret3[0][1] = stressOrStrain[5]  ;
         return ret3 ;
     }
     return Matrix ( 2 + ( stressOrStrain.size() ==6 ), 2 + ( stressOrStrain.size() ==6 ) ) ;
@@ -484,60 +484,103 @@ bool isEffectiveStressField ( FieldType f )
     return f == EFFECTIVE_STRESS_FIELD || f == NON_ENRICHED_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_EFFECTIVE_STRESS_FIELD  ;
 }
 
-Vector toPrincipal ( const Vector & stressOrStrain )
+Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
 {
-    Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
-    if ( ret.size() == 2 )
+    if (t ==   SINGLE_OFF_DIAGONAL_VALUES)
     {
-        double trace = stressOrStrain[0] + stressOrStrain[1] ;
-        double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
-        double delta = sqrt(trace*trace - 4.*det) ;
-        double angle =  0.5*atan2 ( stressOrStrain[0] - stressOrStrain[1] , 0.5*stressOrStrain[2] ) ;
-        if(cos(angle) < 0)
+        Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
+        if ( ret.size() == 2 )
         {
-            ret[0] = (trace + delta)*.5 ;
-            ret[1] = (trace - delta)*.5 ;
+            double trace = stressOrStrain[0] + stressOrStrain[1] ;
+            double det = stressOrStrain[0]*stressOrStrain[1] - stressOrStrain[2]*stressOrStrain[2] ;
+            double delta = std::sqrt(trace*trace - 4.*det) ;
+            double angle =  0.5*std::atan2 ( stressOrStrain[0] - stressOrStrain[1] , stressOrStrain[2] ) ;
+            if(std::cos(angle) < 0)
+            {
+                ret[0] = (trace + delta)*.5 ;
+                ret[1] = (trace - delta)*.5 ;
+            }
+            else
+            {
+                ret[0] = (trace - delta)*.5 ;
+                ret[1] = (trace + delta)*.5 ;
+            }
         }
-        else
+        else if ( ret.size() == 3 )
         {
-            ret[0] = (trace - delta)*.5 ;
-            ret[1] = (trace + delta)*.5 ;
+            Matrix mat = Amie::makeStressOrStrainMatrix ( stressOrStrain ) ;
+            double trmat = -1.*trace(mat);
+            double detmat = -2.0*mat[0][1]*mat[0][2]*mat[1][2] + mat[0][0]*mat[1][2]*mat[1][2] + mat[1][1]*mat[0][2]*mat[0][2] + mat[2][2]*mat[0][1]*mat[0][1] - mat[0][0]*mat[1][1]*mat[2][2];
+            double m2mat =  (mat[0][0]*mat[1][1] + mat[1][1]*mat[2][2] + mat[2][2]*mat[0][0]) - mat[0][2]*mat[0][2] - mat[0][1]*mat[0][1] - mat[1][2]*mat[1][2];
+            double q =  m2mat/3. - trmat*trmat/9. ;
+            double r = (trmat*m2mat - 3.*detmat)/6. - trmat*trmat*trmat/27. ;
+            double d = q*q*q + r*r ;
+            double r0 = std::pow(r*r - d, 1./6.);
+            double phi = std::atan2(std::sqrt(-1.*d),r)/3. ;
+            if ( std::abs(phi) < POINT_TOLERANCE )
+            {
+                phi = 0.  ;
+            }
+            if ( (phi) < 0. )
+            {
+                phi += M_PI  ;
+            }
+            double som = r0*std::cos(phi);
+            double dif = r0*std::sin(phi) ;
+            ret[0] = 2.*som - trmat/3. ;
+            ret[1] = -som - trmat/3. - dif*std::sqrt(3.) ;
+            ret[2] = -som - trmat/3. + dif*std::sqrt(3.) ;
         }
-//         ret[0] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 +
-//                  sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
-//                         ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
-//         ret[1] = ( stressOrStrain[0] + stressOrStrain[1] ) * .5 -
-//                  sqrt ( 0.25 * ( stressOrStrain[0] - stressOrStrain[1] ) * ( stressOrStrain[0] - stressOrStrain[1] ) +
-//                         ( stressOrStrain[2] * stressOrStrain[2] ) ) ;
+        return ret ;
     }
-    else if ( ret.size() == 3 )
+    else
     {
-        Matrix mat = Amie::makeStressOrStrainMatrix ( stressOrStrain ) ;
-        Matrix I ( 3, 3 ) ;
-        I[0][0] = 1 ;
-        I[1][1] = 1 ;
-        I[2][2] = 1 ;
-        double m = ( mat[0][0] + mat[1][1] + mat[2][2] ) / 3. ;
-        Matrix Am = mat - I * m ;
-        double q = det ( Am ) / 2. ;
-        double r = std::inner_product ( &Am.array() [0], &Am.array() [9], &Am.array() [0],  double ( 0. ) ) / 6. ;
-        double phi = atan2 ( sqrt ( r * r * r - q * q ), q ) / 3. ;
-
-        if ( r * r * r - q * q < 1e-12 )
+        Vector ret ( 0., 2+ ( stressOrStrain.size() == 6 ) ) ;
+        if ( ret.size() == 2 )
         {
-            phi = atan ( 0 ) / 3. ;
+            double trace = stressOrStrain[0] + stressOrStrain[1] ;
+            double det = stressOrStrain[0]*stressOrStrain[1] - 0.25*stressOrStrain[2]*stressOrStrain[2] ;
+            double delta = std::sqrt(trace*trace - 4.*det) ;
+            double angle =  0.5*std::atan2 ( stressOrStrain[0] - stressOrStrain[1] , 0.5*stressOrStrain[2] ) ;
+            if(std::cos(angle) < 0)
+            {
+                ret[0] = (trace + delta)*.5 ;
+                ret[1] = (trace - delta)*.5 ;
+            }
+            else
+            {
+                ret[0] = (trace - delta)*.5 ;
+                ret[1] = (trace + delta)*.5 ;
+            }
         }
-
-        if ( phi < 0 )
+        else if ( ret.size() == 3 )
         {
-            phi += M_PI ;
+            Matrix mat = Amie::makeStressOrStrainMatrix ( stressOrStrain ) ;
+            double trmat = -1.*trace(mat);
+            double detmat = -2.0*mat[0][1]*mat[0][2]*mat[1][2]*0.125 + mat[0][0]*mat[1][2]*mat[1][2]*0.25 + mat[1][1]*mat[0][2]*mat[0][2]*0.25 + 0.25*mat[2][2]*mat[0][1]*mat[0][1] - mat[0][0]*mat[1][1]*mat[2][2];
+            double m2mat =  (mat[0][0]*mat[1][1] + mat[1][1]*mat[2][2] + mat[2][2]*mat[0][0]) - 0.25*mat[0][2]*mat[0][2] - 0.25*mat[0][1]*mat[0][1] - 0.25*mat[1][2]*mat[1][2];
+            double q =  m2mat/3. - trmat*trmat/9. ;
+            double r = (trmat*m2mat - 3.*detmat)/6. - trmat*trmat*trmat/27. ;
+            double d = q*q*q + r*r ;
+            double r0 = std::pow(r*r - d, 1./6.);
+            double phi = std::atan2(std::sqrt(-1.*d),r)/3. ;
+            if ( std::abs(phi) < POINT_TOLERANCE )
+            {
+                phi = 0.  ;
+            }
+            if ( (phi) < 0. )
+            {
+                phi += M_PI  ;
+            }
+            double som = r0*std::cos(phi);
+            double dif = r0*std::sin(phi) ;
+            ret[0] = 2.*som - trmat/3. ;
+            ret[1] = -som - trmat/3. - dif*std::sqrt(3.) ;
+            ret[2] = -som - trmat/3. + dif*std::sqrt(3.) ;
         }
-
-        ret[0] = m + 2.*sqrt ( r ) * cos ( phi ) ;
-        ret[1] = m - sqrt ( r ) * ( cos ( phi ) + sqrt ( 3. ) * sin ( phi ) ) ;
-        ret[2] = m - sqrt ( r ) * ( cos ( phi ) - sqrt ( 3. ) * sin ( phi ) ) ;
+        return ret ;
     }
-    return ret ;
+
 }
 
 void ElementState::getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm ) const
@@ -776,7 +819,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
         getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
 
-        ret = toPrincipal ( strains ) ;
+        ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES  ) ;
         if ( cleanup )
         {
             delete vm ;
@@ -788,7 +831,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
         getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
 
-        ret = toPrincipal ( strains ) ;
+        ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES ) ;
         if ( cleanup )
         {
             delete vm ;
@@ -927,7 +970,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         getField ( REAL_STRESS_FIELD, p_, stress, true,vm ) ;
-        ret = toPrincipal ( stress ) ;
+        ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1042,7 +1085,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         getField ( EFFECTIVE_STRESS_FIELD, p_, stress, true,vm ) ;
-        ret = toPrincipal ( stress ) ;
+        ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1389,18 +1432,18 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     switch ( f )
     {
     case STRAIN_FIELD :
-        
+
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             strainAtGaussPointsSet = false ;
         }
-        
+
         if ( !strainAtGaussPointsSet)
-        {   
+        {
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
-            
+
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( strainAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -1464,13 +1507,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     case MECHANICAL_STRAIN_FIELD :
 
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             strainAtGaussPointsSet = false ;
         }
-        
+
         if ( !strainAtGaussPointsSet)
-        {   
+        {
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
 
@@ -1543,13 +1586,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
 
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             strainAtGaussPointsSet = false ;
         }
-        
+
         if ( !strainAtGaussPointsSet)
-        {   
+        {
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
 
@@ -1565,7 +1608,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
                     imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-                Vector ptmp = toPrincipal(tmp-imp) ;
+                Vector ptmp = toPrincipal(tmp-imp, DOUBLE_OFF_DIAGONAL_VALUES) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 ret += ptmp *gp.gaussPoints[i].second*weights[i] ;
@@ -1598,7 +1641,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(getParent()->getBehaviour() && getParent()->getBehaviour()->hasInducedForces())
                     imp = getParent()->getBehaviour()->getImposedStrain( gp.gaussPoints[i].first ) ;
-                Vector ptmp = toPrincipal(tmp-imp) ;
+                Vector ptmp = toPrincipal(tmp-imp, DOUBLE_OFF_DIAGONAL_VALUES) ;
                 if(ret.size() != ptmp.size())
                     ret.resize(ptmp.size(), 0.);
                 ret += ptmp*gp.gaussPoints[i].second*weights[i] ;
@@ -1623,13 +1666,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     case PRINCIPAL_STRAIN_FIELD :
 
         if ( pstrainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
-        {   
+        {
             pstrainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
             pstrainAtGaussPointsSet = false ;
         }
-        
+
         if ( !pstrainAtGaussPointsSet)
-        {   
+        {
             pstrainAtGaussPoints = 0 ;
             pstrainAtGaussPointsSet = true ;
 
@@ -1693,13 +1736,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     case REAL_STRESS_FIELD:
 
         if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             stressAtGaussPoints = false ;
         }
-        
+
         if ( !stressAtGaussPointsSet)
-        {   
+        {
             stressAtGaussPoints = 0 ;
             stressAtGaussPointsSet = true ;
 
@@ -1761,16 +1804,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case PRINCIPAL_REAL_STRESS_FIELD :
         if ( pstressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
-        {   
+        {
             pstressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
             pstressAtGaussPoints = false ;
         }
-        
+
         if ( !pstressAtGaussPointsSet)
-        {   
+        {
             pstressAtGaussPoints = 0 ;
             pstressAtGaussPoints = true ;
-            
+
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Vector tmp ( pstressAtGaussPoints.size() /gp.gaussPoints.size() ) ;
@@ -1829,16 +1872,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case EFFECTIVE_STRESS_FIELD:
         if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             stressAtGaussPoints = false ;
         }
-        
+
         if ( !stressAtGaussPointsSet)
-        {   
+        {
             stressAtGaussPoints = 0 ;
             stressAtGaussPointsSet = true ;
-            
+
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Point p_ = gp.gaussPoints[i].first ;
@@ -1898,16 +1941,16 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         return v;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
         if ( pstressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) )
-        {   
+        {
             pstressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 2*gp.gaussPoints.size() : 3*gp.gaussPoints.size())) , 0. ) ;
             pstressAtGaussPoints = false ;
         }
-        
+
         if ( !pstressAtGaussPointsSet)
-        {   
+        {
             pstressAtGaussPoints = 0 ;
             pstressAtGaussPointsSet = true ;
-            
+
             for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
             {
                 Point p_ = gp.gaussPoints[i].first ;
@@ -1968,13 +2011,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
     case PRINCIPAL_STRESS_ANGLE_FIELD:
         if ( stressAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             stressAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             stressAtGaussPoints = false ;
         }
-        
+
         if ( !stressAtGaussPointsSet)
-        {   
+        {
             stressAtGaussPoints = 0 ;
             stressAtGaussPointsSet = true ;
 
@@ -2058,13 +2101,13 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
 
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
         if ( strainAtGaussPoints.size() != ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) )
-        {   
+        {
             strainAtGaussPoints.resize ( ((parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? 3*gp.gaussPoints.size() : 6*gp.gaussPoints.size())) , 0. ) ;
             strainAtGaussPoints = false ;
         }
-        
+
         if ( !strainAtGaussPointsSet)
-        {   
+        {
             strainAtGaussPoints = 0 ;
             strainAtGaussPointsSet = true ;
 
@@ -2215,15 +2258,15 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     if ( f == STRAIN_FIELD && ( f_ == EFFECTIVE_STRESS_FIELD || f_ == REAL_STRESS_FIELD ) )
     {
         if ( strainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ||
-             stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
+                stressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) )
         {
             strainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
             stressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?3*gp.gaussPoints.size() :6*gp.gaussPoints.size()) ) ;
             strainAtGaussPointsSet = false ;
             stressAtGaussPointsSet = false ;
         }
-        
-        
+
+
         if ( !strainAtGaussPointsSet || !stressAtGaussPointsSet)
         {
             strainAtGaussPoints = 0 ;
@@ -2299,15 +2342,15 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
-             pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
+                pstressAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) )
         {
             pstrainAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
             pstressAtGaussPoints.resize ( (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ) ;
             pstrainAtGaussPointsSet = false ;
             pstressAtGaussPointsSet = false ;
         }
-        
-        
+
+
         if ( !pstrainAtGaussPointsSet || !pstressAtGaussPointsSet)
         {
             pstrainAtGaussPoints = 0 ;
@@ -2433,8 +2476,8 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         {
             getField ( STRAIN_FIELD, EFFECTIVE_STRESS_FIELD, p, v1, v2, local, vm ) ;
         }
-        ret1 = toPrincipal ( v1 ) ;
-        ret2 = toPrincipal ( v2 ) ;
+        ret1 = toPrincipal ( v1 , DOUBLE_OFF_DIAGONAL_VALUES) ;
+        ret2 = toPrincipal ( v2 , SINGLE_OFF_DIAGONAL_VALUES ) ;
         if ( cleanup )
         {
             delete vm ;
@@ -2473,8 +2516,8 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
         Vector v2 ( 0., v1.size() ) ;
         getField ( isRealStressField ( f2 ) ? REAL_STRESS_FIELD : EFFECTIVE_STRESS_FIELD, STRAIN_FIELD, p, v1, v2, local,vm ) ;
 
-        ret1 = toPrincipal ( v1 ) ;
-        ret2 = toPrincipal ( v2 ) ;
+        ret1 = toPrincipal ( v1, SINGLE_OFF_DIAGONAL_VALUES ) ;
+        ret2 = toPrincipal ( v2,  DOUBLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -2902,7 +2945,7 @@ void ElementState::initialize ( Mesh<DelaunayTetrahedron,DelaunayTreeItem3D> * m
         timePos = -0.1 ;
         previousTimePos = -0.2 ;
     }
-    
+
     strainAtGaussPointsSet = false ;
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;
@@ -2928,7 +2971,7 @@ void ElementState::initialize ( Mesh<DelaunayTriangle,DelaunayTreeItem> * msh)
         timePos = -0.1 ;
         previousTimePos = -0.2 ;
     }
-    
+
     strainAtGaussPointsSet = false ;
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;
@@ -3224,7 +3267,7 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
             internalVariablesAtGaussPoints[g][k].resize ( p ) ;
         }
     }
-    
+
     strainAtGaussPointsSet = false ;
     stressAtGaussPointsSet = false ;
     pstrainAtGaussPointsSet = false ;

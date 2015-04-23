@@ -827,7 +827,7 @@ public:
         Vector buffer ( ret ) ;
         double w = 0 ;
         for ( auto i = begin() ; i  != end() ; i++ ) {
-            double v = i->getState().getAverageField ( f, buffer, nullptr, dummy, t ) ;
+            double v = i->getState().getAverageField ( f, buffer, &vm, dummy, t ) ;
             ret += buffer * v ;
             w +=v ;
         }
@@ -912,7 +912,7 @@ public:
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
                 first.resize ( psize );
-                first = toPrincipal ( strain ) ;
+                first = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
                 first.resize ( tsize );
@@ -933,17 +933,17 @@ public:
             if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( psize );
                 if ( !spaceTime ) {
-                    first = toPrincipal( strain*e->getBehaviour()->param ) ;
+                    first = toPrincipal( strain*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
-                    first = toPrincipal( stress ) ;
+                    first = toPrincipal( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
                 }
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
                 if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) , SINGLE_OFF_DIAGONAL_VALUES) ;
                 } else {
-                    first = toPrincipal ( stress ) ;
+                    first = toPrincipal( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
                 }
             }
 
@@ -1051,23 +1051,23 @@ public:
 
             if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
                 first.resize ( psize );
-                first = toPrincipal ( strain ) ;
+                first = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES) ;
             }
             if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
                 second.resize ( psize );
-                second = toPrincipal ( strain ) ;
+                second = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 first.resize ( psize );
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
                     strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
-                first = toPrincipal ( strain ) ;
+                first = toPrincipal( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f1 == PRINCIPAL_MECHANICAL_STRAIN_FIELD ) {
                 second.resize ( psize );
                 if(e->getBehaviour() && e->getBehaviour()->hasInducedForces())
                     strain -= e->getBehaviour()->getImposedStrain(Point(0,0,0,t)) ;
-                second = toPrincipal ( strain ) ;
+                second = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES ) ;
             }
             if ( f0 == REAL_STRESS_FIELD ) {
                 first.resize ( tsize );
@@ -1104,33 +1104,33 @@ public:
             if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 first.resize ( psize );
                 if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                    first = toPrincipal ( strain*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
-                    first = toPrincipal( stress ) ;
+                    first = toPrincipal( stress, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
             }
             if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
                 second.resize ( psize );
                 if ( !spaceTime ) {
-                    second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+                    second = toPrincipal( strain*e->getBehaviour()->param , SINGLE_OFF_DIAGONAL_VALUES ) ;
                 } else {
-                    second = toPrincipal( stress ) ;
+                    second = toPrincipal( stress, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
             }
             if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 first.resize ( psize );
                 if ( !spaceTime ) {
-                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                    first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) , SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
-                    first = toPrincipal ( stress ) ;
+                    first = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
             }
             if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
                 second.resize ( psize );
                 if ( !spaceTime ) {
-                    second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                    second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ), SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 } else {
-                    second = toPrincipal ( stress ) ;
+                    second = toPrincipal ( stress, SINGLE_OFF_DIAGONAL_VALUES  ) ;
                 }
             }
 
