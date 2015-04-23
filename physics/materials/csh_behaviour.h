@@ -33,7 +33,7 @@ struct CSHBehaviour : public Stiffness
     //h
     //l                       22
     bool fromPorosity ;
-    CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, double E=32e9, double nu=0.25, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
+    CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & shrinkageStresses, const std::vector<double> & times, double E=32e9, double nu=0.25, SpaceDimensionality dim = SPACE_THREE_DIMENSIONAL) ;
     double currentTime ;
     CSHType CshType ;
     std::vector<double> densities ;
