@@ -7,11 +7,12 @@
 
 #include "csh_behaviour.h"
 #include "../homogenization/composite.h"
+#include "../stiffness_with_imposed_stress.h"
 
 namespace Amie
 {
 
-CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, bool fromPorosity, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)),fromPorosity(fromPorosity), currentTime(0), CshType(type), densities(densities), times(times)
+CSHBehaviour::CSHBehaviour(CSHType type, const  std::vector<double> & densities, const std::vector<double> & times, const std::vector<double> & shrinkageStresses, double E, double nu,  SpaceDimensionality dim ) : Stiffness(Tensor::cauchyGreen(std::make_pair(E,nu), true,dim)), currentTime(0), CshType(type), densities(densities), shrinkageStresses(shrinkageStresses), times(times)
 {
 }
 
@@ -24,55 +25,36 @@ Form * CSHBehaviour::getCopy() const
 {
     if(CshType == OUTER_CSH)
     {
-        if(!fromPorosity)
-        {
-            double fac = 1. ;
-            if(!densities.empty())
-            {
-                size_t index = 0 ;
-                fac = densities[index] ;
-                while(times[index] < currentTime && index < times.size())
-                    index++ ;
-                
-                if(index >= times.size() || densities.size() == 1)
-                    fac = densities.back() ;
-                else 
-                {
-                    double wb = times[index]-currentTime ;
-                    double wa = currentTime-times[index-1] ;
-                    fac = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
-                }
-            }
-                
-            return new Stiffness(param*fac) ;
-        }
-        else
-        {
-            double phi = 0. ;
-            if(!densities.empty())
-            {
-                size_t index = 0 ;
-                phi = densities[index] ;
-                while(times[index] < currentTime && index < times.size())
-                    index++ ;
-                
-                if(index >= times.size() || densities.size() == 1)
-                    phi = densities.back() ;
-                else 
-                {
-                    double wb = times[index]-currentTime ;
-                    double wa = currentTime-times[index-1] ;
-                    phi = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
-                }
-            }
-            Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
-            Phase porosity(&sp, phi) ;
-            Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
-            Phase csh(&scsh, 1.-phi) ;
-            BiphasicSelfConsistentComposite sc(porosity,csh) ;
-            double fac = sc.getBehaviour()->getTensor(Point())[0][0]/param[0][0]  ;
-            return new Stiffness(param*fac) ;
-        }
+
+	double fac = 1. ;
+	double dimensions = (param.size() == 9) ? 2:3 ;
+	Vector shrink(0., (size_t)dimensions) ;
+	if(!densities.empty())
+	{
+	    size_t index = 0 ;
+	    fac = densities[index] ;
+	    while(times[index] < currentTime && index < times.size())
+		index++ ;
+	    
+	    if(index >= times.size() || densities.size() == 1)
+	    {
+		fac = densities.back() ;
+		if(!shrinkageStresses.empty())
+		  shrink = shrinkageStresses.back()/dimensions ;
+		
+	    }
+	    else 
+	    {
+		double wb = times[index]-currentTime ;
+		double wa = currentTime-times[index-1] ;
+		fac = (densities[index-1]*wb +  densities[index]*wa)/(wa+wb) ;
+		if(!shrinkageStresses.empty())
+		  shrink = (shrinkageStresses[index-1]*wb +  shrinkageStresses[index]*wa)/(wa+wb) ;
+	    }
+	}
+	    
+	return new StiffnessWithImposedStress(param*fac, shrink) ;
+
             
 
     }
