@@ -778,7 +778,7 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
 
         if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
             first.resize ( psize );
-            first = toPrincipal ( strain ) ;
+            first = toPrincipal ( strain, DOUBLE_OFF_DIAGONAL_VALUES ) ;
         }
         if ( f0 == REAL_STRESS_FIELD ) {
             first.resize ( tsize );
@@ -794,14 +794,14 @@ Vector ParallelDelaunayTree::getField( FieldType f, int dummy, double t)
         }
         if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
             first.resize ( psize );
-            first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            first = toPrincipal ( strain*e->getBehaviour()->param, SINGLE_OFF_DIAGONAL_VALUES ) ;
         }
         if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
             first.resize ( psize );
             if ( !spaceTime ) {
-                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ), SINGLE_OFF_DIAGONAL_VALUES ) ;
             } else {
-                first = toPrincipal ( stress ) ;
+                first = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
             }
         }
 
@@ -904,11 +904,11 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
 
         if ( f0 == PRINCIPAL_STRAIN_FIELD ) {
             first.resize ( psize );
-            first = toPrincipal ( strain ) ;
+            first = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
         }
         if ( f1 == PRINCIPAL_STRAIN_FIELD ) {
             second.resize ( psize );
-            second = toPrincipal ( strain ) ;
+            second = toPrincipal ( strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
         }
         if ( f0 == REAL_STRESS_FIELD ) {
             first.resize ( tsize );
@@ -921,7 +921,7 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
         if ( f1 == REAL_STRESS_FIELD ) {
             second.resize ( tsize );
             if ( !spaceTime ) {
-                second = strain*e->getBehaviour()->getTensor ( e->getCenter() ) ;
+                second = strain*e->getBehaviour()->getTensor ( e->getCenter()  ) ;
             } else {
                 second = stress ;
             }
@@ -936,26 +936,26 @@ std::pair<Vector, Vector> ParallelDelaunayTree::getSmoothedFields ( FieldType f0
         }
         if ( f0 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
             first.resize ( psize );
-            first = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            first = toPrincipal ( strain*e->getBehaviour()->param  , SINGLE_OFF_DIAGONAL_VALUES) ;
         }
         if ( f1 == PRINCIPAL_EFFECTIVE_STRESS_FIELD ) {
             second.resize ( psize );
-            second = toPrincipal ( strain*e->getBehaviour()->param ) ;
+            second = toPrincipal ( strain*e->getBehaviour()->param  , SINGLE_OFF_DIAGONAL_VALUES) ;
         }
         if ( f0 == PRINCIPAL_REAL_STRESS_FIELD ) {
             first.resize ( psize );
             if ( !spaceTime ) {
-                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                first = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() )  , SINGLE_OFF_DIAGONAL_VALUES) ;
             } else {
-                first = toPrincipal ( stress ) ;
+                first = toPrincipal ( stress  , SINGLE_OFF_DIAGONAL_VALUES) ;
             }
         }
         if ( f1 == PRINCIPAL_REAL_STRESS_FIELD ) {
             second.resize ( psize );
             if ( !spaceTime ) {
-                second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() ) ) ;
+                second = toPrincipal ( strain*e->getBehaviour()->getTensor ( e->getCenter() )  , SINGLE_OFF_DIAGONAL_VALUES) ;
             } else {
-                second = toPrincipal ( stress ) ;
+                second = toPrincipal ( stress  , SINGLE_OFF_DIAGONAL_VALUES) ;
             }
         }
 
