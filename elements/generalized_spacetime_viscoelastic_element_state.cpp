@@ -286,7 +286,7 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     if(f == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
     {
         Vector strain = getCachedFieldAtGaussPointBefore( MECHANICAL_STRAIN_FIELD, gp, i, vm) ;
-        return toPrincipal(strain) ;
+        return toPrincipal(strain, DOUBLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
     {
@@ -355,17 +355,17 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointB
     if(f == PRINCIPAL_STRAIN_FIELD)
     {
         Vector strain = getCachedFieldAtGaussPointBefore( STRAIN_FIELD, gp, i, vm) ;
-        return toPrincipal(strain) ;
+        return toPrincipal(strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == PRINCIPAL_REAL_STRESS_FIELD)
     {
         Vector stress = getCachedFieldAtGaussPointBefore( REAL_STRESS_FIELD, gp, i, vm) ;
-        return toPrincipal(stress) ;
+        return toPrincipal(stress , SINGLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == PRINCIPAL_EFFECTIVE_STRESS_FIELD)
     {
         Vector stress = getCachedFieldAtGaussPointBefore( EFFECTIVE_STRESS_FIELD, gp, i, vm) ;
-        return toPrincipal(stress) ;
+        return toPrincipal(stress , SINGLE_OFF_DIAGONAL_VALUES) ;
     }
     return ret ;
 }
@@ -425,7 +425,7 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
     if(f == PRINCIPAL_MECHANICAL_STRAIN_FIELD)
     {
         Vector strain = getCachedFieldAtGaussPointAfter( MECHANICAL_STRAIN_FIELD, gp, i, vm) ;
-        return toPrincipal(strain) ;
+        return toPrincipal(strain , DOUBLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD)
     {
@@ -494,17 +494,17 @@ Vector GeneralizedSpaceTimeViscoElasticElementState::getCachedFieldAtGaussPointA
     if(f == PRINCIPAL_STRAIN_FIELD)
     {
         Vector strain = getCachedFieldAtGaussPointAfter( STRAIN_FIELD, gp, i, vm) ;
-        return toPrincipal(strain) ;
+        return toPrincipal(strain, DOUBLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == PRINCIPAL_REAL_STRESS_FIELD)
     {
         Vector stress = getCachedFieldAtGaussPointAfter( REAL_STRESS_FIELD, gp, i, vm) ;
-        return toPrincipal(stress) ;
+        return toPrincipal(stress, SINGLE_OFF_DIAGONAL_VALUES) ;
     }
     if(f == PRINCIPAL_EFFECTIVE_STRESS_FIELD)
     {
         Vector stress = getCachedFieldAtGaussPointAfter( EFFECTIVE_STRESS_FIELD, gp, i, vm) ;
-        return toPrincipal(stress) ;
+        return toPrincipal(stress, SINGLE_OFF_DIAGONAL_VALUES) ;
     }
     return ret ;
 }
@@ -1245,7 +1245,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         Vector strains ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
-        ret = toPrincipal ( strains ) ;
+        ret = toPrincipal ( strains , DOUBLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1445,7 +1445,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         Vector strains ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
-        ret = toPrincipal ( strains ) ;
+        ret = toPrincipal ( strains  , DOUBLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -1468,7 +1468,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 tmp[j] = strains[ i*tmp.size() + j ] ;
             }
-            ptmp = toPrincipal ( tmp ) ;
+            ptmp = toPrincipal ( tmp  , DOUBLE_OFF_DIAGONAL_VALUES) ;
             for ( size_t j = 0 ; j < tmp.size() ; j++ )
             {
                 ret[ i*ptmp.size() + j] = ptmp[j] ;
@@ -2370,7 +2370,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( REAL_STRESS_FIELD, p_, stress, true,vm ) ;
-        ret = toPrincipal ( stress ) ;
+        ret = toPrincipal ( stress  , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -2393,7 +2393,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 tmp[j] = stress[ i*tmp.size() + j ] ;
             }
-            ptmp = toPrincipal ( tmp ) ;
+            ptmp = toPrincipal ( tmp  , SINGLE_OFF_DIAGONAL_VALUES ) ;
             for ( size_t j = 0 ; j < tmp.size() ; j++ )
             {
                 ret[ i*ptmp.size() + j] = ptmp[j] ;
@@ -2587,7 +2587,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( EFFECTIVE_STRESS_FIELD, p_, stress, true,vm ) ;
-        ret = toPrincipal ( stress ) ;
+        ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
@@ -2610,7 +2610,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 tmp[j] = stress[ i*tmp.size() + j ] ;
             }
-            ptmp = toPrincipal ( tmp ) ;
+            ptmp = toPrincipal ( tmp , SINGLE_OFF_DIAGONAL_VALUES) ;
             for ( size_t j = 0 ; j < tmp.size() ; j++ )
             {
                 ret[ i*ptmp.size() + j] = ptmp[j] ;
