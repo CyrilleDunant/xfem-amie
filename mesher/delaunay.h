@@ -163,8 +163,8 @@ public:
     void print() const;
     virtual void refresh(const TriElement *) ;
 
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
     virtual void scaleCachedViscousElementaryMatrix(double s) ;
     virtual void scaleCachedElementaryMatrix(double s) ;

@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
     std::map<unsigned char,Form *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;  // C3S
     behaviourMap[1] = new C3SBehaviour() ;  // C3S
-    behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,timesd) ; // inner C-S-H 
-    behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,timesd) ;  // outer C-S-H
+    behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,std::vector<double>(), timesd) ; // inner C-S-H 
+    behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ;  // outer C-S-H
     behaviourMap[8] = new CHBehaviour() ; // CH 
     
 //     behaviourMap[0] = new Stiffness(m0) ; // C3S

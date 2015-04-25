@@ -113,8 +113,11 @@ void Assembly::add(ElementarySurface * e, double scale)
     dim = SPACE_TWO_DIMENSIONAL ;
     ndof = e->getBehaviour()->getNumberOfDegreesOfFreedom() ;
     multiplier_offset =  ndof;
-    element2d.push_back(e) ;
-    scales.push_back(scale);
+//     if(coordinateIndexedMatrix == nullptr || e->behaviourUpdated || e->enrichmentUpdated)
+//     {
+        element2d.push_back(e) ;
+        scales.push_back(scale);
+//     }
 }
 
 void Assembly::add(ElementaryVolume * e, double scale)

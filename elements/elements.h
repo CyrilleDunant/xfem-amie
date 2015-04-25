@@ -139,8 +139,8 @@ public:
     TriElement(Order order = LINEAR) ;
     void refresh(const TriElement * parent) ;
 
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual void clearElementaryMatrix() final{
         cachedElementaryMatrix.resize(0);
         cachedViscousElementaryMatrix.resize(0) ;
@@ -224,7 +224,7 @@ public:
     virtual void print()  const = 0 ;
     virtual const GaussPointArray & getGaussPoints() = 0 ;
 
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() = 0;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
     virtual Form * getBehaviour() const final;
     virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f ) final;
 
@@ -293,8 +293,8 @@ public:
     TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7) ;
     TetrahedralElement(Order order = LINEAR);
     TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) ;
     virtual const std::valarray< Function > & getShapeFunctions() const ;
@@ -353,8 +353,8 @@ public:
     HexahedralElement(Order order, bool f = true) ;
     HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
 
 
     const GaussPointArray & getGaussPoints() final

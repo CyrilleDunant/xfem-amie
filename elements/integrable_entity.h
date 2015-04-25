@@ -428,8 +428,8 @@ struct IntegrableEntity : public Geometry
 
     virtual Form * getBehaviour() const = 0;
     virtual NonLinearForm * getNonLinearBehaviour() const = 0;
-    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix()  = 0 ;
-    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix()  = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr)  = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr)  = 0 ;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  = 0 ;
 // 	virtual Vector getForces() = 0 ;
     virtual Vector getNonLinearForces() = 0 ;

@@ -1687,12 +1687,12 @@ void TriElement::refresh(const TriElement * parent)
 // 	}
 }
 
-std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & TriElement::getElementaryMatrix(VirtualMachine * vm )
 {
     return cachedElementaryMatrix ;
 }
 
-std::valarray<std::valarray<Matrix> > & TriElement::getViscousElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & TriElement::getViscousElementaryMatrix(VirtualMachine * vm )
 {
     return cachedViscousElementaryMatrix ;
 }
@@ -3284,12 +3284,12 @@ TetrahedralElement::TetrahedralElement(TetrahedralElement * parent, Tetrahedron 
     std::copy(&t->getBoundingPoints()[0], &t->getBoundingPoints()[t->getBoundingPoints().size()],&getBoundingPoints()[0] ) ;
 }
 
-std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & TetrahedralElement::getElementaryMatrix(VirtualMachine * vm)
 {
     return cachedElementaryMatrix ;
 }
 
-std::valarray<std::valarray<Matrix> > & TetrahedralElement::getViscousElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & TetrahedralElement::getViscousElementaryMatrix(VirtualMachine * vm)
 {
     return cachedViscousElementaryMatrix ;
 }
@@ -4167,7 +4167,7 @@ const std::vector< Function> & ElementaryVolume::getEnrichmentFunctions() const
 // }
 
 
-std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix(VirtualMachine * vm)
 {
     if(cachedElementaryMatrix.size())
         return cachedElementaryMatrix ;
@@ -4188,30 +4188,29 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
     cachedElementaryMatrix.resize(dofs.size(), v_j);
 
 
-    VirtualMachine vm ;
     for(size_t i = 0 ; i < getShapeFunctions().size() ; i++)
     {
-        behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv,cachedElementaryMatrix[i][i], &vm) ;
+        behaviour->apply(getShapeFunction(i), getShapeFunction(i),gp, Jinv,cachedElementaryMatrix[i][i], vm) ;
 
         for(size_t j = i+1 ; j < getShapeFunctions().size() ; j++)
         {
-            behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv,cachedElementaryMatrix[i][j], &vm) ;
-            behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv,cachedElementaryMatrix[j][i], &vm) ;
+            behaviour->apply(getShapeFunction(i), getShapeFunction(j),gp, Jinv,cachedElementaryMatrix[i][j], vm) ;
+            behaviour->apply(getShapeFunction(j), getShapeFunction(i),gp, Jinv,cachedElementaryMatrix[j][i], vm) ;
         }
         for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
         {
-            behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], &vm) ;
-            behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv, cachedElementaryMatrix[j+getShapeFunctions().size()][i], &vm) ;
+            behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),gp, Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
+            behaviour->apply(getEnrichmentFunction(j), getShapeFunction(i),gp, Jinv, cachedElementaryMatrix[j+getShapeFunctions().size()][i], vm) ;
         }
     }
     for(size_t i = 0 ; i < getEnrichmentFunctions().size() ; i++)
     {
-        behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv, cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+        behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(i),gp, Jinv, cachedElementaryMatrix[i+getShapeFunctions().size()][i+getShapeFunctions().size()], vm) ;
 
         for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
         {
-            behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv, cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], &vm) ;
-            behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv, cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], &vm) ;
+            behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),gp, Jinv, cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], vm) ;
+            behaviour->apply(getEnrichmentFunction(j), getEnrichmentFunction(i),gp, Jinv, cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()], vm) ;
         }
     }
 
@@ -4224,7 +4223,7 @@ std::valarray<std::valarray<Matrix> > & HexahedralElement::getElementaryMatrix()
 }
 
 
-std::valarray<std::valarray<Matrix> > & HexahedralElement::getViscousElementaryMatrix()
+std::valarray<std::valarray<Matrix> > & HexahedralElement::getViscousElementaryMatrix(VirtualMachine * vm )
 {
     return cachedViscousElementaryMatrix ;
 }

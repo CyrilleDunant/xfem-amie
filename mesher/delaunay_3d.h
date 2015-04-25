@@ -171,8 +171,8 @@ public:
     virtual void print() const;
     virtual bool normalisedIn(const Point & p) const ;
 
-    std::valarray<std::valarray<Matrix> > & getElementaryMatrix() ;
-    std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix() ;
+    std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     void clearElementaryMatrix() ;
     std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;
     Vector getNonLinearForces()  ;
