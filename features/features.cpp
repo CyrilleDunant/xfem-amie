@@ -4250,8 +4250,6 @@ void FeatureTree::solve()
 
     if ( dtree )
     {
-        K->initialiseElementaryMatrices ( father2D );
-
         std::cerr << "finding nodes for boundary conditions... " << std::flush ;
         for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
         {
@@ -4264,8 +4262,6 @@ void FeatureTree::solve()
     }
     else
     {
-        K->initialiseElementaryMatrices ( father3D );
-
         std::cerr << "finding nodes for boundary conditions... " << std::flush ;
         for ( auto i = dtree3D->begin() ; i != dtree3D->end() ; i++ )
         {

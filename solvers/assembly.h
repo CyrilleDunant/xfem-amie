@@ -241,10 +241,6 @@ public:
 	void setMaxDof(size_t n) { ndofmax = n ; }
 
 	void setRemoveZeroOnlyLines(bool r) { removeZeroOnlyLines = r ; }
-	
-	void initialiseElementaryMatrices() ;
-	void initialiseElementaryMatrices(TriElement * father) ;
-	void initialiseElementaryMatrices(TetrahedralElement * father) ;
 
 /** \brief return true if Assembly is made of 2D elements*/
 	bool has2DElements() const { return element2d.size() > 0 ; }
@@ -420,10 +416,6 @@ public:
     void setMaxDof(size_t n) ;
 
     void setRemoveZeroOnlyLines(bool r) ;
-    
-    void initialiseElementaryMatrices() ;
-    void initialiseElementaryMatrices(TriElement * father) ;
-    void initialiseElementaryMatrices(TetrahedralElement * father) ;
 
 /** \brief return true if Assembly is made of 2D elements*/
     bool has2DElements() const ;

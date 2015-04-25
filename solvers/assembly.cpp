@@ -482,98 +482,6 @@ void Assembly::setBoundaryConditions()
 
 }
 
-void Assembly::initialiseElementaryMatrices()
-{
-    timeval time0, time1 ;
-    gettimeofday(&time0, nullptr);
-
-    if(dim == SPACE_TWO_DIMENSIONAL)
-    {
-// 			#pragma omp parallel for
-        for(size_t i = 0 ; i < element2d.size() ; i++)
-        {
-            std::cout << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-            if(element2d[i]->getBehaviour())
-            {
-                element2d[i]->getElementaryMatrix() ;
-                if(element2d[i]->getBehaviour()->isViscous())
-                    element2d[i]->getViscousElementaryMatrix() ;
-            }
-        }
-    }
-    else if(dim == SPACE_THREE_DIMENSIONAL)
-    {
-        return ;
-// 			#pragma omp parallel for
-        for(size_t i = 0 ; i < element3d.size() ; i++)
-        {
-            if(i%1000 == 0)
-                std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
-            if(element3d[i]->getBehaviour())
-            {
-                element3d[i]->getElementaryMatrix() ;
-                if(element3d[i]->getBehaviour()->isViscous())
-                    element3d[i]->getViscousElementaryMatrix() ;
-            }
-        }
-    }
-
-    gettimeofday(&time1, nullptr);
-    double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cout << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
-}
-
-void Assembly::initialiseElementaryMatrices(TetrahedralElement * father)
-{
-    return ;
-    timeval time0, time1 ;
-    gettimeofday(&time0, nullptr);
-
-// 	#pragma omp parallel for
-    for(size_t i = 0 ; i < element3d.size() ; i++)
-    {
-        if(i%1000 == 0)
-            std::cerr << "\rGenerating elementary matrices... tetrahedron " << i << "/" << element3d.size() << std::flush ;
-        if(element3d[i]->getBehaviour())
-        {
-            element3d[i]->getElementaryMatrix() ;
-
-            if(element3d[i]->getBehaviour()->isViscous())
-                element3d[i]->getViscousElementaryMatrix() ;
-        }
-    }
-
-    gettimeofday(&time1, nullptr);
-    double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
-}
-
-void Assembly::initialiseElementaryMatrices(TriElement * father)
-{
-    timeval time0, time1 ;
-    gettimeofday(&time0, nullptr);
-//	std::cerr << "Generating elementary matrices..." << std::flush ;
-// 	#pragma omp parallel for
-    for(size_t i = 0 ; i < element2d.size() ; i++)
-    {
-
-        std::cerr << "\rGenerating elementary matrices... triangle " << i+1 << "/" << element2d.size() << std::flush ;
-        if(element2d[i]->getBehaviour())
-        {
-            element2d[i]->getElementaryMatrix() ;
-            if(element2d[i]->getBehaviour()->isViscous())
-            {
-                element2d[i]->getViscousElementaryMatrix() ;
-            }
-        }
-
-    }
-
-    gettimeofday(&time1, nullptr);
-    double delta = time1.tv_sec*1000000 - time0.tv_sec*1000000 + time1.tv_usec - time0.tv_usec ;
-    std::cerr << " ...done. Time to generate (s) " << delta/1e6 << std::endl ;
-}
-
 void Assembly::checkZeroLines()
 {
     std::cerr << "removing 0-only lines..." << std::flush ;
@@ -731,6 +639,7 @@ bool Assembly::make_final()
 
         coordinateIndexedMatrix->array = 0 ;
 
+        VirtualMachine vm ;
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
@@ -738,7 +647,7 @@ bool Assembly::make_final()
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
-            std::valarray<std::valarray<Matrix > > mother = element2d[i]->getElementaryMatrix();
+            std::valarray<std::valarray<Matrix > > mother = element2d[i]->getElementaryMatrix(&vm);
 //             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
@@ -766,7 +675,7 @@ bool Assembly::make_final()
 
             if(element2d[i]->getBehaviour()->isViscous())
             {
-                std::valarray<std::valarray<Matrix > > vmother = element2d[i]->getViscousElementaryMatrix();
+                std::valarray<std::valarray<Matrix > > vmother = element2d[i]->getViscousElementaryMatrix(&vm);
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
@@ -906,6 +815,7 @@ bool Assembly::make_final()
         }
 
         coordinateIndexedMatrix->array = 0 ;
+        VirtualMachine vm ;
 
         for(size_t i = 0 ; i < element3d.size() ; i++)
         {
@@ -913,7 +823,7 @@ bool Assembly::make_final()
                 std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 
             std::vector<size_t> ids = element3d[i]->getDofIds() ;
-            std::valarray<std::valarray<Matrix > > mother = element3d[i]->getElementaryMatrix();
+            std::valarray<std::valarray<Matrix > > mother = element3d[i]->getElementaryMatrix(&vm);
 
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
@@ -948,7 +858,7 @@ bool Assembly::make_final()
 
             if(element3d[i]->getBehaviour()->isViscous())
             {
-                std::valarray<std::valarray<Matrix > > vmother = element3d[i]->getViscousElementaryMatrix();
+                std::valarray<std::valarray<Matrix > > vmother = element3d[i]->getViscousElementaryMatrix(&vm);
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
 
@@ -1747,22 +1657,6 @@ void ParallelAssembly::setRemoveZeroOnlyLines(bool r)
 {
     for( size_t i = 0 ;  i < domains.size() ; i++ )
         assembly[i].setRemoveZeroOnlyLines(r) ;
-}
-
-void ParallelAssembly::initialiseElementaryMatrices()
-{
-    for( size_t i = 0 ;  i < domains.size() ; i++ )
-        assembly[i].initialiseElementaryMatrices() ;
-}
-void ParallelAssembly::initialiseElementaryMatrices(TriElement * father)
-{
-    for( size_t i = 0 ;  i < domains.size() ; i++ )
-        assembly[i].initialiseElementaryMatrices(father) ;
-}
-void ParallelAssembly::initialiseElementaryMatrices(TetrahedralElement * father)
-{
-    for( size_t i = 0 ;  i < domains.size() ; i++ )
-        assembly[i].initialiseElementaryMatrices(father) ;
 }
 
 bool  ParallelAssembly::has2DElements() const 
