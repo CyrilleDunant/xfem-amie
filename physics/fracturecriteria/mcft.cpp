@@ -299,7 +299,7 @@ double sqrtdecrease(double k0, double upVal, double eps_0, double strain_ch, dou
 
 void NonLocalMCFT::initialise( ElementState &s)
 {
-    double energy = /*physicalCharacteristicRadius / sqrt(s.getParent()->area())*/75.*5. ; //N/m 32000 prev
+    double energy = /*physicalCharacteristicRadius / sqrt(s.getParent()->area())*/75. ; //N/m 32000 prev
     strain_ch = 2.*energy/(upVal) ;//*.5 energy <- // *2 energy -> 2.*energy/(1.*getMaterialCharacteristicRadius()*upVal) ;
 
 // 	energy *= nlcorrection ;
@@ -314,7 +314,7 @@ void NonLocalMCFT::initialise( ElementState &s)
     double k0 = 1 ;
     double integral(0) ;
 
-    double de = 1e-5 ;
+    double de = 1e-2 ;
     do
     {
         integral = 0 ;
@@ -349,14 +349,14 @@ void NonLocalMCFT::initialise( ElementState &s)
             k_low = k ;
         count++ ;
 
-    } while(std::abs(integral-energy) > 1e-4*energy && count < 64) ;
+    } while(std::abs(integral-energy) > 1e-3*energy && count < 64) ;
 
 
 
 // 	k*= getMaterialCharacteristicRadius()*getMaterialCharacteristicRadius()*M_PI ;
 // 		k/=1e5 ;
 
-    if(std::abs(integral-energy) > 1e-4*energy)
+    if(std::abs(integral-energy) > 1e-3*energy)
     {
         std::cout << "wrong energy! " << integral << " vs "<< energy  << " k = "<< k << std::endl ;
         exit(0) ;

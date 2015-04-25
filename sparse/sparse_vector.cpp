@@ -21,7 +21,7 @@ namespace Amie {
 
 SparseVector::SparseVector(Vector & val, std::valarray<unsigned int> & idx , const size_t length , const size_t start, const size_t index, const size_t stride) : val(val), idx(idx), length(length), start(start), stride(stride), index(index)
 {
-    zero = 0 ;
+
 }
 
 double SparseVector::operator [](size_t i) const
@@ -38,15 +38,22 @@ double SparseVector::operator [](size_t i) const
 double & SparseVector::operator [](const size_t i)
 {
 // 	std::cout << i << "  " << start << std::endl;
-    zero = 0 ;
     unsigned int * __start__       = &idx[start] ;
     unsigned int * __end__         = &idx[start+length] ;
     unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
     unsigned int offset            = i_index_pointer - __start__ ;
     unsigned int colLength = stride+stride%2 ;
-    return (std::binary_search(__start__, __end__, i/stride)) ?  val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] :  zero ;
+    
+    return val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] ;
+//     return (std::binary_search(__start__, __end__, i/stride)) ?  val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] :  zero ;
 
 }
+
+// void SparseVector::setBlock(const size_t i, const Matrix & m)
+// {
+//     
+// }
+
 
 Vector SparseVector::operator *(const Vector &v) const
 {

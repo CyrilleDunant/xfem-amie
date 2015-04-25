@@ -23,10 +23,12 @@ protected:
 
     double radius ;
     double sqradius ;
+    double cachedarea ;
     Point circumCenter ;
 
     void computeCircumCenter() ;
     virtual void computeCenter() ;
+    double computeArea() ;
 
 public:
     /** \brief Default constructor, create a (0,1) (0,0) (1,0) triangle*/

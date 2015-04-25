@@ -36,9 +36,6 @@ public:
     const size_t start ;
     const size_t stride ;
     const size_t index ;
-
-    double zero ;
-
 public:
     /** \brief SparseVector constructor. Initialises the references to the data.
      @param v array containing the values
@@ -63,6 +60,8 @@ public:
     /** \brief simultaneously compute a number of dot products equal to the block size.
      */
     Vector operator *(const Vector&) const ;
+    
+//     void setBlock(const size_t i, const Matrix & m) ;
 
     void parallel_product(const Vector &v, double *dest, const size_t rowstart = 0, const size_t colstart = 0) const
     {

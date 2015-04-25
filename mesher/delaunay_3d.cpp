@@ -2685,8 +2685,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
     size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-    if(enrichmentUpdated || behaviourUpdated
-            || cachedElementaryMatrix.size() == 0
+    if(        cachedElementaryMatrix.size() == 0
             || cachedElementaryMatrix.size() != dofCount
             ||  (cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount))
     {
@@ -2822,8 +2821,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementar
 
     size_t dofCount = getShapeFunctions().size() + getEnrichmentFunctions().size() ;
 
-    if( enrichmentUpdated || behaviourUpdated
-            || cachedViscousElementaryMatrix.size() == 0
+    if(  cachedViscousElementaryMatrix.size() == 0
             || cachedViscousElementaryMatrix.size() != dofCount
             || ( cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() != dofCount ) )
     {

@@ -19,10 +19,14 @@ class Tetrahedron : public ConvexGeometry
 {
 
 protected:
+    double cachedarea ;
+    double cachedvolume ;
     double radius ;
     double sqradius ;
     Point circumCenter ;
     virtual void computeCircumCenter() ;
+    virtual double computeArea()  ;
+    virtual double computeVolume()  ;
 
 public:
 

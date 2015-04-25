@@ -647,7 +647,6 @@ bool Assembly::make_final()
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
-            std::valarray<std::valarray<Matrix > > mother = element2d[i]->getElementaryMatrix(&vm);
 //             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
@@ -655,7 +654,7 @@ bool Assembly::make_final()
                 {
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
-                        getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * mother[j][j][n][m] ;
+                        getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][j][n][m] ;
                     }
                 }
                 for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -664,8 +663,8 @@ bool Assembly::make_final()
                     {
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
-                            getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * mother[j][k][n][m] ;
-                            getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * mother[k][j][n][m] ;
+                            getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][k][n][m] ;
+                            getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[k][j][n][m] ;
 //                             test[j*ndof+n][k*ndof+m] = scales[i] * mother[j][k][n][m] ;
 //                             test[k*ndof+n][j*ndof+m] = scales[i] * mother[k][j][n][m] ;
                         }
@@ -675,14 +674,13 @@ bool Assembly::make_final()
 
             if(element2d[i]->getBehaviour()->isViscous())
             {
-                std::valarray<std::valarray<Matrix > > vmother = element2d[i]->getViscousElementaryMatrix(&vm);
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
                     {
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
-                            getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * vmother[j][j][n][m] ;
+                            getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][j][n][m] ;
                         }
                     }
                     for(size_t k = j+1 ; k < ids.size() ; k++)
@@ -691,8 +689,8 @@ bool Assembly::make_final()
                         {
                             for(size_t m = 0 ; m < ndof ; m++)
                             {
-                                getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * vmother[j][k][n][m] ;
-                                getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * vmother[k][j][n][m] ;
+                                getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][k][n][m] ;
+                                getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[k][j][n][m] ;
 //                                 test[j*ndof+n][k*ndof+m] = scales[i] * vmother[j][k][n][m] ;
 //                                 test[k*ndof+n][j*ndof+m] = scales[i] * vmother[k][j][n][m] ;
                             }
@@ -823,7 +821,6 @@ bool Assembly::make_final()
                 std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
 
             std::vector<size_t> ids = element3d[i]->getDofIds() ;
-            std::valarray<std::valarray<Matrix > > mother = element3d[i]->getElementaryMatrix(&vm);
 
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
@@ -837,7 +834,7 @@ bool Assembly::make_final()
                 {
                     for(size_t m = 0 ; m < ndof  ; m++)
                     {
-                        getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * mother[j][j][l][m] ;
+                        getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][j][l][m] ;
                     }
                 }
 
@@ -847,8 +844,8 @@ bool Assembly::make_final()
                     {
                         for(size_t m = 0 ; m < ndof  ; m++)
                         {
-                            getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * mother[j][k][l][m] ;
-                            getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * mother[k][j][l][m] ;
+                            getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][k][l][m] ;
+                            getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[k][j][l][m] ;
 //                             test[j*ndof+l][k*ndof+m] = scales[i] * mother[j][k][l][m] ;
 //                             test[k*ndof+l][j*ndof+m] = scales[i] * mother[k][j][l][m] ;
                         }
@@ -858,7 +855,6 @@ bool Assembly::make_final()
 
             if(element3d[i]->getBehaviour()->isViscous())
             {
-                std::valarray<std::valarray<Matrix > > vmother = element3d[i]->getViscousElementaryMatrix(&vm);
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
 
@@ -866,7 +862,7 @@ bool Assembly::make_final()
                     {
                         for(size_t m = 0 ; m < ndof  ; m++)
                         {
-                            getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * vmother[j][j][l][m] ;
+                            getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][j][l][m] ;
                         }
                     }
 
@@ -876,8 +872,8 @@ bool Assembly::make_final()
                         {
                             for(size_t m = 0 ; m < ndof  ; m++)
                             {
-                                getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * vmother[j][k][l][m] ;
-                                getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * vmother[k][j][l][m] ;
+                                getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][k][l][m] ;
+                                getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[k][j][l][m] ;
 //                                 test[j*ndof+l][k*ndof+m] = scales[i] * vmother[j][k][l][m] ;
 //                                 test[k*ndof+l][j*ndof+m] = scales[i] * vmother[k][j][l][m] ;
                             }

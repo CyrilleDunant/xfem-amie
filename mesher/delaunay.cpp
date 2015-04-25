@@ -2391,8 +2391,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-    if(enrichmentUpdated || behaviourUpdated
-            || cachedElementaryMatrix.size() == 0
+    if(        cachedElementaryMatrix.size() == 0
             || cachedElementaryMatrix.size() != dofCount
             ||  (cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() != dofCount))
     {
@@ -2420,12 +2419,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
             getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
-// 	if(getEnrichmentFunctions().size())
-// 	{
-// 		for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
-// 			std::cout <<  getGaussPoints().gaussPoints[i].first.getX() << "   " <<  getGaussPoints().gaussPoints[i].first.getY() << std::endl ;
-// 		exit(0) ;
-// 	}
 
     size_t start = 0 ;
     size_t startEnriched = 0 ;
@@ -2464,8 +2457,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
                 cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
             }
         }
-// 		if(getEnrichmentFunctions().size() == 6)
-// 			exit(0) ;
     }
     else
     {
@@ -2506,6 +2497,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         enrichmentUpdated = false ;
         behaviourUpdated = false ;
     }
+    
     if(behaviour->hasInducedForces())
         cachedForces.resize(0) ;
 
@@ -2525,8 +2517,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
     }
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
-    if(enrichmentUpdated || behaviourUpdated
-            || cachedViscousElementaryMatrix.size() == 0
+    if( cachedViscousElementaryMatrix.size() == 0
             || cachedViscousElementaryMatrix.size() != dofCount
             ||  (cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() != dofCount))
     {

@@ -23,6 +23,7 @@ Triangle::Triangle() : ConvexGeometry(3)
     computeCircumCenter() ;
     radius = 0.471405;
     sqradius = radius*radius ;
+    cachedarea = computeArea() ;
 }
 
 Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : ConvexGeometry(3)
@@ -56,6 +57,7 @@ Triangle::Triangle( const Point & p0,  const Point & p1,  const Point & p2) : Co
 
     radius = sqrt((squareDist2D(p1, circumCenter)+ squareDist2D(p0, circumCenter))*.5);
     sqradius = radius*radius ;
+    cachedarea = computeArea() ;
 
 }
 
@@ -514,6 +516,7 @@ Triangle::Triangle( Point *p0,  Point *p1,  Point *p2): ConvexGeometry(3)
 
     radius = (dist(p1, &circumCenter)+ dist(p0, &circumCenter))/2.;
     sqradius = radius*radius ;
+    cachedarea = computeArea() ;
 }
 
 
@@ -665,28 +668,35 @@ bool Triangle::inCircumCircle(const Point *p) const
 
 double Triangle::area() const
 {
-// 	const DelaunayTriangle * tri = dynamic_cast<const DelaunayTriangle *>(this) ;
-// 	if(tri)
-// 	{
-// 		Segment s0(*(tri->first), *(tri->second)) ;
-// 		Segment s1(*(tri->first), *(tri->third)) ;
-// 		return 0.5*std::abs((s0.vector()^s1.vector()).getZ()) ;
-// 	}
-
-// 	assert(this->boundingPoints.size() == 3) ;
-    int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
-// 	if(getBoundingPoint(0).getT() != 0)
-// 	{
-// 		pointsInTimePlane = 0 ;
-// 		double init = getBoundingPoint(0).getT() ;
-// 		int counter = 0 ;
-// 		while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE)
-// 			pointsInTimePlane++ ;
-// 	}
-
-    return 0.5*std::abs(((getBoundingPoint(0)- getBoundingPoint(pointsInTimePlane/3))^(getBoundingPoint(0)- getBoundingPoint(2*pointsInTimePlane/3))).getZ()) ;
+    return cachedarea ;
 }
 
+
+double Triangle::computeArea() 
+{
+//  const DelaunayTriangle * tri = dynamic_cast<const DelaunayTriangle *>(this) ;
+//  if(tri)
+//  {
+//      Segment s0(*(tri->first), *(tri->second)) ;
+//      Segment s1(*(tri->first), *(tri->third)) ;
+//      return 0.5*std::abs((s0.vector()^s1.vector()).getZ()) ;
+//  }
+
+//  assert(this->boundingPoints.size() == 3) ;
+    int pointsInTimePlane = this->boundingPoints.size()/timePlanes() ;
+//  if(getBoundingPoint(0).getT() != 0)
+//  {
+//      pointsInTimePlane = 0 ;
+//      double init = getBoundingPoint(0).getT() ;
+//      int counter = 0 ;
+//      while(std::abs(getBoundingPoint(counter++).getT()-init) < POINT_TOLERANCE)
+//          pointsInTimePlane++ ;
+//  }
+
+    return 0.5*std::abs((getBoundingPoint(0).getX()- getBoundingPoint(pointsInTimePlane/3).getX())*(getBoundingPoint(0).getY()- getBoundingPoint(2*pointsInTimePlane/3).getY()) - (getBoundingPoint(0)- getBoundingPoint(pointsInTimePlane/3)).getY()*(getBoundingPoint(0).getX()- getBoundingPoint(2*pointsInTimePlane/3).getX())) ;
+    
+//     return(^(getBoundingPoint(0)- getBoundingPoint(2*pointsInTimePlane/3))).getZ()) ;
+}
 
 void Triangle::project(Point * p) const
 {

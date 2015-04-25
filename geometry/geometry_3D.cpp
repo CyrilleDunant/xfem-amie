@@ -281,6 +281,8 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
     assert(volume() >0 ) ;
 
     computeCenter() ;
+    cachedarea = computeArea() ; 
+ cachedvolume= computeVolume() ;
 }
 
 Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7): ConvexGeometry(8)
@@ -313,6 +315,8 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point *
     radius = sqrt(sqradius);
     assert(this->volume() >0 ) ;
     computeCenter() ;
+    cachedarea = computeArea() ; 
+ cachedvolume= computeVolume() ;
 }
 
 Tetrahedron::Tetrahedron(const Point &p0, const Point &p1, const Point &p2, const Point &p3): ConvexGeometry(4)
@@ -338,6 +342,8 @@ Tetrahedron::Tetrahedron(const Point &p0, const Point &p1, const Point &p2, cons
     sqradius = r[0] ;
     radius = sqrt(sqradius);
     computeCenter() ;
+    cachedarea = computeArea() ; 
+ cachedvolume= computeVolume() ;
 }
 
 Tetrahedron::Tetrahedron(): ConvexGeometry(4)
@@ -363,6 +369,8 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
     sqradius = r[0] ;
     radius = sqrt(sqradius);
     computeCenter() ;
+    cachedarea = computeArea() ; 
+ cachedvolume= computeVolume() ;
 }
 
 std::vector<Point> Tetrahedron::getSamplingBoundingPoints(size_t num_points) const
@@ -611,6 +619,32 @@ bool Tetrahedron::in(const Point & p) const
 
 double Tetrahedron::area() const
 {
+    return cachedarea ;
+//     if(this->getBoundingPoints().size() == 4)
+//     {
+//         Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
+//         Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
+//         Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
+// 
+//         return 0.5*((s0.vector()^s1.vector()).norm()+
+//                     (s0.vector()^s2.vector()).norm()+
+//                     (s1.vector()^s2.vector()).norm()+
+//                     (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+//     }
+//     else
+//     {
+//         Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
+//         Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
+//         Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
+//         return 0.5*((s0.vector()^s1.vector()).norm()+
+//                     (s0.vector()^s2.vector()).norm()+
+//                     (s1.vector()^s2.vector()).norm()+
+//                     (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
+//     }
+}
+
+double Tetrahedron::computeArea() 
+{
     if(this->getBoundingPoints().size() == 4)
     {
         Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
@@ -635,6 +669,19 @@ double Tetrahedron::area() const
 }
 
 double Tetrahedron::volume() const
+{
+    return cachedvolume ;
+//     if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
+//     {
+//         return ((getBoundingPoint(1)- getBoundingPoint(2))^(getBoundingPoint(1)- getBoundingPoint(0)))*(getBoundingPoint(1)- getBoundingPoint(3))/6. ;
+//     }
+//     else
+//     {
+//         return ((getBoundingPoint(2)- getBoundingPoint(4))^(getBoundingPoint(2)- getBoundingPoint(0)))*(getBoundingPoint(2)- getBoundingPoint(6))/6. ;
+//     }
+}
+
+double Tetrahedron::computeVolume() 
 {
     if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
     {
