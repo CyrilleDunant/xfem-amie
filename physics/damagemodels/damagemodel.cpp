@@ -278,7 +278,7 @@ DamageModel::DamageModel(): state(0)
     effectiveDeltaFraction = 1 ;
     alternate = false ;
     alternating = false ;
-    needGlobalMaximumScore = false ;
+    needGlobalMaximumScore = true ;
     // The exploration increment is crucial for finding
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of

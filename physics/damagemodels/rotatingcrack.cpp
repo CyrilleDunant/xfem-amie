@@ -122,10 +122,10 @@ void RotatingCrack::step(ElementState & s, double maxscore)
     }
     else
     {
-        double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
-        double max = maxScoreInNeighbourhood ;
-        if(needGlobalMaximumScore)
-            max = maxscore ;
+//         double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
+        double max = maxscore ;
+        if(!needGlobalMaximumScore)
+            max = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s)  ;
 
         s.getParent()->getBehaviour()->getFractureCriterion()->setChange( s , max) ;
         change = false ;
