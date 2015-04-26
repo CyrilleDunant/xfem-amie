@@ -627,10 +627,11 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         vm = new VirtualMachine() ;
     }
     int n = 0 ;
-    Point p_ = p ;
+    bool cleanupp = !local ;
+    const Point * p_ = &p ;
     if ( !local )
     {
-        p_ = parent->inLocalCoordinates ( p ) ;
+        p_ = new Point(parent->inLocalCoordinates ( p ) );
     }
 
     switch ( f )
@@ -644,6 +645,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case DISPLACEMENT_FIELD:
         n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -667,6 +670,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case ENRICHED_DISPLACEMENT_FIELD:
         n =  parent->getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -678,19 +683,23 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 ret[k] += f * enrichedDisplacements[j*n+k] ;
             }
         }
+        if(cleanupp)
+            delete p_ ;
         if ( cleanup )
         {
             delete vm ;
         }
         return ;
     case MECHANICAL_STRAIN_FIELD:
-        this->getField( STRAIN_FIELD, p_, ret, true, vm) ;
+        getField( STRAIN_FIELD, *p_, ret, true, vm) ;
         if(parent->getBehaviour() && parent->getBehaviour()->hasInducedForces())
-            ret -= parent->getBehaviour()->getImposedStrain(p_) ;
+            ret -= parent->getBehaviour()->getImposedStrain(*p_) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case STRAIN_FIELD:
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -704,8 +713,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 for ( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
                 {
-                    double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                    double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
+                    double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                    double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
                     x_xi += f_xi * displacements[j * 2] ;
                     x_eta += f_eta * displacements[j * 2] ;
                     y_xi += f_xi * displacements[j * 2 + 1] ;
@@ -714,8 +723,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
             {
-                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
 
                 x_xi += f_xi * enrichedDisplacements[j * 2] ;
                 x_eta += f_eta * enrichedDisplacements[j * 2] ;
@@ -724,7 +733,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
             Matrix Jinv ( 2,2 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
             ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
             ret[2] = ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
@@ -743,9 +752,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
-                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, *p_ ) ;
                 double x = displacements[j * 3] ;
                 double y = displacements[j * 3 + 1] ;
                 double z = displacements[j * 3 + 2] ;
@@ -763,9 +772,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
-                double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
+                double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, *p_ ) ;
                 double x = enrichedDisplacements[j * 3] ;
                 double y = enrichedDisplacements[j * 3 + 1] ;
                 double z = enrichedDisplacements[j * 3 + 2] ;
@@ -782,7 +791,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
             Matrix Jinv ( 3, 3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
             ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
             ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
@@ -812,29 +821,35 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case PRINCIPAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
-        getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
+        getField ( STRAIN_FIELD, *p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES  ) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     {
         Vector strains ( 0.,parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ? 6 : 3 ) ;
-        getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
+        getField ( MECHANICAL_STRAIN_FIELD, *p_, strains, true,vm ) ;
 
         ret = toPrincipal ( strains, DOUBLE_OFF_DIAGONAL_VALUES ) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case NON_ENRICHED_STRAIN_FIELD:
@@ -849,8 +864,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 for ( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
                 {
-                    double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                    double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
+                    double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                    double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
                     x_xi += f_xi * displacements[j * 2] ;
                     x_eta += f_eta * displacements[j * 2] ;
                     y_xi += f_xi * displacements[j * 2 + 1] ;
@@ -859,7 +874,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
             Matrix Jinv ( 2,2 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
             ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
             ret[2] = ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
@@ -878,9 +893,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
-                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, *p_ ) ;
                 double x = displacements[j * 3] ;
                 double y = displacements[j * 3 + 1] ;
                 double z = displacements[j * 3 + 2] ;
@@ -898,7 +913,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
 
             Matrix Jinv ( 3,3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
             ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
             ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
@@ -928,11 +943,13 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case VON_MISES_STRAIN_FIELD:
     {
         Vector eps ( 0., ( size_t ) parent->spaceDimensions() ) ;
-        getField ( PRINCIPAL_STRAIN_FIELD, p_, eps, true,vm ) ;
+        getField ( PRINCIPAL_STRAIN_FIELD, *p_, eps, true,vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             ret[0] = ( 2. / 3. * ( eps[0] * eps[0] + eps[1] * eps[1] ) ) ;
@@ -945,53 +962,65 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case REAL_STRESS_FIELD:
 
-        getField ( STRAIN_FIELD, p_, ret, true, vm ) ;
-        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size() )
+        getField ( STRAIN_FIELD, *p_, ret, true, vm ) ;
+        if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
         {
             ret = 0 ;
             if ( cleanup )
             {
                 delete vm ;
             }
+            if(cleanupp)
+                delete p_ ;
             return ;
         }
-        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * ret ) - getParent()->getBehaviour()->getImposedStress ( p_, parent ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - getParent()->getBehaviour()->getImposedStress ( *p_, parent ) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case PRINCIPAL_REAL_STRESS_FIELD:
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        getField ( REAL_STRESS_FIELD, p_, stress, true,vm ) ;
+        getField ( REAL_STRESS_FIELD, *p_, stress, true,vm ) ;
         ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case NON_ENRICHED_REAL_STRESS_FIELD:
-        getField ( NON_ENRICHED_STRAIN_FIELD, p_, ret, true,vm ) ;
-        if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret.size() )
+        getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret, true,vm ) ;
+        if ( parent->getBehaviour()->getTensor ( *p_, parent ).numCols() != ret.size() )
         {
             ret = 0 ;
             if ( cleanup )
             {
                 delete vm ;
             }
+            if(cleanupp)
+                delete p_ ;
             return ;
         }
-        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * ret ) - getParent()->getBehaviour()->getImposedStress ( p_, parent ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) - getParent()->getBehaviour()->getImposedStress ( *p_, parent ) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case VON_MISES_REAL_STRESS_FIELD:
         if ( parent->getOrder() == LINEAR )
@@ -1006,6 +1035,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
             else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1027,6 +1058,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
             return ;
@@ -1050,6 +1083,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
 
             }
@@ -1068,36 +1103,48 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 sigma[3] = sqrt ( ( sigma[18] - sigma[19] ) * ( sigma[18] - sigma[19] ) + ( sigma[18] - sigma[20] ) * ( sigma[18] - sigma[20] ) + ( sigma[19] - sigma[20] ) * ( sigma[19] - sigma[20] ) ) / 6 ;
 
                 ret[0] = std::max ( std::max ( std::max ( sigma[0], sigma[1] ), sigma[2] ), sigma[3] ) ;
+                if ( cleanup )
+                {
+                    delete vm ;
+                }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
         }
         return ;
     case EFFECTIVE_STRESS_FIELD:
-        getField ( STRAIN_FIELD, p_, ret, true,vm, 0 ) ;
-        ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( p_, parent ) *parent->getBehaviour()->param ;
+        getField ( STRAIN_FIELD, *p_, ret, true,vm, 0 ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( *p_, parent ) *parent->getBehaviour()->param ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     {
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        getField ( EFFECTIVE_STRESS_FIELD, p_, stress, true,vm ) ;
+        getField ( EFFECTIVE_STRESS_FIELD, *p_, stress, true,vm ) ;
         ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
-        getField ( NON_ENRICHED_STRAIN_FIELD, p_, ret, true,vm ) ;
-        ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( p_, parent ) *parent->getBehaviour()->param ;
+        getField ( NON_ENRICHED_STRAIN_FIELD, *p_, ret, true,vm ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->param * ret ) - getParent()->getBehaviour()->getImposedStrain ( *p_, parent ) *parent->getBehaviour()->param ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case VON_MISES_EFFECTIVE_STRESS_FIELD:
         if ( parent->getOrder() == LINEAR )
@@ -1112,6 +1159,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
             else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -1133,12 +1182,16 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
             if ( cleanup )
             {
                 delete vm ;
             }
+            if(cleanupp)
+                delete p_ ;
             return ;
         }
         else
@@ -1160,6 +1213,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
 
             }
@@ -1182,6 +1237,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 {
                     delete vm ;
                 }
+                if(cleanupp)
+                    delete p_ ;
                 return ;
             }
         }
@@ -1189,11 +1246,13 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case PRINCIPAL_STRESS_ANGLE_FIELD:
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        getField ( REAL_STRESS_FIELD,  p_, strains, true ) ;
+        getField ( REAL_STRESS_FIELD,  *p_, strains, true ) ;
         if ( std::abs ( strains ).max() < POINT_TOLERANCE )
         {
             ret = 0 ;
@@ -1201,6 +1260,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 delete vm ;
             }
+            if(cleanupp)
+                delete p_ ;
             return ;
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1218,12 +1279,14 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
     {
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        getField ( STRAIN_FIELD,  p_, strains, true ) ;
+        getField ( STRAIN_FIELD,  *p_, strains, true ) ;
         if ( std::abs ( strains ).max() < POINT_TOLERANCE )
         {
             ret = 0 ;
@@ -1231,6 +1294,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 delete vm ;
             }
+            if(cleanupp)
+                delete p_ ;
             return ;
         }
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1247,6 +1312,8 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     }
     case GRADIENT_FIELD:
@@ -1257,23 +1324,23 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getBoundingPoints().size(); j++ )
             {
-                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
                 x_xi += f_xi * displacements[j] ;
                 x_eta += f_eta * displacements[j] ;
             }
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size(); j++ )
             {
-                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
                 x_xi += f_xi * enrichedDisplacements[j] ;
                 x_eta += f_eta * enrichedDisplacements[j] ;
 
             }
 
             Matrix Jinv ( 2, 2 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
             ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1] ;
         }
@@ -1285,9 +1352,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, p_ ) ;
-                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getShapeFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getShapeFunction ( j ), ETA, *p_ ) ;
+                double f_zeta = vm ->deval ( parent->getShapeFunction ( j ), ZETA, *p_ ) ;
                 double x = displacements[j] ;
 
                 x_xi   += f_xi   * x ;
@@ -1297,9 +1364,9 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
             {
-                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, p_ ) ;
-                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, p_ ) ;
-                double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, p_ ) ;
+                double f_xi = vm ->deval ( parent->getEnrichmentFunction ( j ), XI, *p_ ) ;
+                double f_eta = vm ->deval ( parent->getEnrichmentFunction ( j ), ETA, *p_ ) ;
+                double f_zeta = vm ->deval ( parent->getEnrichmentFunction ( j ), ZETA, *p_ ) ;
                 double x = enrichedDisplacements[j] ;
 
                 x_xi += f_xi * x;
@@ -1308,7 +1375,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
             Matrix Jinv ( 3, 3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
             ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
             ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
             ret[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
@@ -1317,14 +1384,18 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;
         return ;
     case FLUX_FIELD:
-        getField ( GRADIENT_FIELD, p_, ret, true, vm ) ;
-        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( p_, parent ) * ret ) ;
+        getField ( GRADIENT_FIELD, *p_, ret, true, vm ) ;
+        ret = ( Vector ) ( parent->getBehaviour()->getTensor ( *p_, parent ) * ret ) ;
         if ( cleanup )
         {
             delete vm ;
         }
+        if(cleanupp)
+            delete p_ ;        
         return ;
     default:
         std::cerr << "field type not supported" << std::endl ;

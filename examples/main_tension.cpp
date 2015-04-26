@@ -162,7 +162,7 @@ void step ( size_t nsteps )
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
             count++ ;
-            loadr->setData ( loadr->getData() +1e-6 ) ;
+            loadr->setData ( loadr->getData() +1e-5 ) ;
 // 			loadr->setData(loadr->getData()-1e-5) ;
 
 // 			loadt->setData(0) ;
@@ -206,34 +206,34 @@ void step ( size_t nsteps )
 
         xavg /= volume ;
         yavg /= volume ;
-        std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax ( REAL_STRESS_FIELD ) ;
-        std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
-        std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
+//         std::pair<Vector, Vector> stempm = featureTree->getFieldMinMax ( REAL_STRESS_FIELD ) ;
+//         std::pair<Vector, Vector> etempm = featureTree->getFieldMinMax ( STRAIN_FIELD ) ;
+//         std::pair<Vector, Vector> vmm = featureTree->getFieldMinMax ( VON_MISES_REAL_STRESS_FIELD ) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
 
-        std::cout << std::endl ;
-        std::cout << "max value :" << x.max() << std::endl ;
-        std::cout << "min value :" << x.min() << std::endl ;
-        std::cout << "avg x value :" << xavg << std::endl ;
-        std::cout << "avg y value :" << xavg << std::endl ;
-
-        std::cout << "max sigma11 :" << stempm.second[0]/1e6  << std::endl ;
-        std::cout << "min sigma11 :" << stempm.first[0]/1e6   << std::endl ;
-        std::cout << "max sigma12 :" << stempm.second[2]/1e6  << std::endl ;
-        std::cout << "min sigma12 :" << stempm.first[2]/1e6   << std::endl ;
-        std::cout << "max sigma22 :" << stempm.second[1]/1e6  << std::endl ;
-        std::cout << "min sigma22 :" << stempm.first[1]/1e6   << std::endl ;
-
-        std::cout << "max epsilon11 :" << etempm.second[0]*1e6 << std::endl ;
-        std::cout << "min epsilon11 :" << etempm.first[0]*1e6  << std::endl ;
-        std::cout << "max epsilon12 :" << etempm.second[2]*1e6 << std::endl ;
-        std::cout << "min epsilon12 :" << etempm.first[2]*1e6  << std::endl ;
-        std::cout << "max epsilon22 :" << etempm.second[1]*1e6 << std::endl ;
-        std::cout << "min epsilon22 :" << etempm.first[1]*1e6  << std::endl ;
-
-        std::cout << "max von Mises :" << vmm.second[0]/1e6 << std::endl ;
-        std::cout << "min von Mises :" << vmm.first[0]/1e6 << std::endl ;
+//         std::cout << std::endl ;
+//         std::cout << "max value :" << x.max() << std::endl ;
+//         std::cout << "min value :" << x.min() << std::endl ;
+//         std::cout << "avg x value :" << xavg << std::endl ;
+//         std::cout << "avg y value :" << xavg << std::endl ;
+// 
+//         std::cout << "max sigma11 :" << stempm.second[0]/1e6  << std::endl ;
+//         std::cout << "min sigma11 :" << stempm.first[0]/1e6   << std::endl ;
+//         std::cout << "max sigma12 :" << stempm.second[2]/1e6  << std::endl ;
+//         std::cout << "min sigma12 :" << stempm.first[2]/1e6   << std::endl ;
+//         std::cout << "max sigma22 :" << stempm.second[1]/1e6  << std::endl ;
+//         std::cout << "min sigma22 :" << stempm.first[1]/1e6   << std::endl ;
+// 
+//         std::cout << "max epsilon11 :" << etempm.second[0]*1e6 << std::endl ;
+//         std::cout << "min epsilon11 :" << etempm.first[0]*1e6  << std::endl ;
+//         std::cout << "max epsilon12 :" << etempm.second[2]*1e6 << std::endl ;
+//         std::cout << "min epsilon12 :" << etempm.first[2]*1e6  << std::endl ;
+//         std::cout << "max epsilon22 :" << etempm.second[1]*1e6 << std::endl ;
+//         std::cout << "min epsilon22 :" << etempm.first[1]*1e6  << std::endl ;
+// 
+//         std::cout << "max von Mises :" << vmm.second[0]/1e6 << std::endl ;
+//         std::cout << "min von Mises :" << vmm.first[0]/1e6 << std::endl ;
 
         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
@@ -360,7 +360,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 800 ) ;
+    step ( 12 ) ;
 
 
     return 0 ;
