@@ -52,7 +52,7 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(1) ;
+// 	omp_set_num_threads(1) ;
 
 	Sample box(nullptr, 0.01,0.01,0.,0.) ;
 

@@ -61,7 +61,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
         int count = 0 ;
 
         double sk = sqrt(k) ;
-        while(std::abs(upTestVal-downTestVal) > 1e-12*tensionCritStrain && count++  <  64 )
+        while(std::abs(upTestVal-downTestVal) > 1e-4*tensionCritStrain && count++  <  64 )
         {
             double testVal = (upTestVal+downTestVal)*.5 ;
             double mainCurve = 1./(1.+sk*sqrt(testVal-tensionCritStrain)) ;
@@ -115,7 +115,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& 
         double mainCurve = 0 ;
         int count = 0 ;
 
-        while(std::abs(upTestVal-downTestVal) > 1e-12*altTensionCritStrain && count++  <  64)
+        while(std::abs(upTestVal-downTestVal) > 1e-4*altTensionCritStrain && count++  <  64)
         {
             double testVal = (upTestVal+downTestVal)*.5 ;
             mainCurve = 1./(1.+sqrt(value*(testVal-deltaCriterion))) ;
@@ -594,7 +594,7 @@ double NonLocalMCFT::getTensileLimit(const ElementState & s) const
     double upTestVal = upVal ;
     double factor = 1 ;
     double delta_tech = strain_te-strain_ch;
-    while(std::abs(upTestVal-downTestVal) > 1e-14*upVal)
+    while(std::abs(upTestVal-downTestVal) > 1e-4*upVal)
     {
 
         double testVal = (upTestVal+downTestVal)*.5/pseudoYoung ;
