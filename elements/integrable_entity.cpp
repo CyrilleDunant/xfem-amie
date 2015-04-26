@@ -166,11 +166,10 @@ std::vector<BoundaryCondition * > Form::getBoundaryConditions ( const ElementSta
 
 void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
 {
-    if ( !getBehaviour() )
+    if ( !getBehaviour() || (!(getBehaviour()->getDamageModel() && getBehaviour()->getDamageModel()->hasInducedBoundaryConditions()) && !getBehaviour()->hasInducedForces()))
     {
         return ;
     }
-    std::vector<BoundaryCondition *> bcCache ;
     if ( getBehaviour()->type != VOID_BEHAVIOUR )
     {
         if ( boundaryConditionCache )
@@ -1415,7 +1414,7 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
     {
         vm = new VirtualMachine() ;
     }
-    GaussPointArray gp = parent->getGaussPoints() ;
+    const GaussPointArray & gp = parent->getGaussPoints() ;
     size_t blocks = parent->getBehaviour()->getNumberOfDegreesOfFreedom() / parent->spaceDimensions() ;
     if( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) != ret.size())
         ret.resize( fieldTypeElementarySize ( f, parent->spaceDimensions(), blocks ) , 0.) ;
@@ -1423,9 +1422,9 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
         ret = 0 ;
     double v = parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
     double total = 0 ;
-    if ( weights.size() != gp.gaussPoints.size() )
+    if ( weights.size() != parent->getGaussPoints().gaussPoints.size() )
     {
-        weights.resize ( gp.gaussPoints.size(), 1. ) ;
+        weights.resize ( parent->getGaussPoints().gaussPoints.size(), 1. ) ;
     }
 
 
@@ -2245,7 +2244,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
     {
         vm = new VirtualMachine() ;
     }
-    GaussPointArray gp = parent->getGaussPoints() ;
+    const GaussPointArray & gp = parent->getGaussPoints() ;
     ret = 0 ;
     ret_ = 0 ;
     double v = parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL ? parent->area() : parent->volume() ;
@@ -2448,7 +2447,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
     }
     if ( isStrainField ( f1 ) && isStressField ( f2 ) )
     {
-        this->getField ( f1, p, ret1, local, vm ) ;
+        getField ( f1, p, ret1, local, vm ) ;
         if ( parent->getBehaviour()->getTensor ( p_, parent ).numCols() != ret2.size() )
         {
             ret2 = 0 ;
