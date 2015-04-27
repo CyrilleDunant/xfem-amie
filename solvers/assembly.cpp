@@ -630,7 +630,12 @@ bool Assembly::make_final()
            
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-                double * array_iterator = &(getMatrix()[ids[j]*ndof][ids[j]*ndof]) ;
+                ids[j] *= ndof ;
+            }
+            
+            for(size_t j = 0 ; j < ids.size() ; j++)
+            {
+                double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
                 for(size_t m = 0 ; m < ndof ; m++)
@@ -645,8 +650,8 @@ bool Assembly::make_final()
                 }
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    double * array_iterator0 = &(getMatrix()[ids[j]*ndof][ids[k]*ndof]) ;
-                    double * array_iterator1 = &(getMatrix()[ids[k]*ndof][ids[j]*ndof]) ;
+                    double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
+                    double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
@@ -670,7 +675,7 @@ bool Assembly::make_final()
             {
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-                    double * array_iterator = &(getMatrix()[ids[j]*ndof][ids[j]*ndof]) ;
+                    double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
@@ -683,8 +688,8 @@ bool Assembly::make_final()
                     }
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        double * array_iterator0 = &(getMatrix()[ids[j]*ndof][ids[k]*ndof]) ;
-                        double * array_iterator1 = &(getMatrix()[ids[k]*ndof][ids[j]*ndof]) ;
+                        double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
+                        double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
                             for(size_t n = 0 ; n < ndof ; n++)
@@ -694,7 +699,7 @@ bool Assembly::make_final()
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
                             }
-                             if(ndof%2 != 0)
+                            if(ndof%2 != 0)
                             {
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
