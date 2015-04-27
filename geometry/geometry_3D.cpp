@@ -256,13 +256,13 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
 {
     gType = TETRAHEDRON ;
 
-    this->boundingPoints.resize(4) ;
+    boundingPoints.resize(4) ;
     boundingPoints[0] = p0 ;
     boundingPoints[1] = p1 ;
     boundingPoints[2] = p2 ;
     boundingPoints[3] = p3 ;
 
-    if(volume() < 0 )
+    if(computeVolume() < 0 )
     {
         boundingPoints[0] = p1;
         boundingPoints[1] = p0;
@@ -277,19 +277,17 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3): Convex
     std::sort(&r[0], &r[4]) ;
     sqradius = r[0] ;
     radius = sqrt(sqradius);
-
-    assert(volume() >0 ) ;
-
+    cachedvolume= computeVolume() ;
     computeCenter() ;
     cachedarea = computeArea() ; 
- cachedvolume= computeVolume() ;
+    
 }
 
 Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p4, Point * p5, Point * p6, Point * p7): ConvexGeometry(8)
 {
     gType = TETRAHEDRON ;
 
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
     boundingPoints[0] = p0 ;
     boundingPoints[1] = p1 ;
     boundingPoints[2] = p2 ;
@@ -299,7 +297,7 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point *
     boundingPoints[6] = p6 ;
     boundingPoints[7] = p7 ;
 
-    if(this->volume() < 0 )
+    if(computeVolume() < 0 )
     {
         boundingPoints[0] = p1;
         boundingPoints[1] = p0;
@@ -313,22 +311,22 @@ Tetrahedron::Tetrahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point *
     std::sort(&r[0], &r[4]) ;
     sqradius = r[0] ;
     radius = sqrt(sqradius);
-    assert(this->volume() >0 ) ;
+    cachedvolume= computeVolume() ;
     computeCenter() ;
     cachedarea = computeArea() ; 
- cachedvolume= computeVolume() ;
+    
 }
 
 Tetrahedron::Tetrahedron(const Point &p0, const Point &p1, const Point &p2, const Point &p3): ConvexGeometry(4)
 {
     gType = TETRAHEDRON ;
 
-    this->boundingPoints.resize(4) ;
+    boundingPoints.resize(4) ;
     boundingPoints[0] = new Point(p0) ;
     boundingPoints[1] = new Point(p1) ;
     boundingPoints[2] = new Point(p2) ;
     boundingPoints[3] = new Point(p3) ;
-    if(this->volume() < 0 )
+    if(computeVolume() < 0 )
     {
         std::swap(boundingPoints[0], boundingPoints[1]) ;
     }
@@ -343,19 +341,19 @@ Tetrahedron::Tetrahedron(const Point &p0, const Point &p1, const Point &p2, cons
     radius = sqrt(sqradius);
     computeCenter() ;
     cachedarea = computeArea() ; 
- cachedvolume= computeVolume() ;
+    cachedvolume= computeVolume() ;
 }
 
 Tetrahedron::Tetrahedron(): ConvexGeometry(4)
 {
     gType = TETRAHEDRON ;
 
-    this->boundingPoints.resize(4) ;
+    boundingPoints.resize(4) ;
     boundingPoints[2] = new Point(1,0,0) ;
     boundingPoints[3] = new Point(0,1,0) ;
     boundingPoints[0] = new Point(0,0,1) ;
     boundingPoints[1] = new Point(0,0,0) ;
-    if(this->volume() < 0 )
+    if(computeVolume() < 0 )
     {
         std::swap(boundingPoints[0], boundingPoints[1]) ;
     }
@@ -370,7 +368,7 @@ Tetrahedron::Tetrahedron(): ConvexGeometry(4)
     radius = sqrt(sqradius);
     computeCenter() ;
     cachedarea = computeArea() ; 
- cachedvolume= computeVolume() ;
+    cachedvolume= computeVolume() ;
 }
 
 std::vector<Point> Tetrahedron::getSamplingBoundingPoints(size_t num_points) const
