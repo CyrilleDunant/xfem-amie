@@ -4454,7 +4454,7 @@ bool FeatureTree::stepElements()
     behaviourChange = false ;
     stateConverged = false ;
     double maxScore = -1 ;
-    double maxTolerance = 0 ;
+    double maxTolerance = 1e-6 ;
     if ( solverConvergence )
     {
         if ( is2D() )
@@ -5608,7 +5608,7 @@ bool FeatureTree::step()
         else if(it > maxitPerStep)
             std::cout << ":"<< std::endl ;
 
-        if ( needexit ) // && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
+        if ( needexit) // && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
         {
             break ;
         }
@@ -5636,9 +5636,9 @@ bool FeatureTree::step()
     damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( it < maxitPerStep ) ;
 
     if(damageConverged)
-	K->setPreviousDisplacements() ;
+        K->setPreviousDisplacements() ;
 
-    return solverConverged() && !behaviourChanged() /*stateConverged*/ && ret ;
+    return solverConverged() && stateConverged && ret ;
 }
 
 bool FeatureTree::stepToCheckPoint()

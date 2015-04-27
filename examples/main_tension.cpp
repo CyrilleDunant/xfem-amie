@@ -162,7 +162,7 @@ void step ( size_t nsteps )
 // 			else
 // 				loadr->setData(loadr->getData()+1e-7) ;
             count++ ;
-            loadr->setData ( loadr->getData() +1e-5 ) ;
+            loadr->setData ( loadr->getData() +1e-6 ) ;
 // 			loadr->setData(loadr->getData()-1e-5) ;
 
 // 			loadt->setData(0) ;
@@ -360,7 +360,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 12 ) ;
+    step ( 240 ) ;
 
 
     return 0 ;

@@ -197,7 +197,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         continue ;
 
                     if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
-                            ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
+                            ci->getBehaviour()->getFractureCriterion()->met())
                     {
 //                         std::cout << "plif" << std::endl ;
 
@@ -337,7 +337,7 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                         continue ;
 
                     if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
-                            ci->getBehaviour()->getFractureCriterion()->scoreAtState > 0)
+                            ci->getBehaviour()->getFractureCriterion()->met())
                     {
                         if(ci == s.getParent() && met())
                             inset = true ;
@@ -447,7 +447,7 @@ void FractureCriterion::step(ElementState &s)
     {
         scoreAtState = grade(s) ;
     }
-    metAtStep = scoreAtState > 0 ;
+    metAtStep = scoreAtState > scoreTolerance*1e-3 ;
 
 }
 
