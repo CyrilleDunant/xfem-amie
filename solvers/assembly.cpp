@@ -513,15 +513,14 @@ bool Assembly::make_final()
     if(dim == SPACE_TWO_DIMENSIONAL)
     {
 
-        if( element2d.empty() && coordinateIndexedMatrix != nullptr)
+        if( element2d.empty() && coordinateIndexedMatrix)
         {
             std::cerr << "no elements in mesh (2D) !" << std::endl ;
             return false ;
         }
 
-//		ndof = element2d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         size_t max ;
-        if(coordinateIndexedMatrix == nullptr)
+        if(!coordinateIndexedMatrix)
         {
 
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
@@ -560,22 +559,6 @@ bool Assembly::make_final()
                     }
 
                 }
-
-// 				for(size_t j = 0 ; j< ids.size() ;j++)
-// 				{
-//
-// 					map->insert(std::make_pair(ids[j], ids[j])) ;
-//
-// 					for(size_t k = j+1 ; k< ids.size() ;k++)
-// 					{
-// 						if(k >= dofsperplane*(instants-1))
-// 						{
-// 							if(j >= dofsperplane*(instants-1))
-// 								map->insert(std::make_pair(ids[j], ids[k])) ;
-// 							map->insert(std::make_pair(ids[k], ids[j])) ;
-// 						}
-// 					}
-// 				}
             }
             max = map->rbegin()->first +1;
             size_t realDofs = max ;
@@ -632,14 +615,11 @@ bool Assembly::make_final()
         else
         {
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
-                std::set<unsigned long int> dofsToUpdate = updatedDofs ;
-            for(size_t i = 0 ; i < multipliers.size() ; i++)
-                dofsToUpdate.insert(multipliers[i].getId()) ;
         }
 
         coordinateIndexedMatrix->array = 0 ;
 
-        VirtualMachine vm ;
+        VirtualMachine vm ; 
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
@@ -647,28 +627,42 @@ bool Assembly::make_final()
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
-//             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
+           
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-                for(size_t n = 0 ; n < ndof ; n++)
-                {
-                    for(size_t m = 0 ; m < ndof ; m++)
-                    {
-                        getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][j][n][m] ;
-                    }
-                }
-                for(size_t k = j+1 ; k < ids.size() ; k++)
+                double * array_iterator = &(getMatrix()[ids[j]*ndof][ids[j]*ndof]) ;
+                //data is arranged column-major, with 2-aligned columns
+                
+                for(size_t m = 0 ; m < ndof ; m++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
                     {
-                        for(size_t m = 0 ; m < ndof ; m++)
+                        *array_iterator += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][j][n][m] ;
+                        array_iterator++ ;
+                    }
+                    if(ndof%2 != 0)
+                        array_iterator++ ;
+                }
+                for(size_t k = j+1 ; k < ids.size() ; k++)
+                {
+                    double * array_iterator0 = &(getMatrix()[ids[j]*ndof][ids[k]*ndof]) ;
+                    double * array_iterator1 = &(getMatrix()[ids[k]*ndof][ids[j]*ndof]) ;
+                    for(size_t m = 0 ; m < ndof ; m++)
+                    {
+                        for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][k][n][m] ;
-                            getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getElementaryMatrix(&vm)[k][j][n][m] ;
-//                             test[j*ndof+n][k*ndof+m] = scales[i] * mother[j][k][n][m] ;
-//                             test[k*ndof+n][j*ndof+m] = scales[i] * mother[k][j][n][m] ;
+                            *array_iterator0 += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][k][n][m] ;
+                            *array_iterator1 += scales[i] * element2d[i]->getElementaryMatrix(&vm)[k][j][n][m] ;
+                            array_iterator0++ ; 
+                            array_iterator1++ ;
+                        }
+                        if(ndof%2 != 0)
+                        {
+                            array_iterator0++ ; 
+                            array_iterator1++ ;
                         }
                     }
+                   
                 }
             }
 
@@ -676,43 +670,39 @@ bool Assembly::make_final()
             {
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-                    for(size_t n = 0 ; n < ndof ; n++)
-                    {
-                        for(size_t m = 0 ; m < ndof ; m++)
-                        {
-                            getMatrix()[ids[j]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][j][n][m] ;
-                        }
-                    }
-                    for(size_t k = j+1 ; k < ids.size() ; k++)
+                    double * array_iterator = &(getMatrix()[ids[j]*ndof][ids[j]*ndof]) ;
+                    for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            for(size_t m = 0 ; m < ndof ; m++)
+                            *array_iterator += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][j][n][m] ;
+                            array_iterator++ ;
+                        }
+                        if(ndof%2 != 0)
+                            array_iterator++ ;
+                    }
+                    for(size_t k = j+1 ; k < ids.size() ; k++)
+                    {
+                        double * array_iterator0 = &(getMatrix()[ids[j]*ndof][ids[k]*ndof]) ;
+                        double * array_iterator1 = &(getMatrix()[ids[k]*ndof][ids[j]*ndof]) ;
+                        for(size_t m = 0 ; m < ndof ; m++)
+                        {
+                            for(size_t n = 0 ; n < ndof ; n++)
                             {
-                                getMatrix()[ids[j]*ndof+n][ids[k]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][k][n][m] ;
-                                getMatrix()[ids[k]*ndof+n][ids[j]*ndof+m] += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[k][j][n][m] ;
-//                                 test[j*ndof+n][k*ndof+m] = scales[i] * vmother[j][k][n][m] ;
-//                                 test[k*ndof+n][j*ndof+m] = scales[i] * vmother[k][j][n][m] ;
+                                *array_iterator0 += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][k][n][m] ;
+                                *array_iterator1 += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[k][j][n][m] ;
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
+                            }
+                             if(ndof%2 != 0)
+                            {
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
                             }
                         }
                     }
                 }
             }
-
-//             dmax = std::abs(test.array()).max() ;
-//             if(dmax > POINT_TOLERANCE)
-//             {
-//                 for(size_t j = 0 ; j < test.numRows() ; j++)
-//                 {
-//                     for(size_t k = j+1 ; k < test.numCols() ; k++)
-//                     {
-//                         vmax = std::abs(test[j][k]-test[k][j]) ;
-//                         symmetric = symmetric && (vmax/dmax < 1e-12) ;
-// 
-//                     }
-//                 }
-//             }
-//  			element2d[i]->clearElementaryMatrix() ;
         }
 
         std::cerr << " ...done" << std::endl ;
@@ -829,25 +819,35 @@ bool Assembly::make_final()
 //             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-
-                for(size_t l = 0 ; l < ndof  ; l++)
+                double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                for(size_t m = 0 ; m < ndof  ; m++)
                 {
-                    for(size_t m = 0 ; m < ndof  ; m++)
+                    for(size_t l = 0 ; l < ndof  ; l++)
                     {
-                        getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][j][l][m] ;
+                        *array_iterator += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][j][l][m] ;
+                        array_iterator++ ;
                     }
+                    if(ndof %2 != 0)
+                       array_iterator++ ; 
                 }
 
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    for(size_t l = 0 ; l < ndof  ; l++)
+                    double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
+                    double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                    for(size_t m = 0 ; m < ndof  ; m++)
                     {
-                        for(size_t m = 0 ; m < ndof  ; m++)
+                        for(size_t l = 0 ; l < ndof  ; l++)
                         {
-                            getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][k][l][m] ;
-                            getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * element3d[i]->getElementaryMatrix(&vm)[k][j][l][m] ;
-//                             test[j*ndof+l][k*ndof+m] = scales[i] * mother[j][k][l][m] ;
-//                             test[k*ndof+l][j*ndof+m] = scales[i] * mother[k][j][l][m] ;
+                            *array_iterator0 += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][k][l][m] ;
+                            *array_iterator1 += scales[i] * element3d[i]->getElementaryMatrix(&vm)[k][j][l][m] ;
+                            array_iterator0++ ;
+                            array_iterator1++ ;
+                        }
+                        if(ndof%2 != 0)
+                        {
+                            array_iterator0++ ;
+                            array_iterator1++ ;
                         }
                     }
                 }
@@ -857,25 +857,35 @@ bool Assembly::make_final()
             {
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-
-                    for(size_t l = 0 ; l < ndof  ; l++)
+                     double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                    for(size_t m = 0 ; m < ndof  ; m++)
                     {
-                        for(size_t m = 0 ; m < ndof  ; m++)
+                        for(size_t l = 0 ; l < ndof  ; l++)
                         {
-                            getMatrix()[ids[j]+l][ids[j]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][j][l][m] ;
+                            *array_iterator += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][j][l][m] ;
+                            array_iterator++ ; 
                         }
+                        if(ndof %2 != 0)
+                            array_iterator++ ; 
                     }
 
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        for(size_t l = 0 ; l < ndof  ; l++)
+                        double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
+                        double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                        for(size_t m = 0 ; m < ndof  ; m++)
                         {
-                            for(size_t m = 0 ; m < ndof  ; m++)
+                            for(size_t l = 0 ; l < ndof  ; l++)
                             {
-                                getMatrix()[ids[j]+l][ids[k]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][k][l][m] ;
-                                getMatrix()[ids[k]+l][ids[j]+m] += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[k][j][l][m] ;
-//                                 test[j*ndof+l][k*ndof+m] = scales[i] * vmother[j][k][l][m] ;
-//                                 test[k*ndof+l][j*ndof+m] = scales[i] * vmother[k][j][l][m] ;
+                                * array_iterator0 += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][k][l][m] ;
+                                * array_iterator1 += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[k][j][l][m] ;
+                                array_iterator0++ ;
+                                array_iterator1++ ; 
+                            }
+                            if(ndof%2 != 0)
+                            {
+                                array_iterator0++ ;
+                                array_iterator1++ ;
                             }
                         }
                     }

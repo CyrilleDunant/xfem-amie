@@ -440,7 +440,7 @@ std::vector<Point> Tetrahedron::getBoundingBox() const
 
 const Amie::Point& Tetrahedron::getCircumCenter() const
 {
-    return this->circumCenter ;
+    return circumCenter ;
 }
 
 void Tetrahedron::sampleSurface(size_t num_points)
@@ -532,113 +532,11 @@ bool Tetrahedron::in(const Point & p) const
         return false ;
     return true ;
 
-
-// 	if(dynamic_cast<const TetrahedralElement *>(this))
-// 	{
-// 		Point v_ = static_cast<const TetrahedralElement *>(this)->inLocalCoordinates(v) ;
-//
-//
-//
-//
-// 		if(v.getX() < 0)
-// 			return false ;
-// 		if(v.getY() < 0)
-// 			return false ;
-// 		if(v.getZ() < 0)
-// 			return false ;
-// 		if(v.getX()+v.getY()+v.getZ() > 1)
-// 			return false ;
-// 		return true ;
-// 	}
-// 	Point  pg = getCenter() ;//(getBoundingPoint(0)+getBoundingPoint(1)+getBoundingPoint(2)+getBoundingPoint(3))/4;
-// 	if(squareDist3D(pg, v) <POINT_TOLERANCE*POINT_TOLERANCE)
-// 		return true ;
-//
-// 	if(getBoundingPoints().size() == 4)
-// 	{
-// 		TriPoint t0(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(2)) ;
-// 		TriPoint t1(&getBoundingPoint(0),&getBoundingPoint(1),&getBoundingPoint(3)) ;
-// 		TriPoint t2(&getBoundingPoint(0),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 		TriPoint t3(&getBoundingPoint(1),&getBoundingPoint(2),&getBoundingPoint(3)) ;
-// 		Segment s(pg,v) ;
-//
-// 		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ||
-// 		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(1), getBoundingPoint(2))) ||
-// 		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(1), getBoundingPoint(3))) ||
-// 		(isCoplanar(v, getBoundingPoint(0), getBoundingPoint(2), getBoundingPoint(3))) ||
-// 		(isCoplanar(v, getBoundingPoint(1), getBoundingPoint(2), getBoundingPoint(3))) ;
-// 	}
-// 	else
-// 	{
-// 		std::multimap<double, const Point *> pts ;
-// 		for(size_t i = 0 ; i < getBoundingPoints().size() ; i++)
-// 		{
-// 			pts.insert(std::make_pair(std::abs(getRadius()*getRadius()-squareDist3D(getCircumCenter(), getBoundingPoint(i))), & getBoundingPoint(i))) ;
-// 		}
-// 		auto p = pts.begin() ;
-// 		const Point * a = p->second ; ++p ;
-// 		const Point * b = p->second ; ++p ;
-// 		const Point * c = p->second ; ++p ;
-// 		const Point * d = p->second ;
-//
-// 		TriPoint t0(a,b,c) ;
-// 		TriPoint t1(a,b,d) ;
-// 		TriPoint t2(a,c,d) ;
-// 		TriPoint t3(b,c,d) ;
-// 		Segment s(pg,v) ;
-//
-//
-// 		return !(s.intersects(t0) || s.intersects(t1) || s.intersects(t2) || s.intersects(t3)) ||
-// 		(isCoplanar(v, *a, *b, *c)) ||
-// 		(isCoplanar(v, *a, *b, *d)) ||
-// 		(isCoplanar(v, *a, *c, *d)) ||
-// 		(isCoplanar(v, *b, *c, *d)) ;
-// 	}
-
-// 	double alpha;
-// 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
-// 	if (alpha>=-1 && alpha<=1)
-// 		return true;
-//
-// 	alpha = ((getBoundingPoint(1))*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(2)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(1))))/((v-pg)*((getBoundingPoint(1))^(getBoundingPoint(2))));
-// 	if (alpha>=-1 && alpha<=1)
-// 		return true;
-//
-// 	alpha =  ((getBoundingPoint(2))*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(2))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(2))))/((v-pg)*((getBoundingPoint(2))^(getBoundingPoint(3))));
-// 	if (alpha>=-1 && alpha<=1)
-// 		return true;
-//
-// 	alpha =  ((getBoundingPoint(0))*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(0))^(getBoundingPoint(1)))-(v)*((getBoundingPoint(1))^(getBoundingPoint(3)))-(v)*((getBoundingPoint(3))^(getBoundingPoint(0))))/((v-pg)*((getBoundingPoint(0))^(getBoundingPoint(1))));
-// 	if (alpha>=-1 && alpha<=1)
-// 		return true;
-//
-// 	return false ;
 }
 
 double Tetrahedron::area() const
 {
     return cachedarea ;
-//     if(this->getBoundingPoints().size() == 4)
-//     {
-//         Segment s0(getBoundingPoint(1), getBoundingPoint(0)) ;
-//         Segment s1(getBoundingPoint(1), getBoundingPoint(2)) ;
-//         Segment s2(getBoundingPoint(1), getBoundingPoint(3)) ;
-// 
-//         return 0.5*((s0.vector()^s1.vector()).norm()+
-//                     (s0.vector()^s2.vector()).norm()+
-//                     (s1.vector()^s2.vector()).norm()+
-//                     (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
-//     }
-//     else
-//     {
-//         Segment s0(getBoundingPoint(2), getBoundingPoint(0)) ;
-//         Segment s1(getBoundingPoint(2), getBoundingPoint(4)) ;
-//         Segment s2(getBoundingPoint(2), getBoundingPoint(6)) ;
-//         return 0.5*((s0.vector()^s1.vector()).norm()+
-//                     (s0.vector()^s2.vector()).norm()+
-//                     (s1.vector()^s2.vector()).norm()+
-//                     (((s1.vector()-s0.vector())^s2.vector())-s0.vector()).norm());
-//     }
 }
 
 double Tetrahedron::computeArea() 
@@ -669,14 +567,6 @@ double Tetrahedron::computeArea()
 double Tetrahedron::volume() const
 {
     return cachedvolume ;
-//     if(this->getBoundingPoints().size() == 4 || timePlanes() > 1)
-//     {
-//         return ((getBoundingPoint(1)- getBoundingPoint(2))^(getBoundingPoint(1)- getBoundingPoint(0)))*(getBoundingPoint(1)- getBoundingPoint(3))/6. ;
-//     }
-//     else
-//     {
-//         return ((getBoundingPoint(2)- getBoundingPoint(4))^(getBoundingPoint(2)- getBoundingPoint(0)))*(getBoundingPoint(2)- getBoundingPoint(6))/6. ;
-//     }
 }
 
 double Tetrahedron::computeVolume() 
@@ -786,26 +676,26 @@ Hexahedron::Hexahedron(Point * p0, Point * p1, Point * p2, Point * p3, Point * p
         boundingPoints[i] = pts[i] ;
     }
 
-    this->center = Point(*p0 + *p1 + *p2 + *p3 + *p4+ *p5+ *p6+ *p7)*0.125;
-    this->size_x = std::abs(boundingPoints[7]->getX() - boundingPoints[0]->getX());
-    this->size_y = std::abs(boundingPoints[7]->getY() - boundingPoints[0]->getY());
-    this->size_z = std::abs(boundingPoints[7]->getZ() - boundingPoints[0]->getZ());
+    center = Point(*p0 + *p1 + *p2 + *p3 + *p4+ *p5+ *p6+ *p7)*0.125;
+    size_x = std::abs(boundingPoints[7]->getX() - boundingPoints[0]->getX());
+    size_y = std::abs(boundingPoints[7]->getY() - boundingPoints[0]->getY());
+    size_z = std::abs(boundingPoints[7]->getZ() - boundingPoints[0]->getZ());
 
 }
 
 double Hexahedron::getXSize() const
 {
-    return this->size_x ;
+    return size_x ;
 }
 
 double Hexahedron::getYSize() const
 {
-    return this->size_y ;
+    return size_y ;
 }
 
 double Hexahedron::getZSize() const
 {
-    return this->size_z ;
+    return size_z ;
 }
 
 Hexahedron::Hexahedron(Point p0, Point p1, Point p2, Point p3, Point p4, Point p5, Point p6, Point p7)
@@ -823,7 +713,7 @@ Hexahedron::Hexahedron(Point p0, Point p1, Point p2, Point p3, Point p4, Point p
 
     std::stable_sort(pts.begin(), pts.end()) ;
 
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
 
     for(size_t i = 0 ;  i < 8 ; i++)
     {
@@ -833,7 +723,7 @@ Hexahedron::Hexahedron(Point p0, Point p1, Point p2, Point p3, Point p4, Point p
     }
 
 
-    this->center =  Point(p0 + p1 + p2 + p3 + p4+ p5+ p6+ p7)*0.125;
+    center =  Point(p0 + p1 + p2 + p3 + p4+ p5+ p6+ p7)*0.125;
 
     size_x = std::abs(boundingPoints[6]->getX() - boundingPoints[0]->getX());
     size_y = std::abs(boundingPoints[6]->getY() - boundingPoints[0]->getY());
@@ -843,7 +733,7 @@ Hexahedron::Hexahedron(Point p0, Point p1, Point p2, Point p3, Point p4, Point p
 
 Hexahedron::Hexahedron(double x, double y, double z, double originX, double originY, double originZ) {
     gType =HEXAHEDRON  ;
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
     boundingPoints[0] = new Point(originX -0.5*x, originY-0.5*y, originZ-0.5*z) ;
     boundingPoints[1] = new Point(originX -0.5*x, originY-0.5*y, originZ+0.5*z) ;
     boundingPoints[2] = new Point(originX -0.5*x, originY+0.5*y, originZ-0.5*z) ;
@@ -853,7 +743,7 @@ Hexahedron::Hexahedron(double x, double y, double z, double originX, double orig
     boundingPoints[6] = new Point(originX +0.5*x, originY+0.5*y, originZ-0.5*z) ;
     boundingPoints[7] = new Point(originX +0.5*x, originY+0.5*y, originZ+0.5*z) ;
 
-    this->center = Point(originX, originY, originZ ) ;
+    center = Point(originX, originY, originZ ) ;
 
     size_x = x ;
     size_y = y ;
@@ -863,7 +753,7 @@ Hexahedron::Hexahedron(double x, double y, double z, double originX, double orig
 Hexahedron::Hexahedron(double x, double y, double z, const Point & c)
 {
     gType =HEXAHEDRON  ;
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
     boundingPoints[0] = new Point(c.getX() -0.5*x, c.getY()-0.5*y, c.getZ()-0.5*z) ;
     boundingPoints[1] = new Point(c.getX() -0.5*x, c.getY()-0.5*y, c.getZ()+0.5*z) ;
     boundingPoints[2] = new Point(c.getX() -0.5*x, c.getY()+0.5*y, c.getZ()-0.5*z) ;
@@ -873,7 +763,7 @@ Hexahedron::Hexahedron(double x, double y, double z, const Point & c)
     boundingPoints[6] = new Point(c.getX() +0.5*x, c.getY()+0.5*y, c.getZ()-0.5*z) ;
     boundingPoints[7] = new Point(c.getX() +0.5*x, c.getY()+0.5*y, c.getZ()+0.5*z) ;
 
-    this->center = c ;
+    center = c ;
 
     size_x = x ;
     size_y = y ;
@@ -884,7 +774,7 @@ Hexahedron::Hexahedron()
 {
     gType = HEXAHEDRON ;
 
-    this->boundingPoints.resize(8) ;
+    boundingPoints.resize(8) ;
     boundingPoints[0] = new Point(-1,-1,-1) ;
     boundingPoints[1] = new Point(-1,-1,1) ;
     boundingPoints[2] = new Point(-1,1,-1) ;
@@ -894,7 +784,7 @@ Hexahedron::Hexahedron()
     boundingPoints[6] = new Point(1,1,-1) ;
     boundingPoints[7] = new Point(1,1,1) ;
 
-    this->center =  Point(*boundingPoints[0] +
+    center =  Point(*boundingPoints[0] +
                           *boundingPoints[1] +
                           *boundingPoints[2] +
                           *boundingPoints[3] +

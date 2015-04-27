@@ -162,7 +162,7 @@ public:
 
     void print() const;
     virtual void refresh(const TriElement *) ;
-
+    
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix( VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix()  ;

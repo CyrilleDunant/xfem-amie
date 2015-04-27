@@ -171,6 +171,11 @@ public:
     virtual void print() const;
     virtual bool normalisedIn(const Point & p) const ;
 
+    virtual bool matrixUpdated() const
+    {
+        return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
+    }
+    
     std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
     std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     void clearElementaryMatrix() ;

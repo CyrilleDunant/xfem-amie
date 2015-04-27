@@ -63,7 +63,7 @@ public:
     virtual ~ElementarySurface() ;
     virtual void clearElementaryMatrix() = 0 ;
     virtual void print()  const = 0 ;
-
+    
     virtual bool isMoved() const = 0 ;
 
     virtual const std::valarray< Function > & getShapeFunctions() const = 0;
@@ -139,6 +139,11 @@ public:
     TriElement(Order order = LINEAR) ;
     void refresh(const TriElement * parent) ;
 
+    virtual bool matrixUpdated() const
+    {
+        return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
+    }
+    
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual void clearElementaryMatrix() final{
@@ -293,6 +298,11 @@ public:
     TetrahedralElement( Point * p0,  Point * p1,  Point * p2, Point * p3, Point * p4,  Point * p5,  Point * p6, Point * p7) ;
     TetrahedralElement(Order order = LINEAR);
     TetrahedralElement(TetrahedralElement * parent, Tetrahedron * t);
+    
+     virtual bool matrixUpdated() const
+    {
+        return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
+    }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > getNonLinearElementaryMatrix() ;
@@ -353,6 +363,10 @@ public:
     HexahedralElement(Order order, bool f = true) ;
     HexahedralElement(HexahedralElement * parent,Hexahedron * t);
 
+    virtual bool matrixUpdated() const
+    {
+        return !(!behaviourUpdated && !enrichmentUpdated && cachedElementaryMatrix.size() && cachedElementaryMatrix[0].size() == getShapeFunctions().size()+getEnrichmentFunctions().size()) ;
+    }
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
 
