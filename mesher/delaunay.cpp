@@ -2386,7 +2386,8 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     {
         return cachedElementaryMatrix ;
     }
-// 	std::cout << ";" ;
+
+    std::cout << ";" << std::endl ;
 
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
@@ -2433,7 +2434,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     }
     if(behaviour->isSymmetric())
     {
-        
         for(size_t i = start ; i < getShapeFunctions().size() ; i++)
         {
 
@@ -2496,18 +2496,15 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
     }
 
-    if(!getBehaviour()->isViscous())
-    {
-        enrichmentUpdated = false ;
-        behaviourUpdated = false ;
-    }
+    enrichmentUpdated = false ;
+    behaviourUpdated = false ;
     
     if(behaviour->hasInducedForces())
         cachedForces.resize(0) ;
 
     if(cleanup)
         delete vm ;
-    
+
     return cachedElementaryMatrix ;
 }
 
@@ -2515,11 +2512,13 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
 
-    if(!behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
+
+    if( !behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
     {
         return cachedViscousElementaryMatrix ;
     }
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
+
 
     if( cachedViscousElementaryMatrix.size() == 0
             || cachedViscousElementaryMatrix.size() != dofCount
@@ -2630,6 +2629,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
 
     enrichmentUpdated = false ;
     behaviourUpdated = false ;
+
     if(behaviour->hasInducedForces())
         cachedForces.resize(0) ;
 

@@ -236,6 +236,38 @@ Matrix Tensor::cauchyGreen(double p1, double p2, bool hooke, SpaceDimensionality
 	{
 		double k = p1 ;
 		double mu = p2 ;
+		if(mu < POINT_TOLERANCE)
+		{
+		switch(dim)
+		{
+			case SPACE_ONE_DIMENSIONAL:
+			{
+				Matrix m(1,1) ;
+				m[0][0] = k ;
+				return m ;
+			}
+			case SPACE_TWO_DIMENSIONAL:
+			{
+				Matrix cg(3,3) ;
+	
+				cg[0][0] = k ; cg[0][1] = k ; cg[0][2] = 0 ;
+				cg[1][0] = k ; cg[1][1] = k ; cg[1][2] = 0 ;
+				cg[2][0] = 0 ; cg[2][1] = 0 ; cg[2][2] = 0 ;
+				return cg ;
+			}
+			case SPACE_THREE_DIMENSIONAL:
+			{
+				Matrix cgg(6,6) ;
+				cgg[0][0] = k ; cgg[0][1] = k ; cgg[0][2] = k ;
+				cgg[1][0] = k ; cgg[1][1] = k ; cgg[1][2] = k ;
+				cgg[2][0] = k ; cgg[2][1] = k ; cgg[2][2] = k ;
+				cgg[3][3] = 0 ;
+				cgg[4][4] = 0 ;
+				cgg[5][5] = 0 ;
+				return cgg ;
+			}
+		}
+		}
 		E = 9*k*mu / (3*k+mu) ;
 		nu = (3*k-2*mu) / (6*k+2*mu) ;
 	}

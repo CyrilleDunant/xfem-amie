@@ -15,6 +15,7 @@
 #include "../features/pore.h"
 #include "../features/sample.h"
 #include "../features/inclusion.h"
+#include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../polynomial/vm_function_extra.h"
 #include "../utilities/itoa.h"
 #include "../utilities/writer/triangle_writer.h"
@@ -128,8 +129,8 @@ void step ( size_t nsteps )
 
         featureTree->step() ;
 
-        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD ) ;
-        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD ) ;
+        Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
+        Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
 
         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
@@ -162,6 +163,8 @@ void step ( size_t nsteps )
 
 int main ( int argc, char *argv[] )
 {
+    omp_set_num_threads(1) ;
+
 
     double E_rec = 1e10;
     double k_kv = 3.e10;
@@ -186,24 +189,31 @@ int main ( int argc, char *argv[] )
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
 
-    Viscoelasticity * paste = new Viscoelasticity(BURGER, E_kv, C_kv, C_eta, C_tau);
+    LogarithmicCreepWithExternalParameters * creep = new LogarithmicCreepWithExternalParameters("young_modulus = 1e9, poisson_ratio = 0.2, creep_modulus = 10e9, creep_poisson = 0.2, creep_characteristic_time = 1") ;
+    Matrix EC = creep->C ;
+    Matrix EE = creep->E ;
+    Matrix ER = creep->R ;
+    Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);//, E_kv, C_tau, C_eta );
+//    Stiffness * paste = new Stiffness(C_kv);
     samplef.setBehaviour ( paste  ) ;
  
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
                         Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
                         Function("t 24 - 48 /")    *f_range("t", 24, 48) ;
-    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,1e-6) ;
+    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6 /*loadfunc*/) ;
     F.addBoundaryCondition ( loadr );
 
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;
-    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
+    F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.1);
+    F.setDeltaTime(1.);
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 480 ) ;
+    step ( 1 ) ;
+
+//    F.getAssembly()->print() ;
 
 
     return 0 ;

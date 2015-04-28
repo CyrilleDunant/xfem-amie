@@ -4498,6 +4498,7 @@ bool FeatureTree::stepElements()
             //the behaviour updates might depend on the global state of the
             //simulation.
 
+
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
                 std::cerr << " stepping through elements... " << std::flush ;
@@ -5844,6 +5845,51 @@ Vector FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, FieldT
 
 }
 
+double FeatureTree::getAverageFieldOnBoundary ( BoundingBoxPosition edge, std::string f, int dummy, double t )
+{
+    if(boundaryCache.find(edge) == boundaryCache.end())
+    {
+        if(is2D())
+        {
+            Segment * pos = nullptr ;
+            switch(edge)
+            {
+            case TOP:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case BOTTOM:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case LEFT:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            case RIGHT:
+               pos = new Segment( tree[0]->getBoundingBox()[0], tree[0]->getBoundingBox()[1] ) ;
+               break ;
+            default:
+               std::cout << "cannot calculate field on selected boundary" << std::endl ;
+               return get2DMesh()->getField ( f, -1 ) ;
+            }
+            unsigned int id = get2DMesh()->generateCache( pos ) ;
+            boundaryCache[ edge ] = std::make_pair( pos, id ) ;
+        }
+        else
+        {
+            std::cout << "cannot calculate field on selected boundary" << std::endl ;
+            return get3DMesh()->getField ( f, -1 ) ;
+        }
+    }
+
+
+    if ( is2D() )
+    {
+        return get2DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second ) ;
+    }
+
+    return get3DMesh()->getField ( f, boundaryCache[edge].first, boundaryCache[edge].second ) ;
+
+}
+
 std::vector<double>  FeatureTree::getMacroscopicStrain ( const Geometry * base, double tol )
 {
     Vector disps = getDisplacements() ;
@@ -6838,6 +6884,7 @@ void FeatureTree::initializeElements( )
 
 void FeatureTree::setDeltaTime ( double d )
 {
+
     previousDeltaTime = deltaTime ;
     deltaTime = d ;
     realDeltaTime = d ;
@@ -6863,7 +6910,7 @@ void FeatureTree::setDeltaTime ( double d )
                         }
                     }
 
-                    if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
+                    if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR)
                     {
                         i->adjustElementaryMatrix ( previousDeltaTime, d ) ;
                     }

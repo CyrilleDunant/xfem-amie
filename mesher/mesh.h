@@ -778,6 +778,39 @@ public:
         return ret/w ;
     }
 
+    virtual double getField( std::string f, Segment * source, int cacheID = -1, int dummy = 0, double t = 0) {
+        int realCacheID = cacheID ;
+        if(cacheID == -1)
+            realCacheID = allElementsCacheID ;
+
+        VirtualMachine vm ;
+        double ret = 0. ;
+        double w = 0 ;
+        if( caches[realCacheID].size() == 0)
+           return ret ;
+
+        std::map<std::string, double> emptymap ;
+
+        for ( size_t i = 0 ; i < caches[realCacheID].size() ; i++ ) {
+            std::vector<Point> inter = source->intersection( dynamic_cast<IntegrableEntity *>( getInTree ( caches[realCacheID][i] ) ) ) ;
+            if(source->intersects( dynamic_cast<IntegrableEntity *>( getInTree ( caches[realCacheID][i] ) ) ) && inter.size() == 2)
+            {
+                Segment local(inter[0], inter[1]) ;
+                if( dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState()))
+                {
+                    if(dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables * >(&static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState())->has(f))
+                    {
+                        ret += dynamic_cast<GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & >(static_cast<ETYPE *> ( getInTree ( caches[realCacheID][i] ) )->getState()).get(f, emptymap) * local.norm() ;
+                        w += local.norm() ;
+                    }
+                }
+            }
+        }
+        if(w > POINT_TOLERANCE)
+            return ret/w ;
+        return 0. ;
+    }
+
     virtual double getArea( int cacheID)
     {
         double a = 0 ;

@@ -144,6 +144,7 @@ MatrixInclusionComposite::MatrixInclusionComposite( Phase mat, Phase inc ) : Com
 
 }
 
+
 void MatrixInclusionComposite::apply()
 {
     this->getStrainConcentrationTensor() ;
@@ -474,6 +475,22 @@ MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( DelaunayTriangle *
         grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i] ) ) ;
         grains[i].volume /= 1. - matrix.volume ;
     }
+
+}
+
+MatrixMultiInclusionComposite::MatrixMultiInclusionComposite( Phase p, std::vector<Phase> inc ) : Composite( p )
+{
+
+	matrix = p ;
+	
+	for(size_t i = 0 ; i < inc.size() ; i++)
+		inclusions.push_back( inc[i]) ;
+
+	for( size_t i = 0 ; i < inclusions.size() ; i++ )
+	{
+		grains.push_back( MoriTanakaMatrixInclusionComposite( matrix, inclusions[i] ) ) ;
+		grains[i].volume /= 1. - matrix.volume ;
+	}
 
 }
 

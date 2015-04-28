@@ -111,6 +111,7 @@ public:
 public:
     MatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc) ;
     MatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
+    MatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc ) ;
 
     virtual void apply() ;
     virtual void getStrainLocalizationTensor() ;
@@ -123,6 +124,7 @@ public:
     VoigtMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
     VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTriangle *> tri) ;
     VoigtMatrixMultiInclusionComposite(std::vector<DelaunayTetrahedron *> tet) ;
+    VoigtMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc ) : MatrixMultiInclusionComposite(m, inc) { } ;
 
     virtual void getStrainLocalizationTensor() ;
 };
@@ -132,6 +134,7 @@ struct ReussMatrixMultiInclusionComposite : public MatrixMultiInclusionComposite
 public:
     ReussMatrixMultiInclusionComposite(DelaunayTriangle * tri, std::vector<Feature *> inc) ;
     ReussMatrixMultiInclusionComposite(DelaunayTetrahedron * tet, std::vector<Feature *> inc) ;
+    ReussMatrixMultiInclusionComposite( Phase m, std::vector<Phase> inc )  : MatrixMultiInclusionComposite(m, inc) { } ;
 
     virtual void getStrainLocalizationTensor() ;
 };

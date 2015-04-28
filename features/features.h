@@ -627,6 +627,7 @@ public:
 // 	Vector getAverageField( FieldType f, const std::vector<DelaunayTetrahedron *> & tet) ;
 
     Vector getAverageFieldOnBoundary( BoundingBoxPosition position, FieldType f, int dummy = 0, double t = 0) ;
+    double getAverageFieldOnBoundary( BoundingBoxPosition position, std::string f, int dummy = 0, double t = 0) ;
 
     std::pair<Vector, Vector> getFieldMinMax ( FieldType f, int grid = -1, double t = 0 ) ;
     std::pair<Vector, Vector> getFieldMinMax ( FieldType f, const std::vector<DelaunayTriangle *> & tri ) ;
