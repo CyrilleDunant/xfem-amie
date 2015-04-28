@@ -711,13 +711,6 @@ bool Assembly::make_final()
         }
 
         std::cerr << " ...done" << std::endl ;
-//         int i = 0 ;
-//         while(element2d[i]->getBehaviour() && element2d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-//             i++ ;
-//         getMatrix().stride =  element2d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-        
-//         std::cout << "##" << getMatrix().stride << std::endl ;
-//         exit(0) ;
 
         setBoundaryConditions() ;
         checkZeroLines() ;
@@ -899,27 +892,9 @@ bool Assembly::make_final()
                     }
                 }
             }
-
-//             dmax = std::abs(test.array()).max() ;
-//             if(dmax > POINT_TOLERANCE)
-//             {
-//                 for(size_t j = 0 ; j < test.numRows() ; j++)
-//                 {
-//                     for(size_t k = j+1 ; k < test.numCols() ; k++)
-//                     {
-//                         vmax = std::abs(test[j][k]-test[k][j]) ;
-//                         symmetric = symmetric && (vmax/dmax < 1e-12) ;
-// 
-//                     }
-//                 }
-//             }
 			element3d[i]->clearElementaryMatrix() ;
         }
 
-        int i = 0 ;
-        while(element3d[i]->getBehaviour() && element3d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-            i++ ;
-        getMatrix().stride =   element3d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
         std::cerr << " ...done" << std::endl ;
 
         setBoundaryConditions() ;

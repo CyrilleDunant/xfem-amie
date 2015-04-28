@@ -192,7 +192,7 @@ int main ( int argc, char *argv[] )
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
                         Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
                         Function("t 24 - 48 /")    *f_range("t", 24, 48) ;
-    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,loadfunc) ;
+    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP,1e-6) ;
     F.addBoundaryCondition ( loadr );
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT ) ) ;

@@ -2411,7 +2411,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
     {
         if(getState().JinvCache)
             delete getState().JinvCache ;
-        getState().JinvCache = new Matrix ( ndofs,ndofs) ;
+        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ;
         getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
     }
     
@@ -2535,7 +2535,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
     {
         if(getState().JinvCache)
             delete getState().JinvCache ;
-        getState().JinvCache = new Matrix ( ndofs,ndofs) ;
+        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ; ;
         getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
     }
     

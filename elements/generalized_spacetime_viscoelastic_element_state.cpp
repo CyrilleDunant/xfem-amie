@@ -588,7 +588,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
         {
             if(JinvCache)
                 delete JinvCache ;
-            JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
             parent->getInverseJacobianMatrix ( gp.gaussPoints[i].first, (*JinvCache) ) ;
         }
 
@@ -1146,7 +1146,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2] ;
@@ -1210,7 +1210,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
@@ -1324,7 +1324,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -1415,7 +1415,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -1531,7 +1531,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
@@ -1574,7 +1574,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
@@ -1638,7 +1638,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -1698,7 +1698,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -1829,7 +1829,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             x_xi  = dx[ 0 ] ;
@@ -1899,7 +1899,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
@@ -1997,7 +1997,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -2072,7 +2072,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
 
@@ -2147,7 +2147,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             
@@ -2193,7 +2193,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
@@ -2263,7 +2263,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -2323,7 +2323,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             for ( int i = 0 ; i < blocks ; i++ )
@@ -2878,7 +2878,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( 2,2) ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions()+(parent->timePlanes()>1)) ;
                 parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
             }
             parent->getInverseJacobianMatrix( p_, (*JinvCache) ) ;
