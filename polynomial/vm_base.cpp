@@ -157,7 +157,7 @@ double VirtualMachine::eval(const Function &f, const double x, const double y, c
         case TOKEN_OPERATION_NEGATIVITY:
         {
             double s0 = sign(REG_A) ;
-            s0 < 0 ? REG_C = 1 : REG_C = 0 ;
+            s0 <= 0 ? REG_C = 1 : REG_C = 0 ;
 	    break ;
         }
         case TOKEN_OPERATION_LOG:
