@@ -711,10 +711,13 @@ bool Assembly::make_final()
         }
 
         std::cerr << " ...done" << std::endl ;
-        int i = 0 ;
-        while(element2d[i]->getBehaviour() && element2d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
-            i++ ;
-        getMatrix().stride =  element2d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+//         int i = 0 ;
+//         while(element2d[i]->getBehaviour() && element2d[i]->getBehaviour()->type == VOID_BEHAVIOUR)
+//             i++ ;
+//         getMatrix().stride =  element2d[i]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
+        
+//         std::cout << "##" << getMatrix().stride << std::endl ;
+//         exit(0) ;
 
         setBoundaryConditions() ;
         checkZeroLines() ;

@@ -435,8 +435,8 @@ typedef enum
 typedef enum
 {
     SPACE_ONE_DIMENSIONAL = 1,
-    SPACE_TWO_DIMENSIONAL,
-    SPACE_THREE_DIMENSIONAL
+    SPACE_TWO_DIMENSIONAL = 2,
+    SPACE_THREE_DIMENSIONAL = 3
 } SpaceDimensionality ;
 
 

@@ -1916,7 +1916,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
                 Tensor tp(getBoundingPoint(i), var) ;
                 for(int b = 0 ; b < 3 ; b++)
                 {
-                    tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 10*default_derivation_delta) ;
+                    tn2(a,b) = vm.ddeval( getShapeFunction(i), var[a], var[b], p, 10.*default_derivation_delta) ;
                     tj1(a,b) += tn1(a) * tp(b) ;
                     for(int c = 0 ; c < 3 ; c++)
                     {
@@ -2561,15 +2561,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
     }
     else
     {
-        /* 		if(!isMoved() && !cachedJinv.empty())
-         		{
-         			if(ret.isNull()  || ret.size() != 9)
-         				ret.resize(3,3) ;
-         			ret.array() = cachedJinv[0].array() ;
-        //			std::cout << ret.numCols() << "\t" << ret.numRows() << std::endl ;
-        //			ret.print() ;
-         			return ;
-         		}*/
 
         if(ret.isNull() || ret.size() != 9)
             ret.resize(3,3) ;
@@ -2621,7 +2612,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 
         invert3x3Matrix(ret) ;
 
-//		ret.print() ;
     }
 }
 
@@ -2868,39 +2858,11 @@ TetrahedralElement::TetrahedralElement(Order order ): moved(false)
     if(order == LINEAR)
     {
 
-
         shapefunc = new std::valarray<Function>(4) ;
-// 		Matrix zero(2,2) ;
-// 		std::valarray<Matrix> xi(zero, 2) ;
-// 		xi[1][0][0] = 1 ;
-// 		std::valarray<Matrix> eta(zero,2) ;
-// 		eta[0][1][0] = 1 ;
-// 		std::valarray<Matrix> zeta(zero,2) ;
-// 		zeta[0][0][1] = 1 ;
-// 		std::valarray<Matrix> f(zero,2) ;
-// 		f[0][0][0] = 1 ;
-// 		f[1][0][0] = -1 ;
-// 		f[0][1][0] = -1 ;
-// 		f[0][0][1] = -1 ;
 
         Function zero("0") ;
         Function one("1") ;
         Function mone("-1") ;
-// 		//0
-// 			(*shapefunc)[0] = Function("y") ;
-// 			(*shapefunc)[0].setNumberOfDerivatives(2) ;
-// 			(*shapefunc)[0].setDerivative( XI, zero) ;
-// 			(*shapefunc)[0].setDerivative( ETA, one) ;
-// 		//1
-// 			(*shapefunc)[1] = Function("1 x - y -") ;
-// 			(*shapefunc)[1].setNumberOfDerivatives(2) ;
-// 			(*shapefunc)[1].setDerivative( XI, mone) ;
-// 			(*shapefunc)[1].setDerivative( ETA, mone) ;
-// 		//2
-// 			(*shapefunc)[2] = Function("x") ;
-// 			(*shapefunc)[2].setNumberOfDerivatives(2) ;
-// 			(*shapefunc)[2].setDerivative( ETA, zero) ;
-// 			(*shapefunc)[2].setDerivative( XI, one) ;
 
         //0
         (*shapefunc)[0] = Function("z") ;
@@ -3516,14 +3478,6 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
 
             Vector coeff = inverse4x4Matrix(S) * v ;
 
-            // 	VirtualMachine vm ;
-
-            // 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.getT())) ;
-            // 	t.print();
-            // 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
-            // 	test.print() ;
-            // 	inLocalCoordinates(test) ;
-            // 	std::cout << std::endl ;
             return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,p.getT());
         }
         else
@@ -3565,14 +3519,6 @@ Point TetrahedralElement::inLocalCoordinates(const Point & p) const
                 time = -1 + 2.*( p.getT()-t0)/(t1-t0) ;
             }
 
-            // 	VirtualMachine vm ;
-
-            // 	Point t = ( Point(1.,0.,0.)*coeff[2] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[0] + Point(0.,0.,0.,p.getT())) ;
-            // 	t.print();
-            // 	Point test = Point(vm.eval(getXTransform(), t), vm.eval(getYTransform(),  t), vm.eval(getZTransform(),  t)) ;
-            // 	test.print() ;
-            // 	inLocalCoordinates(test) ;
-            // 	std::cout << std::endl ;
             return Point(1.,0.,0.)*coeff[0] + Point(0.,1.,0.)*coeff[1] + Point(0.,0.,1.)*coeff[2] + Point(0.,0.,0.,time);
         }
     }

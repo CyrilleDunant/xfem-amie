@@ -422,7 +422,7 @@ target_link_libraries( pore_pressure Amie ${ALL_LINK_FLAGS})
 add_executable( visu examples/main_visu_behavior.cpp )
 target_link_libraries( visu Amie ${ALL_LINK_FLAGS})
 
-add_executable( cyrille_test examples/main_cyrille.cpp )
-target_link_libraries( cyrille_test Amie ${ALL_LINK_FLAGS})
+add_executable( tension_visco examples/main_tension_visco.cpp )
+target_link_libraries( tension_visco Amie ${ALL_LINK_FLAGS})
 
 

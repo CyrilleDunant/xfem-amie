@@ -689,7 +689,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
             
@@ -753,7 +753,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
 
@@ -842,7 +842,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
@@ -886,7 +886,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
@@ -1318,7 +1318,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
             
@@ -1359,7 +1359,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             {
                 if(JinvCache)
                     delete JinvCache ;
-                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                JinvCache = new Matrix ( parent->getBehaviour()->getNumberOfDegreesOfFreedom(),parent->getBehaviour()->getNumberOfDegreesOfFreedom()) ;
                 parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
             }
             ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
