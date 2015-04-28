@@ -26,7 +26,7 @@ std::pair< Vector, Vector > FiberBasedIsotropicLinearDamage::computeDamageIncrem
     return std::make_pair(state, Vector(1., 1)) ;
 }
 
-void FiberBasedIsotropicLinearDamage::computeDelta(const ElementState & s)
+void FiberBasedIsotropicLinearDamage::computeDelta(ElementState & s)
 {
     delta = 1.-getState()[0] ;
 }

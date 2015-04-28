@@ -62,7 +62,7 @@ public:
         return new FractionLinearDamage(remnant, phi) ;
     }
 
-    virtual void computeDelta(const ElementState & s) ;
+    virtual void computeDelta(ElementState & s) ;
 
 };
 

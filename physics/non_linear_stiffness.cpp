@@ -246,7 +246,7 @@ void NonLinearStiffness::apply(const Function & p_i, const Function & p_j, const
 
 }
 
-void NonLinearStiffness::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const
+void NonLinearStiffness::getForces(ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) 
 {
     Vector stress(0., gp.gaussPoints.size()*(3+3*(num_dof == 3))) ;
     s.getField( REAL_STRESS_FIELD, gp.gaussPoints, stress, true) ;

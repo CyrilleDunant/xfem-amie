@@ -38,7 +38,7 @@ struct NonLinearStiffness : public NonLinearForm
 
     virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 
-    virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+    virtual void getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v)  ;
 
     virtual void setParent(IntegrableEntity * p) ;
 

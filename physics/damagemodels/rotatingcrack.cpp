@@ -294,7 +294,7 @@ Matrix RotatingCrack::apply ( const Matrix &m, const Point & p , const Integrabl
 }
 
 
-void  RotatingCrack::computeDelta ( const ElementState &s )
+void  RotatingCrack::computeDelta ( ElementState &s )
 {
 
     Vector range ( 1., 4 ) ;
@@ -596,7 +596,7 @@ Matrix FixedCrack::apply ( const Matrix & m, const Point & p, const IntegrableEn
 }
 
 
-void  FixedCrack::computeDelta ( const ElementState &s )
+void  FixedCrack::computeDelta ( ElementState &s )
 {
     Vector range ( 1., 4 ) ;
 

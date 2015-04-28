@@ -59,7 +59,7 @@ std::pair< Vector, Vector > FractionLinearDamage::computeDamageIncrement( Amie::
 // 	std::cout << state.sum() << std::flush ;
 }
 
-void FractionLinearDamage::computeDelta(const ElementState & s)
+void FractionLinearDamage::computeDelta(ElementState & s)
 {
     Vector ret= state;
 

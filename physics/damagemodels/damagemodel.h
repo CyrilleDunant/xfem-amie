@@ -159,7 +159,7 @@ public:
     virtual double getAngleShift() const {
         return 0. ;
     }
-    virtual void computeDelta(const ElementState &s) = 0 ;
+    virtual void computeDelta(ElementState &s) = 0 ;
 
     /** \brief Return a vector of values describing the damage stage of the material
      *
@@ -288,7 +288,7 @@ public:
         return new NullDamage() ;
     }
 
-    virtual void computeDelta(const ElementState & s) {} ;
+    virtual void computeDelta(ElementState & s) {} ;
 
 // 	virtual FunctionMatrix apply(const Matrix & m) const
 // 	{

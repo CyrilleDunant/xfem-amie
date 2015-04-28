@@ -235,25 +235,6 @@ void IntegrableEntity::applyBoundaryCondition ( Assembly *a )
             }
         }
 
-// 		start = 0 ;
-// 		if(timePlanes() > 1)
-// 		{
-// 			start = getEnrichmentFunctions().size() - getEnrichmentFunctions().size()/timePlanes() ;
-// 		}
-// 		for( size_t i = start ; i < getEnrichmentFunctions().size() ; i++ )
-// 		{
-// //			std::cout << getGaussPoints().gaussPoints.size() << std::endl ;
-// 			std::vector<BoundaryCondition *> boundaryConditionCachetmp = getBehaviour()->getBoundaryConditions( getState(), getEnrichmentFunction( i ).getDofID(),  getEnrichmentFunction( i ), getGaussPoints(), Jinv ) ;
-// 			for(size_t j = 0 ; j < boundaryConditionCachetmp.size() ; j++)
-// 			{
-// 				if( get2DMesh() )
-// 					boundaryConditionCachetmp[j]->apply( a, get2DMesh() ) ;
-// 				else
-// 					boundaryConditionCachetmp[j]->apply( a, get3DMesh() ) ;
-// 				delete boundaryConditionCachetmp[j] ;
-// 			}
-// 		}
-
     }
 }
 
@@ -335,6 +316,7 @@ Vector &ElementState::getEnrichedDisplacements()
 
 ElementState &ElementState::operator = ( ElementState &s )
 {
+    JinvCache = nullptr ;
     displacements.resize ( s.getDisplacements().size() ) ;
     displacements = s.getDisplacements() ;
     enrichedDisplacements.resize ( s.getEnrichedDisplacements().size() ) ;
@@ -360,6 +342,7 @@ ElementState &ElementState::operator = ( ElementState &s )
 ElementState::ElementState ( ElementState &s )
 {
     lock = false ;
+    JinvCache = nullptr ;
     strainAtGaussPoints.resize ( 0 ) ;
     stressAtGaussPoints.resize ( 0 ) ;
     pstrainAtGaussPoints.resize ( 0 ) ;
@@ -387,40 +370,10 @@ ElementState::ElementState ( ElementState &s )
     pstressAtGaussPointsSet = false ;
 }
 
-Vector ElementState::getAverageDisplacement ( VirtualMachine * vm ) const
-{
-    bool cleanup = !vm ;
-    if ( !vm )
-    {
-        vm = new VirtualMachine() ;
-    }
-    FunctionMatrix disps = getDisplacementFunction() ;
-    Matrix ret = vm->ieval ( disps, getParent() ) ;
-    Vector v ( ret.numRows() ) ;
-
-    if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        for ( size_t i = 0 ;  i < v.size() ; i++ )
-        {
-            v[i] = ret[i][0] / parent->area() ;
-        }
-    }
-    else
-    {
-        for ( size_t i = 0 ;  i < v.size() ; i++ )
-        {
-            v[i] = ret[i][0] / parent->volume() ;
-        }
-    }
-    if ( cleanup )
-    {
-        delete vm ;
-    }
-    return v ;
-}
 
 ElementState::ElementState ( IntegrableEntity *s )
 {
+    JinvCache = nullptr ;
     mesh2d = nullptr ; //s->get2DMesh() ;
     mesh3d = nullptr ; //s->get3DMesh() ;
     parent = s ;
@@ -582,7 +535,7 @@ Vector toPrincipal ( const Vector & stressOrStrain, CompositionType t )
 
 }
 
-void ElementState::getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm ) const
+void ElementState::getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -611,7 +564,7 @@ void ElementState::getExternalField ( Vector & nodalValues, int externaldofs, co
     }
 }
 
-void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret, VirtualMachine * vm ) const
+void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret, VirtualMachine * vm ) 
 {
     for ( size_t p = 0 ; p < parent->getGaussPoints().gaussPoints.size() ; p++ )
     {
@@ -619,7 +572,7 @@ void ElementState::getExternalFieldAtGaussPoints ( Vector & nodalValues, int ext
     }
 }
 
-void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int )  const
+void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -732,11 +685,17 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 y_eta += f_eta * enrichedDisplacements[j * 2 + 1] ;
             }
 
-            Matrix Jinv ( 2,2 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-            ret[2] = ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
+            
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
+            ret[2] = ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 3 )
         {
@@ -790,32 +749,38 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 z_zeta += f_zeta * z ;
             }
 
-            Matrix Jinv ( 3, 3 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-            ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
 
-            ret[3] = ( ( y_xi ) * Jinv[2][0] +
-                       ( y_eta ) * Jinv[2][1] +
-                       ( y_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[1][0] +
-                       ( z_eta ) * Jinv[1][1] +
-                       ( z_zeta ) * Jinv[1][2] );
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+            ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-            ret[4] = ( ( x_xi ) * Jinv[2][0] +
-                       ( x_eta ) * Jinv[2][1] +
-                       ( x_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[0][0] +
-                       ( z_eta ) * Jinv[0][1] +
-                       ( z_zeta ) * Jinv[0][2] );
+            ret[3] = ( ( y_xi ) * (*JinvCache)[2][0] +
+                       ( y_eta ) * (*JinvCache)[2][1] +
+                       ( y_zeta ) * (*JinvCache)[2][2] +
+                       ( z_xi ) * (*JinvCache)[1][0] +
+                       ( z_eta ) * (*JinvCache)[1][1] +
+                       ( z_zeta ) * (*JinvCache)[1][2] );
 
-            ret[5] = ( ( y_xi )   * Jinv[0][0] +
-                       ( y_eta )  * Jinv[0][1] +
-                       ( y_zeta ) * Jinv[0][2] +
-                       ( x_xi )   * Jinv[1][0] +
-                       ( x_eta )  * Jinv[1][1] +
-                       ( x_zeta ) * Jinv[1][2] );
+            ret[4] = ( ( x_xi ) * (*JinvCache)[2][0] +
+                       ( x_eta ) * (*JinvCache)[2][1] +
+                       ( x_zeta ) * (*JinvCache)[2][2] +
+                       ( z_xi ) * (*JinvCache)[0][0] +
+                       ( z_eta ) * (*JinvCache)[0][1] +
+                       ( z_zeta ) * (*JinvCache)[0][2] );
+
+            ret[5] = ( ( y_xi )   * (*JinvCache)[0][0] +
+                       ( y_eta )  * (*JinvCache)[0][1] +
+                       ( y_zeta ) * (*JinvCache)[0][2] +
+                       ( x_xi )   * (*JinvCache)[1][0] +
+                       ( x_eta )  * (*JinvCache)[1][1] +
+                       ( x_zeta ) * (*JinvCache)[1][2] );
         }
         if ( cleanup )
         {
@@ -873,11 +838,16 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 }
             }
 
-            Matrix Jinv ( 2,2 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-            ret[2] = ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
+            ret[2] = ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
         {
@@ -912,32 +882,37 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
             }
 
 
-            Matrix Jinv ( 3,3 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-            ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+            ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-            ret[3] = ( ( y_xi ) * Jinv[2][0] +
-                       ( y_eta ) * Jinv[2][1] +
-                       ( y_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[1][0] +
-                       ( z_eta ) * Jinv[1][1] +
-                       ( z_zeta ) * Jinv[1][2] );
+            ret[3] = ( ( y_xi ) * (*JinvCache)[2][0] +
+                       ( y_eta ) * (*JinvCache)[2][1] +
+                       ( y_zeta ) * (*JinvCache)[2][2] +
+                       ( z_xi ) * (*JinvCache)[1][0] +
+                       ( z_eta ) * (*JinvCache)[1][1] +
+                       ( z_zeta ) * (*JinvCache)[1][2] );
 
-            ret[4] = ( ( x_xi ) * Jinv[2][0] +
-                       ( x_eta ) * Jinv[2][1] +
-                       ( x_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[0][0] +
-                       ( z_eta ) * Jinv[0][1] +
-                       ( z_zeta ) * Jinv[0][2] );
+            ret[4] = ( ( x_xi ) * (*JinvCache)[2][0] +
+                       ( x_eta ) * (*JinvCache)[2][1] +
+                       ( x_zeta ) * (*JinvCache)[2][2] +
+                       ( z_xi ) * (*JinvCache)[0][0] +
+                       ( z_eta ) * (*JinvCache)[0][1] +
+                       ( z_zeta ) * (*JinvCache)[0][2] );
 
-            ret[5] = ( ( y_xi )   * Jinv[0][0] +
-                       ( y_eta )  * Jinv[0][1] +
-                       ( y_zeta ) * Jinv[0][2] +
-                       ( x_xi )   * Jinv[1][0] +
-                       ( x_eta )  * Jinv[1][1] +
-                       ( x_zeta ) * Jinv[1][2] );
+            ret[5] = ( ( y_xi )   * (*JinvCache)[0][0] +
+                       ( y_eta )  * (*JinvCache)[0][1] +
+                       ( y_zeta ) * (*JinvCache)[0][2] +
+                       ( x_xi )   * (*JinvCache)[1][0] +
+                       ( x_eta )  * (*JinvCache)[1][1] +
+                       ( x_zeta ) * (*JinvCache)[1][2] );
         }
         if ( cleanup )
         {
@@ -1339,10 +1314,16 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
 
             }
 
-            Matrix Jinv ( 2, 2 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-            ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1] ;
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
+            
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+            ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1] ;
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL && parent->getBehaviour()->getNumberOfDegreesOfFreedom() == 1 )
         {
@@ -1374,11 +1355,16 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
                 x_zeta += f_zeta * x ;
             }
 
-            Matrix Jinv ( 3, 3 ) ;
-            parent->getInverseJacobianMatrix ( *p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-            ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
-            ret[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( *p_, (*JinvCache) ) ;
+            }
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+            ret[1] = ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( x_zeta ) * (*JinvCache)[1][2];
+            ret[2] = ( x_xi ) * (*JinvCache)[2][0] + ( x_eta ) * (*JinvCache)[2][1]  + ( x_zeta ) * (*JinvCache)[2][2];
         }
         if ( cleanup )
         {
@@ -1403,7 +1389,7 @@ void ElementState::getField ( FieldType f, const Point & p, Vector & ret, bool l
     }
 }
 
-void ElementState::getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm, int )  const
+void ElementState::getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -1425,7 +1411,7 @@ void ElementState::getField ( FieldType f, const PointArray & p, Vector & ret, b
     }
 }
 
-void ElementState::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int )  const
+void ElementState::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -2409,6 +2395,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
         lock = false ;
         return v ;
     }
+    
     if ( f == PRINCIPAL_STRAIN_FIELD && ( f_ == PRINCIPAL_EFFECTIVE_STRESS_FIELD || f == PRINCIPAL_REAL_STRESS_FIELD ) )
     {
         if ( pstrainAtGaussPoints.size() != (parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL?2*gp.gaussPoints.size() :3*gp.gaussPoints.size()) ||
@@ -2504,7 +2491,7 @@ double ElementState::getAverageField ( FieldType f, FieldType f_, Vector & ret, 
 }
 
 
-void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int )  const
+void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -2610,7 +2597,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vecto
     }
 }
 
-void ElementState::getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int )  const
+void ElementState::getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -2637,7 +2624,7 @@ void ElementState::getField ( FieldType f1, FieldType f2, const PointArray & p, 
     }
 }
 
-void ElementState::getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int )  const
+void ElementState::getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )
@@ -2677,258 +2664,6 @@ void ElementState::getFieldAtGaussPoint ( FieldType f1, FieldType f2, size_t p, 
     if ( cleanup )
     {
         delete vm ;
-    }
-}
-
-FunctionMatrix ElementState::getStressFunction ( const Matrix &Jinv , StressCalculationMethod m ) const
-{
-    if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        FunctionMatrix ret ( 2, 2 ) ;
-        FunctionMatrix temp ( 3, 1 ) ;
-
-        Function x_xi ;
-        Function x_eta ;
-        Function y_xi ;
-        Function y_eta ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
-        {
-            x_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 2] ;
-            x_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 2] ;
-            y_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 2 + 1] ;
-            y_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 2 + 1] ;
-        }
-
-        temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] ;
-        temp[2][0] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5 ;
-        temp[1][0] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] ;
-
-        Matrix cg ( parent->getBehaviour()->getTensor ( getParent()->getCenter(), parent ) ) ;
-
-        if ( m == EFFECTIVE_STRESS )
-        {
-            temp *=  parent->getBehaviour()->param;
-        }
-        else
-        {
-            temp *= cg;
-        }
-
-        ret[0][0] = temp[0][0];
-        ret[0][1] = temp[2][0];
-        ret[1][0] = temp[2][0];
-        ret[1][1] = temp[1][0];
-
-        return ret ;
-    }
-    else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-    {
-        FunctionMatrix ret ( 3, 3 ) ;
-        FunctionMatrix temp ( 6, 1 ) ;
-
-        Function x_xi ;
-        Function x_eta ;
-        Function x_zeta ;
-        Function y_xi ;
-        Function y_eta ;
-        Function y_zeta ;
-        Function z_xi ;
-        Function z_eta ;
-        Function z_zeta ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
-        {
-            x_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3] ;
-            x_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3] ;
-            x_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3] ;
-            y_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3 + 1] ;
-            y_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3 + 1] ;
-            y_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3 + 1] ;
-            z_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3 + 2] ;
-            z_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3 + 2] ;
-            z_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3 + 2] ;
-        }
-
-        temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] + x_zeta * Jinv[0][2];
-        temp[1][0] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-        temp[2][0] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-        temp[3][0] = ( ( y_xi ) * Jinv[2][0] +
-                       ( y_eta ) * Jinv[2][1] +
-                       ( y_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[1][0] +
-                       ( z_eta ) * Jinv[1][1] +
-                       ( z_zeta ) * Jinv[1][2] ) * .5;
-        temp[4][0] = ( ( x_xi ) * Jinv[2][0] +
-                       ( x_eta ) * Jinv[2][1] +
-                       ( x_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[0][0] +
-                       ( z_eta ) * Jinv[0][1] +
-                       ( z_zeta ) * Jinv[0][2] ) * .5;
-        temp[5][0] = ( ( y_xi )  * Jinv[0][0] +
-                       ( y_eta )  * Jinv[0][1] +
-                       ( y_zeta ) * Jinv[0][2] +
-                       ( x_xi )   * Jinv[1][0] +
-                       ( x_eta )  * Jinv[1][1] +
-                       ( x_zeta ) * Jinv[1][2] ) * .5;
-
-        Matrix cg ( parent->getBehaviour()->getTensor ( getParent()->getCenter(), parent ) ) ;
-
-        if ( m == EFFECTIVE_STRESS )
-        {
-            temp *=parent->getBehaviour()->param ;
-        }
-        else
-        {
-            temp *=cg ;
-        }
-
-        ret[0][0] = temp[0][0] ;
-        ret[0][1] = temp[5][0] ;
-        ret[0][2] = temp[4][0] ;
-        ret[1][0] = temp[5][0] ;
-        ret[1][1] = temp[1][0] ;
-        ret[1][2] = temp[3][0] ;
-        ret[2][0] = temp[4][0] ;
-        ret[2][1] = temp[3][0] ;
-        ret[2][2] = temp[2][0] ;
-
-        return ret ;
-    }
-
-}
-
-FunctionMatrix ElementState::getStrainFunction ( const Matrix &Jinv ) const
-{
-    if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        FunctionMatrix ret ( 2, 2 ) ;
-
-        Function x_xi ;
-        Function x_eta ;
-        Function y_xi ;
-        Function y_eta ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
-        {
-            x_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 2] ;
-            x_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 2] ;
-            y_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 2 + 1] ;
-            y_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 2 + 1] ;
-        }
-
-        ret[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] ;
-        ret[0][1] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5;
-        ret[1][0] = ( x_xi * Jinv[1][0] + x_eta * Jinv[1][1] + y_xi * Jinv[0][0] + y_eta * Jinv[0][1] ) * 0.5;
-        ret[1][1] = y_xi * Jinv[1][0] + y_eta * Jinv[1][1] ;
-
-        return ret ;
-    }
-    else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-    {
-        FunctionMatrix ret ( 3, 3 ) ;
-        FunctionMatrix temp ( 6, 1 ) ;
-
-        Function x_xi ;
-        Function x_eta ;
-        Function x_zeta ;
-        Function y_xi ;
-        Function y_eta ;
-        Function y_zeta ;
-        Function z_xi ;
-        Function z_eta ;
-        Function z_zeta ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
-        {
-            x_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3] ;
-            x_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3] ;
-            x_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3] ;
-            y_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3 + 1] ;
-            y_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3 + 1] ;
-            y_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3 + 1] ;
-            z_xi += parent->getShapeFunction ( j ).d ( XI ) * displacements[j * 3 + 2] ;
-            z_eta += parent->getShapeFunction ( j ).d ( ETA ) * displacements[j * 3 + 2] ;
-            z_zeta += parent->getShapeFunction ( j ).d ( ZETA ) * displacements[j * 3 + 2] ;
-        }
-
-        temp[0][0] = x_xi * Jinv[0][0] + x_eta * Jinv[0][1] + x_zeta * Jinv[0][2];
-        temp[1][0] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-        temp[2][0] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
-        temp[3][0] = ( ( y_xi ) * Jinv[2][0] +
-                       ( y_eta ) * Jinv[2][1] +
-                       ( y_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[1][0] +
-                       ( z_eta ) * Jinv[1][1] +
-                       ( z_zeta ) * Jinv[1][2] ) * .5;
-        temp[4][0] = ( ( x_xi ) * Jinv[2][0] +
-                       ( x_eta ) * Jinv[2][1] +
-                       ( x_zeta ) * Jinv[2][2] +
-                       ( z_xi ) * Jinv[0][0] +
-                       ( z_eta ) * Jinv[0][1] +
-                       ( z_zeta ) * Jinv[0][2] ) * .5;
-        temp[5][0] = ( ( y_xi )  * Jinv[0][0] +
-                       ( y_eta )  * Jinv[0][1] +
-                       ( y_zeta ) * Jinv[0][2] +
-                       ( x_xi )   * Jinv[1][0] +
-                       ( x_eta )  * Jinv[1][1] +
-                       ( x_zeta ) * Jinv[1][2] ) * .5;
-
-
-        ret[0][0] = temp[0][0] ;
-        ret[0][1] = temp[5][0] ;
-        ret[0][2] = temp[4][0] ;
-        ret[1][0] = temp[5][0] ;
-        ret[1][1] = temp[1][0] ;
-        ret[1][2] = temp[3][0] ;
-        ret[2][0] = temp[4][0] ;
-        ret[2][1] = temp[3][0] ;
-        ret[2][2] = temp[2][0] ;
-
-        return ret ;
-    }
-
-}
-
-FunctionMatrix ElementState::getDisplacementFunction() const
-{
-    if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
-    {
-        FunctionMatrix ret ( 2, 1 ) ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 2; j++ )
-        {
-            ret[0][0] += parent->getShapeFunction ( j ) * displacements[j * 2] ;
-            ret[1][0] += parent->getShapeFunction ( j ) * displacements[j * 2 + 1] ;
-        }
-
-        for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
-        {
-            ret[0][0] += parent->getEnrichmentFunction ( j ) * enrichedDisplacements[j * 2] ;
-            ret[1][0] += parent->getEnrichmentFunction ( j ) * enrichedDisplacements[j * 2 + 1] ;
-        }
-
-        return ret ;
-    }
-    else     //if (parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL)
-    {
-        FunctionMatrix ret ( 3, 1 ) ;
-
-        for ( size_t j = 0 ; j < parent->getBoundingPoints().size() &&  j < displacements.size() * 3; j++ )
-        {
-            ret[0][0] += parent->getShapeFunction ( j ) * displacements[j * 3] ;
-            ret[1][0] += parent->getShapeFunction ( j ) * displacements[j * 3 + 1] ;
-            ret[2][0] += parent->getShapeFunction ( j ) * displacements[j * 3 + 2] ;
-        }
-
-        for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 3; j++ )
-        {
-            ret[0][0] += parent->getEnrichmentFunction ( j ) * enrichedDisplacements[j * 3] ;
-            ret[1][0] += parent->getEnrichmentFunction ( j ) * enrichedDisplacements[j * 3 + 1] ;
-            ret[2][0] += parent->getEnrichmentFunction ( j ) * enrichedDisplacements[j * 3 + 2] ;
-        }
-
-        return ret ;
     }
 }
 
@@ -3346,7 +3081,7 @@ ElementStateWithInternalVariables & ElementStateWithInternalVariables::operator 
     return *this ;
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int i ) const
+void ElementStateWithInternalVariables::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm, int i ) 
 {
     if ( f != INTERNAL_VARIABLE_FIELD )
     {
@@ -3354,7 +3089,7 @@ void ElementStateWithInternalVariables::getField ( FieldType f, const Point & p,
     }
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm, int i ) const
+void ElementStateWithInternalVariables::getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm, int i ) 
 {
     if ( f != INTERNAL_VARIABLE_FIELD )
     {
@@ -3362,7 +3097,7 @@ void ElementStateWithInternalVariables::getField ( FieldType f, const PointArray
     }
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int i ) const
+void ElementStateWithInternalVariables::getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm, int i ) 
 {
     if ( f != INTERNAL_VARIABLE_FIELD )
     {
@@ -3391,7 +3126,7 @@ void ElementStateWithInternalVariables::getFieldAtGaussPoint ( FieldType f, size
     }
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) const
+void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) 
 {
     if ( f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD )
     {
@@ -3399,7 +3134,7 @@ void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, c
     }
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const PointArray & p,  Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) const
+void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const PointArray & p,  Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) 
 {
     if ( f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD )
     {
@@ -3407,7 +3142,7 @@ void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, c
     }
 }
 
-void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p,  Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) const
+void ElementStateWithInternalVariables::getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p,  Vector & ret1, Vector & ret2, bool local, VirtualMachine *vm, int i, int j ) 
 {
     if ( f1 != INTERNAL_VARIABLE_FIELD && f2 != INTERNAL_VARIABLE_FIELD )
     {

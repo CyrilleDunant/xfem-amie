@@ -60,7 +60,7 @@ public:
         return new LinearDamage() ;
     }
 
-    virtual void computeDelta(const ElementState & s) ;
+    virtual void computeDelta(ElementState & s) ;
 
 };
 

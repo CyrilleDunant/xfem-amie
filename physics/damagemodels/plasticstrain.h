@@ -57,7 +57,7 @@ public:
      * @param s ElementState passed as a parameter
      */
     virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
-    virtual void computeDelta(const ElementState & s) ;
+    virtual void computeDelta(ElementState & s) ;
     virtual double getAngleShift() const ;
 
     /** \brief compute the new stifness matrix after damage

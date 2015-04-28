@@ -45,7 +45,7 @@ public:
      */
     virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
-    virtual void computeDelta(const ElementState & s) ;
+    virtual void computeDelta(ElementState & s) ;
     /** \brief compute the new stifness matrix after damage
      *
      * \f$ K' = K(1-d) \f$

@@ -844,7 +844,6 @@ public:
         Vector first ;
         Vector strain ;
         Vector stress ;
-        Vector strainrate ;
         Vector buffer ;
 
         bool spaceTime = e->getOrder() >= CONSTANT_TIME_LINEAR ;
@@ -971,7 +970,6 @@ public:
         Vector second ;
         Vector strain ;
         Vector stress ;
-        Vector strainrate ;
         Vector buffer ;
         int tsize = 3 ;
         int psize = 2 ;

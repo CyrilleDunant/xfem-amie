@@ -60,7 +60,7 @@ public:
 
 	virtual ~RotatingCrack();
 	virtual void scale(double s) { factor = s ;} ;
-	virtual void computeDelta(const ElementState &s) ;
+	virtual void computeDelta( ElementState &s) ;
 
 	/** \brief Increment the damage
 	 * 
@@ -126,7 +126,7 @@ public:
 
 	virtual ~FixedCrack();
 	virtual void scale(double s) { factor = s ;} ;
-	virtual void computeDelta(const ElementState &s) ;
+	virtual void computeDelta(ElementState &s) ;
 
 	/** \brief Increment the damage
 	 * 

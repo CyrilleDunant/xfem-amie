@@ -82,7 +82,7 @@ public:
 	
 	virtual bool hasInducedMatrix() const ;
 	
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
+	virtual void getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v)  ;
 
 	virtual void step(double timestep, ElementState & currentState) ;
 
@@ -108,7 +108,7 @@ struct ViscoElasticity: public LinearForm
 	virtual void apply(const Function & p_i, const Function & p_j, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Matrix & ret, VirtualMachine * vm) const;
 	/** \todo remove usage of previousState. complement state instead*/
 	virtual void step(double timestep, ElementState & currentState);
-	virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const;
+	virtual void getForces(ElementState& s, const Function& p_i, const Amie::GaussPointArray& gp, const std::valarray< Amie::Matrix >& Jinv, Vector& f) ;
 	
 	virtual bool hasInducedForces();
 	

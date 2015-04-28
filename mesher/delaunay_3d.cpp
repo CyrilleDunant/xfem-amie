@@ -2695,9 +2695,15 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getElementaryMatrix
         getSubTriangulatedGaussPoints() ;
     }
 
-    Matrix J(ndofs, ndofs) ;
-    getInverseJacobianMatrix(Point( 1./25.,1./25.,1./25.), J ) ;
-    std::valarray<Matrix> Jinv(J,  getGaussPoints().gaussPoints.size()) ;
+    if(!getState().JinvCache ||isMoved())
+    {
+        if(getState().JinvCache)
+            delete getState().JinvCache ;
+        getState().JinvCache = new Matrix ( spaceDimensions()+(timePlanes()>1),spaceDimensions() +(timePlanes()>1)) ;
+        getInverseJacobianMatrix ( Point( .25,.25,.25), (*getState().JinvCache) ) ;
+    }
+    
+    std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
     if(moved)
     {
         for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
@@ -2831,21 +2837,23 @@ std::valarray<std::valarray<Matrix> > & DelaunayTetrahedron::getViscousElementar
         getSubTriangulatedGaussPoints() ;
     }
 
-    std::valarray<Matrix> Jinv( Matrix( 3, 3 ),  getGaussPoints().gaussPoints.size() ) ;
-
-    if( true ) //moved)
+    if(!getState().JinvCache ||isMoved())
     {
-        for( size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++ )
+        if(getState().JinvCache)
+            delete getState().JinvCache ;
+        getState().JinvCache = new Matrix ( spaceDimensions()+(timePlanes()>1),spaceDimensions() +(timePlanes()>1)) ;
+        getInverseJacobianMatrix ( Point( .25,.25,.25), (*getState().JinvCache) ) ;
+    }
+    
+    std::valarray<Matrix> Jinv((*getState().JinvCache),  getGaussPoints().gaussPoints.size()) ;
+    if(moved)
+    {
+        for(size_t i = 0 ; i < getGaussPoints().gaussPoints.size() ;  i++)
         {
-            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i] ) ;
+            getInverseJacobianMatrix( getGaussPoints().gaussPoints[i].first, Jinv[i]) ;
         }
     }
-    else
-    {
-        Matrix J ;
-        getInverseJacobianMatrix( Point( .25, .25, .25 ), J ) ;
-        Jinv.resize( getGaussPoints().gaussPoints.size(), J ) ;
-    }
+    
     bool cleanup = false ;
     
     if(!vm)

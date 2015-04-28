@@ -59,7 +59,7 @@ std::pair< Vector, Vector > LinearDamage::computeDamageIncrement(ElementState &s
 	return std::make_pair(state, ret) ;
 }
 
-void LinearDamage::computeDelta(const ElementState & s)
+void LinearDamage::computeDelta(ElementState & s)
 {
 	Vector ret = state ; 
 	double compressionDamage = 0 ;

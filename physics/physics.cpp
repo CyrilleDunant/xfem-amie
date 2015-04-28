@@ -63,7 +63,7 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 	
 	
-void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const 
+void TwoDCohesiveForces::getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f)  
 {
 
 	
@@ -348,7 +348,7 @@ void ViscoElasticity::step(double timestep, ElementState & currentState)
 	}
 }
 	
-void ViscoElasticity::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const
+void ViscoElasticity::getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) 
 {
 	std::vector<Variable> v ;
 	v.push_back(XI);

@@ -35,7 +35,7 @@ std::pair<Vector, Vector> StrainBrokenIsotropicLinearDamage::computeDamageIncrem
 
 }
 
-void StrainBrokenIsotropicLinearDamage::computeDelta(const ElementState & s)
+void StrainBrokenIsotropicLinearDamage::computeDelta(ElementState & s)
 {
 	Vector ret(1) ; 
 	Vector pstrain(0., s.getParent()->spaceDimensions()) ;

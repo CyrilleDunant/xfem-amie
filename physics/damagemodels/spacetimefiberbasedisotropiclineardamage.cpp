@@ -27,7 +27,7 @@ std::pair< Vector, Vector > SpaceTimeFiberBasedIsotropicLinearDamage::computeDam
     return std::make_pair(state, Vector(1., 1)) ;
 }
 
-void SpaceTimeFiberBasedIsotropicLinearDamage::computeDelta(const ElementState & s)
+void SpaceTimeFiberBasedIsotropicLinearDamage::computeDelta(ElementState & s)
 {
     delta = 1.-getState()[0] ;
 }

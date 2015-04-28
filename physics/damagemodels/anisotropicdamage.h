@@ -41,7 +41,7 @@ public:
 	 */
 	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 	
-	virtual void computeDelta(const ElementState & s) ;
+	virtual void computeDelta(ElementState & s) ;
 
 	/** \brief compute the stiffness matrix from the damage state
 	 * 

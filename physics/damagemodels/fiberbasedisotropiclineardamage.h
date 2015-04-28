@@ -38,7 +38,7 @@ public:
      * @param s ElementState passed as a parameter
      */
     virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
-    virtual void computeDelta(const ElementState & s) ;
+    virtual void computeDelta(ElementState & s) ;
 
     /** \brief Increment the damage from the current state of the element considered
      *

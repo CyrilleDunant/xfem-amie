@@ -58,8 +58,6 @@ Function f_positivity(const Function &f, bool differentiate)
     return ret ;
 }
 
-
-
 Function f_negativity(const Function &f, bool differentiate)
 {
     Function ret = f ;
@@ -100,6 +98,12 @@ Function f_negativity(const Function &f, bool differentiate)
     }
     return ret ;
 }
+
+Function f_range(const Function &f, double min, double max, bool differentiate = false)
+{
+    return f_positivity(f-min, differentiate)*f_negativity(f-max, differentiate) ;
+}
+
 
 Function f_exp(const Function &f)
 {

@@ -64,13 +64,13 @@ class TwoDCohesiveForces : public NonLinearForm
 public:
 
     std::vector<Point> normals ;
-    const IntegrableEntity * source ;
-    const IntegrableEntity * target ;
+    IntegrableEntity * source ;
+    IntegrableEntity * target ;
     double startArea ;
 
     bool active ;
 
-    TwoDCohesiveForces(const IntegrableEntity *s, const IntegrableEntity *t, const SegmentedLine * sl) ;
+    TwoDCohesiveForces(IntegrableEntity *s, IntegrableEntity *t, const SegmentedLine * sl) ;
 
     virtual Form * getCopy() const ;
 
@@ -82,8 +82,8 @@ public:
 
     virtual bool hasInducedMatrix() const ;
 
-    virtual void getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v) const ;
-    std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const;
+    virtual void getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector &v)  ;
+    std::vector<BoundaryCondition * > getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) ;
 
     virtual void step(double timestep, ElementState & currentState) ;
 

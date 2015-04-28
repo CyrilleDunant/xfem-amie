@@ -115,7 +115,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 // 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;
 }
 
-void IndexedLinearDamage::computeDelta(const ElementState & s)
+void IndexedLinearDamage::computeDelta(ElementState & s)
 {
 	Vector ret(1) ; ret = 0 ;
 	

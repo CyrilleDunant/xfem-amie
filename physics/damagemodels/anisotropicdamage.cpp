@@ -85,7 +85,7 @@ std::pair<Vector, Vector> AnisotropicLinearDamage::computeDamageIncrement(Elemen
 // 	std::cout << getState().sum() << std::flush ;
 }
 
-void AnisotropicLinearDamage::computeDelta(const ElementState & s)
+void AnisotropicLinearDamage::computeDelta(ElementState & s)
 {
 
 

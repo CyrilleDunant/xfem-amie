@@ -584,8 +584,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
     for ( size_t i = 0 ; i < gp.gaussPoints.size() ; i++ )
     {
         double w = gp.gaussPoints[i].second ;
-        Matrix Jinv ( 3,3 ) ;
-        parent->getInverseJacobianMatrix ( gp.gaussPoints[i].first, Jinv ) ;
+        if(!JinvCache || parent->isMoved())
+        {
+            if(JinvCache)
+                delete JinvCache ;
+            JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+            parent->getInverseJacobianMatrix ( gp.gaussPoints[i].first, (*JinvCache) ) ;
+        }
 
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
@@ -632,9 +637,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
                 x_eta = dy[ k * realdof + 0 ] ;
                 y_xi  = dx[ k * realdof + 1 ] ;
                 y_eta = dy[ k * realdof + 1 ] ;
-                tmpstrain[k*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2];
-                tmpstrain[k*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
-                tmpstrain[k*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+                tmpstrain[k*3+0] = ( x_xi ) * (*JinvCache) [0][0] + ( x_eta ) * (*JinvCache) [0][1] ;//+ x_tau * Jinv[0][2];
+                tmpstrain[k*3+1] = ( y_xi ) * (*JinvCache) [1][0] + ( y_eta ) * (*JinvCache) [1][1] ;//+ y_tau * Jinv[1][2] ;
+                tmpstrain[k*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache) [1][0] + ( x_eta ) * (*JinvCache) [1][1]  + ( y_xi ) * (*JinvCache) [0][0] + ( y_eta ) * (*JinvCache) [0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
             }
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -694,30 +699,30 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
                 z_xi   = dx[ k * realdof + 2 ] ;
                 z_eta  = dy[ k * realdof + 2 ] ;
                 z_zeta = dz[ k * realdof + 2 ] ;
-                tmpstrain[k*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-                tmpstrain[k*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-                tmpstrain[k*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+                tmpstrain[k*6+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+                tmpstrain[k*6+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+                tmpstrain[k*6+2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-                tmpstrain[k*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-                                           ( y_eta ) * Jinv[2][1] +
-                                           ( y_zeta ) * Jinv[2][2] +
-                                           ( z_xi ) * Jinv[1][0] +
-                                           ( z_eta ) * Jinv[1][1] +
-                                           ( z_zeta ) * Jinv[1][2] );
+                tmpstrain[k*6+3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                                           ( y_eta ) * (*JinvCache)[2][1] +
+                                           ( y_zeta ) * (*JinvCache)[2][2] +
+                                           ( z_xi ) * (*JinvCache)[1][0] +
+                                           ( z_eta ) * (*JinvCache)[1][1] +
+                                           ( z_zeta ) * (*JinvCache)[1][2] );
 
-                tmpstrain[k*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-                                           ( x_eta ) * Jinv[2][1] +
-                                           ( x_zeta ) * Jinv[2][2] +
-                                           ( z_xi ) * Jinv[0][0] +
-                                           ( z_eta ) * Jinv[0][1] +
-                                           ( z_zeta ) * Jinv[0][2] );
+                tmpstrain[k*6+4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                                           ( x_eta ) * (*JinvCache)[2][1] +
+                                           ( x_zeta ) * (*JinvCache)[2][2] +
+                                           ( z_xi ) * (*JinvCache)[0][0] +
+                                           ( z_eta ) * (*JinvCache)[0][1] +
+                                           ( z_zeta ) * (*JinvCache)[0][2] );
 
-                tmpstrain[k*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-                                           ( y_eta )  * Jinv[0][1] +
-                                           ( y_zeta ) * Jinv[0][2] +
-                                           ( x_xi )   * Jinv[1][0] +
-                                           ( x_eta )  * Jinv[1][1] +
-                                           ( x_zeta ) * Jinv[1][2] );
+                tmpstrain[k*6+5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                                           ( y_eta )  * (*JinvCache)[0][1] +
+                                           ( y_zeta ) * (*JinvCache)[0][2] +
+                                           ( x_xi )   * (*JinvCache)[1][0] +
+                                           ( x_eta )  * (*JinvCache)[1][1] +
+                                           ( x_zeta ) * (*JinvCache)[1][2] );
             }
 
         }
@@ -769,11 +774,11 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
                 x_eta = dy[ k * realdof + 0 ] ;
                 y_xi  = dx[ k * realdof + 1 ] ;
                 y_eta = dy[ k * realdof + 1 ] ;
-                tmpstrainrate[k*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2];
-                tmpstrainrate[k*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
-                tmpstrainrate[k*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+                tmpstrainrate[k*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
+                tmpstrainrate[k*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
+                tmpstrainrate[k*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
             }
-            tmpstrainrate *= Jinv[2][2] ;
+            tmpstrainrate *= (*JinvCache)[2][2] ;
 
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
@@ -834,32 +839,32 @@ void GeneralizedSpaceTimeViscoElasticElementState::getEssentialAverageFields ( F
                 z_xi   = dx[ k * realdof + 2 ] ;
                 z_eta  = dy[ k * realdof + 2 ] ;
                 z_zeta = dz[ k * realdof + 2 ] ;
-                tmpstrainrate[k*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-                tmpstrainrate[k*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-                tmpstrainrate[k*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+                tmpstrainrate[k*6+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+                tmpstrainrate[k*6+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+                tmpstrainrate[k*6+2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-                tmpstrainrate[k*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-                                               ( y_eta ) * Jinv[2][1] +
-                                               ( y_zeta ) * Jinv[2][2] +
-                                               ( z_xi ) * Jinv[1][0] +
-                                               ( z_eta ) * Jinv[1][1] +
-                                               ( z_zeta ) * Jinv[1][2] );
+                tmpstrainrate[k*6+3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                                               ( y_eta ) * (*JinvCache)[2][1] +
+                                               ( y_zeta ) * (*JinvCache)[2][2] +
+                                               ( z_xi ) * (*JinvCache)[1][0] +
+                                               ( z_eta ) * (*JinvCache)[1][1] +
+                                               ( z_zeta ) * (*JinvCache)[1][2] );
 
-                tmpstrainrate[k*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-                                               ( x_eta ) * Jinv[2][1] +
-                                               ( x_zeta ) * Jinv[2][2] +
-                                               ( z_xi ) * Jinv[0][0] +
-                                               ( z_eta ) * Jinv[0][1] +
-                                               ( z_zeta ) * Jinv[0][2] );
+                tmpstrainrate[k*6+4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                                               ( x_eta ) * (*JinvCache)[2][1] +
+                                               ( x_zeta ) * (*JinvCache)[2][2] +
+                                               ( z_xi ) * (*JinvCache)[0][0] +
+                                               ( z_eta ) * (*JinvCache)[0][1] +
+                                               ( z_zeta ) * (*JinvCache)[0][2] );
 
-                tmpstrainrate[k*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-                                               ( y_eta )  * Jinv[0][1] +
-                                               ( y_zeta ) * Jinv[0][2] +
-                                               ( x_xi )   * Jinv[1][0] +
-                                               ( x_eta )  * Jinv[1][1] +
-                                               ( x_zeta ) * Jinv[1][2] );
+                tmpstrainrate[k*6+5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                                               ( y_eta )  * (*JinvCache)[0][1] +
+                                               ( y_zeta ) * (*JinvCache)[0][2] +
+                                               ( x_xi )   * (*JinvCache)[1][0] +
+                                               ( x_eta )  * (*JinvCache)[1][1] +
+                                               ( x_zeta ) * (*JinvCache)[1][2] );
             }
-            tmpstrainrate *= Jinv[3][3] ;
+            tmpstrainrate *= (*JinvCache)[3][3] ;
 
         }
 
@@ -931,7 +936,7 @@ double GeneralizedSpaceTimeViscoElasticElementState::getAverageField ( FieldType
     return r ;
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm , int )  const
+void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm , int )  
 {
     ret = 0. ;
 
@@ -1597,10 +1602,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dy[i] += f_eta * displacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * displacements[j * totaldof] ;
-                					x_eta += f_eta * displacements[j * totaldof] ;
-                					y_xi += f_xi * displacements[j * totaldof + 1] ;
-                					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
             }
 
             Matrix Jinv ( 3,3 ) ;
@@ -1615,9 +1616,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
                 ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
             }
-// 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-// 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-// 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
         {
@@ -1950,20 +1949,25 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
             }
 
-            Matrix Jinv ( 3,3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
             for ( int i = 0 ; i < blocks ; i++ )
             {
                 x_xi  = dx[ i * realdof + 0 ] ;
                 x_eta = dy[ i * realdof + 0 ] ;
                 y_xi  = dx[ i * realdof + 1 ] ;
                 y_eta = dy[ i * realdof + 1 ] ;
-                ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;//+ x_tau * Jinv[0][2];
-                ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;//+ y_tau * Jinv[1][2] ;
-                ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
+                ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
+                ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
+                ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
                 //					std::cout << ret.size() << std::endl ;
             }
-            ret *= Jinv[2][2] ;
+            ret *= (*JinvCache)[2][2] ;
 //	    std::cout << 2./Jinv[2][2] << "    ";
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 // 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
@@ -2022,19 +2026,16 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dz[i] += f_zeta * enrichedDisplacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * x;
-                					x_eta += f_eta * x ;
-                					x_zeta += f_zeta * x ;
-                					y_xi += f_xi * y ;
-                					y_eta += f_eta * y ;
-                					y_zeta += f_zeta * y ;
-                					z_xi += f_xi * z ;
-                					z_eta += f_eta * z ;
-                					z_zeta += f_zeta * z ;*/
             }
 
-            Matrix Jinv ( 4, 4 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
+
             for ( int i = 0 ; i < blocks ; i++ )
             {
                 x_xi   = dx[ i * realdof + 0 ] ;
@@ -2046,32 +2047,32 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 z_xi   = dx[ i * realdof + 2 ] ;
                 z_eta  = dy[ i * realdof + 2 ] ;
                 z_zeta = dz[ i * realdof + 2 ] ;
-                ret[i*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-                ret[i*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-                ret[i*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+                ret[i*6+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+                ret[i*6+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+                ret[i*6+2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-                ret[i*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-                                     ( y_eta ) * Jinv[2][1] +
-                                     ( y_zeta ) * Jinv[2][2] +
-                                     ( z_xi ) * Jinv[1][0] +
-                                     ( z_eta ) * Jinv[1][1] +
-                                     ( z_zeta ) * Jinv[1][2] );
+                ret[i*6+3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                                     ( y_eta ) * (*JinvCache)[2][1] +
+                                     ( y_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[1][0] +
+                                     ( z_eta ) * (*JinvCache)[1][1] +
+                                     ( z_zeta ) * (*JinvCache)[1][2] );
 
-                ret[i*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-                                     ( x_eta ) * Jinv[2][1] +
-                                     ( x_zeta ) * Jinv[2][2] +
-                                     ( z_xi ) * Jinv[0][0] +
-                                     ( z_eta ) * Jinv[0][1] +
-                                     ( z_zeta ) * Jinv[0][2] );
+                ret[i*6+4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                                     ( x_eta ) * (*JinvCache)[2][1] +
+                                     ( x_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[0][0] +
+                                     ( z_eta ) * (*JinvCache)[0][1] +
+                                     ( z_zeta ) * (*JinvCache)[0][2] );
 
-                ret[i*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-                                     ( y_eta )  * Jinv[0][1] +
-                                     ( y_zeta ) * Jinv[0][2] +
-                                     ( x_xi )   * Jinv[1][0] +
-                                     ( x_eta )  * Jinv[1][1] +
-                                     ( x_zeta ) * Jinv[1][2] );
+                ret[i*6+5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                                     ( y_eta )  * (*JinvCache)[0][1] +
+                                     ( y_zeta ) * (*JinvCache)[0][2] +
+                                     ( x_xi )   * (*JinvCache)[1][0] +
+                                     ( x_eta )  * (*JinvCache)[1][1] +
+                                     ( x_zeta ) * (*JinvCache)[1][2] );
             }
-            ret *= Jinv[3][3] ;
+            ret *= (*JinvCache)[3][3] ;
 
         }
 
@@ -2102,13 +2103,19 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 y_eta += f_eta * displacements[j * totaldof + 1] ;
             }
 
-            Matrix Jinv ( 3,3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-            ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
+            
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
+            ret[2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
 
-            ret *= Jinv[2][2] ;
+            ret *= (*JinvCache)[2][2] ;
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
         {
@@ -2142,34 +2149,39 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 z_zeta += f_zeta * z ;
             }
 
-            Matrix Jinv ( 4, 4 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
-            ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-            ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-            ret[2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
+            ret[0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+            ret[1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+            ret[2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-            ret[3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-                             ( y_eta ) * Jinv[2][1] +
-                             ( y_zeta ) * Jinv[2][2] +
-                             ( z_xi ) * Jinv[1][0] +
-                             ( z_eta ) * Jinv[1][1] +
-                             ( z_zeta ) * Jinv[1][2] );
+            ret[3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                             ( y_eta ) * (*JinvCache)[2][1] +
+                             ( y_zeta ) * (*JinvCache)[2][2] +
+                             ( z_xi ) * (*JinvCache)[1][0] +
+                             ( z_eta ) * (*JinvCache)[1][1] +
+                             ( z_zeta ) * (*JinvCache)[1][2] );
 
-            ret[4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-                             ( x_eta ) * Jinv[2][1] +
-                             ( x_zeta ) * Jinv[2][2] +
-                             ( z_xi ) * Jinv[0][0] +
-                             ( z_eta ) * Jinv[0][1] +
-                             ( z_zeta ) * Jinv[0][2] );
+            ret[4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                             ( x_eta ) * (*JinvCache)[2][1] +
+                             ( x_zeta ) * (*JinvCache)[2][2] +
+                             ( z_xi ) * (*JinvCache)[0][0] +
+                             ( z_eta ) * (*JinvCache)[0][1] +
+                             ( z_zeta ) * (*JinvCache)[0][2] );
 
-            ret[5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-                             ( y_eta )  * Jinv[0][1] +
-                             ( y_zeta ) * Jinv[0][2] +
-                             ( x_xi )   * Jinv[1][0] +
-                             ( x_eta )  * Jinv[1][1] +
-                             ( x_zeta ) * Jinv[1][2] );
+            ret[5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                             ( y_eta )  * (*JinvCache)[0][1] +
+                             ( y_zeta ) * (*JinvCache)[0][2] +
+                             ( x_xi )   * (*JinvCache)[1][0] +
+                             ( x_eta )  * (*JinvCache)[1][1] +
+                             ( x_zeta ) * (*JinvCache)[1][2] );
 
-            ret *= Jinv[3][3] ;
+            ret *= (*JinvCache)[3][3] ;
         }
         if ( cleanup )
         {
@@ -2207,19 +2219,24 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
             }
 
-            Matrix Jinv ( 3,3 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
             for ( int i = 0 ; i < blocks ; i++ )
             {
                 x_xi  = dx[ i * realdof + 0 ] ;
                 x_eta = dy[ i * realdof + 0 ] ;
                 y_xi  = dx[ i * realdof + 1 ] ;
                 y_eta = dy[ i * realdof + 1 ] ;
-                ret[i*3+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-                ret[i*3+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-                ret[i*3+2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
+                ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;
+                ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;
+                ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );
             }
-            ret *= Jinv[2][2] ;
+            ret *= (*JinvCache)[2][2] ;
 // 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
 // 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
 // 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
@@ -2264,8 +2281,13 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 					z_zeta += f_zeta * z ;*/
             }
 
-            Matrix Jinv ( 4, 4 ) ;
-            parent->getInverseJacobianMatrix ( p_, Jinv ) ;
+            if(!JinvCache || parent->isMoved())
+            {
+                if(JinvCache)
+                    delete JinvCache ;
+                JinvCache = new Matrix ( parent->spaceDimensions()+(parent->timePlanes()>1),parent->spaceDimensions() +(parent->timePlanes()>1)) ;
+                parent->getInverseJacobianMatrix ( p_, (*JinvCache) ) ;
+            }
             for ( int i = 0 ; i < blocks ; i++ )
             {
                 x_xi   = dx[ i * realdof + 0 ] ;
@@ -2277,32 +2299,32 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 z_xi   = dx[ i * realdof + 2 ] ;
                 z_eta  = dy[ i * realdof + 2 ] ;
                 z_zeta = dz[ i * realdof + 2 ] ;
-                ret[i*6+0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1]  + ( x_zeta ) * Jinv[0][2];
-                ret[i*6+1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1]  + ( y_zeta ) * Jinv[1][2];
-                ret[i*6+2] = ( z_xi ) * Jinv[2][0] + ( z_eta ) * Jinv[2][1]  + ( z_zeta ) * Jinv[2][2];
+                ret[i*6+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1]  + ( x_zeta ) * (*JinvCache)[0][2];
+                ret[i*6+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1]  + ( y_zeta ) * (*JinvCache)[1][2];
+                ret[i*6+2] = ( z_xi ) * (*JinvCache)[2][0] + ( z_eta ) * (*JinvCache)[2][1]  + ( z_zeta ) * (*JinvCache)[2][2];
 
-                ret[i*6+3] = 0.5 * ( ( y_xi ) * Jinv[2][0] +
-                                     ( y_eta ) * Jinv[2][1] +
-                                     ( y_zeta ) * Jinv[2][2] +
-                                     ( z_xi ) * Jinv[1][0] +
-                                     ( z_eta ) * Jinv[1][1] +
-                                     ( z_zeta ) * Jinv[1][2] );
+                ret[i*6+3] = 0.5 * ( ( y_xi ) * (*JinvCache)[2][0] +
+                                     ( y_eta ) * (*JinvCache)[2][1] +
+                                     ( y_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[1][0] +
+                                     ( z_eta ) * (*JinvCache)[1][1] +
+                                     ( z_zeta ) * (*JinvCache)[1][2] );
 
-                ret[i*6+4] = 0.5 * ( ( x_xi ) * Jinv[2][0] +
-                                     ( x_eta ) * Jinv[2][1] +
-                                     ( x_zeta ) * Jinv[2][2] +
-                                     ( z_xi ) * Jinv[0][0] +
-                                     ( z_eta ) * Jinv[0][1] +
-                                     ( z_zeta ) * Jinv[0][2] );
+                ret[i*6+4] = 0.5 * ( ( x_xi ) * (*JinvCache)[2][0] +
+                                     ( x_eta ) * (*JinvCache)[2][1] +
+                                     ( x_zeta ) * (*JinvCache)[2][2] +
+                                     ( z_xi ) * (*JinvCache)[0][0] +
+                                     ( z_eta ) * (*JinvCache)[0][1] +
+                                     ( z_zeta ) * (*JinvCache)[0][2] );
 
-                ret[i*6+5] = 0.5 * ( ( y_xi )   * Jinv[0][0] +
-                                     ( y_eta )  * Jinv[0][1] +
-                                     ( y_zeta ) * Jinv[0][2] +
-                                     ( x_xi )   * Jinv[1][0] +
-                                     ( x_eta )  * Jinv[1][1] +
-                                     ( x_zeta ) * Jinv[1][2] );
+                ret[i*6+5] = 0.5 * ( ( y_xi )   * (*JinvCache)[0][0] +
+                                     ( y_eta )  * (*JinvCache)[0][1] +
+                                     ( y_zeta ) * (*JinvCache)[0][2] +
+                                     ( x_xi )   * (*JinvCache)[1][0] +
+                                     ( x_eta )  * (*JinvCache)[1][1] +
+                                     ( x_zeta ) * (*JinvCache)[1][2] );
             }
-            ret *= Jinv[3][3] ;
+            ret *= (*JinvCache)[3][3] ;
 
         }
         if ( cleanup )
@@ -3038,7 +3060,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
     }
 }
 
-void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int )  const
+void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm, int , int ) 
 {
     bool cleanup = !vm ;
     if ( !vm )

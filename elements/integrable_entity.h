@@ -145,6 +145,7 @@ protected:
     Vector displacements ;
     Vector enrichedDisplacements ;
 
+    
     Vector buffer ;
     
     bool strainAtGaussPointsSet ;
@@ -163,35 +164,35 @@ protected:
     Mesh< DelaunayTetrahedron, DelaunayTreeItem3D > *mesh3d ;
 
 public:
-
+    Matrix * JinvCache ;
     /** \brief Construct the state of the argument*/
     ElementState ( IntegrableEntity * ) ;
     /** \brief Copy-constructor*/
     ElementState ( ElementState &s ) ;
     
-    virtual ~ElementState() { } ;
+    virtual ~ElementState() { delete JinvCache ;} ;
 
     ElementState & operator = ( ElementState& s ) ;
 
-    virtual void getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr ) const ;
+    virtual void getExternalField ( Vector & nodalValues, int externaldofs, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr )  ;
 
-    virtual void getExternalFieldAtGaussPoints ( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret, VirtualMachine * vm = nullptr ) const ;
+    virtual void getExternalFieldAtGaussPoints ( Vector & nodalValues, int externaldofs, std::vector<Vector> & ret, VirtualMachine * vm = nullptr )  ;
 
-    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const ;
+    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )  ;
 
-    virtual void getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const  ;
+    virtual void getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )   ;
 
-    virtual void getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const  ;
+    virtual void getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )   ;
 
     virtual void getFieldAtGaussPoint ( FieldType f1, FieldType f2, size_t g, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) ;
 
     virtual void getFieldAtGaussPoint ( FieldType f, size_t g, Vector & ret, VirtualMachine * vm = nullptr, int i = 0 ) ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
     virtual double getAverageField ( FieldType f, Vector& ret, VirtualMachine* vm = nullptr, int dummy = 0, double t = 0, std::vector< double > weights = std::vector<double>() ) ;
 
@@ -211,18 +212,6 @@ public:
 
     /** \brief Return the set of eigenvector forming the reference frame of the principal stresses*/
     std::vector<Point> getPrincipalFrame ( const Point &p, bool local = false, VirtualMachine * vm = nullptr, StressCalculationMethod m = REAL_STRESS )  ;
-
-    /** \brief get symbolic expression of Stress, given he inverse Jacobian*/
-    FunctionMatrix getStressFunction ( const Matrix &Jinv, StressCalculationMethod m = REAL_STRESS ) const;
-
-    /** \brief get symbolic expression of Strain, given he inverse Jacobian*/
-    FunctionMatrix getStrainFunction ( const Matrix &Jinv ) const;
-
-    /** \brief get symbolic expression of displacement, given he inverse Jacobian*/
-    FunctionMatrix getDisplacementFunction() const;
-
-    /** \brief get average desplacements over the element*/
-    Vector getAverageDisplacement ( VirtualMachine * vm= nullptr ) const ;
 
     /** \brief return the linear interpolating factors for the displacement field at the given point*/
     std::vector<double> getInterpolatingFactors ( const Point & p, bool local = false ) const ;
@@ -293,21 +282,21 @@ public:
         return p ;
     }
 
-    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const ;
+    virtual void getField ( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )  ;
 
-    virtual void getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const  ;
+    virtual void getField ( FieldType f, const PointArray & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )   ;
 
-    virtual void getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 ) const  ;
+    virtual void getField ( FieldType f, const std::valarray<std::pair<Point, double> > & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0 )   ;
 
 // 	virtual void getFieldAtNodes( FieldType f, Vector & ret, int i = 0) ;
 
     virtual void getFieldAtGaussPoint ( FieldType f, size_t g, Vector & ret, VirtualMachine * vm = nullptr, int i = 0 ) ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const PointArray & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
-    virtual void getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 ) const  ;
+    virtual void getField ( FieldType f1, FieldType f2, const std::valarray<std::pair<Point, double> > & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0 )   ;
 
 // 	virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, int i = 0, int j = 0) ;
 
@@ -543,7 +532,7 @@ public:
     virtual bool changed() const {
         return false ;
     } ;
-    virtual void getForces ( const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v ) const { };
+    virtual void getForces (  ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & v )  { };
     virtual std::vector<BoundaryCondition * > getBoundaryConditions ( const ElementState & s, size_t id,  const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv ) const ;
 
     virtual Form * getCopy() const = 0 ;

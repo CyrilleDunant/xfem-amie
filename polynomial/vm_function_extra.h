@@ -89,6 +89,10 @@ Function f_positivity(const Function& f, bool differentiate = true) ;
  */
 Function f_negativity(const Function& f, bool differentiate = true) ;
 
+
+Function f_range(const Function &f, double min, double max, bool differentiate = false);
+
+
 /** \brief  Helper function to create a Function which is the interpolated value between two functions. 0 as an argument will yield the value of the first function and 1 the second, intermediate values will yield the weighted average at that point.
  * 
  * @param f0 Function

@@ -95,19 +95,29 @@ int main(int argc, char *argv[])
     E = 37e9 ;
     Matrix m1 = Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_THREE_DIMENSIONAL);
     
-    for(double phi = 1 ;  phi >=0  ; phi -=0.01)
+//     for(double phi = 1 ;  phi >=0  ; phi -=0.01)
+//     {
+//         Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0.03,0.00), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
+//         Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), phi) ;
+//         BiphasicSelfConsistentComposite sc(csh,porosity) ;
+//         double c00 = sc.getBehaviour()->getTensor(Point())[0][0] ;
+//         double c55 = sc.getBehaviour()->getTensor(Point())[5][5] ;
+//         double mu = c55 ;
+//         double K = c00+mu*4./3. ;
+//         E = 9.*K*(K-mu)/(3.*K-mu) ;
+//         nu =mu/(3.*K-mu) ;
+//         
+//         std::cout << 1.-phi << "  "<< E << "  "<< nu << std::endl ;
+//     }
+//     exit(0) ;
+    
+    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
+                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
+                        Function("t 24 - 48 /")    *f_range("t", 24, 48) +
+    ;
+    for(double i = 0 ; i < 48 ; i+=0.1)
     {
-        Phase porosity(new Stiffness(Tensor::cauchyGreen(std::make_pair(0.03,0.00), true,SPACE_THREE_DIMENSIONAL)), 1.-phi) ;
-        Phase csh(new Stiffness(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)), phi) ;
-        BiphasicSelfConsistentComposite sc(csh,porosity) ;
-        double c00 = sc.getBehaviour()->getTensor(Point())[0][0] ;
-        double c55 = sc.getBehaviour()->getTensor(Point())[5][5] ;
-        double mu = c55 ;
-        double K = c00+mu*4./3. ;
-        E = 9.*K*(K-mu)/(3.*K-mu) ;
-        nu =mu/(3.*K-mu) ;
-        
-        std::cout << 1.-phi << "  "<< E << "  "<< nu << std::endl ;
+        std::cout << i << "  " << VirtualMachine().eval(loadfunc, 0,0,0,i) << std::endl ;
     }
     exit(0) ;
     

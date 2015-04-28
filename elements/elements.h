@@ -122,7 +122,6 @@ protected :
     std::valarray<std::valarray<Matrix> > cachedElementaryMatrix ;
     std::valarray<std::valarray<Matrix> > cachedViscousElementaryMatrix ;
     std::valarray< Function > * shapefunc ;
-    std::vector<Matrix> cachedJinv ;
     bool isFather ;
 protected :
 
@@ -289,7 +288,6 @@ protected :
     std::valarray< Function > *shapefunc ;
     virtual const GaussPointArray & genGaussPoints() final;
     bool isFather ;
-    std::vector<Matrix> cachedJinv ;
 public:
     bool moved;
     GEO_DERIVED_OBJECT(Tetrahedron) ;

@@ -1883,8 +1883,14 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
 
     if(order >= CONSTANT_TIME_LINEAR)
     {
-        Matrix Jinv(3,3) ;
-        this->getInverseJacobianMatrix(p, Jinv) ;
+
+        if(!getState().JinvCache || isMoved())
+        {
+            if(getState().JinvCache)
+                delete getState().JinvCache ;
+            getState().JinvCache = new Matrix ( 3,3 ) ;
+            getInverseJacobianMatrix ( p, (*getState().JinvCache) ) ;
+        }
 
         t2.resize(6,6) ;
         t1.resize(6,3) ;
@@ -1892,7 +1898,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
         Tensor tn1(1,3) ;
         Tensor tn2(2,3) ;
         Tensor tj1(2,3) ;
-        Tensor tjinv(Jinv, true) ;
+        Tensor tjinv((*getState().JinvCache), true) ;
         Tensor tj2(3,3) ;
 
         std::vector<Variable> var ;
@@ -1963,7 +1969,7 @@ void TriElement::getSecondJacobianMatrix(const Point &p, Matrix & t1, Matrix & t
 
         c1 *= -1. ;
 
-        t1 = t2 * (c1 * Jinv) ;
+        t1 = t2 * (c1 * (*getState().JinvCache)) ;
     }
 }
 
@@ -1973,8 +1979,13 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
 
     if(order >= CONSTANT_TIME_LINEAR)
     {
-        Matrix Jinv ;
-        this->getInverseJacobianMatrix(p, Jinv) ;
+        if(!getState().JinvCache || isMoved())
+        {
+            if(getState().JinvCache)
+                delete getState().JinvCache ;
+            getState().JinvCache = new Matrix ( 3,3 ) ;
+            getInverseJacobianMatrix ( p, (*getState().JinvCache) ) ;
+        }
 
         t3.resize(10,10) ;
         t2.resize(10,6) ;
@@ -1985,7 +1996,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
         Matrix j1(3,3) ;
 
 
-        j1 = Jinv ;
+        j1 =  (*getState().JinvCache) ;
         invert3x3Matrix(j1) ;
 
         std::vector<Variable> var ;
@@ -2000,7 +2011,7 @@ void TriElement::getThirdJacobianMatrix(const Point &p, Matrix & t1, Matrix & t2
 
         // tensor of jacobians
         Tensor tj1(2,3) ;
-        Tensor tjinv(Jinv, false) ;
+        Tensor tjinv( (*getState().JinvCache), false) ;
         Tensor tj2(3,3) ;
         Tensor tj3(4,3) ;
 
@@ -2508,13 +2519,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
 {
     if(order < CONSTANT_TIME_LINEAR)
     {
-        if(!isMoved() && !cachedJinv.empty())
-        {
-            if(ret.isNull())
-                ret.resize(2,2) ;
-            ret.array() = cachedJinv[0].array() ;
-            return ;
-        }
 
         if(ret.isNull())
             ret.resize(2,2) ;
@@ -2551,8 +2555,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
         ret[1][0] = xdeta ;
         ret[1][1] = ydeta ;
         invert2x2Matrix(ret) ;
-        if(cachedJinv.empty() && !isMoved())
-            cachedJinv.push_back(ret) ;
         delete father ;
 // 		ret.print() ;
 // 		exit(0) ;
@@ -2618,8 +2620,7 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
         ret[2][2] = tdtau;
 
         invert3x3Matrix(ret) ;
-        if(cachedJinv.empty() && !isMoved())
-            cachedJinv.push_back(ret) ;
+
 //		ret.print() ;
     }
 }

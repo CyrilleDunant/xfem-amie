@@ -39,11 +39,11 @@ public:
     GeneralizedSpaceTimeViscoElasticElementState( Amie::GeneralizedSpaceTimeViscoElasticElementState& s ) ;
     GeneralizedSpaceTimeViscoElasticElementState & operator =( GeneralizedSpaceTimeViscoElasticElementState & s) ;
 
-    virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0) const final;
+    virtual void getField( FieldType f, const Point & p, Vector & ret, bool local, VirtualMachine * vm = nullptr, int i = 0)  final;
 
     virtual void getFieldAtNodes( FieldType f, Vector & ret, VirtualMachine * vm = nullptr, int i = 0) final;
 
-    virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0) const final ;
+    virtual void getField( FieldType f1, FieldType f2, const Point & p, Vector & ret1, Vector & ret2, bool local, VirtualMachine * vm = nullptr, int i = 0, int j = 0)  final ;
 
     virtual void getFieldAtNodes( FieldType f1, FieldType f2, Vector & ret1, Vector & ret2, VirtualMachine * vm = nullptr, int i = 0, int j = 0) final;
 

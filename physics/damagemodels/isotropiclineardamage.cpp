@@ -25,7 +25,7 @@ std::pair< Vector, Vector > IsotropicLinearDamage::computeDamageIncrement( Amie:
     return std::make_pair(state, Vector(1., 1)) ;
 }
 
-void IsotropicLinearDamage::computeDelta(const ElementState & s)
+void IsotropicLinearDamage::computeDelta(ElementState & s)
 {
     delta = 1.-getState()[0] ;
 }
@@ -71,7 +71,7 @@ std::pair< Vector, Vector > IsotropicLinearDamageRate::computeDamageIncrement( A
     return std::make_pair(getState(), Vector(1., 1)) ;
 }
 
-void IsotropicLinearDamageRate::computeDelta(const ElementState & s)
+void IsotropicLinearDamageRate::computeDelta(ElementState & s)
 {
     delta = 1.-getState()[0] ;
 }

@@ -13,7 +13,7 @@ using namespace Amie ;
 
 
 
-TwoDCohesiveForces::TwoDCohesiveForces(const IntegrableEntity *s, const IntegrableEntity *t, const SegmentedLine * sl)
+TwoDCohesiveForces::TwoDCohesiveForces(IntegrableEntity *s, IntegrableEntity *t, const SegmentedLine * sl)
 {
     this->time_d = false ;
     this->type = NON_LINEAR ;
@@ -54,7 +54,7 @@ bool TwoDCohesiveForces::hasInducedMatrix() const
 }
 
 
-void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) const
+void TwoDCohesiveForces::getForces( ElementState & s, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv, Vector & f) 
 {
 
 
@@ -101,7 +101,7 @@ void TwoDCohesiveForces::getForces(const ElementState & s, const Function & p_i,
 
 }
 
-std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions(const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) const
+std::vector<BoundaryCondition * > TwoDCohesiveForces::getBoundaryConditions( const ElementState & s,  size_t id, const Function & p_i, const GaussPointArray &gp, const std::valarray<Matrix> &Jinv) 
 {
 
 

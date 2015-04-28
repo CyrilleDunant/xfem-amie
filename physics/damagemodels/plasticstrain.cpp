@@ -190,7 +190,7 @@ double PlasticStrain::getAngleShift() const
     return angle ;
 }
 
-void PlasticStrain::computeDelta(const ElementState & s)
+void PlasticStrain::computeDelta(ElementState & s)
 {
     delta = 1 ;
 }
