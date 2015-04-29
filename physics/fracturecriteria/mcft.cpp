@@ -101,40 +101,34 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
 
 double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& s, double pseudoYoung, double tstrain, double tstress, double value, double deltaCriterion)
 {
-    double altUpVal( /*0.66*1e6*pow(std::abs(downVal*1e-6),.33)*/upVal) ;
-    double altTensionCritStrain(altUpVal/youngModulus) ;
-    double maxTension = altUpVal;
+    double maxTension = upVal;
     double factor = 1 ;
-    if(tstrain > altTensionCritStrain )
+    if(tstrain > tensionCritStrain )
     {
         crackInitiated = true ;
-        double downTestVal = altTensionCritStrain ;
+        double downTestVal = tensionCritStrain ;
         double upTestVal = std::max(strain_te*100., tstrain*100.) ;
 
         double delta_tech = (strain_te-strain_ch);
         double mainCurve = 0 ;
         int count = 0 ;
 
-        while(std::abs(upTestVal-downTestVal) > 1e-4*altTensionCritStrain && count++  <  64)
+        while(std::abs(upTestVal-downTestVal) > 1e-4*tensionCritStrain && count++  <  64)
         {
             double testVal = (upTestVal+downTestVal)*.5 ;
             mainCurve = 1./(1.+sqrt(value*(testVal-deltaCriterion))) ;
 
-            if(testVal < altTensionCritStrain)
+            if(testVal < tensionCritStrain)
                 factor = 1. ;
             else if(testVal < strain_ch*(1./(deltaCriterion/tensionCritStrain)))
                 factor = mainCurve ;
-// 			if(testVal < strain_ch)
-// 					factor = mainCurve ;
-            else /*if(testVal < strain_te)*/
+            else
             {
                 factor = mainCurve*exp(-1.5*(testVal-strain_ch)/(delta_tech)) ;
             }
-// 			else
-// 				factor = 0 ;
 
 
-            if( testVal*pseudoYoung > altUpVal*factor )
+            if( testVal*pseudoYoung > upVal*factor )
                 upTestVal = testVal ;
             else
                 downTestVal = testVal ;
@@ -529,28 +523,8 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
 
         return std::max(ccrit,tcrit) ;
     }
-    else
-    {
-        double cpseudoYoung =  pseudoYoung ;
-        double tpseudoYoung =  pseudoYoung ;
-        double ccrit = -1 ;
-        double tcrit = -1 ;
 
-        if(firstTension && tpseudoYoung > POINT_TOLERANCE)
-        {
-            tcrit = getConcreteTensileCriterion(s, tpseudoYoung, tstrain, tstress) ;
-            firstMet = true ;
-        }
-
-        if(secondCompression && cpseudoYoung > POINT_TOLERANCE)
-        {
-            ccrit = getConcreteCompressiveCriterion(s, cpseudoYoung, cstrain,tstress, cstress) ;
-            secondMet = true ;
-        }
-
-        return std::max(ccrit,tcrit) ;
-    }
-
+        
     if(pseudoYoung < 1e-9)
     {
         firstMet = true ;
@@ -558,25 +532,23 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         return -1 ;
     }
 
-    double ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain, tstress, cstress) ;
-    double tcrit = getConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+    double ccrit = -1 ;
+    double tcrit = -1 ;
 
-    if( ccrit > tcrit )
+    if(firstTension && pseudoYoung > POINT_TOLERANCE)
     {
-        firstCompression = true ;
-        secondCompression = true ;
-        firstTension = false ;
-        firstCompression = false ;
-        secondMet = ccrit > 0 ;
-        return ccrit ;
+        tcrit = getConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress) ;
+        firstMet = true ;
     }
 
-    firstCompression = false ;
-    secondCompression = false ;
-    firstTension = true ;
-    firstCompression = true ;
-    firstMet = tcrit > 0 ;
-    return tcrit ;
+    if(secondCompression && pseudoYoung > POINT_TOLERANCE)
+    {
+        ccrit = getConcreteCompressiveCriterion(s, pseudoYoung, cstrain,tstress, cstress) ;
+        secondMet = true ;
+    }
+
+    return std::max(ccrit,tcrit) ;
+
 }
 
 double NonLocalMCFT::grade( ElementState &s )
@@ -647,5 +619,9 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     return 2.*gradeBefore/(gradeBefore-gradeAfter) -1 ;
 }
 
+FractureCriterion *NonLocalSpaceTimeMCFT::getCopy() const
+{
+    return new NonLocalSpaceTimeMCFT( *this ) ;
+}
 
 }

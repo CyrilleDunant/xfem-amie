@@ -535,7 +535,8 @@ void FeatureTree::addBoundaryCondition ( BoundaryCondition *bc )
 void FeatureTree::removeBoundaryCondition ( BoundaryCondition *bc )
 {
     std::vector<BoundaryCondition *>::iterator toDelete = std::find ( boundaryCondition.begin(), boundaryCondition.end(), bc ) ;
-    boundaryCondition.erase ( toDelete ) ;
+    if(toDelete != boundaryCondition.end())
+        boundaryCondition.erase ( toDelete ) ;
 }
 
 void FeatureTree::setOrder ( Order ord )

@@ -109,6 +109,8 @@ public:
 	virtual ~NonLocalSpaceTimeMCFT();
 	
 	virtual double grade(ElementState &s)  ;
+    
+    virtual FractureCriterion * getCopy() const;
 } ;
 
 }
