@@ -105,8 +105,6 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
 
     }
 
-
-
     change = false ;
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || maxscore < 0)
     {
@@ -115,37 +113,28 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
     }
 
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-// 	double dt = s.getNodalDeltaTime() ;
-    /*	if(! fractured() && score > 0)
-    		std::cout << timeTolerance*dt << "/" << maxscore-score << "   " ;*/
 
-    if(!fractured() && score >= 1)/* && score == maxScoreInNeighbourhood*/
+    if(!fractured() && score >= 1.-timeTolerance)
     {
-        double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
-        if(score == maxScoreInNeighbourhood)
+        if((maxscore - score) < timeTolerance)
         {
             state[state.size()-1] += fibreFraction ;
             change = true ;
             converged = true ;
             s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
         }
-//		std::cout << " before beginning << " << score ;
     }
-    else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
+    else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && (maxscore - score) < timeTolerance)
     {
 
-        state[state.size() -1] += fibreFraction ;//*(1.-(maxscore-score)/maxscore) ;
+        state[state.size() -1] += fibreFraction ;
         for(size_t i = 0 ; i < state.size() ; i++)
         {
             if(state[i] > 1)
                 state[i] = 1. ;
         }
         change = true ;
-// 		if((1.-score)*dt < timeTolerance)
-// 			std::cout << " too close to beginning << " << dt << " / " << score ;
-//		if((score)*dt < timeTolerance)
-//			std::cout << " too close to end << " << dt << " / " << score ;
-        converged = true ; /*((1.-score)*dt > timeTolerance) && score*dt > timeTolerance ;*/
+        converged = true ; 
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
     else

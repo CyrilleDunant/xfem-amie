@@ -47,52 +47,14 @@
 using namespace Amie ;
 
 
-
-
 FeatureTree * featureTree ;
-std::vector<bool> cracked ;
 
-double E_min = 10;
-double E_max = 0;
-
-double x_max = 0 ;
-double y_max = 0 ;
-
-double x_min = 0 ;
-double y_min = 0 ;
-
-double timepos = 0.05e-07 ;
-
-double effectiveRadius = 0.13506098 ; //.5*.165*sqrt(M_PI*.25) ;//
-double rebarDiametre = 0.0254*sqrt ( M_PI*.25 ) ;
-
-double delta_displacement =  1e-5 ;
-double displacement_tolerance = 0.05*delta_displacement ;
-double softeningFactor = 1. ;
-
-double percent = 0.01 ;
-double displacement  = 0 ;
-double prescribedDisplacement = 0;
-double derror = 0 ;
-double ierror = 0 ;
-double preverror = 0 ;
-bool firstRun = true ;
-
-double sampleLength = 5.5 ;
-double sampleHeight = 1.2 ;
-double supportLever = 2.5 ;
-double supportMidPointToEndClearance = 0.25 ;
-double platewidth = 0.15 ;
-double plateHeight = 0.051 ;
-double rebarEndCover = 0.047 ;
 
 std::vector< double > loads ;
 std::vector< double > displacements ;
 std::vector< double > loadsx ;
 std::vector< double > displacementsx ;
-std::vector< double > damages ;
-std::vector< double > cmod ;
-std::vector< double > idx ;
+std::vector< double > times ;
 
 Vector fracCrit ( 0 ) ;
 
@@ -122,12 +84,12 @@ double aggregateArea = 0;
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
-void step ( size_t nsteps )
+void step ()
 {
 
-    for ( size_t v = 0 ; v < nsteps ; v++ )
+    double last_time = 0 ;
+    while (featureTree->getCurrentTime() < 72 ) 
     {
-
         bool go_on = featureTree->step() ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
@@ -141,20 +103,20 @@ void step ( size_t nsteps )
 
         std::cout << std::endl ;
 
-        if(go_on)
+        if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.5)
         {
-            featureTree->setDeltaTime(.1);
+            last_time = featureTree->getCurrentTime() ;
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
-
             loadsx.push_back ( stemp[0] );
+            times.push_back(featureTree->getCurrentTime());
 
             std::fstream ldfile  ;
             ldfile.open ( "ldn", std::ios::out ) ;
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << v << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
+                ldfile << times[j] << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
             }
             ldfile.close();
         }
@@ -194,20 +156,19 @@ int main ( int argc, char *argv[] )
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1.)
-    );
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6, 1.) );
     
      //ELAS+DAMAGE
 //     StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.0001, 1.));
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6,1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
-    samplef.setBehaviour ( spasterupt  ) ;
+    samplef.setBehaviour ( pasterupt  ) ;
 
  
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
-                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
-                        Function("t 24 - 24 /")    *f_range("t", 24, 72) ;
+                        Function("1")*f_range("t", 12, 24) +
+                        Function("t 24 - 24 / 1 +")    *f_range("t", 24, 72) ;
     loadfunc *= 0.00005 ;
     BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
     F.addBoundaryCondition ( loadr );
@@ -216,11 +177,11 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.1);
+    F.setDeltaTime(.01);
 
-    F.setMaxIterationsPerStep ( 3400 );
+    F.setMaxIterationsPerStep ( 34000 );
 
-    step ( 72000 ) ;
+    step () ;
 
 //    F.getAssembly()->print() ;
 
