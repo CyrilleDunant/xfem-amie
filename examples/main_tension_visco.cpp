@@ -121,22 +121,14 @@ double aggregateArea = 0;
 
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
-BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, 0.) ;
 
 void step ( size_t nsteps )
 {
 
-    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
-                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
-                        Function("t 24 - 24 /")    *f_range("t", 24, 72) ;
-    loadfunc *= 0.0002 ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
         bool go_on = featureTree->step() ;
-        if(go_on)
-            loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
-
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
 
@@ -151,6 +143,7 @@ void step ( size_t nsteps )
 
         if(go_on)
         {
+            featureTree->setDeltaTime(.1);
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
@@ -196,52 +189,27 @@ int main ( int argc, char *argv[] )
     double cstrain = -2.e-3; 
     double cstress = -38.0e6; 
     planeType pt = PLANE_STRESS;
-/*
-    double E_rec = 1e10;
-    double k_kv = 3.e10;
-    double am_kv = 5.*k_kv;
-    double k_mx = 2e30;
-    double am_mx = 10.0*k_mx ;
-    double nu_rec = 0.2 ;
-    double delay = 0. ;
-    int b = 0 ;
-    int a = 0 ;
-    Matrix E_kv = Tensor::cauchyGreen( k_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_kv = Tensor::cauchyGreen( am_kv, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_tau = Tensor::cauchyGreen( am_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    Matrix C_eta = Tensor::cauchyGreen( k_mx, nu_rec, true,  SPACE_TWO_DIMENSIONAL ) ;
-    
-    double mradius = .1 ; 
-    double nu = 0.2 ;
-    double E_paste = 30e9 ;
 
-	Sample samplef(0.3, 0.6,  0.15, 0.3) ;
-
-    FeatureTree F ( &samplef ) ;
-    featureTree = &F ;
-
-    LogarithmicCreepWithExternalParameters * creep = new LogarithmicCreepWithExternalParameters("young_modulus = 1e9, poisson_ratio = 0.2, creep_modulus = 10e9, creep_poisson = 0.2, creep_characteristic_time = 1") ;
-    Matrix EC = creep->C ;
-    Matrix EE = creep->E ;
-    Matrix ER = creep->R ;
-    */
-    //Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);
     Sample samplef(0.3, 0.6,  0.15, 0.3) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
     ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1.)
     );
+    
      //ELAS+DAMAGE
-    //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
+//     StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.0001, 1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
-    //    Stiffness * paste = new Stiffness(C_kv);
     samplef.setBehaviour ( spasterupt  ) ;
 
  
-
+    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
+                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
+                        Function("t 24 - 24 /")    *f_range("t", 24, 72) ;
+    loadfunc *= 0.00005 ;
+    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
     F.addBoundaryCondition ( loadr );
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
@@ -252,7 +220,7 @@ int main ( int argc, char *argv[] )
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 720 ) ;
+    step ( 72000 ) ;
 
 //    F.getAssembly()->print() ;
 

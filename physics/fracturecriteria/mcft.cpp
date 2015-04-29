@@ -616,7 +616,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     if(gradeBefore > 0)
         return 1 ;
 
-    return 2.*gradeBefore/(gradeBefore-gradeAfter) -1 ;
+    return (gradeAfter-gradeBefore)/(3.*gradeAfter-gradeBefore) ;
 }
 
 FractureCriterion *NonLocalSpaceTimeMCFT::getCopy() const
