@@ -16,6 +16,7 @@ namespace Amie {
 
 FiberBasedIsotropicLinearDamage::FiberBasedIsotropicLinearDamage(double f, double c)  : fibreFraction(f)
 {
+    alt = false ;
     thresholdDamageDensity = c ;
     getState(true).resize(1, 0.);
     isNull = false ;
@@ -70,15 +71,15 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
 
     change = false ;
-    if(!s.getParent()->getBehaviour()->getFractureCriterion() || maxscore < 0)
+    if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
         converged = true ;
         return ;
     }
     double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
-    double maxScoreInNeighbourhood = s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
+    double maxScoreInNeighbourhood = maxscore ; //s.getParent()->getBehaviour()->getFractureCriterion()->getMaxScoreInNeighbourhood(s) ;
 
-    if(!fractured() && score > 0 && std::abs(score - maxScoreInNeighbourhood) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*maxScoreInNeighbourhood)
+    if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && std::abs(score - maxScoreInNeighbourhood) < s.getParent()->getBehaviour()->getFractureCriterion()->getScoreTolerance()*maxScoreInNeighbourhood)
     {
         state += fibreFraction ;
         for(size_t i = 0 ; i < state.size() ; i++)
@@ -88,6 +89,7 @@ void FiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
         }
         change = true ;
     }
+    alt = !alt ;
     converged = true ;
     return ;
 }

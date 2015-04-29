@@ -2387,7 +2387,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         return cachedElementaryMatrix ;
     }
 
-    std::cout << ";" << std::endl ;
+//     std::cout << ";" << std::endl ;
 
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;

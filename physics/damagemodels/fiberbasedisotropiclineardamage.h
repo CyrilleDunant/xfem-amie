@@ -24,6 +24,7 @@ class FiberBasedIsotropicLinearDamage : public DamageModel
 {
 protected:
     double fibreFraction ;
+    bool alt ; 
 public:
     /** \brief Constructor. Set the number of degrees of freedom
      *

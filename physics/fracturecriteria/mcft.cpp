@@ -531,8 +531,8 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
     }
     else
     {
-        double cpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
-        double tpseudoYoung =  youngModulus*(1.-s.getParent()->getBehaviour()->getDamageModel()->getState()[0]) ;
+        double cpseudoYoung =  pseudoYoung ;
+        double tpseudoYoung =  pseudoYoung ;
         double ccrit = -1 ;
         double tcrit = -1 ;
 

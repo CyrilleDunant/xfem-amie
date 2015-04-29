@@ -244,20 +244,20 @@ double NonLocalLinearlyDecreasingMohrCoulomb::grade( ElementState &s )
     metInCompression = std::abs( minStress / downVal ) > std::abs( maxStress / upVal ) ;
     metInTension = std::abs( minStress / downVal ) < std::abs( maxStress / upVal ) ;
 
-    double d = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
-    if(1.-d < POINT_TOLERANCE)
-    {
-        double c0 = std::abs(maxStress/upVal) ;
-        double c1 = std::abs(minStress/downVal) ;
-        return std::max(c0, c1) ;
-    }
-
-    double effMaxStress = std::max(limittstrain/(limittstrain-upVal/stiffness-1./(stiffness*(1.-d))), 0.) ;
-    double effMinStress = std::max(std::abs(limitcstrain)/(std::abs(limitcstrain)-std::abs(downVal)/stiffness-1./(stiffness*(1.-d))), 0.) ;
-
-    double c0 = std::abs(maxStress/upVal)-effMaxStress ;
-    double c1 = std::abs(minStress/downVal)-effMinStress ;
-    return std::max(c0, c1) ;
+//     double d = s.getParent()->getBehaviour()->getDamageModel()->getState().max() ;
+//     if(1.-d < POINT_TOLERANCE)
+//     {
+//         double c0 = std::abs(maxStress/upVal) ;
+//         double c1 = std::abs(minStress/downVal) ;
+//         return std::max(c0, c1) ;
+//     }
+// 
+//     double effMaxStress = std::max(limittstrain/(limittstrain-upVal/stiffness-1./(stiffness*(1.-d))), 0.) ;
+//     double effMinStress = std::max(std::abs(limitcstrain)/(std::abs(limitcstrain)-std::abs(downVal)/stiffness-1./(stiffness*(1.-d))), 0.) ;
+// 
+//     double c0 = std::abs(maxStress/upVal)-effMaxStress ;
+//     double c1 = std::abs(minStress/downVal)-effMinStress ;
+//     return std::max(c0, c1) ;
 
     double effectiveStiffness = stiffness ;
     if(s.getParent()->getBehaviour()->getDamageModel())

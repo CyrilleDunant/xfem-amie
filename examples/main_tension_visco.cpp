@@ -120,14 +120,21 @@ double aggregateArea = 0;
 
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
+BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, 0.) ;
 
 void step ( size_t nsteps )
 {
 
+    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
+                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
+                        Function("t 24 - 24 /")    *f_range("t", 24, 72) ;
+    loadfunc *= 0.0002 ;
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
 
-        featureTree->step() ;
+        bool go_on = featureTree->step() ;
+        if(go_on)
+            loadr->setData(VirtualMachine().eval(loadfunc, 0,0,0, featureTree->getCurrentTime()));
 
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
@@ -141,18 +148,21 @@ void step ( size_t nsteps )
 
         std::cout << std::endl ;
 
-        displacements.push_back ( etemp[1] );
-        displacementsx.push_back ( etemp[0] );
-        loads.push_back ( stemp[1] );
-        loadsx.push_back ( stemp[0] );
-
-        std::fstream ldfile  ;
-        ldfile.open ( "ldn", std::ios::out ) ;
-        for ( size_t j = 0 ; j < loads.size() ; j++ )
+        if(go_on)
         {
-            ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
+            displacements.push_back ( etemp[1] );
+            displacementsx.push_back ( etemp[0] );
+            loads.push_back ( stemp[1] );
+            loadsx.push_back ( stemp[0] );
+
+            std::fstream ldfile  ;
+            ldfile.open ( "ldn", std::ios::out ) ;
+            for ( size_t j = 0 ; j < loads.size() ; j++ )
+            {
+                ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
+            }
+            ldfile.close();
         }
-        ldfile.close();
 
     }
 
@@ -193,25 +203,26 @@ int main ( int argc, char *argv[] )
     Matrix EC = creep->C ;
     Matrix EE = creep->E ;
     Matrix ER = creep->R ;
-    Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);//, E_kv, C_tau, C_eta );
+    Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(BURGER, ER, ER*1, EC, EE, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1.)
+    );
+    StiffnessAndFracture * spasterupt = new StiffnessAndFracture(EE, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.)
+    );
 //    Stiffness * paste = new Stiffness(C_kv);
-    samplef.setBehaviour ( paste  ) ;
+    samplef.setBehaviour ( spasterupt  ) ;
  
-    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
-                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
-                        Function("t 24 - 48 /")    *f_range("t", 24, 48) ;
-    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_STRESS_ETA, TOP_AFTER, 1e6 /*loadfunc*/) ;
+
     F.addBoundaryCondition ( loadr );
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(1.);
+    F.setDeltaTime(.1);
 
     F.setMaxIterationsPerStep ( 3400 );
 
-    step ( 1 ) ;
+    step ( 720 ) ;
 
 //    F.getAssembly()->print() ;
 
