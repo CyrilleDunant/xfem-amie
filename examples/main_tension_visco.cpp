@@ -7,6 +7,7 @@
 #include "../utilities/samplingcriterion.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/mcft.h"
+#include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/stiffness.h"
 #include "../physics/materials/aggregate_behaviour.cpp"
@@ -153,13 +154,14 @@ void step ( size_t nsteps )
             displacements.push_back ( etemp[1] );
             displacementsx.push_back ( etemp[0] );
             loads.push_back ( stemp[1] );
+
             loadsx.push_back ( stemp[0] );
 
             std::fstream ldfile  ;
             ldfile.open ( "ldn", std::ios::out ) ;
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
+                ldfile << v << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
             }
             ldfile.close();
         }
@@ -174,8 +176,27 @@ void step ( size_t nsteps )
 int main ( int argc, char *argv[] )
 {
     omp_set_num_threads(1) ;
-
-
+    // Beton
+    double k_elas = 40.4e9;
+    double nu_elas = 0.2 ;
+    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+    std::vector<std::pair<Matrix, Matrix> > branches ;
+    double factor_k = 1.;
+    std::vector<double> K_chaine_cp = {2.4e11/factor_k, 1.82e11/factor_k,5.4e10/factor_k} ;
+	for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
+	{
+		double tau = 5*std::pow(10., (double) i - 1 );
+			        std::cout << "TAU "<< tau << std::endl ;
+		Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
+		Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+		branches.push_back(std::make_pair(K_i, Am_i)) ;
+	}
+    Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
+    
+    double cstrain = -2.e-3; 
+    double cstress = -38.0e6; 
+    planeType pt = PLANE_STRESS;
+/*
     double E_rec = 1e10;
     double k_kv = 3.e10;
     double am_kv = 5.*k_kv;
@@ -203,13 +224,22 @@ int main ( int argc, char *argv[] )
     Matrix EC = creep->C ;
     Matrix EE = creep->E ;
     Matrix ER = creep->R ;
-    Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(BURGER, ER, ER*1, EC, EE, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1.)
+    */
+    //Viscoelasticity * paste = new Viscoelasticity(BURGER, ER, ER*1, EC, EE);
+    Sample samplef(0.3, 0.6,  0.15, 0.3) ;
+
+    FeatureTree F ( &samplef ) ;
+    featureTree = &F ;
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1.)
     );
-    StiffnessAndFracture * spasterupt = new StiffnessAndFracture(EE, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.)
-    );
-//    Stiffness * paste = new Stiffness(C_kv);
+     //ELAS+DAMAGE
+    //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
+    //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
+    //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
+    //    Stiffness * paste = new Stiffness(C_kv);
     samplef.setBehaviour ( spasterupt  ) ;
+
  
 
     F.addBoundaryCondition ( loadr );
