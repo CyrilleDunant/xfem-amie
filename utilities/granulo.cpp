@@ -153,9 +153,9 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 
 	srand(seed) ;
 	if(placement)
-		feats = placement2D( placement, feats, itz, 0, tries, 0, exclusionZones ) ;
+		feats = placement2D( placement, feats, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
 	else
-		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, 0, exclusionZones ) ;
+		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
@@ -189,9 +189,9 @@ std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Fo
 	for(size_t i = 0 ; i < base.size() ; i++)
 		geom.push_back( dynamic_cast<Geometry *>(base[i])) ;
 	if(placement)
-		feats = placement2DInInclusions( placement, geom, feats, itz, 0, tries, 0, exclusionZones ) ;
+		feats = placement2DInInclusions( placement, geom, feats, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
 	else
-		feats = placement2DInInclusions( dynamic_cast<Rectangle *>(box), geom, feats, itz, 0, tries, 0, exclusionZones ) ;
+		feats = placement2DInInclusions( dynamic_cast<Rectangle *>(box), geom, feats, itz, 0, tries, converter->authorizeRotationsDuringPlacement, exclusionZones ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{

@@ -344,9 +344,9 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
         for(int i = 1 ; i < effblocks ; i++)
         {
             // first line
-            substractMatrixInBlock( a, i,0, ret ) ;
+            placeMatrixInBlock( -a, i,0, ret ) ;
             // first column
-            substractMatrixInBlock( a, 0,i, ret ) ;
+            placeMatrixInBlock( -a, 0,i, ret ) ;
             for(int j = i+1 ; j < effblocks ; j++)
             {
                 // upper triangle
@@ -385,9 +385,9 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
             a += b ;
             placeMatrixInBlock( a, i,i, ret ) ;
             // first line
-            substractMatrixInBlock( a, i,0, ret ) ;
+            placeMatrixInBlock( -a, i,0, ret ) ;
             // first column
-            substractMatrixInBlock( a, 0,i, ret ) ;
+            placeMatrixInBlock( -a, 0,i, ret ) ;
         }
         return ;
     }
@@ -403,10 +403,10 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
         placeMatrixInBlock( a, 1,1, ret ) ;
         placeMatrixInBlock( a, 1,2, ret ) ;
         placeMatrixInBlock( a, 2,1, ret ) ;
-        substractMatrixInBlock( a, 0,1, ret ) ;
-        substractMatrixInBlock( a, 1,0, ret ) ;
-        substractMatrixInBlock( a, 0,2, ret ) ;
-        substractMatrixInBlock( a, 2,0, ret ) ;
+        placeMatrixInBlock( -a, 0,1, ret ) ;
+        placeMatrixInBlock( -a, 1,0, ret ) ;
+        placeMatrixInBlock( -a, 0,2, ret ) ;
+        placeMatrixInBlock( -a, 2,0, ret ) ;
         // stiffness KV
         getBlockInMatrix(param, 2,2, buffer) ;
         vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
@@ -426,8 +426,8 @@ void Viscoelasticity::apply(const Function & p_i, const Function & p_j, const Ga
         a += b ;
         placeMatrixInBlock( a, 0,0, ret ) ;
         placeMatrixInBlock( a, 1,1, ret ) ;
-        substractMatrixInBlock( a, 0,1, ret ) ;
-        substractMatrixInBlock( a, 1,0, ret ) ;
+        placeMatrixInBlock( -a, 0,1, ret ) ;
+        placeMatrixInBlock( -a, 1,0, ret ) ;
         return ;
     }
 

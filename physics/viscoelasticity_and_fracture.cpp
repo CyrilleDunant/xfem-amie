@@ -132,9 +132,9 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
             for(int i = 1 ; i < blocks ; i++)
             {
                 // first line
-                substractMatrixInBlock( a , i,0, ret ) ;
+                placeMatrixInBlock( -a , i,0, ret ) ;
                 // first column
-                substractMatrixInBlock( a , 0,i, ret ) ;
+                placeMatrixInBlock( -a , 0,i, ret ) ;
                 // diagonal
                 placeMatrixInBlock( a , i,i, ret ) ;
                 for(int j = i+1 ; j < blocks ; j++)
@@ -174,9 +174,9 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
                 a += b ;
                 placeMatrixInBlock( a , i,i, ret ) ;
                 // first line
-                substractMatrixInBlock( a , i,0, ret ) ;
+                placeMatrixInBlock( -a , i,0, ret ) ;
                 // first column
-                substractMatrixInBlock( a , 0,i, ret ) ;
+                placeMatrixInBlock( -a , 0,i, ret ) ;
 
             }
             return ;
@@ -194,10 +194,10 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
             placeMatrixInBlock( a , 2,2, ret ) ;
             placeMatrixInBlock( a , 1,2, ret ) ;
             placeMatrixInBlock( a , 2,1, ret ) ;
-            substractMatrixInBlock( a , 0,1, ret ) ;
-            substractMatrixInBlock( a , 1,0, ret ) ;
-            substractMatrixInBlock( a , 0,2, ret ) ;
-            substractMatrixInBlock( a , 2,0, ret ) ;
+            placeMatrixInBlock( -a , 0,1, ret ) ;
+            placeMatrixInBlock( -a , 1,0, ret ) ;
+            placeMatrixInBlock( -a , 0,2, ret ) ;
+            placeMatrixInBlock( -a , 2,0, ret ) ;
             // stiffness KV
             buffer = dfunc->applyViscous(tensors[2]) ;
             vm->ieval(GradientDot(p_i) * buffer * Gradient(p_j, true),    gp, Jinv,v, a) ;
@@ -217,8 +217,8 @@ void ViscoelasticityAndFracture::apply(const Function & p_i, const Function & p_
             a += b ;
             placeMatrixInBlock( a , 0,0, ret ) ;
             placeMatrixInBlock( a , 1,1, ret ) ;
-            substractMatrixInBlock( a , 0,1, ret ) ;
-            substractMatrixInBlock( a , 1,0, ret ) ;
+            placeMatrixInBlock( -a , 0,1, ret ) ;
+            placeMatrixInBlock( -a , 1,0, ret ) ;
             return ;
         }
 
@@ -596,16 +596,16 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         break ;
     case MAXWELL:
         placeMatrixInBlock( tensors[0], 0,0, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 1,0, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 0,1, elasticParam) ;
-        placeMatrixInBlock( tensors[0], 1,1, elasticParam) ;
+        placeMatrixInBlock( tensors[0], 1,0, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 0,1, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 1,1, elasticParam) ;
         break ;
     case BURGER:
         placeMatrixInBlock( tensors[0], 0,0, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 1,0, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 2,0, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 0,1, elasticParam) ;
-        substractMatrixInBlock( tensors[0], 0,2, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 1,0, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 2,0, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 0,1, elasticParam) ;
+        placeMatrixInBlock( -tensors[0], 0,2, elasticParam) ;
         placeMatrixInBlock( tensors[0], 1,1, elasticParam) ;
         placeMatrixInBlock( tensors[0], 1,2, elasticParam) ;
         placeMatrixInBlock( tensors[0], 2,1, elasticParam) ;
@@ -617,8 +617,8 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         for(size_t i = 1 ; i < tensors.size() ; i+=2)
         {
             placeMatrixInBlock( tensors[i], i/2,i/2, viscousParam) ;
-            substractMatrixInBlock( tensors[i], 0,i/2, viscousParam) ;
-            substractMatrixInBlock( tensors[i], i/2,0, viscousParam) ;
+            placeMatrixInBlock( -tensors[i], 0,i/2, viscousParam) ;
+            placeMatrixInBlock( -tensors[i], i/2,0, viscousParam) ;
         }
         break ;
     case GENERALIZED_KELVIN_VOIGT:
@@ -626,8 +626,8 @@ void ViscoelasticityAndFracture::setElasticAndViscousStiffnessMatrix()
         for(size_t i = 1 ; i < tensors.size() ; i+=2)
         {
             placeMatrixInBlock( tensors[0], i/2+1,i/2+1, elasticParam) ;
-            substractMatrixInBlock( tensors[0], i/2+1,0, elasticParam) ;
-            substractMatrixInBlock( tensors[0], 0,i/2+1, elasticParam) ;
+            placeMatrixInBlock( -tensors[0], i/2+1,0, elasticParam) ;
+            placeMatrixInBlock( -tensors[0], 0,i/2+1, elasticParam) ;
             for(size_t j = 1 ; j < i/2+1 ; j++)
             {
                 placeMatrixInBlock( tensors[0], i/2+1,j, elasticParam) ;
