@@ -574,6 +574,8 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
         return gradeAfter ;
     if(gradeBefore > 0)
     {
+//         std::cout << gradeBefore << " vs " << gradeAfter << std::endl ;
+//         exit(0) ;
         return 1 ;
     }
 
@@ -581,7 +583,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-4)
+    while(std::abs(upTime-downTime) > 1e-6)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)
@@ -593,7 +595,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
         
         testTime = 0.5*(downTime+upTime) ;
     }
-    return testTime*.5+.5 ;
+    return 1.-(testTime*.5+.5) ;
 }
 
 FractureCriterion *NonLocalSpaceTimeMCFT::getCopy() const
