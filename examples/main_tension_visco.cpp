@@ -55,6 +55,7 @@ std::vector< double > displacements ;
 std::vector< double > loadsx ;
 std::vector< double > displacementsx ;
 std::vector< double > times ;
+std::vector< double > damage;
 
 Vector fracCrit ( 0 ) ;
 
@@ -93,15 +94,18 @@ void step ()
         bool go_on = featureTree->step() ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
-
+	Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
+/*
         std::cout << "average sigma11 : " << stemp[0]/1e6 << std::endl ;
         std::cout << "average sigma22 : " << stemp[1]/1e6 << std::endl ;
         std::cout << "average sigma12 : " << stemp[2]/1e6 << std::endl ;
         std::cout << "average epsilon11 : " << etemp[0]*1e6 << std::endl ;
         std::cout << "average epsilon22 : " << etemp[1]*1e6 << std::endl ;
         std::cout << "average epsilon12 : " << etemp[2]*1e6 << std::endl ;
+	std::cout << "damage : " << dtemp[0] << std::endl ;
 
         std::cout << std::endl ;
+	*/
 
         if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.1)
         {
@@ -111,12 +115,13 @@ void step ()
             loads.push_back ( stemp[1] );
             loadsx.push_back ( stemp[0] );
             times.push_back(featureTree->getCurrentTime());
+	    damage.push_back(dtemp[0]);
 
             std::fstream ldfile  ;
             ldfile.open ( "ldn", std::ios::out ) ;
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << times[j] << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j] <<  "\n" ;
+                ldfile << times[j] << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j]  << "   " << damage[j]<<  "\n" ;
             }
             ldfile.close();
         }
@@ -155,13 +160,16 @@ SPACE_TWO_DIMENSIONAL ) ;
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
-    
+    //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 1., pt ),
+				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.3,1e-6, 1.0)); 
+
      //ELAS+DAMAGE
 //     StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
-    //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
-    //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
+    //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
+    //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100., cstress , cstrain, 1., pt ), new  FiberBasedIsotropicLinearDamage(0.001, 1.));
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 1., pt ),
+				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,1e-6, 1.)); 
     samplef.setBehaviour ( pasterupt  ) ;
 
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 3) +
@@ -181,10 +189,10 @@ SPACE_TWO_DIMENSIONAL ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.1);
+    F.setDeltaTime(.01);
     F.setOrder(LINEAR_TIME_LINEAR) ;
 
-    F.setMaxIterationsPerStep ( 50 );
+    F.setMaxIterationsPerStep ( 500 );
 
     step () ;
 
