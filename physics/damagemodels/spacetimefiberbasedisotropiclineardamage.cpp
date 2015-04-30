@@ -34,6 +34,8 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::computeDelta(ElementState & s)
 
 Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
 {
+    if(state.max() < POINT_TOLERANCE)
+        return m ;
 //     return m;
     if(fractured())
         return m*0 ;
@@ -59,6 +61,8 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const P
 {
 // return m;
 
+    if(state.max() < POINT_TOLERANCE)
+        return m ;
     if(fractured())
         return m*0 ;
 

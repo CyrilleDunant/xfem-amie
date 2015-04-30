@@ -358,7 +358,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
     if(s.getParent()->getBehaviour()->getDamageModel()->fractured())
         return -1 ;
         
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_MECHANICAL_STRAIN_FIELD,PRINCIPAL_REAL_STRESS_FIELD , s,  t) ;
     Vector first = sstrain.second ;
     Vector second = sstrain.first ;
 
@@ -576,14 +576,14 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     {
 //         std::cout << gradeBefore << " vs " << gradeAfter << std::endl ;
 //         exit(0) ;
-        return 1 ;
+        return .99 ;
     }
 
     double upTime = 1 ;
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-6)
+    while(std::abs(upTime-downTime) > 1e-12)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

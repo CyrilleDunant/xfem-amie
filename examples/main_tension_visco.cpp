@@ -89,7 +89,7 @@ void step ()
 {
 
     double last_time = 0 ;
-    while (featureTree->getCurrentTime() < 4 ) 
+    while (featureTree->getCurrentTime() < 12 ) 
     {
         bool go_on = featureTree->step() ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
@@ -138,10 +138,11 @@ int main ( int argc, char *argv[] )
     // Beton
      double k_elas = 40.4e9;
      double nu_elas = 0.2 ;
-     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true, 
+SPACE_TWO_DIMENSIONAL ) ;
      std::vector<std::pair<Matrix, Matrix> > branches ;
      double factor_k = 1.;
-     std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
+         std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
      for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
      {
          double tau = 5.*std::pow(10., (double) i - 2 ); std::cerr << "TAU "<< tau << std::endl ;
@@ -161,7 +162,7 @@ int main ( int argc, char *argv[] )
     featureTree = &F ;
 
     //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 2., pt ),
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
 				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,1e-6, 1.0)); 
 
 
@@ -170,32 +171,32 @@ int main ( int argc, char *argv[] )
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100., cstress , cstrain, 1., pt ), new  FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 1., pt ),
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
 				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,1e-6, 1.)); 
 
     samplef.setBehaviour ( pasterupt  ) ;
 
     Function loadfunc = Function("t 12 /")         *f_range("t", 0., 3) +
-    Function("0.25 t 3 - 48 / -")*f_range("t", 3, 6) +
-    Function("t 6 - 72 / 0.1866666 +")    *f_range("t", 6, 72) ;
-    loadfunc *= 0.002 ;
+    Function("0.25 t 3 - 48 / -")                  *f_range("t", 3, 6) +
+    Function("t 6 - 72 / 0.1866666 +")             *f_range("t", 6, 72) ;
+    loadfunc *= 0.0002 ;
     
 //     for(double t = 0 ; t < 72  ;t += .1)
 //     {
 //         std::cout << t << "  " << VirtualMachine().eval(loadfunc,0,0,0,t) << std::endl ;
 //     }
 //     exit(0)
-    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
+    BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, loadfunc) ;
     F.addBoundaryCondition ( loadr );
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.001);
+    F.setDeltaTime(.01);
     F.setOrder(LINEAR_TIME_LINEAR) ;
 
-    F.setMaxIterationsPerStep ( 5000 );
+    F.setMaxIterationsPerStep ( 5 );
 
 
     step () ;

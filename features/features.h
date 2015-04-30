@@ -574,9 +574,6 @@ public:
         minDeltaTime = d ;
     }
 
-    void moveFirstTimePlanes ( double d, std::vector<DelaunayTriangle *> & triangles ) ;
-    void moveFirstTimePlanes ( double d, std::vector<DelaunayTetrahedron *> & tets )  ;
-
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end ) ;
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end ) ;
 

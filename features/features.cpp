@@ -78,7 +78,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
-    minDeltaTime = 1e-3 ;
+    minDeltaTime = 0.001 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;
@@ -196,7 +196,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
 {
     initialValue = 0 ;
     previousDeltaTime = 0 ;
-    minDeltaTime =  1e-3 ;
+    minDeltaTime = 0.001 ;
     reuseDisplacements = false ;
     foundCheckPoint = true ;
     averageDamage = 0 ;

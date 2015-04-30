@@ -32,10 +32,10 @@ NonLocalMazars::~NonLocalMazars()
 
 double NonLocalMazars::gradeAtTime(ElementState &s, double t)
 {
-    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;
+    std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_MECHANICAL_STRAIN_FIELD, s,  t) ;
     Vector stress = sstrain.first ;
     Vector strain = sstrain.second ;
-    double strainzz =  -nu*(strain[0] + strain[1])/(1 - nu) ;
+    double strainzz =  -nu*(strain[0] + strain[1])/(1. - nu) ;
     double dama_predict = s.getParent()->getBehaviour()->getDamageModel()->getState().max();
     std::vector<double> posstrain ;
     double maxStrain = 0 ;
@@ -61,7 +61,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         }
         maxStrain = gamma*std::max(0.0,sqrt ( pow( (0.5*( std::abs(strain[0])  + strain[0] )) ,2.0) + pow((0.5*( std::abs(strain[1])  + strain[1] ) ),2.0) +   pow((0.5*( std::abs(strainzz)  + strainzz ) ),2.0))) ;
         talpha = (posstrain[0]*(0.5*( std::abs(strain[0])  + strain[0] )) + posstrain[1]*(0.5*( std::abs(strain[1])  + strain[1] ))  + posstrain[2]*(0.5*( std::abs(strainzz)  + strainzz ))) / (maxStrain*maxStrain);
-        talpha = 1.0;
+//         talpha = 1.0;
 	calpha = 1.0 - talpha ;
     }
     
@@ -131,7 +131,8 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
     {
 //         std::cout << gradeBefore << " vs " << gradeAfter << std::endl ;
 //         exit(0) ;
-        return 1 ;
+//         return .1 ;
+        return .999 ;
     }
 
     double upTime = 1 ;
