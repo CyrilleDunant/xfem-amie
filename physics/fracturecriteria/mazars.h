@@ -62,9 +62,7 @@ namespace Amie {
 	 * @param s ElementState to consider
 	*/
 		virtual double grade(ElementState &s)  ;
-		virtual double gradeAtTime(ElementState &s, double t) ;
-		
-		virtual void scale(double d ) { threshold *= d ;}
+		double gradeAtTime(ElementState &s, double t) ;
 		
 		virtual double getTensileLimit(const ElementState & s) const {return threshold ;};
 	};
@@ -76,6 +74,7 @@ public:
 	NonLocalSpaceTimeMazars(double thres, double E, double nu, double Gf, double cstress, double cstrain, double radius, planeType pt,  MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0);
 	virtual ~NonLocalSpaceTimeMazars();
 	virtual double grade(ElementState &s)  ;
+	virtual FractureCriterion * getCopy() const;
 } ;
 
 } 

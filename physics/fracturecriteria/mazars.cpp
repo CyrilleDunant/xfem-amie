@@ -35,8 +35,6 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     std::pair<Vector, Vector> sstrain = getSmoothedFields(PRINCIPAL_REAL_STRESS_FIELD, PRINCIPAL_STRAIN_FIELD, s,  t) ;
     Vector stress = sstrain.first ;
     Vector strain = sstrain.second ;
-    Vector stresstt = getSmoothedField(REAL_STRESS_FIELD, s,  t) ;
-    Vector straintt = getSmoothedField( STRAIN_FIELD, s, t )  ;
     double strainzz =  -nu*(strain[0] + strain[1])/(1 - nu) ;
     double dama_predict = s.getParent()->getBehaviour()->getDamageModel()->getState().max();
     std::vector<double> posstrain ;
@@ -93,16 +91,18 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     //Critere seuil sur l'endommagement
     true_threshold = std::max(threshold, maxStrain);
     pseudo_dama =  std::min(talpha*(1. - (threshold/true_threshold) * (std::exp(- B_t*(true_threshold - threshold)))) + calpha*(1. - (threshold*(1 - A_c)/true_threshold)  -  A_c*(std::exp(- B_c*(true_threshold - threshold)))), 1.0 - POINT_TOLERANCE) ;
-
-    if(pseudo_dama < 1.0e-5) {
+    std::cout << " MAXSTARIN " << maxStrain << " DAMA " << pseudo_dama << std::endl ;
+    if(pseudo_dama < 1.0e-5 || std::isnan(pseudo_dama)) {
         pseudo_dama = -1.0;
     }
     if( (maxStrain >= threshold) &&  (pseudo_dama >= dama_predict))
     {
         met = true ;
         double un_dama = pseudo_dama - dama_predict;
+    std::cout << " MAXSTARIN1 " << maxStrain << " DAMA1 " << pseudo_dama << std::endl ; 	
         return un_dama ;
     }
+    std::cout << " MAXSTARIN2 " << maxStrain << " DAMA2 " << pseudo_dama << std::endl ;   
     return pseudo_dama - dama_predict;
 
 }
@@ -132,11 +132,13 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
         return -1 ;
     if(gradeBefore > 0)
         return 1 ;
-
     return 2.*gradeBefore/(gradeBefore-gradeAfter) -1 ;
 }
 
-
+FractureCriterion *NonLocalSpaceTimeMazars::getCopy() const
+{
+    return new NonLocalSpaceTimeMazars( threshold,E, nu , Gf, cstress, cstrain,  getMaterialCharacteristicRadius(), pt ) ;
+}
 
 
 
