@@ -88,7 +88,7 @@ void step ()
 {
 
     double last_time = 0 ;
-    while (featureTree->getCurrentTime() < 72 ) 
+    while (featureTree->getCurrentTime() < 48 ) 
     {
         bool go_on = featureTree->step() ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
@@ -103,7 +103,7 @@ void step ()
 
         std::cout << std::endl ;
 
-        if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.5)
+        if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.1)
         {
             last_time = featureTree->getCurrentTime() ;
             displacements.push_back ( etemp[1] );
@@ -130,22 +130,21 @@ void step ()
 
 int main ( int argc, char *argv[] )
 {
-    omp_set_num_threads(1) ;
     // Beton
-    double k_elas = 40.4e9;
-    double nu_elas = 0.2 ;
-    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
-    std::vector<std::pair<Matrix, Matrix> > branches ;
-    double factor_k = 1.;
-    std::vector<double> K_chaine_cp = {2.4e11/factor_k, 1.82e11/factor_k,5.4e10/factor_k} ;
-	for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
-	{
-		double tau = 5*std::pow(10., (double) i - 1 );
-			        std::cout << "TAU "<< tau << std::endl ;
-		Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas, true,  SPACE_TWO_DIMENSIONAL )  ;
-		Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
-		branches.push_back(std::make_pair(K_i, Am_i)) ;
-	}
+     double k_elas = 40.4e9;
+     double nu_elas = 0.2 ;
+     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true, 
+SPACE_TWO_DIMENSIONAL ) ;
+     std::vector<std::pair<Matrix, Matrix> > branches ;
+     double factor_k = 1.;
+         std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
+     for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
+     {
+         double tau = 5.*std::pow(10., (double) i - 2 ); std::cerr << "TAU "<< tau << std::endl ;
+         Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  true,  SPACE_TWO_DIMENSIONAL )  ; 
+         Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+         branches.push_back(std::make_pair(K_i, Am_i)) ;
+     }
     Viscoelasticity * paste = new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches) ;
     
     double cstrain = -2.e-3; 
@@ -156,20 +155,25 @@ int main ( int argc, char *argv[] )
 
     FeatureTree F ( &samplef ) ;
     featureTree = &F ;
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6, 1.) );
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
     
      //ELAS+DAMAGE
 //     StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas, new NonLocalMCFT(-40e6,40e9,1.), new FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6,1.));
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     samplef.setBehaviour ( pasterupt  ) ;
 
- 
-    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
-                        Function("1")*f_range("t", 12, 24) +
-                        Function("t 24 - 24 / 1 +")    *f_range("t", 24, 72) ;
-    loadfunc *= 0.00005 ;
+    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 3) +
+    Function("0.25 t 3 - 48 / -")*f_range("t", 3, 6) +
+    Function("t 6 - 72 / 0.1866666 +")    *f_range("t", 6, 72) ;
+    loadfunc *= 0.0002 ;
+    
+//     for(double t = 0 ; t < 72  ;t += .1)
+//     {
+//         std::cout << t << "  " << VirtualMachine().eval(loadfunc,0,0,0,t) << std::endl ;
+//     }
+//     exit(0)
     BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP_AFTER, loadfunc) ;
     F.addBoundaryCondition ( loadr );
 
@@ -177,9 +181,10 @@ int main ( int argc, char *argv[] )
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.01);
+    F.setDeltaTime(.1);
+    F.setOrder(LINEAR_TIME_LINEAR) ;
 
-    F.setMaxIterationsPerStep ( 34000 );
+    F.setMaxIterationsPerStep ( 50 );
 
     step () ;
 

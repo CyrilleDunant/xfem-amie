@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
 //     }
 //     exit(0) ;
     
-    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 12) +
-                        Function("1 t 12 - 12 / -")*f_range("t", 12, 24) +
-                        Function("t 24 - 48 /")    *f_range("t", 24, 48) ;
+    Function loadfunc = Function("t 9 /")         *f_range("t", 0., 9) +
+                        Function("1 t 9 - 26 / -")*f_range("t", 9, 24) +
+                        Function("t 24 - 48 / 0.5 +")    *f_range("t", 24, 48) ;
     for(double i = 0 ; i < 48 ; i+=0.1)
     {
         std::cout << i << "  " << VirtualMachine().eval(loadfunc, 0,0,0,i) << std::endl ;

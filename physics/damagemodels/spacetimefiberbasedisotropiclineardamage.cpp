@@ -112,7 +112,7 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
         return ;
     }
 
-    double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
+    double score = maxscore ;s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
 
     if(!fractured() && score >= 1.-timeTolerance)
     {
