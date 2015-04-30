@@ -138,7 +138,7 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-6)
+    while(std::abs(upTime-downTime) > 1e-12)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

@@ -34,8 +34,9 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::computeDelta(ElementState & s)
 
 Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
 {
+//     return m;
     if(fractured())
-        return m*1e-6 ;
+        return m*0 ;
 
     if(state.size() == 1)
     {
@@ -44,7 +45,7 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
         return m ;
     }
 
-    double i = (p.getT() + 1.) * state.size() / 2 ;
+    double i = (p.getT() + 1.) * state.size() *.5 ;
     if(i >= state.size())
         i = state.size() - 1 ;
 
@@ -56,10 +57,10 @@ Matrix SpaceTimeFiberBasedIsotropicLinearDamage::applyViscous(const Matrix & m, 
 
 Matrix SpaceTimeFiberBasedIsotropicLinearDamage::apply(const Matrix & m, const Point & p,const IntegrableEntity * e, int g) const
 {
-
+// return m;
 
     if(fractured())
-        return m*1e-6 ;
+        return m*0 ;
 
 
     if(state.size() == 1)
@@ -89,7 +90,7 @@ SpaceTimeFiberBasedIsotropicLinearDamage::~SpaceTimeFiberBasedIsotropicLinearDam
 void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double maxscore)
 {
     elementState = &s ;
-
+    converged = true ;
     if( fraction < 0 )
     {
         if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -108,11 +109,11 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
     change = false ;
     if(!s.getParent()->getBehaviour()->getFractureCriterion() || maxscore < 0)
     {
-        converged = true ;
+        
         return ;
     }
 
-    double score = maxscore ;s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;//maxscore ;
+    double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
 
     if(!fractured() && score >= 1.-timeTolerance)
     {
@@ -120,13 +121,11 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
         {
             state[state.size()-1] += fibreFraction ;
             change = true ;
-            converged = true ;
             s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
         }
     }
-    else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met() && (maxscore - score) < timeTolerance)
+    else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
     {
-
         state[state.size() -1] += fibreFraction ;
         for(size_t i = 0 ; i < state.size() ; i++)
         {
@@ -134,11 +133,8 @@ void SpaceTimeFiberBasedIsotropicLinearDamage::step( ElementState &s , double ma
                 state[i] = 1. ;
         }
         change = true ;
-        converged = true ; 
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
-    else
-        converged = true ;
     return ;
 }
 

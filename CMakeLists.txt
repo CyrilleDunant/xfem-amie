@@ -112,6 +112,7 @@ physics/radialstiffnessgradient.cpp
 physics/fracturecriteria/maxstrain.cpp 
 physics/fracturecriteria/mohrcoulomb.cpp
 physics/fracturecriteria/mcft.cpp
+physics/fracturecriteria/mazars.cpp
 physics/non_linear_stiffness.cpp 
 physics/fracturecriteria/ruptureenergy.cpp 
 physics/radial_distributed_stiffness.cpp
