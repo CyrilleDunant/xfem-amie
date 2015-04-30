@@ -2286,6 +2286,20 @@ Polygon::Polygon(const std::valarray<Point *> & points) : NonConvexGeometry(0), 
     computeCenter();
 }
 
+Polygon::Polygon(const std::valarray<Point> & points) : NonConvexGeometry(0), originalPoints(points.size())
+{
+    gType = POLYGON ;
+
+//    boundingPoints.resize(points.size()) ;
+    for(size_t i = 0 ; i < points.size() ; i++)
+    {
+//        boundingPoints[i] = new Point(points[i]) ;
+        originalPoints[i] = (points[i]) ;
+    }
+
+    computeCenter();
+}
+
 Polygon::~Polygon() { }
 
 void Polygon::sampleBoundingSurface(size_t num_points)
@@ -2301,6 +2315,7 @@ void Polygon::sampleBoundingSurface(size_t num_points)
 
 std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
 {
+
     double perimeter = 0 ;
     std::vector<Point> ret ;
 
@@ -2314,7 +2329,7 @@ std::vector<Point> Polygon::getSamplingBoundingPoints(size_t num_points) const
     {
         int inext = (i+1)%originalPoints.size() ;
         double fraction = dist(originalPoints[i], originalPoints[inext])/perimeter ;
-        int numPointsOnSegment = std::max(round(fraction*num_points), 2.) ;
+        int numPointsOnSegment = std::max(round(fraction*num_points)+1, 2.) ;
 
         ret.push_back(originalPoints[i]);
         for(int j = 1 ; j < numPointsOnSegment-1 ; j++)
@@ -2336,8 +2351,314 @@ double Polygon::getPerimeter() const
     return perimeter ;
 }
 
+std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta ) 
+{
+    // first, get tentative segments inside p
+    std::valarray<Point> vertex = p.getOriginalPoints() ;
+    std::vector<Segment> segments ;
+    for(size_t i = 0 ; i < vertex.size() ; i++)
+    {
+       size_t i_next = (i+1)%vertex.size() ;
+       size_t i_next_next = (i+2)%vertex.size() ;
+       size_t i_prev = (i==0 ? vertex.size()-1 : i-1) ;
+       Segment edge_prev( vertex[i_prev], vertex[i] ) ;
+       Segment edge( vertex[i], vertex[i_next] ) ;
+       Segment edge_next( vertex[i_next], vertex[i_next_next] ) ;
+
+       Point n = edge.normal() ;
+       if(n.norm() < POINT_TOLERANCE)
+           continue ; // original edge is too small
+       n *= 0.75*delta/n.norm() ;       
+       if(!p.in(edge.midPoint() + n*0.01))
+       {
+          n *= -1 ;
+          if(!p.in(edge.midPoint() + n*0.01))
+             continue ; // original polygon is too thin
+       }
+       Line tentative( edge.midPoint()+n, vertex[i_next]-vertex[i] ) ;
+
+       n = edge_prev.normal() ;
+       if(n.norm() < POINT_TOLERANCE)
+           continue ; // original edge is too small
+       n *= 0.75*delta/n.norm() ;       
+       if(!p.in(edge_prev.midPoint() + n*0.01))
+       {
+          n *= -1 ;
+          if(!p.in(edge_prev.midPoint() + n*0.01))
+             continue ; // original polygon is too thin
+       }
+       Line tentative_prev( edge_prev.midPoint()+n, vertex[i]-vertex[i_prev] ) ;
+
+       n = edge_next.normal() ;
+       if(n.norm() < POINT_TOLERANCE)
+           continue ; // original edge is too small
+       n *= 0.75*delta/n.norm() ;       
+       if(!p.in(edge_next.midPoint() + n*0.01))
+       {
+          n *= -1 ;
+          if(!p.in(edge_next.midPoint() + n*0.01))
+             continue ; // original polygon is too thin
+       }
+       Line tentative_next( edge_next.midPoint()+n, vertex[i_next_next]-vertex[i_next] ) ;
+
+/*
+
+       Line bisectrix_prev( vertex[i], vertex[i_prev]+vertex[i_next]-(vertex[i]*2.) ) ;
+       Line bisectrix_next( vertex[i_next], vertex[i]+vertex[i_next_next]-(vertex[i_next]*2.) ) ;*/
+
+       if( (!tentative.intersects( tentative_prev )) || (!tentative.intersects( tentative_next ))) 
+           continue ; // unable to find points for next tentative edge
+
+       Point first = tentative.intersection( tentative_prev ) ;
+       Point second = tentative.intersection( tentative_next ) ;
+       if(!p.in( first ) || !p.in( second) )
+           continue ; // vertexes of next tentative edge are outside the original polygon
+
+       segments.push_back( Segment( first, second ) ) ;
+    }
+//    std::cout << "first-segments: " << segments.size() << std::endl ;
+
+    // second, create list of connectivity
+    std::vector<std::pair< Point, std::vector<int> > > nodes ;
+    std::vector<int> dummy ;
+    for(size_t i = 0 ; i < segments.size() ; i++)
+    {
+        if(nodes.empty())
+        {
+            nodes.push_back( std::make_pair( segments[i].first(), dummy ) ) ;
+            nodes.push_back( std::make_pair( segments[i].second(), dummy ) ) ;
+            nodes[0].second.push_back(1) ;
+            nodes[1].second.push_back(0) ;
+            continue ;
+        }
+
+        int found_first_index = -1 ;
+        int found_second_index = -1 ;
+        for(size_t j = 0 ; j < nodes.size() ; j++)
+        {
+            if(dist(segments[i].first(), nodes[j].first) < POINT_TOLERANCE)
+            {
+                found_first_index = j ;
+                break ;
+            }            
+        }
+        for(size_t j = 0 ; j < nodes.size() ; j++)
+        {
+            if(dist(segments[i].second(), nodes[j].first) < POINT_TOLERANCE)
+            {
+                found_second_index = j ;
+                break ;
+            }            
+        }
+        if(found_first_index < 0)
+        {
+            found_first_index = nodes.size() ;
+            nodes.push_back( std::make_pair( segments[i].first(), dummy ) ) ;
+        }
+        if(found_second_index < 0)
+        {
+            found_second_index = nodes.size() ;
+            nodes.push_back( std::make_pair( segments[i].second(), dummy ) ) ;
+        }
+        nodes[found_first_index].second.push_back(found_second_index) ;
+        nodes[found_second_index].second.push_back(found_first_index) ;
+    }
+//    std::cout << "second-nodes: " << nodes.size() << std::endl ;
+
+    // third, merge points too close
+    std::valarray<bool> done( nodes.size() ) ;
+    std::valarray<bool> kept( nodes.size() ) ;
+    done = false ;
+    kept = false ;
+    for(size_t i = 0 ; i < nodes.size() ; i++)
+    {
+        if(done[i])
+            continue ;
+        std::vector<int> nodes_close ;
+        for(size_t j = 0 ; j < nodes.size() ; j++)
+        {
+            if(i == j)
+                continue ;
+
+            if(dist( nodes[i].first, nodes[j].first ) < 0.5*delta)
+                nodes_close.push_back(j) ;            
+        }
+
+        Point c = nodes[i].first ;
+        for(size_t j = 0 ; j < nodes_close.size() ; j++)
+            c += nodes[ nodes_close[j] ].first ;
+        c /= 1+nodes_close.size() ;
+
+        nodes[i].first = c ;
+        for(size_t j = 0 ; j < nodes_close.size() ; j++)
+        {
+            done[ nodes_close[j] ] = true ;
+            kept[ nodes_close[j] ] = false ;
+            for(size_t k = 0 ; k < nodes[ nodes_close[j] ].second.size() ; k++)
+                nodes[i].second.push_back( nodes[ nodes_close[j] ].second[ k ] ) ;
+            for(size_t k = 0 ; k < nodes.size() ; k++)
+            {
+                for(size_t l = 0 ; l < nodes[k].second.size() ; l++)
+                {
+                    if(nodes[k].second[l] == nodes_close[j])
+                        nodes[k].second[l] = i ;
+                }
+            }
+        }
+        std::sort( nodes[i].second.begin(), nodes[i].second.end()) ;
+        nodes[i].second.erase( std::unique( nodes[i].second.begin(), nodes[i].second.end()), nodes[i].second.end()) ;
+
+        done[i] = true ;
+        kept[i] = true ;
+    }
+    int keptNodes = 0 ;
+    for(size_t i = 0 ; i < kept.size() ; i++) { keptNodes += (int) kept[i] ; }
+//    std::cout << "third-nodes: " << keptNodes << std::endl ;
+
+    // fourth, recreate tentative segments
+    segments.clear() ;
+    done = false ;
+    for(size_t i = 0 ; i < nodes.size() ; i++)
+    {
+        if(!kept[i])
+            continue ; // node has been merged with another
+
+        for(size_t j = 0 ; j < nodes[i].second.size() ; j++)
+        {
+            if((size_t) nodes[i].second[j] == i)
+                continue ; // node connects with itself
+
+            if(done[ nodes[i].second[j] ])
+                continue ; // segment has already been added
+
+            segments.push_back( Segment( nodes[i].first, nodes[ nodes[i].second[j] ].first ) ) ;
+        }
+        done[i] = true ;
+    }
+//    std::cout << "fourth-segments: " << segments.size() << std::endl ;
+
+    // fifth, remove points too close to other edge 
+    for(size_t i = 0 ; i < segments.size() ; i++)
+    {
+//        std::cout << "fifth-iterator: " << i << std::endl ;
+        for(size_t j = i+1 ; j < segments.size() ; j++)
+        {
+            if( dist( segments[i].first(), segments[j].second() ) < POINT_TOLERANCE || 
+                dist( segments[i].first(), segments[j].first() ) < POINT_TOLERANCE ||
+                dist( segments[i].second(), segments[j].first() ) < POINT_TOLERANCE ||
+                dist( segments[i].second(), segments[j].second() ) < POINT_TOLERANCE)
+                continue ; // segments are connected
+//            std::cout << "fifth-jiterator: " << j << std::endl ;
+            
+            Point p = segments[j].project( segments[i].first() ) ;
+            if(dist(p, segments[i].first()) < 0.5*delta) // first point is too close to next segment
+            {
+                // merge points
+                for(size_t k = 0 ; k < segments.size() ; k++)
+                {
+                    if(k == i)
+                       continue ;
+                    if( dist( segments[i].first(), segments[k].first() ) < POINT_TOLERANCE)
+                        segments[k].setFirst( p ) ;
+                    if( dist( segments[i].first(), segments[k].second() ) < POINT_TOLERANCE)
+                        segments[k].setSecond( p ) ;
+                }
+                segments[i].setFirst(p) ;
+                // split segment
+                Point s = segments[j].second() ;
+                segments[j].setSecond( p ) ;
+                segments.push_back( Segment( p, s ) ) ;
+            }
+
+
+            p = segments[j].project( segments[i].second() ) ;
+            if(dist(p, segments[i].second()) < 0.25*delta) // second point is too close to next segment
+            {
+                for(size_t k = 0 ; k < segments.size() ; k++)
+                {
+                    if(k == i)
+                       continue ;
+                    if( dist( segments[i].second(), segments[k].first() ) < POINT_TOLERANCE)
+                        segments[k].setFirst( p ) ;
+                    if( dist( segments[i].second(), segments[k].second() ) < POINT_TOLERANCE)
+                        segments[k].setSecond( p ) ;
+                }
+                segments[i].setSecond(p) ;
+                // split segment
+                Point s = segments[j].second() ;
+                segments[j].setSecond( p ) ;
+                segments.push_back( Segment( p, s ) ) ;
+            }
+        }
+    }
+//    std::cout << "fifth-segments: " << segments.size() << std::endl ;
+
+    // last: reconstruct ordered polygons
+    done.resize(segments.size()) ;
+    done = false ;
+    std::vector<Polygon> nextPolygons ;
+    for(size_t i = 0 ; i < segments.size() ; i++)
+    {
+        if(done[i])
+            continue ;
+//        std::cout << "sixth-iterator: " << i << std::endl ;
+
+        bool close = false ;
+        bool allchecked = false ;
+        std::vector<Point> pts ;
+        size_t j = i+1 ;
+        pts.push_back( segments[i].first() ) ;
+        pts.push_back( segments[i].second() ) ;
+        done[i] = true ;
+        size_t tries = 0 ;
+        while(tries < segments.size() && !(allchecked || close) )
+        {
+             if(j == segments.size()) { j = 0 ; }
+             if(j == i || done[j]) // move on
+             {
+                 j++ ;
+                 tries++ ;
+                 continue ;
+             }
+             Point last = pts[ pts.size()-1 ] ;
+             if(dist( last, segments[j].second() ) < POINT_TOLERANCE ) // second point is last point added, so add first
+             {
+                 pts.push_back( segments[j].first()) ;
+                 tries = 0 ;
+                 done[j] = true ;
+             }
+             else if(dist( last, segments[j].first() ) < POINT_TOLERANCE ) // vice-versa
+             {
+                 pts.push_back( segments[j].second()) ;
+                 tries = 0 ;
+                 done[j] = true ;
+             }
+
+             j++ ;
+             tries++ ;
+             close = (dist(pts[0], pts[ pts.size()-1 ]) < POINT_TOLERANCE) ;
+             allchecked = true ;
+             for(size_t k = 0 ; allchecked && k < done.size() ; k++)
+                 allchecked &= done[k] ;
+        }
+
+        if(pts.size() > 2)
+        {
+            std::valarray<Point> nextPoly( pts.size() -1 ) ;
+//            std::cout << "sixth-polygon: " << pts.size() << std::endl ;
+            for(size_t k = 0 ; k < pts.size()-1 ; k++)
+                nextPoly[k] = pts[k] ;
+            nextPolygons.push_back( Polygon(nextPoly) ) ;
+        }
+    }
+
+    return nextPolygons ;
+}
+
+
 void Polygon::sampleSurface(size_t num_points)
 {
+//    std::cout << "sampling polygon " << num_points << std::endl ;
     for(size_t i = 0 ; i < boundingPoints.size() ; i++)
         delete boundingPoints[i] ;
     for(size_t i = 0 ; i < inPoints.size() ; i++)
@@ -2345,150 +2666,62 @@ void Polygon::sampleSurface(size_t num_points)
 
     num_points *=2 ;
     sampleBoundingSurface(num_points);
-    std::vector<Segment> segments ;
-    double perimeter = 0 ;
-    for(size_t i = 0 ; i < originalPoints.size() ; i++ )
-    {
-        int inext = (i+1)%originalPoints.size() ;
-        segments.push_back(Segment(originalPoints[i], originalPoints[inext]));
-        perimeter += dist(originalPoints[i], originalPoints[inext]) ;
-    }
 
-    double delta = perimeter/num_points ;
-
-
+    std::vector<Polygon> clusters ;
+    clusters.push_back( Polygon(originalPoints) ) ;
+    double perimeter = clusters[0].getPerimeter() ;
+    double delta = perimeter/getBoundingPoints().size() ;
     std::vector<Point> newPoints ;
-    int iteration = 0 ;
-    do
+//    int t = 0 ; // for debugging purpose
+
+    while(clusters.size() > 0)
     {
-        iteration++ ;
-        std::vector<Segment> newSegments ;
-        for(size_t i = 0 ; i < segments.size() ; i++)
+        std::vector<Polygon> nextCluster ;
+        std::vector<Point> nextPoints ;
+        for(size_t i = 0 ; i < clusters.size() ; i++)
         {
-            Point vector(segments[i].normal(center)) ;
-
-            vector /= vector.norm() ;
-            vector *= 0.75*delta ;
-            if(!in(segments[i].midPoint()+vector*iteration))
-                vector *= -1 ;
-
-            segments[i].set(segments[i].first()+vector , segments[i].second()+vector) ;
-            Point vs = segments[i].second()- segments[i].midPoint() ;
-            Point vf = segments[i].first()- segments[i].midPoint() ;
-            segments[i].set(segments[i].first()+vf/vf.norm()*2.*delta , segments[i].second()+vs/vs.norm()*2.*delta) ;
-        }
-
-        for(size_t i = 0 ; i < segments.size() ; i++)
-        {
-            std::multimap<double,Point> candidatesf ;
-            std::multimap<double,Point> candidatess ;
-            for(size_t j = 0 ; j < segments.size() ; j++)
+//            std::cout << "tries: " << t++ << std::endl ;
+            std::vector<Polygon> inscribed = getInscribedPolygons( clusters[i], delta ) ;
+//            std::cout << "next: " << inscribed.size() << std::endl ;
+            if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
+                newPoints.push_back( clusters[i].getCenter() ) ;
+            for(size_t j = 0 ; j < inscribed.size() ; j++)
             {
-                if(i == j)
-                    continue ;
-
-                if(segments[i].intersects(segments[j]))
+                std::valarray<Point> pts = inscribed[j].getOriginalPoints() ;
+//                std::cout << "points: " << pts.size() << std::endl ;
+                for(size_t k = 0 ; k < pts.size() ; k++)
                 {
-                    Point inter = segments[i].intersection(segments[j]) ;
-                    candidatess.insert(std::make_pair(dist(segments[i].second(),inter), inter)) ;
-                    candidatesf.insert(std::make_pair(dist(segments[i].first(),inter), inter)) ;
+                    bool alone = true ;
+                    for(size_t l = 0 ; alone && l < nextPoints.size() ; l++)
+                       alone = dist( pts[k], nextPoints[l] ) > POINT_TOLERANCE ;
+                    if(alone)
+                       nextPoints.push_back( pts[k] ) ;
+                    
+                    if(k==1 && pts.size() == 2)
+                        break ; // polygon is a line, do not repeat mesh points
+
+                    size_t k_next = (k+1)%pts.size() ;
+                    int numPointsOnSegment = round(dist(pts[k], pts[k_next])*num_points/perimeter) ;
+
+                    for(int n = 0 ; n < numPointsOnSegment-1 ; n++)
+                        newPoints.push_back(pts[k]*(double)n/(numPointsOnSegment-1) + pts[k_next]*(1.-(double)n/(numPointsOnSegment-1)) );
                 }
-            }
-
-            if(candidatess.size() > 1)
-            {
-                Segment newSeg(candidatesf.begin()->second, candidatess.begin()->second) ;
-                double n = newSeg.norm() ;
-                if(n > delta)
-                {
-                    newSegments.push_back(newSeg);
-                }
+                nextCluster.push_back( inscribed[j] ) ;
             }
         }
+        for(size_t i = 0 ; i < nextPoints.size() ; i++)
+             newPoints.push_back( nextPoints[i] ) ;
+//        std::cout << "newpoints: " << newPoints.size() << std::endl ;
 
-        segments.clear();
-        if(newSegments.empty())
-        {
-            newPoints.push_back(center);
-            break ;
-        }
-        int start = newPoints.size() ;
-        Segment * testSegment = &newSegments[0] ;
-        Segment * startSegment = testSegment ;
-        newPoints.push_back(testSegment->second());
-        size_t tries  = 0 ;
-        bool found = true ;
-        while(tries < newSegments.size() && found)
-        {
-            found = false ;
-            for(size_t i = 0 ; i < newSegments.size() ; i++)
-            {
-                if(&newSegments[i] == testSegment)
-                    continue ;
+        clusters.clear() ;
+        for(size_t i = 0 ; i < nextCluster.size() ; i++)
+            clusters.push_back( nextCluster[i] ) ;
 
-                if(dist(newPoints.back(), newSegments[i].first()) < POINT_TOLERANCE)
-                {
-                    newPoints.push_back(newSegments[i].second());
-                    testSegment = &newSegments[i] ;
-                    found = true ;
-                    break ;
-                }
-                if(dist(newPoints.back(), newSegments[i].second()) < POINT_TOLERANCE)
-                {
-                    newPoints.push_back(newSegments[i].first());
-                    testSegment = &newSegments[i] ;
-                    found = true ;
-                    break ;
-                }
-            }
-
-            if(startSegment == testSegment)
-                break ;
-            if(!found)
-            {
-                tries++ ;
-                Segment * testSegment = &newSegments[tries] ;
-//                 newPoints.erase(newPoints.begin()+start, newPoints.end()) ;
-                newPoints.push_back(testSegment->second());
-            }
-
-        }
-
-
-
-        double currentperimeter = 0 ;
-        for(size_t i = start ; i < newPoints.size() ; i++ )
-        {
-            size_t inext = i+1 ;
-            if(inext >= newPoints.size())
-                inext = start ;
-            segments.push_back(Segment(newPoints[i], newPoints[inext]));
-            currentperimeter +=segments.back().norm() ;
-        }
-
-        if(currentperimeter < delta)
-        {
-            newPoints.push_back(center);
-            break ;
-        }
-
-        for(size_t i = 0 ; i < segments.size() ; i++ )
-        {
-            double fraction = segments[i].norm()/currentperimeter ;
-            int numPointsOnSegment = round(fraction*num_points*currentperimeter/perimeter) ;
-
-            for(int j = 0 ; j < numPointsOnSegment-1 ; j++)
-            {
-                newPoints.push_back(segments[i].first()*(double)j/(numPointsOnSegment-1) + segments[i].second()*(1.-(double)j/(numPointsOnSegment-1)) );
-            }
-        }
-
-    } while(!segments.empty()) ;
+    }
 
     inPoints.resize(newPoints.size());
     for(size_t i = 0 ; i < newPoints.size() ; i++ )
         inPoints[i] = new Point(newPoints[i]) ;
-
 }
 
 

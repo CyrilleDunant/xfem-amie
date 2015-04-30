@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <vector>
+#include "../features/microstructuregenerator.h"
 #include "../features/inclusion.h"
 #include "../features/expansiveZone.h"
 #include "../features/growingExpansiveZone.h"
@@ -161,9 +162,9 @@ public:
 	 * @param seed seed for random generator
 	 * @return vector of Inclusion*
 	 */
-	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 100000, double percent=0.8, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;
+	static std::vector<Feature *> get2DConcrete(FeatureTree * F, Form * behaviour,  size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr, size_t tries = 100000, double percent=0.8, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;
 
-	static std::vector<Feature *> get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour,  std::vector<Feature *> base, size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, GeometryType geo = CIRCLE, double aspectRatio = 1., double orientation = M_PI, size_t tries = 100000, double percent=0.1, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;//A 
+	static std::vector<Feature *> get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour,  std::vector<Feature *> base, size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr, size_t tries = 100000, double percent=0.1, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;//A 
 
 		/**
 	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample

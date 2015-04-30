@@ -1554,8 +1554,8 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         double rmax = psdConfig->getData("rmax",0.1) ;
         double fraction = psdConfig->getData("fraction", 0.8) ;
         std::string geometry = getStringData("geometry.type","CIRCLE") ;
-        double aspectRatio = getData("geometry.aspect_ratio",1.) ;
-        double orientation = getData("geometry.orientation",M_PI) ;
+//        double aspectRatio = getData("geometry.aspect_ratio",1.) ;
+//        double orientation = getData("geometry.orientation",M_PI) ;
         Sample * placement = nullptr ;
         int tries = getData("placement.tries", 1e6) ;
         double spacing = getData("placement.spacing",1e-5) ;
@@ -1566,12 +1566,12 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         }
         if(base.size() == 0)
         {
-            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+//            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
             std::cout << ret.size() << std::endl ;
         }
         else
         {
-            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, nullptr, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
     }
 
@@ -2227,6 +2227,34 @@ void ConfigTreeItem::writeOutput(FeatureTree * F, int i, int nsteps, std::vector
                 else
                 {
                     double f = F->get2DMesh()->getField( ffields[i]->getStringData(), cacheIndex[index]) ;
+                    std::cout << f << "\t" ;
+                    out << f << "\t" ;
+                }
+            }
+
+        }
+
+        std::vector<ConfigTreeItem *> edges = getAllChildren("edge") ;
+        for(size_t i = 0 ; i < edges.size() ; i++)
+        {
+            BoundingBoxPosition pos = ConfigTreeItem::translateBoundingBoxPosition(edges[i]->getStringData("position", "BOTTOM")) ;
+            std::vector<ConfigTreeItem *> ffields = edges[i]->getAllChildren("field") ;
+            for(size_t i = 0 ; i < ffields.size() ; i++)
+            {
+                bool isFieldType = true ;
+                FieldType ft = ConfigTreeItem::translateFieldType( ffields[i]->getStringData(), isFieldType ) ;
+                if(isFieldType)
+                {
+                    Vector f = F->getAverageFieldOnBoundary( pos, ft, -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
+                    for(size_t j = 0 ; j < f.size() ; j++)
+                    {
+                        std::cout << f[j] << "\t" ;
+                        out << f[j] << "\t" ;
+                    }
+                }
+                else
+                {
+                    double f = F->getAverageFieldOnBoundary( pos, ffields[i]->getStringData(), -1, (instant == "AFTER") - (instant == "BEFORE") ) ;
                     std::cout << f << "\t" ;
                     out << f << "\t" ;
                 }

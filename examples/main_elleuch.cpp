@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     if(simple)
         nagg = 500 ;
 
-    std::vector<Feature *> allInclusions = PSDGenerator::get2DConcrete(&F, &serpentine, nagg, 0.006, 0.00002, new GranuloFromCumulativePSD("data_elleuch/aggregate_psd", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 100000, 0.67, new Rectangle(0.1,0.1,0.,0.)) ;
+    std::vector<Feature *> allInclusions = PSDGenerator::get2DConcrete(&F, &serpentine, nagg, 0.006, 0.00002, new GranuloFromCumulativePSD("data_elleuch/aggregate_psd", CUMULATIVE_PERCENT), nullptr, 100000, 0.67, new Rectangle(0.1,0.1,0.,0.)) ;
     std::vector<Circle *> inInclusions ;
     for(size_t i = 0 ; i < allInclusions.size() ; i++)
     {

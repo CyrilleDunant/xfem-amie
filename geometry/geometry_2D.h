@@ -480,6 +480,11 @@ protected:
     std::valarray<Point> originalPoints ;
 public:
     Polygon(const std::valarray<Point *> & points) ;
+    Polygon(const std::valarray<Point> & points) ;
+
+    std::valarray<Point> getOriginalPoints() const { return originalPoints ; } ;
+
+    void setOriginalPoints( std::valarray<Point> p, bool check = false) { if(check) { originalPoints = p ; } } ;
 
     virtual ~Polygon() ;
 

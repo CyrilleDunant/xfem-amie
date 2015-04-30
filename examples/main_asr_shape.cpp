@@ -1155,7 +1155,7 @@ int main(int argc, char *argv[])
 	sample.setBehaviour( new ElasticOnlyPasteBehaviour() ) ;
 
 	ElasticOnlyAggregateBehaviour * agg = new ElasticOnlyAggregateBehaviour(59e9,0.3/*,0.00025*/) ;
-	std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.00001,new PSDBolomeA(),TRIANGLE, 1., M_PI,inclusionNumber*100) ;
+	std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, agg, inclusionNumber, 0.008, 0.00001,new PSDBolomeA(), new PolygonalInclusionGenerator( 3 ) ,inclusionNumber*100) ;
 
 	std::vector<TriangularInclusion *> ellinc ;
 	for(size_t i = 0 ; i < inclusions.size() ; i++)

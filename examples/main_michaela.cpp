@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     if(simple)
         nagg = 5;//number of aggregate,5000
 
-    std::vector<Feature *> allInclusions = PSDGenerator::get2DConcrete(&F, &serpentine, nagg, 0.005, 0.00002, new GranuloFromCumulativePSD("aggregate_psd_m_el", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 100000, 0.5, new Rectangle(0.1,0.1,0.,0.)) ;//calculation, aggregate, number of agg, max grain, min spacing,...curve of particle distribution...shape, parameters for elips, number of tries to create the aggregate box, percentage of agg area in sample, dimensions of sample=>the sample for model will be cut from this one
+    std::vector<Feature *> allInclusions = PSDGenerator::get2DConcrete(&F, &serpentine, nagg, 0.005, 0.00002, new GranuloFromCumulativePSD("aggregate_psd_m_el", CUMULATIVE_PERCENT), nullptr, 100000, 0.5, new Rectangle(0.1,0.1,0.,0.)) ;//calculation, aggregate, number of agg, max grain, min spacing,...curve of particle distribution...shape, parameters for elips, number of tries to create the aggregate box, percentage of agg area in sample, dimensions of sample=>the sample for model will be cut from this one
 
     std::vector<Circle *> inInclusions ;
     for(size_t i = 0 ; i < allInclusions.size() ; i++)

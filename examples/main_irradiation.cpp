@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     F.setDeltaTime(time_step) ;
     F.setMinDeltaTime(1e-9) ;
 
-    std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, &limestone, 10000, 0.00625, 0.00001, new GranuloFromCumulativePSD("../examples/data/irradiation/limestone_aggregate_psd", CUMULATIVE_PERCENT), CIRCLE, 1., M_PI, 1000000, 0.6, new Rectangle(0.0635, 0.279,0.0635/2,0.) ) ;
+    std::vector<Feature *> inclusions = PSDGenerator::get2DConcrete(&F, &limestone, 10000, 0.00625, 0.00001, new GranuloFromCumulativePSD("../examples/data/irradiation/limestone_aggregate_psd", CUMULATIVE_PERCENT), nullptr, 1000000, 0.6, new Rectangle(0.0635, 0.279,0.0635/2,0.) ) ;
     std::vector<Geometry *> placed ;
     for(size_t i = 0 ; i < inclusions.size() ; i++)
     {
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         }
     }
     int count = placed.size() ;
-    std::vector<Feature *> small = PSDGenerator::get2DConcrete(&F, &limestone, 1000, 0.0001, 0.00003, new ConstantSizeDistribution(), CIRCLE, 1., M_PI, 500000, 0.6, new Rectangle(0.0635, 0.0127,0.0635/2,0.), placed ) ;
+    std::vector<Feature *> small = PSDGenerator::get2DConcrete(&F, &limestone, 1000, 0.0001, 0.00003, new ConstantSizeDistribution(), nullptr, 500000, 0.6, new Rectangle(0.0635, 0.0127,0.0635/2,0.), placed ) ;
     count += small.size() ;
     std::cout << count << " aggregates in slice" << std::endl ;
 

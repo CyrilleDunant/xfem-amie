@@ -86,8 +86,8 @@ public:
 	const Feature * getBehaviourSource() const ;
 	void setBehaviourSource( Feature * const f) ;
 	 
-	bool inBoundary(const Point &p, double d) const ;
-	bool onBoundary(const Point &p, double d) const ;
+	virtual bool inBoundary(const Point &p, double d) const ;
+	virtual bool onBoundary(const Point &p, double d) const ;
 	
 	int getLayer() const {return layer ;}
 	void setLayer(int l) {layer = l;}

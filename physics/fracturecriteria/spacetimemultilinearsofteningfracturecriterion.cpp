@@ -453,6 +453,11 @@ double AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::grade(E
 				gtension = std::min(1., (after.getX()-inter.getX())/(after.getX()-before.getX()) ) ;
 			else if(inter.getX() > before.getX() && inter.getX() > after.getX())
 				gtension = std::min( -POINT_TOLERANCE, std::max(-1., -1.+(after.getX()-before.getX())/(inter.getX()-before.getX()) ) ) ;
+
+                        if(inter.getX() < tensileStressStrainCurve->getBoundingPoint(1).getX())
+			{
+				gtension = std::min(gtension, std::min( -POINT_TOLERANCE, std::max(-1., -1.+(inter.getX()-before.getX())/(tensileStressStrainCurve->getBoundingPoint(1).getX()-before.getX())))) ;
+			}
 		}
 	}
 
@@ -559,7 +564,7 @@ void AsymmetricSpaceTimeNonLocalMultiLinearSofteningFractureCriterion::setMaximu
 	if(std::abs(currentStrain-currentMaxStrain) > POINT_TOLERANCE)
 		factor = (targetStrain-targetMaxStrain)/(currentStrain-currentMaxStrain) ;
 
-	for(size_t i = 0 ; i < tensileStressStrainCurve->size() ; i++)
+	for(size_t i = 1 ; i < tensileStressStrainCurve->size() ; i++)
 	{
 		double oldStrain = tensileStressStrainCurve->getPoint(i).getX()/renormStrain ;
 		double newStrain = targetMaxStrain + (oldStrain-currentMaxStrain)*factor ;

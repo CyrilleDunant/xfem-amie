@@ -135,8 +135,11 @@ std::vector<Inclusion *> PSDGenerator::get2DConcrete(double rmax, double width, 
 	return get2DInclusions(rmax, width*width*percent, type, PSDEndCriteria(-1, 0.01, n)) ;
 }
 
-std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, ParticleSizeDistribution * type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
+std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behaviour, size_t n, double rmax, double itz, ParticleSizeDistribution * type, InclusionGenerator * geometry, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
 {
+	InclusionGenerator * converter = (geometry ? geometry : new InclusionGenerator()  ) ;
+	
+
 	if(!type)
 		type = new PSDBolomeA() ;
 	Feature * box = F->getFeature(0) ;
@@ -145,29 +148,14 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 		ar = sqrt(placement->area()) ;
 
 	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
-	std::vector<Feature *> feats ;
-	if(geo == ELLIPSE || geo == TRIANGLE  || geo == RECTANGLE)
-	{
-		InclusionConverter converter(geo) ;
-		converter.setAspectRatio(aspectRatio) ;
-//		converter.setOrientation(orientation) ;
-		feats = converter.convert(inc) ;
-	}
-	else 
-	{
-		if(geo != CIRCLE)
-			std::cout << "unknown geometry inclusion - fall back on circles" << std::endl ;
-		for(size_t i = 0 ; i < inc.size() ; i++)
-		{
-			feats.push_back(inc[i]) ;
-		}
-	}
+	std::vector<Feature *> feats = converter->convert( inc ) ;
 	inc.clear() ;
+
 	srand(seed) ;
 	if(placement)
-		feats = placement2D( placement, feats, itz, 0, tries, orientation, exclusionZones ) ;
+		feats = placement2D( placement, feats, itz, 0, tries, 0, exclusionZones ) ;
 	else
-		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, orientation, exclusionZones ) ;
+		feats = placement2D( dynamic_cast<Rectangle *>(box), feats, itz, 0, tries, 0, exclusionZones ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{
@@ -181,8 +169,10 @@ std::vector<Feature *> PSDGenerator::get2DConcrete(FeatureTree * F, Form * behav
 	return feats ;
 }
 
-std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour, std::vector<Feature *> base, size_t n, double rmax, double itz, ParticleSizeDistribution * type, GeometryType geo, double aspectRatio, double orientation, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
+std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour, std::vector<Feature *> base, size_t n, double rmax, double itz, ParticleSizeDistribution * type, InclusionGenerator * geometry, size_t tries,double fraction, Geometry * placement, std::vector<Geometry *> exclusionZones, size_t seed) 
 {
+	InclusionGenerator * converter = (geometry ? geometry : new InclusionGenerator()  ) ;
+
 	if(!type)
 		type = new PSDBolomeA() ;
 	Feature * box = F->getFeature(0) ;
@@ -191,31 +181,17 @@ std::vector<Feature *> PSDGenerator::get2DEmbeddedInclusions(FeatureTree * F, Fo
 		ar = sqrt(placement->area()) ;
 
 	std::vector<Inclusion *> inc = get2DConcrete(rmax, ar, n, type,fraction) ;
-	std::vector<Feature *> feats ;
-	if(geo == ELLIPSE || geo == TRIANGLE || geo == RECTANGLE)
-	{
-		InclusionConverter converter(geo) ;
-		converter.setAspectRatio(aspectRatio) ;
-		feats = converter.convert(inc) ;
-	}
-	else 
-	{
-		if(geo != CIRCLE)
-			std::cout << "unknown geometry inclusion - fall back on circles" << std::endl ;
-		for(size_t i = 0 ; i < inc.size() ; i++)
-		{
-			feats.push_back(inc[i]) ;
-		}
-	}
+	std::vector<Feature *> feats = converter->convert( inc ) ;
 	inc.clear() ;
+
 	srand(seed) ;
 	std::vector<Geometry *> geom ;
 	for(size_t i = 0 ; i < base.size() ; i++)
 		geom.push_back( dynamic_cast<Geometry *>(base[i])) ;
 	if(placement)
-		feats = placement2DInInclusions( placement, geom, feats, itz, 0, tries, orientation, exclusionZones ) ;
+		feats = placement2DInInclusions( placement, geom, feats, itz, 0, tries, 0, exclusionZones ) ;
 	else
-		feats = placement2DInInclusions( dynamic_cast<Rectangle *>(box), geom, feats, itz, 0, tries, orientation, exclusionZones ) ;
+		feats = placement2DInInclusions( dynamic_cast<Rectangle *>(box), geom, feats, itz, 0, tries, 0, exclusionZones ) ;
 	double area = 0 ;
 	for(size_t i = 0 ; i < feats.size() ; i++)
 	{

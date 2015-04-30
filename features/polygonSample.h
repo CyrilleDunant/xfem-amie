@@ -38,6 +38,9 @@ public:
         return std::vector<DelaunayTetrahedron *>(0) ;
     }
 
+    virtual bool inBoundary(const Point &p, double d) const ;
+    virtual bool onBoundary(const Point &p, double d) const ;
+
     virtual void print() const
     {
         std::cout << "I am a polygonal sample" << std::endl ;

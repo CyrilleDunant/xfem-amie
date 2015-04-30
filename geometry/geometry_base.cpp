@@ -669,6 +669,18 @@ void transform(Geometry * g, GeometricTransformationType transformation, const P
             dynamic_cast<Ellipse *>(g)->setMinorAxis(B) ;
         }
 
+        if(g->getGeometryType() == POLYGON)
+        {
+	    std::valarray<Point> original = dynamic_cast<Polygon *>(g)->getOriginalPoints() ;
+	    for(size_t i = 0 ; i < original.size() ; i++)
+	    {
+		original[i].setX( g->getCenter().getX() + (original[i].getX()-g->getCenter().getX()) * p.getX() ) ;
+		original[i].setY( g->getCenter().getY() + (original[i].getY()-g->getCenter().getY()) * p.getY() ) ;
+		original[i].setZ( g->getCenter().getZ() + (original[i].getZ()-g->getCenter().getZ()) * p.getZ() ) ;
+	    }
+	    dynamic_cast<Polygon *>(g)->setOriginalPoints(original, true) ;
+        }
+
         break ;
     case ROTATE:
     {
@@ -1374,6 +1386,19 @@ bool Geometry::intersects(const Geometry *g) const
         Segment s3(box[3], box[0]) ;
 
         return s0.intersects(g) || s1.intersects(g)  || s2.intersects(g)  || s3.intersects(g);
+    }
+    case POLYGON:
+    {
+	std::valarray<Point> original = dynamic_cast<const Polygon *>(this)->getOriginalPoints() ;
+	int inext = 0 ;
+	for(size_t i = 0 ; i < original.size() ; i++)
+	{
+		inext = (i+1)%original.size() ;
+		Segment s(original[i], original[inext]) ;
+		if(s.intersects(g))
+			return true ;
+	}
+	return false ;
     }
     case PARALLELOGRAMME:
     {
@@ -3189,7 +3214,8 @@ Line::Line()
 
 bool Line::intersects(const Line &l) const
 {
-    return v.getX() * l.vector().getY() - v.getY() * l.vector().getX() != 0 ;
+//    std::cout << v.getX() * l.vector().getY() - v.getY() * l.vector().getX() << std::endl ;
+    return (std::abs(v.getX() * l.vector().getY() - v.getY() * l.vector().getX()) > POINT_TOLERANCE) ;
 }
 
 bool Line::intersects(const Segment &s) const
@@ -3293,6 +3319,7 @@ Point Line::intersection(const Line &l) const
         Vector fac = myz * vec ;
         return p + v*fac[0];
     }
+
 
     return Point() ;
 
@@ -3673,7 +3700,9 @@ Point Line::projection(const Point &m ) const
         return m ;
 
     Point n0 = v^(m-p) ;
+    n0 /= n0.norm() ;
     Point n = v^n0 ;
+    n /= n.norm() ;
     Line line(m, n) ;
 
     return line.intersection(*this) ;
@@ -3952,6 +3981,18 @@ bool Segment::intersects(const Geometry *g) const
         for(size_t i = 0 ; i <  g->getBoundingPoints().size()-1 ;  i++)
         {
             Segment s(g->getBoundingPoint(i), g->getBoundingPoint(i+1)) ;
+            ret = ret || s.intersects(*this) ;
+        }
+
+        return ret ;
+    }
+    case POLYGON:
+    {
+
+        bool ret = false ;
+        for(size_t i = 0 ; i <  g->getBoundingPoints().size() ;  i++)
+        {
+            Segment s(g->getBoundingPoint(i), g->getBoundingPoint((i+1)%g->getBoundingPoints().size())) ;
             ret = ret || s.intersects(*this) ;
         }
 
@@ -4322,6 +4363,22 @@ std::vector<Point> Segment::intersection(const Geometry *g) const
         			return ret ;*/
 
     }
+    case POLYGON:
+    {
+        std::vector<Point> ret ;
+	std::valarray<Point> corners = dynamic_cast<const Polygon *>(g)->getOriginalPoints() ;
+        for(size_t i = 0 ; i < corners.size()-1 ; i++)
+        {
+            Segment test(corners[i], corners[i+1]) ;
+            if(test.intersects(*this))
+                ret.push_back(test.intersection(*this)) ;
+	   
+        }
+            Segment test(corners[corners.size()-1], corners[0]) ;
+            if(test.intersects(*this))
+                ret.push_back(test.intersection(*this)) ;
+        return ret ;
+    }
     case SEGMENTED_LINE:
     {
         std::vector<Point> ret ;
@@ -4616,7 +4673,7 @@ bool Segment::intersects(const Segment & l) const
 
 Point Segment::project(const Point & p) const
 {
-    Line l(s, vec) ;
+    Line l(f, vec) ;
 
     Point candidate = l.projection(p) ;
     if(on(candidate))

@@ -6,11 +6,15 @@
 
 #include "main.h"
 #include "../features/features.h"
+#include "../features/microstructuregenerator.h"
+#include "../features/polygonSample.h"
 #include "../physics/physics_base.h"
 #include "../physics/stiffness.h"
 #include "../physics/dual_behaviour.h"
 #include "../physics/finite_difference_viscoelasticity.h"
 #include "../physics/logarithmic_creep.h"
+#include "../physics/homogenization/phase.h"
+#include "../physics/homogenization/composite.h"
 #include "../physics/logarithmic_creep_with_external_parameters.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/ruptureenergy.h"
@@ -53,48 +57,29 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
 // 	omp_set_num_threads(1) ;
-
-	Sample box(nullptr, 0.01,0.01,0.,0.) ;
-
-	FeatureTree F(&box) ;
-	F.setSamplingNumber(1) ;
-	double time_step = 1. ;
-	F.setDeltaTime(time_step) ;
-	F.setMaxIterationsPerStep(1000) ;
-
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM) ) ;
-	F.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, 1e6) ) ;
-//	BoundaryCondition* disp = new BoundingBoxDefinedBoundaryCondition( SET_ALONG_ETA, TOP_AFTER, 0. ) ;
-//	F.addBoundaryCondition(disp) ;
+	Sample s(nullptr, 0.07, 0.07,0,0) ;
+	Inclusion * inc = new Inclusion( 0.003,0.,0. ) ;
+	GravelPolygonalInclusionGenerator gravel(1.9, 0.5, 2, 12,0,M_PI, 3) ;
+	PolygonalSample * pol = dynamic_cast<PolygonalSample*>(gravel.convert( inc )) ;
+	s.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
+	pol->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
 
 
-	LogarithmicCreepWithExternalParameters paste("young_modulus = 1e9, poisson_ratio = 0.3") ;
-//	box.setBehaviour(new /*FiniteDifference*/Viscoelasticity( GENERALIZED_MAXWELL, paste.C, paste.C*2, paste.C*10, BACKWARD_EULER) ) ;
-//	box.setBehaviour( &paste ) ;
-        std::vector< std::pair<Matrix, Matrix> > branches = ViscoelasticKelvinVoigtChainGenerator::getKelvinVoigtChain( 1e9, 0.3, LOGPOWER_CREEP, std::string("n=0.5"), 0.001, 8 ) ;
-        box.setBehaviour( new Viscoelasticity( PURE_ELASTICITY, paste.C ) ) ;
+	FeatureTree f(&s) ;
+	f.setSamplingNumber(256) ;
 
-	F.step() ;
+	PSDGenerator::get2DConcrete( &f, new ElasticOnlyAggregateBehaviour(), 50, 0.01, 0.000001, new PSDBolomeA(), &gravel ) ;
 
-        Segment top( Point(-0.005, 0.005), Point(0.005, 0.005)) ;
-        int cachetop = F.get2DMesh()->generateCache( &top ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 
-       	std::cout << F.getCurrentTime() << "\t" << F.getAverageFieldOnBoundary( TOP, REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << F.getAverageFieldOnBoundary( RIGHT, DISPLACEMENT_FIELD, -1, 1.)[1]  << std::endl ;
+	f.step() ;
 
-        F.getFeature(0)->getBoundingBox()[0].print() ;
-        F.getFeature(0)->getBoundingBox()[1].print() ;
-        F.getFeature(0)->getBoundingBox()[2].print() ;
-        F.getFeature(0)->getBoundingBox()[3].print() ;
+	TriangleWriter trg( "concrete_256", &f, 1.) ;
+	trg.getField( TWFT_STIFFNESS ) ;
+	trg.write() ;
 
-	while(F.getCurrentTime() < 300)
-	{
-		time_step += 1. ;
-		F.setDeltaTime(time_step) ;
-		F.step() ;
-                
-           	std::cout << F.getCurrentTime() << "\t" << F.getAverageFieldOnBoundary( TOP, REAL_STRESS_FIELD, -1, 1.)[1] << "\t" << F.getAverageFieldOnBoundary( RIGHT, DISPLACEMENT_FIELD, -1, 1.)[1]  << std::endl ;
-	}
+
 
 
 	return 0 ;

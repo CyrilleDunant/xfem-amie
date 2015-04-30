@@ -24,6 +24,7 @@
 
 #include "feature_base.h"
 #include "inclusion.h"
+#include "polygonSample.h"
 #include "../geometry/geometry_base.h"
 #include "../utilities/random.h"
 
@@ -82,6 +83,86 @@ struct InclusionConverter
 
 } ;
 
+struct InclusionGenerator
+{
+    InclusionGenerator() { } ;
+
+    virtual Feature * convert(Inclusion * inc) const { return inc ; }
+    virtual std::vector<Feature *> convert(std::vector<Inclusion *> inc) const ;
+
+} ;
+
+struct EllipsoidalInclusionGenerator : public InclusionGenerator
+{
+    double shape ;
+    double orientation ;
+    double orientationVariability ;
+    double shapeVariability ;
+
+    EllipsoidalInclusionGenerator( double s, double o = 0., double ov = M_PI , double sv = 0.) : shape(s), orientation(o), orientationVariability(ov), shapeVariability(sv) { } ;
+
+    virtual Feature * convert(Inclusion * inc) const ;
+
+} ;
+
+struct RectangularInclusionGenerator : public InclusionGenerator
+{
+    double shape ;
+    double orientation ;
+    double orientationVariability ;
+    double shapeVariability ;
+
+    RectangularInclusionGenerator( double s, double o = 0., double ov = M_PI , double sv = 0.) : shape(s), orientation(o), orientationVariability(ov), shapeVariability(sv) { } ;
+
+    virtual Feature * convert(Inclusion * inc) const ;
+
+} ;
+
+struct PolygonalInclusionGenerator : public InclusionGenerator
+{
+    int vertex ;
+    double orientation ;
+    double orientationVariability ;
+    int vertexVariability ;
+
+    PolygonalInclusionGenerator(int v, double o = 0., double ov = M_PI, int vv = 0) : vertex(v), orientation(o), orientationVariability(ov), vertexVariability(vv) { } ;
+
+    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+    virtual Feature * convert(Inclusion * inc ) const ;
+} ;
+
+// see Beddow and Meloy 1980, cited by Wang et al 1999
+struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
+{
+    double p ;
+    double b ;
+    size_t m ;
+
+    GravelPolygonalInclusionGenerator(double p_, double b_, size_t m_, int v, double o = 0., double ov = M_PI, int vv = 0) : PolygonalInclusionGenerator(v,o,ov,vv), p(p_), b(b_),m(m_) { } ;
+
+    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+} ;
+
+// see Wang et al 1999 option A
+struct CrushedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
+{
+    double shape ; // between 0 and 1
+
+    CrushedPolygonalInclusionGenerator(double s, int v, double o = 0., double ov = M_PI, int vv = 0) : PolygonalInclusionGenerator(v,o,ov,vv), shape(s<0? -s : s) { if(s > 1-POINT_TOLERANCE) { shape = 0.999 ; } } ;
+
+    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+} ;
+
+// see Wang et al 1999 option B
+struct CrushedSubtendedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
+{
+    double shape ; // between 0 and 1
+    double delta ; // between 0 and 1
+
+    CrushedSubtendedPolygonalInclusionGenerator(double s, double d, int v, double o = 0., double ov = M_PI, int vv = 0) : PolygonalInclusionGenerator(v,o,ov,vv), shape(s<0? -s : s), delta(d<0? -d: d) { if(shape > 1-POINT_TOLERANCE) { shape = 0.999 ; } if(delta > 1-POINT_TOLERANCE) { delta = 0.999 ; } } ;
+
+    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const ;
+} ;
 
 }
 

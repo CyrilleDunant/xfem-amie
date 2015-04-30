@@ -391,7 +391,7 @@ int main( int argc, char *argv[] )
 //	int inclusionNumber = 10 ;
  	int inclusionNumber = 8172 ;
 
-	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, &baseGeometry) ;
+	std::vector<Feature *> feats  = PSDGenerator::get2DConcrete(&F, nullptr,  inclusionNumber, dmax*0.5, itzSize, new PSDBolomeA(), nullptr, 100000, 0.8, &baseGeometry) ;
 	std::vector<Inclusion *> inclusions ;
 	
 	for( size_t i = 0; i < feats.size() ; i++ )

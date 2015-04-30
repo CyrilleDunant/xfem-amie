@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	exclusionZones.push_back( notch.getPrimitive() ) ;
 	size_t seed = 0 ;
 
-	std::vector<Feature *> aggregates = PSDGenerator::get2DConcrete( &F, &agg, 200, 0.008, 0.0003, new PSDBolomeA(), CIRCLE, 1., M_PI, 100000, 0.8, placement, exclusionZones, seed ) ;
+	std::vector<Feature *> aggregates = PSDGenerator::get2DConcrete( &F, &agg, 200, 0.008, 0.0003, new PSDBolomeA(),nullptr, 100000, 0.8, placement, exclusionZones, seed ) ;
 	for(size_t i = 30 ; i < aggregates.size() ; i++)
 	{
 		F.setSamplingFactor(aggregates[i], 2.5) ;

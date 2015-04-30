@@ -262,9 +262,7 @@ namespace Amie
 				case SPHERE:
 					newr = inc->getRadius()*std::sqrt(area->draw()) ;
 					return new Inclusion3D(inc->getFather(), newr, inc->getCenter()) ;
-					
-					
-                default:
+		                default:
                     std::cout << "geometry type unsupported for inclusion translation" << std::endl ;
                     return nullptr ;  
 					
@@ -272,12 +270,170 @@ namespace Amie
 			
 	}
 
-	std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 
+std::vector<Feature *> InclusionConverter::convert(std::vector<Inclusion *> inc) const 
+{
+		std::vector<Feature *> ret ;
+		for(size_t i = 0 ; i < inc.size() ; i++)
+			ret.push_back(this->convert(inc[i])) ;
+		return ret ;
+}
+
+
+std::vector<Feature *> InclusionGenerator::convert(std::vector<Inclusion *> inc) const 
+{
+	std::vector<Feature *> ret ;
+	for(size_t i = 0 ; i < inc.size() ; i++)
+		ret.push_back( this->convert( inc[i] ) ) ;
+	return ret ;
+}
+
+Feature * EllipsoidalInclusionGenerator::convert(Inclusion * inc) const 
+{
+	double r = inc->getRadius() ;
+
+	RandomNumber rng ;
+	double aspect = shape + rng.uniform(-shapeVariability, shapeVariability) ;
+	if(aspect < 0.1)
+		aspect = 0.1 ;
+	if(aspect > 1-POINT_TOLERANCE)
 	{
-			std::vector<Feature *> ret ;
-			for(size_t i = 0 ; i < inc.size() ; i++)
-				ret.push_back(this->convert(inc[i])) ;
-			return ret ;
+		EllipsoidalInclusion * ret = new EllipsoidalInclusion( inc->getFather(), inc->getCenter(), Point(r,0), Point(0,r) ) ;
+		ret->setBehaviour( inc->getBehaviour()) ;
+		return ret ;
+	}
+	double a = r/std::sqrt(aspect) ;
+	double b = r*std::sqrt(aspect) ;
+
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability) ;
+	EllipsoidalInclusion * ret = new EllipsoidalInclusion(inc->getFather(), inc->getCenter(), Point(a*cos( phase ), a*sin(phase)), Point( b*(-sin(phase)), b*cos(phase)) ) ;
+	ret->setBehaviour( inc->getBehaviour()) ;
+	return ret ;
+}
+
+Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const 
+{
+	double r = inc->getRadius() ;
+
+	RandomNumber rng ;
+	double aspect = shape + rng.uniform(-shapeVariability, shapeVariability) ;
+	if(aspect < 0.1)
+		aspect = 0.1 ;
+
+	double a = r/std::sqrt(aspect) ;
+	double b = r*std::sqrt(aspect) ;
+
+	double direction = orientation + rng.uniform( -orientationVariability, orientationVariability) ;
+
+	Point A( 0,0 ) ;
+	Point B( a*cos(direction), a*sin(direction) ) ;
+	Point C( b*(-sin(direction)), b*cos(direction) ) ;
+	Point D = B+C ;
+
+	Point center = (A+B+C+D)*0.25 ;
+	center -= inc->getCenter() ;
+					
+	RectangularInclusion * ret = new RectangularInclusion(inc->getFather(), A-center, C-center, D-center, B-center) ;
+	ret->setBehaviour( inc->getBehaviour()) ;
+	return ret ;
+}
+
+PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+{
+	std::valarray< Point *> points ; points.resize( npoints) ;
+	for(size_t i = 0 ; i < npoints ; i++)
+	{
+		double theta = phase + 2*M_PI*(double) i/(double) npoints ;
+		points[i] = new Point( radius*cos(theta), radius*sin(theta) ) ;
 	}
 
+	return new PolygonalSample( nullptr, points ) ;
 }
+
+Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const 
+{
+	RandomNumber rng ;
+	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
+	PolygonalSample * ret = this->generatePolygon( inc->getRadius(), npoints , phase ) ;
+	double area = ret->area() ;
+	double target = inc->area() ;
+	double r = ret->getRadius() * sqrt( target / area ) ;
+	transform( dynamic_cast<Polygon *>(ret), SCALE, Point( r/ret->getRadius(), r/ret->getRadius()) ) ;
+	ret->setCenter(inc->getCenter()) ;
+	ret->setBehaviour( inc->getBehaviour() ) ;
+	ret->setFather( inc->getFather() ) ;
+	return ret ;
+}
+
+PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+{
+	std::valarray< Point *> points ; points.resize( npoints) ;
+	Vector A ; A.resize(m) ; A = 0. ;
+	Vector alpha ; alpha.resize(m) ; alpha = 0. ;
+	RandomNumber rng ;
+	for(size_t i = 0 ; i < m ; i++)
+	{
+		A[i] = radius*exp(-p*log(i+1)-b) ;
+		alpha[i] = rng.uniform(0, 2.*M_PI) ;
+	}
+	for(size_t i = 0 ; i < npoints ; i++)
+	{
+		double theta = phase + 2*M_PI*(double) i/(double) npoints ;
+		double r = radius ;
+		for(size_t j = 0 ; j < m ; j++)
+			r += A[j]*cos( (j+1)*theta + alpha[j]) ;
+		points[i] = new Point( r*cos(theta), r*sin(theta) ) ;
+	}
+
+	return new PolygonalSample( nullptr, points ) ;
+}
+
+PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+{
+	std::valarray< Point *> points ;points.resize( npoints) ;
+	std::vector<double> theta ;
+	RandomNumber rng ;
+	for(size_t i = 0 ; i < npoints ; i++)
+		theta.push_back( rng.uniform(0, 2.*M_PI) ) ;
+	std::sort( theta.begin(), theta.end() ) ;
+	double deltar = radius*(1.-shape)/(1.+shape) ;
+	for(size_t i = 0 ; i < npoints ; i++)
+	{
+		double r = radius  + rng.uniform(-1.,1.) * deltar ;
+		points[i] = new Point( r*cos(theta[i]), r*sin(theta[i]) ) ;
+	}
+
+	return new PolygonalSample( nullptr, points ) ;
+}
+
+PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+{
+	std::valarray< Point *> points ;points.resize( npoints) ;
+	std::vector<double> phi ;
+	RandomNumber rng ;
+	double beta = 2.*M_PI/(double) npoints ;
+	double sumphi = 0. ;
+	for(size_t i = 0 ; i < npoints ; i++)
+	{
+		phi.push_back( beta + rng.uniform(-1.,1.) * delta * beta ) ;
+		sumphi += phi[i] ;
+	}
+	for(size_t i = 0 ; i < phi.size() ; i++)
+	{
+		phi[i] *= 2.*M_PI/sumphi ;
+	}
+	double deltar = radius*(1.-shape)/(1.+shape) ;
+	double theta = phase ;
+	for(size_t i = 0 ; i < npoints ; i++)
+	{
+		double r = radius  + rng.uniform(-1.,1.) * deltar ;
+		points[i] = new Point( r*cos(theta), r*sin(theta) ) ;
+		theta += phi[i] ;
+	}
+
+	return new PolygonalSample( nullptr, points ) ;
+}
+
+}
+
+
