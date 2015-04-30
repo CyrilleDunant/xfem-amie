@@ -61,7 +61,8 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
         }
         maxStrain = gamma*std::max(0.0,sqrt ( pow( (0.5*( std::abs(strain[0])  + strain[0] )) ,2.0) + pow((0.5*( std::abs(strain[1])  + strain[1] ) ),2.0) +   pow((0.5*( std::abs(strainzz)  + strainzz ) ),2.0))) ;
         talpha = (posstrain[0]*(0.5*( std::abs(strain[0])  + strain[0] )) + posstrain[1]*(0.5*( std::abs(strain[1])  + strain[1] ))  + posstrain[2]*(0.5*( std::abs(strainzz)  + strainzz ))) / (maxStrain*maxStrain);
-        calpha = 1.0 - talpha ;
+        talpha = 1.0;
+	calpha = 1.0 - talpha ;
     }
     
     else if( s.getParent()->spaceDimensions() == SPACE_TWO_DIMENSIONAL && pt==PLANE_STRAIN)
@@ -91,7 +92,6 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     //Critere seuil sur l'endommagement
     true_threshold = std::max(threshold, maxStrain);
     pseudo_dama =  std::min(talpha*(1. - (threshold/true_threshold) * (std::exp(- B_t*(true_threshold - threshold)))) + calpha*(1. - (threshold*(1 - A_c)/true_threshold)  -  A_c*(std::exp(- B_c*(true_threshold - threshold)))), 1.0 - POINT_TOLERANCE) ;
-    std::cout << " MAXSTARIN " << maxStrain << " DAMA " << pseudo_dama << std::endl ;
     if(pseudo_dama < 1.0e-5 || std::isnan(pseudo_dama)) {
         pseudo_dama = -1.0;
     }
@@ -99,10 +99,8 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     {
         met = true ;
         double un_dama = pseudo_dama - dama_predict;
-    std::cout << " MAXSTARIN1 " << maxStrain << " DAMA1 " << pseudo_dama << std::endl ; 	
         return un_dama ;
     }
-    std::cout << " MAXSTARIN2 " << maxStrain << " DAMA2 " << pseudo_dama << std::endl ;   
     return pseudo_dama - dama_predict;
 
 }
