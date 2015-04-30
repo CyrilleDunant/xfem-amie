@@ -566,22 +566,22 @@ NonLocalSpaceTimeMCFT::NonLocalSpaceTimeMCFT(double down, double youngModulus, d
 NonLocalSpaceTimeMCFT::~NonLocalSpaceTimeMCFT() { }
 
 double NonLocalSpaceTimeMCFT::grade(ElementState &s)
-{
-    // the order is because the compressiveness of the behaviour is determined at the begining of the step
-    
+{    
     double gradeBefore = gradeAtTime(s, -1) ;
     double gradeAfter = gradeAtTime(s, 1) ;
 
     if(gradeAfter < 0)
-        return -1 ;
+        return gradeAfter ;
     if(gradeBefore > 0)
+    {
         return 1 ;
+    }
 
     double upTime = 1 ;
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-8)
+    while(std::abs(upTime-downTime) > 1e-4)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)
@@ -593,7 +593,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
         
         testTime = 0.5*(downTime+upTime) ;
     }
-    return testTime ;
+    return testTime*.5+.5 ;
 }
 
 FractureCriterion *NonLocalSpaceTimeMCFT::getCopy() const
