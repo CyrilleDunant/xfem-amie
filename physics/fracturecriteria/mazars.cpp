@@ -124,15 +124,31 @@ NonLocalSpaceTimeMazars::~NonLocalSpaceTimeMazars() { }
 
 double NonLocalSpaceTimeMazars::grade(ElementState &s)
 {
-    // the order is because the compressiveness of the behaviour is determined at the begining of the step
-    double gradeAfter = gradeAtTime(s, 1) ;
     double gradeBefore = gradeAtTime(s, -1) ;
+    double gradeAfter = gradeAtTime(s, 1) ;
 
     if(gradeAfter < 0)
         return -1 ;
     if(gradeBefore > 0)
         return 1 ;
-    return 2.*gradeBefore/(gradeBefore-gradeAfter) -1 ;
+
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 0 ;
+    
+    while(std::abs(upTime-downTime) > 1e-6)
+    {
+        double gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest > 0)
+            downTime = testTime ;
+        else if(gradeTest < 0)
+            upTime = testTime ;
+        else
+            return testTime ;
+        
+        testTime = 0.5*(downTime+upTime) ;
+    }
+    return testTime ;
 }
 
 FractureCriterion *NonLocalSpaceTimeMazars::getCopy() const

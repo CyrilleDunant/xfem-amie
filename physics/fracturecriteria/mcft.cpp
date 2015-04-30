@@ -121,7 +121,7 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& 
 
     }
     else
-        return -1. ;
+        return -1.+tstrain/tensionCritStrain ;
 
     double criterion0 = 0 ;
     if(maxTension > POINT_TOLERANCE)
@@ -577,9 +577,23 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     if(gradeBefore > 0)
         return 1 ;
 
-    if(std::abs(3.*gradeAfter-gradeBefore) < 1e-6)
-        return 0 ;
-    return (gradeAfter-gradeBefore)/(3.*gradeAfter-gradeBefore) ;
+    double upTime = 1 ;
+    double downTime = -1 ;
+    double testTime = 0 ;
+    
+    while(std::abs(upTime-downTime) > 1e-6)
+    {
+        double gradeTest = gradeAtTime(s, testTime) ;
+        if(gradeTest > 0)
+            downTime = testTime ;
+        else if(gradeTest < 0)
+            upTime = testTime ;
+        else
+            return testTime ;
+        
+        testTime = 0.5*(downTime+upTime) ;
+    }
+    return testTime ;
 }
 
 FractureCriterion *NonLocalSpaceTimeMCFT::getCopy() const
