@@ -129,7 +129,7 @@ struct PolygonalInclusionGenerator : public InclusionGenerator
 
     PolygonalInclusionGenerator(int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0.) : InclusionGenerator(rot), vertex(v), orientation(o), orientationVariability(ov), vertexVariability(vv) { } ;
 
-    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+    virtual PolygonalSample * generatePolygon(double radius) const;
     virtual Feature * convert(Inclusion * inc ) const ;
 } ;
 
@@ -142,7 +142,7 @@ struct GravelPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 
     GravelPolygonalInclusionGenerator(double p_, double b_, size_t m_, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0.) : PolygonalInclusionGenerator(v,o,ov,vv,rot), p(p_), b(b_),m(m_) { } ;
 
-    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+    virtual PolygonalSample * generatePolygon(double radius) const;
 } ;
 
 // see Wang et al 1999 option A
@@ -152,7 +152,7 @@ struct CrushedPolygonalInclusionGenerator : public PolygonalInclusionGenerator
 
     CrushedPolygonalInclusionGenerator(double s, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0.) : PolygonalInclusionGenerator(v,o,ov,vv, rot), shape(s<0? -s : s) { if(s > 1-POINT_TOLERANCE) { shape = 0.999 ; } } ;
 
-    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const;
+    virtual PolygonalSample * generatePolygon(double radius) const;
 } ;
 
 // see Wang et al 1999 option B
@@ -163,7 +163,7 @@ struct CrushedSubtendedPolygonalInclusionGenerator : public PolygonalInclusionGe
 
     CrushedSubtendedPolygonalInclusionGenerator(double s, double d, int v, double o = 0., double ov = M_PI, int vv = 0, double rot = 0.) : PolygonalInclusionGenerator(v,o,ov,vv,rot), shape(s<0? -s : s), delta(d<0? -d: d) { if(shape > 1-POINT_TOLERANCE) { shape = 0.999 ; } if(delta > 1-POINT_TOLERANCE) { delta = 0.999 ; } } ;
 
-    virtual PolygonalSample * generatePolygon(double radius, size_t npoints, double phase = 0) const ;
+    virtual PolygonalSample * generatePolygon(double radius) const ;
 } ;
 
 }

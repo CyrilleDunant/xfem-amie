@@ -27,6 +27,7 @@
 #include "../physics/orthotropicstiffness.h"
 #include "../physics/materials/paste_behaviour.h"
 #include "../physics/materials/aggregate_behaviour.h"
+#include "../features/polygonSample.h"
 #include "../features/sample.h"
 #include "../features/sample3d.h"
 #include "../features/inclusion.h"
@@ -56,26 +57,55 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
-// 	omp_set_num_threads(1) ;
-	Sample s(nullptr, 0.07, 0.07,0,0) ;
-	Inclusion * inc = new Inclusion( 0.003,0.,0. ) ;
-	GravelPolygonalInclusionGenerator gravel(1.9, 0.5, 2, 12,0,M_PI, 3) ;
-	PolygonalSample * pol = dynamic_cast<PolygonalSample*>(gravel.convert( inc )) ;
-	s.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
-	pol->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
-
+ 	omp_set_num_threads(1) ;
+        std::valarray<Point *> pts(4) ;
+        pts[0] =  new Point(0,0) ;
+        pts[1] =  new Point(0.08,0) ;
+        pts[2] =  new Point(0.08,0.08) ;
+        pts[3] =  new Point(0,0.04) ;
+        
+	PolygonalSample s(nullptr, pts) ;
+        Sample rect(nullptr, 0.07,0.07,0,0) ;
+	Inclusion * inc = new Inclusion( 0.02,0.,0. ) ;
+        Inclusion * son = new Inclusion( 0.02, -0.01, 0 ) ;
+	rect.setBehaviour(new ViscoElasticOnlyPasteBehaviour() ) ;
+	s.setBehaviour(new ViscoElasticOnlyPasteBehaviour() ) ;
+	inc->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
+	son->setBehaviour(new ElasticOnlyAggregateBehaviour(44e9) ) ;
 
 	FeatureTree f(&s) ;
-	f.setSamplingNumber(256) ;
+	f.setSamplingNumber(4) ;
+//        f.addFeature( &s, inc ) ;
+//        f.addFeature( inc, son ) ;
 
-	PSDGenerator::get2DConcrete( &f, new ElasticOnlyAggregateBehaviour(), 50, 0.01, 0.000001, new PSDBolomeA(), &gravel ) ;
-
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, LEFT ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
+//	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_FORCE_XI, BOTTOM_RIGHT,1e6 ) ) ;
+//	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
+        Point n(-0.004,0.008) ;
+	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
 
 	f.step() ;
 
-	TriangleWriter trg( "concrete_256", &f, 1.) ;
+//        f.getAssembly()->print() ;
+
+        std::vector<Point *> nodes = f.getNodes() ;
+        Vector disp = f.getDisplacements() ;
+        for(size_t i = 0 ; i < nodes.size() ; i++)
+        {
+            if(nodes[i]->getY() > 0.039999+0.5*nodes[i]->getX() && nodes[i]->getT() > 0)
+            {
+                double nx = (0.5*disp[i*6] - disp[i*6+1])/2.5 ;
+                double vx = disp[i*6] - nx ;
+                double vy = 0.5*vx ;
+                double ny = disp[i*6+1] - vy ;
+                std::cout << nodes[i]->getId() << "\t" << nodes[i]->getX() << "\t" << nodes[i]->getY() << "\t" << disp[i*6] << "\t" << disp[i*6+1] << "\t" << vx << "\t" << vy << "\t" << nx << "\t" << ny << "\t" << std::sqrt( vx*vx+vy*vy ) << std::endl ;
+            }
+        }
+
+//        f.getAssembly()->print() ;
+
+	TriangleWriter trg( "toto_prop", &f, 1.) ;
 	trg.getField( TWFT_STIFFNESS ) ;
 	trg.write() ;
 

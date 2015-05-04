@@ -337,13 +337,16 @@ Feature * RectangularInclusionGenerator::convert(Inclusion * inc) const
 	return ret ;
 }
 
-PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius) const
 {
+	RandomNumber rng ;
+	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
 		double theta = phase + 2*M_PI*(double) i/(double) npoints ;
-		points[i] = new Point( radius*cos(theta), radius*sin(theta) ) ;
+		points[i] = new Point( radius*cos(theta+phase), radius*sin(theta+phase) ) ;
 	}
 
 	return new PolygonalSample( nullptr, points ) ;
@@ -351,10 +354,7 @@ PolygonalSample * PolygonalInclusionGenerator::generatePolygon(double radius, si
 
 Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const 
 {
-	RandomNumber rng ;
-	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
-	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
-	PolygonalSample * ret = this->generatePolygon( inc->getRadius(), npoints , phase ) ;
+	PolygonalSample * ret = this->generatePolygon( inc->getRadius() ) ;
 	double area = ret->area() ;
 	double target = inc->area() ;
 	double r = ret->getRadius() * sqrt( target / area ) ;
@@ -365,12 +365,14 @@ Feature * PolygonalInclusionGenerator::convert( Inclusion * inc) const
 	return ret ;
 }
 
-PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
+	RandomNumber rng ;
+	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ; points.resize( npoints) ;
 	Vector A ; A.resize(m) ; A = 0. ;
 	Vector alpha ; alpha.resize(m) ; alpha = 0. ;
-	RandomNumber rng ;
 	for(size_t i = 0 ; i < m ; i++)
 	{
 		A[i] = radius*exp(-p*log(i+1)-b) ;
@@ -388,11 +390,13 @@ PolygonalSample * GravelPolygonalInclusionGenerator::generatePolygon(double radi
 	return new PolygonalSample( nullptr, points ) ;
 }
 
-PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
+	RandomNumber rng ;
+	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> theta ;
-	RandomNumber rng ;
 	for(size_t i = 0 ; i < npoints ; i++)
 		theta.push_back( rng.uniform(0, 2.*M_PI) ) ;
 	std::sort( theta.begin(), theta.end() ) ;
@@ -400,17 +404,19 @@ PolygonalSample * CrushedPolygonalInclusionGenerator::generatePolygon(double rad
 	for(size_t i = 0 ; i < npoints ; i++)
 	{
 		double r = radius  + rng.uniform(-1.,1.) * deltar ;
-		points[i] = new Point( r*cos(theta[i]), r*sin(theta[i]) ) ;
+		points[i] = new Point( r*cos(theta[i]+phase), r*sin(theta[i]+phase) ) ;
 	}
 
 	return new PolygonalSample( nullptr, points ) ;
 }
 
-PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius, size_t npoints, double phase) const
+PolygonalSample * CrushedSubtendedPolygonalInclusionGenerator::generatePolygon(double radius) const
 {
+	RandomNumber rng ;
+	size_t npoints = std::max(3, vertex + (int) rng.uniform( -vertexVariability, vertexVariability )) ;
+	double phase = orientation + rng.uniform( -orientationVariability, orientationVariability ) ;
 	std::valarray< Point *> points ;points.resize( npoints) ;
 	std::vector<double> phi ;
-	RandomNumber rng ;
 	double beta = 2.*M_PI/(double) npoints ;
 	double sumphi = 0. ;
 	for(size_t i = 0 ; i < npoints ; i++)

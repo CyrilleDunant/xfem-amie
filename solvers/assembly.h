@@ -58,6 +58,17 @@ typedef enum
 	FIX_ALONG_INDEXED_AXIS,
 	SET_ALONG_INDEXED_AXIS,
 	INCREMENT_ALONG_INDEXED_AXIS,
+	SET_PROPORTIONAL_DISPLACEMENT,
+	SET_PROPORTIONAL_DISPLACEMENT_XI_ETA,
+	SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA,
+	SET_PROPORTIONAL_DISPLACEMENT_ETA_XI,
+	SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA,
+	SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI,
+	SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA,
+        FIX_NORMAL_DISPLACEMENT,
+        FIX_TANGENT_DISPLACEMENT,
+        SET_NORMAL_DISPLACEMENT,
+        SET_TANGENT_DISPLACEMENT,
 	SET_FORCE_XI,
 	SET_FORCE_ETA,
 	SET_FORCE_ZETA,
@@ -335,6 +346,8 @@ public:
 	void setPointAlong(Variable, double val, size_t id) ;
 	
 	void setPointAlongIndexedAxis(int index, double val, size_t id, bool force = false) ;
+
+	void setPointProportional(Variable, Variable, double val, double offset, size_t id) ;
 	
 	/** Apply a force on given node
 	 * @param var Variable (XI, ETA, or ZETA) along which force is applied 

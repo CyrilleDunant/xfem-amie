@@ -312,6 +312,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != SET_FORCE_ETA
                         &&  multipliers[p].type != SET_FORCE_ZETA
                         &&  multipliers[p].type != SET_FORCE_INDEXED_AXIS
+                        &&  multipliers[p].type != SET_PROPORTIONAL_DISPLACEMENT
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
@@ -348,6 +349,64 @@ void Assembly::setBoundaryConditions()
                         }
                     }
                 }
+                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() > 0)
+                {
+                    int id = multipliers[p].getId() ;
+                    int propid = multipliers[p].getDofIds()[0] ;
+                    double a = multipliers[p].coefs[0] ;
+                    double b = multipliers[p].getValue() ; // u_id = a * u_propid + b
+                    double f_id = externalForces[id] ;
+                    for(int m = 0 ; m < stride ; m++)
+                    {
+                        if( id != (lineBlockIndex*stride+m) && propid != (lineBlockIndex*stride+m))
+                        {
+                            for(int n = 0 ; n < stride ; n++)
+                            {
+                                if(id == (columnBlockIndex*stride+n))
+                                {
+                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                    externalForces[lineBlockIndex*stride+m] -= b*val ;
+                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= b*val ;
+                                    getMatrix()[lineBlockIndex*stride+m][ propid ] += a*val ;
+                                    val = 0 ;
+                                }
+                            }
+                        }
+                        else if( id == (lineBlockIndex*stride+m) )
+                        {
+                            for(int n = 0 ; n < stride ; n++)
+                            {
+                                if(propid == (columnBlockIndex*stride+n))
+                                {
+                                    // special case, must be handled once only
+                                    continue ;
+                                }
+                                double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                if(id == (columnBlockIndex*stride+n)) // we are on the diagonal
+                                {
+                                    double kxx = getMatrix()[ propid ][ propid ] ;
+                                    double kxy = getMatrix()[ propid ][ id ] ;
+                                    double kyy = getMatrix()[ id ][ id ] ;
+                                    double kappa = kxy + a*kyy ;
+                                    if( std::abs(kappa) < POINT_TOLERANCE)
+                                        continue ;
+                                    getMatrix()[ propid ][ propid ] = kxx + a*kxy +2*a*kappa ;
+                                    getMatrix()[ id ][ propid ] = -kappa ;
+                                    getMatrix()[ propid ][ id ] = -kappa ;
+                                    getMatrix()[ id ][ id ] = kappa/a ;
+                                    externalForces[ id ] = kappa*b/a ;
+                                    naturalBoundaryConditionForces[ id ] = kappa*b/a ;
+                                    externalForces[ propid ] += a*f_id - 2*b*kappa ;
+                                    naturalBoundaryConditionForces[ propid ] += a*f_id- 2*b*kappa  ;                                }
+                                else
+                                {
+                                    getMatrix()[ propid ][ columnBlockIndex*stride+n ] += a*val ;
+                                    val = 0 ;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
 
@@ -357,6 +416,7 @@ void Assembly::setBoundaryConditions()
                         &&  multipliers[p].type != SET_FORCE_ETA
                         &&  multipliers[p].type != SET_FORCE_ZETA
                         &&  multipliers[p].type != SET_FORCE_INDEXED_AXIS
+                        &&  multipliers[p].type != SET_PROPORTIONAL_DISPLACEMENT
                         &&  multipliers[p].type != GENERAL)
                 {
                     int id = multipliers[p].getId() ;
@@ -388,6 +448,65 @@ void Assembly::setBoundaryConditions()
                                 else
                                 {
                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() > 0)
+                {
+                    int id = multipliers[p].getId() ;
+                    int propid = multipliers[p].getDofIds()[0] ;
+                    double a = multipliers[p].coefs[0] ;
+                    double b = multipliers[p].getValue() ; // u_id = a * u_propid + b
+                    double f_id = externalForces[id] ;
+                    for(int m = 0 ; m < stride ; m++)
+                    {
+                        if( id != (lineBlockIndex*stride+m) && propid != (lineBlockIndex*stride+m))
+                        {
+                            for(int n = 0 ; n < stride ; n++)
+                            {
+                                if(id == (columnBlockIndex*stride+n))
+                                {
+                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                    externalForces[lineBlockIndex*stride+m] -= b*val ;
+                                    naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= b*val ;
+                                    getMatrix()[lineBlockIndex*stride+m][ propid ] += a*val ;
+                                    val = 0 ;
+                                }
+                            }
+                        }
+                        else if( id == (lineBlockIndex*stride+m) )
+                        {
+                            for(int n = 0 ; n < stride ; n++)
+                            {
+                                if(propid == (columnBlockIndex*stride+n))
+                                {
+                                    // special case, must be handled once only
+                                    continue ;
+                                }
+                                double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                if(id == (columnBlockIndex*stride+n)) // we are on the diagonal
+                                {
+                                    double kxx = getMatrix()[ propid ][ propid ] ;
+                                    double kxy = getMatrix()[ propid ][ id ] ;
+                                    double kyy = getMatrix()[ id ][ id ] ;
+                                    double kappa = kxy + a*kyy ;
+                                    if( std::abs(kappa) < POINT_TOLERANCE)
+                                        continue ;
+                                    getMatrix()[ propid ][ propid ] = kxx + a*kxy +2*a*kappa ;
+                                    getMatrix()[ id ][ propid ] = -kappa ;
+                                    getMatrix()[ propid ][ id ] = -kappa ;
+                                    getMatrix()[ id ][ id ] = kappa/a ;
+                                    externalForces[ id ] = kappa*b/a ;
+                                    naturalBoundaryConditionForces[ id ] = kappa*b/a ;
+                                    externalForces[ propid ] += a*f_id - 2*b*kappa ;
+                                    naturalBoundaryConditionForces[ propid ] += a*f_id- 2*b*kappa  ;
+                                }
+                                else
+                                {
+                                    getMatrix()[ propid ][ columnBlockIndex*stride+n ] += a*val ;
+                                    val = 0 ;
                                 }
                             }
                         }
@@ -1307,6 +1426,69 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 
         multipliers.push_back(LagrangeMultiplier(i,c,val, id*ndof+2)) ;
         multipliers.back().type = SET_ALONG_ZETA ;
+        break ;
+    }
+    default:
+    {
+        break ;
+    }
+    }
+    return ;
+
+}
+
+void Assembly::setPointProportional(Variable v1, Variable v2, double val, double offset, size_t id) // v1 = val*v2
+{
+    if(v1 == v2)
+       return ;
+
+    std::valarray<unsigned int> i(2) ;
+    i[0] = id*ndof ;
+    switch(v2)
+    {
+       case XI:
+          break ;
+       case ETA:
+          i[0]+=1 ;
+          break ;
+       case ZETA:
+          i[0]+=2 ;
+          break ;
+       default:
+          return ;
+    }
+    Vector c(2) ; c[0] = val ;
+
+    switch(v1)
+    {
+    case XI:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
+        break ;
+    }
+    case ETA:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof+1)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
+        break ;
+    }
+    case ZETA:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof+2)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
         break ;
     }
     default:

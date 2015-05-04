@@ -180,6 +180,276 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             a->setPointAlongIndexedAxis ( axis, a->getPreviousDisplacements()[ id[idit]*n + axis ] + data, id[idit] ) ;
             break ;
 
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
+        {
+            a->setPointProportional( XI, ETA, data, 0., id[idit] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
+        {
+            a->setPointProportional( ETA, XI, data, 0., id[idit] ) ;
+            break ;
+        }
+
+        case FIX_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( i ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( i ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( i ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( i ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            if(vec.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, 0., id[idit] ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, 0., id[idit] ) ;
+            else
+               a->setPointProportional( ETA, XI, vec.getY()/vec.getX(), 0., id[idit] ) ;
+            break ;
+        }
+
+        case SET_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( i ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( i ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( i ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( i ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+//            std::cout << shapeFunctions.size() << std::endl ;
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, data, id[idit] ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, data, id[idit] ) ;
+            else
+            {
+               double slope = vec.getY()/vec.getX() ;
+               double normx = data/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+//               double normalSlope = norm.getY()/norm.getX() ;
+               a->setPointProportional( ETA, XI, slope, normx*(-slope-1./slope), id[idit] ) ;
+            }
+            break ;
+        }
+
+        case FIX_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( i ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( i ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( i ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( i ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, 0., id[idit] ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, 0., id[idit] ) ;
+            else
+               a->setPointProportional( ETA, XI, -vec.getX()/vec.getY(), 0., id[idit] ) ;
+            break ;
+        }
+
+        case SET_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t i = 0 ; i < e->getBoundingPoints().size() ; i++ )
+                {
+                    if ( (int)id[j] == e->getBoundingPoint ( i ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( i ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( i ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( i ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( i ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( i ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, data, id[idit] ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, data, id[idit] ) ;
+            else
+            {
+               double slope = norm.getY()/norm.getX() ;
+               double tanx = data/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+               a->setPointProportional( ETA, XI, slope, tanx*(-slope-1./slope), id[idit] ) ;
+            }
+            break ;
+        }
+
         case SET_FORCE_XI:
         {
             if ( !e->getBehaviour()->fractured() )
@@ -516,6 +786,7 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
 
             return ;
         }
+
 
         case SET_NORMAL_STRESS:
         {
@@ -1026,6 +1297,42 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
         case SET_ALONG_ZETA:
             a->setPointAlong ( ZETA, data, id[i] ) ;
             break ;
+
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
+        {
+            a->setPointProportional( XI, ETA, data, 0., id[i] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
+        {
+            a->setPointProportional( ETA, XI, data, 0., id[i] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA:
+        {
+            a->setPointProportional( XI, ZETA, data, 0., id[i] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI:
+        {
+            a->setPointProportional( ZETA, XI, data, 0., id[i] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA:
+        {
+            a->setPointProportional( ETA, ZETA, data, 0., id[i] ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA:
+        {
+            a->setPointProportional( ZETA, XI, data, 0., id[i] ) ;
+            break ;
+        }
 
         case INCREMENT_ALONG_ZETA:
             if( std::abs( data ) < POINT_TOLERANCE || a->getPreviousDisplacements().size() == 0 )
@@ -2170,6 +2477,277 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 a->setPointAlong ( ETA, vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
 
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
+        {
+            a->setPointProportional( XI, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
+        {
+            a->setPointProportional( ETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case FIX_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( k ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( k ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( k ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            if(vec.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, 0., id[i].getId() ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, 0., id[i].getId() ) ;
+            else
+               a->setPointProportional( ETA, XI, vec.getY()/vec.getX(), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( k ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( k ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( k ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+//            std::cout << shapeFunctions.size() << std::endl ;
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, vm.eval(data, id[i]), id[i].getId() ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, vm.eval(data, id[i]), id[i].getId() ) ;
+            else
+            {
+               double slope = vec.getY()/vec.getX() ;
+               double normx = vm.eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+//               double normalSlope = norm.getY()/norm.getX() ;
+               a->setPointProportional( ETA, XI, slope, normx*(-slope-1./slope), id[i].getId() ) ;
+            }
+            break ;
+        }
+
+        case FIX_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( k ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( k ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( k ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, 0., id[i].getId() ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, 0., id[i].getId() ) ;
+            else
+               a->setPointProportional( ETA, XI, -vec.getX()/vec.getY(), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            if ( !last )
+                            {
+                                last = &e->getBoundingPoint ( k ) ;
+                            }
+                            else
+                            {
+                                if ( dist ( first, last ) < dist ( first, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    last = &e->getBoundingPoint ( k ) ;
+                                }
+                                if ( dist ( first, last ) < dist ( last, &e->getBoundingPoint ( k ) ) )
+                                {
+                                    first = &e->getBoundingPoint ( k ) ;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( !last )
+            {
+                return ;
+            }
+
+            Segment edge ( *last, *first ) ;
+            Point vec = edge.vector() ;
+            Point norm = edge.normal() ;
+            if(vec.norm() < POINT_TOLERANCE || norm.norm() < POINT_TOLERANCE)
+               return ;
+
+            if(std::abs(vec.getX()) < POINT_TOLERANCE)
+               a->setPointAlong( ETA, vm.eval(data, id[i]), id[i].getId() ) ;
+            else if(std::abs(vec.getY()) < POINT_TOLERANCE)
+               a->setPointAlong( XI, vm.eval(data, id[i]), id[i].getId() ) ;
+            else
+            {
+               double slope = norm.getY()/norm.getX() ;
+               double tanx = vm.eval(data, id[i])/std::sqrt( 1.+(1./slope)*(1./slope)) ;
+               a->setPointProportional( ETA, XI, slope, tanx*(-slope-1./slope), id[i].getId() ) ;
+            }
+            break ;
+        }
+
+
         case INCREMENT_ALONG_ETA:
             if( a->getPreviousDisplacements().size() == 0 )
                 break ;
@@ -2959,6 +3537,42 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
 
             a->setPointAlongIndexedAxis( axis , a->getPreviousDisplacements()[ id[i].getId()*n + axis ] + vm.eval ( data, id[i] ), id[i].getId() ) ;
             break ;
+
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ETA:
+        {
+            a->setPointProportional( XI, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_XI:
+        {
+            a->setPointProportional( ETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA:
+        {
+            a->setPointProportional( XI, ZETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI:
+        {
+            a->setPointProportional( ZETA, XI, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA:
+        {
+            a->setPointProportional( ZETA, ETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
+
+        case SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA:
+        {
+            a->setPointProportional( ETA, ZETA, vm.eval(data, id[i]), 0., id[i].getId() ) ;
+            break ;
+        }
 
         case SET_FORCE_XI:
 
@@ -4902,14 +5516,16 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
 
             for ( size_t j = 0 ;  j < i->getBoundingPoints().size() ; ++j )
             {
-                Point test = i->getBoundingPoint ( j ) ;
-                if(domain->in(test+faceNormal*i->getRadius()))
+                Point test = i->getBoundingPoint ( j ) +faceNormal*i->getRadius() ;
+                if(domain->in(test))
                     continue ;
                 domain->project ( &test );
 
                 if ( squareDist2D ( test, i->getBoundingPoint ( j ) ) < tol*tol )
                 {
+//                    std::cout << tol << "\t" << dist( test, i->getBoundingPoint ( j ) ) << std::endl ;
                     id.push_back ( i->getBoundingPoint ( j ) ) ;
+//                    i->getBoundingPoint ( j ).print() ;
                 }
             }
             if ( !id.empty() )
