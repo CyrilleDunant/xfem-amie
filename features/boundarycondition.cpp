@@ -4,8 +4,9 @@
 #include "boundarycondition.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../physics/viscoelasticity.h"
+#include "../features/features.h"
 
-using namespace Amie ;
+namespace Amie {
 
 BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ) { }
 
@@ -14,6 +15,8 @@ BoundingBoxDefinedBoundaryCondition::BoundingBoxDefinedBoundaryCondition ( Lagra
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, double d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
 }
+
+// BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, LagrangeMultiplierType t, BoundingBoxPosition pos) : BoundaryCondition ( t, 0 ), cycles(cycles) { };
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
@@ -6926,3 +6929,28 @@ void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedro
     a->addForceVector ( dataVector ) ;
 }
 
+
+double LoadingCycle::getValue() 
+{
+    double dt = ft->getDeltaTime() ;
+    double state = (condition == ULTIMATE_STRESS) ? std::abs(ft->getAverageField(REAL_STRESS_FIELD, -1, 1.)).max() : std::abs(ft->getAverageField(STRAIN_FIELD, -1, 1.)).max();
+    
+    if(type == LOADING)
+    {
+        if(state < ultimate*fraction)
+            return std::min(state+rate*dt, ultimate) ;
+        cycleAtEnd = true ;
+        return ultimate ;
+    }
+    
+    if(state > ultimate*fraction)
+        return std::max(state-rate*dt, ultimate) ;
+    cycleAtEnd = true ;
+    return ultimate ;
+}
+double LoadingCycle::isAtEnd() const 
+{
+    return cycleAtEnd ;
+    
+}
+}

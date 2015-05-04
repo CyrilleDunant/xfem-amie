@@ -34,7 +34,7 @@
 
 
 
-using namespace Amie ;
+namespace Amie {
 
 
 
@@ -6883,6 +6883,21 @@ void FeatureTree::initializeElements( )
 
 }
 
+double FeatureTree::getDeltaTime () const
+{
+    return deltaTime ;
+}
+
+void FeatureTree::setMinDeltaTime ( double d ) 
+{
+    minDeltaTime = d ;
+}
+
+void FeatureTree::setMaxIterationsPerStep ( size_t its ) 
+{
+        maxitPerStep = its ;
+}
+
 void FeatureTree::setDeltaTime ( double d )
 {
 
@@ -8545,4 +8560,6 @@ void FeatureTree::homothety ( double before, double now, double after )
         t->clearElementaryMatrix() ;
     }
 //	tri[0]->getBoundingPoint(0).print() ;
+}
+
 }

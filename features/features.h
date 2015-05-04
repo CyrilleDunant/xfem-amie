@@ -569,17 +569,14 @@ public:
         return elemOrder  ;
     }
 
+    double getDeltaTime () const ;
     void setDeltaTime ( double d ) ;
-    void setMinDeltaTime ( double d ) {
-        minDeltaTime = d ;
-    }
+    void setMinDeltaTime ( double d );
 
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D >::iterator & begin,  const Mesh<DelaunayTetrahedron, DelaunayTreeItem3D>::iterator & end ) ;
     void moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & begin,  const Mesh<DelaunayTriangle, DelaunayTreeItem>::iterator & end ) ;
 
-    void setMaxIterationsPerStep ( size_t its ) {
-        maxitPerStep = its ;
-    }
+    void setMaxIterationsPerStep ( size_t its ) ;
 
     /** \brief  set Sampling parameter
     */

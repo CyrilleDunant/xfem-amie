@@ -19,7 +19,7 @@
 #include <valarray>
 #include <sys/time.h>
 
-using namespace Amie ;
+namespace Amie {
 
 LagrangeMultiplier::LagrangeMultiplier(std::valarray<unsigned int> i, Vector c, double b, int my_id ) : ids(i), coefs(c), id(my_id), value(b), type(GENERAL)
 {
@@ -2087,4 +2087,4 @@ void ParallelAssembly::clearElements()
 }
 
 
-
+}

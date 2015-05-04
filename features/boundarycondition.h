@@ -112,6 +112,43 @@ public:
     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
 } ;
 
+typedef enum {
+    LOADING,
+    UNLOADING,
+    ULTIMATE_STRAIN,
+    ULTIMATE_STRESS
+} LoadingState;
+
+class LoadingCycle
+{
+protected :
+    LoadingState type ;
+    FeatureTree * ft ;
+    double ultimate ;
+    double condition ;
+    size_t axisIndex ;
+    double fraction ;
+    double rate ;
+    bool cycleAtEnd ;
+public:
+    LoadingCycle(LoadingState type,FeatureTree *ft, LoadingState condition, double ultimate, size_t axisIndex, double fraction = 1., double rate = 0.01) :type(type), ft(ft), ultimate(ultimate), condition(condition), axisIndex(axisIndex), fraction(fraction), rate(rate), cycleAtEnd(false){}
+    
+    double getValue() ;
+    double isAtEnd() const ;
+} ;
+
+// class BoundingBoxCycleDefinedBoundaryCondition final: public BoundaryCondition
+// {
+// private:
+//     BoundingBoxPosition pos ;
+//     std::vector<LoadingCycle> cycles ;
+// 
+// public:
+//     BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, LagrangeMultiplierType t, BoundingBoxPosition pos) ;
+//     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+//     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+// } ;
+
 /** \brief Boundary condition object for usage in multigrid solver.*/
 class BoundingBoxAndRestrictionDefinedBoundaryCondition : public BoundaryCondition
 {

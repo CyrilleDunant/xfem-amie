@@ -482,9 +482,9 @@ struct EqItems
 
 std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > quad(const DelaunayTriangle * t) ;
 
-} 
+ 
 
 //! Make \a t0 and \a t1 Neighbours. Safe.
 void makeNeighbours( Amie::DelaunayTreeItem *t0, Amie::DelaunayTreeItem *t1 ) ;
-
+}
 #endif  //__DELAUNAY_H_

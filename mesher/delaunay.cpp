@@ -20,7 +20,7 @@
 #define DEBUG
 #undef DEBUG
 
-using namespace Amie ;
+namespace Amie{
 
 DelaunayTreeItem::DelaunayTreeItem( Mesh<DelaunayTriangle, DelaunayTreeItem> * t, DelaunayTreeItem * father,  const Point * c) : dead(false), m_c(c), index(0),tree(t), father(father), stepfather(nullptr),first(nullptr) ,
     second(nullptr) ,
@@ -3256,7 +3256,7 @@ Vector DelaunayTriangle::getNonLinearForces()
 
 DelaunayDeadTriangle::~DelaunayDeadTriangle() { }
 
-std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Amie::quad(const DelaunayTriangle * t)
+std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > quad(const DelaunayTriangle * t)
 {
     std::vector<DelaunayTriangle* > tris ;
     std::vector<Point *> points ;
@@ -3272,3 +3272,4 @@ std::pair<std::vector<DelaunayTriangle *>, std::vector<Point *> > Amie::quad(con
     return std::make_pair(tris, points) ;
 }
 
+}

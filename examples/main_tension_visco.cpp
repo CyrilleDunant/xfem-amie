@@ -4,9 +4,8 @@
 //
 //
 
-#include "../utilities/samplingcriterion.h"
-#include "../physics/fracturecriteria/mohrcoulomb.h"
 #include "../physics/fracturecriteria/mcft.h"
+#include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
 #include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "../physics/stiffness.h"
@@ -163,7 +162,9 @@ SPACE_TWO_DIMENSIONAL ) ;
 
     //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
     ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
-				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,1e-6, 1.0)); 
+				    new SpaceTimeIsotropicLinearDamage(0.5,1e-6, 1.0)); 
+    ViscoelasticityAndFracture * pasteruptf = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
+                    new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-6, 1.0)); 
 
 
 //     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6,1.));
@@ -172,7 +173,7 @@ SPACE_TWO_DIMENSIONAL ) ;
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100., cstress , cstrain, 1., pt ), new  FiberBasedIsotropicLinearDamage(0.001, 1.));
     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
-				    new SpaceTimeFiberBasedIsotropicLinearDamage(0.001,1e-6, 1.)); 
+				    new SpaceTimeIsotropicLinearDamage(0.1,1e-6, 1.)); 
 
     samplef.setBehaviour ( pasterupt  ) ;
 
