@@ -84,13 +84,13 @@ double aggregateArea = 0;
 MultiTriangleWriter writer ( "triangles_head", "triangles_layers", nullptr ) ;
 MultiTriangleWriter writerc ( "triangles_converged_head", "triangles_converged_layers", nullptr ) ;
 
-void step ()
+void step (const Function & loadfunc)
 {
 
     double last_time = 0 ;
-    while (featureTree->getCurrentTime() < 12 ) 
+    while (featureTree->getCurrentTime() < 120 ) 
     {
-        bool go_on = featureTree->step() ;
+        bool go_on = featureTree->stepToCheckPoint() ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
 	Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
@@ -106,7 +106,7 @@ void step ()
         std::cout << std::endl ;
 	*/
 
-        if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.01)
+        if(go_on && std::abs(last_time - featureTree->getCurrentTime()) >.1 && featureTree->getCurrentTime() < 480)
         {
             last_time = featureTree->getCurrentTime() ;
             displacements.push_back ( etemp[1] );
@@ -114,13 +114,13 @@ void step ()
             loads.push_back ( stemp[1] );
             loadsx.push_back ( stemp[0] );
             times.push_back(featureTree->getCurrentTime());
-	    damage.push_back(dtemp[0]);
+            damage.push_back(dtemp[0]);
 
             std::fstream ldfile  ;
             ldfile.open ( "ldn", std::ios::out ) ;
             for ( size_t j = 0 ; j < loads.size() ; j++ )
             {
-                ldfile << times[j] << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j]  << "   " << damage[j]<<  "\n" ;
+                ldfile << times[j] << " " << displacements[j] << "   " << loads[j] << "   " <<  displacementsx[j] << "   " << loadsx[j]  << "   " << damage[j]<< "   " << VirtualMachine().eval(loadfunc, 0,0,0,featureTree->getCurrentTime()) << "\n" ;
             }
             ldfile.close();
         }
@@ -137,8 +137,7 @@ int main ( int argc, char *argv[] )
     // Beton
      double k_elas = 40.4e9;
      double nu_elas = 0.2 ;
-     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true, 
-SPACE_TWO_DIMENSIONAL ) ;
+     Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
      std::vector<std::pair<Matrix, Matrix> > branches ;
      double factor_k = 1.;
          std::vector<double> K_chaine_cp = {5.4e11/factor_k,  3.9e11/factor_k, 2.02e11/factor_k,5.1e10/factor_k} ;
@@ -161,10 +160,10 @@ SPACE_TWO_DIMENSIONAL ) ;
     featureTree = &F ;
 
     //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
-    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
-				    new SpaceTimeIsotropicLinearDamage(0.5,1e-6, 1.0)); 
-    ViscoelasticityAndFracture * pasteruptf = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
-                    new SpaceTimeFiberBasedIsotropicLinearDamage(0.1,1e-6, 1.0)); 
+    ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .038, pt ),
+				    new SpaceTimeIsotropicLinearDamage(0.05,1e-6, 1.0)); 
+    ViscoelasticityAndFracture * pasteruptf = new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .038, pt ),
+                    new SpaceTimeFiberBasedIsotropicLinearDamage(0.05,1e-6, 1.0)); 
 
 
 //     ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-6,1.));
@@ -172,21 +171,33 @@ SPACE_TWO_DIMENSIONAL ) ;
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100, cstress , cstrain, 1., pt ), new IsotropicLinearDamage());
     //ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas,new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9,1.));
     //StiffnessAndFracture * spasterupt = new StiffnessAndFracture(E_cp_elas,new NonLocalMazars(1.0e-4, k_elas, nu_elas, 100., cstress , cstrain, 1., pt ), new  FiberBasedIsotropicLinearDamage(0.001, 1.));
-    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, 4., pt ),
-				    new SpaceTimeIsotropicLinearDamage(0.1,1e-6, 1.)); 
+    ViscoelasticityAndFracture * spasterupt = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .038, pt ),
+				    new SpaceTimeIsotropicLinearDamage(0.05,1e-6, 1.)); 
+    ViscoelasticityAndFracture * spasteruptf = new ViscoelasticityAndFracture(PURE_ELASTICITY, E_cp_elas, new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .038, pt ),
+                    new SpaceTimeFiberBasedIsotropicLinearDamage(0.05,1e-6, 1.)); 
 
     samplef.setBehaviour ( pasterupt  ) ;
 
-    Function loadfunc = Function("t 12 /")         *f_range("t", 0., 3) +
-    Function("0.25 t 3 - 48 / -")                  *f_range("t", 3, 6) +
-    Function("t 6 - 72 / 0.1866666 +")             *f_range("t", 6, 72) ;
+    Function loadfunc = Function("t 120 /")         *f_range("t", 0., 30) +
+    Function("0.25 t 30 - 480 / -")                 *f_range("t", 30, 60) +
+    Function("t 60 - 720 / 0.1866666 +")            *f_range("t", 60, 720) ;
     loadfunc *= 0.0002 ;
+    
+    std::vector<LoadingCycle> cycles ;
+    cycles.push_back(LoadingCycle(&F, ULTIMATE_STRAIN, 4.6e-5, ETA, 0., 1e-6)) ;
+    cycles.push_back(LoadingCycle(&F, ULTIMATE_STRESS, 1e6, ETA, &(cycles[0]), 1e-6)) ;
+    cycles.push_back(LoadingCycle(&F, ULTIMATE_STRESS, 1e6*.8, ETA, &(cycles[1]), -1e-6)) ;
+    cycles.push_back(LoadingCycle(&F, ULTIMATE_STRESS, 1e5, ETA, &(cycles[2]),1e-6)) ;
+    
+    std::vector<LagrangeMultiplierType> bctypes = {SET_ALONG_ETA,SET_ALONG_ETA,SET_ALONG_ETA,SET_ALONG_ETA} ;
+    std::vector<BoundingBoxPosition> positions = {TOP,TOP,TOP,TOP} ;
     
 //     for(double t = 0 ; t < 72  ;t += .1)
 //     {
 //         std::cout << t << "  " << VirtualMachine().eval(loadfunc,0,0,0,t) << std::endl ;
 //     }
 //     exit(0)
+//     BoundingBoxCycleDefinedBoundaryCondition * loadr = new BoundingBoxCycleDefinedBoundaryCondition(cycles, bctypes, positions) ;
     BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, loadfunc) ;
     F.addBoundaryCondition ( loadr );
 
@@ -194,13 +205,13 @@ SPACE_TWO_DIMENSIONAL ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.01);
+    F.setDeltaTime(.1);
     F.setOrder(LINEAR_TIME_LINEAR) ;
 
-    F.setMaxIterationsPerStep ( 5 );
+    F.setMaxIterationsPerStep ( 50 );
 
 
-    step () ;
+    step (loadfunc) ;
 
 //    F.getAssembly()->print() ;
 

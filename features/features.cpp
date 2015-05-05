@@ -523,7 +523,8 @@ void FeatureTree::scaleBoundaryConditions ( double scale )
 {
     for ( size_t i = 0 ; i < boundaryCondition.size() ; i++ )
     {
-        boundaryCondition[i]->setScale ( scale );
+        if(dynamic_cast<TimeContinuityBoundaryCondition *>( boundaryCondition[i]) == nullptr)
+            boundaryCondition[i]->setScale ( scale );
     }
 }
 
@@ -5599,8 +5600,6 @@ bool FeatureTree::step()
         }
 
 
-
-//         std::cout << " \n trial : " << (it > maxitPerStep) << "  " << foundCheckPoint << std::endl ;
         if ( it > maxitPerStep && foundCheckPoint )
         {
 
@@ -5610,14 +5609,10 @@ bool FeatureTree::step()
         else if(it > maxitPerStep)
             std::cout << ":"<< std::endl ;
 
-        if ( needexit) // && foundCheckPoint && it%(maxBetweenCheckPoints-1) == 0)
+        if ( needexit) 
         {
             break ;
         }
-
-//         std::cout << " \n trial : " << (( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
-//             ! ( !solverConverged() && !reuseDisplacements ) &&
-//             ( notConvergedCounts < 20 )) << std::endl ;
 
     }
     while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
@@ -5646,92 +5641,86 @@ bool FeatureTree::step()
 bool FeatureTree::stepToCheckPoint()
 {
     scaleBoundaryConditions ( 1 );
-    double realdt = deltaTime ;
-
-
-    if ( solverConverged() && !behaviourChanged() )
+    
+    double prevmaxit = maxitPerStep ;
+    
+    maxitPerStep = 1 ;
+    
+    bool ret = step() ;
+    maxitPerStep = prevmaxit ;
+    
+    //at this point, we should have found a checkpoint.
+    
+    if(!ret)
     {
-        now += deltaTime ;
-    }
-    else
-    {
-        deltaTime = 0 ;
-    }
+        elastic = true ;
+        double currentScale = 0.5 ;
+        double highscale = 1. ;
+        double bottomscale= 0. ;
+        
 
-    if ( enrichmentChange || needMeshing )
-    {
-        K->clear() ;
-    }
-
-    state.setStateTo ( XFEM_STEPPED, true ) ;
-    int notConvergedCounts = 0 ;
-
-    do
-    {
-        deltaTime = 0 ;
-        if ( solverConverged() )
+        while(highscale-bottomscale > 0.001)
         {
-            std::cerr << "." << std::flush ;
-            notConvergedCounts = 0 ;
-        }
-        else
-        {
-            notConvergedCounts++ ;
-            std::cerr << "+" << std::flush ;
-        }
-
-        if ( enrichmentChange || needMeshing )
-        {
-            K->clear() ;
-        }
-
-        state.setStateTo ( XFEM_STEPPED, true ) ;
-
-    }
-    while ( !foundCheckPoint && ( behaviourChanged() || !solverConverged() )  && ! ( !solverConverged() && !reuseDisplacements ) && notConvergedCounts < 4 ) ;
-
-    if ( behaviourChanged() )
-    {
-        double upmultiplier = 1 ;
-        double currentmultiplier = 0.5 ;
-        double downmultiplier = 0 ;
-        scaleBoundaryConditions ( currentmultiplier );
-        while ( std::abs ( upmultiplier-downmultiplier ) > 1./pow ( 2, 16 ) )
-        {
-            if ( !isStable() )
+            currentScale = (highscale+bottomscale)*.5 ;
+            scaleBoundaryConditions(currentScale) ;
+            
+            bool met = false ;
+            state.setStateTo ( XFEM_STEPPED, true ) ;
+            
+            if(is2D())
             {
-                upmultiplier = currentmultiplier ;
-                currentmultiplier = ( upmultiplier+downmultiplier ) *.5 ;
+                for ( auto j = layer2d.begin() ; j != layer2d.end() && !met; j++ )
+                {
+
+                    for (  auto i = j->second->begin() ; i != j->second->end()  && !met; i++  )
+                    {
+
+                        if ( i->getBehaviour()->getFractureCriterion() )
+                        {
+                            i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
+                            if(i->getBehaviour()->getFractureCriterion()->met())
+                            {
+                                met = true ;
+                            }
+                        }
+                    }
+                }
             }
             else
             {
-                downmultiplier = currentmultiplier ;
-                currentmultiplier = ( upmultiplier+downmultiplier ) *.5 ;
+
+                for (  auto i = dtree3D->begin() ; i != dtree3D->end() && !met; i++  )
+                {
+
+                    if ( i->getBehaviour()->getFractureCriterion() )
+                    {
+                        i->getBehaviour()->getFractureCriterion()->step ( i->getState() ) ;
+                        if(i->getBehaviour()->getFractureCriterion()->met())
+                        {
+                            met = true ;
+                        }
+                    }
+                }
             }
-            scaleBoundaryConditions ( currentmultiplier );
-//			std::cout << currentmultiplier << std::endl ;
+            
+            if(met)
+                highscale = currentScale ;
+            else
+                bottomscale = currentScale ;
         }
-
-        scaleBoundaryConditions ( downmultiplier );
-        deltaTime = realdt ;
-        elasticStep();
-// 		state.setStateTo( XFEM_STEPPED, true ) ;
-        if ( solverConverged() )
-        {
-            std::cerr << ":" << std::flush ;
-            notConvergedCounts = 0 ;
-        }
-        else
-        {
-            notConvergedCounts++ ;
-            std::cerr << ";" << std::flush ;
-        }
-        scaleBoundaryConditions ( 1 );
+        scaleBoundaryConditions(bottomscale) ;
+        elastic = false ;
+        setDeltaTime ( realDeltaTime ) ;
+        state.setStateTo ( XFEM_STEPPED, true ) ;
     }
+//     std::cout << "SCALE = " << currentScale << std::endl ;
+    
+    damageConverged = solverConverged() && !behaviourChanged() ;
 
-    std::cerr  << std::endl ;
-    setDeltaTime ( realdt ) ;
-    return solverConverged();
+    if(damageConverged)
+        K->setPreviousDisplacements() ;
+
+    return true ;
 }
 
 bool orderPointsByID ( Point * p1, Point * p2 )

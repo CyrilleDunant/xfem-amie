@@ -127,27 +127,34 @@ protected :
     double ultimate ;
     double condition ;
     size_t axisIndex ;
-    double fraction ;
+    double currentState ;
     double rate ;
     bool cycleAtEnd ;
+    bool cycleStarted ;
+    LoadingCycle * chainedCycle ;
 public:
-    LoadingCycle(LoadingState type,FeatureTree *ft, LoadingState condition, double ultimate, size_t axisIndex, double fraction = 1., double rate = 0.01) :type(type), ft(ft), ultimate(ultimate), condition(condition), axisIndex(axisIndex), fraction(fraction), rate(rate), cycleAtEnd(false){}
+    LoadingCycle(FeatureTree *ft, LoadingState condition, double ultimate, size_t axisIndex, double initialState, double rate = 0.01) :type(LOADING), ft(ft), ultimate(ultimate), condition(condition), axisIndex(axisIndex), currentState(initialState), rate(rate), cycleAtEnd(false), cycleStarted(false), chainedCycle(nullptr){}
+    
+    LoadingCycle(FeatureTree *ft, LoadingState condition, double ultimate, size_t axisIndex, LoadingCycle * c, double rate = 0.01) :type(LOADING), ft(ft), ultimate(ultimate), condition(condition), axisIndex(axisIndex), currentState(0), rate(rate), cycleAtEnd(false), cycleStarted(false), chainedCycle(c) {}
     
     double getValue() ;
     double isAtEnd() const ;
 } ;
 
-// class BoundingBoxCycleDefinedBoundaryCondition final: public BoundaryCondition
-// {
-// private:
-//     BoundingBoxPosition pos ;
-//     std::vector<LoadingCycle> cycles ;
-// 
-// public:
-//     BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, LagrangeMultiplierType t, BoundingBoxPosition pos) ;
-//     virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
-//     virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
-// } ;
+class BoundingBoxCycleDefinedBoundaryCondition final: public BoundaryCondition
+{
+private:
+    std::vector<BoundingBoxPosition> positions ;
+    std::vector<LagrangeMultiplierType> types ;
+    std::vector<LoadingCycle> cycles ;
+    int currentCycle ;
+    BoundaryCondition * currentBC ;
+
+public:
+    BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, const std::vector<LagrangeMultiplierType> t, const std::vector<BoundingBoxPosition> & pos) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) ;
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)  ;
+} ;
 
 /** \brief Boundary condition object for usage in multigrid solver.*/
 class BoundingBoxAndRestrictionDefinedBoundaryCondition : public BoundaryCondition

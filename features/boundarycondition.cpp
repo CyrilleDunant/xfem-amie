@@ -16,7 +16,47 @@ BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefi
 {
 }
 
-// BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, LagrangeMultiplierType t, BoundingBoxPosition pos) : BoundaryCondition ( t, 0 ), cycles(cycles) { };
+BoundingBoxCycleDefinedBoundaryCondition::BoundingBoxCycleDefinedBoundaryCondition(std::vector<LoadingCycle> cycles, const std::vector<LagrangeMultiplierType> t, const std::vector<BoundingBoxPosition> & pos) : BoundaryCondition ( t.front(), 0 ), cycles(cycles), types(t), positions(pos), currentCycle(-1)
+{ 
+    currentBC = new BoundingBoxDefinedBoundaryCondition(t.front(), pos.front(), 0.) ;
+}
+
+void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t)
+{
+    if(currentCycle < 0)
+    {
+        currentBC->apply(a, t);
+        currentCycle++ ;
+        return ;
+    }
+    currentBC->setData(cycles[currentCycle].getValue());
+    currentBC->apply(a, t);
+    if(cycles[currentCycle].isAtEnd())
+    {
+        delete currentBC ;
+        currentCycle++ ;
+        currentBC = new BoundingBoxDefinedBoundaryCondition(types[currentCycle], positions[currentCycle], 0.) ;
+    }
+}
+
+void BoundingBoxCycleDefinedBoundaryCondition::apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t)
+{
+    if(currentCycle < 0)
+    {
+        currentBC->apply(a, t);
+        currentCycle++ ;
+        return ;
+    }
+    
+    currentBC->setData(cycles[currentCycle].getValue());
+    currentBC->apply(a, t);
+    if(cycles[currentCycle].isAtEnd())
+    {
+        delete currentBC ;
+        currentCycle++ ;
+        currentBC = new BoundingBoxDefinedBoundaryCondition(types[currentCycle], positions[currentCycle], 0.) ;
+    }
+}
 
 BoundingBoxAndRestrictionDefinedBoundaryCondition::BoundingBoxAndRestrictionDefinedBoundaryCondition ( LagrangeMultiplierType t, BoundingBoxPosition pos, double xm, double xp, double ym, double yp, double zm, double zp, const Function & d, int a ) : BoundaryCondition ( t, d, a ), pos ( pos ),  xmin ( xm ), xmax ( xp ), ymin ( ym ), ymax ( yp ), zmin ( zm ), zmax ( zp )
 {
@@ -6932,21 +6972,39 @@ void GlobalForceBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedro
 
 double LoadingCycle::getValue() 
 {
+    double teststate = (condition == ULTIMATE_STRESS) ? (ft->getAverageField(REAL_STRESS_FIELD, -1, 1.))[axisIndex] : (ft->getAverageField(STRAIN_FIELD, -1, 1.))[axisIndex];
+    if(!cycleStarted)
+    {
+       if(teststate > ultimate) 
+           type = UNLOADING ;
+       else
+         type = LOADING ;
+       
+       if(chainedCycle)
+           currentState = chainedCycle->getValue() ;
+       cycleStarted = true ;
+    }
+    
     double dt = ft->getDeltaTime() ;
-    double state = (condition == ULTIMATE_STRESS) ? std::abs(ft->getAverageField(REAL_STRESS_FIELD, -1, 1.)).max() : std::abs(ft->getAverageField(STRAIN_FIELD, -1, 1.)).max();
     
     if(type == LOADING)
     {
-        if(state < ultimate*fraction)
-            return std::min(state+rate*dt, ultimate) ;
+        if(teststate < ultimate)
+        {
+            currentState = std::min(currentState+rate*dt, ultimate) ;
+            return currentState;
+        }
         cycleAtEnd = true ;
-        return ultimate ;
+        return currentState ;
     }
     
-    if(state > ultimate*fraction)
-        return std::max(state-rate*dt, ultimate) ;
+    if(teststate > ultimate)
+    {
+        currentState = std::min(currentState+rate*dt, ultimate) ;
+        return currentState ;
+    }
     cycleAtEnd = true ;
-    return ultimate ;
+    return currentState ;
 }
 double LoadingCycle::isAtEnd() const 
 {
