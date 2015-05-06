@@ -41,6 +41,8 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     postprocheck = false ;
 // 	ctype = CONSERVATIVE ;
     stiff = new OrthotropicStiffness ( E,E,E/ ( 1.-nu*nu ),nu, 0. ) ;
+    roughsampling = true ;
+    iterationcount = 0 ;
 }
 
 
@@ -161,9 +163,10 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 converged = true ;
             }
             
-            originalAngle = - .05*M_PI ;
+            originalAngle = 0 ;
             stiff->setAngle ( originalAngle ) ;   
-            
+            roughsampling = true ;
+            iterationcount = 0 ;
             return ;
 
         }
@@ -171,29 +174,85 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         {
             angles_scores.push_back( std::make_pair(originalAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()));
             std::sort(angles_scores.begin(),angles_scores.end());
-            if(angles_scores.back().first < M_PI + .05*M_PI- POINT_TOLERANCE)
+            
+            //first produce a rough sampling
+            if(angles_scores.back().first < 2.*M_PI - .2*M_PI && roughsampling)
             {  
                 originalAngle += .2*M_PI ;
                 stiff->setAngle ( originalAngle) ;     
                 change = true ;
                 return ;
             }
-            
-            double score_min = (angles_scores[0].second+angles_scores[1].second)*.5 ;
-            for(size_t i = 1 ; i < angles_scores.size()-1 ; i++)
+            else if(roughsampling)
             {
-                double score_test = (angles_scores[i].second+angles_scores[i+1].second)*.5 ;
-                if(score_test < score_min)
+                 //find a triplet of points around the minimum
+                
+                double phi = (1.+sqrt(5))*.5 ;
+//                 a+b = 1
+//                 b = a*phi+a = 1   a = 1/(1+phi)  b  = phi/(1+phi)
+                std::vector<std::pair<double, double>> newset ;
+                double minscore = angles_scores[0].second ;
+                int minidex = 0 ;
+                for(size_t i = 1 ; i < angles_scores.size() ; i++)
                 {
-                    score_min = score_test ;
-                    originalAngle = (angles_scores[i].first+angles_scores[i+1].first)*.5 ;
-                }     
+                    if(angles_scores[i].second < minscore)
+                    {
+                        minscore = angles_scores[i].second ;
+                        minidex = i ;
+                    }
+                }
+                if(minidex == 0)
+                {
+                    newset.push_back(angles_scores.back()) ;
+                    originalAngle = phi/(1.+phi) * angles_scores.back().first + 1./(1.+phi) * angles_scores[minidex+1].first;
+                    newset.push_back(angles_scores[minidex+1]);
+                }
+                else if(minidex == (angles_scores.size()-1))
+                {
+                    newset.push_back(angles_scores[minidex-1]) ;
+                    originalAngle = phi/(1.+phi) * angles_scores[minidex-1].first + 1./(1.+phi) * angles_scores.front().first;
+                    newset.push_back(angles_scores.front()) ; 
+                }
+                else
+                {
+                    newset.push_back(angles_scores[minidex-1]) ;
+                    originalAngle = phi/(1.+phi) * angles_scores[minidex-1].first + 1./(1.+phi) * angles_scores[minidex+1].first;
+                    newset.push_back(angles_scores[minidex+1]) ; 
+                }
+                angles_scores = newset ;
+                stiff->setAngle ( originalAngle ) ;     
+                roughsampling = false ;
+                change = true ;
+                return ;
+            }
+            iterationcount++ ;
+
+            double minscore = angles_scores[0].second ;
+            int minidex = 0 ;
+            for(size_t i = 1 ; i < angles_scores.size() ; i++)
+            {
+                if(angles_scores[i].second < minscore)
+                {
+                    minscore = angles_scores[i].second ;
+                    minidex = i ;
+                }
+            }
+            if(minidex == 0)
+            {
+                originalAngle = angles_scores.back().first + angles_scores[minidex+1].first - angles_scores[minidex].first;
+            }
+            else if(minidex == (angles_scores.size()-1))
+            {
+                originalAngle = angles_scores[minidex-1].first + angles_scores.front().first- angles_scores[minidex].first;
+            }
+            else
+            {
+                originalAngle = angles_scores[minidex-1].first + angles_scores[minidex+1].first- angles_scores[minidex].first;
             }
             
             stiff->setAngle ( originalAngle ) ;     
-
             change = true ;
-            if(angles_scores.size() > 14)
+            if(iterationcount > 12)
             {
                 initialAngle = originalAngle ;
                 alternate = false ;
@@ -365,33 +424,6 @@ void addAndConsolidate ( std::vector<std::pair<double, double> > & target, std::
 
 void RotatingCrack::postProcess()
 {
-/*
-
-    if ( es && es->getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
-    {
-
-        if ( postprocheck )
-        {
-            postprocheck = false ;
-// 			if(secondMet && secondTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() > 0|| firstMet && firstTension && es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() < 0 )
-// 				stiff->setAngle(es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle()) ;
-// 			else
-
-
-// 			std::cout << es->getParent()->getBehaviour()->getFractureCriterion()->getCurrentAngle() << "  " << firstTension << firstMet << "  " << secondTension << secondMet << std::endl ;
-// 			Vector a(1) ;
-// 			Point c(1./3., 1./3.) ;
-// 			es->getField( PRINCIPAL_STRESS_ANGLE_FIELD, c, a, true) ;
-
-// 			stiff->setAngle(a[0]) ;
-            
-       
-//         std::cout << ".."<< E_0 << ".." << E_1 << ".."<< std::endl ;
-//         stiff->getTensor ( Point() ).print() ;
-//         std::cout << "...." << std::endl ;
-        }
-
-    }*/
 
 }
 

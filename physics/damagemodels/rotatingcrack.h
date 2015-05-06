@@ -49,6 +49,9 @@ protected:
 	OrthotropicStiffness * stiff ;
 	bool postprocheck ;
     
+    bool roughsampling ;
+    int iterationcount ;
+    
 public:
 
 	

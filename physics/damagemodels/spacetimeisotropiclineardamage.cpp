@@ -39,8 +39,8 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
 //     return m;
     if(fractured())
         return m*0 ;
-
-    return m*(1.-state[0]-0.5*dt*accelerate*fibreFraction) ;
+    double d = std::min(state[0]+0.5*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    return m*(1.-d) ;
 
 
 }
@@ -54,7 +54,8 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
     if(fractured())
         return m*0 ;
 
-    return m*(1.-state[0]-0.5*dt*accelerate*fibreFraction) ;
+    double d = std::min(state[0]+0.5*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    return m*(1.-d) ;
 
 }
 
@@ -86,33 +87,20 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     change = false ;
     dt = s.getParent()->getBoundingPoint(s.getParent()->getBoundingPoints().size()-1).getT() - s.getParent()->getBoundingPoint(0).getT() ;
     
-    state[0] = std::min(state[0]+dt*accelerate*fibreFraction, 1.) ;
+    state[0] = std::min(state[0]+dt*accelerate*fibreFraction, thresholdDamageDensity) ;
     
-    if(!s.getParent()->getBehaviour()->getFractureCriterion() || maxscore < 0)
+    if(!s.getParent()->getBehaviour()->getFractureCriterion() || !s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
         accelerate = 0 ;
         return ;
     }
-
-    double score = s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
-
-    if(!fractured() && score >= 1.-timeTolerance)
+    else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
-        if((maxscore - score) < timeTolerance)
-        {
-            accelerate++ ;
-            change = true ;
-            s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
-        }
-    }
-    else if(!fractured() && score > 0 && (maxscore - score) < timeTolerance)
-    {
-        accelerate ++ ;
-
+        accelerate++ ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;
     }
-    return ;
+
 }
 
 

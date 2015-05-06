@@ -5659,7 +5659,7 @@ bool FeatureTree::stepToCheckPoint()
         double bottomscale= 0. ;
         
 
-        while(highscale-bottomscale > 0.001)
+        while(highscale-bottomscale > minDeltaTime*.25)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;
@@ -6889,7 +6889,6 @@ void FeatureTree::setMaxIterationsPerStep ( size_t its )
 
 void FeatureTree::setDeltaTime ( double d )
 {
-
     previousDeltaTime = deltaTime ;
     deltaTime = d ;
     realDeltaTime = d ;
