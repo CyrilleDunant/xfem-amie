@@ -36,10 +36,11 @@ Matrix SpaceTimeIsotropicLinearDamage::applyViscous(const Matrix & m, const Poin
 {
     if(state.max() < POINT_TOLERANCE)
         return m ;
-//     return m;
     if(fractured())
         return m*0 ;
-    double d = std::min(state[0]+0.5*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    
+    double factor = (p.getT()+1.)*.5 ;
+    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
     return m*(1.-d) ;
 
 
@@ -53,8 +54,9 @@ Matrix SpaceTimeIsotropicLinearDamage::apply(const Matrix & m, const Point & p,c
         return m ;
     if(fractured())
         return m*0 ;
-
-    double d = std::min(state[0]+0.5*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
+    
+    double factor = (p.getT()+1.)*.5 ;
+    double d = std::min(state[0]+factor*dt*accelerate*fibreFraction, thresholdDamageDensity) ;
     return m*(1.-d) ;
 
 }
@@ -96,6 +98,7 @@ void SpaceTimeIsotropicLinearDamage::step( ElementState &s , double maxscore)
     }
     else if(!fractured() && s.getParent()->getBehaviour()->getFractureCriterion()->met())
     {
+        dt *= s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState() ;
         accelerate++ ;
         change = true ;
         s.getParent()->getBehaviour()->getFractureCriterion()->inIteration = true ;

@@ -92,7 +92,7 @@ double NonLocalMazars::gradeAtTime(ElementState &s, double t)
     //Critere seuil sur l'endommagement
     true_threshold = std::max(threshold, maxStrain);
     pseudo_dama =  std::min(talpha*(1. - (threshold/true_threshold) * (std::exp(- B_t*(true_threshold - threshold)))) + calpha*(1. - (threshold*(1 - A_c)/true_threshold)  -  A_c*(std::exp(- B_c*(true_threshold - threshold)))), 1.0 - POINT_TOLERANCE) ;
-    if(pseudo_dama < 1.0e-5 || std::isnan(pseudo_dama)) {
+    if(pseudo_dama < 1.0e-6 || std::isnan(pseudo_dama)) {
         pseudo_dama = -1.0;
     }
     if( (maxStrain >= threshold) &&  (pseudo_dama >= dama_predict))
@@ -139,7 +139,7 @@ double NonLocalSpaceTimeMazars::grade(ElementState &s)
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-12)
+    while(std::abs(upTime-downTime) > 1e-6)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

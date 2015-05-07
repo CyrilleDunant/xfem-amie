@@ -5638,14 +5638,12 @@ bool FeatureTree::step()
     return solverConverged() && stateConverged && ret ;
 }
 
-bool FeatureTree::stepToCheckPoint()
+bool FeatureTree::stepToCheckPoint( int iterations)
 {
     scaleBoundaryConditions ( 1 );
     
-    double prevmaxit = maxitPerStep ;
-    
-    maxitPerStep = 1 ;
-    
+    double prevmaxit = maxitPerStep ;  
+    maxitPerStep = iterations ;
     bool ret = step() ;
     maxitPerStep = prevmaxit ;
     
@@ -5659,7 +5657,7 @@ bool FeatureTree::stepToCheckPoint()
         double bottomscale= 0. ;
         
 
-        while(highscale-bottomscale > minDeltaTime*.25)
+        while(highscale-bottomscale > minDeltaTime*.05)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;

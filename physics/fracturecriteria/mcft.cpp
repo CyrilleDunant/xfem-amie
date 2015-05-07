@@ -197,42 +197,38 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 
 double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, double pseudoYoung, double cstrain, double tstress, double cstress)
 {
-    if(cstress >= 0 )
-        return -1 ;
-    
+
     double maxCompression = downVal  ;
 
-    if( cstrain < 0.1*critStrain )
+
+    double C_d = 0. ;
+    double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE)) ;
+
+    if(-compressiveTensileRatio > 0.28000)
+        C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
+
+    double beta_d = 1./(1.+C_d) ;
+
+    if(beta_d > 1)
+        beta_d = 1 ;
+
+    double f_p = beta_d*downVal ;
+    double epsilon_p = beta_d*critStrain ;
+    double epsratio = cstrain/epsilon_p  ;
+    double n = 0.8 - f_p/17e6 ;
+    double k_c = 0.67 - f_p/62e6 ;
+    if(epsratio >= 1)
     {
-        double C_d = 0. ;
-        double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE)) ;
-
-        if(-compressiveTensileRatio > 0.28000)
-            C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
-
-        double beta_d = 1./(1.+C_d) ;
-
-        if(beta_d > 1)
-            beta_d = 1 ;
-
-        double f_p = beta_d*downVal ;
-        double epsilon_p = beta_d*critStrain ;
-        double epsratio = cstrain/epsilon_p  ;
-        double n = 0.8 - f_p/17e6 ;
-        double k_c = 0.67 - f_p/62e6 ;
-        if(epsratio >= 1)
-        {
-            k_c = 1. ;
-        }
-        else
-        {
-            k_c = 0.67 - f_p/62e6 ;
-        }
-        maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
-
+        k_c = 1. ;
     }
+    else
+    {
+        k_c = 0.67 - f_p/62e6 ;
+    }
+    maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
 
-    double criterion = 0 ;
+
+    double criterion = std::abs(cstress/downVal) ;
 
     if(std::abs(maxCompression) > POINT_TOLERANCE)
         criterion = std::abs(cstress/maxCompression) ;
@@ -507,7 +503,7 @@ double NonLocalMCFT::gradeAtTime(ElementState &s, double t)
         secondMet = true ;
     }
 
-    return std::max(tcrit,tcrit) ;
+    return std::max(tcrit,ccrit) ;
 
 }
 
@@ -583,7 +579,7 @@ double NonLocalSpaceTimeMCFT::grade(ElementState &s)
     double downTime = -1 ;
     double testTime = 0 ;
     
-    while(std::abs(upTime-downTime) > 1e-12)
+    while(std::abs(upTime-downTime) > 1e-6)
     {
         double gradeTest = gradeAtTime(s, testTime) ;
         if(gradeTest < 0)

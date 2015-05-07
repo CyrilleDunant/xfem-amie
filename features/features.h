@@ -643,7 +643,7 @@ public:
     /** \brief Step to next checkpoint.
      * This finds the load such that the sample is at equilibrium after incrementing the damage
     */
-    bool stepToCheckPoint() ;
+    bool stepToCheckPoint( int iterations = 100) ;
 
     /** \brief Perform a time step, but do not update the features*/
     void elasticStep() ;
