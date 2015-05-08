@@ -216,6 +216,7 @@ protected:
     std::vector<ElementaryVolume *> element3d ;
     std::vector<double> scales ;
     std::vector<LagrangeMultiplier> multipliers ;
+    std::vector<LagrangeMultiplier> multipliersBuffer ;
     size_t ndof ;
     size_t ndofmax ;
     size_t colstart ;
@@ -374,6 +375,8 @@ public:
     void setPointAlongIndexedAxis(int index, double val, size_t id, bool force = false) ;
 
     void setPointProportional(Variable, Variable, double val, double offset, size_t id) ;
+
+    void setPointProportional(Variable, std::vector< std::pair< Variable, double > > val, double offset, size_t id) ;
 
     /** Apply a force on given node
      * @param var Variable (XI, ETA, or ZETA) along which force is applied

@@ -69,12 +69,12 @@ int main(int argc, char *argv[])
 	Inclusion * inc = new Inclusion( 0.02,0.,0. ) ;
         Inclusion * son = new Inclusion( 0.02, -0.01, 0 ) ;
 	rect.setBehaviour(new ViscoElasticOnlyPasteBehaviour() ) ;
-	s.setBehaviour(new ViscoElasticOnlyPasteBehaviour() ) ;
+	s.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
 	inc->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
 	son->setBehaviour(new ElasticOnlyAggregateBehaviour(44e9) ) ;
 
 	FeatureTree f(&s) ;
-	f.setSamplingNumber(4) ;
+	f.setSamplingNumber(1) ;
 //        f.addFeature( &s, inc ) ;
 //        f.addFeature( inc, son ) ;
 
@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 //	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
         Point n(-0.004,0.008) ;
 	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 
 	f.step() ;
 
@@ -93,13 +93,13 @@ int main(int argc, char *argv[])
         Vector disp = f.getDisplacements() ;
         for(size_t i = 0 ; i < nodes.size() ; i++)
         {
-            if(nodes[i]->getY() > 0.039999+0.5*nodes[i]->getX() && nodes[i]->getT() > 0)
+            if(nodes[i]->getY() > 0.039999+0.5*nodes[i]->getX() )
             {
-                double nx = (0.5*disp[i*6] - disp[i*6+1])/2.5 ;
-                double vx = disp[i*6] - nx ;
+                double nx = (0.5*disp[i*2] - disp[i*2+1])/2.5 ;
+                double vx = disp[i*2] - nx ;
                 double vy = 0.5*vx ;
-                double ny = disp[i*6+1] - vy ;
-                std::cout << nodes[i]->getId() << "\t" << nodes[i]->getX() << "\t" << nodes[i]->getY() << "\t" << disp[i*6] << "\t" << disp[i*6+1] << "\t" << vx << "\t" << vy << "\t" << nx << "\t" << ny << "\t" << std::sqrt( vx*vx+vy*vy ) << std::endl ;
+                double ny = disp[i*2+1] - vy ;
+                std::cout << nodes[i]->getId() << "\t" << nodes[i]->getX() << "\t" << nodes[i]->getY() << "\t" << disp[i*2] << "\t" << disp[i*2+1] << "\t" << vx << "\t" << vy << "\t" << nx << "\t" << ny << "\t" << std::sqrt( vx*vx+vy*vy ) << std::endl ;
             }
         }
 

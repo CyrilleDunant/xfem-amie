@@ -349,13 +349,11 @@ void Assembly::setBoundaryConditions()
                         }
                     }
                 }
-                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() > 0)
+/*                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() == 1)
                 {
                     int id = multipliers[p].getId() ;
-                    int propid = multipliers[p].getDofIds()[0] ;
-                    double a = multipliers[p].coefs[0] ;
-                    double b = multipliers[p].getValue() ; // u_id = a * u_propid + b
-                    double f_id = externalForces[id] ;
+                    std::vector<int> allid = multipliers[p].getDofIds() ;
+                    Vector coefs = multipliers[p].coefs ;
                     for(int m = 0 ; m < stride ; m++)
                     {
                         if( id != (lineBlockIndex*stride+m) && propid != (lineBlockIndex*stride+m))
@@ -406,7 +404,7 @@ void Assembly::setBoundaryConditions()
                             }
                         }
                     }
-                }
+                }*/
             }
 
 
@@ -453,7 +451,7 @@ void Assembly::setBoundaryConditions()
                         }
                     }
                 }
-                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() > 0)
+/*                else if(multipliers[p].type == SET_PROPORTIONAL_DISPLACEMENT && multipliers[p].coefs.size() == 1)
                 {
                     int id = multipliers[p].getId() ;
                     int propid = multipliers[p].getDofIds()[0] ;
@@ -511,7 +509,7 @@ void Assembly::setBoundaryConditions()
                             }
                         }
                     }
-                }
+                }*/
             }
 
         }
@@ -521,6 +519,7 @@ void Assembly::setBoundaryConditions()
     gettimeofday ( &time1, nullptr );
     double delta = time1.tv_sec * 1000000 - time0.tv_sec * 1000000 + time1.tv_usec - time0.tv_usec ;
     std::cerr << " ...done (" << delta/1000000 << " seconds)" << std::endl ;
+    multipliersBuffer.clear() ;
     for(size_t i = 0 ; i < multipliers.size() ; i++)
     {
         if(multipliers[i].type == GENERAL)
@@ -538,6 +537,47 @@ void Assembly::setBoundaryConditions()
         {
             externalForces += multipliers[i].coefs ;
         }
+        else if(multipliers[i].type == SET_PROPORTIONAL_DISPLACEMENT)
+        {
+            multipliersBuffer.push_back( multipliers[i] ) ;
+
+            unsigned int id = multipliers[i].getId() ;
+            std::valarray<unsigned int> propid = multipliers[i].getDofIds() ;
+            Vector coefs = multipliers[i].coefs ;
+            double offset = multipliers[i].getValue() ;
+            for(size_t j = 0 ; j < externalForces.size() ; j++)
+            {
+                bool isjk = (j == id ) ;
+                for(size_t k = 0 ; k < propid.size() ; k++)
+                    isjk |= (j == propid[k]) ;
+                if( !isjk)
+                {
+                    externalForces[j] -= offset*getMatrix()[ j ][ id ] ;
+                    for(size_t k = 0 ; k < propid.size() ; k++)
+                        getMatrix()[ j ][ propid[k] ] += coefs[k]*getMatrix()[j][id] ;
+                    getMatrix()[j][id] = 0 ;
+                }
+            }
+
+            for(size_t k = 0 ; k < propid.size() ; k++)
+            {
+                for(size_t j = 0 ; j < externalForces.size() ; j++)
+                    getMatrix()[ propid[k] ][ j ] += coefs[k]*getMatrix()[id][j] ;
+                externalForces[ propid[k] ] += coefs[k]*externalForces[ id ] ;
+                for(size_t j = 0 ; j < propid.size() ; j++)
+                    getMatrix()[propid[k]][propid[j]] += coefs[j]*getMatrix()[propid[k]][ id ] ;
+                externalForces[ propid[k] ] -= offset*getMatrix()[ propid[k] ][id] ;
+                getMatrix()[ propid[k] ][ id ] = 0 ;
+            }
+
+            for(size_t j = 0 ; j < externalForces.size() ; j++)
+            {
+                getMatrix()[id][j] = (id == j) ;
+            }
+            externalForces[id] = 0 ;
+
+        }
+
 
     }
 
@@ -1437,12 +1477,12 @@ void Assembly::setPointAlong(Variable v, double val, size_t id)
 
 }
 
-void Assembly::setPointProportional(Variable v1, Variable v2, double val, double offset, size_t id) // v1 = val*v2
+void Assembly::setPointProportional(Variable v1, Variable v2, double val, double offset, size_t id) // v1 = val*v2 + offset
 {
     if(v1 == v2)
        return ;
 
-    std::valarray<unsigned int> i(2) ;
+    std::valarray<unsigned int> i(1) ;
     i[0] = id*ndof ;
     switch(v2)
     {
@@ -1457,7 +1497,72 @@ void Assembly::setPointProportional(Variable v1, Variable v2, double val, double
        default:
           return ;
     }
-    Vector c(2) ; c[0] = val ;
+    Vector c(1) ; c[0] = val ; 
+
+    switch(v1)
+    {
+    case XI:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
+        break ;
+    }
+    case ETA:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+1)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof+1)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
+        break ;
+    }
+    case ZETA:
+    {
+        auto duplicate = std::find_if(multipliers.begin(), multipliers.end(), MultiplierHasId(id*ndof+2)) ;
+        if(!(multipliers.empty() || duplicate == multipliers.end()))
+            multipliers.erase(duplicate) ;
+
+        multipliers.push_back(LagrangeMultiplier(i,c,offset, id*ndof+2)) ;
+        multipliers.back().type = SET_PROPORTIONAL_DISPLACEMENT ;
+        break ;
+    }
+    default:
+    {
+        break ;
+    }
+    }
+    return ;
+
+}
+
+void Assembly::setPointProportional(Variable v1, std::vector< std::pair< Variable, double > > val, double offset, size_t id) // v1 = val*v2 + offset
+{
+    std::valarray<unsigned int> i(val.size()) ;
+    Vector c(val.size()) ; 
+    for(size_t j = 0 ; j < val.size() ; j++)
+    {
+        i[j] = id*ndof ;
+        c[j] = val[j].second ;
+        switch(val[j].first)
+        {
+           case XI:
+              break ;
+           case ETA:
+              i[j]+=1 ;
+              break ;
+           case ZETA:
+              i[j]+=2 ;
+              break ;
+           default:
+              return ;
+        }
+    }
+
 
     switch(v1)
     {
@@ -1549,6 +1654,24 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
         std::cerr << "Time to solve (s) " << delta/1e6 << std::endl ;
         displacements.resize(cg.x.size()) ;
         displacements = cg.x ;
+
+        for(size_t i = 0 ; i < multipliersBuffer.size() ; i++)
+        {
+            if( multipliersBuffer[i].type == SET_PROPORTIONAL_DISPLACEMENT)
+            {
+                int id = multipliersBuffer[i].getId() ;
+                double offset = multipliersBuffer[i].getValue() ;
+                std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
+                Vector coefs = multipliersBuffer[i].coefs ;
+                std::cout << id << "\t" << displacements[id] << "\t" ;
+                displacements[id] = offset ;
+                std::cout << displacements[id] << "\t" ;
+                for(size_t j = 0 ; j < propid.size() ; j++)
+                    displacements[id] += coefs[j]*displacements[ propid[j] ] ;
+                std::cout << displacements[id] << std::endl ;
+            }
+        }
+
 
         if(rowstart > 0 || colstart > 0)
         {

@@ -2089,6 +2089,481 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             return ;
         }
 
+        case FIX_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+            Vector imposed ( 0., 6 ) ;
+            imposed[0] = data ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][1]*invTransform[1][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][1]*invTransform[1][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][1]*invTransform[1][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, 0., id[i] ) ;
+
+            return ;
+        }
+
+        case SET_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+            Vector imposed ( 0., 6 ) ;
+            imposed[0] = data ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][1]*invTransform[1][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][1]*invTransform[1][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][1]*invTransform[1][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, transform[0][0]*data/coef, id[i] ) ;
+
+            return ;
+        }
+
+        case FIX_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+            Vector imposed ( 0., 6 ) ;
+            imposed[0] = data ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][0]*invTransform[0][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][0]*invTransform[0][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][0]*invTransform[0][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, 0., id[i] ) ;
+
+            return ;
+        }
+
+        case SET_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j] == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+            Vector imposed ( 0., 6 ) ;
+            imposed[0] = data ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][0]*invTransform[0][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][0]*invTransform[0][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][0]*invTransform[0][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, transform[0][1]*data/coef, id[i] ) ;
+
+            return ;
+        }
 
         case SET_NORMAL_STRESS:
         {
@@ -4216,6 +4691,474 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 f = vm.ieval ( VectorGradient ( shapeFunctions[i] ) * ( imposed ), gp, Jinv, v ) ;
                 a->addForceOn ( XI, f, id[i].getId() ) ;
             }
+
+            return ;
+        }
+
+        case FIX_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][1]*invTransform[1][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][1]*invTransform[1][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][1]*invTransform[1][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, 0., id[i].getId() ) ;
+
+            return ;
+        }
+
+        case SET_NORMAL_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][1]*invTransform[1][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][1]*invTransform[1][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][1]*invTransform[1][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, transform[0][0]*vm.eval(data, id[i])/coef, id[i].getId() ) ;
+
+            return ;
+        }
+
+        case FIX_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][0]*invTransform[0][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][0]*invTransform[0][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][0]*invTransform[0][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, 0., id[i].getId() ) ;
+
+            return ;
+        }
+
+        case SET_TANGENT_DISPLACEMENT:
+        {
+            if ( e->getBehaviour()->fractured() )
+            {
+                return ;
+            }
+
+            Point* first = nullptr ;
+            Point* middle = nullptr ;
+            Point* last = nullptr ;
+
+            for ( size_t j = 0 ; j < id.size() ; j++ )
+            {
+                for ( size_t k = 0 ; k < e->getBoundingPoints().size() ; k++ )
+                {
+
+                    if ( !&e->getBoundingPoint ( k ) )
+                    {
+                        continue ;
+                    }
+
+                    DelaunayTetrahedron * tet = dynamic_cast<DelaunayTetrahedron *> ( e ) ;
+
+                    if ( (int)id[j].getId() == e->getBoundingPoint ( k ).getId() && (
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->first ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->second ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->third ) < POINT_TOLERANCE  ||
+                                squareDist3D ( e->getBoundingPoint ( k ), *tet->fourth ) < POINT_TOLERANCE )
+                       )
+                    {
+                        if ( !first )
+                        {
+                            first = &e->getBoundingPoint ( k ) ;
+                        }
+                        else if ( !middle )
+                        {
+                            middle = &e->getBoundingPoint ( k ) ;
+                        }
+                        else
+                        {
+                            last = &e->getBoundingPoint ( k ) ;
+                        }
+                    }
+                }
+            }
+            if ( !last )
+            {
+                return ;
+            }
+
+            TriPoint edge ( first, middle, last ) ;
+            GaussPointArray gpe ( edge.getGaussPoints ( e->getOrder() >= CONSTANT_TIME_LINEAR ), -1 ) ;
+            std::valarray<Matrix> Jinve ( Matrix(3+e->getOrder() >= CONSTANT_TIME_LINEAR ,3+e->getOrder() >= CONSTANT_TIME_LINEAR),gpe.gaussPoints.size()) ;
+
+            for ( size_t i = 0 ; i < gpe.gaussPoints.size() ; i++ )
+            {
+                gpe.gaussPoints[i].first = e->inLocalCoordinates ( gpe.gaussPoints[i].first ) ;
+                e->getInverseJacobianMatrix ( gpe.gaussPoints[i].first, Jinve[i] ) ;
+            }
+
+            std::vector<Variable> v ( 3 ) ;
+
+            v[0] = XI ;
+            v[1] = ETA ;
+            v[2] = ZETA ;
+            if ( e->getOrder() >= CONSTANT_TIME_LINEAR )
+            {
+                v.push_back ( TIME_VARIABLE ) ;
+            }
+
+            Vector normal = edge.normalv ( e->getCenter() ) ;
+
+            Point np ( normal[0], normal[1], normal[2] ) ;
+            Point np0 ( -normal[1], normal[0], -normal[2] ) ;
+            if ( std::abs ( normal[1] - normal[0] ) < POINT_TOLERANCE )
+            {
+                np0 = Point ( -normal[2], normal[0], -normal[1] ) ;
+            }
+
+            Point np1 = np^np0 ;
+            np0 = np1^np ;
+
+            double lx = normal[0] ;
+            double ly = np0.getX() ;
+            double lz = np1.getX() ;
+
+            double rx = normal[1] ;
+            double ry = np0.getY() ;
+            double rz = np1.getY() ;
+
+            double tx = normal[2] ;
+            double ty = np0.getZ() ;
+            double tz = np1.getZ() ;
+
+            Matrix transform(3,3) ;
+            transform[0][0] = lx ;
+            transform[0][1] = ly ;
+            transform[0][2] = lz ;
+            transform[1][0] = rx ;
+            transform[1][1] = ry ;
+            transform[1][2] = rz ;
+            transform[2][0] = tx ;
+            transform[2][1] = ty ;
+            transform[2][2] = tz ;
+
+            Matrix invTransform = inverse3x3Matrix( transform ) ;
+
+            std::vector< std::pair< Variable, double > > coefs ;
+            double coef = 1.-transform[0][0]*invTransform[0][0]+transform[0][2]*invTransform[2][0] ;
+            coefs.push_back( std::make_pair( ETA, (transform[0][0]*invTransform[0][1]+transform[0][2]*invTransform[2][1])/coef ) ) ;
+            coefs.push_back( std::make_pair( ZETA, (transform[0][0]*invTransform[0][2]+transform[0][2]*invTransform[2][2])/coef ) ) ;
+
+            a->setPointProportional( XI, coefs, transform[0][1]*vm.eval(data, id[i])/coef, id[i].getId() ) ;
 
             return ;
         }
