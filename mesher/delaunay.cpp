@@ -2442,12 +2442,12 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
             for(size_t j = 0 ; j < i ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j], vm) ;
-                cachedElementaryMatrix[j][i] = cachedElementaryMatrix[i][j].transpose() ;
+                cachedElementaryMatrix[i][j].transpose(cachedElementaryMatrix[j][i]) ;
             }
             for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
             {
                 behaviour->apply(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
-                cachedElementaryMatrix[j+getShapeFunctions().size()][i] = cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose() ;
+                cachedElementaryMatrix[i][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i]) ;
             }
         }
 
@@ -2458,7 +2458,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
             for(size_t j = 0 ; j < i ; j++)
             {
                 behaviour->apply(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], vm) ;
-                cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
+                cachedElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose(cachedElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()]) ;
             }
         }
     }
@@ -2574,12 +2574,12 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
             for(size_t j = 0 ; j < i ; j++)
             {
                 behaviour->applyViscous(getShapeFunction(i), getShapeFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j], vm) ;
-                cachedViscousElementaryMatrix[j][i] = cachedViscousElementaryMatrix[i][j].transpose() ;
+                cachedViscousElementaryMatrix[i][j].transpose(cachedViscousElementaryMatrix[j][i]) ;
             }
             for(size_t j = 0 ; j < getEnrichmentFunctions().size() ; j++)
             {
                 behaviour->applyViscous(getShapeFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()], vm) ;
-                cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i] = cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()].transpose() ;
+                cachedViscousElementaryMatrix[i][j+getShapeFunctions().size()].transpose(cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i]) ;
             }
         }
 // 		#pragma omp parallel for
@@ -2591,7 +2591,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
             for(size_t j = 0 ; j <  i ; j++)
             {
                 behaviour->applyViscous(getEnrichmentFunction(i), getEnrichmentFunction(j),getGaussPoints(), Jinv,cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()], vm) ;
-                cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()] = cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose() ;
+                cachedViscousElementaryMatrix[i+getShapeFunctions().size()][j+getShapeFunctions().size()].transpose(cachedViscousElementaryMatrix[j+getShapeFunctions().size()][i+getShapeFunctions().size()]) ;
             }
         }
     }

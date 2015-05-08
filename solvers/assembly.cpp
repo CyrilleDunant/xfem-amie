@@ -289,10 +289,8 @@ void Assembly::setBoundaryConditions()
         int * start_multiplier = std::lower_bound(&multiplierIds[0], &multiplierIds[multiplierIds.size()], coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]]*stride) ;
         int * end_multiplier = std::upper_bound(start_multiplier,  &multiplierIds[multiplierIds.size()],coordinateIndexedMatrix->column_index[coordinateIndexedMatrix->accumulated_row_size[k]+coordinateIndexedMatrix->row_size[k]-1]*stride+stride-1 ) ;
         int * start_multiplier_in_line = std::lower_bound(start_multiplier, end_multiplier,k*stride) ;
-        int * end_multiplier_in_line = std::upper_bound(start_multiplier,  end_multiplier,k*stride+stride-1) ;
+        int * end_multiplier_in_line = std::upper_bound(start_multiplier, end_multiplier,k*stride+stride-1) ;
 
-// 		int start_multiplier_index = start_multiplier-&multiplierIds[0] ;
-// 		int end_multiplier_index =  end_multiplier-&multiplierIds[0] ;
         int start_multiplier_in_line_index = start_multiplier_in_line-&multiplierIds[0] ;
         int end_multiplier_in_line_index =  end_multiplier_in_line-&multiplierIds[0] ;
 
@@ -306,6 +304,9 @@ void Assembly::setBoundaryConditions()
             int start_multiplier_in_block_index = start_multiplier_in_block-&multiplierIds[0] ;
             int end_multiplier_in_block_index =  end_multiplier_in_block-&multiplierIds[0] ;
 
+            double * blockstart =  &(getMatrix()[lineBlockIndex*stride][columnBlockIndex*stride]) ; 
+            if(!blockstart)
+                continue ;
             for(int p = start_multiplier_in_line_index ; p != end_multiplier_in_line_index ; p++)
             {
                 if(multipliers[p].type != SET_FORCE_XI
@@ -325,10 +326,12 @@ void Assembly::setBoundaryConditions()
                             {
                                 if(id == (columnBlockIndex*stride+n))
                                 {
-                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                    double val = *(blockstart+(stride+stride%2)*n+m) ;
+//                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
                                     externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
                                     naturalBoundaryConditionForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
-                                    val = 0 ;
+//                                     val = 0 ;
+                                    *(blockstart+(stride+stride%2)*n+m) = 0 ;
                                 }
                             }
                         }
@@ -338,12 +341,13 @@ void Assembly::setBoundaryConditions()
                             {
                                 if((columnBlockIndex*stride+n) == id)
                                 {
-                                    getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
-//									count++ ;
+                                    *(blockstart+(stride+stride%2)*n+m) = 1 ;
+//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
                                 }
                                 else
                                 {
-                                    getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
+                                    *(blockstart+(stride+stride%2)*n+m) = 0 ;
+//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
                                 }
                             }
                         }
@@ -427,10 +431,12 @@ void Assembly::setBoundaryConditions()
                             {
                                 if(id == (columnBlockIndex*stride+n))
                                 {
-                                    double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
+                                    double val = *(blockstart+(stride+stride%2)*n+m) ;
+//                                     double & val = getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] ;
                                     externalForces[lineBlockIndex*stride+m] -= multipliers[p].getValue()*val ;
                                     naturalBoundaryConditionForces[lineBlockIndex*stride+m]  -= multipliers[p].getValue()*val ;
-                                    val = 0 ;
+//                                     val = 0 ;
+                                     *(blockstart+(stride+stride%2)*n+m) = 0 ;
                                 }
                             }
                         }
@@ -441,11 +447,13 @@ void Assembly::setBoundaryConditions()
                             {
                                 if((columnBlockIndex*stride+n) == id)
                                 {
-                                    getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
+                                    *(blockstart+(stride+stride%2)*n+m) = 1 ;
+//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 1 ;
                                 }
                                 else
                                 {
-                                    getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
+                                    *(blockstart+(stride+stride%2)*n+m) = 0 ;
+//                                     getMatrix()[lineBlockIndex*stride+m][columnBlockIndex*stride+n] = 0 ;
                                 }
                             }
                         }

@@ -165,6 +165,7 @@ public:
 
     /** \brief construct a new transpose Matrix*/
     Matrix transpose() const ;
+    void transpose(Matrix & m) const ;
 
     /** \brief discard all values and resize this matrix*/
     void resize(size_t x, size_t y)

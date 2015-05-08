@@ -189,6 +189,17 @@ Matrix Matrix::transpose() const
     return ret ;
 }
 
+void Matrix::transpose(Matrix & m) const
+{
+    for(size_t i = 0 ; i < r ; i++)
+    {
+        for(size_t j = 0 ; j < c ; j++)
+        {
+            m[j][i] = (*this)[i][j] ;
+        }
+    }
+}
+
 Matrix identity(size_t i)
 {
     Matrix I(i, i) ;

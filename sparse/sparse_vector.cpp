@@ -48,6 +48,16 @@ double & SparseVector::operator [](const size_t i)
 
 }
 
+double * SparseVector::getPointer(const size_t i) 
+{
+    unsigned int * __start__       = &idx[start] ;
+    unsigned int * __end__         = &idx[start+length] ;
+    unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
+    unsigned int offset            = i_index_pointer - __start__ ;
+    unsigned int colLength = stride+stride%2 ;
+    return (std::binary_search(__start__, __end__, i/stride)) ?  &(val[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride]) :  nullptr ;
+}
+
 Vector SparseVector::operator *(const Vector &v) const
 {
     int colLength = stride + stride%2 ;

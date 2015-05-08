@@ -192,7 +192,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 //                 b = a*phi+a = 1   a = 1/(1+phi)  b  = phi/(1+phi)
                 std::vector<std::pair<double, double>> newset ;
                 double minscore = angles_scores[0].second ;
-                int minidex = 0 ;
+                size_t minidex = 0 ;
                 for(size_t i = 1 ; i < angles_scores.size() ; i++)
                 {
                     if(angles_scores[i].second < minscore)
@@ -228,7 +228,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             iterationcount++ ;
 
             double minscore = angles_scores[0].second ;
-            int minidex = 0 ;
+            size_t minidex = 0 ;
             for(size_t i = 1 ; i < angles_scores.size() ; i++)
             {
                 if(angles_scores[i].second < minscore)

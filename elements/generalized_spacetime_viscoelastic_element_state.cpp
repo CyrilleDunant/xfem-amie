@@ -54,10 +54,9 @@ GaussPointArray GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGauss
     if ( trg->getEnrichmentFunctions().size() > 0 )
     {
         std::vector<std::pair<Point, double> > gp_alternative ;
-        GaussPointArray original = trg->getGaussPoints() ;
-        for ( size_t i = 0 ; i < original.gaussPoints.size() /3 ; i++ )
+        for ( size_t i = 0 ; i < trg->getGaussPoints().gaussPoints.size() /3 ; i++ )
         {
-            gp_alternative.push_back ( original.gaussPoints[i*3] );
+            gp_alternative.push_back ( trg->getGaussPoints().gaussPoints[i*3] );
             gp_alternative.back().first.getT() = time ;
             gp_alternative.back().second /= 1./3. ;
         }
@@ -96,10 +95,9 @@ GaussPointArray  GeneralizedSpaceTimeViscoElasticElementState::genEquivalentGaus
     if ( tet->getEnrichmentFunctions().size() > 0 )
     {
         std::vector<std::pair<Point, double> > gp_alternative ;
-        GaussPointArray original = tet->getGaussPoints() ;
-        for ( size_t i = 0 ; i < original.gaussPoints.size() /3 ; i++ )
+        for ( size_t i = 0 ; i <  tet->getGaussPoints().gaussPoints.size() /3 ; i++ )
         {
-            gp_alternative.push_back ( original.gaussPoints[i*3] );
+            gp_alternative.push_back ( tet->getGaussPoints().gaussPoints[i*3] );
             gp_alternative.back().first.getT() = time ;
             gp_alternative.back().second /= 1./3. ;
         }
@@ -991,10 +989,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
 //			std::cout << ret.size() << "\t" << totaldof << std::endl ;
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm->eval ( parent->getShapeFunction ( j ) , p_ ) ;
@@ -1017,10 +1012,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case ENRICHED_DISPLACEMENT_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
             double f =  vm->eval ( parent->getEnrichmentFunction ( j ) , p_ ) ;
@@ -1035,10 +1027,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_ENRICHED_DISPLACEMENT_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
         {
             double f =  vm->eval ( parent->getEnrichmentFunction ( j ) , p_ ) ;
@@ -1053,10 +1042,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case SPEED_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm->deval ( parent->getShapeFunction ( j ) , TIME_VARIABLE, p_ ) ;
@@ -1079,10 +1065,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_SPEED_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
             double f =  vm->deval ( parent->getShapeFunction ( j ) , TIME_VARIABLE, p_ ) ;
@@ -1105,10 +1088,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case STRAIN_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             double x_xi = 0;
@@ -1254,10 +1234,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( MECHANICAL_STRAIN_FIELD, p_, strains, true,vm ) ;
         ret = toPrincipal ( strains , DOUBLE_OFF_DIAGONAL_VALUES) ;
@@ -1268,10 +1245,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     }
     case GENERALIZED_VISCOELASTIC_STRAIN_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
 
@@ -1464,12 +1438,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case PRINCIPAL_STRAIN_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
-        this->getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
+        getField ( STRAIN_FIELD, p_, strains, true,vm ) ;
         ret = toPrincipal ( strains  , DOUBLE_OFF_DIAGONAL_VALUES) ;
         if ( cleanup )
         {
@@ -1479,10 +1450,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_STRAIN_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0.,blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
         Vector tmp ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -1506,10 +1474,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     }
     case NON_ENRICHED_STRAIN_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             double x_xi = 0;
@@ -1608,10 +1573,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             Vector dx ( 0., totaldof ) ;
@@ -1681,16 +1643,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dy[i] += f_eta  * displacements[j * totaldof + i] ;
                     dz[i] += f_zeta * displacements[j * totaldof + i] ;
                 }
-
-                /*					x_xi   += f_xi   * x ;
-                					x_eta  += f_eta  * x ;
-                					x_zeta += f_zeta * x ;
-                					y_xi   += f_xi   * y ;
-                					y_eta  += f_eta  * y ;
-                					y_zeta += f_zeta * y ;
-                					z_xi   += f_xi   * z ;
-                					z_eta  += f_eta  * z ;
-                					z_zeta += f_zeta * z ;*/
             }
 
 
@@ -1746,10 +1698,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case VON_MISES_STRAIN_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector eps ( 0., ( size_t ) parent->spaceDimensions() ) ;
         this->getField ( PRINCIPAL_STRAIN_FIELD, p_, eps, true ,vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -1767,18 +1716,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     }
     case STRAIN_RATE_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-            // 				if(totaldof == 2)
-// 				{
-// 					this->getField( STRAIN_RATE_FIELD, p_, ret, true) ;
-// 					return ;
-// 				}
-
 
             Vector dx ( 0., realdof ) ;
             Vector dy ( 0., realdof ) ;
@@ -1801,10 +1741,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * displacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * displacements[j * totaldof] ;
-                					x_eta += f_eta * displacements[j * totaldof] ;
-                					y_xi += f_xi * displacements[j * totaldof + 1] ;
-                					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
             }
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
@@ -1819,10 +1755,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * enrichedDisplacements[j * totaldof] ;
-                					x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
-                					y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
-                					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
             }
 
             if(!JinvCache || parent->isMoved())
@@ -1935,18 +1867,9 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_STRAIN_RATE_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
-// 				if(totaldof == 2)
-// 				{
-// 					this->getField( STRAIN_RATE_FIELD, p_, ret, true) ;
-// 					return ;
-// 				}
-
 
             Vector dx ( 0., totaldof ) ;
             Vector dy ( 0., totaldof ) ;
@@ -1969,10 +1892,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * displacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * displacements[j * totaldof] ;
-                					x_eta += f_eta * displacements[j * totaldof] ;
-                					y_xi += f_xi * displacements[j * totaldof + 1] ;
-                					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
             }
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
@@ -1987,10 +1906,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * enrichedDisplacements[j * totaldof] ;
-                					x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
-                					y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
-                					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
             }
 
             if(!JinvCache || parent->isMoved())
@@ -2042,15 +1957,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dz[i] += f_zeta * displacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi   += f_xi   * x ;
-                					x_eta  += f_eta  * x ;
-                					x_zeta += f_zeta * x ;
-                					y_xi   += f_xi   * y ;
-                					y_eta  += f_eta  * y ;
-                					y_zeta += f_zeta * y ;
-                					z_xi   += f_xi   * z ;
-                					z_eta  += f_eta  * z ;
-                					z_zeta += f_zeta * z ;*/
             }
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() ; j++ )
@@ -2122,10 +2028,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case NON_ENRICHED_STRAIN_RATE_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             double x_xi = 0;
@@ -2229,10 +2132,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_RATE_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
         {
             Vector dx ( 0., totaldof ) ;
@@ -2372,10 +2272,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2396,13 +2293,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
-// 			visco->getTensor(p_,parent).print() ;
-// 			visco->getViscousTensor(p_, parent).print() ;
-// 			exit(0) ;
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2424,10 +2315,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case PRINCIPAL_REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( REAL_STRESS_FIELD, p_, stress, true,vm ) ;
         ret = toPrincipal ( stress  , SINGLE_OFF_DIAGONAL_VALUES) ;
@@ -2439,10 +2327,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector stress ( 0.,blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_REAL_STRESS_FIELD, p_, stress, true,vm ) ;
         Vector tmp ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -2467,10 +2352,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case NON_ENRICHED_REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2495,10 +2377,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_REAL_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2595,10 +2474,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2618,10 +2494,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2641,10 +2514,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector stress ( 0.,3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( EFFECTIVE_STRESS_FIELD, p_, stress, true,vm ) ;
         ret = toPrincipal ( stress , SINGLE_OFF_DIAGONAL_VALUES) ;
@@ -2656,10 +2526,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_PRINCIPAL_EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector stress ( 0.,blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_EFFECTIVE_STRESS_FIELD, p_, stress, true,vm ) ;
         Vector tmp ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
@@ -2684,10 +2551,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2707,10 +2571,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case GENERALIZED_VISCOELASTIC_NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         Vector speeds ( 0., blocks* ( 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ) ;
         this->getField ( GENERALIZED_VISCOELASTIC_NON_ENRICHED_STRAIN_FIELD, p_, strains, true,vm ) ;
@@ -2733,10 +2594,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         {
             if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
             {
-                if ( !vm )
-                {
-                    vm = new VirtualMachine() ;
-                }
+
                 Vector sigma ( 0., 2 ) ;
                 Point c ( 1./3., 1./3. ) ;
                 this->getField ( PRINCIPAL_EFFECTIVE_STRESS_FIELD, c, sigma, true,vm ) ;
@@ -2806,10 +2664,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         return ;
     case PRINCIPAL_STRESS_ANGLE_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( REAL_STRESS_FIELD,  p_, strains, true, vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -2830,10 +2685,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
     }
     case PRINCIPAL_STRAIN_ANGLE_FIELD:
     {
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         Vector strains ( 0., 3+3* ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL ) ) ;
         this->getField ( STRAIN_FIELD,  p_, strains, true, vm ) ;
         if ( parent->spaceDimensions() == SPACE_TWO_DIMENSIONAL )
@@ -2921,10 +2773,18 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
             ret[1] = ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( x_zeta ) * Jinv[1][2];
             ret[2] = ( x_xi ) * Jinv[2][0] + ( x_eta ) * Jinv[2][1]  + ( x_zeta ) * Jinv[2][2];
         }
+        if ( cleanup )
+        {
+            delete vm ;
+        }
         return ;
     case FLUX_FIELD:
         this->getField(GRADIENT_FIELD, p_, ret, true) ;
         ret = (Vector) (parent->getBehaviour()->getTensor(p_, parent) * ret) ;
+        if ( cleanup )
+        {
+            delete vm ;
+        }
         return ;
     case INTERNAL_VARIABLE_FIELD:
         std::cout << "field not handled" << std::endl ;
@@ -2964,10 +2824,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         ret = enrichedDisplacements ;
         return ;
     case STRAIN_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -2975,10 +2832,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case MECHANICAL_STRAIN_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -2986,10 +2840,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case PRINCIPAL_STRAIN_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -2997,10 +2848,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case PRINCIPAL_MECHANICAL_STRAIN_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3008,10 +2856,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case NON_ENRICHED_STRAIN_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3019,10 +2864,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case REAL_STRESS_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f,  parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3030,10 +2872,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case PRINCIPAL_REAL_STRESS_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3041,10 +2880,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case NON_ENRICHED_REAL_STRESS_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f,  parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3052,10 +2888,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case EFFECTIVE_STRESS_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+ 
         ElementState::getField ( f,  parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3063,10 +2896,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case PRINCIPAL_EFFECTIVE_STRESS_FIELD :
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f, parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3074,10 +2904,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     case NON_ENRICHED_EFFECTIVE_STRESS_FIELD:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f,  parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3085,10 +2912,7 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
         }
         return ;
     default:
-        if ( !vm )
-        {
-            vm = new VirtualMachine() ;
-        }
+
         ElementState::getField ( f,  parent->getBoundingPoints(), ret, false,vm ) ;
         if ( cleanup )
         {
@@ -3110,8 +2934,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f1, Fiel
     {
         vm = new VirtualMachine() ;
     }
-    this->getField ( f1, p, ret1, local, vm ) ;
-    this->getField ( f2, p, ret2, local, vm ) ;
+    getField ( f1, p, ret1, local, vm ) ;
+    getField ( f2, p, ret2, local, vm ) ;
     if ( cleanup )
     {
         delete vm ;
@@ -3125,8 +2949,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getFieldAtNodes ( FieldType f
     {
         vm = new VirtualMachine() ;
     }
-    this->getFieldAtNodes ( f1, ret1, vm ) ;
-    this->getFieldAtNodes ( f2, ret2, vm ) ;
+    getFieldAtNodes ( f1, ret1, vm ) ;
+    getFieldAtNodes ( f2, ret2, vm ) ;
     if ( cleanup )
     {
         delete vm ;
@@ -3198,10 +3022,7 @@ void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::multiply
     {
         variables[v] *= d ;
     }
-//    else
-//    {
-//        variables.insert ( std::pair<std::string, double> ( v, 0. ) ) ;
-//    }
+
 }
 
 void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::synchronize(std::map<std::string, double> & defaultValues)
@@ -3210,6 +3031,5 @@ void GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables::synchron
     {
         variables[it->first] = it->second ;
     }
-//	variables = defaultValues ;
 }
 

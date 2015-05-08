@@ -55,6 +55,8 @@ public:
      * Return the value in the ith column of the matrix on this row. If this value is not stored, 0 is retured.
      */
     double operator [](const size_t i) const ;
+    
+    double * getPointer(const size_t i)  ;
 
     /** \brief access a value in the row
      * Return the value in the ith column of the matrix on this row. If this value is not stored, assignement has no effect.
