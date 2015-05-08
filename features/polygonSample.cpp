@@ -53,7 +53,7 @@ bool PolygonalSample::interacts(Feature * f, double d) const
 	return false ;
 }
 
-bool PolygonalSample::inBoundary(const Point &p, double d) const
+/*bool PolygonalSample::inBoundary(const Point &p, double d) const
 {
     double d_ = d ;
     if( getBoundingPoints().size() > 0)
@@ -88,6 +88,6 @@ bool PolygonalSample::onBoundary(const Point &p, double d) const
     project(&proj) ;
 
     return (dist(proj, p) < d_) ;
-}
+}*/
 
 

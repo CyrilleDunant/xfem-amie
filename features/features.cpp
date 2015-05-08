@@ -2417,8 +2417,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
         for ( int i = targets.size() - 1 ; i >= 0  ; i-- )
         {
-
-            if ( !targets[i]->isEnrichmentFeature && targets[i]->inMask ( t->getCenter() ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
+            if ( !targets[i]->isEnrichmentFeature && targets[i]->in( t->getCenter() ) && targets[i]->inMask( t->getCenter(), 0. ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
             {
                 bool notInChildren  = true ;
 
@@ -2426,7 +2425,16 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
 
                 for ( size_t j = 0 ; j < descendants.size() ; j++ )
                 {
-                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) )
+                    if ( descendants[j]->getLayer() == layer && !descendants[j]->isEnrichmentFeature && descendants[j]->in ( t->getCenter() ) && descendants[j]->inMask ( t->getCenter(), 0. ) )
+                    {
+                        notInChildren = false ;
+                        break ;
+                    }
+                }
+
+                for(size_t k = 0 ; k < targets.size() ; k++)
+                {
+                    if( ((int) k != i) && targets[k]->getLayer() == layer && !targets[k]->isEnrichmentFeature && targets[k]->isMaskedBy( targets[i] ) && targets[k]->in( t->getCenter() ) && targets[k]->inMask( t->getCenter(), 0. )  )
                     {
                         notInChildren = false ;
                         break ;
@@ -7379,12 +7387,23 @@ void FeatureTree::generateElements()
                     potentialChildren = descendants ;
                 }
 
+                for ( size_t l = 0 ; l < potentialFeatures.size() ; l++ )
+                {
+                    if ( !potentialFeatures[l]->isVirtualFeature
+                            && !potentialFeatures[l]->isEnrichmentFeature
+                            && potentialFeatures[l]->isMaskedBy( tree[i] ) )
+                    {
+                        potentialChildren.push_back ( potentialFeatures[l] ) ;
+                    }
+                }
+
                 for ( size_t k  =  0 ; k <  potentialChildren.size() ; k++ )
                 {
                     if (
                         (
                             !potentialChildren[k]->isVirtualFeature
                             && potentialChildren[k]->inBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
+                            && potentialChildren[k]->inMask ( tree[i]->getInPoint ( j ), pointDensity*0.33 )
                         )
                         ||
                         (
@@ -7416,7 +7435,7 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) )
+                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getInPoint ( j ), pointDensity*0.33 ) && ! tree[i]->isMaskedBy( tree[i]->getFather() ) )
                 {
                     isIn = true ;
                 }

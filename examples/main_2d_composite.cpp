@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     std::vector<std::pair<BoundaryCondition *, Function> > functionBC ;
     for(size_t i = 0 ; i < bcItem.size() ; i++)
     {
-        BoundaryCondition * bc = bcItem[i]->getBoundaryCondition() ;
+        BoundaryCondition * bc = bcItem[i]->getBoundaryCondition(&F) ;
         if(bcItem[i]->hasChild("time_evolution"))
         {
             if(bcItem[i]->hasChildFromFullLabel("time_evolution.file_name"))

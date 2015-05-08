@@ -10,12 +10,14 @@
 #include "../features/features.h"
 #include "../features/sample.h"
 #include "../features/boundarycondition.h"
+#include "../features/microstructuregenerator.h"
 #include "../geometry/geometry_base.h"
 #include "../elements/integrable_entity.h"
 #include "../solvers/assembly.h"
 #include "../physics/material_laws/material_laws.h"
 #include "../physics/damagemodels/damagemodel.h"
 #include "../physics/fracturecriteria/fracturecriterion.h"
+#include "../physics/finite_difference_viscoelasticity.h"
 #include "matrixops.h"
 #include "granulo.h"
 #include "writer/triangle_writer.h"
@@ -209,7 +211,7 @@ public:
     std::vector<std::vector<Feature *> > getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers ) ;
 
     /** Translates the current item in a boundary condition*/
-    BoundaryCondition * getBoundaryCondition() const ;
+    BoundaryCondition * getBoundaryCondition(FeatureTree * f) const ;
 
     /** Checks if data must be extracted and output at the i^th time step*/
     bool isAtTimeStep(int i, int nmax) const ;
@@ -225,6 +227,8 @@ public:
 
     /** Reads a template file and modifies it according to a set of rules*/
     ConfigTreeItem * makeTemplate() ;
+
+    InclusionGenerator * getInclusionGenerator() const ;
 
     /** Translate a string in an element order*/
     static Order translateOrder(std::string order) ;
@@ -251,6 +255,8 @@ public:
 
     static EMLOperation translateEMLOperation(std::string op) ;
 
+    static ViscoelasticFiniteDifferenceIntegration translateViscoelasticFiniteDifferenceIntegration(std::string op) ;
+
     /** Translate a string in a PSD specification type*/
     static PSDSpecificationType translatePSDSpecificationType( std::string specification ) ;
 
@@ -261,6 +267,7 @@ public:
     static std::vector<std::string> decompose(std::string path) ;
 
     static Vector readLineAsVector(std::string line, char sep = ',') ;
+    static std::vector<double> readLineAsStdVector(std::string line, char sep = ',') ;
 
 #ifdef __WIN32
     void makeWindowsPath() ;

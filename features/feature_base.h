@@ -92,10 +92,11 @@ public:
 	void setBehaviourSource( Feature * const f) ;
 	
         void addToMask( Feature * f ) { mask.push_back(f) ; }
-        void setMask(std::vector<Feature *> & m) { mask.clear() ; mask = m ; }
+        void setMask(std::vector<Feature *> & m) ;
 
-        virtual bool inMask(const Point &p, double d=0) const ;
+        virtual bool inMask(const Point &p, double d = 0.) const ;
         virtual void makeMaskBoundary() ;
+        bool isMaskedBy( Feature * f) const { return std::find(mask.begin(), mask.end(), f) != mask.end() ; }
 
 	virtual bool inBoundary(const Point &p, double d) const ;
 	virtual bool onBoundary(const Point &p, double d) const ;

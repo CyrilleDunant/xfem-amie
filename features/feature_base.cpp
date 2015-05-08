@@ -121,11 +121,11 @@ bool Feature::inMask(const Point &p, double d) const
     if(mask.size() == 0)
        return true ;
 
-    bool in = false ;
-    for(size_t i = 0 ; !in && i < mask.size() ; i++)
-        in = mask[i]->inBoundary( p, d ) ;
+    bool isin = false ;
+    for(size_t i = 0 ; !isin && i < mask.size() ; i++)
+        isin = mask[i]->inBoundary( p, d ) ;
 
-    return in ;
+    return isin ;
 }
 
 bool Feature::inBoundary(const Point &p, double d) const
@@ -133,12 +133,24 @@ bool Feature::inBoundary(const Point &p, double d) const
     if(p == getCenter())
         return true ;
 
-    if(!inMask(p,d))
-        return false ;
+    bool inMaskBoundary = false ;
+    for(size_t i = 0 ; i < mask.size() ; i++)
+       inMaskBoundary |= mask[i]->inBoundary( p, d ) ;
+
+    if(inMaskBoundary && in(p))
+        return true ;
 
     Point proj(p) ;
     project(&proj) ;
-    return (squareDist3D(proj, p) < d*d) || in(p);
+    return ((squareDist3D(proj, p) < d*d) || in(p));
+}
+
+void Feature::setMask(std::vector<Feature *> & m) 
+{
+    mask.clear() ;
+    mask = m ;
+    if(m_f && !isMaskedBy(m_f))
+        mask.push_back(m_f) ;
 }
 
 bool Feature::onBoundary(const Point &p, double d) const
@@ -146,8 +158,15 @@ bool Feature::onBoundary(const Point &p, double d) const
     if(p == getCenter())
         return false ;
 
-    if(!inMask(p,d))
-        return false ;
+//    if(!inMask(p,d))
+//        return false ;
+
+    bool onMaskBoundary = false ;
+    for(size_t i = 0 ; i < mask.size() ; i++)
+       onMaskBoundary |= mask[i]->onBoundary( p, d ) ;
+
+    if(onMaskBoundary && in(p))
+        return true ;
 
     Point proj(p) ;
     project(&proj) ;
@@ -159,10 +178,16 @@ void Feature::makeMaskBoundary()
     if(mask.size() == 0)
         return ;
 
+    if(m_f && !isMaskedBy(m_f))
+        mask.push_back( m_f ) ;
+
     std::vector<Point> newPoints ;
     double density = -1 ;
     if(getBoundingPoints().size() > 1)
         density = dist( getBoundingPoint(0), getBoundingPoint(1) ) ;
+
+    if(density < 0)
+        return ;
 
     for(size_t i = 0 ; i < mask.size() ; i++)
     {
@@ -209,6 +234,29 @@ void Feature::makeMaskBoundary()
     for(size_t i = 0 ; i < newPoints.size() ; i++)
         next[i] = new Point(newPoints[i].getX(), newPoints[i].getY(), newPoints[i].getZ(), newPoints[i].getT()) ;
     setBoundingPoints( next ) ;
+
+    newPoints.clear() ;
+    for(size_t j = 0 ; j < getInPoints().size() ; j++)
+    {
+        for(size_t i = 0 ; i < mask.size() ; i++)
+        {
+            if( mask[i]->in( getInPoint(j) ) )
+            {
+                Point p = getInPoint(j) ;
+                mask[i]->project( &p ) ;
+                if( dist( p, getInPoint(j) ) > density*0.1 )
+                {
+                     newPoints.push_back( getInPoint(j) ) ;
+                     break ;
+                }       
+            }
+        }
+    }
+
+    PointArray nextIn( newPoints.size() ) ;
+    for(size_t i = 0 ; i < newPoints.size() ; i++)
+        nextIn[i] = new Point(newPoints[i].getX(), newPoints[i].getY(), newPoints[i].getZ(), newPoints[i].getT()) ;
+    setInPoints( nextIn ) ;
 
 }
 

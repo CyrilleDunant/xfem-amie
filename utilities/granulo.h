@@ -166,6 +166,8 @@ public:
 
 	static std::vector<Feature *> get2DEmbeddedInclusions(FeatureTree * F, Form * behaviour,  std::vector<Feature *> base, size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr, size_t tries = 100000, double percent=0.1, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;//A 
 
+	static std::vector<Feature *> get2DMaskedInclusions(FeatureTree * F, Form * behaviour,  std::vector<Feature *> mask, size_t n = 6000, double rmax = 0.008, double itz = 0, ParticleSizeDistribution * type = nullptr, InclusionGenerator * geometry = nullptr, size_t tries = 100000, double percent=0.1, Geometry * placement = nullptr,  std::vector<Geometry *> exclusionZones = std::vector<Geometry *>(), size_t seed = 0) ;//A 
+
 		/**
 	 * \brief Creates mortar PSD, set the behaviour and place the inclusions in the sample
 	 * @param F Feature tree

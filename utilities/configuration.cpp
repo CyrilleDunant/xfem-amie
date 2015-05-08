@@ -17,16 +17,25 @@
 #include "../physics/material_laws/temperature_material_laws.h"
 #include "../physics/materials/aggregate_behaviour.h"
 #include "../physics/materials/paste_behaviour.h"
+#include "../physics/materials/c3s_behaviour.h"
+#include "../physics/materials/ch_behaviour.h"
+#include "../physics/materials/csh_behaviour.h"
 #include "../physics/materials/gel_behaviour.h"
 #include "../physics/materials/rebar_behaviour.h"
 #include "../physics/materials/steel_behaviour.h"
 #include "../physics/materials/concrete_behaviour.h"
 #include "../physics/damagemodels/spacetimefiberbasedisotropiclineardamage.h"
+#include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
 #include "../physics/damagemodels/isotropiclineardamage.h"
 #include "../physics/damagemodels/plasticstrain.h"
 #include "../physics/fracturecriteria/maxstrain.h"
 #include "../physics/fracturecriteria/spacetimemultilinearsofteningfracturecriterion.h"
 #include "../physics/fracturecriteria/mohrcoulomb.h"
+#include "../physics/fracturecriteria/confinedmohrcoulombwithstrain.h"
+#include "../physics/fracturecriteria/confinedmohrcoulomb.h"
+#include "../physics/fracturecriteria/boundedvonmises.h"
+#include "../physics/fracturecriteria/limitstrains.h"
+#include "../physics/fracturecriteria/mazars.h"
 #include "../physics/fracturecriteria/nonlocalvonmises.h"
 #include "writer/triangle_writer.h"
 #include "parser.h"
@@ -468,6 +477,22 @@ Vector ConfigTreeItem::readLineAsVector(std::string line, char s)
     return ret ;
 }
 
+std::vector<double> ConfigTreeItem::readLineAsStdVector(std::string line, char s)
+{
+    std::vector<double> v ;
+    std::string next = line ;
+    int sep = next.find(s) ;
+    while(sep != (int)std::string::npos)
+    {
+        std::string current = next.substr(0, sep) ;
+        v.push_back( atof(current.c_str() ) ) ;
+        next = next.substr(sep+1) ;
+        sep = next.find(s) ;
+    }
+    v.push_back( atof( next.c_str() ) ) ;
+    return v ;
+}
+
 ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 {
     ExternalMaterialLaw * ret = nullptr ;
@@ -711,6 +736,20 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     std::string type = getStringData("type","ABSTRACT") ;
     if(spaceTime)
     {
+        if(type == "MAZARS")
+        {
+            ret = new NonLocalSpaceTimeMazars( getData("strain_threshold",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+        }
+        if(type == "MCFT")
+        {
+            ret = new NonLocalSpaceTimeMCFT( getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9), getData("material_characteristic_radius",0.001)) ;
+            std::vector<ConfigTreeItem *> rebarItems = getAllChildren("rebar") ;
+            std::vector<std::pair<double, double> > rebars ;
+            for(size_t i = 0 ; i < rebarItems.size() ; i++)
+            {
+                rebars.push_back( std::make_pair ( rebarItems[i]->getData("location",0.001), rebarItems[i]->getData("diameter",0.0001) ) ) ;
+            }
+        }
         if(type == "MAXIMUM_TENSILE_STRAIN")
         {
             ret = new SpaceTimeNonLocalMaximumStrain( getData("limit_tensile_strain",0.001) ) ;
@@ -747,7 +786,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
             }
             double e_ = getData( "strain_renormalization_factor", 1e4) ;
             double s_ = getData( "stress_renormalization_factor", 1e-6) ;
-            if(hasChild("tension_file_name") || hasChild("compressionP) d'Asnières Manuel Aeschlimann, qui lui a succédé à la mairie d'Asnières (Hauts-de-Seine) en 2014, ferme les yeux sur la radicalité supposée, notamment antisémite, de ses alliés du Mouvement citoyen indépendant, i_file_name"))
+            if(hasChild("tension_file_name") || hasChild("compression_file_name"))
             {
                 std::string tfile = getStringData("tension_file_name", "") ;
                 std::string cfile = getStringData("compression_file_name", "") ;
@@ -850,9 +889,25 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
     }
     else
     {
+        if(type == "MAZARS")
+        {
+            ret = new NonLocalMazars( getData("strain_threshold",0.001), getData("young_modulus", 1e9), getData("poisson_ratio", 0.2), getData("fracture_energy", 1), getData("compressive_strength", -1e6), getData("compressive_strain", -0.001),  getData("material_characteristic_radius",0.001), ConfigTreeItem::translatePlaneType( getStringData("plane_type", "PLANE_STRESS") ) ) ;
+        }
+        if(type == "LIMIT_STRAIN")
+        {
+            ret = new LimitStrains( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001) ) ;
+        }
         if(type == "MOHR_COULOMB")
         {
             ret = new NonLocalMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getFather()->getData("young_modulus",1e9) ) ;
+        }
+        if(type == "CONFINED_MOHR_COULOMB")
+        {
+            ret = new ConfinedMohrCoulomb( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001) ) ;
+        }
+        if(type == "CONFINED_MOHR_COULOMB_WITH_STRAIN_LIMIT")
+        {
+            ret = new ConfinedMohrCoulombWithStrainLimit( getData("limit_tensile_strain",0.001), getData("limit_compressive_strain",-0.001), getData("maximum_tensile_strain",0.002) ) ;
         }
         if(type == "LINEAR_SOFTENING_MOHR_COULOMB")
         {
@@ -871,6 +926,10 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
             {
                 rebars.push_back( std::make_pair ( rebarItems[i]->getData("location",0.001), rebarItems[i]->getData("diameter",0.0001) ) ) ;
             }
+        }
+        if(type == "BOUNDED_VON_MISES")
+        {
+            ret = new BoundedVonMises( getData("limit_tensile_stress",1e6),  getData("damage_threshold", 0.6) ) ;
         }
         if(type == "VON_MISES")
         {
@@ -891,7 +950,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     {
         if(spaceTime)
         {
-            ret = new SpaceTimeFiberBasedIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9) ) ;
+            ret = new SpaceTimeFiberBasedIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9), getData("maximum_damage",1.) ) ;
         }
         else
             ret = new FiberBasedIsotropicLinearDamage( getData("damage_increment",0.1) ) ;
@@ -899,7 +958,9 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
     if(type == "ISOTROPIC_LINEAR_DAMAGE")
     {
         if(spaceTime)
-            std::cout << "warning: damage model incompatible with finite element discretization" << std::endl ;
+        {
+            ret = new SpaceTimeIsotropicLinearDamage( getData("damage_increment",0.1), getData("time_tolerance",1e-9), getData("maximum_damage",1.) ) ;
+        }
         ret = new IsotropicLinearDamage() ;
     }
     if(type == "PLASTIC_STRAIN")
@@ -1028,7 +1089,7 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
             if(!hasChild("damage_model"))
             {
                 ConfigTreeItem * dam = new ConfigTreeItem(nullptr, "damage_model") ;
-                new ConfigTreeItem(dam, "type", "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE") ;
+                new ConfigTreeItem(dam, "type", "ISOTROPIC_LINEAR_DAMAGE") ;
                 new ConfigTreeItem(dam, "damage_increment", getData("parameters.damage_increment", 0.1)) ;
                 new ConfigTreeItem(dam, "maximum_damage", getData("parameters.maximum_damage", 0.99999)) ;
                 new ConfigTreeItem(dam, "time_tolerance", getData("parameters.time_tolerance", 1e-9)) ;
@@ -1101,6 +1162,22 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
         return new GelBehaviour( getData("young_modulus", 22e9) , getData( "poisson_ratio", 0.18), getData( "imposed_deformation", 0.22), dim) ;
     }
 
+    if(type == std::string("C3S_BEHAVIOUR"))
+    {
+        return new C3SBehaviour( getData("young_modulus", 138e9) , getData( "poisson_ratio", 0.28), dim) ;
+    }
+
+    if(type == std::string("CH_BEHAVIOUR"))
+    {
+        return new CHBehaviour( getData("young_modulus", 35.4e9) , getData( "poisson_ratio", 0.28), dim) ;
+    }
+
+    if(type == std::string("CSH_BEHAVIOUR"))
+    {
+        
+        return new CSHBehaviour( getStringData("csh_type", "INNER") == "INNER" ? INNER_CSH : OUTER_CSH , ConfigTreeItem::readLineAsStdVector( getStringData("density","2"))  , ConfigTreeItem::readLineAsStdVector( getStringData("shrinkage_stresses","0"))  , ConfigTreeItem::readLineAsStdVector( getStringData("instants","0")) , getData("young_modulus", 25e9), getData( "poisson_ratio", 0.25), dim) ;
+    }
+
     if(type == std::string("CONCRETE_BEHAVIOUR"))
     {
         if(spaceTime)
@@ -1134,25 +1211,37 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     if(type == std::string("VISCOSITY"))
     {
         int blocks = getData("additional_viscoelastic_variables",0) ;
-        return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( PURE_VISCOSITY, getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("KELVIN_VOIGT"))
     {
         int blocks = getData("additional_viscoelastic_variables",0) ;
-        return new Viscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( KELVIN_VOIGT, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("MAXWELL"))
     {
         int blocks = getData("additional_viscoelastic_variables",0) ;
-        return new Viscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( MAXWELL, getStiffnessMatrix(dim, pt), getStiffnessMatrix(dim, pt)*getData("characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("BURGER"))
     {
         int blocks = getData("additional_viscoelastic_variables",0) ;
-        return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.),blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.),blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( BURGER, getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("kelvin_voigt")->getStiffnessMatrix(dim, pt)*getData("kelvin_voigt.characteristic_time",1.), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt), getChildFromFullLabel("maxwell")->getStiffnessMatrix(dim, pt)*getData("maxwell.characteristic_time",1.), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("GENERALIZED_KELVIN_VOIGT"))
@@ -1162,7 +1251,10 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
         std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
         for(size_t i = 0 ; i < config.size() ; i++)
             branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
-        return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( GENERALIZED_KELVIN_VOIGT, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     if(type == std::string("GENERALIZED_MAXWELL"))
@@ -1172,7 +1264,10 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
         std::vector<ConfigTreeItem *> config = getAllChildren("branch") ;
         for(size_t i = 0 ; i < config.size() ; i++)
             branches.push_back(std::make_pair( config[i]->getStiffnessMatrix(dim, pt), config[i]->getStiffnessMatrix(dim, pt)*config[i]->getData("characteristic_time",1.) ) ) ;
-        return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
+        if(getStringData("scheme","SPACE_TIME") == "SPACE_TIME")
+            return new Viscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), branches, blocks) ;
+        else
+            return new FiniteDifferenceViscoelasticity( GENERALIZED_MAXWELL, getChild("first_branch")->getStiffnessMatrix(dim, pt), ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( getStringData("scheme","BACKWARD_EULER")), getData("theta", 1.)) ;
     }
 
     return new VoidForm() ;
@@ -1254,6 +1349,21 @@ SamplingRestrictionType ConfigTreeItem::translateSamplingRestrictionType( std::s
     if(restriction == "SAMPLE_RESTRICT_16")
         return SAMPLE_RESTRICT_16 ;
     return SAMPLE_NO_RESTRICTION ;
+}
+
+ViscoelasticFiniteDifferenceIntegration ConfigTreeItem::translateViscoelasticFiniteDifferenceIntegration( std::string op )
+{
+    if(op == "FORWARD_EULER")
+        return FORWARD_EULER ;
+    if(op == "BACKWARD_EULER")
+        return FORWARD_EULER ;
+    if(op == "NEWMARK")
+        return NEWMARK ;
+    if(op == "CENTRAL_DIFFERENCE")
+        return CENTRAL_DIFFERENCE ;
+    if(op == "ZIENKIEWICZ")
+        return ZIENKIEWICZ ;
+    return BACKWARD_EULER ;
 }
 
 EMLOperation ConfigTreeItem::translateEMLOperation( std::string op )
@@ -1396,6 +1506,62 @@ GeometryType ConfigTreeItem::translateGeometryType(std::string type)
     return CIRCLE ;
 }
 
+InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
+{
+    std::string inclusion = getStringData("type","CIRCLE") ;
+    double rotation = getData("authorized_rotation",0.) ;
+    if( inclusion == "ELLIPSE")
+    {
+        double shape = getData("shape_factor", 0.75) ;
+        double orientation = getData("orientation", 0.) ;
+        double orientation_var = getData("orientation_variability", M_PI) ;
+        double shape_var = getData("shape_factor_variability", 0) ;
+
+        return new EllipsoidalInclusionGenerator( shape, orientation, orientation_var, shape_var, rotation ) ;
+    }
+    if( inclusion == "RECTANGLE")
+    {
+        double shape = getData("shape_factor", 0.75) ;
+        double orientation = getData("orientation", 0.) ;
+        double orientation_var = getData("orientation_variability", M_PI) ;
+        double shape_var = getData("shape_factor_variability", 0) ;
+
+        return new RectangularInclusionGenerator( shape, orientation, orientation_var, shape_var, rotation ) ;
+    }
+    if( inclusion == "POLYGON")
+    {
+        int side = getData("side", 5) ;
+        double orientation = getData("orientation", 0.) ;
+        double orientation_var = getData("orientation_variability", M_PI) ;
+        int side_var = getData("side_variability", 0) ;
+        std::string method = getStringData("method", "REGULAR") ;
+        if(method == "REGULAR")
+            return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation ) ;
+        if(method == "GRAVEL")
+        {
+            double param_p = getData("parameter_p", 1.5 ) ;
+            double param_m = getData("parameter_m", 0.2 ) ;
+            int degree = getData("degree", 2) ;
+            return new GravelPolygonalInclusionGenerator( param_p, param_m, degree, side, orientation, orientation_var, side_var, rotation ) ;
+        }
+        if(method == "CRUSHED")
+        {
+            double shape = getData("shape_factor", 0.75 ) ;
+            return new CrushedPolygonalInclusionGenerator( shape, side, orientation, orientation_var, side_var, rotation ) ;
+        }
+        if(method == "CRUSHED_SUBTENDED")
+        {
+            double shape = getData("shape_factor", 0.75 ) ;
+            double delta = getData("parameter_delta", 0.15 ) ;
+            return new CrushedSubtendedPolygonalInclusionGenerator( shape, delta, orientation, orientation_var, side_var, rotation ) ;
+        }
+
+        return new PolygonalInclusionGenerator( side, orientation, orientation_var, side_var, rotation ) ;
+    }
+
+    return new InclusionGenerator( rotation ) ;
+}
+
 
 std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree * F, std::vector<Feature *> base, std::vector<Geometry *> brothers)
 {
@@ -1523,6 +1689,48 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
                 F->addFeature( f, inc) ;
             ret.push_back(inc) ;
         }
+        if(inclusion == "POLYGON")
+        {
+            if(hasChild("geometry.method") && hasChild("geometry.radius"))
+            {
+                PolygonalInclusionGenerator * gen = dynamic_cast<PolygonalInclusionGenerator *>( getChild("geometry")->getInclusionGenerator() ) ;
+                if(gen)
+                {
+                    PolygonalSample * poly = gen->generatePolygon( getData("geometry.radius") ) ;
+                    poly->setCenter( Point( getData("center.x", 0), getData("center.y", 0) ) ) ;
+                    Feature * f = F->getFeature(0) ;
+                    Point p( poly->getCenter() ) ;
+                    for(size_t i = 0 ; i < base.size() ; i++)
+                    {
+                        if(base[i]->in(p))
+                            f = base[i] ;
+                    }
+                    F->addFeature( f, poly ) ;
+                    ret.push_back( poly ) ;
+                }
+            }
+            else
+            {
+                std::vector<ConfigTreeItem *> items = getChild("geometry")->getAllChildren("points") ;
+                if(items.size() > 2)
+                {
+                    std::valarray<Point *> points(items.size()) ;
+                    for(size_t j = 0 ; j < items.size() ; j++)
+                        points[j] = new Point( items[j]->getData("x", 0), items[j]->getData("y", 0)) ;
+                    PolygonalSample * poly = new PolygonalSample(nullptr, points) ;
+                    poly->setBehaviour(behaviour) ;
+                    Feature * f = F->getFeature(0) ;
+                    Point p( poly->getCenter() ) ;
+                    for(size_t i = 0 ; i < base.size() ; i++)
+                    {
+                        if(base[i]->in(p))
+                            f = base[i] ;
+                    }
+                    F->addFeature( f, poly ) ;
+                    ret.push_back( poly ) ;
+                }
+            }
+        }
 
     }
     else if(type == "FROM_PARENT_DISTRIBUTION")
@@ -1553,25 +1761,30 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
         int n = psdConfig->getData("number",1) ;
         double rmax = psdConfig->getData("rmax",0.1) ;
         double fraction = psdConfig->getData("fraction", 0.8) ;
-        std::string geometry = getStringData("geometry.type","CIRCLE") ;
+//        std::string geometry = getStringData("geometry.type","CIRCLE") ;
+        InclusionGenerator * generator = getChild("geometry")->getInclusionGenerator() ;
 //        double aspectRatio = getData("geometry.aspect_ratio",1.) ;
 //        double orientation = getData("geometry.orientation",M_PI) ;
         Sample * placement = nullptr ;
         int tries = getData("placement.tries", 1e6) ;
         double spacing = getData("placement.spacing",1e-5) ;
-        int seed = getData("placement.seed", 0) ;
+        int seed = getData("placement.seed", 1) ;
+        bool mask = getStringData("placement.mask", "TRUE") == "TRUE" ;
         if(hasChildFromFullLabel("placement.box"))
         {
             placement = getChildFromFullLabel("placement.box")->getSample() ;
         }
         if(base.size() == 0)
         {
-//            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, ConfigTreeItem::translateGeometryType(geometry), aspectRatio, orientation, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
-            std::cout << ret.size() << std::endl ;
+            ret = PSDGenerator::get2DConcrete( F, behaviour, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+        }
+        else if(mask)
+        {
+            ret = PSDGenerator::get2DMaskedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
         else
         {
-            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, nullptr, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
+            ret = PSDGenerator::get2DEmbeddedInclusions( F, behaviour, base, n, rmax, spacing, psd, generator, tries, fraction, dynamic_cast<Rectangle *>(placement), brothers, seed) ;
         }
     }
 
@@ -1652,6 +1865,28 @@ LagrangeMultiplierType ConfigTreeItem::translateLagrangeMultiplierType(std::stri
         return SET_ALONG_INDEXED_AXIS ;
     if(type == "INCREMENT_ALONG_INDEXED_AXIS")
         return INCREMENT_ALONG_INDEXED_AXIS ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT")
+        return SET_PROPORTIONAL_DISPLACEMENT ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ETA")
+        return SET_PROPORTIONAL_DISPLACEMENT_XI_ETA ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA")
+        return SET_PROPORTIONAL_DISPLACEMENT_XI_ZETA ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA")
+        return SET_PROPORTIONAL_DISPLACEMENT_ETA_ZETA ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ETA_XI")
+        return SET_PROPORTIONAL_DISPLACEMENT_ETA_XI ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA")
+        return SET_PROPORTIONAL_DISPLACEMENT_ZETA_ETA ;
+    if(type == "SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI")
+        return SET_PROPORTIONAL_DISPLACEMENT_ZETA_XI ;
+    if(type == "FIX_NORMAL_DISPLACEMENT")
+        return FIX_NORMAL_DISPLACEMENT ;
+    if(type == "SET_NORMAL_DISPLACEMENT")
+        return SET_NORMAL_DISPLACEMENT ;
+    if(type == "FIX_TANGENT_DISPLACEMENT")
+        return FIX_TANGENT_DISPLACEMENT ;
+    if(type == "SET_TANGENT_DISPLACEMENT")
+        return SET_TANGENT_DISPLACEMENT ;
     if(type == "SET_FORCE_XI")
         return SET_FORCE_XI ;
     if(type == "SET_FORCE_ETA")
@@ -1909,10 +2144,18 @@ BoundingBoxPosition ConfigTreeItem::translateBoundingBoxPosition( std::string po
 }
 
 
-BoundaryCondition * ConfigTreeItem::getBoundaryCondition() const
+BoundaryCondition * ConfigTreeItem::getBoundaryCondition(FeatureTree * f) const
 {
     if( !hasChild("rate") )
     {
+        if(hasChild("geometry") && hasChild("normal"))
+        {
+            int index = getData("geometry.index",0) ;
+            Point n( getData("normal.x", 0.5 ), getData("normal.y", 0.5 )) ;
+            return new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+                dynamic_cast<Geometry *>(f->getFeature(index)), n, getData( "value", 0 ), (int) getData( "axis", 0 ) ) ;
+        }
+
         if(hasChild("restriction"))
         {
             double maxx = getData("restriction.top_right.x", 1.) ;
@@ -1940,6 +2183,15 @@ BoundaryCondition * ConfigTreeItem::getBoundaryCondition() const
     }
     Function t("t") ;
     t *= getData( "rate", 0 ) ;
+
+    if(hasChild("geometry") && hasChild("normal"))
+    {
+        int index = getData("geometry.index",0) ;
+        Point n( getData("normal.x", 0.5 ), getData("normal.y", 0.5 )) ;
+        return new GeometryAndFaceDefinedSurfaceBoundaryCondition( ConfigTreeItem::translateLagrangeMultiplierType( getStringData( "condition", "GENERAL" ) ),
+            dynamic_cast<Geometry *>(f->getFeature(index)), n, t, (int) getData( "axis", 0 ) ) ;
+    }
+
     if(hasChild("restriction"))
     {
         double maxx = getData("restriction.top_right.x", 1.) ;

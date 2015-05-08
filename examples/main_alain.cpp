@@ -58,26 +58,22 @@ using namespace Amie ;
 int main(int argc, char *argv[])
 {
  	omp_set_num_threads(1) ;
-        std::valarray<Point *> pts(4) ;
-        pts[0] =  new Point(0,0) ;
-        pts[1] =  new Point(0.08,0) ;
-        pts[2] =  new Point(0.08,0.08) ;
-        pts[3] =  new Point(0,0.04) ;
-        
-	PolygonalSample s(nullptr, pts) ;
-        Sample rect(nullptr, 0.07,0.07,0,0) ;
-	Inclusion * inc = new Inclusion( 0.02,0.,0. ) ;
-        Inclusion * son = new Inclusion( 0.02, -0.01, 0 ) ;
+
+        Sample rect(nullptr, 0.04,0.04,0,0) ;
+	Inclusion * left = new Inclusion( 0.02,-0.025,0. ) ;
+	Inclusion * right = new Inclusion( 0.02,0.025,0. ) ;
+        Inclusion * son = new Inclusion( 0.02, 0.00, 0 ) ;
 	rect.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
-	s.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
-	inc->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
-	son->setBehaviour(new ElasticOnlyAggregateBehaviour(44e9) ) ;
-        son->addToMask( inc ) ;
+	left->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
+	right->setBehaviour(new ElasticOnlyAggregateBehaviour(40e9) ) ;
+	son->setBehaviour(new ElasticOnlyAggregateBehaviour(25e9) ) ;
+//        son->addToMask( left ) ;
+        son->addToMask( right ) ;
 
 	FeatureTree f(&rect) ;
-	f.setSamplingNumber(256) ;
-        f.addFeature( &rect, inc ) ;
-        f.addFeature( inc, son ) ;
+	f.setSamplingNumber(512) ;
+	std::vector<Feature *> agg = PSDGenerator::get2DConcrete( &f, new ElasticOnlyAggregateBehaviour(),250, 0.002, 0.0002, nullptr, new GravelPolygonalInclusionGenerator(1.9,0.2,2,10,0,M_PI,3), 10000) ;
+        PSDGenerator::get2DMaskedInclusions( &f, new ElasticOnlyAggregateBehaviour(40e9), agg, 250, 0.0008, 0.0001, new ConstantSizeDistribution(), new PolygonalInclusionGenerator(5,0,M_PI,0), 10000,0.5, nullptr, std::vector<Geometry *>(), 20 ) ;
 
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -1e6 ) ) ;
 //	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
@@ -91,7 +87,7 @@ int main(int argc, char *argv[])
 //        f.getAssembly()->print() ;
 
 
-	TriangleWriter trg( "toto_prop", &f, 1.) ;
+	TriangleWriter trg( "larger", &f, 1.) ;
 	trg.getField( TWFT_STIFFNESS ) ;
 	trg.write() ;
 
