@@ -54,6 +54,11 @@ protected:
 	 * 
 	 */
 	Form * behaviour ;
+
+        /** \brief Features which mask the current feature. The current feature
+         *  does not go beyond the boundaries of its mask.
+         */
+        std::vector<Feature *> mask ;
 	
 	double now ;
 	
@@ -85,7 +90,13 @@ public:
 	Feature * getBehaviourSource() ;
 	const Feature * getBehaviourSource() const ;
 	void setBehaviourSource( Feature * const f) ;
-	 
+	
+        void addToMask( Feature * f ) { mask.push_back(f) ; }
+        void setMask(std::vector<Feature *> & m) { mask.clear() ; mask = m ; }
+
+        virtual bool inMask(const Point &p, double d=0) const ;
+        virtual void makeMaskBoundary() ;
+
 	virtual bool inBoundary(const Point &p, double d) const ;
 	virtual bool onBoundary(const Point &p, double d) const ;
 	

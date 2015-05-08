@@ -1788,6 +1788,7 @@ void FeatureTree::sample()
 
 //				tree[i]->addMeshPointsInFather() ;
             }
+
             std::cerr << count << " particles meshed" << std::endl ;
         }
         else if ( is3D() )
@@ -1952,6 +1953,11 @@ void FeatureTree::sample()
             std::cerr << "\r 3D features... sampling feature " << count << "/" << this->tree.size() << " ...done" << std::endl ;
         }
     }
+
+    for(size_t i = 0 ; i < tree.size() ; i++)
+        tree[i]->makeMaskBoundary() ;
+
+
 }
 
 
@@ -2412,7 +2418,7 @@ Form * FeatureTree::getElementBehaviour ( Mesh<DelaunayTriangle, DelaunayTreeIte
         for ( int i = targets.size() - 1 ; i >= 0  ; i-- )
         {
 
-            if ( !targets[i]->isEnrichmentFeature && targets[i]->in ( t->getCenter() ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
+            if ( !targets[i]->isEnrichmentFeature && targets[i]->inMask ( t->getCenter() ) && ( !onlyUpdate || (onlyUpdate && targets[i]->isUpdated) ) )
             {
                 bool notInChildren  = true ;
 
@@ -7258,6 +7264,11 @@ void FeatureTree::generateElements()
                     }
                 }
 
+                if( i && ! tree[i]->inMask( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+                {
+                    isIn = true ;
+                }
+
                 if ( i && tree[i]->getFather() && !inRoot ( tree[i]->getBoundingPoint ( j ) ) )
                 {
                     isIn = true ;
@@ -7268,10 +7279,10 @@ void FeatureTree::generateElements()
                     isIn = true ;
                 }
 
-                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
-                {
-                    isIn = true ;
-                }
+//                if ( tree[i]->getFather() && tree[i]->getFather()->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
+//                {
+//                    isIn = true ;
+//                }
 
                 if ( tree[i]->getFather() && !isIn && i && tree[0]->onBoundary ( tree[i]->getBoundingPoint ( j ), pointDensity*0.33 ) )
                 {
@@ -7396,6 +7407,11 @@ void FeatureTree::generateElements()
                 }
 
                 if ( i && !inRoot ( tree[i]->getInPoint ( j ) ) )
+                {
+                    isIn = true ;
+                }
+
+                if( i && ! tree[i]->inMask( tree[i]->getInPoint ( j ) ) )
                 {
                     isIn = true ;
                 }

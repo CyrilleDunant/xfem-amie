@@ -68,20 +68,21 @@ int main(int argc, char *argv[])
         Sample rect(nullptr, 0.07,0.07,0,0) ;
 	Inclusion * inc = new Inclusion( 0.02,0.,0. ) ;
         Inclusion * son = new Inclusion( 0.02, -0.01, 0 ) ;
-	rect.setBehaviour(new ViscoElasticOnlyPasteBehaviour() ) ;
+	rect.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
 	s.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
 	inc->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
 	son->setBehaviour(new ElasticOnlyAggregateBehaviour(44e9) ) ;
+        son->addToMask( inc ) ;
 
-	FeatureTree f(&s) ;
-	f.setSamplingNumber(1) ;
-//        f.addFeature( &s, inc ) ;
-//        f.addFeature( inc, son ) ;
+	FeatureTree f(&rect) ;
+	f.setSamplingNumber(256) ;
+        f.addFeature( &rect, inc ) ;
+        f.addFeature( inc, son ) ;
 
-//	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_FORCE_XI, BOTTOM_RIGHT,1e6 ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -1e6 ) ) ;
 //	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
-        Point n(-0.004,0.008) ;
-	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
+//        Point n(-0.004,0.008) ;
+//	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT) ) ;
 	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
 
@@ -89,21 +90,6 @@ int main(int argc, char *argv[])
 
 //        f.getAssembly()->print() ;
 
-        std::vector<Point *> nodes = f.getNodes() ;
-        Vector disp = f.getDisplacements() ;
-        for(size_t i = 0 ; i < nodes.size() ; i++)
-        {
-            if(nodes[i]->getY() > 0.039999+0.5*nodes[i]->getX() )
-            {
-                double nx = (0.5*disp[i*2] - disp[i*2+1])/2.5 ;
-                double vx = disp[i*2] - nx ;
-                double vy = 0.5*vx ;
-                double ny = disp[i*2+1] - vy ;
-                std::cout << nodes[i]->getId() << "\t" << nodes[i]->getX() << "\t" << nodes[i]->getY() << "\t" << disp[i*2] << "\t" << disp[i*2+1] << "\t" << vx << "\t" << vy << "\t" << nx << "\t" << ny << "\t" << std::sqrt( vx*vx+vy*vy ) << std::endl ;
-            }
-        }
-
-//        f.getAssembly()->print() ;
 
 	TriangleWriter trg( "toto_prop", &f, 1.) ;
 	trg.getField( TWFT_STIFFNESS ) ;

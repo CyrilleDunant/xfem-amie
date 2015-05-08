@@ -116,10 +116,26 @@ std::vector<Feature *> & Feature::getChildren()
     return m_c ;
 }
 
+bool Feature::inMask(const Point &p, double d) const
+{
+    if(mask.size() == 0)
+       return true ;
+
+    bool in = false ;
+    for(size_t i = 0 ; !in && i < mask.size() ; i++)
+        in = mask[i]->inBoundary( p, d ) ;
+
+    return in ;
+}
+
 bool Feature::inBoundary(const Point &p, double d) const
 {
     if(p == getCenter())
         return true ;
+
+    if(!inMask(p,d))
+        return false ;
+
     Point proj(p) ;
     project(&proj) ;
     return (squareDist3D(proj, p) < d*d) || in(p);
@@ -129,10 +145,73 @@ bool Feature::onBoundary(const Point &p, double d) const
 {
     if(p == getCenter())
         return false ;
+
+    if(!inMask(p,d))
+        return false ;
+
     Point proj(p) ;
     project(&proj) ;
     return (dist(proj, p) < d) ;
 }
+
+void Feature::makeMaskBoundary() 
+{
+    if(mask.size() == 0)
+        return ;
+
+    std::vector<Point> newPoints ;
+    double density = -1 ;
+    if(getBoundingPoints().size() > 1)
+        density = dist( getBoundingPoint(0), getBoundingPoint(1) ) ;
+
+    for(size_t i = 0 ; i < mask.size() ; i++)
+    {
+        std::vector<Point> inter = this->intersection( mask[i] ) ;
+        for(size_t j = 0 ; j < inter.size() ; j++)
+            newPoints.push_back( inter[j] ) ;
+
+        for(size_t j = 0 ; j < getBoundingPoints().size() ; j++)
+        {
+            if( mask[i]->in( getBoundingPoint(j) ) )
+            {
+                Point p = getBoundingPoint(j) ;
+                mask[i]->project( &p ) ;
+                if( dist( p, getBoundingPoint(j) ) < density*0.25 )
+                {
+                    Point next = getBoundingPoint( j==getBoundingPoints().size()-1 ? 0 : j+1 ) ;
+                    Point prev = getBoundingPoint( j==0 ? getBoundingPoints().size()-1 : j-1 ) ;
+                    Point target = p ;
+                    if(mask[i]->in( next ))
+                        target = next ;
+                    else if(mask[i]->in( prev ))
+                        target = prev ;
+                    p += target ;
+                    p *= 0.5 ;
+                    this->project(&p) ;
+                    mask[i]->project( &target ) ;
+                    newPoints.push_back( p ) ;
+                    newPoints.push_back( target ) ;
+                }
+                else
+                    newPoints.push_back( getBoundingPoint( j ) ) ;
+            }
+        }       
+
+        for(size_t j = 0 ; j < mask[i]->getBoundingPoints().size() ; j++)
+        {
+            if( in( mask[i]->getBoundingPoint(j) ) )
+                newPoints.push_back( mask[i]->getBoundingPoint( j ) ) ;
+        }       
+ 
+    }
+
+    PointArray next( newPoints.size() ) ;
+    for(size_t i = 0 ; i < newPoints.size() ; i++)
+        next[i] = new Point(newPoints[i].getX(), newPoints[i].getY(), newPoints[i].getZ(), newPoints[i].getT()) ;
+    setBoundingPoints( next ) ;
+
+}
+
 
 std::vector<Feature *> Feature::getDescendants() const
 {
