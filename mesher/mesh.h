@@ -476,8 +476,8 @@ public:
             if(caches[allElementsCacheID][i] > maxIndex)
                 maxIndex = caches[allElementsCacheID][i] ;
         }
-        out.resize(maxIndex) ;
-        check.resize(maxIndex) ;
+        out.resize(maxIndex+1) ;
+        check.resize(maxIndex+1) ;
         out = false ;
         check = false ;
 
