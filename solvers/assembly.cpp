@@ -794,7 +794,7 @@ bool Assembly::make_final()
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
-           
+            element2d[i]->getElementaryMatrix(&vm) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 ids[j] *= ndof ;
@@ -802,14 +802,14 @@ bool Assembly::make_final()
             
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-                double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
                 for(size_t m = 0 ; m < ndof ; m++)
                 {
                     for(size_t n = 0 ; n < ndof ; n++)
                     {
-                        *array_iterator += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][j][n][m] ;
+                        *array_iterator += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][j][n][m] ;
                         array_iterator++ ;
                     }
                     if(ndof%2 != 0)
@@ -817,14 +817,14 @@ bool Assembly::make_final()
                 }
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
-                    double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                    double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                    double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            *array_iterator0 += scales[i] * element2d[i]->getElementaryMatrix(&vm)[j][k][n][m] ;
-                            *array_iterator1 += scales[i] * element2d[i]->getElementaryMatrix(&vm)[k][j][n][m] ;
+                            *array_iterator0 += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
+                            *array_iterator1 += scales[i] * element2d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
                             array_iterator0++ ; 
                             array_iterator1++ ;
                         }
@@ -840,14 +840,15 @@ bool Assembly::make_final()
 
             if(element2d[i]->getBehaviour()->isViscous())
             {
+                element2d[i]->getViscousElementaryMatrix(&vm) ;
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-                    double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                    double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
                         for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            *array_iterator += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][j][n][m] ;
+                            *array_iterator += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] ;
                             array_iterator++ ;
                         }
                         if(ndof%2 != 0)
@@ -855,14 +856,14 @@ bool Assembly::make_final()
                     }
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
-                        double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
                         for(size_t m = 0 ; m < ndof ; m++)
                         {
                             for(size_t n = 0 ; n < ndof ; n++)
                             {
-                                *array_iterator0 += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[j][k][n][m] ;
-                                *array_iterator1 += scales[i] * element2d[i]->getViscousElementaryMatrix(&vm)[k][j][n][m] ;
+                                *array_iterator0 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
+                                *array_iterator1 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
                                 array_iterator0++ ; 
                                 array_iterator1++ ;
                             }
@@ -984,15 +985,16 @@ bool Assembly::make_final()
             {
                 ids[j] *= ndof ;
             }
+            element3d[i]->getElementaryMatrix(&vm) ;
 //             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
-                double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                 for(size_t m = 0 ; m < ndof  ; m++)
                 {
                     for(size_t l = 0 ; l < ndof  ; l++)
                     {
-                        *array_iterator += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][j][l][m] ;
+                        *array_iterator += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][j][l][m] ;
                         array_iterator++ ;
                     }
                     if(ndof %2 != 0)
@@ -1001,14 +1003,14 @@ bool Assembly::make_final()
 
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
-                    double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                    double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                    double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
                     for(size_t m = 0 ; m < ndof  ; m++)
                     {
                         for(size_t l = 0 ; l < ndof  ; l++)
                         {
-                            *array_iterator0 += scales[i] * element3d[i]->getElementaryMatrix(&vm)[j][k][l][m] ;
-                            *array_iterator1 += scales[i] * element3d[i]->getElementaryMatrix(&vm)[k][j][l][m] ;
+                            *array_iterator0 += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][k][l][m] ;
+                            *array_iterator1 += scales[i] * element3d[i]->getCachedElementaryMatrix()[k][j][l][m] ;
                             array_iterator0++ ;
                             array_iterator1++ ;
                         }
@@ -1023,14 +1025,15 @@ bool Assembly::make_final()
 
             if(element3d[i]->getBehaviour()->isViscous())
             {
+                element3d[i]->getViscousElementaryMatrix() ;
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-                     double * array_iterator = &(getMatrix()[ids[j]][ids[j]]) ;
+                     double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                     for(size_t m = 0 ; m < ndof  ; m++)
                     {
                         for(size_t l = 0 ; l < ndof  ; l++)
                         {
-                            *array_iterator += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][j][l][m] ;
+                            *array_iterator += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][j][l][m] ;
                             array_iterator++ ; 
                         }
                         if(ndof %2 != 0)
@@ -1039,14 +1042,14 @@ bool Assembly::make_final()
 
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        double * array_iterator0 = &(getMatrix()[ids[j]][ids[k]]) ;
-                        double * array_iterator1 = &(getMatrix()[ids[k]][ids[j]]) ;
+                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
                         for(size_t m = 0 ; m < ndof  ; m++)
                         {
                             for(size_t l = 0 ; l < ndof  ; l++)
                             {
-                                * array_iterator0 += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[j][k][l][m] ;
-                                * array_iterator1 += scales[i] * element3d[i]->getViscousElementaryMatrix(&vm)[k][j][l][m] ;
+                                * array_iterator0 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][k][l][m] ;
+                                * array_iterator1 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[k][j][l][m] ;
                                 array_iterator0++ ;
                                 array_iterator1++ ; 
                             }

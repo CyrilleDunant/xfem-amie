@@ -94,6 +94,7 @@ public:
     void setEnrichment(const Function & p, const Geometry * g) ;
     virtual Point inLocalCoordinates(const Point & p) const  = 0;
 
+    
     virtual void getInverseJacobianMatrix(const Point & p, Matrix & ret) = 0 ;
 
     virtual Vector getNonLinearForces() = 0 ;
@@ -114,6 +115,8 @@ public:
     virtual std::vector<size_t> clearEnrichment(const Geometry * g) final;
     virtual std::vector<size_t> clearAllEnrichment() final;
 
+    virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() = 0 ;
+    virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() = 0 ;
 } ;
 
 class TriElement : public Triangle, public ElementarySurface
@@ -145,6 +148,8 @@ public:
     
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) ;
     virtual std::valarray<std::valarray<Matrix> > & getViscousElementaryMatrix(VirtualMachine * vm = nullptr) ;
+    virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
+    virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
     virtual void clearElementaryMatrix() final{
         cachedElementaryMatrix.resize(0);
         cachedViscousElementaryMatrix.resize(0) ;
@@ -229,6 +234,8 @@ public:
     virtual const GaussPointArray & getGaussPoints() = 0 ;
 
     virtual std::valarray<std::valarray<Matrix> > & getElementaryMatrix(VirtualMachine * vm = nullptr) = 0;
+    virtual std::valarray<std::valarray<Matrix> > & getCachedElementaryMatrix() {return cachedElementaryMatrix ;}
+    virtual std::valarray<std::valarray<Matrix> > & getCachedViscousElementaryMatrix() {return cachedViscousElementaryMatrix ;}
     virtual Form * getBehaviour() const final;
     virtual void setBehaviour( Mesh< DelaunayTetrahedron, DelaunayTreeItem3D >* msh, Form* f ) final;
 

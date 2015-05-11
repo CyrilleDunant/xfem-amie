@@ -104,7 +104,7 @@ void step (const Function & loadfunc)
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
         itcounter++ ;
 
-        if(go_on && std::abs(sqrt(etemp[1]*etemp[1]/16e-10+stemp[1]*stemp[1]/2.25e12) - sqrt(displacements.back()*displacements.back()/16e-10+loads.back()*loads.back()/2.25e12)) > .01)
+        if(go_on/* && std::abs(sqrt(etemp[1]*etemp[1]/16e-10+stemp[1]*stemp[1]/2.25e12) - sqrt(displacements.back()*displacements.back()/16e-10+loads.back()*loads.back()/2.25e12)) > .01*/)
         {
             itcounter = 0 ;
             last_time = featureTree->getCurrentTime() ;
@@ -127,6 +127,8 @@ void step (const Function & loadfunc)
                    << VirtualMachine().eval(loadfunc, 0,0,0,featureTree->getCurrentTime()) << "\n" ;
 
             ldfile.close();
+            if(displacements.back()*1000. > 0.09)
+                exit(0) ;
         }
 
     }
