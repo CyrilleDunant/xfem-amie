@@ -60,35 +60,34 @@ int main(int argc, char *argv[])
  	omp_set_num_threads(1) ;
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
-	Inclusion * left = new Inclusion( 0.02,-0.025,0. ) ;
-	Inclusion * right = new Inclusion( 0.02,0.025,0. ) ;
-        Inclusion * son = new Inclusion( 0.02, 0.00, 0 ) ;
-	rect.setBehaviour(new ElasticOnlyPasteBehaviour() ) ;
-	left->setBehaviour(new ElasticOnlyAggregateBehaviour() ) ;
-	right->setBehaviour(new ElasticOnlyAggregateBehaviour(40e9) ) ;
-	son->setBehaviour(new ElasticOnlyAggregateBehaviour(25e9) ) ;
-//        son->addToMask( left ) ;
-        son->addToMask( right ) ;
+	rect.setBehaviour(new ViscoElasticOnlyAggregateBehaviour(10e9) ) ;
 
 	FeatureTree f(&rect) ;
-	f.setSamplingNumber(512) ;
-	std::vector<Feature *> agg = PSDGenerator::get2DConcrete( &f, new ElasticOnlyAggregateBehaviour(),250, 0.002, 0.0002, nullptr, new GravelPolygonalInclusionGenerator(1.9,0.2,2,10,0,M_PI,3), 10000) ;
-        PSDGenerator::get2DMaskedInclusions( &f, new ElasticOnlyAggregateBehaviour(40e9), agg, 250, 0.0008, 0.0001, new ConstantSizeDistribution(), new PolygonalInclusionGenerator(5,0,M_PI,0), 10000,0.5, nullptr, std::vector<Geometry *>(), 20 ) ;
+        f.setOrder( LINEAR_TIME_LINEAR ) ;
+	f.setSamplingNumber(8) ;
+        f.setDeltaTime(1) ;
+	
+	f.step() ;
 
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP, -1e6 ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_STRESS_ETA, TOP_AFTER, 1e6 ) ) ;
 //	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( SET_PROPORTIONAL_DISPLACEMENT_XI_ETA, TOP, -1 ) ) ; // ux = 0.5 u_y
 //        Point n(-0.004,0.008) ;
 //	f.addBoundaryCondition( new GeometryAndFaceDefinedSurfaceBoundaryCondition( SET_TANGENT_DISPLACEMENT, dynamic_cast<Polygon*>(&s), n, 0.0001 ) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT) ) ;
-	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM ) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_XI, BOTTOM_LEFT_AFTER) ) ;
+	f.addBoundaryCondition( new BoundingBoxDefinedBoundaryCondition( FIX_ALONG_ETA, BOTTOM_AFTER ) ) ;
 
-	f.step() ;
+	for(size_t i = 0 ; i < 20 ; i++)
+	{
+                f.setDeltaTime((double) i+1) ;
+		f.step() ;
+		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
+	}
 
 //        f.getAssembly()->print() ;
 
 
 	TriangleWriter trg( "larger", &f, 1.) ;
-	trg.getField( TWFT_STIFFNESS ) ;
+	trg.getField( REAL_STRESS_FIELD ) ;
 	trg.write() ;
 
 
