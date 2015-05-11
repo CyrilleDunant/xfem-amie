@@ -1453,6 +1453,13 @@ ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
         return new GranuloFromCumulativePSD(filename, ConfigTreeItem::translatePSDSpecificationType( specification ), factor, cutOffUp, cutOffDown) ;
     }
 
+    if(type == std::string("FULLER"))
+    {
+        double rmin = getData("rmin",0) ;
+        double exp = getData("exponent", 0.5) ;
+        return new PSDFuller(rmin*2., exp) ;
+    }
+
     return new ConstantSizeDistribution() ;
 }
 

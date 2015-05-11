@@ -563,6 +563,20 @@ double m;//pente
 }
 
 
+double PSDFuller::getNext2DDiameter(double diameter, double fraction, double dmax) 
+{
+	if(diameter < dmin + POINT_TOLERANCE)
+		return dmin ;
+	return dmin + (dmax-dmin)*std::pow(fraction, 1./exponent) ;
+}
+
+double PSDFuller::getNext3DDiameter(double diameter, double fraction, double dmax) 
+{
+	if(diameter < dmin + POINT_TOLERANCE)
+		return dmin ;
+	return dmin + (dmax-dmin)*std::pow(fraction, 1./exponent) ;
+}
+
 GranuloFromFile::GranuloFromFile(const std::string & fname, std::vector<std::string> columns)
 {
 	std::cout << "importing file: " << fname << std::endl ;

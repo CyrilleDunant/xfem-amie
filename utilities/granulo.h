@@ -247,6 +247,21 @@ public:
 	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
 } ;
 
+class PSDFuller : public ParticleSizeDistribution
+{
+public:
+	double dmin ;
+	double exponent ;
+
+	PSDFuller(double min = 0., double exp = 0.5) : ParticleSizeDistribution(), dmin(min), exponent(exp) { } ;
+	virtual ~PSDFuller() {} ;
+
+public:
+	virtual double getNext2DDiameter(double diameter, double fraction, double dmax) ;
+	virtual double getNext3DDiameter(double diameter, double fraction, double dmax) ;
+} ;
+
+
 class ConstantSizeDistribution : public ParticleSizeDistribution
 {
 public:
