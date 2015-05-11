@@ -905,6 +905,47 @@ public:
 } ;
 
 
+struct SparseMaskVector
+{
+public:
+    std::valarray<bool> & array ;
+    const std::valarray<unsigned int> & column_index ;
+    const size_t length ;
+    const size_t start ;
+    const size_t stride ;
+    const size_t index ;
+    bool f ;
+
+public:
+    /** \brief SparseVector constructor. Initialises the references to the data.
+    @param v array containing the values
+    @param idx column index of the blocks
+    @param l number of blocks in the row.
+    @param s block start index of the values relevant to this row
+    @param index row number (actual number, not in blocks)
+    @param st stride: block size
+     */
+    SparseMaskVector(std::valarray<bool> & v,  const std::valarray<unsigned int>& idx , const size_t l, const size_t s, const size_t index, const size_t st) ;
+
+    /** \brief access a value in the row
+     * Return the value in the ith column of the matrix on this row. If this value is not stored, 0 is retured.
+     */
+    inline bool & operator [](const size_t i)
+    {
+        f = false ;
+        const unsigned int * __start__       = &column_index[start] ;
+        const unsigned int * __end__         = &column_index[start+length] ;
+        const unsigned int * i_index_pointer = std::lower_bound(__start__, __end__, i/stride) ;
+        unsigned int offset            = i_index_pointer - __start__ ;
+        unsigned int colLength = stride+stride%2 ;
+        return(std::binary_search(__start__, __end__, i/stride)) ?
+              array[(start+offset)*stride*colLength + (i%stride)*colLength+index%stride] : f ;
+    }
+
+
+} ;
+
+
 
 inline void reverseInnerProductAssignAndAdd(const Amie::ConstSparseVector & v0, Vector & v1, double &t,  double toAdd, size_t start)
 {

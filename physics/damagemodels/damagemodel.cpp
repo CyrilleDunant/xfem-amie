@@ -283,7 +283,7 @@ DamageModel::DamageModel(): state(0)
     // the correct distribution of damage: the effect
     // of damage increment on the distribution of
     // fracture criterion scores is non-monotonic.
-    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 1e-6) ; //1e-8 ;//1. / pow( 2., 14 );
+    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber), 1e-5) ; //1e-8 ;//1. / pow( 2., 14 );
     thresholdDamageDensity = 1. ;
     secondaryThresholdDamageDensity = 1. ;
 } 

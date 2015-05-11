@@ -5657,8 +5657,10 @@ bool FeatureTree::stepToCheckPoint( int iterations)
     scaleBoundaryConditions ( 1 );
     
     double prevmaxit = maxitPerStep ;  
-    maxitPerStep = iterations ;
+    maxitPerStep = 1 ;
     bool ret = step() ;
+    for(int i = 1 ; i < iterations && !ret; i++)
+        step() ;
     maxitPerStep = prevmaxit ;
     
     //at this point, we should have found a checkpoint.
@@ -5671,7 +5673,7 @@ bool FeatureTree::stepToCheckPoint( int iterations)
         double bottomscale= 0. ;
         
 
-        while(highscale-bottomscale > minDeltaTime*.05)
+        while(highscale-bottomscale > minDeltaTime*.5)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;
@@ -5725,7 +5727,8 @@ bool FeatureTree::stepToCheckPoint( int iterations)
         setDeltaTime ( realDeltaTime ) ;
         state.setStateTo ( XFEM_STEPPED, true ) ;
     }
-//     std::cout << "SCALE = " << currentScale << std::endl ;
+    else
+        return true ;
     
     damageConverged = solverConverged() && !behaviourChanged() ;
 

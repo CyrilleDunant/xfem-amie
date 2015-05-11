@@ -25,6 +25,11 @@ LagrangeMultiplier::LagrangeMultiplier(std::valarray<unsigned int> i, Vector c, 
 {
 } 
 
+bool operator < (const int i, const LagrangeMultiplier & l) 
+{
+    return i < l.getId() ;
+} 
+
 CoordinateIndexedIncompleteSparseMatrix LagrangeMultiplier::getMatrix() const
 {
     return CoordinateIndexedIncompleteSparseMatrix( ids, coefs, id) ;
@@ -66,6 +71,7 @@ Assembly::Assembly()
     ndofmax = 0 ;
     coordinateIndexedMatrix = nullptr ;
     nonLinearPartialMatrix = nullptr;
+    mask = nullptr ;
     multiplier_offset = 0 ;
     displacements.resize(0) ;
     externalForces.resize(0) ;
@@ -270,7 +276,7 @@ void Assembly::setBoundaryConditions()
         addToExternalForces.resize(externalForces.size(), 0.) ; 
     }
 
-    std::sort(multipliers.begin(), multipliers.end()) ;
+    
     std::valarray<int> multiplierIds(multipliers.size()) ;
     for(size_t i = 0 ; i < multiplierIds.size() ; i++)
     {
@@ -674,6 +680,7 @@ void Assembly::checkZeroLines()
 bool Assembly::make_final()
 {
     bool symmetric = true ;
+    std::sort(multipliers.begin(), multipliers.end()) ;
 
 //	size_t ndof = 2 ;
 
@@ -781,16 +788,140 @@ bool Assembly::make_final()
         }
         else
         {
-            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
-        }
+            std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
+            size_t instants = element2d[0]->timePlanes() ;
+            size_t dofsperplane = element2d[0]->getBoundingPoints().size() / instants ;
 
-        coordinateIndexedMatrix->array = 0 ;
+            for(size_t i = 0 ; i < element2d.size() ; i++)
+            {
+                size_t dofCount = element2d[i]->getShapeFunctions().size()+element2d[i]->getEnrichmentFunctions().size() ;
+                std::vector<size_t> ids = element2d[i]->getDofIds() ;
+
+                if(!element2d[i]->behaviourUpdated && !element2d[i]->enrichmentUpdated && element2d[i]->getCachedElementaryMatrix().size() && element2d[i]->getCachedElementaryMatrix()[0].size() == dofCount)
+                {
+                     
+                     for(size_t j = 0 ; j < ids.size() ; j++)
+                     {
+                         map->insert( std::make_pair(ids[j], ids[j])) ;
+                         bool foundOne = false ;
+                         for(size_t k = 0 ; k < ndof ; k++)
+                         {
+                             if(std::binary_search(multipliers.begin(), multipliers.end(), ids[j]*ndof+k))
+                             {
+                                 foundOne = true ;
+                                 break ;
+                             }
+                         }
+                         if(foundOne)
+                         {    
+                            for( size_t k = 0 ; k < ids.size() ; k++)
+                            {
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                                map->insert( std::make_pair(ids[k], ids[j])) ;
+                            }
+                         }
+                     } 
+                }
+                else
+                {
+                    if(i%100000 == 0)
+                        std::cerr << "\r computing mask sparsness pattern... triangle " << i+1 << "/" << element2d.size() << std::flush ;
+                    size_t additionalDofPerPlane = ids.size()/instants - dofsperplane ;
+
+                    for(size_t j = 0 ; j < dofsperplane * instants ; j++)
+                    {
+                        map->insert(std::make_pair(ids[j], ids[j])) ;
+                        if( j >=  dofsperplane * instants - dofsperplane )
+                        {
+                            for( size_t k = 0 ; k < j ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                            for( size_t k = j+1 ; k < ids.size() ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                        }
+                    }
+
+                    for(size_t j = dofsperplane * instants ; j < ids.size() ; j++)
+                    {
+                        map->insert(std::make_pair(ids[j], ids[j])) ;
+
+                        if( j >= ids.size() - additionalDofPerPlane )
+                        {
+                            for( size_t k = 0 ; k < j ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                            for( size_t k = j+1 ; k < ids.size() ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                        }
+
+                    }
+                }
+            }
+            
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+            std::vector<int> maskFails ;
+            //filling eventual gaps
+            for(size_t i = 0 ; i < max ; i++)
+            {
+                if(map->find(std::make_pair(i,i)) == map->end())
+                {
+                    map->insert(std::make_pair(i,i)) ;
+                    maskFails.push_back(i);
+                }
+            }
+            map->insert(std::make_pair(ndofmax-1,ndofmax-1)) ;
+
+            std::cerr << " ...done" << std::endl ;
+            size_t total_num_dof = map->rbegin()->first+1 ;
+
+            std::valarray<unsigned int> row_length((unsigned int)0, total_num_dof) ;
+            std::valarray<unsigned int> column_index((unsigned int)0, map->size()) ;
+
+            size_t current = 0 ;
+            for(auto i = map->begin() ; i != map->end() ; ++i)
+            {
+                row_length[i->first]++ ;
+                column_index[current] = i->second ;
+                current++ ;
+            }
+
+            delete map ;
+            delete mask ;
+            mask = new CoordinateIndexedSparseMaskMatrix(row_length, column_index, ndof) ; 
+            size_t blocksize = ndof*(ndof+ndof%2) ;
+            for(size_t i = 0 ; i < maskFails.size() ; i++)
+            {
+                bool * array_iterator = &((*mask)[maskFails[i]*ndof][maskFails[i]*ndof]) ;
+                for(size_t l = 0 ; l < blocksize ; l++)
+                {
+                    *array_iterator  = false ;
+                    array_iterator++ ;
+                }
+            }
+   
+            current = 0 ;
+            for(size_t i = 0 ; i < row_length.size() ; i++)
+            {
+                for(size_t j = 0 ; j < row_length[i] ; j++)
+                {
+                    double * array_iterator = getMatrix()[i*ndof].getPointer(column_index[current++]*ndof) ;
+                    for(size_t l = 0 ; l < blocksize ; l++)
+                    {
+                        * array_iterator = 0 ;
+                        array_iterator++ ;
+                    }
+                }
+            }
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+//             coordinateIndexedMatrix->array = 0 ;
+//             delete mask ;
+//             mask = nullptr ;
+        }
 
         VirtualMachine vm ; 
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
                 continue ;
+
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... triangle " << i+1 << "/" << element2d.size() << std::flush ;
             std::vector<size_t> ids = element2d[i]->getDofIds() ;
@@ -802,6 +933,8 @@ bool Assembly::make_final()
             
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
+
+                
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                 //data is arranged column-major, with 2-aligned columns
                 
@@ -815,23 +948,30 @@ bool Assembly::make_final()
                     if(ndof%2 != 0)
                         array_iterator++ ;
                 }
+
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
-                    double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
-                    for(size_t m = 0 ; m < ndof ; m++)
+                    if(mask && !(*mask)[ids[j]][ids[k]] && !(*mask)[ids[k]][ids[j]])
                     {
-                        for(size_t n = 0 ; n < ndof ; n++)
+                    }
+                    else
+                    {
+                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                        for(size_t m = 0 ; m < ndof ; m++)
                         {
-                            *array_iterator0 += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
-                            *array_iterator1 += scales[i] * element2d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
-                            array_iterator0++ ; 
-                            array_iterator1++ ;
-                        }
-                        if(ndof%2 != 0)
-                        {
-                            array_iterator0++ ; 
-                            array_iterator1++ ;
+                            for(size_t n = 0 ; n < ndof ; n++)
+                            {
+                                *array_iterator0 += scales[i] * element2d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
+                                *array_iterator1 += scales[i] * element2d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
+                            }
+                            if(ndof%2 != 0)
+                            {
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
+                            }
                         }
                     }
                    
@@ -843,6 +983,7 @@ bool Assembly::make_final()
                 element2d[i]->getViscousElementaryMatrix(&vm) ;
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
+
                     double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
                     for(size_t m = 0 ; m < ndof ; m++)
                     {
@@ -854,23 +995,30 @@ bool Assembly::make_final()
                         if(ndof%2 != 0)
                             array_iterator++ ;
                     }
+
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
-                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
-                        for(size_t m = 0 ; m < ndof ; m++)
+                        if(mask &&  !(*mask)[ids[j]][ids[k]] && !(*mask)[ids[k]][ids[j]])
                         {
-                            for(size_t n = 0 ; n < ndof ; n++)
+                        }
+                        else
+                        {
+                            double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                            double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                            for(size_t m = 0 ; m < ndof ; m++)
                             {
-                                *array_iterator0 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
-                                *array_iterator1 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
-                                array_iterator0++ ; 
-                                array_iterator1++ ;
-                            }
-                            if(ndof%2 != 0)
-                            {
-                                array_iterator0++ ; 
-                                array_iterator1++ ;
+                                for(size_t n = 0 ; n < ndof ; n++)
+                                {
+                                    *array_iterator0 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
+                                    *array_iterator1 += scales[i] * element2d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
+                                    array_iterator0++ ; 
+                                    array_iterator1++ ;
+                                }
+                                if(ndof%2 != 0)
+                                {
+                                    array_iterator0++ ; 
+                                    array_iterator1++ ;
+                                }
                             }
                         }
                     }

@@ -65,6 +65,14 @@ CoordinateIndexedSparseMatrix::CoordinateIndexedSparseMatrix(const std::valarray
     }
 }
 
+CoordinateIndexedSparseMaskMatrix::CoordinateIndexedSparseMaskMatrix(const std::valarray<unsigned int> & rs, const std::valarray<unsigned int> & ci, size_t s): stride(s), array(true, ci.size()*stride*(stride+stride%2)),column_index(ci),row_size(rs), accumulated_row_size(rs.size())
+{
+    for(size_t i = 1 ; i < accumulated_row_size.size() ; i++)
+    {
+        accumulated_row_size[i] += accumulated_row_size[i-1]+row_size[i-1] ;
+    }
+}
+
 CoordinateIndexedSparseMatrix::~CoordinateIndexedSparseMatrix()
 {
 }
@@ -89,6 +97,11 @@ const ConstSparseVector CoordinateIndexedSparseMatrix::operator[](const size_t i
 {
 // 	size_t start_index = std::accumulate(&row_size[0], &row_size[i+1], 0) ;
     return ConstSparseVector(array, column_index ,row_size[i/stride],accumulated_row_size[i/stride], i, stride) ;
+}
+
+SparseMaskVector CoordinateIndexedSparseMaskMatrix::operator[](const size_t i)
+{
+    return SparseMaskVector(array, column_index ,row_size[i/stride],accumulated_row_size[i/stride], i, stride) ;
 }
 
 double & CoordinateIndexedSparseMatrix::operator()(const size_t i, const size_t j)

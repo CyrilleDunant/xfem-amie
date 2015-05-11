@@ -52,7 +52,9 @@ Form * CSHBehaviour::getCopy() const
 		  shrink = (shrinkageStresses[index-1]*wb +  shrinkageStresses[index]*wa)/(wa+wb) ;
 	    }
 	}
-	    
+	
+	if(shrinkageStresses.empty())
+		return new Stiffness(param*fac) ;	    
 	return new StiffnessWithImposedStress(param*fac, shrink) ;
 
             

@@ -91,7 +91,7 @@ double NonLocalMCFT::getBareConcreteTensileCriterion(const ElementState & s, dou
     }
 
     double criterion = 0 ;
-    if(maxTensionStrain > POINT_TOLERANCE)
+    if(maxTension > POINT_TOLERANCE)
         criterion = std::abs(tstress/(maxTension)) ;
 
     return -1.+criterion ;
@@ -177,7 +177,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 // 	double df = f ;
 
     double df = 3.*f*f-2.*f*f*f ;
-    double factor = df*log(k)+(1.-df)*log(342.) ;
+    double factor = df*log(k)+(1.-df)*log(60.*342.) ;//40 low
     double deltaCriterion = tensionCritStrain*df ;
     if(df <= 0)
     {
@@ -187,7 +187,7 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 
     if(df >= 1)
     {
-        factor = log(342);
+        factor = log(60.*342); // 40 low
         deltaCriterion = 0 ;
     }
     return getRebarConcreteTensileCriterion(s, pseudoYoung, tstrain, tstress, exp(factor), deltaCriterion) ;
@@ -198,6 +198,8 @@ double NonLocalMCFT::getConcreteTensileCriterion(const ElementState & s, double 
 double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, double pseudoYoung, double cstrain, double tstress, double cstress)
 {
 
+    if(cstress > 0 || cstrain > 0)
+        return -1 ;
     double maxCompression = downVal  ;
 
 

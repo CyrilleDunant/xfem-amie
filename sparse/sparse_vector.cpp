@@ -140,7 +140,11 @@ Vector SparseVector::operator +(const Vector &v) const
     return ret ;
 }
 
-ConstSparseVector::ConstSparseVector(const Vector & v, const std::valarray<unsigned int> & i , const size_t l , const size_t s, const size_t ind, const size_t st) : array(v), column_index(i), length(l), start(s), stride(st), index(ind)
+ConstSparseVector::ConstSparseVector       (const Vector & v,               const std::valarray<unsigned int> & i , const size_t l, const size_t s, const size_t ind, const size_t st) : array(v), column_index(i), length(l), start(s), stride(st), index(ind)
+{
+}
+
+SparseMaskVector::SparseMaskVector(std::valarray<bool> & v,  const std::valarray<unsigned int>& i , const size_t l, const size_t s, const size_t ind, const size_t st) : array(v), column_index(i), length(l), start(s), stride(st), index(ind)
 {
 }
 

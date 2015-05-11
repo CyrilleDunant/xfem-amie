@@ -145,6 +145,16 @@ public:
     {
         return id < m ;
     }
+    
+    bool operator > (const LagrangeMultiplier & m) const
+    {
+        return id > m.getId() ;
+    }
+
+    bool operator > (const int & m) const
+    {
+        return id > m ;
+    }
 
     bool operator == (const LagrangeMultiplier & m) const
     {
@@ -163,6 +173,8 @@ public:
 
     LagrangeMultiplierType type ;
 } ;
+
+bool operator < (const int i, const LagrangeMultiplier & l) ;
 
 /** \brief functor for usage with STL containers. order LagrangeMultipliers*/
 struct MultiplierHasIdSupEq
@@ -232,6 +244,7 @@ protected:
     Vector nonLinearExternalForces ;
     Vector addToExternalForces ;
     CoordinateIndexedSparseMatrix * coordinateIndexedMatrix ;
+    CoordinateIndexedSparseMaskMatrix * mask ;
     CoordinateIndexedIncompleteSparseMatrix * nonLinearPartialMatrix ;
     std::map<std::pair<size_t, size_t>, double > * boundaryMatrix ;
 

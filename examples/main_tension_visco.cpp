@@ -98,7 +98,7 @@ void step (const Function & loadfunc)
     int itcounter = 0 ;
     while ( true ) 
     {
-        bool go_on = featureTree->stepToCheckPoint(1) ;
+        bool go_on = featureTree->stepToCheckPoint(10) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;

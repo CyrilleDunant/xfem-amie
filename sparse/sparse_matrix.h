@@ -75,6 +75,36 @@ public:
 
 } ;
 
+class CoordinateIndexedSparseMaskMatrix
+{
+public:
+    size_t stride ;
+    std::valarray<bool>  array ;
+    std::valarray<unsigned int>  column_index ;
+    std::valarray<unsigned int>  row_size ;
+    std::valarray<unsigned int>  accumulated_row_size ;
+
+public:
+
+
+    /** \brief Constructor using a pair of valarays as input for the parseness pattern. The matrix is initialised at 0.
+     * @param rowSize A valarray of unsigned ints containing the succesive length of each row
+     * @param columnIndex the column indes of every value to be sotred in the matrix.
+     */
+    CoordinateIndexedSparseMaskMatrix(const std::valarray<unsigned int> & rowSize, const std::valarray<unsigned int> & columnIndex, size_t stride) ;
+
+    ~CoordinateIndexedSparseMaskMatrix() { }
+
+    /** \brief  Return the sparse row of index i.
+    *
+    * All rows within the block row are returned, however this has an effect only of the returned sparse vector is multiplied
+     * with another sparse vector*/
+    SparseMaskVector operator[](const size_t i);
+
+    /** \brief Compute a Matrix-vector operation.*/
+} ;
+
+
 /** \brief Block-encoded sparse matrix.
  *
  * The matrix is assumed to have more lines than rows. The stride gives the size of the blocks.
@@ -94,6 +124,8 @@ Vector b(2) ; b[0] = 2 ; b[1] = 3 ;
 assign(result, M*b-b) ;
 \endcode
 */
+
+
 class CoordinateIndexedSparseMatrix
 {
 public:
@@ -102,7 +134,6 @@ public:
     std::valarray<unsigned int>  column_index ;
     std::valarray<unsigned int>  row_size ;
     std::valarray<unsigned int>  accumulated_row_size ;
-
 public:
 
     void reshape(std::set<std::pair<size_t, size_t>> &source, size_t stride) ;
@@ -120,7 +151,7 @@ public:
     /** \brief Return the sparse row of index i.
     *
     * All rows within the block row are returned, however this has an effect only of the returned sparse
-     * vector is multiplied with another sparse vector. The vector is writable.*/
+    * vector is multiplied with another sparse vector. The vector is writable.*/
     SparseVector operator[](const size_t i) ;
 
     /** \brief  Return the sparse row of index i.

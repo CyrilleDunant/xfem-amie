@@ -115,7 +115,7 @@ void step()
 {
 
     size_t nsteps = 600*4 ; //16*10;
-    double delta_d = 0.0175e-3 ;
+    double delta_d = 5.*0.0175e-3 ;
 
     for ( size_t v = 0 ; v < nsteps ; v++ )
     {
@@ -289,7 +289,7 @@ int main ( int argc, char *argv[] )
     double nu_steel = 0.01 ;
     double nu = 0.3 ;
     double E_paste = 37e9 ;
-    double E_steel_effective =1./(1./E_steel+.2/E_paste) ;
+    double E_steel_effective =.6/(1./E_steel+.2/E_paste) ;
 
     double halfSampleOffset = sampleLength*.25 ;
 
@@ -406,7 +406,7 @@ int main ( int argc, char *argv[] )
     sample.isVirtualFeature = true ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->variability = 0.00 ;
     dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar0.getCenter().getY(),rebarDiametre ) );
-    dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
+  	dynamic_cast<ConcreteBehaviour *> ( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back ( std::make_pair ( rebar1.getCenter().getY(),rebarDiametre ) );
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar2.getCenter().getY(),rebarDiametre));
 // 	dynamic_cast<ConcreteBehaviour *>( sample.getBehaviour() )->rebarLocationsAndDiameters.push_back(std::make_pair(rebar3.getCenter().getY(),rebarDiametre));
 
