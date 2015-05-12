@@ -98,7 +98,7 @@ void step (const Function & loadfunc)
     int itcounter = 0 ;
     while ( true ) 
     {
-        bool go_on = featureTree->stepToCheckPoint(10) ;
+        bool go_on = featureTree->stepToCheckPoint(1) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
@@ -161,8 +161,10 @@ int main ( int argc, char *argv[] )
     planeType pt = PLANE_STRESS;
 
     Sample samplef(0.3, 0.6,  0.15, 0.3) ;
+    Pore pore(0.006,  0.15, 0.3) ;
 
     FeatureTree F ( &samplef ) ;
+    F.addFeature(&samplef, &pore);
     featureTree = &F ;
 
     //ViscoelasticityAndFracture * pasterupt = new ViscoelasticityAndFracture( GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, new NonLocalSpaceTimeMCFT(-40e6,40e9,1.), new SpaceTimeFiberBasedIsotropicLinearDamage(0.001, 1e-9, 1.) );
@@ -199,14 +201,15 @@ int main ( int argc, char *argv[] )
 //     exit(0)
 //     BoundingBoxCycleDefinedBoundaryCondition * loadr = new BoundingBoxCycleDefinedBoundaryCondition(cycles, bctypes, positions) ;
     BoundingBoxDefinedBoundaryCondition * loadr = new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ETA, TOP, loadfunc) ;
+    loadr->setActive(true);
     F.addBoundaryCondition ( loadr );
 
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_XI, LEFT_AFTER ) ) ;
     F.addBoundaryCondition ( new BoundingBoxDefinedBoundaryCondition ( FIX_ALONG_ETA,BOTTOM_AFTER ) ) ;
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
-    F.setDeltaTime(.0025);
-    F.setMinDeltaTime(.00001);
+    F.setDeltaTime(.1);
+    F.setMinDeltaTime(.0005);
     F.setOrder(LINEAR_TIME_LINEAR) ;
 
     F.setMaxIterationsPerStep ( 50 );

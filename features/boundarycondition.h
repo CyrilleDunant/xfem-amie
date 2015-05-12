@@ -24,6 +24,7 @@ protected:
     LagrangeMultiplierType condition;
     double data ;
     double scale ;
+    bool active ;
     Function dataFunction ;
     int axis ;
     bool function ;
@@ -56,6 +57,7 @@ public:
         cache2d.clear();
         cache3d.clear();
     }
+    virtual void setActive(bool a) {active = a ;}
 
     virtual void setScale(double) ;
     virtual double getScale() const;

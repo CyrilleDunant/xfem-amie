@@ -682,7 +682,9 @@ bool Assembly::make_final()
     bool symmetric = true ;
     std::sort(multipliers.begin(), multipliers.end()) ;
 
-//	size_t ndof = 2 ;
+//	size_t ndof = 2 ;        
+    size_t max ;
+    VirtualMachine vm ; 
 
     if(dim == SPACE_TWO_DIMENSIONAL)
     {
@@ -693,7 +695,8 @@ bool Assembly::make_final()
             return false ;
         }
 
-        size_t max ;
+
+        
         if(!coordinateIndexedMatrix)
         {
 
@@ -786,7 +789,7 @@ bool Assembly::make_final()
                 addToExternalForces = 0 ;
             }
         }
-        else
+        else if (element2d[0]->timePlanes() > 1)
         {
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
             size_t instants = element2d[0]->timePlanes() ;
@@ -915,8 +918,13 @@ bool Assembly::make_final()
 //             delete mask ;
 //             mask = nullptr ;
         }
-
-        VirtualMachine vm ; 
+        else
+        {
+            coordinateIndexedMatrix->array = 0 ;
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+        }
+        
+        
         for(size_t i = 0 ; i < element2d.size() ; i++)
         {
             if(!element2d[i]->getBehaviour())
@@ -1032,43 +1040,56 @@ bool Assembly::make_final()
         checkZeroLines() ;
 
     }
-    if(dim == SPACE_THREE_DIMENSIONAL)
+    else
     {
 
-        if(element3d.empty() && coordinateIndexedMatrix != nullptr)
+        if( element3d.empty() && coordinateIndexedMatrix)
         {
             std::cerr << "no elements in mesh (3D) !" << std::endl ;
             return false ;
         }
 
-        size_t max ;
-//		ndof = element3d[0]->getBehaviour()->getNumberOfDegreesOfFreedom() ;
-
-        if( coordinateIndexedMatrix == nullptr)
+       
+        if(!coordinateIndexedMatrix)
         {
+
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
+            size_t instants = element3d[0]->timePlanes() ;
+            size_t dofsperplane = element3d[0]->getBoundingPoints().size() / instants ;
 
             for(size_t i = 0 ; i < element3d.size() ; i++)
             {
                 if(i%100000 == 0)
-                    std::cerr << "\r computing sparsness pattern... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
+                    std::cerr << "\r computing sparsness pattern... triangle " << i+1 << "/" << element3d.size() << std::flush ;
                 std::vector<size_t> ids = element3d[i]->getDofIds() ;
+                size_t additionalDofPerPlane = ids.size()/instants - dofsperplane ;
 
-                for(size_t j = 0 ; j< ids.size() ; j++)
+                for(size_t j = 0 ; j < dofsperplane * instants ; j++)
                 {
                     map->insert(std::make_pair(ids[j], ids[j])) ;
-                }
-
-                for(size_t j = 0 ; j< ids.size() ; j++)
-                {
-                    for(size_t k = j+1 ; k< ids.size() ; k++)
+                    if( j >=  dofsperplane * instants - dofsperplane )
                     {
-                        map->insert(std::make_pair(ids[j], ids[k])) ;
-                        map->insert(std::make_pair(ids[k], ids[j])) ;
+                        for( size_t k = 0 ; k < j ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
+                        for( size_t k = j+1 ; k < ids.size() ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
                     }
                 }
-            }
 
+                for(size_t j = dofsperplane * instants ; j < ids.size() ; j++)
+                {
+                    map->insert(std::make_pair(ids[j], ids[j])) ;
+
+                    if( j >= ids.size() - additionalDofPerPlane )
+                    {
+                        for( size_t k = 0 ; k < j ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
+                        for( size_t k = j+1 ; k < ids.size() ; k++)
+                            map->insert( std::make_pair(ids[j], ids[k])) ;
+                    }
+
+                }
+            }
             max = map->rbegin()->first +1;
             size_t realDofs = max ;
             for(size_t i = 0 ; i < multipliers.size() ; i++)
@@ -1078,139 +1099,291 @@ bool Assembly::make_final()
                     std::valarray<unsigned int> ids = multipliers[i].getDofIds() ;
                     for(size_t j = 0 ; j< ids.size() ; j++)
                     {
+                        multipliers[i].setId( max ) ;
                         map->insert(std::make_pair( ids[j], multipliers[i].getId())) ;
                         map->insert(std::make_pair( multipliers[i].getId(), ids[j])) ;
                     }
                     max++ ;
                 }
             }
-
             //filling eventual gaps
             for(size_t i = 0 ; i < realDofs ; i++)
             {
                 map->insert(std::make_pair(i,i)) ;
             }
+            map->insert(std::make_pair(ndofmax-1,ndofmax-1)) ;
 
+            std::cerr << " ...done" << std::endl ;
             size_t total_num_dof = map->rbegin()->first+1 ;
-            nonLinearExternalForces.resize(total_num_dof, 0.) ;
+
             std::valarray<unsigned int> row_length((unsigned int)0, total_num_dof) ;
             std::valarray<unsigned int> column_index((unsigned int)0, map->size()) ;
+
             size_t current = 0 ;
-            for(std::set<std::pair<unsigned int, unsigned int> >::const_iterator i = map->begin() ; i != map->end() ; ++i)
+            for(auto i = map->begin() ; i != map->end() ; ++i)
             {
                 row_length[i->first]++ ;
                 column_index[current] = i->second ;
                 current++ ;
             }
+
             delete map ;
             coordinateIndexedMatrix = new CoordinateIndexedSparseMatrix(row_length, column_index, ndof) ;
             if(max < ndofmax)
                 max = ndofmax ;
             if(displacements.size() != max)
             {
-                displacements.resize(max) ;
-                displacements = 0 ;
+                displacements.resize(max, 0.) ;
+                addToExternalForces.resize(max, 0.) ;
             }
+            else
+            {
+                displacements = 0 ;
+                addToExternalForces = 0 ;
+            }
+        }
+        else if (element3d[0]->timePlanes() > 1)
+        {
+            std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
+            size_t instants = element3d[0]->timePlanes() ;
+            size_t dofsperplane = element3d[0]->getBoundingPoints().size() / instants ;
+
+            for(size_t i = 0 ; i < element3d.size() ; i++)
+            {
+                size_t dofCount = element3d[i]->getShapeFunctions().size()+element3d[i]->getEnrichmentFunctions().size() ;
+                std::vector<size_t> ids = element3d[i]->getDofIds() ;
+
+                if(!element3d[i]->behaviourUpdated && !element3d[i]->enrichmentUpdated && element3d[i]->getCachedElementaryMatrix().size() && element3d[i]->getCachedElementaryMatrix()[0].size() == dofCount)
+                {
+                     
+                     for(size_t j = 0 ; j < ids.size() ; j++)
+                     {
+                         map->insert( std::make_pair(ids[j], ids[j])) ;
+                         bool foundOne = false ;
+                         for(size_t k = 0 ; k < ndof ; k++)
+                         {
+                             if(std::binary_search(multipliers.begin(), multipliers.end(), ids[j]*ndof+k))
+                             {
+                                 foundOne = true ;
+                                 break ;
+                             }
+                         }
+                         if(foundOne)
+                         {    
+                            for( size_t k = 0 ; k < ids.size() ; k++)
+                            {
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                                map->insert( std::make_pair(ids[k], ids[j])) ;
+                            }
+                         }
+                     } 
+                }
+                else
+                {
+                    if(i%100000 == 0)
+                        std::cerr << "\r computing mask sparsness pattern... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
+                    size_t additionalDofPerPlane = ids.size()/instants - dofsperplane ;
+
+                    for(size_t j = 0 ; j < dofsperplane * instants ; j++)
+                    {
+                        map->insert(std::make_pair(ids[j], ids[j])) ;
+                        if( j >=  dofsperplane * instants - dofsperplane )
+                        {
+                            for( size_t k = 0 ; k < j ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                            for( size_t k = j+1 ; k < ids.size() ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                        }
+                    }
+
+                    for(size_t j = dofsperplane * instants ; j < ids.size() ; j++)
+                    {
+                        map->insert(std::make_pair(ids[j], ids[j])) ;
+
+                        if( j >= ids.size() - additionalDofPerPlane )
+                        {
+                            for( size_t k = 0 ; k < j ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                            for( size_t k = j+1 ; k < ids.size() ; k++)
+                                map->insert( std::make_pair(ids[j], ids[k])) ;
+                        }
+
+                    }
+                }
+            }
+            
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+            std::vector<int> maskFails ;
+            //filling eventual gaps
+            for(size_t i = 0 ; i < max ; i++)
+            {
+                if(map->find(std::make_pair(i,i)) == map->end())
+                {
+                    map->insert(std::make_pair(i,i)) ;
+                    maskFails.push_back(i);
+                }
+            }
+            map->insert(std::make_pair(ndofmax-1,ndofmax-1)) ;
 
             std::cerr << " ...done" << std::endl ;
+            size_t total_num_dof = map->rbegin()->first+1 ;
+
+            std::valarray<unsigned int> row_length((unsigned int)0, total_num_dof) ;
+            std::valarray<unsigned int> column_index((unsigned int)0, map->size()) ;
+
+            size_t current = 0 ;
+            for(auto i = map->begin() ; i != map->end() ; ++i)
+            {
+                row_length[i->first]++ ;
+                column_index[current] = i->second ;
+                current++ ;
+            }
+
+            delete map ;
+            delete mask ;
+            mask = new CoordinateIndexedSparseMaskMatrix(row_length, column_index, ndof) ; 
+            size_t blocksize = ndof*(ndof+ndof%2) ;
+            for(size_t i = 0 ; i < maskFails.size() ; i++)
+            {
+                bool * array_iterator = &((*mask)[maskFails[i]*ndof][maskFails[i]*ndof]) ;
+                for(size_t l = 0 ; l < blocksize ; l++)
+                {
+                    *array_iterator  = false ;
+                    array_iterator++ ;
+                }
+            }
+   
+            current = 0 ;
+            for(size_t i = 0 ; i < row_length.size() ; i++)
+            {
+                for(size_t j = 0 ; j < row_length[i] ; j++)
+                {
+                    double * array_iterator = getMatrix()[i*ndof].getPointer(column_index[current++]*ndof) ;
+                    for(size_t l = 0 ; l < blocksize ; l++)
+                    {
+                        * array_iterator = 0 ;
+                        array_iterator++ ;
+                    }
+                }
+            }
+            max = coordinateIndexedMatrix->accumulated_row_size.size() ;
+//             coordinateIndexedMatrix->array = 0 ;
+//             delete mask ;
+//             mask = nullptr ;
         }
         else
         {
+            coordinateIndexedMatrix->array = 0;
             max = coordinateIndexedMatrix->accumulated_row_size.size() ;
         }
 
-        coordinateIndexedMatrix->array = 0 ;
-        VirtualMachine vm ;
-
         for(size_t i = 0 ; i < element3d.size() ; i++)
         {
+            if(!element3d[i]->getBehaviour())
+                continue ;
+
             if(i%10000 == 0)
                 std::cerr << "\r computing stiffness matrix... tetrahedron " << i+1 << "/" << element3d.size() << std::flush ;
-
             std::vector<size_t> ids = element3d[i]->getDofIds() ;
-
+            element3d[i]->getElementaryMatrix(&vm) ;
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
                 ids[j] *= ndof ;
             }
-            element3d[i]->getElementaryMatrix(&vm) ;
-//             Matrix test(ids.size()*ndof, ids.size()*ndof) ;
+            
             for(size_t j = 0 ; j < ids.size() ; j++)
             {
+
+                
                 double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
-                for(size_t m = 0 ; m < ndof  ; m++)
+                //data is arranged column-major, with 2-aligned columns
+                
+                for(size_t m = 0 ; m < ndof ; m++)
                 {
-                    for(size_t l = 0 ; l < ndof  ; l++)
+                    for(size_t n = 0 ; n < ndof ; n++)
                     {
-                        *array_iterator += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][j][l][m] ;
+                        *array_iterator += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][j][n][m] ;
                         array_iterator++ ;
                     }
-                    if(ndof %2 != 0)
-                       array_iterator++ ; 
+                    if(ndof%2 != 0)
+                        array_iterator++ ;
                 }
 
                 for(size_t k = j+1 ; k < ids.size() ; k++)
                 {
-                    double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
-                    double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
-                    for(size_t m = 0 ; m < ndof  ; m++)
+                    if(mask && !(*mask)[ids[j]][ids[k]] && !(*mask)[ids[k]][ids[j]])
                     {
-                        for(size_t l = 0 ; l < ndof  ; l++)
+                    }
+                    else
+                    {
+                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                        for(size_t m = 0 ; m < ndof ; m++)
                         {
-                            *array_iterator0 += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][k][l][m] ;
-                            *array_iterator1 += scales[i] * element3d[i]->getCachedElementaryMatrix()[k][j][l][m] ;
-                            array_iterator0++ ;
-                            array_iterator1++ ;
-                        }
-                        if(ndof%2 != 0)
-                        {
-                            array_iterator0++ ;
-                            array_iterator1++ ;
+                            for(size_t n = 0 ; n < ndof ; n++)
+                            {
+                                *array_iterator0 += scales[i] * element3d[i]->getCachedElementaryMatrix()[j][k][n][m] ;
+                                *array_iterator1 += scales[i] * element3d[i]->getCachedElementaryMatrix()[k][j][n][m] ;
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
+                            }
+                            if(ndof%2 != 0)
+                            {
+                                array_iterator0++ ; 
+                                array_iterator1++ ;
+                            }
                         }
                     }
+                   
                 }
             }
 
             if(element3d[i]->getBehaviour()->isViscous())
             {
-                element3d[i]->getViscousElementaryMatrix() ;
+                element3d[i]->getViscousElementaryMatrix(&vm) ;
                 for(size_t j = 0 ; j < ids.size() ; j++)
                 {
-                     double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
-                    for(size_t m = 0 ; m < ndof  ; m++)
+
+                    double * array_iterator = getMatrix()[ids[j]].getPointer(ids[j]) ;
+                    for(size_t m = 0 ; m < ndof ; m++)
                     {
-                        for(size_t l = 0 ; l < ndof  ; l++)
+                        for(size_t n = 0 ; n < ndof ; n++)
                         {
-                            *array_iterator += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][j][l][m] ;
-                            array_iterator++ ; 
+                            *array_iterator += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][j][n][m] ;
+                            array_iterator++ ;
                         }
-                        if(ndof %2 != 0)
-                            array_iterator++ ; 
+                        if(ndof%2 != 0)
+                            array_iterator++ ;
                     }
 
                     for(size_t k = j+1 ; k < ids.size() ; k++)
                     {
-                        double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
-                        double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
-                        for(size_t m = 0 ; m < ndof  ; m++)
+                        if(mask &&  !(*mask)[ids[j]][ids[k]] && !(*mask)[ids[k]][ids[j]])
                         {
-                            for(size_t l = 0 ; l < ndof  ; l++)
+                        }
+                        else
+                        {
+                            double * array_iterator0 = getMatrix()[ids[j]].getPointer(ids[k]) ;
+                            double * array_iterator1 = getMatrix()[ids[k]].getPointer(ids[j]) ;
+                            for(size_t m = 0 ; m < ndof ; m++)
                             {
-                                * array_iterator0 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][k][l][m] ;
-                                * array_iterator1 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[k][j][l][m] ;
-                                array_iterator0++ ;
-                                array_iterator1++ ; 
-                            }
-                            if(ndof%2 != 0)
-                            {
-                                array_iterator0++ ;
-                                array_iterator1++ ;
+                                for(size_t n = 0 ; n < ndof ; n++)
+                                {
+                                    *array_iterator0 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[j][k][n][m] ;
+                                    *array_iterator1 += scales[i] * element3d[i]->getCachedViscousElementaryMatrix()[k][j][n][m] ;
+                                    array_iterator0++ ; 
+                                    array_iterator1++ ;
+                                }
+                                if(ndof%2 != 0)
+                                {
+                                    array_iterator0++ ; 
+                                    array_iterator1++ ;
+                                }
                             }
                         }
                     }
                 }
             }
-			element3d[i]->clearElementaryMatrix() ;
         }
 
         std::cerr << " ...done" << std::endl ;

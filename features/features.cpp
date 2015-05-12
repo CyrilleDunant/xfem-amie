@@ -5663,17 +5663,37 @@ bool FeatureTree::stepToCheckPoint( int iterations)
         step() ;
     maxitPerStep = prevmaxit ;
     
+//     for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
+//     {
+//         TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[k] ) ;
+//         if ( timec )
+//         {
+//             timec->goToNext = false ;
+//             timec->instant = 1. ;
+//         }
+//     }
+    
     //at this point, we should have found a checkpoint.
     
     if(!ret)
     {
+        for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
+        {
+            TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[k] ) ;
+            if ( timec )
+            {
+                timec->goToNext = false ;
+                timec->instant = 0. ;
+            }
+        }
+        
         elastic = true ;
         double currentScale = 0.5 ;
         double highscale = 1. ;
         double bottomscale= 0. ;
         
 
-        while(highscale-bottomscale > minDeltaTime*.5)
+        while(highscale-bottomscale > minDeltaTime*.25)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;
@@ -5732,6 +5752,9 @@ bool FeatureTree::stepToCheckPoint( int iterations)
     
     damageConverged = solverConverged() && !behaviourChanged() ;
 
+    stateConverged = true ;
+    state.meshed = true ;
+    behaviourChange = false ;
     if(damageConverged)
         K->setPreviousDisplacements() ;
 

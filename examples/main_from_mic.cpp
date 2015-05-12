@@ -68,49 +68,33 @@ int main(int argc, char *argv[])
          
     while(!time_and_densities.eof())
     {
-        double correction = 1.6 ; // sc is 1
+        double correction = .77 ; // sc is 1
         double t ;
         double d032,d040,d048,d032_,d040_,d048_ ;
         double p032, p040, p048 ;
         double sc032, sc040, sc048 ;
-        double phi ;
                            // 1      2       3       4       5       6      7        8       9        10        11       12       13
         time_and_densities >> t >> d032 >> d040 >> d048 >> p032 >> p040 >> p048 >> d032_ >> d040_ >> d048_ >> sc032 >> sc040 >> sc048;
         timesd.push_back(t) ;
         if(atoi(argv[3]) == 0)
         {
             densities.push_back(d032_ * correction);
-            phi = p032 ;
         }
         else if(atoi(argv[3]) == 1)
         {
             densities.push_back(d040_ * correction);
-            phi = p040 ;
         }
         else
         {
             densities.push_back(d048_ * correction );
-            phi = p048 ;
         }
-        
-//         if(t > 15)
-//         {
-//             Stiffness sp(Tensor::cauchyGreen(std::make_pair(0,.4997), true,SPACE_THREE_DIMENSIONAL)) ;
-//             Phase porosity(&sp, phi) ;
-//             Stiffness scsh(Tensor::cauchyGreen(std::make_pair(1,.25), true,SPACE_THREE_DIMENSIONAL)) ;
-//             Phase csh(&scsh, 1.-phi) ;
-//             BiphasicSelfConsistentComposite sc(porosity,csh) ;
-//             double fac = sc.getBehaviour()->getTensor(Point())[0][0]/scsh.param[0][0]  ;
-//             if(fac < densities.back())
-//                 densities.back() = fac ;
-//         }
-        
+
     }
     
     std::map<unsigned char,Form *> behaviourMap ;
     behaviourMap[0] = new Stiffness(m0) ;  // C3S
     behaviourMap[1] = new C3SBehaviour() ;  // C3S
-    behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,std::vector<double>(), timesd) ; // inner C-S-H 
+    behaviourMap[6] = new CSHBehaviour(INNER_CSH, densities,std::vector<double>(),timesd) ; // inner C-S-H 
     behaviourMap[7] = new CSHBehaviour(OUTER_CSH, densities,std::vector<double>(),timesd) ;  // outer C-S-H
     behaviourMap[8] = new CHBehaviour() ; // CH 
     
@@ -126,7 +110,7 @@ int main(int argc, char *argv[])
 //     behaviourMap[3] = new Viscoelasticity(PURE_ELASTICITY, m0) ;  // outer C-S-H
 //     behaviourMap[4] = new Viscoelasticity(PURE_ELASTICITY, m0) ; // inner C-S-H
     FeatureTree F( argv[1], behaviourMap, timesd ) ;
-    F.setDeltaTime(10);
+    F.setDeltaTime(5);
     F.setOrder(LINEAR) ;
     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_ALONG_ZETA, FRONT, -1e-6)) ;
 //     F.addBoundaryCondition(new BoundingBoxDefinedBoundaryCondition(SET_NORMAL_STRESS, RIGHT, -1.)) ;

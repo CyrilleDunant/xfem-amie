@@ -121,13 +121,13 @@ double NonLocalMCFT::getRebarConcreteTensileCriterion(const Amie::ElementState& 
 
     }
     else
-        return -1.+tstrain/tensionCritStrain ;
+        return -1.+std::abs(tstrain/tensionCritStrain) ;
 
     double criterion0 = 0 ;
     if(maxTension > POINT_TOLERANCE)
         return  std::abs(tstress/maxTension)-1. ;
     else
-        return tstress/upVal ;
+        return tstress/upVal-1. ;
 
 
     return -1.+criterion0 ; 

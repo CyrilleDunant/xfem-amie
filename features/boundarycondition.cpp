@@ -7613,13 +7613,14 @@ void BoundingBoxDefinedBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTet
     }
 }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), axis ( a ), function ( false ) { }
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const double & d, int a ) :  condition ( t ),data ( d ), scale ( 1 ), active(false), axis ( a ), function ( false ) { }
 
-BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), dataFunction ( d ), axis ( a ), function ( true ) { }
+BoundaryCondition::BoundaryCondition ( LagrangeMultiplierType t, const Function & d, int a ) :  condition ( t ), scale ( 1 ), active(false), dataFunction ( d ), axis ( a ), function ( true ) { }
 
 void BoundaryCondition::setScale ( double d )
 {
-    scale = d ;
+    if(active)
+        scale = d ;
 }
 
 double BoundaryCondition::getScale() const
