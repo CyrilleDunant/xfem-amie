@@ -57,14 +57,15 @@ using namespace Amie ;
 
 int main(int argc, char *argv[])
 {
- 	omp_set_num_threads(1) ;
+// 	omp_set_num_threads(1) ;
 
         Sample rect(nullptr, 0.04,0.04,0,0) ;
-	rect.setBehaviour(new ViscoElasticOnlyAggregateBehaviour(10e9) ) ;
+	rect.setBehaviour(new Viscoelasticity(MAXWELL, ElasticOnlyPasteBehaviour(10e9).param, ElasticOnlyPasteBehaviour(10e9).param*10 ) ) ;
+//	rect.setBehaviour(new LogarithmicCreepWithExternalParameters("young_modulus = 10e9, poisson_ratio = 0.2, creep_characteristic_time = 5, creep_modulus = 20e9, creep_poisson = 0.2") ) ;
 
 	FeatureTree f(&rect) ;
         f.setOrder( LINEAR_TIME_LINEAR ) ;
-	f.setSamplingNumber(8) ;
+	f.setSamplingNumber(2) ;
         f.setDeltaTime(1) ;
 	
 	f.step() ;
@@ -78,12 +79,11 @@ int main(int argc, char *argv[])
 
 	for(size_t i = 0 ; i < 20 ; i++)
 	{
-                f.setDeltaTime((double) i+1) ;
+//                f.setDeltaTime((double) i+1) ;
 		f.step() ;
 		std::cout << f.getCurrentTime() << "\t" << f.getAverageField( REAL_STRESS_FIELD, -1,1 )[1] << "\t" << f.getAverageField( STRAIN_FIELD, -1,1 )[1] << std::endl ;
 	}
 
-//        f.getAssembly()->print() ;
 
 
 	TriangleWriter trg( "larger", &f, 1.) ;

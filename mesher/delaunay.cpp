@@ -2387,8 +2387,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
         return cachedElementaryMatrix ;
     }
 
-//     std::cout << ";" << std::endl ;
-
 
     size_t ndofs = getBehaviour()->getNumberOfDegreesOfFreedom() ;
 
@@ -2496,6 +2494,9 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 
     }
 
+    if(behaviour->isViscous())
+        getViscousElementaryMatrix(vm) ;
+
     enrichmentUpdated = false ;
     behaviourUpdated = false ;
     
@@ -2511,7 +2512,6 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getElementaryMatrix(Vi
 std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMatrix(VirtualMachine * vm)
 {
     size_t dofCount = getShapeFunctions().size()+getEnrichmentFunctions().size() ;
-
 
     if( !behaviourUpdated && !enrichmentUpdated && cachedViscousElementaryMatrix.size() && cachedViscousElementaryMatrix[0].size() == dofCount)
     {
@@ -2530,7 +2530,7 @@ std::valarray<std::valarray<Matrix> > & DelaunayTriangle::getViscousElementaryMa
         getSubTriangulatedGaussPoints() ;
     }
 
-    if(!getState().JinvCache ||isMoved())
+    if(!getState().JinvCache || isMoved())
     {
         if(getState().JinvCache)
             delete getState().JinvCache ;
@@ -2657,6 +2657,16 @@ void DelaunayTriangle::adjustElementaryMatrix(double previousTimeStep, double ne
 
     if( getBehaviour() && !getBehaviour()->isViscous() )
         return ;
+
+    if( (getState().JinvCache ) ) 
+    {
+        delete (getState().JinvCache) ; 
+        getState().JinvCache = new Matrix (  spaceDimensions()+(timePlanes()>1), spaceDimensions()+(timePlanes()>1)) ;
+        getInverseJacobianMatrix ( Point( 1./3.,1./3.), (*getState().JinvCache) ) ;
+    }
+
+//    getState().
+
     if( ! this->getBehaviour()->timeDependent() && ! this->getBehaviour()->spaceDependent() && getEnrichmentFunctions().size() == 0)
     {
         scaleCachedElementaryMatrix( previousTimeStep / nextTimeStep) ;
