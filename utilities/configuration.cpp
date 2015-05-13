@@ -2558,6 +2558,12 @@ void ConfigTreeItem::exportSvgTriangles(MultiTriangleWriter * trg, FeatureTree *
     if(!trg)
         return ;
 
+    if(getStringData("svg", "TRUE") == "FALSE")
+    {
+        exportTriangles( F, i, nsteps) ;
+        return ;
+    }
+
     if(getChild("time_step")->isAtTimeStep(i, nsteps))
     {
         std::string instant = getStringData("instant","NOW") ;
