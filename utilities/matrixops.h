@@ -173,7 +173,10 @@ public:
         r = x ;
         c = y ;
         if(v == nullptr)
+        {
             v = new Vector(0., x*y) ;
+            noClean = false ;
+        }
         else
             v->resize(x*y, 0.) ;
     }
