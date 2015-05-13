@@ -306,12 +306,7 @@ double BranchedCrack::propagationAngleFromTip(const std::pair<Point *, double> &
 	
 	if ( acount )
 		aangle /= acount ;
-// 	aangle += M_PI*.25 ;
-// 	if(std::abs(aangle-tip.second) > M_PI*.5)
-// 		aangle += M_PI ;
-// 	std::cout << "!!!" << std::endl ;
-// 	std::cout << aangle << std::endl ;
-// 	std::cout << "!!!" << std::endl ;
+
 	return aangle ;
 }
 
@@ -932,58 +927,8 @@ void BranchedCrack::enrichTip(size_t & lastId, Mesh<DelaunayTriangle,DelaunayTre
 		bool hinted = false ;
 		int pcount = 0 ;
 		
-// 		Function blend = getBlendingFunction(&epsilon, triangles[i]) ;
-// 		if(epsilon.in(*triangles[i]->first) && epsilon.in(*triangles[i]->second) && epsilon.in(*triangles[i]->third))
+
 			Function blend = Function("1") ;
-		
-// 		if(triangles[i]->in(*tip.first))
-// 		{
-// 			for(double k = 0 ; k < 1 ; k+=0.01)
-// 			{
-// 				for(double l = 0 ; l < 1 ; l+=0.01)
-// 				{
-// 					if(k+l < 1)
-// 						std::cout << vm.eval(f0, k, l) << "   " << std::flush ;
-// 					else
-// 						std::cout << 0 << "   " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			for(double k = 0 ; k < 1 ; k+=0.01)
-// 			{
-// 				for(double l = 0 ; l < 1 ; l+=0.01)
-// 				{
-// 					if(k+l < 1)
-// 						std::cout << vm.eval(f1, k, l) << "   " << std::flush ;
-// 					else
-// 						std::cout << 0 << "   " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			for(double k = 0 ; k < 1 ; k+=0.01)
-// 			{
-// 				for(double l = 0 ; l < 1 ; l+=0.01)
-// 				{
-// 					if(k+l < 1)
-// 						std::cout << vm.eval(f2, k, l) << "   " << std::flush ;
-// 					else
-// 						std::cout << 0 << "   " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			for(double k = 0 ; k < 1 ; k+=0.01)
-// 			{
-// 				for(double l = 0 ; l < 1 ; l+=0.01)
-// 				{
-// 					if(k+l < 1)
-// 						std::cout << vm.eval(f3, k, l) << "   " << std::flush ;
-// 					else
-// 						std::cout << 0 << "   " << std::flush ;
-// 				}
-// 				std::cout << std::endl ;
-// 			}
-// 			exit(0) ;
-// 		}
 		
 
 		if(epsilon.in(*triangles[i]->first))

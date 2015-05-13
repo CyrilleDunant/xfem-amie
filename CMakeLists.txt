@@ -406,6 +406,9 @@ target_link_libraries( homogenization Amie ${ALL_LINK_FLAGS})
 add_executable(tripoint examples/main_tripoint.cpp )
 target_link_libraries( tripoint Amie ${ALL_LINK_FLAGS})
 
+add_executable(tripoint_simple examples/main_tripoint_simple.cpp )
+target_link_libraries( tripoint_simple Amie ${ALL_LINK_FLAGS})
+
 add_executable(irradiation examples/main_irradiation.cpp )
 target_link_libraries( irradiation Amie ${ALL_LINK_FLAGS})
 

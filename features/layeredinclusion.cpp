@@ -124,7 +124,6 @@ Form * LayeredInclusion::getBehaviour(const Point & p)
 	
 	for(size_t i = 0 ; i < getRadii().size() ; i++)
 	{
-// 		std::cout << pRadius << " vs " << getRadii()[i] << std::endl ;
 		if (pRadius < getRadii()[i])
 			return layeredBehaviour[i] ;
 	}

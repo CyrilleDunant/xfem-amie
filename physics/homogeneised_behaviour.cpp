@@ -95,15 +95,6 @@ HomogeneisedBehaviour::HomogeneisedBehaviour( std::vector<Feature *> feats, Dela
     equivalent = composite.inclusions[0].getBehaviour() ;
     equivalent->getTensor(Point(0,0)).print() ;
 
-    /*	if(original->getFractureCriterion())
-    	{
-    		FractureCriterion * frac = original->getFractureCriterion() ;
-    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-    		std::cout << alpha[0] << std::endl ;
-    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,frac->getCopy()) ;
-    	}*/
-
     v.push_back( XI );
     v.push_back( ETA );
     v.push_back( ZETA );
@@ -116,44 +107,18 @@ void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> fea
 {
 
     VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-    /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-    	FractureCriterion * fracCopy = nullptr ;
-    	if(frac)
-    	{
-    		fracCopy = frac->getCopy() ;
-    	}*/
+
     delete equivalent ;
     equivalent = composite.getBehaviour() ;
-    /*	if(fracCopy)
-    	{
-    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-    		delete equivalent ;
-    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
-    	}*/
-
 
 }
 
 void HomogeneisedBehaviour::updateEquivalentBehaviour(std::vector<Feature *> feats, DelaunayTetrahedron * self)
 {
     VoigtMatrixMultiInclusionComposite composite( self, feats ) ;
-    /*	FractureCriterion * frac = equivalent->getFractureCriterion() ;
-    	FractureCriterion * fracCopy = nullptr ;
-    	if(frac)
-    	{
-    		fracCopy = frac->getCopy() ;
-    	}*/
+
     delete equivalent ;
     equivalent = composite.getBehaviour() ;
-    /*	if(fracCopy)
-    	{
-    		Matrix C = equivalent->getTensor(Point(1./3,1./3,1./3)) ;
-    		Vector alpha = static_cast<StiffnessWithImposedDeformation *>(equivalent)->imposed ;
-    		delete equivalent ;
-    		equivalent = new StiffnessWithImposedDeformationAndFracture(C,alpha,fracCopy) ;
-    	}*/
-
 
 }
 

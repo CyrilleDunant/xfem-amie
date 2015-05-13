@@ -64,27 +64,13 @@ Matrix BimaterialInterface::getViscousTensor(const Point & p, IntegrableEntity *
 
 Vector BimaterialInterface::getImposedStress(const Point & p, IntegrableEntity * e, int g) const
 {
-    /*	VirtualMachine vm ;
-    	Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
-    //	std::cout << p.getT() << ";" ;
-    	if(inGeometry->in(test))
-    	{
-    // 		std::cout << "  padum " << test.getT() << std::endl ;
-    // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
-    		return inBehaviour->getImposedStress(p,e,g) ;
-    	}*/
+
     return outBehaviour->getImposedStress(p,e,g) ;
 }
 
 Vector BimaterialInterface::getImposedStrain(const Point & p, IntegrableEntity * e, int g) const
 {
-    /*	VirtualMachine vm ;
-    	Point test = Point(vm.eval(xtransform, p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ytransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ztransform,  p.getX(), p.getY(), p.getZ(), p.getT()), vm.eval(ttransform, p.getX(),p.getY(),p.getZ(),p.getT())) ;
-    	if(inGeometry->in(test))
-    	{
-    // 		std::cout << inBehaviour->getImposedStress(p)[0] << std::endl ;
-    		return inBehaviour->getImposedStrain(p,e,g) ;
-    	}*/
+
     return outBehaviour->getImposedStrain(p,e,g) ;
 }
 

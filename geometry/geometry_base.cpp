@@ -1521,10 +1521,6 @@ bool Geometry::intersects(const Geometry *g) const
                 Segment s2( g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge*2), g->getBoundingPoint(i*pointsPerPlane)) ;
                 if(s0.intersects(this) || s1.intersects(this) || s2.intersects(this))
                 {
-//					std::cout << current.getRadius() << std::endl ;
-// 					g->getBoundingPoint(i*pointsPerPlane).print() ;
-// 					g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge).print() ;
-// 					g->getBoundingPoint(i*pointsPerPlane+pointsPerEdge*2).print() ;
                     return true ;
                 }
             }

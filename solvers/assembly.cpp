@@ -789,7 +789,7 @@ bool Assembly::make_final()
                 addToExternalForces = 0 ;
             }
         }
-        else if (element2d[0]->timePlanes() > 1)
+        else if (element2d[0]->timePlanes() == 1)
         {
             std::set<std::pair<unsigned int, unsigned int> > * map  = new std::set<std::pair<unsigned int, unsigned int> >();
             size_t instants = element2d[0]->timePlanes() ;
@@ -1960,12 +1960,7 @@ bool Assembly::solve(Vector x0, size_t maxit, const bool verbose)
 bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
 {
     bool ret = true ;
-// 	if(coordinateIndexedMatrix == nullptr)
-// 	double lambda_min = smallestEigenValue(getMatrix()) ;
-// 	double lambda_max = largestEigenValue(getMatrix()) ;
-// // 		std::cout << "largest eigenvalue = " << lambda_max << std::endl ;
-// // 		std::cout << "smallest eigenvalue = " << lambda_min << std::endl ;
-// 	std::cout << "condition = " << (lambda_max)/(lambda_min) << std::endl ;
+
     timeval time0, time1 ;
     gettimeofday(&time0, nullptr);
 
@@ -1995,12 +1990,9 @@ bool Assembly::cgsolve(Vector x0, int maxit, bool verbose)
                 double offset = multipliersBuffer[i].getValue() ;
                 std::valarray<unsigned int> propid = multipliersBuffer[i].getDofIds() ;
                 Vector coefs = multipliersBuffer[i].coefs ;
-                std::cout << id << "\t" << displacements[id] << "\t" ;
                 displacements[id] = offset ;
-                std::cout << displacements[id] << "\t" ;
                 for(size_t j = 0 ; j < propid.size() ; j++)
                     displacements[id] += coefs[j]*displacements[ propid[j] ] ;
-                std::cout << displacements[id] << std::endl ;
             }
         }
 

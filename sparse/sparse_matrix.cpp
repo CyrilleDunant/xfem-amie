@@ -232,10 +232,6 @@ Vector CoordinateIndexedSparseMatrix::inverseDiagonal() const
         }
     }
 
-// 		else
-// 			ret[i] = 1 ;
-// 		std::cout << ret[i] << std::endl ;
-// 	}
     return ret ;
 }
 
@@ -260,8 +256,7 @@ Vector CoordinateIndexedSparseMatrix::diagonal() const
     for(size_t i = 0 ; i < row_size.size()*stride ; i++)
     {
         ret[i] = (*this)[i][i] ;
-// 		if(ret[i] == 0)
-// 			std::cout << i << " is null !!!" << std::endl ;
+
     }
     return ret ;
 }

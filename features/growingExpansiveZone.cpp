@@ -197,28 +197,23 @@ void GrowingExpansiveZone::enrich(size_t & counter, Mesh<DelaunayTriangle, Delau
         newInterface.insert( ring[i] ) ;
     }
 
-// 	std::cout << "\n" << ring.size() << std::endl ;
-// 	std::cout << inDisc.size() <<"\n" <<  std::endl ;
-//
+
     std::set<DelaunayTriangle *> newExpansive ;
 
     for( size_t i = 0 ; i < inDisc.size() ; i++ )
     {
         if( expansive.find( inDisc[i] ) == expansive.end() )
         {
-//			delete inDisc[i]->getBehaviour() ;
             inDisc[i]->setBehaviour(dtree, imp->getCopy() ) ;
             inDisc[i]->getBehaviour()->setSource( getPrimitive() );
         }
 
         newExpansive.insert( inDisc[i] ) ;
     }
-//	return ;
     expansive = newExpansive ;
     bimateralInterfaced = newInterface ;
 
     std::vector<DelaunayTriangle *> enriched(enrichedElem.begin(), enrichedElem.end());
-//	std::cout << enriched.size() << "\t" << counter << std::endl ;
 
 
     dofIdPrev = dofIdCurrent ;

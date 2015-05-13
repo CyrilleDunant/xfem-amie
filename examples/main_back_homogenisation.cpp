@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
   Sample3D s(sampleSide, sampleSide, sampleSide, 0., 0., 0.) ;
   s.setBehaviour(new ElasticOnlyPasteBehaviour(E_matrix, nu, SPACE_THREE_DIMENSIONAL) );
   
-  int dummy ;
   inner = placement3D(s.getPrimitive(), inner, .05, 0, 500) ;
   
   FeatureTree ft(&s) ;

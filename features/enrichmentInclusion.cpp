@@ -235,13 +235,6 @@ void EnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, Delauna
 
 
 
-// 	std::cout << "not-homogeneized " << disc.size() << std::endl ;
-
-
-//	for(size_t i = 0 ; i < disc.size() ; i++)
-//	{
-//		disc[i]->setBehaviour(this->getFather()->getBehaviour()->getCopy()) ;
-//	}
 
     //then we select those that are cut by the circle
     std::vector<DelaunayTriangle *> ring ;
@@ -460,6 +453,5 @@ void EnrichmentInclusion::setRadius(double newR)
 {
     Circle::setRadius(newR) ;
     updated = true ;
-//	std::cout << "updating radius" << std::endl ;
 }
 

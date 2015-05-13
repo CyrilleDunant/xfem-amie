@@ -717,8 +717,6 @@ Hexahedron::Hexahedron(Point p0, Point p1, Point p2, Point p3, Point p4, Point p
 
     for(size_t i = 0 ;  i < 8 ; i++)
     {
-
-// 		pts[i].print() ;std::cout << std::endl ;
         boundingPoints[i] = new Point(pts[i]) ;
     }
 

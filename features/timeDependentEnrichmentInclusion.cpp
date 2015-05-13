@@ -122,9 +122,6 @@ Function getTimeDependentBlendingFunction(const std::map<const Point *, int> & d
 
 void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTriangle, DelaunayTreeItem> * dtree)
 {
-//	std::cout << "are you called or what ???" << std::endl ;
-
-//	std::cout << lastId << std::endl ;
 
     freeIds.clear() ;
     if(updated)
@@ -133,13 +130,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
     }
     updated = false ;
     const std::vector<DelaunayTriangle *> & disc  = cache;
-
-// 	if(disc.size() < 2)
-// 	{
-// 		return ;
-// 	}
-
-//	std::cout << "hello" << std::endl ;
 
     std::vector<DelaunayTriangle *> ring ;
 
@@ -167,10 +157,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
                 break ;
 
             double ddt = 0. ;
-            /*			if(j == 0)
-            				ddt = -dt ;
-            			if(j == nodesIterator.size()-1)
-            				ddt = +dt ;*/
 
             Point A = disc[i]->getBoundingPoint( nodesIterator[j][0] ) ;
             A.getT() += ddt ;
@@ -200,7 +186,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
         }
     }
     std::sort(ring.begin(), ring.end()) ;
-//	std::cout << "\n" << ring.size() << "/" << disc.size() << std::endl ;
 
     //then we build a list of points to enrich
     std::set<Point *> points ;
@@ -235,7 +220,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
 
     for(size_t i = 0 ; i < ring.size() ; i++)
     {
-//		std::cout << "enriching triangle = " << i << "/" << ring.size() << std::endl ;
         enrichedElem.insert(ring[i]) ;
         std::vector<Point> hint ;
 
@@ -341,11 +325,6 @@ void TimeDependentEnrichmentInclusion::enrich(size_t & lastId, Mesh<DelaunayTria
             disc[i]->clearAllEnrichment() ;
     }
 
-//	std::cout << enrichedElem.size() << std::endl ;
-
-// 	std::cout << lastId << std::endl ;
-
-//	updated = true ;*/
 }
 
 void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*, Mesh< DelaunayTriangle, DelaunayTreeItem >* dtree)
@@ -357,14 +336,6 @@ void TimeDependentEnrichmentInclusion::step(double dt, std::valarray< double >*,
 
             changed = true ;
             updated = true ;
-
-//		std::cout << "update you bastard!" << std::endl ;
-        }
-        else
-        {
-//		changed = false ;
-//		updated = false ;
-
 
         }
     }
@@ -583,18 +554,8 @@ void TimeDependentHomogenisingInclusion::step(double dt, std::valarray< double >
         if( VirtualMachine().deval(TimeDependentCircle::getRadiusFunction(), TIME_VARIABLE, 0,0,0,dt) > POINT_TOLERANCE)
         {
 
-//		changed = true ;
-//		updated = true ;
-
-//		std::cout << "update you bastard!" << std::endl ;
         }
-        else
-        {
-//		changed = false ;
-//		updated = false ;
 
-
-        }
     }
     else
     {

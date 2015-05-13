@@ -534,7 +534,6 @@ public:
                 }
             }
         }
-        std::cout << caches[position].size() << std::endl ;
 
         return position ;
 

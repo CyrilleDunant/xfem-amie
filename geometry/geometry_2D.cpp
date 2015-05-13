@@ -1408,13 +1408,11 @@ void Circle::sampleSurface(size_t num_points)
         sampleBoundingSurface(num_points*3/2) ;
         sampled = true ;
         size_t numberOfRings = static_cast<size_t>((double)num_points/(2. * M_PI )) ;
-        // 	if(numberOfRings > 0)
-        // 		numberOfRings-- ;
+
         assert(numberOfRings >= 0) ;
         double angle = 2.*M_PI/ (num_points) ;
         double offset = 0 ;
 
-        //std::cout << "we have " << numberOfRings<< " rings" << std::endl ;
         size_t num_points_start = num_points ;
 
         std::vector<Point*> temp ;
@@ -1422,7 +1420,6 @@ void Circle::sampleSurface(size_t num_points)
         for (size_t i = 0 ; i< numberOfRings ; ++i)
         {
             double r = getRadius()*(1. - (double)(i + 1)/(numberOfRings+1)) ;
-            //std::cout << "radius is " << r << std::endl ;
 
             for (size_t j = 0 ; j< num_points ; ++j)
             {
@@ -1447,9 +1444,6 @@ void Circle::sampleSurface(size_t num_points)
         inPoints[0] = new Point(center) ;
         std::copy(temp.begin(), temp.end(),&inPoints[1]) ;
 
-        //	for(size_t i = 0 ; i < inPoints.size() ; i++)
-        //		inPoints[i]->print() ;
-        //std::cout << "we have " << num_points << " sample points" << std::endl ;
     }
 }
 
@@ -2535,12 +2529,10 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
         }
         done[i] = true ;
     }
-//    std::cout << "fourth-segments: " << segments.size() << std::endl ;
 
     // fifth, remove points too close to other edge 
     for(size_t i = 0 ; i < segments.size() ; i++)
     {
-//        std::cout << "fifth-iterator: " << i << std::endl ;
         for(size_t j = i+1 ; j < segments.size() ; j++)
         {
             if( dist( segments[i].first(), segments[j].second() ) < POINT_TOLERANCE || 
@@ -2548,7 +2540,6 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
                 dist( segments[i].second(), segments[j].first() ) < POINT_TOLERANCE ||
                 dist( segments[i].second(), segments[j].second() ) < POINT_TOLERANCE)
                 continue ; // segments are connected
-//            std::cout << "fifth-jiterator: " << j << std::endl ;
             
             Point p = segments[j].project( segments[i].first() ) ;
             if(dist(p, segments[i].first()) < 0.5*delta) // first point is too close to next segment
@@ -2591,7 +2582,6 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
             }
         }
     }
-//    std::cout << "fifth-segments: " << segments.size() << std::endl ;
 
     // last: reconstruct ordered polygons
     done.resize(segments.size()) ;
@@ -2601,7 +2591,6 @@ std::vector<Polygon> getInscribedPolygons( Polygon & p, double delta )
     {
         if(done[i])
             continue ;
-//        std::cout << "sixth-iterator: " << i << std::endl ;
 
         bool close = false ;
         bool allchecked = false ;
@@ -2680,15 +2669,12 @@ void Polygon::sampleSurface(size_t num_points)
         std::vector<Point> nextPoints ;
         for(size_t i = 0 ; i < clusters.size() ; i++)
         {
-//            std::cout << "tries: " << t++ << std::endl ;
             std::vector<Polygon> inscribed = getInscribedPolygons( clusters[i], delta ) ;
-//            std::cout << "next: " << inscribed.size() << std::endl ;
             if( inscribed.size() == 0 && clusters[i].getOriginalPoints().size() > 2)
                 newPoints.push_back( clusters[i].getCenter() ) ;
             for(size_t j = 0 ; j < inscribed.size() ; j++)
             {
                 std::valarray<Point> pts = inscribed[j].getOriginalPoints() ;
-//                std::cout << "points: " << pts.size() << std::endl ;
                 for(size_t k = 0 ; k < pts.size() ; k++)
                 {
                     bool alone = true ;
@@ -2711,7 +2697,6 @@ void Polygon::sampleSurface(size_t num_points)
         }
         for(size_t i = 0 ; i < nextPoints.size() ; i++)
              newPoints.push_back( nextPoints[i] ) ;
-//        std::cout << "newpoints: " << newPoints.size() << std::endl ;
 
         clusters.clear() ;
         for(size_t i = 0 ; i < nextCluster.size() ; i++)

@@ -174,6 +174,7 @@ protected:
 
     bool elastic ;
     bool projectOnBoundaries ;
+    bool alternating ;
 
     size_t correctionSteps ;
     bool computeIntersections ;
@@ -247,21 +248,17 @@ protected:
      *
      */
     void assemble() ;
+    void setAlternating(bool a)
+    {
+        alternating = a ;
+    }
 
     template<class MTYPE, class ETYPE>
     void setElementBehavioursFromMesh ( MTYPE * source, MTYPE * destination ) {
         std::cout << "setting element behaviours from previous mesh... " << std::flush ;
-// // 		std::vector<ETYPE * > elems = destination->getElements() ;
-// #pragma omp parallel for schedule(runtime)
+
         for ( auto i = source->begin() ; i != source->end()  ; i++ ) {
-// 			std::cout << "\r element " << i << "/" << elems.size() << std::flush ;s
-// 			Circle c(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
-// 			Sphere s(elems[i]->getRadius(), elems[i]->getCircumCenter()) ;
             std::vector<ETYPE * > conflicts =  source->getConflictingElements ( & ( i->getCircumCenter() ) );
-// 			if(elems[i]->spaceDimensions() == SPACE_TWO_DIMENSIONAL)
-// 				conflicts = source->getConflictingElements(&c) ;
-// 			else
-// 				conflicts = source->getConflictingElements(&s) ;
 
             ETYPE * main = nullptr ;
             if ( !conflicts.empty() ) {
@@ -643,7 +640,7 @@ public:
     /** \brief Step to next checkpoint.
      * This finds the load such that the sample is at equilibrium after incrementing the damage
     */
-    bool stepToCheckPoint( int iterations = 100) ;
+    bool stepToCheckPoint( int iterations = 100, double precision = 1e-6 ) ;
 
     /** \brief Perform a time step, but do not update the features*/
     void elasticStep() ;

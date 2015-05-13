@@ -1510,7 +1510,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-//                 std::cout << "a "<< ret[0] << "  " << ret[1] << "  " << weights[i] << std::endl ;
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
 
@@ -1527,7 +1526,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
             {
                 delete vm ;
             }
-//             std::cout << " = "<< ret[0] << std::endl ;
         }
         else
         {
@@ -1540,7 +1538,6 @@ double ElementState::getAverageField ( FieldType f, Vector & ret, VirtualMachine
                 }
                 if(ret.size() != tmp.size())
                     ret.resize(tmp.size(), 0.);
-//                 std::cout << "b "<< tmp[0] << "  " << tmp[1] << std::endl ;
                 ret += tmp*gp.gaussPoints[i].second*weights[i] ;
                 total += gp.gaussPoints[i].second*weights[i] ;
             }

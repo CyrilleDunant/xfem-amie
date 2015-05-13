@@ -988,7 +988,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
         }
         return ;
     case GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD:
-//			std::cout << ret.size() << "\t" << totaldof << std::endl ;
 
         for ( size_t j = 0 ; j < parent->getBoundingPoints().size() ; j++ )
         {
@@ -1270,10 +1269,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * displacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * displacements[j * totaldof] ;
-                					x_eta += f_eta * displacements[j * totaldof] ;
-                					y_xi += f_xi * displacements[j * totaldof + 1] ;
-                					y_eta += f_eta * displacements[j * totaldof + 1] ;*/
             }
 
             for ( size_t j = 0 ; j < parent->getEnrichmentFunctions().size() && j < enrichedDisplacements.size() * 2; j++ )
@@ -1288,10 +1283,6 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                     dt[i] += f_tau * enrichedDisplacements[j * totaldof + i] ;
                 }
 
-                /*					x_xi += f_xi * enrichedDisplacements[j * totaldof] ;
-                					x_eta += f_eta * enrichedDisplacements[j * totaldof] ;
-                					y_xi += f_xi * enrichedDisplacements[j * totaldof + 1] ;
-                					y_eta += f_eta * enrichedDisplacements[j * totaldof + 1] ;*/
             }
 
             if(!JinvCache || parent->isMoved())
@@ -1310,16 +1301,8 @@ void GeneralizedSpaceTimeViscoElasticElementState::getField ( FieldType f, const
                 ret[i*3+0] = ( x_xi ) * (*JinvCache)[0][0] + ( x_eta ) * (*JinvCache)[0][1] ;//+ x_tau * Jinv[0][2];
                 ret[i*3+1] = ( y_xi ) * (*JinvCache)[1][0] + ( y_eta ) * (*JinvCache)[1][1] ;//+ y_tau * Jinv[1][2] ;
                 ret[i*3+2] = 0.5 * ( ( x_xi ) * (*JinvCache)[1][0] + ( x_eta ) * (*JinvCache)[1][1]  + ( y_xi ) * (*JinvCache)[0][0] + ( y_eta ) * (*JinvCache)[0][1] );//+ x_tau * Jinv[1][2]  + y_tau * Jinv[0][2]);
-//					std::cout << ret.size() << std::endl ;
             }
-// 				Vector strainns(3) ;
-// 				this->getField(STRAIN_FIELD, p_, strainns, true);
-//
-// 				std::cout << parent->getEnrichmentFunctions().size()<<"-" << ret[0] - strainns[0] << " ; " ;
 
-// 				ret[0] = ( x_xi ) * Jinv[0][0] + ( x_eta ) * Jinv[0][1] ;
-// 				ret[1] = ( y_xi ) * Jinv[1][0] + ( y_eta ) * Jinv[1][1] ;
-// 				ret[2] = 0.5 * ( ( x_xi ) * Jinv[1][0] + ( x_eta ) * Jinv[1][1]  + ( y_xi ) * Jinv[0][0] + ( y_eta ) * Jinv[0][1] );
         }
         else if ( parent->spaceDimensions() == SPACE_THREE_DIMENSIONAL )
         {

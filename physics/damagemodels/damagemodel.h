@@ -105,13 +105,14 @@ protected:
 
     bool needGlobalMaximumScore ;
 
-    double iterationNumber ;
+    int iterationNumber ;
 public:
 
     bool alternating ;
     bool alternate ;
     bool isNull ;
     bool converged ;
+    bool alternateCheckpoint ;
     double error ;
 
     DamageModel();

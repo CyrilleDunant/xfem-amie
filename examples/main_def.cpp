@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
     double itzSize = 0.00005;
     int inclusionNumber = 4000 ; // 10 100 500 1000 2000 4000
 
-    double masseInitiale = .00000743;
-    double densite = 1.;
+//     double masseInitiale = .00000743;
+//     double densite = 1.;
 // 	inclusions = GranuloBolome(masseInitiale, densite, BOLOME_A)(.008, .0001, inclusionNumber, itzSize);
 //	inclusions = GranuloBolome(4.79263e-07, 1, BOLOME_D)(.0025, .0001, inclusionNumber, itzSize);
     auto inclusions = PSDGenerator::get2DInclusions(.0025, 4.79263e-07, new PSDBolomeD(), PSDEndCriteria(-1, 0.001, inclusionNumber)) ;

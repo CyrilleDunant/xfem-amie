@@ -198,7 +198,6 @@ void MultipleAggregatingDiscontinuities::homogenize()
 		mat[i].merge(fraction.homogenize(mat[i])) ;
 	}
 
-//	std::cout << mat.size() << std::endl ;
 	if(mat.size() == 1)
 	{
 		if(self2d)
@@ -220,11 +219,7 @@ void MultipleAggregatingDiscontinuities::homogenize()
 			scheme.print() ;
 		}
 	}
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;
-//	param.print() ;
-//	std::cout << std::endl ;
-//	std::cout << std::endl ;*/
+
 	
 }
 

@@ -212,7 +212,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
             break ;
 
         case SET_ALONG_INDEXED_AXIS:
-//				std::cout << axis << "\t" << id[idit] << "\t" << data << std::endl ;
             a->setPointAlongIndexedAxis ( axis, data, id[idit] ) ;
             break ;
 
@@ -343,7 +342,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 return ;
             }
 
-//            std::cout << shapeFunctions.size() << std::endl ;
 
             Segment edge ( *last, *first ) ;
             Point vec = edge.vector() ;
@@ -1762,13 +1760,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( imposed, shapeFunctions[i], gpe, Jinve, v, false,  std::abs ( edge.normalv() ) ) ;
 
-//					std::cout << "constant\t" << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
-
                 a->addForceOn ( XI, forces[0], id[i] ) ;
                 a->addForceOn ( ETA, forces[1], id[i] ) ;
                 a->addForceOn ( ZETA, forces[2], id[i] ) ;
             }
-//				exit(0) ;
 
             return ;
         }
@@ -2721,7 +2716,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
                 a->addForceOn ( XI, forces[0], id[i] ) ;
                 a->addForceOn ( ETA, forces[1], id[i] ) ;
                 a->addForceOn ( ZETA, forces[2], id[i] ) ;
-//                 std::cout << forces[0] << "  " << forces[1] << "  " << forces[2] << std::endl ;
             }
             return ;
         }
@@ -3115,7 +3109,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 return ;
             }
 
-//            std::cout << shapeFunctions.size() << std::endl ;
 
             Segment edge ( *last, *first ) ;
             Point vec = edge.vector() ;
@@ -3535,8 +3528,6 @@ void apply2DBC ( ElementarySurface *e, const GaussPointArray & gp, const std::va
                 return ;
             }
 
-//				std::cout << vm.eval(data, id[i]) << std::endl ;
-//				id[i].print() ;
             std::vector<Function> shapeFunctions ;
 
             for ( size_t j = 0 ; j < id.size() ; j++ )
@@ -4226,8 +4217,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 0, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv() ) ;
 
-//					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
-
                 a->addForceOn ( XI, forces[0], id[i].getId() ) ;
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
                 a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
@@ -4338,14 +4327,10 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             {
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( data, 1, 6, shapeFunctions[i], e,gpe, Jinve, v, false, edge.normalv() ) ;
 
-//					std::cout << forces[0] << "\t" << forces[1] << "\t" << forces[2] << std::endl ;
-
-
                 a->addForceOn ( XI, forces[0], id[i].getId() ) ;
                 a->addForceOn ( ETA, forces[1], id[i].getId() ) ;
                 a->addForceOn ( ZETA, forces[2], id[i].getId() ) ;
             }
-//				exit(0) ;
 
             return ;
         }
@@ -5483,7 +5468,6 @@ void apply3DBC ( ElementaryVolume *e, const GaussPointArray & gp, const std::val
             for ( size_t k = 0 ; k < shapeFunctions.size() ; ++k )
             {
                 imposed[0] = vm.eval ( data, id[k] ) ;
-//                 std::cout << id[k].getX() << "  " << imposed[0] << std::endl ;
                 istr = transform* ( imposed ) ;
                 Vector forces = e->getBehaviour()->getForcesFromAppliedStress ( istr, shapeFunctions[k], gpe, Jinve, v, false, normal ) ;
 
@@ -6509,9 +6493,7 @@ void GeometryAndFaceDefinedSurfaceBoundaryCondition::apply ( Assembly * a, Mesh<
 
                 if ( squareDist2D ( test, i->getBoundingPoint ( j ) ) < tol*tol )
                 {
-//                    std::cout << tol << "\t" << dist( test, i->getBoundingPoint ( j ) ) << std::endl ;
                     id.push_back ( i->getBoundingPoint ( j ) ) ;
-//                    i->getBoundingPoint ( j ).print() ;
                 }
             }
             if ( !id.empty() )
@@ -7818,7 +7800,6 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
     }
     else
     {
-//        std::cout << "instant = " << instant << std::endl ;
         for ( size_t i = 0 ; i < timePlanes-1 ; i++ )
         {
             for ( size_t j = 0 ; j < dofPerPlane ; j++ )
@@ -7834,7 +7815,6 @@ void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTriangl
 
 void TimeContinuityBoundaryCondition::apply ( Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t )
 {
-//     t->getAdditionalPoints() ;
     auto j = t->begin() ;
     size_t dof = 0 ;
     while ( dof == 0 )

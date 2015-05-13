@@ -88,6 +88,7 @@ FeatureTree::FeatureTree ( Feature *first, int layer, double fraction, size_t gr
     dtree = nullptr ;
     dtree3D = nullptr ;
     structuredMesh = false ;
+    alternating = false ;
 
     std::vector<Point> bbox = first->getBoundingBox() ;
     double min_x = 0, min_y = 0, max_x = 0, max_y = 0, max_z = 0, min_z = 0;
@@ -204,6 +205,7 @@ FeatureTree::FeatureTree ( const char * voxelSource, std::map<unsigned char,Form
     damageConverged = true ;
     stateConverged = false ;
     dtree = nullptr ;
+    alternating = false ;
     if(times.empty())
         dtree3D = new MicDerivedMesh(voxelSource, behaviourMap) ;
     else
@@ -1786,14 +1788,12 @@ void FeatureTree::sample()
                     }
                 }
 
-//				tree[i]->addMeshPointsInFather() ;
             }
 
             std::cerr << count << " particles meshed" << std::endl ;
         }
         else if ( is3D() )
         {
-//			std::cout << samplingNumber << std::endl ;
             std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
             if ( samplingFactors.find ( tree[0] ) != samplingFactors.end() )
                 tree[0]->sample ( samplingFactors[tree[0]]*samplingNumber ) ;
@@ -1911,7 +1911,6 @@ void FeatureTree::sample()
         }
         else if ( is3D() )
         {
-//			std::cout << samplingNumber << std::endl ;
             std::cerr << "\r 3D features... sampling feature 0/" << this->tree.size() << "          " << std::flush ;
 
             if ( tree[0]->isUpdated )
@@ -3110,6 +3109,8 @@ void FeatureTree::setElementBehaviours()
 
                 j->refresh ( father2D ) ;
                 Form * bf =  getElementBehaviour ( j, i->first );
+                if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
+                    setAlternating(true) ;
 
                 j->setBehaviour ( i->second, bf ) ;
 
@@ -3140,6 +3141,8 @@ void FeatureTree::setElementBehaviours()
 //             }
             i->refresh ( father3D ) ;
             Form * bf =  getElementBehaviour ( i );
+            if(bf && bf->getDamageModel() && bf->getDamageModel()->alternating)
+                    setAlternating(true) ;
 
             i->setBehaviour ( dtree3D, bf ) ;
 
@@ -3360,7 +3363,6 @@ void FeatureTree::assemble()
     if ( is2D() )
     {
         numdofs = dtree->getLastNodeId() ;
-//		std::cout << deltaTime << std::endl ;
         for ( auto i = layer2d.begin() ; i != layer2d.end() ; i++ )
         {
             for ( auto j = i->second->begin() ; j != i->second->end() ; j++ )
@@ -3811,7 +3813,6 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFlux ( bool stepTree )
                 std::cerr << "\r computing gradient+flux... element " << i.getPosition() + 1 << "/" << i.size() << std::flush ;
             }
 
-//				std::cout << grflx.first.size() << std::endl ;
         }
 
         std::cerr << " ...done." << std::endl ;
@@ -4001,7 +4002,6 @@ std::pair<Vector , Vector > FeatureTree::getGradientAndFluxInLayer ( int g, bool
                 std::cerr << "\r computing gradient+flux... element " << i.getPosition() + 1 << "/" << i.size() << std::flush ;
             }
 
-//				std::cout << grflx.first.size() << std::endl ;
         }
 
         std::cerr << " ...done." << std::endl ;
@@ -4392,8 +4392,6 @@ void FeatureTree::stepXfem()
             {
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
-// 					tree[i]->print() ;
-// 					std::cout << "update ! " << std::endl ;
                     needMeshing = true ;
                     reuseDisplacements = false ;
                 }
@@ -4426,8 +4424,6 @@ void FeatureTree::stepXfem()
             {
                 if ( !tree[i]->isEnrichmentFeature && tree[i]->isUpdated )
                 {
-//                                      tree[i]->print() ;
-//                                      std::cout << "update ! " << std::endl ;
                     needMeshing = true ;
                     reuseDisplacements = false ;
                 }
@@ -4471,6 +4467,7 @@ bool FeatureTree::stepElements()
     stateConverged = false ;
     double maxScore = -1 ;
     double maxTolerance = 1e-6 ;
+    foundCheckPoint = true ;
     if ( solverConvergence )
     {
         if ( is2D() )
@@ -4482,7 +4479,7 @@ bool FeatureTree::stepElements()
             }
             int lcounter = 0 ;
             double volume = 0 ;
-            foundCheckPoint = true ;
+            
             for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
             {
                 if ( cachedVolumes[lcounter].empty() )
@@ -4701,30 +4698,15 @@ bool FeatureTree::stepElements()
                                 #pragma omp task firstprivate(i)
                                 if (i->getBehaviour()->getDamageModel() && !i->getBehaviour()->getDamageModel()->converged )
                                 {
-                                    #pragma omp atomic write
-                                    foundCheckPoint = false ;
-                                    #pragma omp atomic write
-                                    done = true ;
+                                    #pragma omp critical
+                                    {
+                                        foundCheckPoint = false ;
+                                        done = true ;
+                                    }
                                 }
                                 if(done)
-                                    break ;
-                            }
-                        }
-                    }
-                }
-
-                for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                {
-                    #pragma omp parallel
-                    {
-                        #pragma omp single
-                        {
-                            for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                            {
-                                #pragma omp task firstprivate(i)
-                                if ( i->getBehaviour()->getDamageModel() )
                                 {
-                                    i->getBehaviour()->getFractureCriterion()->setCheckpoint ( foundCheckPoint ) ;
+                                    break ;
                                 }
                             }
                         }
@@ -4741,11 +4723,19 @@ bool FeatureTree::stepElements()
                             {
                                 for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
                                 {
+                                    bool done = false ;
                                     #pragma omp task firstprivate(i)
                                     if ( i->getBehaviour()->getFractureCriterion() && i->getBehaviour()->getFractureCriterion()->met() )
                                     {
-                                        #pragma omp atomic write
-                                        behaviourChange = true ;
+                                        #pragma omp critical
+                                        {
+                                            behaviourChange = true ;
+                                            done = true ;
+                                        }
+                                    }
+                                    if(done)
+                                    {
+                                        break ;
                                     }
                                 }
                             }
@@ -4769,7 +4759,6 @@ bool FeatureTree::stepElements()
                                     #pragma omp task firstprivate(i)
                                     if ( i->getBehaviour()->getFractureCriterion() )
                                     {
-                                        i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
                                         #pragma omp critical
                                         {
                                             maxScore = std::max (i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
@@ -4810,21 +4799,26 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-                else
-                {
-
-                    //                         #pragma omp parallel for
-                    for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-                    {
-                        for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-                        {
-                            if ( i->getBehaviour()->getFractureCriterion() )
-                            {
-                                i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
-                            }
-                        }
-                    }
-                }
+//                 else
+//                 {
+//                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+//                     {
+//                         #pragma omp parallel
+//                         {
+//                             #pragma omp single
+//                             {
+//                                 for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+//                                 {
+//                                     #pragma omp task firstprivate(i)
+//                                     if ( i->getBehaviour()->getFractureCriterion() )
+//                                     {
+//                                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }  
+//                 }
 
                 std::cerr << " ...done. " << std::endl ;
             }
@@ -4939,8 +4933,6 @@ bool FeatureTree::stepElements()
                                     if ( !i->getBehaviour()->fractured() )
                                     {
                                         adamage += are * dmodel->getState().max() ;
-                                        // 								std::cout << dmodel->getState()[0] << " " << dmodel->getState()[1]  << " " << dmodel->getState()[2] << " " << dmodel->getState()[3] << std::endl ;
-                                        // 								std::cout << are << " * " << dmodel->getState().max() << std::endl ;
                                     }
                                 }
                                 #pragma omp critical
@@ -5037,8 +5029,7 @@ bool FeatureTree::stepElements()
                 {
                     if (i->getBehaviour()->getFractureCriterion() )
                     {
-                        //std::cout << "." << std::flush ;
-                        i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+//                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
                         maxScore = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreAtState(), maxScore ) ;
                         maxTolerance = std::max ( i->getBehaviour()->getFractureCriterion()->getScoreTolerance(), maxTolerance ) ;
 
@@ -5084,13 +5075,13 @@ bool FeatureTree::stepElements()
 
 
 //                 #pragma omp parallel for schedule(runtime)
-                for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
-                {
-                    if ( i->getBehaviour()->getFractureCriterion() )
-                    {
-                        i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
-                    }
-                }
+//                 for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+//                 {
+//                     if ( i->getBehaviour()->getFractureCriterion() )
+//                     {
+//                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
+//                     }
+//                 }
 
 
 
@@ -5151,9 +5142,6 @@ bool FeatureTree::stepElements()
             }
 
             std::cerr << " ...done" << std::endl ;
-
-            // 		std::cout << " Fractured " << fracturedCount << " Elements" << std::endl ;
-            // 		std::cout << " Fractured Fraction " <<  crackedVolume / volume << std::endl ;
 
         }
     }
@@ -5231,20 +5219,6 @@ void FeatureTree::State::setStateTo ( StateType s, bool stepChanged )
         featureStepped = false;
     }
     ft->stepMesh();
-
-// 			std::cout << 				sampled <<
-// 				meshed <<
-// 				behaviourSet <<
-// 				behaviourUpdated <<
-// 				stitched <<
-// 				renumbered <<
-// 				initialised <<
-// 				enriched <<
-// 				assembled <<
-// 				solved <<
-// 				behaviourStepped <<
-// 				xfemStepped <<
-// 				featureStepped <<  std::endl ;
 
 #ifdef HAVE_OMP
     if ( !sampled )
@@ -5531,6 +5505,9 @@ void FeatureTree::checkSpaceTimeConsistency()
 
 bool FeatureTree::step()
 {
+    bool ret = true ;
+    size_t totit = 0 ;
+    int notConvergedCounts = 0 ;
 
     if ( stateConverged && state.meshed && solverConverged() && !behaviourChanged() )
     {
@@ -5558,13 +5535,7 @@ bool FeatureTree::step()
         }
     }
 
-    bool ret = true ;
     size_t it = 0 ;
-    int notConvergedCounts = 0 ;
-    int betweenCheckpointCount = 0 ;
-    int maxBetweenCheckPoints = 2 ;
-
-//	std::cout << it << "/" << maxitPerStep << "." << std::flush ;
     bool needexit = false ;
     do
     {
@@ -5590,21 +5561,15 @@ bool FeatureTree::step()
         {
             std::cerr << "." << std::flush ;
             notConvergedCounts = 0 ;
-            if ( !foundCheckPoint )
-            {
-                betweenCheckpointCount++ ;
-            }
-            else
-            {
-                if(!(enrichmentChange || behaviourChanged()))
-                    needexit = true ;
-            }
-            maxBetweenCheckPoints = std::max ( betweenCheckpointCount, maxBetweenCheckPoints ) ;
+
+            if(foundCheckPoint && !(enrichmentChange || behaviourChanged()))
+                needexit = true ;
         }
         else
         {
             notConvergedCounts++ ;
-            needexit = true ;
+            if(notConvergedCounts > 5)
+                needexit = true ;
             std::cerr << "+" << std::flush ;
         }
 
@@ -5616,24 +5581,59 @@ bool FeatureTree::step()
 
         if ( it > maxitPerStep && foundCheckPoint )
         {
-
             ret = false ;
             needexit = true ;
         }
-        else if(it > maxitPerStep)
-            std::cout << ":"<< std::endl ;
 
-        if ( needexit) 
-        {
-            break ;
-        }
-
+        std::cout << it << std::endl ;
     }
-    while ( ( behaviourChanged() || !solverConverged() || enrichmentChange ) &&
-            ! ( !solverConverged() && !reuseDisplacements ) &&
-            ( notConvergedCounts < 20 )
-          ) ;
-
+    while ( !needexit ) ;
+    totit += it ;
+    
+    if(is2D())
+    {
+        for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
+        {
+            #pragma omp parallel
+            {
+                #pragma omp single
+                {
+                    for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
+                    {
+                        #pragma omp task firstprivate(i)
+                        if ( i->getBehaviour()->getDamageModel() )
+                        {
+                            i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+                            i->getBehaviour()->getDamageModel()->alternateCheckpoint = false  ;
+                            i->getBehaviour()->getDamageModel()->converged = true ;
+                            i->getBehaviour()->getDamageModel()->alternate = true ;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel
+        {
+            #pragma omp single
+            {
+                for (  auto i = dtree3D->begin() ; i != dtree3D->end() ; i++  )
+                {
+                    #pragma omp task firstprivate(i)
+                    if ( i->getBehaviour()->getDamageModel() )
+                    {
+                        i->getBehaviour()->getFractureCriterion()->setCheckpoint ( true ) ;
+                        i->getBehaviour()->getDamageModel()->alternateCheckpoint = false  ;
+                        i->getBehaviour()->getDamageModel()->converged = true ;
+                        i->getBehaviour()->getDamageModel()->alternate = true ;
+                    }
+                }
+            }
+        }
+    }
+    
     if ( notConvergedCounts >= 20 )
     {
         ret = false ;
@@ -5643,8 +5643,9 @@ bool FeatureTree::step()
     {
         setDeltaTime ( realDeltaTime ) ;
     }
-    std::cerr << it << "/" << maxitPerStep << "." << std::flush ;
-    damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( it < maxitPerStep ) ;
+    std::cout << totit << std::endl ;
+    std::cerr << totit << "/" << maxitPerStep << "." << std::flush ;
+    damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( totit < maxitPerStep ) ;
 
     if(damageConverged)
         K->setPreviousDisplacements() ;
@@ -5652,29 +5653,19 @@ bool FeatureTree::step()
     return solverConverged() && stateConverged && ret ;
 }
 
-bool FeatureTree::stepToCheckPoint( int iterations)
+bool FeatureTree::stepToCheckPoint( int iterations, double precision)
 {
-    scaleBoundaryConditions ( 1 );
-    
-    double prevmaxit = maxitPerStep ;  
-    maxitPerStep = 1 ;
-    bool ret = step() ;
-    for(int i = 1 ; i < iterations && !ret; i++)
-        step() ;
-    maxitPerStep = prevmaxit ;
-    
-//     for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
-//     {
-//         TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *> ( boundaryCondition[k] ) ;
-//         if ( timec )
-//         {
-//             timec->goToNext = false ;
-//             timec->instant = 1. ;
-//         }
-//     }
-    
+     bool ret = false ;
+    for(int iter = 0 ; iter < iterations && !ret; iter++)
+    {
+        scaleBoundaryConditions ( 1. );
+        double prevmaxit = maxitPerStep ;  
+        maxitPerStep = 1 ;
+        ret = step() ;
+        maxitPerStep = prevmaxit ;
+     }
+        
     //at this point, we should have found a checkpoint.
-    
     if(!ret)
     {
         for ( size_t k = 0 ; k < boundaryCondition.size() ; k++ )
@@ -5693,7 +5684,7 @@ bool FeatureTree::stepToCheckPoint( int iterations)
         double bottomscale= 0. ;
         
 
-        while(highscale-bottomscale > minDeltaTime*.25)
+        while(highscale-bottomscale > precision)
         {
             currentScale = (highscale+bottomscale)*.5 ;
             scaleBoundaryConditions(currentScale) ;
@@ -5746,17 +5737,14 @@ bool FeatureTree::stepToCheckPoint( int iterations)
         elastic = false ;
         setDeltaTime ( realDeltaTime ) ;
         state.setStateTo ( XFEM_STEPPED, true ) ;
+        if(damageConverged)
+            K->setPreviousDisplacements() ;
     }
     else
-        return true ;
-    
-    damageConverged = solverConverged() && !behaviourChanged() ;
-
-    stateConverged = true ;
-    state.meshed = true ;
-    behaviourChange = false ;
-    if(damageConverged)
-        K->setPreviousDisplacements() ;
+    {
+        if(damageConverged)
+            K->setPreviousDisplacements() ;
+    }
 
     return true ;
 }
@@ -7002,37 +6990,7 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
 
     if ( dtree )
     {
-        /*VirtualMachine vm ;
-        if ( i.size() && i->timePlanes() > 1 )
-        {
 
-            for ( auto i = begin ; i != end ; i++ )
-            {
-                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
-                    for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
-                    {
-                        for ( size_t k = 0 ; k < k0 ; k++ )
-                        {
-//							std::cout << i << ";" << k << std::endl ;
-                            Point p ( i->getBoundingPoint ( k+k0*t ).getX(),
-                                      i->getBoundingPoint ( k+k0*t ).getY(),
-                                      0.,
-                                      i->getBoundingPoint ( k+k0*t ).getT() + d* ( i->timePlanes()-t ) /i->timePlanes() ) ;
-                            i->getState().getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
-
-                            for ( size_t n = 0 ; n < ndof ; n++ )
-                            {
-                                double z = buff[n] ;
-//                                K->setDisplacementByDof ( i->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
-                            }
-//							std::cout << i << ";" << k << std::endl ;
-                        }
-                    }
-                }
-            }
-        }*/
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
@@ -7044,7 +7002,6 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTriangle,  
             TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
             if(timec)
             {
-//                std::cout << "move\t" << d << "\t" << prev << std::endl ;
                 timec->instant = d/prev ;
             }
         }
@@ -7068,37 +7025,6 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
     if ( dtree3D )
     {
 
-/*        VirtualMachine vm ;
-        if ( i.size() && i->timePlanes() > 1 )
-        {
-
-            for ( auto i = begin ; i != end ; i++ )
-            {
-                if ( i->getBehaviour() && i->getBehaviour()->type != VOID_BEHAVIOUR )
-                {
-                    size_t k0 = i->getBoundingPoints().size() /i->timePlanes() ;
-                    for ( size_t t = 0 ; t < i->timePlanes() -1 ; t++ )
-                    {
-                        for ( size_t k = 0 ; k < k0 ; k++ )
-                        {
-//							std::cout << i << ";" << k << std::endl ;
-                            Point p ( i->getBoundingPoint ( k+k0*t ).getX(),
-                                      i->getBoundingPoint ( k+k0*t ).getY(),
-                                      i->getBoundingPoint ( k+k0*t ).getZ(),
-                                      i->getBoundingPoint ( k+k0*t ).getT() + d* ( i->timePlanes()-t ) /i->timePlanes() ) ;
-                            i->getState().getField ( GENERALIZED_VISCOELASTIC_DISPLACEMENT_FIELD, p, buff, false, &vm ) ;
-
-                            for ( size_t n = 0 ; n < ndof ; n++ )
-                            {
-                                double z = buff[n] ;
-                                K->setDisplacementByDof ( i->getBoundingPoint ( ( t+1 ) *k0+k ).getId() * ndof + n, z );
-                            }
-//							std::cout << i << ";" << k << std::endl ;
-                        }
-                    }
-                }
-            }
-        }*/
 
         if ( std::abs ( d ) > POINT_TOLERANCE )
         {
@@ -7110,7 +7036,6 @@ void FeatureTree::moveFirstTimePlanes ( double d, const Mesh<DelaunayTetrahedron
             TimeContinuityBoundaryCondition * timec = dynamic_cast<TimeContinuityBoundaryCondition *>(boundaryCondition[i]) ;
             if(timec)
             {
-//                std::cout << "move\t" << d << "\t" << prev << std::endl ;
                 timec->instant = d/prev ;
             }
         }
@@ -7935,7 +7860,6 @@ void FeatureTree::generateElements()
 
                 if ( i->first->getId() == -1 )
                 {
-//                     std::cout << "insertion failed" << std::endl ;
                     toInsert.push_back ( i->first ) ;
                 }
             }

@@ -21,7 +21,12 @@ namespace Amie
 
 void DamageModel::step( ElementState &s , double maxscore)
 {
+    if(!converged)
+        std::cout <<"a"<< std::endl ;
     elementState = &s ;
+    size_t maxit = iterationNumber ;
+    if(alternating)
+        maxit /=2 ;
 
 //     double phi = ( 1. + sqrt( 5. ) ) * .5 ;
 //     double resphi = 2. - phi ;   //goldensearch
@@ -60,7 +65,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
     {
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
-
+        alternateCheckpoint = false ;
         // this is necessary because we want to trigger side-effects
         //for example, plasticstrain gets a pointer to s
         computeDamageIncrement( s ) ;
@@ -74,18 +79,17 @@ void DamageModel::step( ElementState &s , double maxscore)
     
 //     std::cout << "#! " << s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() << "  "<< !alternate <<  "  "<<alternating << "  "<< !alternating << "  " << converged << "  " <<std::endl ;
 
-    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && ((!alternate && alternating) || !alternating)) // initiate iteration
+    if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() || (alternateCheckpoint && alternating) ) // initiate iteration
     {
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
+        alternateCheckpoint = false ;
         states.clear() ;
         if(!fractured())
         {
-// 			effectiveDeltaFraction = s.getParent()->getBehaviour()->getFractureCriterion()->getMinDeltaInNeighbourhood()/getDelta() ;
-//             iterationNumber = round(log2(s.getParent()->getBehaviour()->getFractureCriterion()->getMinDeltaInNeighbourhood()/(getDelta()*damageDensityTolerance))*.25) ;
-            converged = false ;
 
+            converged = false ;
             change = true ;
 
             downState = damageIncrement.first ;
@@ -104,9 +108,9 @@ void DamageModel::step( ElementState &s , double maxscore)
         }
 
     }
-    else if( !converged && ((!alternate && alternating) || !alternating))
+    else if( !converged )
     {
-//         std::cout << "#!" << score << std::endl ;
+        std::cout << "#!" << score << "   "<< states.size() << std::endl ;
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
         change = true ;
@@ -196,10 +200,8 @@ void DamageModel::step( ElementState &s , double maxscore)
         getState( true ) = downState + ( upState - downState ) *trialRatio ;
 
 
-        if( states.size() > iterationNumber && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot)
-          )
+        if( states.size() > maxit-1 && (deltaRoot || scoreRoot || proximityRoot || shiftRoot || modeRoot))
         {
-// 			std::cout << effectiveDeltaFraction << "  " << trialRatio<< "  "<< getState().max() << std::endl ;
 
             if(ctype == DISSIPATIVE)
             {
@@ -227,7 +229,6 @@ void DamageModel::step( ElementState &s , double maxscore)
                 }
             }
 
-
             converged = true ;
             alternate = true ;
 
@@ -237,7 +238,7 @@ void DamageModel::step( ElementState &s , double maxscore)
             trialRatio = 0 ;
             initalState = state ;
         }
-        else if(states.size() > iterationNumber)
+        else if(states.size() > maxit-1)
         {
 
             for(size_t i = 0 ; i <  state.size() ; i++)
@@ -269,14 +270,15 @@ DamageModel::DamageModel(): state(0)
     isNull = true ;
     haslimit = false ;
     error = 1 ;
-    iterationNumber = 8 ;
+    iterationNumber = 16 ;
 
     ctype = DISSIPATIVE ;
     fraction = -1 ;
     converged = true ;
+    alternateCheckpoint = false ;
     delta = 1 ;
     effectiveDeltaFraction = 1 ;
-    alternate = false ;
+    alternate = true ;
     alternating = false ;
     needGlobalMaximumScore = true ;
     // The exploration increment is crucial for finding

@@ -579,13 +579,11 @@ struct CoordinateIndexedSparseMatrixTimesVecMinusVec
     operator const Vector() const
     {
         Vector ret(0., ve.size()) ;
-// 		std::cout << ve.size() << std::endl ;
         for (size_t i = 0 ; i < co.sm.row_size.size(); i++)
         {
             Vector temp = co.sm[i*co.sm.stride]*co.ve ;
             for(size_t j = i*co.sm.stride ; j < i*co.sm.stride+co.sm.stride ; j++)
             {
-// 				std::cout << j << std::endl ;
                 ret[j] = temp[j-i*co.sm.stride] - ve[j];
             }
         }

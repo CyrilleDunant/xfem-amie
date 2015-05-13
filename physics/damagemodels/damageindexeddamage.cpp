@@ -110,9 +110,7 @@ std::pair<Vector, Vector> IndexedLinearDamage::computeDamageIncrement(ElementSta
 		
 		std::cout << delta_d << std::endl ;
 		return std::make_pair(state,ret) ;
-// 		std::cout << " * " << delta_d << "  " << ener_delta.second*dcost*volume << "  " << ener_delta.first<< std::endl ;
-// 		std::cout << " / " << delta_d << "  " << ener_delta.second*dcost/volume << "  " << ener_delta.first<< std::endl ;
-// 		std::cout << " . " << delta_d << "  " << e->getDeltaEnergyAtState()<< "  " << ener_delta.first<< std::endl ;
+
 }
 
 void IndexedLinearDamage::computeDelta(ElementState & s)
@@ -124,11 +122,9 @@ void IndexedLinearDamage::computeDelta(ElementState & s)
 	double vtot = 0 ;
 	double remnantEnergy = e->getDeltaEnergyAtState() ;
 	double originalEnergy = remnantEnergy ;
-	// 		std::cout << "originalEnergy : " << originalEnergy << "  "<< std::flush ;
 	std::vector<DelaunayTriangle *> totry ;
 	for(size_t i = 0 ; i < e->getCache().size() ; i++)
 	{
-		// 			if(e->getCache()[i]->getBehaviour()->getFractureCriterion()->met(e->getCache()[i]->getState()))
 		totry.push_back(static_cast<DelaunayTriangle *>(e->mesh2d->getInTree(e->getCache()[i]))) ;
 	}
 	

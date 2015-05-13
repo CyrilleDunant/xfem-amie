@@ -1234,42 +1234,6 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[4] = s1*t1 ;
         (*shapefunc)[5] = s2*t1 ;
 
-// 			std::cout << VirtualMachine().eval((*shapefunc)[3], Point(0,1,0,1) ) << std::endl ;
-// 			std::cout << VirtualMachine().deval((*shapefunc)[3], XI, Point(0,1,0,1) ) << std::endl  ;
-// 			std::cout << VirtualMachine().deval((*shapefunc)[3], ETA, Point(0,1,0,1) ) << std::endl  ;
-// 			std::cout << VirtualMachine().deval((*shapefunc)[3], TIME_VARIABLE, Point(0,1,0,1) ) << std::endl  ;
-// 			exit(0) ;
-
-// 			(*shapefunc)[0].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[0].setDerivative( XI, zero) ;
-// 			(*shapefunc)[0].setDerivative( ETA, t0) ;
-        //1
-// 			(*shapefunc)[1] = Function("1 x - y - 0.5 0.5 t * - *") ;
-// 			(*shapefunc)[1].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[1].setDerivative( XI, t0m) ;
-// 			(*shapefunc)[1].setDerivative( ETA, t0m) ;
-// 			//2
-// 			(*shapefunc)[2] = Function("x 0.5 0.5 t * - *") ;
-// 			(*shapefunc)[2].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[2].setDerivative( XI, t0) ;
-// 			(*shapefunc)[2].setDerivative( ETA, zero) ;
-// 			//3
-// 			(*shapefunc)[3] = Function("y 0.5 0.5 t * + *") ;
-// 			(*shapefunc)[3].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[3].setDerivative( XI, zero) ;
-// 			(*shapefunc)[3].setDerivative( ETA, t1) ;
-// 		//4
-// 			(*shapefunc)[4] = Function("1 x - y - 0.5 0.5 t * + *") ;
-// 			(*shapefunc)[4].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[4].setDerivative( XI, t1m) ;
-// 			(*shapefunc)[4].setDerivative( ETA, t1m) ;
-// 		//5
-// 			(*shapefunc)[5] = Function("x 0.5 0.5 t * + *") ;
-// 			(*shapefunc)[5].setNumberOfDerivatives(4) ;
-// 			(*shapefunc)[5].setDerivative( XI, t1) ;
-// 			(*shapefunc)[5].setDerivative( ETA, zero) ;
-
-
         break ;
     }
     case LINEAR_TIME_QUADRATIC :
@@ -5016,15 +4980,11 @@ double dTTransform(const std::valarray<Amie::Point*> & points ,const std::valarr
     {
         VirtualMachine vm ;
         double der_t = 0 ;
-// 			std::cout << "-----" << std::endl ;
-// 			std::cout << der_t << std::endl ;
         for(size_t i = 0 ; i < points.size() ; i++)
         {
-// 				vm.print(basis[i]) ;
             der_t += vm.deval(basis[i],TIME_VARIABLE,p)*points[i]->getT() ;
-// 				std::cout << der_t << "   " << points[i]->getT() << std::endl ;
         }
-// 			std::cout << "-----" << std::endl ;
+
         return der_t ;
     }
     default:
