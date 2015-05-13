@@ -21,8 +21,6 @@ namespace Amie
 
 void DamageModel::step( ElementState &s , double maxscore)
 {
-    if(!converged)
-        std::cout <<"a"<< std::endl ;
     elementState = &s ;
     size_t maxit = iterationNumber ;
     if(alternating)
@@ -81,6 +79,7 @@ void DamageModel::step( ElementState &s , double maxscore)
 
     if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() || (alternateCheckpoint && alternating) ) // initiate iteration
     {
+
         initalState = state ;
         error = score ;
         s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -110,7 +109,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
     else if( !converged )
     {
-        std::cout << "#!" << score << "   "<< states.size() << std::endl ;
+//         std::cout << "#!" << score << "   "<< states.size() << std::endl ;
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
         change = true ;

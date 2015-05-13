@@ -184,8 +184,7 @@ FunctionMatrix FunctionMatrix::d(const Variable vv) const
     {
         if( (*v)[i].isDifferentiable() )
             ret.array()[i]  = (*v)[i].d(vv) ;
-        else
-            std::cout << "\\o/" << std::flush ;
+
     }
     return ret ;
 }
@@ -333,10 +332,6 @@ FunctionMatrix inverse3x3FunctionMatrix(const FunctionMatrix m)
     {
         ret = (*i)*ret ;
     }
-
-// 	std::cout << ret[0][0] << "   " << ret[0][1] << "   " << ret[0][2] << std::endl ;
-// 	std::cout << ret[1][0] << "   " << ret[1][1] << "   " << ret[1][2] << std::endl ;
-// 	std::cout << ret[2][0] << "   " << ret[2][1] << "   " << ret[2][2] << std::endl ;
 
     return ret/det ;
 }

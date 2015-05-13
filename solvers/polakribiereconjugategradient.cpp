@@ -40,7 +40,6 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 		ConjugateGradient cg(assembly) ;
 		cg.colstart = this->colstart ;
 		cg.rowstart = this->rowstart ;
-//		std::cout << colstart << "\t" << rowstart << std::endl ;
 		bool ret =  cg.solve(x0, nullptr,eps, -1, verbose) ;
 		x.resize(cg.x.size())  ;
 		x = cg.x ;
@@ -58,18 +57,7 @@ bool ConjugateGradientWithSecant::solve(const Vector &x0, Preconditionner * prec
 		for(size_t i = 0 ; i < std::min(b.size(), x0.size()) ; i++)
 			x[i] = x0[i] ;
 	}
-	
-// 	else
-// 	{
-// 		x =  ConjugateGradient(assembly->getMatrix(), b).solve(x, nullptr,eps, b.size(), true) ;
-// 		for(size_t i = 0 ; i < 2 ; i++)
-// 		{
-// 			assembly->nonLinearStep() ;
-// 			x = ConjugateGradient(assembly->getMatrix()+assembly->getNonLinearMatrix(), b+assembly->getNonLinearForces()).solve(x, nullptr,eps, b.size(), true) ;
-// 		}
-// 		return x ;
-// 		
-// 	}
+
 	InverseDiagonal P(A) ;
 // 	InverseLumpedDiagonal P(A) ;
 // 	InCompleteCholesky P(A) ;

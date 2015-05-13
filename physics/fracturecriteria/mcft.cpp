@@ -203,31 +203,34 @@ double NonLocalMCFT::getConcreteCompressiveCriterion(const ElementState & s, dou
     double maxCompression = downVal  ;
 
 
-    double C_d = 0. ;
-    double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE)) ;
-
-    if(-compressiveTensileRatio > 0.28000)
-        C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
-
-    double beta_d = 1./(1.+C_d) ;
-
-    if(beta_d > 1)
-        beta_d = 1 ;
-
-    double f_p = beta_d*downVal ;
-    double epsilon_p = beta_d*critStrain ;
-    double epsratio = cstrain/epsilon_p  ;
-    double n = 0.8 - f_p/17e6 ;
-    double k_c = 0.67 - f_p/62e6 ;
-    if(epsratio >= 1)
+    if(cstrain < .1*critStrain)
     {
-        k_c = 1. ;
+        double C_d = 0. ;
+        double compressiveTensileRatio = -std::abs(tstress/std::min(cstress, -POINT_TOLERANCE)) ;
+
+        if(-compressiveTensileRatio > 0.28000)
+            C_d =0.35*pow(-compressiveTensileRatio-0.28, 0.8) ;
+
+        double beta_d = 1./(1.+C_d) ;
+
+        if(beta_d > 1)
+            beta_d = 1 ;
+
+        double f_p = beta_d*downVal ;
+        double epsilon_p = beta_d*critStrain ;
+        double epsratio = cstrain/epsilon_p  ;
+        double n = 0.8 - f_p/17e6 ;
+        double k_c = 0.67 - f_p/62e6 ;
+        if(epsratio >= 1)
+        {
+            k_c = 1. ;
+        }
+        else
+        {
+            k_c = 0.67 - f_p/62e6 ;
+        }
+        maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
     }
-    else
-    {
-        k_c = 0.67 - f_p/62e6 ;
-    }
-    maxCompression = f_p*n*(epsratio)/(n-1.+pow(epsratio,n*k_c)) ;
 
 
     double criterion = std::abs(cstress/downVal) ;

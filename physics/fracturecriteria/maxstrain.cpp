@@ -91,7 +91,6 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	double maxStressBefore = stateBefore.first.max() ;
 	double maxStressAfter = stateAfter.first.max() ;
 
-//		std::cout << maxStressBefore << "/" << epsMax << "/" << maxStressAfter << "\t" ;
 
 		if( false ) //s.getParent()->getBoundingPoint(0).getId() == 9)
 			std::cout << s.getNodalDeltaTime() << "\t" << s.getParent()->getBoundingPoint(0).getId() << "\t" << s.getParent()->getBoundingPoint(1).getId() << "\t" << s.getParent()->getBoundingPoint(2).getId() << "\t" <<  maxStrainBefore << "\t" << maxStrainAfter << "\t" << maxStressBefore << "\t" << maxStressAfter << "\t" << upVal << "\t" << yieldstrain << "\t" << epsMax << "\t" << epsMax*Einst << "\t" << Esoft << "\t" << Einst << "\t" <<  (Esoft / (Esoft+Einst)) << "\t" << std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) <<  std::endl ;
@@ -102,59 +101,11 @@ double SpaceTimeNonLocalLinearSofteningMaximumStrain::grade(ElementState &s)
 	if(maxStrainAfter > epsMax)
 	{
 		metInTension = true ;
-/*		std::cout << (Esoft-Einst)/Esoft << std::endl ;
-		Point before(maxStrainBefore, maxStressBefore) ;
-		Point after(maxStrainAfter, maxStressAfter) ;
-		Point intersect(epsMax, epsMax*Einst) ;
-		before.print() ;
-		intersect.print() ;
-		after.print() ;*/
+
 		return  std::min(1.,1. - (epsMax - maxStrainBefore) / (maxStrainAfter - maxStrainBefore)) ;
 	}
-//	std::cout << maxStrainBefore << "\t" << maxStrainAfter << "\t" <<  -1.+ maxStrainAfter/epsMax << std::endl ;
 	return -1.+ maxStrainAfter/epsMax;
 
-/*	Point before( (stateBefore.second).max(), (stateBefore.first).max()/1e6 ) ;
-	Point after( (stateAfter.second).max(), (stateAfter.first).max()/1e6 ) ;
-
-		SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::string file, double E_, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-	SpaceTimeNonLocalMultiLinearSofteningFractureCriterion( std::vector<Point> p, double E_, MirrorState mirroring = NO_MIRROR, double delta_x = 0, double delta_y = 0, double delta_z = 0) ;
-
-
-	Segment history(before, after) ;
-	Line current(history) ;
-
-	Point x0( upVal, maxstress/1e6 ) ;
-	Point x1( yieldstrain, 0. ) ;
-	Line behaviour(Segment(x0, x1)) ;
-
-	
-	Point t = behaviour.intersection(current) ;
-
-
-	if(t.getX() < after.getX())
-	{
-		if(history.on(t))
-		{
-			metInTension = true ;
-			ret =  std::min(1.,1. - (t.getX() - before.getX()) / (after.getX() - before.getX())) ;
-		}else
-		ret = -1. + std::min(before.getX(),after.getX())/yieldstrain ;
-	}
-	else
-		ret = -1.+ after.getX()/t.getX();
-	
-	if(false)//ret > 0)
-	{
-	before.print() ;
-	after.print() ;
-	x0.print() ;
-	x1.print() ;
-	t.print() ;
-	std::cout << ret << std::endl ;
-	}	
-
-	return ret ;*/
 }
 
 double SpaceTimeNonLocalMaximumStress::grade(ElementState &s)

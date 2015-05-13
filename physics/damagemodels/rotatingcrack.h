@@ -1,7 +1,7 @@
 //
 // C++ Interface: isotropiclineardamage
 //
-// Description: 
+// Description:
 //
 //
 // Author: Cyrille Dunant <cyrille.dunant@epfl.ch>, (C) 2008-2011
@@ -24,74 +24,78 @@ class OrthotropicStiffness ;
 class RotatingCrack final: public DamageModel
 {
 protected:
-	
-	double E ;
-	double nu ;
-	double factor ;
-	
+
+    double E ;
+    double nu ;
+    double factor ;
+
 // 	std::vector< std::pair<double, double> > compressionAngles ;
 // 	std::vector< std::pair<double, double> > tensionAngles ;
 //   std::vector<double> compressionweights ;
 // 	std::vector<double> tensionweights ;
-	bool firstTension ;
-	bool secondTension ;
-	bool firstMet ;
-	bool secondMet ;
-	bool firstTensionFailure ;
-	bool secondTensionFailure ;
-	bool firstCompressionFailure ;
-	bool secondCompressionFailure ;
-	double originalAngle ;
+    bool firstTension ;
+    bool secondTension ;
+    bool firstMet ;
+    bool secondMet ;
+    bool firstTensionFailure ;
+    bool secondTensionFailure ;
+    bool firstCompressionFailure ;
+    bool secondCompressionFailure ;
+    double currentAngle ;
     double initialAngle ;
     std::vector<std::pair<double, double>> angles_scores ;
-	ElementState * es ;
-	
-	OrthotropicStiffness * stiff ;
-	bool postprocheck ;
-    
+    ElementState * es ;
+
+    OrthotropicStiffness * stiff ;
+    bool postprocheck ;
+
     bool roughsampling ;
     int iterationcount ;
-    
+
 public:
 
-	
-	/** \brief Constructor. Set the number of degrees of freedom
-	 * 
-	 * @param numDof number of degrees of freedom
-	 */
-	RotatingCrack(double E, double nu) ;
 
-	virtual ~RotatingCrack();
-	virtual void scale(double s) { factor = s ;} ;
-	virtual void computeDelta( ElementState &s) ;
+    /** \brief Constructor. Set the number of degrees of freedom
+     *
+     * @param numDof number of degrees of freedom
+     */
+    RotatingCrack(double E, double nu) ;
 
-	/** \brief Increment the damage
-	 * 
-	 * @param s ElementState passed as a parameter
-	 */
-	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
+    virtual ~RotatingCrack();
+    virtual void scale(double s) {
+        factor = s ;
+    } ;
+    virtual void computeDelta( ElementState &s) ;
 
-	/** \brief compute the new stifness matrix after damage
-	 * 
-	 * \f$ K' = K(1-d) \f$
-	 * @param m Matrix to modify
-	 * @return the new Matrix
-	 */
-	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+    /** \brief Increment the damage
+     *
+     * @param s ElementState passed as a parameter
+     */
+    virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
-	/** \brief return true is the element concerned is fractured 
-		*/
-	virtual bool fractured() const  ;
-	
-	virtual void postProcess() ;
-    
+    /** \brief compute the new stifness matrix after damage
+     *
+     * \f$ K' = K(1-d) \f$
+     * @param m Matrix to modify
+     * @return the new Matrix
+     */
+    virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+
+    /** \brief return true is the element concerned is fractured
+    	*/
+    virtual bool fractured() const  ;
+
+    virtual void postProcess() ;
+
     virtual void step(ElementState & s, double maxscore)  ;
-	
-	virtual DamageModel * getCopy() const { return new RotatingCrack(E, nu) ;}
-	
-	virtual int getMode() const ;
-	
-	virtual double getAngleShift() const ;
+
+    virtual DamageModel * getCopy() const {
+        return new RotatingCrack(E, nu) ;
+    }
+
+    virtual int getMode() const ;
+
+    virtual double getAngleShift() const ;
 };
 
 /** \brief fixed crack damage model. The stiffness of an affected element is scaled by a factor between 1 and 0
@@ -100,62 +104,66 @@ public:
 class FixedCrack : public DamageModel
 {
 protected:
-	
-	double E ;
-	double nu ;
-	double factor ;
-	
+
+    double E ;
+    double nu ;
+    double factor ;
+
 // 	std::vector< std::pair<double, double> > compressionAngles ;
 // 	std::vector< std::pair<double, double> > tensionAngles ;
 //   std::vector<double> compressionweights ;
 // 	std::vector<double> tensionweights ;
-	bool firstTension ;
-	bool secondTension ;
-	bool firstTensionFailure ;
-	bool secondTensionFailure ;
-	bool firstCompressionFailure ;
-	bool secondCompressionFailure ;
-	ElementState * es ;
-	bool angleset ;
+    bool firstTension ;
+    bool secondTension ;
+    bool firstTensionFailure ;
+    bool secondTensionFailure ;
+    bool firstCompressionFailure ;
+    bool secondCompressionFailure ;
+    ElementState * es ;
+    bool angleset ;
 public:
 
-	double currentAngle ;
-	
-	/** \brief Constructor. Set the number of degrees of freedom
-	 * 
-	 * @param numDof number of degrees of freedom
-	 */
-	FixedCrack(double E, double nu) ;
+    double currentAngle ;
 
-	virtual ~FixedCrack();
-	virtual void scale(double s) { factor = s ;} ;
-	virtual void computeDelta(ElementState &s) ;
+    /** \brief Constructor. Set the number of degrees of freedom
+     *
+     * @param numDof number of degrees of freedom
+     */
+    FixedCrack(double E, double nu) ;
 
-	/** \brief Increment the damage
-	 * 
-	 * @param s ElementState passed as a parameter
-	 */
-	virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
+    virtual ~FixedCrack();
+    virtual void scale(double s) {
+        factor = s ;
+    } ;
+    virtual void computeDelta(ElementState &s) ;
 
-	/** \brief compute the new stifness matrix after damage
-	 * 
-	 * \f$ K' = K(1-d) \f$
-	 * @param m Matrix to modify
-	 * @return the new Matrix
-	 */
+    /** \brief Increment the damage
+     *
+     * @param s ElementState passed as a parameter
+     */
+    virtual std::pair<Vector, Vector> computeDamageIncrement(ElementState & s) /*override*/;
 
-	virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
-	/** \brief return true is the element concerned is fractured 
-		*/
-	virtual bool fractured() const  ;
-	
-	virtual void postProcess() ;
-	
-	virtual DamageModel * getCopy() const { return new FixedCrack(E, nu) ;}
-	
-	virtual int getMode() const ;
-	
-	virtual double getAngleShift() const ;
+    /** \brief compute the new stifness matrix after damage
+     *
+     * \f$ K' = K(1-d) \f$
+     * @param m Matrix to modify
+     * @return the new Matrix
+     */
+
+    virtual Matrix apply(const Matrix & m, const Point & p = Point(), const IntegrableEntity * e = nullptr, int g = -1) const;
+    /** \brief return true is the element concerned is fractured
+    	*/
+    virtual bool fractured() const  ;
+
+    virtual void postProcess() ;
+
+    virtual DamageModel * getCopy() const {
+        return new FixedCrack(E, nu) ;
+    }
+
+    virtual int getMode() const ;
+
+    virtual double getAngleShift() const ;
 };
 
 }

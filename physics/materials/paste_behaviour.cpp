@@ -340,7 +340,6 @@ Matrix HydratingMechanicalCementPaste::getMechanicalProperties(double effectiveS
 
     double nu = (3.*bulk-E)/(6.*bulk) ;
 
-// 	std::cout << E << "  " << nu << std::endl ;
 
     return Tensor::cauchyGreen(std::make_pair(E,nu), true,SPACE_TWO_DIMENSIONAL, PLANE_STRESS) ;
 }
@@ -355,7 +354,6 @@ double HydratingMechanicalCementPaste::getCapillaryPressure(double saturation, d
 
 Vector HydratingMechanicalCementPaste::getAutogeneousDeformation(double saturation, double doh)
 {
-// 	double pc = getCapillaryPressure(saturation, doh) ;
     makeBulkModuli(saturation, doh) ;
     Vector a(0., 3) ;
 

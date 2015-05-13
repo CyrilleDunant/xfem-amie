@@ -4685,7 +4685,7 @@ bool FeatureTree::stepElements()
                 }
                 std::cerr << ". Average damage = " << averageDamage << " ...done. " << ccount << " elements changed." << std::endl ;
 
-
+                foundCheckPoint = true ;
                 for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
                 {
                     #pragma omp parallel
@@ -4799,26 +4799,6 @@ bool FeatureTree::stepElements()
                         }
                     }
                 }
-//                 else
-//                 {
-//                     for ( auto j = layer2d.begin() ; j != layer2d.end() ; j++ )
-//                     {
-//                         #pragma omp parallel
-//                         {
-//                             #pragma omp single
-//                             {
-//                                 for (  auto i = j->second->begin() ; i != j->second->end() ; i++  )
-//                                 {
-//                                     #pragma omp task firstprivate(i)
-//                                     if ( i->getBehaviour()->getFractureCriterion() )
-//                                     {
-//                                         i->getBehaviour()->getFractureCriterion()->setCheckpoint ( false ) ;
-//                                     }
-//                                 }
-//                             }
-//                         }
-//                     }  
-//                 }
 
                 std::cerr << " ...done. " << std::endl ;
             }
@@ -5585,9 +5565,10 @@ bool FeatureTree::step()
             needexit = true ;
         }
 
-        std::cout << it << std::endl ;
+//         std::cout << it << std::endl ;
     }
     while ( !needexit ) ;
+    
     totit += it ;
     
     if(is2D())

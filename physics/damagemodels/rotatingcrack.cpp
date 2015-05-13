@@ -44,6 +44,8 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     stiff = new OrthotropicStiffness ( E,E,E/ ( 1.-nu*nu ),nu, 0. ) ;
     roughsampling = true ;
     iterationcount = 0 ;
+    iterationNumber = 32 ;
+    damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber/4), 1e-4) ; //1e-8 ;//1. / pow( 2., 14 );
 }
 
 
@@ -89,10 +91,7 @@ double RotatingCrack::getAngleShift() const
 
 void RotatingCrack::step(ElementState & s, double maxscore)
 {
-    
-   if(!converged)
-        std::cout <<"b"<< std::endl ;
-        
+
     if(!alternate)
     {
         DamageModel::step(s, maxscore) ;
@@ -140,9 +139,8 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             converged = true ;
             return ;
         }
-        bool isInDamagingSet = s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() ;
         
-        if( !isInDamagingSet )
+        if( !s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
         {
             s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
             alternateCheckpoint = false ;
@@ -153,7 +151,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             return ;
         }
         
-        if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint()) // initiate iteration
+        if( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() ) // initiate iteration
         {
             angles_scores.clear();
             s.getParent()->getBehaviour()->getFractureCriterion()->setCheckpoint( false );
@@ -186,16 +184,17 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         }
         else
         {
-            iterationcount++ ;
+           
             angles_scores.push_back( std::make_pair(currentAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()));
             std::sort(angles_scores.begin(),angles_scores.end());
             
             //first produce a rough sampling           
             double minAngle = std::max(initialAngle-M_PI*.25, 0.) ;
             double maxAngle = std::min(initialAngle+M_PI*.25, M_PI*.5) ;
-            if(angles_scores.back().first < maxAngle - .1*(maxAngle-minAngle) && roughsampling)
+            double deltaAngle = std::max(maxAngle-minAngle, 0.25*M_PI) ;
+            if(angles_scores.back().first < maxAngle - .1*deltaAngle && roughsampling)
             {  
-                currentAngle += .1*( maxAngle - minAngle ) ;
+                currentAngle += .1*deltaAngle ;
                 if(firstTension)
                     stiff->setAngle ( currentAngle ) ;     
                 change = true ;
@@ -241,6 +240,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 change = true ;
                 return ;
             }
+            iterationcount++ ;
            
 
             double minscore = angles_scores[0].second ;

@@ -45,12 +45,6 @@ void concatenateFunctions(const Function & src0, const Function & src1, Function
     for(size_t i = 0 ; i < tmpdst.adress_t.size() ; i++)
         tmpdst.adress_t[i] = HEAP_VARIABLE_TRANSFORM_OFFSET + i ;
 
-    if(src0.adress_t.size() != src0.transformed.size() )
-    {
-        std::cout << "la???" << std::endl ;
-//		VirtualMachine().print(src0) ;
-    }
-
     for(size_t i = 0 ; i < src0.adress_t.size() ; i++)
     {
         Function f = src0.transform(i) ;
@@ -1959,12 +1953,10 @@ void Function::makeVariableTransformDerivative()
 
     for(size_t i = 0 ; i < derivative->size() ; i++)
     {
-// 		std::cout << "  << " << i << " >>" << std::endl ;
         Function newderivative ;
         bool initialized = false ;
         for(size_t j = 0 ; j < replacements.size() ; j++)
         {
-// 			std::cout << "  [[ " << j << " ]]" << std::endl ;
             if(replacements[j] )
             {
                 Function oldderivative = *(original[j]) ;
@@ -1974,8 +1966,7 @@ void Function::makeVariableTransformDerivative()
                         oldderivative.setVariableTransform( (const Variable) k, *(replacements[k]) );
                 }
                 oldderivative.makeVariableTransformDerivative() ;
-                if(oldderivative.isDifferentiable(TIME_VARIABLE))
-                    std::cout << "b" ;
+
                 oldderivative *= replacements[j]->d( (const Variable) i ) ;
                 if(! initialized )
                 {
@@ -1984,7 +1975,6 @@ void Function::makeVariableTransformDerivative()
                 }
                 else
                 {
-// 					std::cout << newderivative.adress_t.size() << " --- " << newderivative.transformed.size() << std::endl ;
                     newderivative += oldderivative ;
                 }
             }

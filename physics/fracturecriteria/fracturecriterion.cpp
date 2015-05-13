@@ -159,20 +159,12 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
         // term of their score. At the checkpoint, we consider the elements which
         // have met their criterion
         
-        if(checkpoint ) //new iteration
+        if( checkpoint ) //new iteration
         {
-//             if(!(!s.getParent()->getBehaviour()->getDamageModel()->alternating || s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-//                 return std::make_pair(0.,0.) ;
-//
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                inset = false ;
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                inIteration = false ;
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-            {
-                damagingSet.clear();
-                proximitySet.clear() ;
-            }
+            inset = false ;
+            inIteration = false ;
+            damagingSet.clear();
+            proximitySet.clear() ;
 
             std::vector<unsigned int> newSet ;
             std::set<unsigned int> newProximity ;
@@ -186,10 +178,8 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             maxAngleShiftInNeighbourhood = 0 ;
             if(thresholdScore > 0 )
             {
-//                 std::cout << "plouf" << std::endl ;
                 for(auto ci = mesh2d->begin(cacheID) ; ci != mesh2d->end(cacheID) ; ci++)
                 {
-//                     DelaunayTriangle * ci = static_cast<DelaunayTriangle *>( mesh2d->getInTree(mesh2d->getCache(cacheID)[i])) ;
                     if(!ci->getBehaviour()->getDamageModel())
                         continue ;
 
@@ -199,13 +189,10 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
                     if(std::abs(ci->getBehaviour()->getFractureCriterion()->scoreAtState-thresholdScore) <= scoreTolerance*initialScore*.25 &&
                             ci->getBehaviour()->getFractureCriterion()->met())
                     {
-//                         std::cout << "plif" << std::endl ;
 
-                        if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                            if(ci == s.getParent() && met())
+
+                        if(ci == s.getParent() && met())
                                 inset = true ;
-//                         if(inset)
-//                             std::cout << "pluf" << (ci == s.getParent() && met()) << (!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate)) << "  "<< s.getParent()->getBehaviour()->getDamageModel()->getState()[0]<<std::endl ;
                         if(ci->getBehaviour()->getDamageModel()->getDelta() > POINT_TOLERANCE)
                             minDeltaInNeighbourhood = std::min(minDeltaInNeighbourhood, ci->getBehaviour()->getDamageModel()->getDelta()) ;
 
@@ -227,28 +214,21 @@ std::pair<double, double> FractureCriterion::setChange( ElementState &s, double 
             }
             if(!inset)
             {
-                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                {
-                    damagingSet.clear();
-                    proximitySet.clear() ;
-                }
-                if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                    if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
-                        inIteration = true ;
+                damagingSet.clear();
+                proximitySet.clear() ;
+                if(std::abs(scoreAtState-thresholdScore) < 4.*scoreTolerance*initialScore)
+                    inIteration = true ;
                 return std::make_pair(0.,0.) ;
             }
             
-//             std::cout << "plaf" << std::endl ;
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-                inIteration = true ;
+            inIteration = true ;
             if(!newSet.empty())
                 std::stable_sort(newSet.begin(), newSet.end());
 
-            if(!s.getParent()->getBehaviour()->getDamageModel()->alternating || (s.getParent()->getBehaviour()->getDamageModel()->alternating && s.getParent()->getBehaviour()->getDamageModel()->alternate))
-            {
-                damagingSet = newSet ;
-                proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
-            }
+
+            damagingSet = newSet ;
+            proximitySet.insert(proximitySet.end(), newProximity.begin(), newProximity.end()) ;
+
             for(size_t i = 0 ; i < proximitySet.size() ; i++)
                 static_cast<DelaunayTriangle *>( mesh2d->getInTree(proximitySet[i]))->getBehaviour()->getFractureCriterion()->inIteration = true ;
 

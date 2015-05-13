@@ -43,11 +43,7 @@ bool ConjugateGradient::solve(const Vector &x0, Preconditionner * precond, const
     }
     else
     {
-// 		if(x0.size())
-// 		{
-// 			std::cout << "ouch" << std::endl ;
-// 			exit(0) ;
-// 		}
+
         x = 0 ;
         for(size_t i = 0 ; i < std::min(assembly->getForces().size(), x0.size()) ; i++)
             x[i] = x0[i] ;

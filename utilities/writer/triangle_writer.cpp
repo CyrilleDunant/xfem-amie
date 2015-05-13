@@ -570,7 +570,6 @@ void MultiTriangleWriter::append()
 
         outfile.close();
     }
-    std::cout << layers.size() << std::endl ;
     writeIndexFile();
 }
 
