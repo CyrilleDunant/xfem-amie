@@ -170,7 +170,7 @@ public:
     /** \brief Copy-constructor*/
     ElementState ( ElementState &s ) ;
     
-    virtual ~ElementState() { delete JinvCache ;} ;
+    virtual ~ElementState() { if(JinvCache) delete JinvCache ;} ;
 
     ElementState & operator = ( ElementState& s ) ;
 
