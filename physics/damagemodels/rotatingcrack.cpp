@@ -44,7 +44,7 @@ RotatingCrack::RotatingCrack ( double E, double nu ) :  E ( E ), nu ( nu )
     stiff = new OrthotropicStiffness ( E,E,E/ ( 1.-nu*nu ),nu, 0. ) ;
     roughsampling = true ;
     iterationcount = 0 ;
-    iterationNumber = 32 ;
+    iterationNumber = 48 ;
     damageDensityTolerance =  std::max(0.25/pow(2.,iterationNumber/4), 1e-4) ; //1e-8 ;//1. / pow( 2., 14 );
 }
 
@@ -184,7 +184,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
         }
         else
         {
-           
+           iterationcount++ ;
             angles_scores.push_back( std::make_pair(currentAngle, s.getParent()->getBehaviour()->getFractureCriterion()->getScoreAtState()));
             std::sort(angles_scores.begin(),angles_scores.end());
             
@@ -201,7 +201,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 return ;
             }
             else if(roughsampling)
-            {
+            { 
                 //find a triplet of points around the minimum               
                 double phi = (1.+sqrt(5))*.5 ;
                 std::vector<std::pair<double, double>> newset ;
@@ -240,7 +240,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 change = true ;
                 return ;
             }
-            iterationcount++ ;
+           
            
 
             double minscore = angles_scores[0].second ;
