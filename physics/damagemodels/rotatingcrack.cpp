@@ -101,8 +101,8 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 
             double E_0 = E ;
             double E_1 = E ;
-            double fs = firstTension  ? getState() [0] : getState() [1] ;
-            double ss = secondTension ? getState() [2] : getState() [3] ;
+            double fs = /*firstTension  ?*/ getState() [1] /*: getState() [1]*/ ;
+            double ss = /*secondTension ? getState() [2] :*/ getState() [2] ;
 
             E_0 *=  1. - fs  ;
             E_1 *=  1. - ss  ;
@@ -174,7 +174,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             roughsampling = true ;
             iterationcount = 0 ;         
             
-            if(firstTension)
+//             if(firstTension)
                 currentAngle = std::max(initialAngle-M_PI*.25, 0.) ;
 
             stiff->setAngle ( currentAngle ) ;   
@@ -192,10 +192,10 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             double minAngle = std::max(initialAngle-M_PI*.25, 0.) ;
             double maxAngle = std::min(initialAngle+M_PI*.25, M_PI*.5) ;
             double deltaAngle = std::max(maxAngle-minAngle, 0.25*M_PI) ;
-            if(angles_scores.back().first < maxAngle - .1*deltaAngle && roughsampling)
+            if(angles_scores.back().first < maxAngle - .2*deltaAngle && roughsampling)
             {  
-                currentAngle += .1*deltaAngle ;
-                if(firstTension)
+                currentAngle += .2*deltaAngle ;
+//                 if(firstTension)
                     stiff->setAngle ( currentAngle ) ;     
                 change = true ;
                 return ;
@@ -234,7 +234,7 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                     newset.push_back(angles_scores[minidex+1]) ; 
                 }
                 angles_scores = newset ;
-                if(firstTension)
+//                 if(firstTension)
                     stiff->setAngle ( currentAngle ) ;     
                 roughsampling = false ;
                 change = true ;
@@ -282,13 +282,15 @@ void RotatingCrack::step(ElementState & s, double maxscore)
                 currentAngle -= M_PI*.5 ;
             if(currentAngle < 0)
                 currentAngle += M_PI*.5 ;
-            if(firstTension)
-                stiff->setAngle ( currentAngle ) ;     
+//             if(firstTension)
+                stiff->setAngle ( currentAngle ) ; 
+                std::cout << std::min(std::abs(currentAngle-M_PI*.5), std::abs(currentAngle)) << std::endl ;
             change = true ;
             if(iterationcount > iterationNumber/2)
             {
-                if(firstTension)
-                    stiff->setAngle ( currentAngle ) ;     
+//                 if(firstTension)
+//                     stiff->setAngle ( currentAngle ) ;
+                std::cout << "converged angle = " << currentAngle << std::endl ;
                 initialAngle = currentAngle ;
                 alternate = false ;
                 alternateCheckpoint = true ;
@@ -337,14 +339,14 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
         if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
         {
             firstMet = true ;
-            if ( firstTension )
-            {
-                range[1] = getState() [1] ;
-            }
-            else
-            {
+//             if ( firstTension )
+//             {
+//                 range[1] = getState() [1] ;
+//             }
+//             else
+//             {
                 range[0] = getState() [0] ;
-            }
+//             }
 
         }
         else
@@ -356,15 +358,15 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
 
         if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
         {
-            secondMet = true ;
-            if ( secondTension )
-            {
+//             secondMet = true ;
+//             if ( secondTension )
+//             {
                 range[3] = getState() [3] ;
-            }
-            else
-            {
-                range[2] = getState() [2] ;
-            }
+//             }
+//             else
+//             {
+//                 range[2] = getState() [2] ;
+//             }
 
         }
         else
@@ -388,7 +390,8 @@ void  RotatingCrack::computeDelta ( ElementState &s )
 {
 
     Vector range ( 1., 4 ) ;
-
+    delta = 1. ;
+    return ;
     if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) )
     {
 		firstTension = true ;

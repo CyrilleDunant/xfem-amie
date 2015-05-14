@@ -98,7 +98,7 @@ void step (const Function & loadfunc)
     int itcounter = 0 ;
     while ( true ) 
     {
-        bool go_on = featureTree->step() ; //featureTree->stepToCheckPoint(10) ;
+        bool go_on = featureTree->stepToCheckPoint(1, 1e-4) ;
         Vector stemp = featureTree->getAverageField ( REAL_STRESS_FIELD,-1.,1. ) ;
         Vector etemp = featureTree->getAverageField ( STRAIN_FIELD,-1.,1. ) ;
         Vector dtemp = featureTree->getAverageField (SCALAR_DAMAGE_FIELD,-1.,1.) ;
@@ -209,7 +209,7 @@ int main ( int argc, char *argv[] )
 
     F.setSamplingNumber ( atof ( argv[1] ) ) ;
     F.setDeltaTime(.05);
-    F.setMinDeltaTime(.0001);
+    F.setMinDeltaTime(.00005);
     F.setOrder(LINEAR_TIME_LINEAR) ;
 
     F.setMaxIterationsPerStep ( 50 );

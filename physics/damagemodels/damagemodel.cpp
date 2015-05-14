@@ -205,6 +205,7 @@ void DamageModel::step( ElementState &s , double maxscore)
             if(ctype == DISSIPATIVE)
             {
                 getState( true ) = downState + ( upState - downState ) * trialRatio;
+                std::cout << "converged damage = " << getState(true).max() << std::endl ;
                 for(size_t i = 0 ; i <  state.size() ; i++)
                 {
                     if(std::abs( upState[i] - downState [i]) > POINT_TOLERANCE)
