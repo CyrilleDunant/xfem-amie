@@ -496,7 +496,7 @@ std::vector<double> ConfigTreeItem::readLineAsStdVector(std::string line, char s
 ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 {
     ExternalMaterialLaw * ret = nullptr ;
-    std::string type = getStringData("type","ABSTRACT") ;
+    std::string type = (str.length() > 0 ? str : getStringData("type","ABSTRACT")) ;
     if(type == "ABSTRACT")
         return ret ;
 
@@ -510,11 +510,6 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
     if(type == "RADIATION_INDUCED_VOLUMETRIC_EXPANSION")
     {
         return new RadiationInducedExpansionMaterialLaw() ;
-    }
-
-    if(type == "DISJOINING_PRESSURE")
-    {
-        return new DisjoiningPressureDryingShrinkageMaterialLaw() ;
     }
 
     if(type == "BET_ISOTHERM")
@@ -579,10 +574,52 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
         return ret ;
     }
 
-    if(type == "CREEP_HUMIDITY")
+    if(type == "CREEP_HUMIDITY_WITTMANN" || type == "CREEP_HUMIDITY")
     {
-        ret = new CreepRelativeHumidityMaterialLaw() ;
+        ret = new WittmannCreepRelativeHumidityMaterialLaw() ;
         ret->setDefaultValue("creep_humidity_coefficient", getData("creep_humidity_coefficient", 0.2)) ;
+        return ret ;
+    }
+
+    if(type == "KELVIN_CAPILLARY_PRESSURE")
+    {
+        ret = new KelvinCapillaryPressureMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "BENBOUDJEMA_DRYING_CREEP")
+    {
+        ret = new BenboudjemaDryingCreepMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "HAVLASEK_DRYING_CREEP")
+    {
+        ret = new HavlasekDryingCreepMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "CAPILLARY_PRESSURE_DRYING_SHRINKAGE")
+    {
+        ret = new CapillaryPressureDryingShrinkageMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "VAN_GENUCHTEN_CAPILLARY_PRESSURE")
+    {
+        ret = new VanGenuchtenCapillaryPressureMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "VAN_GENUCHTEN_WATER_SATURATION")
+    {
+        ret = new VanGenuchtenWaterSaturationMaterialLaw() ;
+        return ret ;
+    }
+
+    if(type == "DISJOINING_PRESSURE_DRYING_SHRINKAGE")
+    {
+        ret = new DisjoiningPressureDryingShrinkageMaterialLaw() ;
         return ret ;
     }
 
@@ -692,7 +729,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 
     if(type == "TIME_DERIVATIVE")
     {
-        ret = new TimeDerivativeMaterialLaw( getStringData("input_parameter","none"), getStringData("output_parameter", getStringData("input_parameter","none")+"_rate")) ;
+        ret = new TimeDerivativeMaterialLaw( getStringData("input_parameter","none"), getStringData("output_parameter", getStringData("input_parameter","none")+"_rate"), getStringData("temporary_parameter", getStringData("input_parameter","none")+"_previous")) ;
         return ret ;
     }
 
@@ -733,7 +770,7 @@ ExternalMaterialLaw * ConfigTreeItem::getExternalMaterialLaw() const
 FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 {
     FractureCriterion * ret = nullptr ;
-    std::string type = getStringData("type","ABSTRACT") ;
+    std::string type = (str.length() > 0 ? str : getStringData("type","MAXIMUM_TENSILE_STRAIN")) ;
     if(spaceTime)
     {
         if(type == "MAZARS")
@@ -945,7 +982,7 @@ FractureCriterion * ConfigTreeItem::getFractureCriterion(bool spaceTime)
 DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
 {
     DamageModel * ret = nullptr ;
-    std::string type = getStringData("type","ABSTRACT") ;
+    std::string type = (str.length() > 0 ? str : getStringData("type","ISOTROPIC_LINEAR_DAMAGE")) ;
     if(type == "ISOTROPIC_INCREMENTAL_LINEAR_DAMAGE")
     {
         if(spaceTime)
@@ -981,7 +1018,7 @@ DamageModel * ConfigTreeItem::getDamageModel(bool spaceTime)
 
 Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 {
-    std::string type = getStringData("type","VOID_BEHAVIOUR") ;
+    std::string type = (str.length() > 0 ? str : getStringData("type","VOID_BEHAVIOUR")) ;
 
     if(type == std::string("VOID_BEHAVIOUR"))
         return new VoidForm() ;
@@ -1045,7 +1082,6 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
     {
         if(!spaceTime)
             return nullptr ;
-
 
         LogarithmicCreepWithExternalParameters * log = nullptr;
 
@@ -1127,7 +1163,6 @@ Form * ConfigTreeItem::getBehaviour(SpaceDimensionality dim, bool spaceTime)
 
         return log ;
     }
-
 
     if(type == std::string("PASTE_BEHAVIOUR"))
     {
@@ -1411,7 +1446,7 @@ PSDSpecificationType ConfigTreeItem::translatePSDSpecificationType( std::string 
 
 ParticleSizeDistribution * ConfigTreeItem::getParticleSizeDistribution() const
 {
-    std::string type = getStringData("type","CONSTANT") ;
+    std::string type = (str.length() > 0 ? str : getStringData("type","CONSTANT")) ;
 
     if(type == std::string("CONSTANT"))
     {
@@ -1515,7 +1550,7 @@ GeometryType ConfigTreeItem::translateGeometryType(std::string type)
 
 InclusionGenerator * ConfigTreeItem::getInclusionGenerator() const
 {
-    std::string inclusion = getStringData("type","CIRCLE") ;
+    std::string inclusion = (str.length() > 0 ? str : getStringData("type","CIRCLE")) ;
     double rotation = getData("authorized_rotation",0.) ;
     if( inclusion == "ELLIPSE")
     {
@@ -1577,7 +1612,7 @@ std::vector<std::vector<Feature *> > ConfigTreeItem::getInclusions(FeatureTree *
     ConfigTreeItem * psdConfig = getChild("particle_size_distribution") ;
     if(!psdConfig)
         return out ;
-    std::string type = psdConfig->getStringData("type","CONSTANT") ;
+    std::string type = (psdConfig->getStringData().length() > 0 ? psdConfig->getStringData() : psdConfig->getStringData("type","CONSTANT")) ;
 
     Form * behaviour = nullptr ;
     if(hasChild("behaviour"))

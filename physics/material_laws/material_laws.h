@@ -167,9 +167,9 @@ struct TimeDerivativeMaterialLaw : public ExternalMaterialLaw
 {
     std::string rate ;
     std::string base ;
-    double previous ;
+    std::string previous ;
 
-    TimeDerivativeMaterialLaw(std::string b, std::string r, double init = 0., std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), rate(r), base(b), previous(init) { }
+    TimeDerivativeMaterialLaw(std::string b, std::string r, std::string p, std::string args = std::string(), char sep = 'c') : ExternalMaterialLaw(args, sep), rate(r), base(b), previous(p) { }
     virtual ~TimeDerivativeMaterialLaw() { } ;
 
     virtual void preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt ) ;

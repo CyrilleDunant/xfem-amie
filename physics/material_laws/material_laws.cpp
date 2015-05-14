@@ -285,8 +285,15 @@ void CopyFromFeatureTreeExternalMaterialLaw::preProcess( GeneralizedSpaceTimeVis
 void TimeDerivativeMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)
 {
     double current = s.get(base, defaultValues) ;
-    s.set(rate, (current-previous)/dt) ;
-    previous = current ;
+    if(!s.has(previous))
+        s.set( previous, current ) ;
+    double prev = s.get(previous, defaultValues) ;
+
+    if(dt > POINT_TOLERANCE)
+        s.set(rate, (current-prev)/dt) ;
+    else
+        s.set( rate, 0. ) ;
+    s.set(previous, current) ;
 }
 
 void TimeIntegralMaterialLaw::preProcess( GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables & s, double dt)

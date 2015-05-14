@@ -32,20 +32,29 @@ void DryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElem
 
 void KelvinCapillaryPressureMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
-    double rw = 1e6 ; // water density
+    double rw = s.get("water_density", defaultValues) ; // water density
     double R = 8.3144621 ;
     double mw = s.get("water_molar_volume", defaultValues) ;
     double T = s.get("temperature", defaultValues) ;
     double h = s.get("relative_humidity", defaultValues) ;
+    if(h < POINT_TOLERANCE) { h = POINT_TOLERANCE ; }
     s.set("capillary_pressure", -(rw*R*T/mw)*std::log(h) ) ;
 }
 
-void BaroghelBounyWaterSaturationMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void VanGenuchtenWaterSaturationMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     double pc = s.get("capillary_pressure", defaultValues) ;
     double a = s.get("capillary_pressure_coefficient", defaultValues) ;
     double b = s.get("capillary_pressure_exponent", defaultValues) ;
-    s.set("water_saturation", a*std::pow( 1. + std::pow(pc/a, b/(b-1)), -1./b)  ) ;
+    s.set("water_saturation", 1./( 1. + std::pow( pc/a, 1.+1./b) ) ) ;
+}
+
+void VanGenuchtenCapillaryPressureMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    double ws = s.get("water_saturation", defaultValues) ;
+    double a = s.get("capillary_pressure_coefficient", defaultValues) ;
+    double b = s.get("capillary_pressure_exponent", defaultValues) ;
+    s.set("capillary_pressure", a*std::pow( std::pow(ws, -b)-1, -1.-1./b)  ) ;
 }
 
 void CapillaryPressureDryingShrinkageMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
@@ -173,7 +182,33 @@ void ThermalExpansionHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoEl
 }
 
 
-void CreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+void BenboudjemaDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("creep_characteristic_time"))
+        return ;
+
+    double ws = s.get("water_saturation", defaultValues) ;
+    double wsn = s.get("water_saturation_drying_creep_exponent", defaultValues) ;
+    
+    double hdot = std::abs(s.get("relative_humidity_rate", defaultValues)) ;
+    double mu = s.get("drying_creep_modulus", defaultValues) ;
+    double tau = s.get("creep_characteristic_time", defaultValues) ;
+    double t = s.getNodalCentralTime() ;
+
+    double factor =  std::pow( ws, wsn ) ;
+    if(hdot > POINT_TOLERANCE && t > POINT_TOLERANCE)
+        factor = 1./( 1./factor + t/(mu*hdot*tau)) ;
+
+    if(s.has("creep_modulus"))
+    {
+        s.multiply("creep_modulus", factor) ;
+    } else {
+        s.multiply("creep_bulk", factor) ;
+        s.multiply("creep_shear", factor) ;
+    }
+}
+
+void WittmannCreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
 {
     if(!s.has("creep_characteristic_time"))
         return ;
@@ -196,6 +231,33 @@ void CreepRelativeHumidityMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElast
         s.multiply("recoverable_shear", factor) ;
     }
 
+}
+
+void HavlasekDryingCreepMaterialLaw::preProcess(GeneralizedSpaceTimeViscoElasticElementStateWithInternalVariables &s, double dt)
+{
+    if(!s.has("creep_characteristic_time"))
+        return ;
+
+    double q4 = s.get("creep_modulus",defaultValues) ;
+    if(!s.has("current_creep_viscosity"))
+        s.set("current_creep_viscosity", q4) ;
+
+    double eta = s.get("current_creep_viscosity",defaultValues) ;
+    double mu = s.get("drying_creep_modulus",defaultValues) ;
+    double tau = s.get("creep_characteristic_time",defaultValues) ;
+    double T = s.get("temperature",defaultValues) ;
+    double T0 = s.get("temperature_reference",defaultValues) ;
+    double Tdot = s.get("temperature_rate",defaultValues) ;
+    double h = s.get("relative_humidity",defaultValues) ;
+    double hdot = s.get("relative_humidity_rate",defaultValues) ;
+    if(h < POINT_TOLERANCE) { h = POINT_TOLERANCE ; }
+    if(mu < POINT_TOLERANCE) { return ; }
+
+    double etadot = (q4 - (eta*eta/(mu*T0))*std::abs( Tdot * std::log(h) + T*hdot/h ))/tau  ;
+    if(etadot < POINT_TOLERANCE) { etadot = 0. ; }
+    s.set("creep_viscosity_rate", etadot) ;
+    s.set("current_creep_viscosity", eta+etadot*s.getNodalDeltaTime() ) ;
+    s.set("creep_modulus", (eta+etadot*s.getNodalDeltaTime())/(1.+s.getNodalCentralTime()/tau) ) ;
 }
 
 

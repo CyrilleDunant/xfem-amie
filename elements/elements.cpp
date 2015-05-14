@@ -1270,7 +1270,6 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[0].setDerivative( TIME_VARIABLE, s0hm ) ;
         (*shapefunc)[0].getDerivatives()[ ETA ]->setDerivative( TIME_VARIABLE, halfm ) ;
         (*shapefunc)[0].getDerivatives()[ TIME_VARIABLE ]->setDerivative( ETA, halfm ) ;
-	std::cout << (*shapefunc)[0].getDerivatives()[ ETA ]->getNumberOfDerivatives() << std::endl ;
 
         (*shapefunc)[1].setDerivative( XI, t0m ) ;
         (*shapefunc)[1].setDerivative( ETA, t0m ) ;
@@ -1285,7 +1284,6 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[2].getDerivatives()[ XI ]->setDerivative( TIME_VARIABLE, halfm ) ;
         (*shapefunc)[2].getDerivatives()[ TIME_VARIABLE ]->setDerivative( XI, halfm ) ;
 
-	std::cout << (*shapefunc)[2].getDerivatives()[ TIME_VARIABLE ]->getDerivatives()[ XI ]->getNumberOfDerivatives() << std::endl ;
 
         (*shapefunc)[3].setDerivative( ETA, t1 ) ;
         (*shapefunc)[3].setDerivative( TIME_VARIABLE, s0h ) ;

@@ -74,3 +74,4 @@ double TimeUnderLoadLogCreepAccumulator::getKelvinVoigtDashpotReduction() const
     return 1.+t/tau ;
 }
 
+
