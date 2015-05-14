@@ -109,6 +109,7 @@ void DamageModel::step( ElementState &s , double maxscore)
     }
     else if( !converged )
     {
+//         std::cout << upState[0] << "  " << upState[1] << "  " << upState[2] << "  " << upState[3] << "  " << std::endl ;
 //         std::cout << "#!" << score << "   "<< states.size() << std::endl ;
         double globalAngleShift = s.getParent()->getBehaviour()->getFractureCriterion()->maxAngleShiftInNeighbourhood ;
         int globalMode = s.getParent()->getBehaviour()->getFractureCriterion()->maxModeInNeighbourhood ;
@@ -118,6 +119,7 @@ void DamageModel::step( ElementState &s , double maxscore)
         std::sort( states.begin(), states.end() ) ;
 
         double minFraction = states[0].fraction ;
+        double nextFraction = states[1].fraction ;
         double prevDelta = states[0].delta ;
         double prevScore = states[0].score ;
         double prevProximity = states[0].proximity ;
@@ -191,10 +193,15 @@ void DamageModel::step( ElementState &s , double maxscore)
                 prevShift = states[i].angleShift ;
                 prevMode = states[i].mode ;
                 minFraction = states[i].fraction ;
+                if(i == states.size()-1 )
+                {
+                    minFraction = states[i-2].fraction ;
+                    nextFraction = states[i-1].fraction ;
+                }
             }
         }
 
-        trialRatio = std::min(minFraction, states[states.size()-2].fraction ) + .27/pow(2, states.size()-1)  ;
+        trialRatio = (minFraction+nextFraction)*.5/*std::min(minFraction, states[states.size()-2].fraction ) + .27/pow(2, states.size()-1)*/  ;
 
         getState( true ) = downState + ( upState - downState ) *trialRatio ;
 

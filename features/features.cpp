@@ -5624,7 +5624,7 @@ bool FeatureTree::step()
     {
         setDeltaTime ( realDeltaTime ) ;
     }
-    std::cout << totit << std::endl ;
+//     std::cout << totit << std::endl ;
     std::cerr << totit << "/" << maxitPerStep << "." << std::flush ;
     damageConverged = solverConverged() && !behaviourChanged() /*stateConverged*/ && ret && ( totit < maxitPerStep ) ;
 

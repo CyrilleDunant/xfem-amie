@@ -101,8 +101,8 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 
             double E_0 = E ;
             double E_1 = E ;
-            double fs = /*firstTension  ?*/ getState() [1] /*: getState() [1]*/ ;
-            double ss = /*secondTension ? getState() [2] :*/ getState() [2] ;
+            double fs = firstTension  ? getState() [1] : getState() [1] ;
+            double ss = secondTension ? getState() [2] : getState() [2] ;
 
             E_0 *=  1. - fs  ;
             E_1 *=  1. - ss  ;
@@ -314,7 +314,7 @@ std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState
 //         postprocheck = true ;
 //     }
 
-    if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet() )
+    if ( true /*s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/ )
     {
 
 

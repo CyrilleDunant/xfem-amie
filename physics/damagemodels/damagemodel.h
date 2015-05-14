@@ -113,6 +113,7 @@ public:
     bool isNull ;
     bool converged ;
     bool alternateCheckpoint ;
+    bool findingDamageVariable ;
     double error ;
 
     DamageModel();
