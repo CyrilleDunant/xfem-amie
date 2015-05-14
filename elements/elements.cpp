@@ -1166,31 +1166,38 @@ TriElement::TriElement(Order order_ ): moved(false)
         }
 
         Function zero("0") ;
+        Function one("1") ;
+        Function mone("-1") ;
+        Function half("0.5") ;
+        Function halfm("-0.5") ;
         zero.setNumberOfDerivatives(4) ;
+        one.setNumberOfDerivatives(4) ;
+        mone.setNumberOfDerivatives(4) ;
+        half.setNumberOfDerivatives(4) ;
+        halfm.setNumberOfDerivatives(4) ;
         for(int i = 0 ; i < 4 ; i++)
         {
             zero.setDerivative( (const Variable) i, z1) ;
+            one.setDerivative( (const Variable) i, z1) ;
+            mone.setDerivative( (const Variable) i, z1) ;
+            half.setDerivative( (const Variable) i, z1) ;
+            halfm.setDerivative( (const Variable) i, z1) ;
         }
-        Function one = zero +1 ;
-        Function mone = zero-1 ;
 
-        Function half("0.5") ;
-        Function halfm("-0.5") ;
 
         Function t0("0.5 t 0.5 * -") ;
-// 			t0 *= 0.5 ;
         t0.setNumberOfDerivatives(4) ;
         t0.setDerivative( XI, zero) ;
         t0.setDerivative( ETA, zero) ;
         t0.setDerivative( ZETA, zero) ;
         t0.setDerivative( TIME_VARIABLE, halfm) ;
 
-// 			Function t0m = t0 * -1. ;
-// 			t0m.setNumberOfDerivatives(4) ;
-// 			t0m.setDerivative( XI, zero) ;
-// 			t0m.setDerivative( ETA, zero) ;
-// 			t0m.setDerivative( ZETA, zero) ;
-// 			t0m.setDerivative( TIME_VARIABLE, half) ;
+ 			Function t0m = t0 * -1. ;
+ 			t0m.setNumberOfDerivatives(4) ;
+ 			t0m.setDerivative( XI, zero) ;
+ 			t0m.setDerivative( ETA, zero) ;
+ 			t0m.setDerivative( ZETA, zero) ;
+ 			t0m.setDerivative( TIME_VARIABLE, half) ;
 
         Function t1("0.5 t 0.5 * +") ;
 // 			t1 *= 0.5 ;
@@ -1200,12 +1207,12 @@ TriElement::TriElement(Order order_ ): moved(false)
         t1.setDerivative( ZETA, zero) ;
         t1.setDerivative( TIME_VARIABLE, half) ;
 
-// 			Function t1m = t1 * -1. ;
-// 			t1m.setNumberOfDerivatives(4) ;
-// 			t1m.setDerivative( XI, zero) ;
-// 			t1m.setDerivative( ETA, zero) ;
-// 			t1m.setDerivative( ZETA, zero) ;
-// 			t1m.setDerivative( TIME_VARIABLE, halfm) ;
+ 			Function t1m = t1 * -1. ;
+ 			t1m.setNumberOfDerivatives(4) ;
+ 			t1m.setDerivative( XI, zero) ;
+ 			t1m.setDerivative( ETA, zero) ;
+ 			t1m.setDerivative( ZETA, zero) ;
+ 			t1m.setDerivative( TIME_VARIABLE, halfm) ;
 
         Function s0("y") ;
         Function s1("1 x - y -") ;
@@ -1226,6 +1233,13 @@ TriElement::TriElement(Order order_ ): moved(false)
         s2.setDerivative( ZETA, zero) ;
         s2.setDerivative( TIME_VARIABLE, zero) ;
 
+	Function s0h = s0*0.5 ;
+	Function s0hm = s0*(-0.5) ;
+	Function s1h = s1*0.5 ;
+	Function s1hm = s1*(-0.5) ;
+	Function s2h = s2*0.5 ;
+	Function s2hm = s2*(-0.5) ;
+
         //0
         (*shapefunc)[0] = s0*t0 ;
         (*shapefunc)[1] = s1*t0 ;
@@ -1233,6 +1247,64 @@ TriElement::TriElement(Order order_ ): moved(false)
         (*shapefunc)[3] = s0*t1 ;
         (*shapefunc)[4] = s1*t1 ;
         (*shapefunc)[5] = s2*t1 ;
+
+        for(size_t i = 0 ; i < 6 ; i++)
+        {
+            (*shapefunc)[i].setNumberOfDerivatives(4) ;
+            for(size_t j = 0 ; j < 4 ; j++)
+            {
+                (*shapefunc)[i].setDerivative((Variable) j, zero) ;
+                (*shapefunc)[i].getDerivatives()[j]->setNumberOfDerivatives(4) ;
+                for(size_t k = 0 ; k < 4 ; k++)
+                {
+                    (*shapefunc)[i].getDerivatives()[j]->setDerivative( (Variable) k, zero ) ;
+                    (*shapefunc)[i].getDerivatives()[j]->getDerivatives()[k]->setNumberOfDerivatives(4) ;
+                    for(size_t l = 0 ; l < 4 ; l++)
+                        (*shapefunc)[i].getDerivatives()[j]->getDerivatives()[k]->setDerivative( (Variable) l, zero ) ;
+
+                }
+            }
+        }
+
+        (*shapefunc)[0].setDerivative( ETA, t0 ) ;
+        (*shapefunc)[0].setDerivative( TIME_VARIABLE, s0hm ) ;
+        (*shapefunc)[0].getDerivatives()[ ETA ]->setDerivative( TIME_VARIABLE, halfm ) ;
+        (*shapefunc)[0].getDerivatives()[ TIME_VARIABLE ]->setDerivative( ETA, halfm ) ;
+	std::cout << (*shapefunc)[0].getDerivatives()[ ETA ]->getNumberOfDerivatives() << std::endl ;
+
+        (*shapefunc)[1].setDerivative( XI, t0m ) ;
+        (*shapefunc)[1].setDerivative( ETA, t0m ) ;
+        (*shapefunc)[1].setDerivative( TIME_VARIABLE, s1hm ) ;
+        (*shapefunc)[1].getDerivatives()[ XI ]->setDerivative( TIME_VARIABLE, half ) ;
+        (*shapefunc)[1].getDerivatives()[ ETA ]->setDerivative( TIME_VARIABLE, half ) ;
+        (*shapefunc)[1].getDerivatives()[ TIME_VARIABLE ]->setDerivative( XI, half ) ;
+        (*shapefunc)[1].getDerivatives()[ TIME_VARIABLE ]->setDerivative( ETA, half ) ;
+
+        (*shapefunc)[2].setDerivative( XI, t0 ) ;
+        (*shapefunc)[2].setDerivative( TIME_VARIABLE, s2hm ) ;
+        (*shapefunc)[2].getDerivatives()[ XI ]->setDerivative( TIME_VARIABLE, halfm ) ;
+        (*shapefunc)[2].getDerivatives()[ TIME_VARIABLE ]->setDerivative( XI, halfm ) ;
+
+	std::cout << (*shapefunc)[2].getDerivatives()[ TIME_VARIABLE ]->getDerivatives()[ XI ]->getNumberOfDerivatives() << std::endl ;
+
+        (*shapefunc)[3].setDerivative( ETA, t1 ) ;
+        (*shapefunc)[3].setDerivative( TIME_VARIABLE, s0h ) ;
+        (*shapefunc)[3].getDerivatives()[ ETA ]->setDerivative( TIME_VARIABLE, half ) ;
+        (*shapefunc)[3].getDerivatives()[ TIME_VARIABLE ]->setDerivative( ETA, half ) ;
+
+        (*shapefunc)[4].setDerivative( XI, t1m ) ;
+        (*shapefunc)[4].setDerivative( ETA, t1m ) ;
+        (*shapefunc)[4].setDerivative( TIME_VARIABLE, s1h ) ;
+        (*shapefunc)[4].getDerivatives()[ XI ]->setDerivative( TIME_VARIABLE, halfm ) ;
+        (*shapefunc)[4].getDerivatives()[ ETA ]->setDerivative( TIME_VARIABLE, halfm ) ;
+        (*shapefunc)[4].getDerivatives()[ TIME_VARIABLE ]->setDerivative( XI, halfm ) ;
+        (*shapefunc)[4].getDerivatives()[ TIME_VARIABLE ]->setDerivative( ETA, halfm ) ;
+
+        (*shapefunc)[5].setDerivative( XI, t1 ) ;
+        (*shapefunc)[5].setDerivative( TIME_VARIABLE, s2h ) ;
+        (*shapefunc)[5].getDerivatives()[ XI ]->setDerivative( TIME_VARIABLE, half ) ;
+        (*shapefunc)[5].getDerivatives()[ TIME_VARIABLE ]->setDerivative( XI, half ) ;
+
 
         break ;
     }
@@ -2282,7 +2354,6 @@ void TriElement::getInverseJacobianMatrix(const Point & p, Matrix & ret)
         ret[2][2] = tdtau;
 
         invert3x3Matrix(ret) ;
-
     }
 }
 
