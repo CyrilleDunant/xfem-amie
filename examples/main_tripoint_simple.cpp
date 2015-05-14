@@ -6,7 +6,9 @@
 
 #include "../features/features.h"
 #include "../physics/fracturecriteria/mcft.h"
-#include "../physics/fracturecriteria/vonmises.h"
+#include "../physics/fracturecriteria/mazars.h"
+#include "../physics/damagemodels/spacetimeisotropiclineardamage.h"
+
 #include "../physics/stiffness.h"
 #include "../physics/stiffness_and_fracture.h"
 #include "../physics/void_form.h"
@@ -182,26 +184,46 @@ void step(FeatureTree * featureTree, double supportLever, double sampleHeight )
 int main ( int argc, char *argv[] )
 {
 
-    double  samplingNumber = atof ( argv[1] ) ;
-    double sampleLength = atof ( argv[2] ) ;
-    double sampleHeight = atof ( argv[3] ) ;
-    double supportLever = sampleLength*.5-.250 ;
+        // Beton
+
+    
+
+    
+    double samplingNumber   = atof ( argv[1] ) ;
+    double sampleLength     = atof ( argv[2] ) ;
+    double sampleHeight     = atof ( argv[3] ) ;
+    double supportLever     = sampleLength*.5-.250 ;
     double halfSampleOffset = sampleLength*.25 ;
  
-    std::cerr << sampleLength << "  " << supportLever << std::endl ;
 
     double compressionCrit = -34.2e6 ;
-
     double E_steel = 200e9 ;
     double nu_steel = 0.01 ;
-    double nu = 0.3 ;
-    double E_paste = 37e9 ;
-
+    double cstrain = -2.e-3; 
+    double cstress = -38.0e6; 
+    planeType pt = PLANE_STRESS;
+    double k_elas = 40.4e9;
+    double nu_elas = 0.3 ;
+    Matrix E_cp_elas = Tensor::cauchyGreen( k_elas, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+    std::vector<std::pair<Matrix, Matrix> > branches ;
+    std::vector<double> K_chaine_cp = {5.4e11,  3.9e11, 2.02e11,5.1e10} ;
+    for(size_t i = 0 ; i < K_chaine_cp.size() ; i++)
+    {
+        double tau = 5.*std::pow(10., (double) i - 2 ); std::cerr << "TAU "<< tau << std::endl ;
+        Matrix K_i = Tensor::cauchyGreen(K_chaine_cp[i], nu_elas,  true,  SPACE_TWO_DIMENSIONAL )  ; 
+        Matrix Am_i = Tensor::cauchyGreen( K_chaine_cp[i]*tau, nu_elas, true,  SPACE_TWO_DIMENSIONAL ) ;
+        branches.push_back(std::make_pair(K_i, Am_i)) ;
+    }    
+    
+    FractureCriterion * mcft = new NonLocalSpaceTimeMCFT(cstress,k_elas, .064) ;
+    FractureCriterion * mazar = new NonLocalSpaceTimeMazars(4.52e-5, k_elas, nu_elas, 10, cstress , cstrain, .064, pt ) ;
+    DamageModel * linear = new SpaceTimeIsotropicLinearDamage(0.25,1e-6, 1.0) ;
  
     Matrix m0_steel = Tensor::cauchyGreen ( std::make_pair ( E_steel,nu_steel ), true, SPACE_TWO_DIMENSIONAL, PLANE_STRESS ) ;
 
     Sample sample ( nullptr, sampleLength*.5, sampleHeight+2.*plateHeight, halfSampleOffset, 0 ) ; 
-    sample.setBehaviour ( new ConcreteBehaviour ( E_paste, nu, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+    sample.setBehaviour ( new ConcreteBehaviour ( k_elas, nu_elas, compressionCrit,PLANE_STRESS, UPPER_BOUND, SPACE_TWO_DIMENSIONAL,MIRROR_Y ) ) ;
+//     sample.setBehaviour (new ViscoelasticityAndFracture(GENERALIZED_KELVIN_VOIGT, E_cp_elas, branches, mcft->getCopy(), linear->getCopy() )); 
 
     Sample topsupport ( nullptr, platewidth, plateHeight, platewidth*.5, sampleHeight*.5 + plateHeight*.5 ) ;
     topsupport.setBehaviour ( new Stiffness ( m0_steel ) ) ;
@@ -229,7 +251,7 @@ int main ( int argc, char *argv[] )
     Triangle fineZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.15, -sampleHeight*.5 ) ) ;
     Triangle finerZone ( Point ( 0.,sampleHeight*.5 ), Point ( 0.,-sampleHeight*.5 ), Point ( sampleLength*.075, -sampleHeight*.5 ) ) ;
     F.addRefinementZone ( &fineZone );
-     F.addRefinementZone ( &finerZone );
+    F.addRefinementZone ( &finerZone );
 
 
 

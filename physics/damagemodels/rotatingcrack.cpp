@@ -283,14 +283,14 @@ void RotatingCrack::step(ElementState & s, double maxscore)
             if(currentAngle < 0)
                 currentAngle += M_PI*.5 ;
 //             if(firstTension)
-                stiff->setAngle ( currentAngle ) ; 
-                std::cout << std::min(std::abs(currentAngle-M_PI*.5), std::abs(currentAngle)) << std::endl ;
+            stiff->setAngle ( currentAngle ) ; 
+//                 std::cout << std::min(std::abs(currentAngle-M_PI*.5), std::abs(currentAngle)) << std::endl ;
             change = true ;
             if(iterationcount > iterationNumber/2)
             {
 //                 if(firstTension)
 //                     stiff->setAngle ( currentAngle ) ;
-                std::cout << "converged angle = " << currentAngle << std::endl ;
+//                 std::cout << "converged angle = " << currentAngle << std::endl ;
                 initialAngle = currentAngle ;
                 alternate = false ;
                 alternateCheckpoint = true ;
@@ -302,81 +302,55 @@ void RotatingCrack::step(ElementState & s, double maxscore)
 
 std::pair< Vector, Vector > RotatingCrack::computeDamageIncrement ( ElementState &s )
 {
-//     Vector range = getState() +1. ;
-//     
-//     for(size_t i = 0 ; i < 4 ; i++)
-//         range[i] = std::min(range[i], 1.) ;
+
     Vector range (1., 4 ) ;
     
     es = &s ;
-//     if ( s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() )
-//     {
-//         postprocheck = true ;
-//     }
 
-    if ( true /*s.getParent()->getBehaviour()->getFractureCriterion()->isAtCheckpoint() && s.getParent()->getBehaviour()->getFractureCriterion()->isInDamagingSet()*/ )
+    firstTension  = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) ;
+    secondTension = s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ) ;
+
+
+    if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
     {
-
-
-        if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 0 ) )
-        {
-            firstTension = true ;
-        }
-        else
-        {
-            firstTension = false ;
-        }
-
-        if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionInTension ( 1 ) )
-        {
-            secondTension = true ;
-        }
-        else
-        {
-            secondTension = false ;
-        }
-
-        if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 0 ) )
-        {
-            firstMet = true ;
-//             if ( firstTension )
-//             {
-//                 range[1] = getState() [1] ;
-//             }
-//             else
-//             {
-                range[0] = getState() [0] ;
-//             }
-
-        }
-        else
-        {
-            range[1] = getState() [1] ;
+        firstMet = true ;
+//         if ( firstTension )
+//         {
+//             range[1] = getState() [1] ;
+//         }
+//         else
+//         {
             range[0] = getState() [0] ;
-            firstMet = false ;
-        }
-
-        if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
-        {
-//             secondMet = true ;
-//             if ( secondTension )
-//             {
-                range[3] = getState() [3] ;
-//             }
-//             else
-//             {
-//                 range[2] = getState() [2] ;
-//             }
-
-        }
-        else
-        {
-            range[3] = getState() [3] ;
-            range[2] = getState() [2] ;
-            secondMet = false ;
-        }
+//         }
 
     }
+    else
+    {
+        range[1] = getState() [1] ;
+        range[0] = getState() [0] ;
+        firstMet = false ;
+    }
+
+    if ( s.getParent()->getBehaviour()->getFractureCriterion()->directionMet ( 1 ) )
+    {
+        secondMet = true ;
+//         if ( secondTension )
+//         {
+            range[3] = getState() [3] ;
+//         }
+//         else
+//         {
+//             range[2] = getState() [2] ;
+//         }
+
+    }
+    else
+    {
+        range[3] = getState() [3] ;
+        range[2] = getState() [2] ;
+        secondMet = false ;
+    }
+
     return std::make_pair ( getState(),  range ) ;
 }
 

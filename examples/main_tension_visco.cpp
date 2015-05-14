@@ -135,9 +135,6 @@ void step (const Function & loadfunc)
 
 }
 
-
-
-
 int main ( int argc, char *argv[] )
 {
     // Beton
