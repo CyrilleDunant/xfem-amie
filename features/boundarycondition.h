@@ -34,8 +34,11 @@ protected:
 public:
     BoundaryCondition(LagrangeMultiplierType t, const double & d, int a = 0) ;
     BoundaryCondition(LagrangeMultiplierType t, const Function & d, int a = 0) ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t) = 0 ;
-    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t) = 0 ;
+    
+    virtual void apply(Assembly * a, Mesh<DelaunayTriangle, DelaunayTreeItem> * t);
+    
+    virtual void apply(Assembly * a, Mesh<DelaunayTetrahedron, DelaunayTreeItem3D> * t);
+    
     virtual void setData(double newval) {
         data = newval ;
     }
@@ -44,6 +47,10 @@ public:
     }
     virtual double getData() const {
         return data ;
+    }
+    
+    virtual const Function & getDataFunction() const {
+        return dataFunction ;
     }
     virtual int getAxisIndex() const {
         return axis ;
